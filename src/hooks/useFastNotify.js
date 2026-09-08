@@ -1,17 +1,47 @@
 import { useEffect, useRef } from 'react';
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { subscribeCloudOrders } from '../supabase';
 
 export function useFastNotify(shopId, role, onAlert) {
   const isFirstRun = useRef(true);
 
   useEffect(() => {
-    // Only subscribe if shopId and role are provided, and user is present
     if (!shopId || !role) return;
 
-    let unsubscribe = null;
+    let unsubscribeFirebase = null;
+    let unsubscribeSupabase = null;
     let alarmSettings = { kitchenNew: true, kitchenReady: false, deliveryReady: true };
     let isCancelled = false;
+
+    // 1. Listen via Supabase Realtime Channel
+    try {
+      unsubscribeSupabase = subscribeCloudOrders(shopId, (payload) => {
+        const order = payload.new;
+        if (!order) return;
+
+        let shouldAlarm = false;
+        let alertTitle = "";
+
+        if (payload.eventType === 'INSERT' && order.status === 'new') {
+          if (role === 'kitchen' || role === 'owner') {
+            shouldAlarm = true;
+            alertTitle = "NEW ORDER!";
+          }
+        } else if (order.status === 'ready_for_pickup') {
+          if (role === 'delivery' || role === 'owner') {
+            shouldAlarm = true;
+            alertTitle = "ORDER READY FOR PICKUP!";
+          }
+        }
+
+        if (shouldAlarm && onAlert) {
+          onAlert({ order, orderId: order.id, title: alertTitle });
+        }
+      });
+    } catch (sbErr) {
+      console.warn("Supabase Realtime alert hook note:", sbErr.message);
+    }
 
     const startListening = async () => {
       // Fetch shop's alarm settings if accessible
@@ -32,8 +62,7 @@ export function useFastNotify(shopId, role, onAlert) {
       );
 
       try {
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          // Skip triggering alarms for the initial records fetched on subscription
+        unsubscribeFirebase = onSnapshot(q, (snapshot) => {
           if (isFirstRun.current) {
             isFirstRun.current = false;
             return;
@@ -46,7 +75,6 @@ export function useFastNotify(shopId, role, onAlert) {
             let shouldAlarm = false;
             let alertTitle = "";
 
-            // Check if order is recent (less than 5 minutes old) to prevent historical alerts
             const now = Date.now();
             const orderTime = order.createdAt?.toMillis ? order.createdAt.toMillis() : now;
             const isRecent = (now - orderTime) < (5 * 60 * 1000);
@@ -74,13 +102,10 @@ export function useFastNotify(shopId, role, onAlert) {
           });
         }, (error) => {
           if (error.code === 'permission-denied') {
-            // Permission restricted for unauthenticated/guest desk view - unsubscribe to prevent reconnect spam
-            if (unsubscribe) {
-              unsubscribe();
-              unsubscribe = null;
+            if (unsubscribeFirebase) {
+              unsubscribeFirebase();
+              unsubscribeFirebase = null;
             }
-          } else {
-            console.warn("Fast Notify subscription warning:", error.message);
           }
         });
       } catch (err) {
@@ -92,9 +117,8 @@ export function useFastNotify(shopId, role, onAlert) {
 
     return () => {
       isCancelled = true;
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      if (unsubscribeFirebase) unsubscribeFirebase();
+      if (unsubscribeSupabase) unsubscribeSupabase();
     };
   }, [shopId, role, onAlert]);
 }

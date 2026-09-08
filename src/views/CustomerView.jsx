@@ -35,7 +35,7 @@ import {
   Navigation
 } from 'lucide-react';
 import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
-import { createCloudOrder, getCloudMenus } from '../supabase';
+import { createCloudOrder, getCloudMenus, subscribeSingleCloudOrder } from '../supabase';
 
 // Curated high-res transparent PNG cutout dishes (Exact Template Match)
 const DEFAULT_PRASAD_ITEMS = [
@@ -320,20 +320,30 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => unsubscribe();
   }, [selectedShopId]);
 
-  // Auto-switch to tracking view if trackingOrderId is set
+  // Auto-switch to tracking view if trackingOrderId is set (Dual Supabase Realtime + Firebase)
   useEffect(() => {
     if (trackingOrderId) {
-      const unsub = onSnapshot(doc(db, "orders", trackingOrderId), (docSnap) => {
+      let unsubSupabase = null;
+      try {
+        unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
+          setTrackingOrder(updatedOrder);
+          setIsTrackingModalOpen(true);
+        });
+      } catch (err) {
+        // Fallback
+      }
+
+      const unsubFirebase = onSnapshot(doc(db, "orders", trackingOrderId), (docSnap) => {
         if (docSnap.exists()) {
           setTrackingOrder({ id: docSnap.id, ...docSnap.data() });
           setIsTrackingModalOpen(true);
-        } else {
-          setTrackingOrder(null);
-          setTrackingOrderId(null);
-          setIsTrackingModalOpen(false);
         }
-      });
-      return () => unsub();
+      }, () => {});
+
+      return () => {
+        if (unsubFirebase) unsubFirebase();
+        if (unsubSupabase) unsubSupabase();
+      };
     } else {
       setTrackingOrder(null);
       setIsTrackingModalOpen(false);

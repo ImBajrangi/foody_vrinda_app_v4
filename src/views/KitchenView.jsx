@@ -15,6 +15,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
+import { updateCloudOrderStatus, createCloudOrder, subscribeCloudOrders } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import { 
   ChefHat, 
@@ -172,6 +173,7 @@ export default function KitchenView() {
 
     try {
       const docRef = await addDoc(collection(db, "orders"), orderPayload);
+      createCloudOrder({ ...orderPayload, id: docRef.id });
       
       // Notify staff
       const staffQuery = query(
@@ -195,24 +197,32 @@ export default function KitchenView() {
       showToast("Manual order created successfully!", "success");
       handleCloseCreateModal();
     } catch (err) {
-      console.error(err);
-      showToast("Failed to create manual order.", "error");
+      try {
+        const cloudOrder = await createCloudOrder(orderPayload);
+        showToast("Manual order created successfully!", "success");
+        handleCloseCreateModal();
+      } catch (cloudErr) {
+        console.error(cloudErr);
+        showToast("Failed to create manual order.", "error");
+      }
     }
   };
 
   const handleAcceptOrder = async (orderId) => {
     try {
       await updateDoc(doc(db, "orders", orderId), { status: 'preparing' });
+      await updateCloudOrderStatus(orderId, 'preparing');
       showToast("Order accepted into preparation!", "success");
     } catch (e) {
-      console.error("Accept order error:", e);
-      showToast("Failed to accept order.", "error");
+      await updateCloudOrderStatus(orderId, 'preparing');
+      showToast("Order accepted into preparation!", "success");
     }
   };
 
   const handleOrderReady = async (orderId, orderData) => {
     try {
       await updateDoc(doc(db, "orders", orderId), { status: 'ready_for_pickup' });
+      await updateCloudOrderStatus(orderId, 'ready_for_pickup');
       
       // Notify customer
       await addDoc(collection(db, "notifications"), {

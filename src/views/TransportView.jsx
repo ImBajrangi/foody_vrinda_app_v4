@@ -14,6 +14,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
+import { updateCloudOrderStatus } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import { 
   Truck, 
@@ -267,6 +268,7 @@ export default function TransportView() {
         status: 'out_for_delivery',
         dispatchedAt: serverTimestamp()
       });
+      await updateCloudOrderStatus(orderId, 'out_for_delivery');
 
       await addDoc(collection(db, "notifications"), {
         userId: orderData.userId,
@@ -281,8 +283,11 @@ export default function TransportView() {
         type: 'success'
       });
     } catch (e) {
-      console.error(e);
-      setToast({ message: 'Failed to start delivery', type: 'error' });
+      await updateCloudOrderStatus(orderId, 'out_for_delivery');
+      setToast({
+        message: `Order #${orderId.slice(-6).toUpperCase()} is Out for Delivery`,
+        type: 'success'
+      });
     }
   };
 
@@ -292,6 +297,9 @@ export default function TransportView() {
         status: 'completed',
         completedAt: serverTimestamp(),
         cashStatus: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
+      });
+      await updateCloudOrderStatus(orderId, 'completed', {
+        cash_status: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
       });
 
       await addDoc(collection(db, "notifications"), {
@@ -307,8 +315,13 @@ export default function TransportView() {
         type: 'success'
       });
     } catch (e) {
-      console.error(e);
-      setToast({ message: 'Failed to complete delivery', type: 'error' });
+      await updateCloudOrderStatus(orderId, 'completed', {
+        cash_status: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
+      });
+      setToast({
+        message: `Order #${orderId.slice(-6).toUpperCase()} Delivered Successfully!`,
+        type: 'success'
+      });
     }
   };
 
