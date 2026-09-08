@@ -329,3 +329,195 @@ export function subscribeSingleCloudOrder(orderId, onUpdate) {
     return () => {};
   }
 }
+
+/**
+ * 6. REALTIME NOTIFICATIONS (DEVOTEE, KITCHEN, RIDERS)
+ */
+export async function createCloudNotification({ userId, role, shopId, orderId, message }) {
+  try {
+    const notifId = `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const { data, error } = await supabase
+      .from('foody_notifications')
+      .insert([{
+        id: notifId,
+        user_id: userId || null,
+        role: role || 'customer',
+        shop_id: shopId || null,
+        order_id: orderId || null,
+        message,
+        read: false,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) console.warn('createCloudNotification note:', error.message);
+    return data;
+  } catch (err) {
+    console.warn('createCloudNotification exception:', err.message);
+    return null;
+  }
+}
+
+export function subscribeCloudNotifications(userId, onNotification) {
+  try {
+    const channelId = `foody-notifs-${userId || 'broadcast'}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelId)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'foody_notifications',
+          ...(userId ? { filter: `user_id=eq.${userId}` } : {})
+        },
+        (payload) => {
+          if (onNotification && payload.new) {
+            onNotification({
+              id: payload.new.id,
+              userId: payload.new.user_id,
+              role: payload.new.role,
+              shopId: payload.new.shop_id,
+              orderId: payload.new.order_id,
+              message: payload.new.message,
+              read: payload.new.read,
+              createdAt: payload.new.created_at
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  } catch (err) {
+    console.warn('subscribeCloudNotifications exception:', err.message);
+    return () => {};
+  }
+}
+
+export async function createCloudMenuItem(itemData) {
+  try {
+    const itemId = itemData.id || `menu-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const payload = {
+      id: itemId,
+      shop_id: itemData.shopId || 'shop-vrinda-main',
+      name: itemData.name,
+      subtitle: itemData.subtitle || itemData.category || '',
+      description: itemData.description || '',
+      category: itemData.category || 'Main',
+      price: Number(itemData.price || 0),
+      image: itemData.imageUrl || itemData.image || DEFAULT_PRASAD_ITEMS[0].image,
+      tag: itemData.isDailySpecial ? 'Special' : (itemData.tag || 'Popular'),
+      kcal: itemData.nutrition?.kcal || itemData.nutrition || '250 kcal',
+      nutrition: typeof itemData.nutrition === 'object' ? itemData.nutrition : { kcal: itemData.nutrition || '250 kcal' },
+      is_available: itemData.isAvailable ?? true
+    };
+
+    const { data, error } = await supabase
+      .from('foody_menus')
+      .upsert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('createCloudMenuItem warning:', error.message);
+      return { id: itemId, ...itemData };
+    }
+    return { id: data.id, ...data };
+  } catch (err) {
+    console.warn('createCloudMenuItem exception:', err.message);
+    return { id: itemData.id || `menu-${Date.now()}`, ...itemData };
+  }
+}
+
+export async function updateCloudMenuItem(itemId, itemData) {
+  try {
+    const payload = {};
+    if (itemData.name !== undefined) payload.name = itemData.name;
+    if (itemData.subtitle !== undefined) payload.subtitle = itemData.subtitle;
+    if (itemData.description !== undefined) payload.description = itemData.description;
+    if (itemData.category !== undefined) payload.category = itemData.category;
+    if (itemData.price !== undefined) payload.price = Number(itemData.price);
+    if (itemData.imageUrl !== undefined || itemData.image !== undefined) payload.image = itemData.imageUrl || itemData.image;
+    if (itemData.tag !== undefined) payload.tag = itemData.tag;
+    if (itemData.isDailySpecial !== undefined) payload.tag = itemData.isDailySpecial ? 'Special' : 'Popular';
+    if (itemData.nutrition !== undefined) payload.nutrition = typeof itemData.nutrition === 'object' ? itemData.nutrition : { kcal: itemData.nutrition };
+    if (itemData.isAvailable !== undefined) payload.is_available = itemData.isAvailable;
+
+    const { data, error } = await supabase
+      .from('foody_menus')
+      .update(payload)
+      .eq('id', itemId)
+      .select();
+
+    if (error) {
+      console.warn('updateCloudMenuItem warning:', error.message);
+    }
+    return data;
+  } catch (err) {
+    console.warn('updateCloudMenuItem exception:', err.message);
+    return null;
+  }
+}
+
+export async function deleteCloudMenuItem(itemId) {
+  try {
+    const { error } = await supabase
+      .from('foody_menus')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      console.warn('deleteCloudMenuItem warning:', error.message);
+    }
+    return !error;
+  } catch (err) {
+    console.warn('deleteCloudMenuItem exception:', err.message);
+    return false;
+  }
+}
+
+export async function updateCloudShop(shopId, shopData) {
+  try {
+    const payload = {};
+    if (shopData.name !== undefined) payload.name = shopData.name;
+    if (shopData.address !== undefined) payload.address = shopData.address;
+    if (shopData.minimumOrderAmount !== undefined) payload.minimum_order_amount = Number(shopData.minimumOrderAmount);
+    if (shopData.deliveryCharge !== undefined) payload.delivery_charge = Number(shopData.deliveryCharge);
+    if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
+    if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
+    if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+
+    const { data, error } = await supabase
+      .from('foody_shops')
+      .update(payload)
+      .eq('id', shopId)
+      .select();
+
+    if (error) {
+      console.warn('updateCloudShop warning:', error.message);
+    }
+    return data;
+  } catch (err) {
+    console.warn('updateCloudShop exception:', err.message);
+    return null;
+  }
+}
+
+export async function markCloudOrderCashCollected(orderId) {
+  return updateCloudOrderStatus(orderId, undefined, { cash_status: 'collected' });
+}
+
+export async function markCloudNotificationRead(notifId, isRead = true) {
+  try {
+    await supabase
+      .from('foody_notifications')
+      .update({ read: isRead })
+      .eq('id', notifId);
+  } catch (err) {
+    console.warn('markCloudNotificationRead warning:', err.message);
+  }
+}

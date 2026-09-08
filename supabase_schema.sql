@@ -60,17 +60,31 @@ CREATE TABLE IF NOT EXISTS public.foody_orders (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. PERFORMANCE INDEXES
+-- 4. NOTIFICATIONS TABLE (Devotee, Kitchen & Rider Push Feeds)
+CREATE TABLE IF NOT EXISTS public.foody_notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    role TEXT, -- 'customer' | 'kitchen' | 'delivery' | 'owner'
+    shop_id TEXT,
+    order_id TEXT,
+    message TEXT NOT NULL,
+    read BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. PERFORMANCE INDEXES
 CREATE INDEX IF NOT EXISTS idx_orders_shop_status ON public.foody_orders (shop_id, status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.foody_orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_menus_shop ON public.foody_menus (shop_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.foody_notifications (user_id, read);
 
--- 5. ENABLE ROW LEVEL SECURITY (RLS)
+-- 6. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.foody_shops ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_menus ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
 
--- 6. PUBLIC ACCESS POLICIES (Devotee & Operational Desks)
+-- 7. PUBLIC ACCESS POLICIES (Devotee & Operational Desks)
 DROP POLICY IF EXISTS "Public read shops" ON public.foody_shops;
 CREATE POLICY "Public read shops" ON public.foody_shops FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public write shops" ON public.foody_shops;
@@ -90,10 +104,20 @@ CREATE POLICY "Public update orders" ON public.foody_orders FOR UPDATE USING (tr
 DROP POLICY IF EXISTS "Public delete orders" ON public.foody_orders;
 CREATE POLICY "Public delete orders" ON public.foody_orders FOR DELETE USING (true);
 
--- 7. ENABLE REALTIME BROADCASTING
+DROP POLICY IF EXISTS "Public read notifications" ON public.foody_notifications;
+CREATE POLICY "Public read notifications" ON public.foody_notifications FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert notifications" ON public.foody_notifications;
+CREATE POLICY "Public insert notifications" ON public.foody_notifications FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public update notifications" ON public.foody_notifications;
+CREATE POLICY "Public update notifications" ON public.foody_notifications FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Public delete notifications" ON public.foody_notifications;
+CREATE POLICY "Public delete notifications" ON public.foody_notifications FOR DELETE USING (true);
+
+-- 8. ENABLE REALTIME BROADCASTING
 ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications;
 
 -- 8. SEED DATA - KITCHEN BRANCHES
 INSERT INTO public.foody_shops (id, name, address, phone, coordinates, is_open, minimum_order_amount, delivery_charge, gst_percentage)

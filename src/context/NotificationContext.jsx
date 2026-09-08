@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
+import { subscribeCloudNotifications, markCloudNotificationRead } from '../supabase';
 
 const NotificationContext = createContext(null);
 
@@ -34,6 +35,12 @@ export function NotificationProvider({ children }) {
     if (!user || user.isAnonymous) {
       return;
     }
+
+    // 1. Supabase Realtime Notification Channel
+    const unsubSupabase = subscribeCloudNotifications(user.uid, (newNotif) => {
+      setNotifications(prev => [newNotif, ...prev.filter(n => n.id !== newNotif.id)]);
+      setUnreadCount(prev => prev + 1);
+    });
 
     const q = query(
       collection(db, "notifications"), 
@@ -76,18 +83,20 @@ export function NotificationProvider({ children }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+      if (unsubSupabase) unsubSupabase();
+    };
   }, [user]);
 
   const toggleNotificationRead = async (id, isRead) => {
     // Optimistic state update
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: isRead } : n));
+    markCloudNotificationRead(id, isRead);
     try {
       await updateDoc(doc(db, "notifications", id), { read: isRead });
     } catch (error) {
-      console.error("Error marking notification: ", error);
-      // Revert optimistic state update
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: !isRead } : n));
+      console.warn("Notification update note: ", error.message);
     }
   };
 

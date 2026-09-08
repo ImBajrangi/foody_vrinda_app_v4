@@ -10,6 +10,17 @@ import {
   deleteDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { 
+  supabase, 
+  getCloudMenus, 
+  createCloudMenuItem, 
+  updateCloudMenuItem, 
+  deleteCloudMenuItem, 
+  updateCloudShop, 
+  markCloudOrderCashCollected, 
+  subscribeCloudOrders,
+  DEFAULT_PRASAD_ITEMS 
+} from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { 
@@ -65,7 +76,7 @@ export default function OwnerView() {
   const { currentUserShopId, allShops, refreshShops } = useAuth();
   
   const [orders, setOrders] = useState([]);
-  const [menuItems, setMenuItems] = useState([]);
+  const [menuItems, setMenuItems] = useState(DEFAULT_PRASAD_ITEMS);
   const [activeTab, setActiveTab] = useState('summary'); // 'summary', 'shops', 'menu', 'audit'
   const [toast, setToast] = useState(null);
 
@@ -102,28 +113,99 @@ export default function OwnerView() {
     ingredients: ''
   });
 
-  // Fetch shop-specific orders for analytics and audit
+  // Fetch shop-specific orders for analytics and audit with Supabase & Firebase Dual Sync
   useEffect(() => {
     if (!currentUserShopId) return;
 
-    const q = query(collection(db, "orders"), where("shopId", "==", currentUserShopId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOrders(allOrders);
+    // 1. Initial fetch from Supabase
+    async function fetchCloudOrders() {
+      try {
+        const { data, error } = await supabase
+          .from('foody_orders')
+          .select('*')
+          .eq('shop_id', currentUserShopId)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setOrders(data.map(o => ({
+            id: o.id,
+            ...o,
+            shopId: o.shop_id,
+            customerName: o.customer_name,
+            customerPhone: o.customer_phone,
+            deliveryAddress: o.delivery_address,
+            totalAmount: o.total_amount,
+            paymentMethod: o.payment_method,
+            cashStatus: o.cash_status,
+            createdAt: o.created_at
+          })));
+        }
+      } catch (err) {
+        console.warn('Supabase fetchCloudOrders fallback:', err);
+      }
+    }
+    fetchCloudOrders();
+
+    // 2. Realtime subscription to Supabase
+    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, (payload) => {
+      fetchCloudOrders();
     });
 
-    return () => unsubscribe();
+    // 3. Fallback Firestore snapshot listener with safe error handling
+    let unsubscribeFirestore = () => {};
+    try {
+      const q = query(collection(db, "orders"), where("shopId", "==", currentUserShopId));
+      unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setOrders(prev => {
+            const combined = [...prev];
+            allOrders.forEach(fo => {
+              const idx = combined.findIndex(c => c.id === fo.id);
+              if (idx >= 0) combined[idx] = { ...combined[idx], ...fo };
+              else combined.unshift(fo);
+            });
+            return combined;
+          });
+        }
+      }, (err) => {
+        console.warn('Firestore orders snapshot restricted, using Supabase.');
+      });
+    } catch (e) {
+      console.warn('Firestore fallback inactive:', e);
+    }
+
+    return () => {
+      if (unsubscribeSupabase) unsubscribeSupabase();
+      if (unsubscribeFirestore) unsubscribeFirestore();
+    };
   }, [currentUserShopId]);
 
   // Fetch menu items for menu manager
   useEffect(() => {
     if (!currentUserShopId) return;
 
-    const q = query(collection(db, "menus"), where("shopId", "==", currentUserShopId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMenuItems(items);
-    });
+    async function loadMenus() {
+      const items = await getCloudMenus(currentUserShopId);
+      if (items && items.length > 0) {
+        setMenuItems(items);
+      }
+    }
+    loadMenus();
+
+    // Also fallback to Firestore if available
+    let unsubscribe = () => {};
+    try {
+      const q = query(collection(db, "menus"), where("shopId", "==", currentUserShopId));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setMenuItems(items);
+        }
+      }, (err) => {
+        // Safe Firestore permission catch
+      });
+    } catch (e) {}
 
     return () => unsubscribe();
   }, [currentUserShopId]);
@@ -265,7 +347,7 @@ export default function OwnerView() {
     e.preventDefault();
     if (!editingShop) return;
     try {
-      await updateDoc(doc(db, "shops", editingShop.id), {
+      const shopUpdateData = {
         name: shopForm.name,
         address: shopForm.address,
         minimumOrderAmount: parseFloat(shopForm.minimumOrderAmount) || 0,
@@ -281,7 +363,18 @@ export default function OwnerView() {
           alwaysOpen: shopForm.alwaysOpen
         },
         imageUrl: shopForm.imageUrl
-      });
+      };
+
+      // 1. Supabase Cloud Sync
+      await updateCloudShop(editingShop.id, shopUpdateData);
+
+      // 2. Firestore fallback sync (safe)
+      try {
+        await updateDoc(doc(db, "shops", editingShop.id), shopUpdateData);
+      } catch (err) {
+        // Safe catch if Firestore offline
+      }
+
       setToast({ message: "Kitchen profile updated successfully!", type: "success" });
       setEditingShop(null);
       refreshShops();
@@ -302,8 +395,8 @@ export default function OwnerView() {
       isSatvik: item.isSatvik !== undefined ? item.isSatvik : true,
       isDailySpecial: item.isDailySpecial || false,
       spicyLevel: item.spicyLevel || 'Mild',
-      imageUrl: item.imageUrl || '',
-      nutrition: item.nutrition || '',
+      imageUrl: item.imageUrl || item.image || '',
+      nutrition: typeof item.nutrition === 'object' ? item.nutrition.kcal : (item.nutrition || ''),
       ingredients: item.ingredients || ''
     });
   };
@@ -326,10 +419,24 @@ export default function OwnerView() {
       };
 
       if (editingMenuItem) {
-        await updateDoc(doc(db, "menus", editingMenuItem.id), payload);
+        // 1. Supabase Cloud update
+        await updateCloudMenuItem(editingMenuItem.id, payload);
+        // 2. Local state update
+        setMenuItems(prev => prev.map(m => m.id === editingMenuItem.id ? { ...m, ...payload, image: payload.imageUrl } : m));
+        // 3. Firestore fallback
+        try {
+          await updateDoc(doc(db, "menus", editingMenuItem.id), payload);
+        } catch (e) {}
         setToast({ message: `"${menuForm.name}" updated successfully`, type: "success" });
       } else {
-        await addDoc(collection(db, "menus"), payload);
+        // 1. Supabase Cloud insert
+        const newDish = await createCloudMenuItem(payload);
+        // 2. Local state update
+        setMenuItems(prev => [newDish, ...prev]);
+        // 3. Firestore fallback
+        try {
+          await addDoc(collection(db, "menus"), payload);
+        } catch (e) {}
         setToast({ message: `"${menuForm.name}" added to menu!`, type: "success" });
       }
 
@@ -355,7 +462,15 @@ export default function OwnerView() {
   const handleConfirmDeleteMenuItem = async () => {
     if (!deleteTargetId) return;
     try {
-      await deleteDoc(doc(db, "menus", deleteTargetId));
+      // 1. Supabase Cloud delete
+      await deleteCloudMenuItem(deleteTargetId);
+      // 2. Local state update
+      setMenuItems(prev => prev.filter(m => m.id !== deleteTargetId));
+      // 3. Firestore fallback
+      try {
+        await deleteDoc(doc(db, "menus", deleteTargetId));
+      } catch (e) {}
+
       setToast({ message: "Dish removed from catalog", type: "success" });
       setDeleteTargetId(null);
     } catch (e) {
@@ -366,7 +481,15 @@ export default function OwnerView() {
 
   const handleMarkCashCollected = async (orderId) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { cashStatus: 'collected' });
+      // 1. Supabase Cloud update
+      await markCloudOrderCashCollected(orderId);
+      // 2. Local state update
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, cashStatus: 'collected', cash_status: 'collected' } : o));
+      // 3. Firestore fallback
+      try {
+        await updateDoc(doc(db, "orders", orderId), { cashStatus: 'collected' });
+      } catch (e) {}
+
       setToast({ message: `COD payment marked as Collected for #${orderId.slice(-6).toUpperCase()}`, type: "success" });
     } catch (e) {
       console.error(e);
