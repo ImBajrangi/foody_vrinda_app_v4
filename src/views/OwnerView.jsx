@@ -988,15 +988,15 @@ export default function OwnerView() {
                   <span>Pin on Google Maps</span>
                 </button>
 
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input 
-                    type="checkbox"
-                    checked={shopForm.alwaysOpen}
-                    onChange={(e) => setShopForm({...shopForm, alwaysOpen: e.target.checked})}
-                    className="rounded border-white/20 bg-[#1E1B1C] text-[#E0FF33] focus:ring-0 w-4 h-4"
-                  />
-                  <span className="text-xs font-semibold text-neutral-300">Open 24/7 Always</span>
-                </label>
+                <div 
+                  onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
+                  className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                >
+                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors relative ${shopForm.alwaysOpen ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-[#18181A] shadow-sm transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <span className="text-xs font-bold text-neutral-200">Open 24/7 Always</span>
+                </div>
               </div>
 
               <button 
@@ -1027,120 +1027,269 @@ export default function OwnerView() {
             </div>
 
             <form onSubmit={handleSaveMenuForm} className="space-y-4">
+              {/* Dish Name Input */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Dish Name</label>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
+                  Dish Name
+                </label>
                 <input 
                   type="text" 
                   value={menuForm.name} 
                   onChange={(e) => setMenuForm({...menuForm, name: e.target.value})} 
                   placeholder="e.g. Shahi Vrindavan Thali"
                   required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
                 />
               </div>
 
+              {/* Description Input */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Description</label>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
                 <textarea 
                   rows={2}
                   value={menuForm.description} 
                   onChange={(e) => setMenuForm({...menuForm, description: e.target.value})} 
                   placeholder="Rich fragrant gravy prepared with pure desi ghee..."
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans'] resize-none"
+                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans'] resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Price (₹)</label>
+              {/* Price with Quick Stepper Controls */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+                    Price (₹)
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setMenuForm(prev => ({ ...prev, price: Math.max(0, Number(prev.price || 0) - 10) }))}
+                      className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-[10px] font-bold transition-all border border-white/5 cursor-pointer"
+                    >
+                      -₹10
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 10 }))}
+                      className="px-2 py-0.5 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
+                    >
+                      +₹10
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 50 }))}
+                      className="px-2 py-0.5 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
+                    >
+                      +₹50
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
+                  <span className="text-sm font-black text-[#E0FF33] font-['Outfit'] pr-2.5 border-r border-white/10 select-none">
+                    ₹
+                  </span>
                   <input 
                     type="number" 
-                    value={menuForm.price} 
-                    onChange={(e) => setMenuForm({...menuForm, price: e.target.value})} 
+                    value={menuForm.price || ''} 
+                    onChange={(e) => setMenuForm({...menuForm, price: Math.max(0, Number(e.target.value))})} 
+                    placeholder="0"
                     required 
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-transparent pl-3 pr-1 py-1.5 text-sm text-white focus:outline-none font-['Outfit'] font-black no-spinners"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Category</label>
-                  <select 
-                    value={menuForm.category}
-                    onChange={(e) => setMenuForm({...menuForm, category: e.target.value})}
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  >
-                    <option value="Main" className="bg-[#1E1B1C]">Main Course</option>
-                    <option value="Sweets" className="bg-[#1E1B1C]">Sweets & Desserts</option>
-                    <option value="Drinks" className="bg-[#1E1B1C]">Beverages</option>
-                    <option value="Sides" className="bg-[#1E1B1C]">Breads & Sides</option>
-                  </select>
-                </div>
               </div>
 
+              {/* Web UI Segmented Category Selector */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Image URL (High-res Cutout)</label>
-                <input 
-                  type="text" 
-                  value={menuForm.imageUrl} 
-                  onChange={(e) => setMenuForm({...menuForm, imageUrl: e.target.value})} 
-                  placeholder="https://..."
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  Category
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {[
+                    { id: 'Meals', label: 'Main Course', icon: '🍛' },
+                    { id: 'Sweets', label: 'Sweets & Prasad', icon: '🍧' },
+                    { id: 'Snacks', label: 'Snacks & Bakes', icon: '🥪' },
+                    { id: 'Drinks', label: 'Beverages', icon: '🥛' }
+                  ].map(cat => {
+                    const isSelected = menuForm.category === cat.id || 
+                      (cat.id === 'Meals' && menuForm.category === 'Main') ||
+                      (cat.id === 'Sweets' && menuForm.category === 'Sweets & Prasad');
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
+                        className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_2px_10px_rgba(224,255,51,0.25)]'
+                            : 'bg-[#1E1B1C] text-zinc-400 border-white/5 hover:text-white hover:border-white/15'
+                        }`}
+                      >
+                        <span className="text-xs">{cat.icon}</span>
+                        <span className="truncate text-[11px]">{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Spiciness</label>
-                  <select 
-                    value={menuForm.spicyLevel}
-                    onChange={(e) => setMenuForm({...menuForm, spicyLevel: e.target.value})}
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  >
-                    <option value="Mild" className="bg-[#1E1B1C]">Mild</option>
-                    <option value="Medium" className="bg-[#1E1B1C]">Medium</option>
-                    <option value="Spicy" className="bg-[#1E1B1C]">Spicy</option>
-                  </select>
+              {/* Visual Transparent PNG Asset Cutout Picker */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  Dish Cutout Visual Asset
+                </label>
+                <div className="grid grid-cols-6 gap-2 mb-2.5">
+                  {[
+                    { src: '/dishes/burger.png', name: 'Burger', icon: '🍔' },
+                    { src: '/dishes/thali.png', name: 'Thali', icon: '🍱' },
+                    { src: '/dishes/sweet.png', name: 'Kheer', icon: '🍧' },
+                    { src: '/dishes/pizza.png', name: 'Pizza', icon: '🍕' },
+                    { src: '/dishes/curry.png', name: 'Paneer', icon: '🍲' },
+                    { src: '/dishes/rice.png', name: 'Rice', icon: '🍚' }
+                  ].map((asset) => {
+                    const isSelected = menuForm.imageUrl === asset.src;
+                    return (
+                      <button
+                        key={asset.src}
+                        type="button"
+                        onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
+                        className={`aspect-square rounded-2xl p-1.5 border transition-all flex flex-col items-center justify-center relative group cursor-pointer ${
+                          isSelected 
+                            ? 'bg-[#FAF5EB] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.4)] ring-2 ring-[#E0FF33]' 
+                            : 'bg-[#1E1B1C] border-white/5 hover:border-white/20 hover:bg-[#282526]'
+                        }`}
+                        title={asset.name}
+                      >
+                        <img 
+                          src={asset.src} 
+                          alt={asset.name} 
+                          className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
+                        />
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center text-[9px] font-black shadow-sm">
+                            ✓
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
+
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={menuForm.imageUrl} 
+                    onChange={(e) => setMenuForm({...menuForm, imageUrl: e.target.value})} 
+                    placeholder="Or enter custom cutout URL (https://...)"
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-3.5 pr-10 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                  {menuForm.imageUrl && (
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm">
+                      <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Spiciness & Nutrition Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Web UI Spiciness Segmented Selector */}
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Nutrition</label>
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Spiciness
+                  </label>
+                  <div className="flex bg-[#1E1B1C] p-1 rounded-2xl border border-white/10 gap-1">
+                    {[
+                      { id: 'Mild', label: 'Mild', icon: '🟢' },
+                      { id: 'Medium', label: 'Medium', icon: '🟡' },
+                      { id: 'Spicy', label: 'Spicy', icon: '🌶️' }
+                    ].map(spice => {
+                      const isSelected = menuForm.spicyLevel === spice.id;
+                      return (
+                        <button
+                          key={spice.id}
+                          type="button"
+                          onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
+                          className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#282526] text-white border border-white/15 font-black shadow-sm'
+                              : 'text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          <span className="text-[10px]">{spice.icon}</span>
+                          <span className="text-[11px]">{spice.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Nutrition Input */}
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Nutrition Info
+                  </label>
                   <input 
                     type="text" 
                     value={menuForm.nutrition} 
                     onChange={(e) => setMenuForm({...menuForm, nutrition: e.target.value})} 
-                    placeholder="280 kcal, 8g P"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    placeholder="e.g. 260 kcal, 14g P"
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 select-none border-t border-white/5">
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={menuForm.isSatvik}
-                    onChange={(e) => setMenuForm({...menuForm, isSatvik: e.target.checked})}
-                    className="rounded border-white/20 bg-[#1E1B1C] text-[#E0FF33] focus:ring-0 w-4 h-4"
-                  />
-                  <span className="text-xs font-semibold text-neutral-300">100% Satvik (No Onion/Garlic)</span>
-                </label>
+              {/* Web UI Custom Toggle Switches */}
+              <div className="space-y-2.5 pt-3 border-t border-white/5">
+                {/* 100% Satvik Toggle */}
+                <div 
+                  onClick={() => setMenuForm(prev => ({ ...prev, isSatvik: !prev.isSatvik }))}
+                  className="p-3 rounded-2xl bg-[#1E1B1C] border border-white/5 hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">✨</span>
+                    <div>
+                      <p className="text-xs font-bold text-white leading-tight">100% Satvik Prasad</p>
+                      <p className="text-[10px] text-neutral-500 font-medium">Strictly without onion or garlic</p>
+                    </div>
+                  </div>
+                  
+                  {/* Custom Animated Toggle Switch */}
+                  <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${menuForm.isSatvik ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
+                    <div className={`w-5 h-5 rounded-full bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isSatvik ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </div>
+                </div>
 
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={menuForm.isDailySpecial}
-                    onChange={(e) => setMenuForm({...menuForm, isDailySpecial: e.target.checked})}
-                    className="rounded border-white/20 bg-[#1E1B1C] text-[#E0FF33] focus:ring-0 w-4 h-4"
-                  />
-                  <span className="text-xs font-semibold text-neutral-300">Chef's Recommendation Banner</span>
-                </label>
+                {/* Chef's Recommendation Toggle */}
+                <div 
+                  onClick={() => setMenuForm(prev => ({ ...prev, isDailySpecial: !prev.isDailySpecial }))}
+                  className="p-3 rounded-2xl bg-[#1E1B1C] border border-white/5 hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">👑</span>
+                    <div>
+                      <p className="text-xs font-bold text-white leading-tight">Chef's Special Recommendation</p>
+                      <p className="text-[10px] text-neutral-500 font-medium">Highlight with glowing banner on top</p>
+                    </div>
+                  </div>
+                  
+                  {/* Custom Animated Toggle Switch */}
+                  <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${menuForm.isDailySpecial ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
+                    <div className={`w-5 h-5 rounded-full bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </div>
+                </div>
               </div>
 
+              {/* Submit CTA */}
               <div className="flex gap-2 pt-2">
                 <button 
                   type="submit" 
-                  className="flex-1 py-3 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-[0.98]"
+                  className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-[0_8px_25px_rgba(224,255,51,0.25)] active:scale-[0.98] cursor-pointer font-['Outfit']"
                 >
-                  {editingMenuItem ? 'Update Dish' : 'Publish Dish to Menu'}
+                  {editingMenuItem ? 'Update Dish Catalog' : 'Publish Dish to Menu'}
                 </button>
                 {editingMenuItem && (
                   <button 
@@ -1160,7 +1309,7 @@ export default function OwnerView() {
                         ingredients: '' 
                       });
                     }} 
-                    className="py-3 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/5"
+                    className="py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/5 cursor-pointer"
                   >
                     Cancel
                   </button>

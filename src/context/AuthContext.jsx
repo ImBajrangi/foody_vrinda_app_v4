@@ -25,12 +25,29 @@ import { supabase, getCloudShops } from '../supabase';
 
 const AuthContext = createContext(null);
 
+// Whitelist of authorized developer & administrator emails
+export const AUTHORIZED_DEV_EMAILS = (
+  import.meta.env.VITE_DEVELOPER_EMAILS || 
+  'developer@foodyvrinda.com,dev@foodyvrinda.com,admin@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
+).split(',').map(e => e.trim().toLowerCase());
+
+export const AUTHORIZED_ADMIN_EMAILS = (
+  import.meta.env.VITE_ADMIN_EMAILS || 
+  'admin@foodyvrinda.com,owner@foodyvrinda.com,manager@foodyvrinda.com,developer@foodyvrinda.com,dev@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
+).split(',').map(e => e.trim().toLowerCase());
+
 export const isDeveloperUser = (email = '', role = '') => {
   if (role === 'developer') return true;
-  const envDevs = (import.meta.env.VITE_DEVELOPER_EMAILS || 'dev@example.com,developer@foodyvrinda.com,admin@foodyvrinda.com')
-    .split(',')
-    .map(e => e.trim().toLowerCase());
-  return Boolean(email && (envDevs.includes(email.toLowerCase()) || email.startsWith('dev@') || email.includes('+dev@')));
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  return AUTHORIZED_DEV_EMAILS.includes(clean) || clean.startsWith('dev@') || clean.includes('+dev@');
+};
+
+export const isAdminUser = (email = '', role = '') => {
+  if (role === 'owner' || role === 'developer') return true;
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  return AUTHORIZED_ADMIN_EMAILS.includes(clean) || isDeveloperUser(clean, role);
 };
 
 export function AuthProvider({ children }) {
@@ -311,8 +328,20 @@ export function AuthProvider({ children }) {
     setCurrentShopName(null);
   };
 
-  // Developer impersonation control helper
+  // Developer & Admin authorization flags
+  const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
+  const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
+  const isAuthorizedDeveloper = Boolean(user && !user.isAnonymous && isDevUser);
+  const isAuthorizedAdmin = Boolean(user && !user.isAnonymous && (isAdminUserMatch || isDevUser));
+  const isStaff = Boolean(user && !user.isAnonymous && ['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole));
+
+  // Developer impersonation control helper (only allowed for verified developers or admins)
   const impersonate = (shopId, role) => {
+    // Only verified devs or admins can impersonate roles
+    if (!isAuthorizedDeveloper && !isAuthorizedAdmin && ['developer', 'owner'].includes(role)) {
+      console.warn("Unauthorized attempt to impersonate privileged role:", role);
+      return false;
+    }
     setImpersonatedShopId(shopId);
     setImpersonatedRole(role);
     try {
@@ -324,6 +353,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error(e);
     }
+    return true;
   };
 
   // Dynamically computed effective role and shop ID
@@ -339,6 +369,9 @@ export function AuthProvider({ children }) {
     userData,
     userRole: effectiveRole,
     actualRole: userRole,
+    isAuthorizedDeveloper,
+    isAuthorizedAdmin,
+    isStaff,
     userDevPermissions,
     currentUserShopId: effectiveShopId,
     currentUserShopIds: effectiveShopIds,

@@ -77,6 +77,8 @@ export default function AuthModal({ isOpen, onClose }) {
     user, 
     userData, 
     userRole, 
+    isAuthorizedAdmin,
+    isAuthorizedDeveloper,
     currentShopName, 
     allShops,
     loginWithEmail, 
@@ -111,9 +113,9 @@ export default function AuthModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  // Helper to get allowed workspaces by role
+  // Helper to get allowed workspaces by verified role
   const getAuthorizedWorkspaces = (role) => {
-    if (role === 'developer') {
+    if (isAuthorizedDeveloper || role === 'developer') {
       return [
         { role: 'customer', label: 'Storefront', icon: Sparkles },
         { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
@@ -122,7 +124,7 @@ export default function AuthModal({ isOpen, onClose }) {
         { role: 'developer', label: 'Developer Console', icon: Terminal, fullWidth: true }
       ];
     }
-    if (role === 'owner') {
+    if (isAuthorizedAdmin || role === 'owner') {
       return [
         { role: 'customer', label: 'Storefront', icon: Sparkles },
         { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
@@ -252,9 +254,18 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   const handleDemoAccess = (role) => {
+    if (['owner', 'developer'].includes(role) && !isAuthorizedAdmin && !isAuthorizedDeveloper) {
+      setError(`Access Restricted: ${role === 'developer' ? 'Developer' : 'Administrator'} account credentials required.`);
+      setLoginMethod('email');
+      return;
+    }
     setSelectedDesk(role);
     const targetShop = demoShopId || (allShops[0]?.id || 'shop-1');
-    impersonate(targetShop, role);
+    const ok = impersonate(targetShop, role);
+    if (!ok) {
+      setError(`Access Denied: Only authorized users can access the ${role.toUpperCase()} panel.`);
+      return;
+    }
     setSuccessMsg(`Switched to ${role.toUpperCase()} workspace!`);
     setTimeout(() => {
       handleAnimatedClose();
@@ -351,38 +362,70 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* AUTHENTICATED PROFILE VIEW */}
         {isAuthenticated ? (
           <div className="space-y-3.5 relative z-10">
+            {/* 1. Main Profile Card */}
             <div className="flex items-center gap-3.5 p-4 rounded-3xl bg-[#151314] border border-white/5">
-              <div className="w-13 h-13 rounded-2xl bg-[#282526] border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden">
+              <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden shadow-md">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <span>{(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || 'U').toUpperCase()}</span>
+                  <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
+                    {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || 'U').toUpperCase()}
+                  </span>
                 )}
               </div>
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-black text-white text-sm sm:text-base font-['Outfit'] truncate">
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] truncate">
                     {userData?.displayName || user.displayName || 'Customer'}
                   </h4>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/25">
-                    {userRole}
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                    isAuthorizedDeveloper
+                      ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
+                      : isAuthorizedAdmin
+                        ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                        : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                  }`}>
+                    {isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}
                   </span>
                 </div>
                 <p className="text-xs text-zinc-400 truncate">{user.email || user.phoneNumber || userData?.phone || 'Mobile Session'}</p>
                 {currentShopName && (
                   <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
-                    <Store className="w-3 h-3" />
-                    <span>{currentShopName}</span>
+                    <Store className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{currentShopName}</span>
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Saved Delivery Address Card for Customers */}
-            {(userData?.address || userData?.customerAddress) && (
+            {/* 2. Quick Customer Loyalty & Account Stat Badges */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Prasad Coins</span>
+                  <span className="text-xs font-black text-white font-['Outfit']">150 Coins</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Account Tier</span>
+                  <span className="text-xs font-black text-white font-['Outfit']">Vedic Devotee</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Saved Delivery Address Card */}
+            {(userData?.address || userData?.customerAddress) ? (
               <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#E0FF33] shrink-0 mt-0.5" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
                     Default Delivery Address
                   </span>
@@ -391,21 +434,28 @@ export default function AuthModal({ isOpen, onClose }) {
                   </p>
                 </div>
               </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
+                <MapPin className="w-4 h-4 text-zinc-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs text-zinc-400 font-medium">No saved address yet</span>
+                </div>
+              </div>
             )}
 
-            {/* Role Workspaces: Only shown automatically for staff/dev roles, or when expanded */}
-            {(userRole !== 'customer' || showStaffWorkspaces) && (
+            {/* 4. Authorized Workspaces Switcher: ONLY for verified Admin or Developer accounts */}
+            {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
               <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between px-1">
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    {userRole === 'developer' ? 'Developer Operational Switcher' : 'Your Operational Workspaces'}
+                    {isAuthorizedDeveloper ? 'Developer Operational Switcher' : 'Administrator Workspaces'}
                   </span>
                   <span className="text-[10px] font-black text-[#E0FF33] px-2 py-0.5 rounded-full bg-[#E0FF33]/10 border border-[#E0FF33]/20">
-                    {userRole.toUpperCase()}
+                    {isAuthorizedDeveloper ? 'DEVELOPER' : 'ADMIN'}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {getAuthorizedWorkspaces(userRole === 'customer' ? 'developer' : userRole).map((d) => {
+                  {getAuthorizedWorkspaces(userRole).map((d) => {
                     const Icon = d.icon;
                     const isCurrent = userRole === d.role;
                     return (
@@ -433,20 +483,7 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Discrete expander for testing staff roles from customer profile */}
-            {userRole === 'customer' && (
-              <div className="pt-0.5 text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowStaffWorkspaces(!showStaffWorkspaces)}
-                  className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5"
-                >
-                  <ShieldCheck className="w-3 h-3 text-zinc-500" />
-                  <span>{showStaffWorkspaces ? 'Hide Staff Workspaces' : 'Staff & Operations Access'}</span>
-                </button>
-              </div>
-            )}
-
+            {/* 5. Sign Out Button */}
             <button 
               type="button"
               onClick={handleLogout}
@@ -687,19 +724,30 @@ export default function AuthModal({ isOpen, onClose }) {
             {/* METHOD 3: QUICK DEMO ACCESS */}
             {loginMethod === 'demo' && (
               <div className="space-y-2.5 pt-0.5">
-                <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-1">
+                <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-2">
                   <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Target Kitchen Location
                   </label>
-                  <select 
-                    value={demoShopId}
-                    onChange={(e) => setDemoShopId(e.target.value)}
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#E0FF33]/50 cursor-pointer"
-                  >
-                    {allShops.map(s => (
-                      <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>
-                    ))}
-                  </select>
+                  <div className="grid grid-cols-1 gap-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">
+                    {allShops.map(s => {
+                      const isSelected = (demoShopId || allShops[0]?.id) === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setDemoShopId(s.id)}
+                          className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between text-left cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/40 shadow-sm'
+                              : 'bg-[#1E1B1C] text-zinc-400 border-white/5 hover:text-white hover:border-white/15'
+                          }`}
+                        >
+                          <span className="truncate">{s.name}</span>
+                          {isSelected && <span className="text-[10px] bg-[#E0FF33] text-black px-1.5 py-0.2 rounded font-black">ACTIVE</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

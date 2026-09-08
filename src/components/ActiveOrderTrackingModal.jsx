@@ -13,6 +13,7 @@ import {
   Star,
   AlarmClock
 } from 'lucide-react';
+import { subscribeSingleCloudOrder } from '../supabase';
 
 export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
   const mapContainerRef = useRef(null);
@@ -21,13 +22,42 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const [showItems, setShowItems] = useState(false);
   const [closing, setClosing] = useState(false);
 
+  // Live order state with automatic realtime WebSocket sync
+  const [liveOrder, setLiveOrder] = useState(order);
+
+  useEffect(() => {
+    setLiveOrder(order);
+  }, [order]);
+
+  // Realtime Supabase PostgreSQL Changes Subscription
+  useEffect(() => {
+    if (!liveOrder?.id) return;
+    const unsub = subscribeSingleCloudOrder(liveOrder.id, (updated) => {
+      if (updated) {
+        setLiveOrder(prev => ({ ...prev, ...updated }));
+        if (onToast && updated.status && updated.status !== liveOrder.status) {
+          onToast(
+            `Status: ${updated.status.replace(/_/g, ' ').toUpperCase()}`, 
+            'info', 
+            'Realtime Dispatch Update'
+          );
+        }
+      }
+    });
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [liveOrder?.id]);
+
   // Dynamic real-time metrics from live OSRM navigation service
   const [realDistance, setRealDistance] = useState(null);
   const [realDurationMins, setRealDurationMins] = useState(null);
   const [roadSummary, setRoadSummary] = useState('');
 
+  const currentOrder = liveOrder || order;
+
   const shop = (allShops && allShops.length > 0)
-    ? (allShops.find(s => s.id === (order?.shopId || order?.shop_id)) || allShops[0])
+    ? (allShops.find(s => s.id === (currentOrder?.shopId || currentOrder?.shop_id)) || allShops[0])
     : { name: 'Foody Vrinda Kitchen', coordinates: { lat: 27.5706, lng: 77.6593 } };
 
   const handleAnimatedClose = () => {
@@ -43,7 +73,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const shopLat = parseFloat(shop?.coordinates?.lat || shop?.lat) || 27.5706;
   const shopLng = parseFloat(shop?.coordinates?.lng || shop?.lng) || 77.6593;
 
-  const rawDest = order?.deliveryCoordinates || order?.delivery_coordinates || order?.coords;
+  const rawDest = currentOrder?.deliveryCoordinates || currentOrder?.delivery_coordinates || currentOrder?.coords;
   let destLat = parseFloat(rawDest?.lat);
   let destLng = parseFloat(rawDest?.lng);
 
@@ -55,7 +85,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const midLat = (shopLat + destLat) / 2;
   const midLng = (shopLng + destLng) / 2;
 
-  const status = order?.status || 'new';
+  const status = currentOrder?.status || 'new';
 
   // Fallback geometric distance if offline
   const getFallbackDistance = () => {
@@ -343,13 +373,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const isOutForDelivery = status === 'out_for_delivery';
   const isDelivered = status === 'completed';
 
-  const riderName = order?.rider_name || order?.riderName || order?.courier_name || order?.courierName || (isOutForDelivery || isDelivered ? 'Sarathi Rider' : shop?.managerName || 'Kitchen Dispatch');
-  const riderPhone = (order?.rider_phone || order?.riderPhone || shop?.phone || shop?.contactPhone || '9876543210').replace(/\D/g, '').slice(-10);
-  const riderRating = parseFloat(order?.rider_rating || shop?.rating || 4.9).toFixed(1);
-  const riderPhoto = order?.rider_avatar || order?.rider_photo || shop?.managerPhoto || shop?.image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80';
+  const riderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.courier_name || currentOrder?.courierName || (isOutForDelivery || isDelivered ? 'Govind Das (Sarathi)' : shop?.managerName || 'Kitchen Dispatch');
+  const riderPhone = (currentOrder?.rider_phone || currentOrder?.riderPhone || shop?.phone || shop?.contactPhone || '9876543210').replace(/\D/g, '').slice(-10);
+  const riderRating = parseFloat(currentOrder?.rider_rating || shop?.rating || 4.9).toFixed(1);
+  const riderPhoto = currentOrder?.rider_avatar || currentOrder?.rider_photo || shop?.managerPhoto || shop?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
 
   // Dynamic Address Label (Detect Home, Office, Hotel, Ashram, or Street)
-  const customerAddress = order?.customerAddress || order?.delivery_address || 'Vrindavan Dham';
+  const customerAddress = currentOrder?.customerAddress || currentOrder?.delivery_address || currentOrder?.deliveryAddress || 'Vrindavan Dham';
   const getAddressLabel = () => {
     const addr = customerAddress.toLowerCase();
     if (addr.includes('home') || addr.includes('house') || addr.includes('villa') || addr.includes('niwas')) return 'Home';
@@ -363,9 +393,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const getActiveMilestone = () => {
     switch (status) {
       case 'new':
-        return { active: 'Order Confirmed & Sent to Kitchen', past: 'Order Placed' };
+        return { active: 'Order Received & Verified', past: 'Order Placed' };
       case 'preparing':
-        return { active: `Cooking Divine Prasad at ${shop?.name || 'Kitchen'}`, past: 'Order Accepted' };
+        return { active: 'Bhog Cooking in Desi Ghee', past: 'Order Confirmed' };
       case 'ready_for_pickup':
         return { active: 'Packed & Awaiting Sarathi Pickup', past: 'Prasad Cooked' };
       case 'out_for_delivery':
@@ -454,7 +484,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             {/* Right Action Icons: Dynamic WhatsApp & Phone */}
             <div className="flex items-center gap-2 shrink-0">
               <a 
-                href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${order?.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${order?.customerName || 'Customer'})`)}`}
+                href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${currentOrder?.customerName || 'Customer'})`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => {
@@ -489,7 +519,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                   Delivery time {getDynamicEstimatedTime()}
                 </h3>
                 <p className="text-xs text-zinc-600 font-medium mt-0.5">
-                  Distance from you: <span className="font-extrabold text-rose-500">{realDistance || getFallbackDistance()}</span>
+                  Distance from you: <span className="font-extrabold text-rose-500">{realDistance || 'Calculating...'}</span>
                   {roadSummary && <span className="text-[10px] text-zinc-400 ml-1.5 font-normal">via {roadSummary}</span>}
                 </p>
               </div>
@@ -546,13 +576,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               onClick={() => setShowItems(!showItems)}
               className="w-full flex items-center justify-between text-zinc-300 font-bold cursor-pointer"
             >
-              <span>Order #{order?.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} Details ({order?.items?.length || 0} {(order?.items?.length || 0) === 1 ? 'item' : 'items'})</span>
+              <span>Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} Details ({currentOrder?.items?.length || 0} {(currentOrder?.items?.length || 0) === 1 ? 'item' : 'items'})</span>
               {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
 
             {showItems && (
               <div className="mt-2.5 space-y-1.5 pt-2 border-t border-white/5 text-zinc-400">
-                {order?.items?.map((it, idx) => (
+                {currentOrder?.items?.map((it, idx) => (
                   <div key={idx} className="flex justify-between items-center text-[11px]">
                     <span className="text-white font-medium">{it.name} × {it.quantity}</span>
                     <span className="font-bold text-[#E0FF33]">₹{it.price * it.quantity}</span>
@@ -560,7 +590,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 ))}
                 <div className="pt-2 border-t border-white/5 flex justify-between font-black text-white text-xs">
                   <span>Total Paid</span>
-                  <span className="text-[#E0FF33]">₹{order?.totalAmount}</span>
+                  <span className="text-[#E0FF33]">₹{currentOrder?.totalAmount}</span>
                 </div>
               </div>
             )}
@@ -570,7 +600,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           {isStep4 && (
             <button
               onClick={() => {
-                if (onRateOrder) onRateOrder(order);
+                if (onRateOrder) onRateOrder(currentOrder);
                 else onClose();
               }}
               className="w-full py-3.5 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit']"

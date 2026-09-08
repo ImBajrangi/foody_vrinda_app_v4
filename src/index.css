@@ -58,6 +58,16 @@
     box-shadow: 0 0 0 3px rgba(210, 248, 50, 0.2);
   }
 
+  /* Remove native browser number input spinners */
+  .no-spinners::-webkit-outer-spin-button,
+  .no-spinners::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spinners {
+    -moz-appearance: textfield;
+  }
+
   /* Modals and Overlays Backdrop Styling (Clean Ignorable Dark Background) */
   .fixed.inset-0.z-50 {
     backdrop-filter: none !important;

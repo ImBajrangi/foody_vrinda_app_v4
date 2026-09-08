@@ -5,23 +5,23 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1788881540.441169,
-    "ast_hash": "acf39cff10be156f5547b59c3f29ab91",
+    "mtime": 1788889206.6269999,
+    "ast_hash": "7368928157f617e13ba6a0dd666729ac",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1788888017.013305,
-    "ast_hash": "d237437535081f7931beafb001931641",
+    "mtime": 1788889009.6480088,
+    "ast_hash": "ad69f286718f75c4b48ac21a51eb32b8",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
-    "mtime": 1788884170.6874433,
-    "ast_hash": "9440fe4c67abed8a738c80eec718f490",
+    "mtime": 1788889360.3129473,
+    "ast_hash": "3ee9520b47a821d1e92282b4964d013f",
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
-    "mtime": 1788883984.5100691,
-    "ast_hash": "31b7c92d4f9da39230de0dee176006f8",
+    "mtime": 1788889287.3380249,
+    "ast_hash": "2dc1597a622b3549848e7cc71d502e34",
     "semantic_hash": ""
   },
   "src/components/Loader.jsx": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1788884275.5169902,
-    "ast_hash": "1f5a57d34e8b1a9979a8c25d6e74a904",
+    "mtime": 1788889166.749916,
+    "ast_hash": "4f72e8a31305c7ffe20d3ac4f7537955",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1788887511.2337162,
-    "ast_hash": "14d432beeec16be0cd149879e121ce5a",
+    "mtime": 1788888904.866884,
+    "ast_hash": "f8aa824b9c21c972ad76c021b983beec",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1788887598.6832995,
-    "ast_hash": "fa49a0c9fae7b70f33cdb3754056ffe3",
+    "mtime": 1788889060.0071301,
+    "ast_hash": "23df203b8ac5946ada6dbd1c31e0aeda",
     "semantic_hash": ""
   },
   "supabase_schema.sql": {
@@ -217,6 +217,11 @@
   "index.html": {
     "mtime": 1788879878.3270056,
     "ast_hash": "442835d7fd324cfa04bc38c83ef0a23d",
+    "semantic_hash": ""
+  },
+  "src/components/UnauthorizedAccessScreen.jsx": {
+    "mtime": 1788889192.2126944,
+    "ast_hash": "403d18592b4a8bcd0214ed7ccdc11814",
     "semantic_hash": ""
   }
 }

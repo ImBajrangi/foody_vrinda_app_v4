@@ -12,9 +12,10 @@ import TransportView from './views/TransportView';
 import OwnerView from './views/OwnerView';
 import DeveloperView from './views/DeveloperView';
 import RewardsModal from './components/RewardsModal';
+import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 
 export default function App() {
-  const { userRole } = useAuth();
+  const { userRole, isAuthorizedAdmin, isAuthorizedDeveloper } = useAuth();
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
 
@@ -35,7 +36,13 @@ export default function App() {
   if (userRole !== prevUserRole) {
     setPrevUserRole(userRole);
     if (['kitchen', 'owner', 'developer'].includes(userRole)) {
-      setCurrentTab(userRole);
+      if (userRole === 'owner' && !isAuthorizedAdmin) {
+        setCurrentTab('customer');
+      } else if (userRole === 'developer' && !isAuthorizedDeveloper) {
+        setCurrentTab('customer');
+      } else {
+        setCurrentTab(userRole);
+      }
     } else if (userRole === 'delivery') {
       setCurrentTab('delivery');
     } else {
@@ -136,10 +143,28 @@ export default function App() {
 
         {currentTab === 'delivery' && <TransportView />}
 
-        {currentTab === 'owner' && <OwnerView />}
+        {currentTab === 'owner' && (
+          isAuthorizedAdmin ? (
+            <OwnerView />
+          ) : (
+            <UnauthorizedAccessScreen 
+              requiredRole="Administrator" 
+              onAuthenticate={() => setIsAuthOpen(true)}
+              onReturnStore={() => setCurrentTab('customer')}
+            />
+          )
+        )}
 
         {currentTab === 'developer' && (
-          <DeveloperView setCurrentTab={setCurrentTab} />
+          isAuthorizedDeveloper ? (
+            <DeveloperView setCurrentTab={setCurrentTab} />
+          ) : (
+            <UnauthorizedAccessScreen 
+              requiredRole="Developer" 
+              onAuthenticate={() => setIsAuthOpen(true)}
+              onReturnStore={() => setCurrentTab('customer')}
+            />
+          )
         )}
       </main>
 

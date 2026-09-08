@@ -1,22 +1,21 @@
 # Graph Report - foody_vrinda_v3  (2026-09-08)
 
 ## Corpus Check
-- 43 files · ~43,356 words
+- 44 files · ~44,924 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 144 nodes · 341 edges · 20 communities (9 shown, 11 thin omitted)
+- 149 nodes · 354 edges · 19 communities (8 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4fad2c39`
+- Built from commit: `914c6ca6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - AuthContext.jsx
-- UnifiedSearchModal.jsx
 - supabase.js
 - App.jsx
 - CustomerView.jsx
@@ -47,45 +46,41 @@
 10. `resolveDishCutout()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `App()` --calls--> `useAudioAlarm()`  [EXTRACTED]
+  src/App.jsx → src/hooks/useAudioAlarm.js
 - `OrderHistoryDrawer()` --calls--> `useCart()`  [EXTRACTED]
   src/components/OrderHistoryDrawer.jsx → src/context/CartContext.jsx
 - `UnifiedSearchModal()` --calls--> `useAuth()`  [EXTRACTED]
   src/components/UnifiedSearchModal.jsx → src/context/AuthContext.jsx
 - `UnifiedSearchModal()` --calls--> `useCart()`  [EXTRACTED]
   src/components/UnifiedSearchModal.jsx → src/context/CartContext.jsx
-- `CustomerView()` --calls--> `useAuth()`  [EXTRACTED]
-  src/views/CustomerView.jsx → src/context/AuthContext.jsx
-- `KitchenView()` --calls--> `useAuth()`  [EXTRACTED]
-  src/views/KitchenView.jsx → src/context/AuthContext.jsx
+- `AuthProvider()` --calls--> `getCloudShops()`  [EXTRACTED]
+  src/context/AuthContext.jsx → src/supabase.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (20 total, 11 thin omitted)
+## Communities (19 total, 11 thin omitted)
 
 ### Community 0 - "AuthContext.jsx"
-Cohesion: 0.25
-Nodes (9): AuthContext, AuthProvider(), isDeveloperUser(), app, auth, db, firebaseConfig, getCachedItem() (+1 more)
-
-### Community 1 - "UnifiedSearchModal.jsx"
-Cohesion: 0.36
-Nodes (5): UnifiedSearchModal(), HitSoochiService, LOCAL_SATVIK_ONTOLOGY, getCloudMenus(), resolveDishCutout()
+Cohesion: 0.27
+Nodes (10): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), app, auth (+2 more)
 
 ### Community 2 - "supabase.js"
-Cohesion: 0.22
-Nodes (15): MapPicker(), CACHE_TTL_MS, createCloudMenuItem(), DEFAULT_PRASAD_ITEMS, deleteCloudMenuItem(), invalidateCache(), markCloudOrderCashCollected(), memoryCache (+7 more)
+Cohesion: 0.16
+Nodes (21): UnifiedSearchModal(), HitSoochiService, LOCAL_SATVIK_ONTOLOGY, CACHE_TTL_MS, createCloudMenuItem(), DEFAULT_PRASAD_ITEMS, deleteCloudMenuItem(), getCachedItem() (+13 more)
 
 ### Community 3 - "App.jsx"
-Cohesion: 0.19
-Nodes (17): App(), AuthModal(), DESK_CONFIG, Header(), NotificationPanel(), RewardsModal(), useAuth(), CartContext (+9 more)
+Cohesion: 0.18
+Nodes (17): App(), AuthModal(), DESK_CONFIG, Header(), NotificationPanel(), RewardsModal(), UnauthorizedAccessScreen(), useAuth() (+9 more)
 
 ### Community 4 - "CustomerView.jsx"
-Cohesion: 0.14
-Nodes (16): ActiveOrderTrackingModal(), OrderHistoryDrawer(), QUANTITIES, QuantityPickerSheet(), REVIEW_TAGS, ReviewModal(), BouncingLoader(), StyledWrapper (+8 more)
+Cohesion: 0.13
+Nodes (18): ActiveOrderTrackingModal(), MapPicker(), OrderHistoryDrawer(), QUANTITIES, QuantityPickerSheet(), REVIEW_TAGS, ReviewModal(), BouncingLoader() (+10 more)
 
 ### Community 5 - "KitchenView.jsx"
-Cohesion: 0.45
-Nodes (8): DynamicToast(), useFastNotify(), createCloudNotification(), createCloudOrder(), subscribeCloudOrders(), updateCloudOrderStatus(), KitchenView(), TransportView()
+Cohesion: 0.43
+Nodes (8): DynamicToast(), useAudioAlarm(), useFastNotify(), createCloudNotification(), subscribeCloudOrders(), updateCloudOrderStatus(), KitchenView(), TransportView()
 
 ### Community 6 - "React + Vite"
 Cohesion: 0.50
@@ -99,11 +94,11 @@ Nodes (3): Expanding the ESLint configuration, React Compiler, React + Vite
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useAuth()` connect `App.jsx` to `AuthContext.jsx`, `UnifiedSearchModal.jsx`, `supabase.js`, `CustomerView.jsx`, `KitchenView.jsx`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+- **Why does `useAuth()` connect `App.jsx` to `AuthContext.jsx`, `supabase.js`, `CustomerView.jsx`, `KitchenView.jsx`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Why does `RealtimeMultiplexer` connect `RealtimeMultiplexer` to `supabase.js`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **What connects `DESK_CONFIG`, `StyledWrapper`, `REVIEW_TAGS` to the rest of the system?**
   _27 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CustomerView.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.14492753623188406 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1339031339031339 - nodes in this community are weakly interconnected._

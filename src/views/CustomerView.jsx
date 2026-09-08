@@ -1742,6 +1742,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         isOpen={isOrderHistoryOpen}
         onClose={() => setIsOrderHistoryOpen(false)}
         onTrackOrder={(order) => {
+          if (order?.id && setTrackingOrderId) {
+            setTrackingOrderId(order.id);
+          }
           setTrackingOrder(order);
           setIsTrackingModalOpen(true);
         }}

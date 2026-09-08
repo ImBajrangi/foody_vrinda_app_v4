@@ -339,20 +339,33 @@ export default function DeveloperView({ setCurrentTab }) {
                 <ChefHat className="w-3.5 h-3.5 text-amber-400" />
                 <span>Impersonate Kitchen Staff</span>
               </label>
-              <div className="flex gap-2">
-                <select 
-                  value={selectedShopId}
-                  onChange={(e) => setSelectedShopId(e.target.value)}
-                  className="flex-1 bg-[#282526] text-xs text-white border border-white/10 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
-                >
-                  <option value="" className="bg-[#1E1B1C]">-- Choose Kitchen --</option>
-                  {allShops.map(s => <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>)}
-                </select>
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto no-scrollbar pr-0.5">
+                  {allShops.map(s => {
+                    const isSelected = selectedShopId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedShopId(s.id)}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left truncate cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
+                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
                 <button 
                   onClick={() => handleImpersonateShop(selectedShopId)}
-                  className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs transition-all active:scale-95"
+                  disabled={!selectedShopId}
+                  className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Switch
+                  <ChefHat className="w-4 h-4" />
+                  <span>Launch Kitchen Staff View</span>
                 </button>
               </div>
             </div>
@@ -362,20 +375,33 @@ export default function DeveloperView({ setCurrentTab }) {
                 <Truck className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Impersonate Delivery Rider</span>
               </label>
-              <div className="flex gap-2">
-                <select 
-                  value={selectedDeliveryShopId}
-                  onChange={(e) => setSelectedDeliveryShopId(e.target.value)}
-                  className="flex-1 bg-[#282526] text-xs text-white border border-white/10 rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
-                >
-                  <option value="" className="bg-[#1E1B1C]">-- Choose Kitchen --</option>
-                  {allShops.map(s => <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>)}
-                </select>
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto no-scrollbar pr-0.5">
+                  {allShops.map(s => {
+                    const isSelected = selectedDeliveryShopId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedDeliveryShopId(s.id)}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left truncate cursor-pointer ${
+                          isSelected
+                            ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/40 shadow-sm'
+                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
                 <button 
                   onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
-                  className="px-4 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs transition-all active:scale-95"
+                  disabled={!selectedDeliveryShopId}
+                  className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Switch
+                  <Truck className="w-4 h-4" />
+                  <span>Launch Sarathi Rider View</span>
                 </button>
               </div>
             </div>
@@ -434,15 +460,27 @@ export default function DeveloperView({ setCurrentTab }) {
 
           {/* 2. Specific Kitchen Master Switches */}
           <div className="space-y-2 pt-2 border-t border-white/5">
-            <div className="flex items-center justify-between">
+            <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">2. Kitchen-Specific Payment Config</p>
-              <select
-                value={selectedPaymentShopId}
-                onChange={(e) => setSelectedPaymentShopId(e.target.value)}
-                className="bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl px-2.5 py-1 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
-              >
-                {allShops.map(s => <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>)}
-              </select>
+              <div className="flex flex-wrap gap-1.5">
+                {allShops.map(s => {
+                  const isSelected = (selectedPaymentShopId || allShops[0]?.id) === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedPaymentShopId(s.id)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        isSelected
+                          ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
+                          : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {s.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {(() => {
@@ -451,7 +489,7 @@ export default function DeveloperView({ setCurrentTab }) {
               const shopCod = activeTargetShop?.paymentSettings?.codEnabled ?? activeTargetShop?.codEnabled ?? true;
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold text-white">Online Pay</p>
@@ -502,16 +540,27 @@ export default function DeveloperView({ setCurrentTab }) {
           <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
-                <select 
-                  value={simShopId}
-                  onChange={(e) => handleSimShopChange(e.target.value)}
-                  required
-                  className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl p-3 focus:outline-none focus:border-[#E0FF33]/50"
-                >
-                  <option value="" className="bg-[#1E1B1C]">-- Choose Kitchen Location --</option>
-                  {allShops.map(s => <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>)}
-                </select>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Target Kitchen</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {allShops.map(s => {
+                    const isSelected = simShopId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => handleSimShopChange(s.id)}
+                        className={`p-3 rounded-2xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/40 shadow-sm'
+                            : 'bg-[#1E1B1C] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                        }`}
+                      >
+                        <span className="truncate">{s.name}</span>
+                        {isSelected && <span className="w-2 h-2 rounded-full bg-[#E0FF33]" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>

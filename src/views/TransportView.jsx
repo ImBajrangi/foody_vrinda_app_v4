@@ -21,6 +21,10 @@ import {
   List, 
   Layers,
   ArrowRight,
+  ArrowLeft,
+  RotateCcw,
+  MessageCircle,
+  Compass,
   Sparkles,
   Search,
   ExternalLink,
@@ -290,13 +294,25 @@ export default function TransportView() {
 
   const handleStartDelivery = async (orderId, orderData) => {
     try {
-      await updateCloudOrderStatus(orderId, 'out_for_delivery');
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'out_for_delivery' } : o));
+      await updateCloudOrderStatus(orderId, 'out_for_delivery', {
+        rider_name: 'Govind Das (Sarathi)',
+        rider_phone: '+91 98765 43210',
+        rider_rating: '4.95',
+        rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+      });
+      setOrders(prev => prev.map(o => o.id === orderId ? { 
+        ...o, 
+        status: 'out_for_delivery',
+        rider_name: 'Govind Das (Sarathi)',
+        rider_phone: '+91 98765 43210',
+        rider_rating: '4.95',
+        rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+      } : o));
 
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
-          message: `Your order is out for delivery with Sarathi Rider!`,
+          message: `Your order is out for delivery with Sarathi Rider (Govind Das)!`,
           orderId
         });
       }

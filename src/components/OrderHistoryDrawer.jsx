@@ -29,10 +29,14 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
     const fetchOrders = async () => {
       try {
         let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
-        if (userId) {
-          query = query.or(`user_id.eq.${userId},customer_phone.eq.${userPhone || ''}`);
-        } else if (userPhone) {
-          query = query.eq('customer_phone', userPhone);
+        const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
+        
+        if (userId && cleanPhone && cleanPhone.length >= 10) {
+          query = query.or(`user_id.eq.${userId},customer_phone.eq.${cleanPhone}`);
+        } else if (userId) {
+          query = query.eq('user_id', userId);
+        } else if (cleanPhone && cleanPhone.length >= 10) {
+          query = query.eq('customer_phone', cleanPhone);
         }
 
         const { data, error } = await query;

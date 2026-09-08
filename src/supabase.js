@@ -374,10 +374,40 @@ export async function createCloudOrder(orderData) {
 export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
   try {
     const payload = {
-      updated_at: new Date().toISOString(),
-      ...extra
+      updated_at: new Date().toISOString()
     };
     if (newStatus) payload.status = newStatus;
+
+    // Filter to known database columns to avoid 400 Bad Request
+    const ALLOWED_COLUMNS = [
+      'status',
+      'shop_id',
+      'user_id',
+      'customer_name',
+      'customer_phone',
+      'customer_address',
+      'delivery_address',
+      'delivery_coordinates',
+      'items',
+      'subtotal',
+      'delivery_charge',
+      'gst_amount',
+      'total_amount',
+      'payment_method',
+      'payment_id',
+      'cash_status',
+      'cooking_notes',
+      'created_by',
+      'updated_at'
+    ];
+
+    if (extra && typeof extra === 'object') {
+      for (const key of Object.keys(extra)) {
+        if (ALLOWED_COLUMNS.includes(key)) {
+          payload[key] = extra[key];
+        }
+      }
+    }
 
     const { data, error } = await supabase
       .from('foody_orders')
@@ -386,7 +416,7 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       .select();
 
     if (error) {
-      console.warn('updateCloudOrderStatus error:', error.message);
+      console.warn('updateCloudOrderStatus note:', error.message);
     }
     return data;
   } catch (err) {
