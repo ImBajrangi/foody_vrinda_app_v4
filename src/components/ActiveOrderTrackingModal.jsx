@@ -11,7 +11,14 @@ import {
   RotateCcw,
   Sparkles,
   Star,
-  AlarmClock
+  AlarmClock,
+  ShieldCheck,
+  CheckCircle2,
+  Navigation,
+  Bike,
+  Utensils,
+  PackageCheck,
+  Check
 } from 'lucide-react';
 import { subscribeSingleCloudOrder } from '../supabase';
 
@@ -87,14 +94,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
   const status = currentOrder?.status || 'new';
 
-  // Fallback geometric distance if offline
-  const getFallbackDistance = () => {
-    const dLat = (destLat - shopLat) * 111000;
-    const dLng = (destLng - shopLng) * 111000 * Math.cos((shopLat * Math.PI) / 180);
-    const distMeters = Math.round(Math.sqrt(dLat * dLat + dLng * dLng));
-    if (distMeters < 1000) return `${Math.max(250, distMeters)}m`;
-    return `${(distMeters / 1000).toFixed(1)}km`;
+  // Step stage index (0: placed/new, 1: preparing, 2: ready/dispatched, 3: completed)
+  const getStageIndex = () => {
+    switch (status) {
+      case 'new': return 0;
+      case 'preparing': return 1;
+      case 'ready_for_pickup': return 2;
+      case 'out_for_delivery': return 2;
+      case 'completed': return 3;
+      default: return 0;
+    }
   };
+
+  const currentStage = getStageIndex();
 
   // Initialize Carto Leaflet Map with Uber & Vrinda Tours Navigation Standard
   useEffect(() => {
@@ -120,7 +132,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         maxZoom: 20,
         minZoom: 3,
         subdomains: 'abcd',
-        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
       }
     ).addTo(map);
 
@@ -137,45 +149,46 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(destTargetGlow);
 
-    // 2. Origin Store Pin: White Teardrop Location Marker (Bottom needle anchor [16, 32])
+    // 2. Origin Store Pin: White Teardrop Location Marker
     const originIcon = L.divIcon({
       className: 'carto-store-pin',
       html: `
         <div style="
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           background: #FFFFFF;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.35);
           border: 2px solid #0F172A;
         ">
           <div style="
-            width: 10px;
-            height: 10px;
-            background: #0F172A;
+            width: 12px;
+            height: 12px;
+            background: #E0FF33;
             border-radius: 50%;
+            border: 2px solid #0F172A;
             transform: rotate(45deg);
           "></div>
         </div>
       `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32]
+      iconSize: [34, 34],
+      iconAnchor: [17, 34]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 100 });
     storeMarker.bindTooltip(shop?.name || 'Kitchen Store', { permanent: true, direction: 'bottom', offset: [0, 6] });
     group.addLayer(storeMarker);
 
-    // 3. Destination Pin: Circular House Pin (Center anchor [20, 20])
+    // 3. Destination Pin: Circular House Pin
     const destIcon = L.divIcon({
       className: 'carto-home-pin',
       html: `
         <div style="
-          width: 40px;
-          height: 40px;
+          width: 42px;
+          height: 42px;
           background: #FFFFFF;
           border: 2.5px solid #0F172A;
           border-radius: 50%;
@@ -186,11 +199,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           font-size: 20px;
         ">🏡</div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
+      iconSize: [42, 42],
+      iconAnchor: [21, 21]
     });
     const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 100 });
-    destMarker.bindTooltip('Your Home Delivery', { permanent: false, direction: 'top' });
+    destMarker.bindTooltip('Your Sacred Delivery', { permanent: false, direction: 'top' });
     group.addLayer(destMarker);
 
     // 4. Intermediate Live Delivery Rider Pin (Scooter Illustration Badge)
@@ -198,20 +211,20 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       className: 'carto-rider-pin',
       html: `
         <div style="
-          width: 46px;
-          height: 46px;
+          width: 48px;
+          height: 48px;
           background: #FFFFFF;
           border: 2.5px solid #E0FF33;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 16px rgba(224, 255, 51, 0.7), 0 8px 24px rgba(0,0,0,0.25);
-          font-size: 23px;
+          box-shadow: 0 0 20px rgba(224, 255, 51, 0.8), 0 8px 24px rgba(0,0,0,0.25);
+          font-size: 24px;
         ">🛵</div>
       `,
-      iconSize: [46, 46],
-      iconAnchor: [23, 23]
+      iconSize: [48, 48],
+      iconAnchor: [24, 24]
     });
 
     const initialRiderPos = status === 'completed' 
@@ -322,7 +335,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     routeGroupRef.current = group;
     mapInstanceRef.current = map;
 
-    // Fit route bounds nicely with high bottom padding to ensure pins remain un-occluded by bottom sheet
+    // Fit route bounds nicely with bottom padding
     map.fitBounds(group.getBounds(), {
       paddingTopLeft: [70, 40],
       paddingBottomRight: [40, 240],
@@ -393,95 +406,140 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const getActiveMilestone = () => {
     switch (status) {
       case 'new':
-        return { active: 'Order Received & Verified', past: 'Order Placed' };
+        return { active: 'Order Placed & Verified', past: 'Awaiting Kitchen Preparation', icon: PackageCheck };
       case 'preparing':
-        return { active: 'Bhog Cooking in Desi Ghee', past: 'Order Confirmed' };
+        return { active: 'Bhog Cooking in Pure Desi Ghee', past: 'Order Confirmed by Kitchen', icon: Utensils };
       case 'ready_for_pickup':
-        return { active: 'Packed & Awaiting Sarathi Pickup', past: 'Prasad Cooked' };
+        return { active: 'Packed & Awaiting Sarathi Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
       case 'out_for_delivery':
-        return { active: `On its way with ${riderName}`, past: 'Dispatched from Kitchen' };
+        return { active: `On its way with ${riderName}`, past: 'Dispatched from Sacred Kitchen', icon: Bike };
       case 'completed':
-        return { active: 'Delivered Safely & Warm', past: 'Handed to Recipient' };
+        return { active: 'Delivered Safely & Warm', past: 'Handed with Blessings', icon: CheckCircle2 };
       default:
-        return { active: 'Processing Prasad Order', past: 'Order Placed' };
+        return { active: 'Processing Prasad Order', past: 'Order Placed', icon: Sparkles };
     }
   };
 
   const milestones = getActiveMilestone();
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-xs transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}>
+    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}>
       
-      {/* Phone Mock / Modal Container */}
-      <div className={`w-full max-w-[420px] bg-[#18181A] text-white rounded-t-[38px] sm:rounded-[40px] shadow-[0_25px_90px_rgba(0,0,0,0.9)] border border-white/10 overflow-hidden flex flex-col min-h-[660px] max-h-[96vh] relative transition-transform duration-200 ${closing ? 'translate-y-12' : 'translate-y-0'}`}>
+      {/* Luxury Obsidian Modal Container */}
+      <div className={`w-full max-w-[440px] bg-[#18181A] text-white rounded-t-[36px] sm:rounded-[36px] shadow-[0_25px_100px_rgba(0,0,0,0.95)] border border-white/10 overflow-hidden flex flex-col h-[94vh] sm:h-auto sm:max-h-[92vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}>
         
         {/* Top Leaflet Map Section */}
-        <div className="relative flex-1 bg-[#edf2f7] min-h-[340px] overflow-hidden">
-          <div ref={mapContainerRef} className="w-full h-full min-h-[340px] z-0" />
+        <div className="relative flex-1 bg-[#edf2f7] min-h-[280px] sm:min-h-[320px] overflow-hidden">
+          <div ref={mapContainerRef} className="w-full h-full min-h-[280px] sm:min-h-[320px] z-0" />
 
           {/* Floating Back Button (Top Left) */}
-          <div className="absolute top-5 left-5 z-[500] flex items-center gap-2">
+          <div className="absolute top-4 left-4 z-[500] flex items-center gap-2">
             <button
               onClick={handleAnimatedClose}
-              className="w-11 h-11 rounded-full bg-white hover:bg-zinc-50 text-zinc-900 shadow-md flex items-center justify-center border border-zinc-200/60 active:scale-95 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-lg backdrop-blur-md flex items-center justify-center border border-zinc-200/80 active:scale-95 transition-all cursor-pointer"
+              aria-label="Back"
             >
-              <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+              <ArrowLeft className="w-4.5 h-4.5 stroke-[2.4]" />
             </button>
           </div>
 
-          {/* Floating Customer Profile & Recenter (Top Right) */}
-          <div className="absolute top-5 right-5 z-[500] flex items-center gap-2">
+          {/* Dynamic Floating Live GPS Pill (Top Center) */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-white/15 text-white shadow-xl">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E0FF33] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E0FF33]"></span>
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-wider font-['Outfit'] text-[#E0FF33]">
+                {status === 'out_for_delivery' ? 'Live Sarathi GPS' : 'Kitchen Dispatch Live'}
+              </span>
+            </div>
+          </div>
+
+          {/* Floating Recenter (Top Right) */}
+          <div className="absolute top-4 right-4 z-[500] flex items-center gap-2">
             <button
               onClick={handleRecenter}
-              className="w-11 h-11 rounded-full bg-white hover:bg-zinc-50 text-zinc-900 shadow-md flex items-center justify-center border border-zinc-200/60 active:scale-95 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-lg backdrop-blur-md flex items-center justify-center border border-zinc-200/80 active:scale-95 transition-all cursor-pointer"
               title="Re-center route"
             >
               <RotateCcw className="w-4 h-4 stroke-[2.2]" />
             </button>
-            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#E0FF33] shadow-md bg-zinc-800 shrink-0">
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            </div>
           </div>
         </div>
 
         {/* Bottom Curved Obsidian Card (100% Dynamic Realtime HUD) */}
-        <div className="bg-[#18181A] rounded-t-[34px] px-4 pt-4 pb-5 -mt-6 relative z-30 shadow-[0_-15px_40px_rgba(0,0,0,0.5)] border-t border-white/5 space-y-3.5">
+        <div className="bg-[#18181A] rounded-t-[32px] px-4 pt-3.5 pb-5 -mt-5 relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.6)] border-t border-white/5 space-y-3.5 overflow-y-auto max-h-[58vh] no-scrollbar">
           
+          {/* Subtle Mobile Drag Indicator Pill */}
+          <div className="w-10 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-1" />
+
+          {/* 4-Step Animated Milestone Progress Bar */}
+          <div className="px-1 space-y-1.5">
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { label: 'Placed', icon: Check },
+                { label: 'Cooking', icon: Utensils },
+                { label: 'On Way', icon: Bike },
+                { label: 'Delivered', icon: CheckCircle2 }
+              ].map((st, idx) => {
+                const isPassed = currentStage >= idx;
+                const isCurrent = currentStage === idx;
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
+                      isPassed ? 'bg-[#E0FF33] shadow-[0_0_8px_rgba(224,255,51,0.5)]' : 'bg-white/10'
+                    }`} />
+                    <p className={`text-[10px] text-center font-bold truncate transition-colors ${
+                      isCurrent ? 'text-[#E0FF33]' : isPassed ? 'text-zinc-300' : 'text-zinc-600'
+                    }`}>
+                      {st.label}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* 1. Dynamic Rider / Kitchen Header Bar */}
-          <div className="flex items-center justify-between px-1 pt-1 gap-2">
+          <div className="flex items-center justify-between px-1 pt-0.5 gap-2">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               {/* Avatar with warm ring */}
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 bg-zinc-800 shrink-0 shadow-md">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 bg-zinc-800 shrink-0 shadow-md relative">
                 <img 
                   src={riderPhoto} 
                   alt={riderName} 
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border border-black flex items-center justify-center text-[9px] text-black font-black">
+                  ✓
+                </div>
               </div>
               
               <div className="min-w-0 flex-1">
-                <h4 className="font-bold text-white text-base sm:text-lg font-['Outfit'] tracking-tight truncate">
-                  {riderName}
-                </h4>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-bold text-white text-sm sm:text-base font-['Outfit'] tracking-tight truncate">
+                    {riderName}
+                  </h4>
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                </div>
                 {/* Dynamic Star Rating */}
-                <div className="flex items-center gap-1 text-amber-400 text-xs">
+                <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5">
                   <div className="flex items-center gap-0.5">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3.5 h-3.5 fill-amber-400/20 stroke-amber-400/40" />
+                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
+                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
+                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
+                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
+                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
                   </div>
                   <span className="text-zinc-400 text-[10px] font-bold ml-0.5">({riderRating})</span>
+                  <span className="text-zinc-600 text-[9px]">•</span>
+                  <span className="text-emerald-400 text-[10px] font-bold">100% Satvik Verified</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Action Icons: Dynamic WhatsApp & Phone */}
+            {/* Right Action Icons: WhatsApp & Phone */}
             <div className="flex items-center gap-2 shrink-0">
               <a 
                 href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${currentOrder?.customerName || 'Customer'})`)}`}
@@ -490,7 +548,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 onClick={() => {
                   if (onToast) onToast("Connecting WhatsApp...", "info", "Opening dispatch chat");
                 }}
-                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-sm"
                 title="Chat with dispatch"
               >
                 <MessageCircle className="w-4.5 h-4.5 stroke-[1.8]" />
@@ -498,7 +556,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
               <a 
                 href={`tel:${riderPhone}`}
-                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-sm"
                 title="Call dispatch"
               >
                 <Phone className="w-4.5 h-4.5 stroke-[1.8]" />
@@ -506,8 +564,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             </div>
           </div>
 
-          {/* 2. Inner Curved White/Cream Card (Dynamic Real Data) */}
-          <div className="bg-[#FAF5EB] text-[#18181A] rounded-[26px] p-4.5 shadow-md space-y-3.5">
+          {/* 2. Inner Curved Warm Ivory Card (Dynamic Real Data) */}
+          <div className="bg-[#FAF5EB] text-[#18181A] rounded-[24px] p-4 shadow-md space-y-3">
             
             {/* Top Row: Delivery Time & Real Distance */}
             <div className="flex items-center gap-3">
@@ -515,12 +573,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 <Clock className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-extrabold text-zinc-900 font-['Outfit'] leading-tight">
-                  Delivery time {getDynamicEstimatedTime()}
+                <h3 className="text-sm sm:text-base font-black text-zinc-900 font-['Outfit'] leading-tight">
+                  Estimated Delivery: {getDynamicEstimatedTime()}
                 </h3>
-                <p className="text-xs text-zinc-600 font-medium mt-0.5">
-                  Distance from you: <span className="font-extrabold text-rose-500">{realDistance || 'Calculating...'}</span>
-                  {roadSummary && <span className="text-[10px] text-zinc-400 ml-1.5 font-normal">via {roadSummary}</span>}
+                <p className="text-xs text-zinc-600 font-medium mt-0.5 flex items-center gap-1.5">
+                  <span>Distance:</span>
+                  <span className="font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">{realDistance || 'Calculating...'}</span>
+                  {roadSummary && <span className="text-[10px] text-zinc-500 font-normal truncate">via {roadSummary}</span>}
                 </p>
               </div>
             </div>
@@ -533,7 +592,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               </div>
               <div className="flex items-center gap-3 relative z-10">
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 ring-4 ring-[#FAF5EB] shrink-0" />
-                <span className="text-xs font-medium text-zinc-400 leading-tight">{milestones.past}</span>
+                <span className="text-xs font-medium text-zinc-500 leading-tight">{milestones.past}</span>
               </div>
             </div>
 
@@ -547,7 +606,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                   <MapPin className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-extrabold text-zinc-900 font-['Outfit'] leading-tight">
+                  <h4 className="text-xs sm:text-sm font-black text-zinc-900 font-['Outfit'] leading-tight">
                     {getAddressLabel()}
                   </h4>
                   <p className="text-[11px] text-zinc-600 font-medium truncate mt-0.5" title={customerAddress}>
@@ -558,11 +617,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
               {/* Dynamic Arrived Time Box */}
               <div className="text-right shrink-0">
-                <div className="flex items-center justify-end gap-1 text-[11px] font-bold text-zinc-500">
+                <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-zinc-500">
                   <AlarmClock className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Arrived Time</span>
+                  <span>Arrived Window</span>
                 </div>
-                <p className="text-sm font-extrabold text-zinc-900 font-['Outfit'] mt-0.5">
+                <p className="text-xs sm:text-sm font-black text-zinc-900 font-['Outfit'] mt-0.5">
                   {getDynamicArrivalWindow()}
                 </p>
               </div>
@@ -615,3 +674,4 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     </div>
   );
 }
+
