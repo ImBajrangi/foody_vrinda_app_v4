@@ -31,8 +31,11 @@ import {
   X,
   Search,
   Sparkles,
-  Check
+  Check,
+  Navigation
 } from 'lucide-react';
+import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
+import { createCloudOrder, getCloudMenus } from '../supabase';
 
 // Curated high-res transparent PNG cutout dishes (Exact Template Match)
 const DEFAULT_PRASAD_ITEMS = [
@@ -158,6 +161,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   // Tracking orders
   const [trackingOrder, setTrackingOrder] = useState(null);
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [isDetailClosing, setIsDetailClosing] = useState(false);
   const [isCartClosing, setIsCartClosing] = useState(false);
@@ -322,14 +326,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       const unsub = onSnapshot(doc(db, "orders", trackingOrderId), (docSnap) => {
         if (docSnap.exists()) {
           setTrackingOrder({ id: docSnap.id, ...docSnap.data() });
+          setIsTrackingModalOpen(true);
         } else {
           setTrackingOrder(null);
           setTrackingOrderId(null);
+          setIsTrackingModalOpen(false);
         }
       });
       return () => unsub();
     } else {
       setTrackingOrder(null);
+      setIsTrackingModalOpen(false);
     }
   }, [trackingOrderId, setTrackingOrderId]);
 
@@ -397,13 +404,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       try {
         const docRef = await addDoc(collection(db, "orders"), orderPayload);
+        // Sync to Supabase Cloud Database
+        createCloudOrder({ ...orderPayload, id: docRef.id });
         showToast("Order placed successfully with Cash on Delivery!", 'success');
         clearCart();
         setShowCartDrawer(false);
         setTrackingOrderId(docRef.id);
       } catch (err) {
-        console.error(err);
-        showToast("Failed to place order.", 'error');
+        // Fallback directly to Supabase cloud order
+        try {
+          const cloudOrder = await createCloudOrder(orderPayload);
+          showToast("Order placed successfully with Cash on Delivery!", 'success');
+          clearCart();
+          setShowCartDrawer(false);
+          setTrackingOrderId(cloudOrder.id);
+        } catch (supabaseErr) {
+          console.error("Order placement error:", supabaseErr);
+          showToast("Failed to place order.", 'error');
+        }
       }
     } else {
       if (!paymentSettings?.onlinePaymentsEnabled) return showToast("Online payments are currently disabled.", 'error');
@@ -427,13 +445,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
           try {
             const docRef = await addDoc(collection(db, "orders"), orderPayload);
+            createCloudOrder({ ...orderPayload, id: docRef.id });
             showToast("Payment successful! Order placed.", 'success');
             clearCart();
             setShowCartDrawer(false);
             setTrackingOrderId(docRef.id);
           } catch (err) {
-            console.error(err);
-            showToast("Failed to record payment.", 'error');
+            try {
+              const cloudOrder = await createCloudOrder(orderPayload);
+              showToast("Payment successful! Order placed.", 'success');
+              clearCart();
+              setShowCartDrawer(false);
+              setTrackingOrderId(cloudOrder.id);
+            } catch (cloudErr) {
+              console.error(cloudErr);
+              showToast("Failed to record payment.", 'error');
+            }
           }
         },
         prefill: {
@@ -674,22 +701,50 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
       {trackingOrder && (
-        <div className="mb-6 bg-[#282526] border border-[#E0FF33]/40 rounded-[28px] p-4 sm:p-5 shadow-2xl relative apple-modal-spring">
-          <div className="flex justify-between items-center pb-3 border-b border-white/10">
-            <div>
-              <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full">
-                Active Order #{trackingOrder.id.slice(-6).toUpperCase()}
-              </span>
-              <p className="text-xs sm:text-sm font-black text-white mt-1 capitalize">
-                Status: {trackingOrder.status}
-              </p>
+        <div className="mb-6 bg-[#282526] border border-[#E0FF33]/40 rounded-[28px] p-4 sm:p-5 shadow-2xl relative apple-modal-spring overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#E0FF33]/15 flex items-center justify-center text-[#E0FF33] shrink-0 animate-pulse">
+                <Navigation className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full">
+                    Active Order #{trackingOrder.id.slice(-6).toUpperCase()}
+                  </span>
+                  <span className="text-[11px] font-bold text-zinc-400 capitalize">
+                    • {trackingOrder.status?.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-black text-white mt-0.5 font-['Outfit']">
+                  {trackingOrder.status === 'out_for_delivery'
+                    ? 'Rider is on the way to your location!'
+                    : trackingOrder.status === 'completed'
+                    ? 'Order delivered successfully!'
+                    : 'Order is being prepared in the kitchen.'}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={() => setTrackingOrderId(null)}
-              className="text-xs text-zinc-400 hover:text-white apple-tap-target p-1"
-            >
-              ✕
-            </button>
+
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <button
+                onClick={() => setIsTrackingModalOpen(true)}
+                className="px-4 py-2 rounded-full bg-[#E0FF33] text-[#1E1B1C] font-black text-xs hover:bg-[#ccff00] shadow-lg flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+              >
+                <Navigation className="w-3.5 h-3.5 fill-[#1E1B1C]" />
+                <span>Live Map Track</span>
+              </button>
+              <button
+                onClick={() => {
+                  setTrackingOrderId(null);
+                  setIsTrackingModalOpen(false);
+                }}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs apple-tap-target cursor-pointer"
+                title="Dismiss banner"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -847,7 +902,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 onPointerMove={handleDetailPointerMove}
                 onPointerUp={handleDetailPointerUp}
                 onPointerCancel={handleDetailPointerUp}
-                className="w-full py-3 -mt-3.5 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing md:hidden select-none"
+                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing md:hidden select-none"
                 style={{ touchAction: 'none' }}
                 title="Drag down to close"
               >
@@ -860,7 +915,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 onPointerMove={handleDetailPointerMove}
                 onPointerUp={handleDetailPointerUp}
                 onPointerCancel={handleDetailPointerUp}
-                className="flex justify-between items-center z-10 mb-2 sm:mb-3 select-none"
+                className="flex justify-between items-center z-10 mb-1.5 sm:mb-3 select-none"
                 style={{ touchAction: 'none' }}
               >
                 <button
@@ -900,11 +955,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Title & Micro-Info Pills (Mobile Only) */}
-              <div className="z-10 md:hidden mb-2">
-                <h2 className="text-xl sm:text-2xl font-black text-[#1E1B1C] tracking-tight leading-tight line-clamp-2">
+              <div className="z-10 md:hidden mb-1">
+                <h2 className="text-xl sm:text-2xl font-black text-[#1E1B1C] tracking-tight leading-tight line-clamp-2 font-['Outfit']">
                   {selectedDishDetails.name}
                 </h2>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <p className="text-[#8B5E3C] text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                     {selectedDishDetails.category || "Satvik Meal"}
                   </p>
@@ -917,8 +972,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Hero Cutout Image */}
-              <div className="relative py-2 sm:py-4 my-auto flex items-center justify-center min-h-[150px] xs:min-h-[170px] sm:min-h-[220px] md:min-h-[260px]">
-                <div className="w-44 h-40 xs:w-52 xs:h-44 sm:w-64 sm:h-56 md:w-64 md:h-60 relative flex items-center justify-center">
+              <div className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px]">
+                <div className="w-36 h-32 xs:w-44 xs:h-36 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center">
                   <img
                     src={selectedDishDetails.image}
                     alt={selectedDishDetails.name}
@@ -931,7 +986,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Floating Tag Pill */}
-                <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 z-10 flex items-center">
+                <div className="absolute bottom-0 left-0 sm:bottom-2 sm:left-2 z-10 flex items-center">
                   <span className="bg-[#FDE7D4] text-[#B25010] text-[10px] sm:text-xs font-black px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-md border border-[#FDBA74]/40">
                     {selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : 'Full Protein')}
                   </span>
@@ -940,9 +995,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </div>
 
             {/* RIGHT / BOTTOM CONTAINER (Obsidian `#1E1B1C` - Content & Action Section) */}
-            <div className="w-full md:w-[54%] lg:w-[56%] bg-[#1E1B1C] text-white p-4 sm:p-6 md:p-2 md:pl-6 space-y-3 sm:space-y-4 md:space-y-5 flex-1 overflow-y-auto z-10 flex flex-col justify-between">
+            <div className="w-full md:w-[54%] lg:w-[56%] bg-[#1E1B1C] text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
 
-              <div className="space-y-3 sm:space-y-4">
+              {/* Scrollable Information Body */}
+              <div className="overflow-y-auto flex-1 p-4 sm:p-6 md:p-2 md:pl-6 space-y-3 sm:space-y-4 no-scrollbar">
                 {/* Desktop Dish Title & Category Header */}
                 <div className="hidden md:block pr-8">
                   <div className="flex items-center gap-2 mb-1">
@@ -961,7 +1017,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="flex justify-between items-center pt-0.5">
                   <div>
                     <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Price</span>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white font-['Outfit']">
                       ₹{selectedDishDetails.price}
                     </div>
                   </div>
@@ -978,7 +1034,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {(() => {
                   const nut = getItemNutrition(selectedDishDetails);
                   return (
-                    <div className="bg-[#151314] border border-white/5 rounded-2xl p-2.5 sm:p-3.5 flex items-center justify-around text-center divide-x divide-white/10">
+                    <div className="bg-[#151314] border border-white/5 rounded-2xl p-2.5 sm:p-3 flex items-center justify-around text-center divide-x divide-white/10">
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm md:text-base font-black text-white">{nut.carbs}</p>
                         <p className="text-[9px] sm:text-[10px] text-zinc-500 font-bold uppercase mt-0.5 tracking-wider">Carbs</p>
@@ -998,25 +1054,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Description */}
                 <div>
                   <h4 className="text-[10px] sm:text-xs font-black uppercase text-zinc-400 tracking-wider mb-1">Description</h4>
-                  <p className="text-[11px] sm:text-xs md:text-sm text-zinc-300 leading-relaxed font-normal line-clamp-3 sm:line-clamp-none">
+                  <p className="text-[11px] sm:text-xs md:text-sm text-zinc-300 leading-relaxed font-normal">
                     {selectedDishDetails.description || "Our pure meal features authentic Vedic preparation, rich spices, pure desi ghee, and fresh ingredients cooked with love and devotion."}
                   </p>
                 </div>
 
                 {/* Satvik Assurance Badge */}
-                <div className="flex items-center gap-1.5 bg-[#282526] px-3 py-1.5 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
+                <div className="flex items-center gap-1.5 bg-[#282526] px-3 py-2 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
                   <span className="text-[#E0FF33] font-bold">✓</span>
                   <span className="truncate">100% Satvik · No Onion, No Garlic</span>
                 </div>
               </div>
 
-              {/* Action Row: Mint Quantity Selector + Neon Lime Add to Cart */}
-              <div className="pt-2 sm:pt-4 flex items-center gap-2 sm:gap-3 border-t border-white/5">
+              {/* Sticky / Dedicated Action Dock (100% Accessible & Always Visible) */}
+              <div className="bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-6 md:p-0 md:pt-4 md:pl-6 border-t border-white/10 md:border-t-0 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)] md:pb-0">
                 {/* Quantity Stepper */}
-                <div className="bg-[#CEF3E7] text-[#1E1B1C] rounded-full px-2.5 sm:px-4 py-2 sm:py-3 flex items-center gap-1.5 sm:gap-3.5 font-black text-sm sm:text-base shadow-sm flex-shrink-0">
+                <div className="bg-[#CEF3E7] text-[#1E1B1C] rounded-full px-2.5 sm:px-4 py-2.5 sm:py-3.5 flex items-center gap-2 sm:gap-3.5 font-black text-sm sm:text-base shadow-sm flex-shrink-0">
                   <button
                     onClick={() => setDetailQuantity(Math.max(1, detailQuantity - 1))}
                     className="apple-stepper-btn cursor-pointer px-1.5"
+                    aria-label="Decrease quantity"
                   >
                     -
                   </button>
@@ -1024,6 +1081,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <button
                     onClick={() => setDetailQuantity(detailQuantity + 1)}
                     className="apple-stepper-btn cursor-pointer px-1.5"
+                    aria-label="Increase quantity"
                   >
                     +
                   </button>
@@ -1032,10 +1090,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleDetailAddToCart}
-                  className="flex-1 min-w-0 bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black py-2.5 sm:py-3.5 md:py-4 px-3 sm:px-5 rounded-full shadow-lg flex items-center justify-between transition-all cursor-pointer apple-tap-target"
+                  className="flex-1 min-w-0 bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black py-3 sm:py-3.5 md:py-4 px-4 sm:px-6 rounded-full shadow-lg flex items-center justify-between transition-all cursor-pointer apple-tap-target font-['Outfit']"
                 >
                   <div className="flex items-center gap-1.5 truncate">
-                    <ShoppingBag size={15} className="text-[#1E1B1C] flex-shrink-0" />
+                    <ShoppingBag size={16} className="text-[#1E1B1C] flex-shrink-0" />
                     <span className="text-xs sm:text-sm font-black truncate">
                       Add To Basket (₹{(selectedDishDetails.price || 0) * detailQuantity})
                     </span>
@@ -1068,7 +1126,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 }
                 : undefined
             }
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar justify-between apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
+            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-6 sm:p-8 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar justify-between apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
           >
             <div>
               {/* Drag Handle Bar (Interactive Drag Down Area) */}
@@ -1204,6 +1262,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Live Order CARTO Map Tracking HUD Modal (Exact Screenshot Layout) */}
+      {isTrackingModalOpen && trackingOrder && (
+        <ActiveOrderTrackingModal
+          order={trackingOrder}
+          allShops={allShops}
+          onClose={() => setIsTrackingModalOpen(false)}
+        />
       )}
 
       {/* Dynamic Island Toast Notification (Vrinda Tours Physics) */}

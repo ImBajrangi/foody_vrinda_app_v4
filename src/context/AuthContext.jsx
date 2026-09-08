@@ -21,6 +21,7 @@ import {
   serverTimestamp 
 } from "firebase/firestore";
 import { auth, db } from '../firebase';
+import { supabase, getCloudShops } from '../supabase';
 
 const AuthContext = createContext(null);
 
@@ -49,16 +50,22 @@ export function AuthProvider({ children }) {
   const [impersonatedShopId, setImpersonatedShopId] = useState(null);
   const [impersonatedRole, setImpersonatedRole] = useState(null);
 
-  // Helper to load all shops
+  // Helper to load all shops from Supabase / Firebase / Cache
   const loadShops = async () => {
     try {
+      const shops = await getCloudShops();
+      if (shops && shops.length > 0) {
+        setAllShops(shops);
+        return shops;
+      }
+
       const snap = await getDocs(collection(db, "shops"));
-      const shops = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTimeout(() => setAllShops(shops), 0);
-      localStorage.setItem('foody_cached_shops', JSON.stringify(shops));
-      return shops;
+      const fbShops = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTimeout(() => setAllShops(fbShops), 0);
+      localStorage.setItem('foody_cached_shops', JSON.stringify(fbShops));
+      return fbShops;
     } catch (e) {
-      console.error("Failed to load shops:", e);
+      console.warn("Failed to load shops from cloud, using cache:", e);
       return [];
     }
   };

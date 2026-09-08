@@ -86,6 +86,12 @@ export default function KitchenView() {
         return timeA - timeB;
       });
       setOrders(activeOrders);
+    }, (error) => {
+      if (error.code === 'permission-denied') {
+        console.info("Kitchen orders subscription: Authenticated staff access required.");
+      } else {
+        console.warn("Kitchen orders snapshot warning:", error.message);
+      }
     });
 
     return () => unsubscribe();

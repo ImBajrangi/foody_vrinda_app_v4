@@ -69,7 +69,11 @@ export function NotificationProvider({ children }) {
         }
       }
     }, (error) => {
-      console.error("Error listening for notifications:", error);
+      if (error.code === 'permission-denied') {
+        // Safe fallback when auth isn't populated yet
+      } else {
+        console.warn("Notifications subscription warning:", error.message);
+      }
     });
 
     return () => unsubscribe();
