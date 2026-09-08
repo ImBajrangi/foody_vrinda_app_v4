@@ -113,11 +113,29 @@ CREATE POLICY "Public update notifications" ON public.foody_notifications FOR UP
 DROP POLICY IF EXISTS "Public delete notifications" ON public.foody_notifications;
 CREATE POLICY "Public delete notifications" ON public.foody_notifications FOR DELETE USING (true);
 
--- 8. ENABLE REALTIME BROADCASTING
-ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications;
+-- 8. ENABLE REALTIME BROADCASTING (IDEMPOTENT & SAFE ON RE-RUNS)
+DO $$
+BEGIN
+    BEGIN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+END $$;
 
 -- 8. SEED DATA - KITCHEN BRANCHES
 INSERT INTO public.foody_shops (id, name, address, phone, coordinates, is_open, minimum_order_amount, delivery_charge, gst_percentage)
