@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
+import { useCart } from './context/CartContext';
 import { useAudioAlarm } from './hooks/useAudioAlarm';
 import Header from './components/Header';
 import AuthModal from './components/AuthModal';
@@ -14,6 +15,7 @@ import RewardsModal from './components/RewardsModal';
 
 export default function App() {
   const { userRole } = useAuth();
+  const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
 
   // Navigation tab
@@ -161,9 +163,9 @@ export default function App() {
       <UnifiedSearchModal 
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSelectShop={() => {
+        onSelectShop={(shopId) => {
+          if (shopId) setSelectedShopId(shopId);
           setCurrentTab('customer');
-          // Automatically sets the active shop inside CartContext
         }}
         onSelectOrder={handleSearchOrderSelect}
       />
