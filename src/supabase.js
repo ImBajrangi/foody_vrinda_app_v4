@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase Cloud Project Configuration (Company Production Standard)
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://opakgafcintfmuqtarqd.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wYWtnYWZjaW50Zm11cXRhcnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNTA5NjMsImV4cCI6MjA4OTkyNjk2M30.lV_-ndxlxQMIY0vJFfbxN70zx9YhAl5DBLipws7JaFs';
+// Supabase Cloud Project Configuration (Foody Vrinda Database)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://mrsxliwyqodtwjuyqmts.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yc3hsaXd5cW9kdHdqdXlxbXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NzQxMjcsImV4cCI6MjEwNDQ1MDEyN30.UZteyeZ3LtuVpMJoUqZogPKffmSlHN3Hn9fLtis7lBg';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
