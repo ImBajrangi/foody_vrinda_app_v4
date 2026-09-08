@@ -117,6 +117,7 @@ export default function App() {
           setCurrentTab('customer');
         }}
         onToggleRewards={() => setIsRewardsOpen(!isRewardsOpen)}
+        onOpenCart={() => window.dispatchEvent(new CustomEvent('foody-open-cart'))}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
       />

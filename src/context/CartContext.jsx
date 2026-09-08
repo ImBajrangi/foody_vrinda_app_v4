@@ -1,33 +1,19 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [selectedShopId, setSelectedShopId] = useState(null);
-  const [paymentSettings, setPaymentSettings] = useState({
-    onlinePaymentsEnabled: true,
-    codEnabled: true
+  const [paymentSettings, setPaymentSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_payment_config');
+      return saved ? JSON.parse(saved) : { onlinePaymentsEnabled: true, codEnabled: true };
+    } catch (e) {
+      return { onlinePaymentsEnabled: true, codEnabled: true };
+    }
   });
-
-  // Load payment settings dynamically from settings/paymentConfig
-  useEffect(() => {
-    const fetchPaymentSettings = async () => {
-      try {
-        const docRef = doc(db, "settings", "paymentConfig");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setPaymentSettings(docSnap.data());
-        }
-      } catch (err) {
-        console.warn("Failed to load payment settings:", err);
-      }
-    };
-    fetchPaymentSettings();
-  }, []);
 
   const addToCart = (item, shopId) => {
     const targetShopId = shopId || item.shopId || selectedShopId;
@@ -61,6 +47,17 @@ export function CartProvider({ children }) {
         setSelectedShopId(null);
       }
       return updated;
+    });
+  };
+
+  const setExactQuantity = (itemId, exactQty) => {
+    setCart(prevCart => {
+      if (exactQty <= 0) {
+        const updated = prevCart.filter(i => i.id !== itemId);
+        if (updated.length === 0) setSelectedShopId(null);
+        return updated;
+      }
+      return prevCart.map(i => i.id === itemId ? { ...i, quantity: exactQty } : i);
     });
   };
 
@@ -98,6 +95,7 @@ export function CartProvider({ children }) {
     paymentSettings,
     addToCart,
     updateQuantity,
+    setExactQuantity,
     removeFromCart,
     clearCart,
     loadRazorpay

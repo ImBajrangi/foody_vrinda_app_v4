@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
 import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc, 
-  doc, 
-  addDoc, 
-  deleteDoc
-} from 'firebase/firestore';
-import { db } from '../firebase';
-import { 
   supabase, 
   getCloudMenus, 
   createCloudMenuItem, 
@@ -19,7 +8,8 @@ import {
   updateCloudShop, 
   markCloudOrderCashCollected, 
   subscribeCloudOrders,
-  DEFAULT_PRASAD_ITEMS 
+  DEFAULT_PRASAD_ITEMS,
+  resolveDishCutout
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -33,34 +23,39 @@ import {
   Legend, 
   ArcElement 
 } from 'chart.js';
-import MapPicker from '../components/MapPicker';
-import DynamicToast from '../components/ui/DynamicToast';
 import { 
-  BarChart3, 
-  Store, 
-  UtensilsCrossed, 
-  Receipt, 
   DollarSign, 
-  TrendingUp, 
   ShoppingBag, 
-  CheckCircle2, 
-  AlertCircle, 
+  TrendingUp, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle,
   Plus, 
   Edit2, 
   Trash2, 
+  Settings, 
   MapPin, 
-  Clock, 
-  Sparkles, 
-  Flame, 
-  Leaf, 
-  CreditCard, 
-  ShieldCheck, 
-  Check, 
+  Phone, 
+  Store,
+  Eye,
+  EyeOff,
+  Search,
+  Filter,
+  RefreshCw,
+  Sparkles,
+  Download,
+  Flame,
+  CreditCard,
+  Banknote,
+  UtensilsCrossed,
+  ChefHat,
+  Truck,
+  ShieldCheck,
+  CheckCircle2,
   X,
-  Compass,
-  Layers,
-  ChevronRight
+  FileSpreadsheet
 } from 'lucide-react';
+import DynamicToast from '../components/ui/DynamicToast';
 
 ChartJS.register(
   CategoryScale,
@@ -73,47 +68,50 @@ ChartJS.register(
 );
 
 export default function OwnerView() {
-  const { currentUserShopId, allShops, refreshShops } = useAuth();
+  const { allShops, currentUserShopId } = useAuth();
   
+  // Tab Navigation: 'analytics' | 'menu' | 'settings' | 'history'
+  const [activeTab, setActiveTab] = useState('analytics');
   const [orders, setOrders] = useState([]);
-  const [menuItems, setMenuItems] = useState(DEFAULT_PRASAD_ITEMS);
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary', 'shops', 'menu', 'audit'
+  const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
 
-  // Payment settings
-  const [paymentsConfig, setPaymentsConfig] = useState({ onlinePaymentsEnabled: true, codEnabled: true });
-
-  // Map Picker toggles
-  const [showMapPicker, setShowMapPicker] = useState(false);
-  const [mapTargetCoords, setMapTargetCoords] = useState({ lat: '', lng: '' });
-  const [coordinateCallback, setCoordinateCallback] = useState(null);
-
-  // Delete modal state
-  const [deleteTargetId, setDeleteTargetId] = useState(null);
-
-  // Shop management states
-  const [editingShop, setEditingShop] = useState(null);
-  const [shopForm, setShopForm] = useState({
-    name: '', address: '', minimumOrderAmount: 0, deliveryCharge: 0, gstPercentage: 5,
-    lat: '', lng: '', openTime: '08:00', closeTime: '22:00', alwaysOpen: false, imageUrl: ''
+  // Payments / Store Operational Settings
+  const [paymentConfig, setPaymentConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_payment_config');
+      return saved ? JSON.parse(saved) : { onlinePaymentsEnabled: true, codEnabled: true };
+    } catch (e) {
+      return { onlinePaymentsEnabled: true, codEnabled: true };
+    }
   });
 
-  // Menu items management states
+  // Modals & UI States
+  const [isEditShopModalOpen, setIsEditShopModalOpen] = useState(false);
+  const [editingShop, setEditingShop] = useState(null);
+  const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState(null);
-  const [menuForm, setMenuForm] = useState({ 
-    name: '', 
-    description: '', 
-    price: 0, 
-    category: 'Main',
-    isSatvik: true,
-    isDailySpecial: false,
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [selectedAuditOrder, setSelectedAuditOrder] = useState(null);
+
+  // Form State for Menu Item
+  const [menuForm, setMenuForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: 'Snacks',
+    isAvailable: true,
+    isVeg: true,
     spicyLevel: 'Mild',
     imageUrl: '',
     nutrition: '',
     ingredients: ''
   });
 
-  // Fetch shop-specific orders for analytics and audit with Supabase & Firebase Dual Sync
+  // Fetch shop-specific orders for analytics and audit with Supabase Realtime
   useEffect(() => {
     if (!currentUserShopId) return;
 
@@ -126,7 +124,7 @@ export default function OwnerView() {
           .eq('shop_id', currentUserShopId)
           .order('created_at', { ascending: false });
 
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           setOrders(data.map(o => ({
             id: o.id,
             ...o,
@@ -141,47 +139,22 @@ export default function OwnerView() {
           })));
         }
       } catch (err) {
-        console.warn('Supabase fetchCloudOrders fallback:', err);
+        console.error('Supabase fetchCloudOrders error:', err);
       }
     }
     fetchCloudOrders();
 
     // 2. Realtime subscription to Supabase
-    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, (payload) => {
+    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, () => {
       fetchCloudOrders();
     });
 
-    // 3. Fallback Firestore snapshot listener with safe error handling
-    let unsubscribeFirestore = () => {};
-    try {
-      const q = query(collection(db, "orders"), where("shopId", "==", currentUserShopId));
-      unsubscribeFirestore = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setOrders(prev => {
-            const combined = [...prev];
-            allOrders.forEach(fo => {
-              const idx = combined.findIndex(c => c.id === fo.id);
-              if (idx >= 0) combined[idx] = { ...combined[idx], ...fo };
-              else combined.unshift(fo);
-            });
-            return combined;
-          });
-        }
-      }, (err) => {
-        console.warn('Firestore orders snapshot restricted, using Supabase.');
-      });
-    } catch (e) {
-      console.warn('Firestore fallback inactive:', e);
-    }
-
     return () => {
       if (unsubscribeSupabase) unsubscribeSupabase();
-      if (unsubscribeFirestore) unsubscribeFirestore();
     };
   }, [currentUserShopId]);
 
-  // Fetch menu items for menu manager
+  // Fetch menu items for menu manager from Supabase
   useEffect(() => {
     if (!currentUserShopId) return;
 
@@ -192,45 +165,16 @@ export default function OwnerView() {
       }
     }
     loadMenus();
-
-    // Also fallback to Firestore if available
-    let unsubscribe = () => {};
-    try {
-      const q = query(collection(db, "menus"), where("shopId", "==", currentUserShopId));
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setMenuItems(items);
-        }
-      }, (err) => {
-        // Safe Firestore permission catch
-      });
-    } catch (e) {}
-
-    return () => unsubscribe();
   }, [currentUserShopId]);
 
-  // Load global payment configurations
-  useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "settings", "paymentConfig"), (docSnap) => {
-      if (docSnap.exists()) {
-        setPaymentsConfig(docSnap.data());
-      }
+  // Update Payment Config
+  const handleTogglePayment = (key, value) => {
+    setPaymentConfig(prev => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem('foody_payment_config', JSON.stringify(updated));
+      return updated;
     });
-    return () => unsubscribe();
-  }, []);
-
-  const handleUpdatePaymentsConfig = async (key, value) => {
-    try {
-      await updateDoc(doc(db, "settings", "paymentConfig"), { [key]: value });
-      setToast({
-        message: `Payment setting updated successfully`,
-        type: 'success'
-      });
-    } catch (e) {
-      console.error(e);
-      setToast({ message: 'Failed to update payment configuration', type: 'error' });
-    }
+    setToast({ message: `Payment setting updated`, type: "success" });
   };
 
   // KPI Calculations
@@ -365,15 +309,8 @@ export default function OwnerView() {
         imageUrl: shopForm.imageUrl
       };
 
-      // 1. Supabase Cloud Sync
+      // Supabase Cloud Sync
       await updateCloudShop(editingShop.id, shopUpdateData);
-
-      // 2. Firestore fallback sync (safe)
-      try {
-        await updateDoc(doc(db, "shops", editingShop.id), shopUpdateData);
-      } catch (err) {
-        // Safe catch if Firestore offline
-      }
 
       setToast({ message: "Kitchen profile updated successfully!", type: "success" });
       setEditingShop(null);
@@ -419,24 +356,16 @@ export default function OwnerView() {
       };
 
       if (editingMenuItem) {
-        // 1. Supabase Cloud update
+        // Supabase Cloud update
         await updateCloudMenuItem(editingMenuItem.id, payload);
-        // 2. Local state update
+        // Local state update
         setMenuItems(prev => prev.map(m => m.id === editingMenuItem.id ? { ...m, ...payload, image: payload.imageUrl } : m));
-        // 3. Firestore fallback
-        try {
-          await updateDoc(doc(db, "menus", editingMenuItem.id), payload);
-        } catch (e) {}
         setToast({ message: `"${menuForm.name}" updated successfully`, type: "success" });
       } else {
-        // 1. Supabase Cloud insert
+        // Supabase Cloud insert
         const newDish = await createCloudMenuItem(payload);
-        // 2. Local state update
+        // Local state update
         setMenuItems(prev => [newDish, ...prev]);
-        // 3. Firestore fallback
-        try {
-          await addDoc(collection(db, "menus"), payload);
-        } catch (e) {}
         setToast({ message: `"${menuForm.name}" added to menu!`, type: "success" });
       }
 
@@ -462,14 +391,10 @@ export default function OwnerView() {
   const handleConfirmDeleteMenuItem = async () => {
     if (!deleteTargetId) return;
     try {
-      // 1. Supabase Cloud delete
+      // Supabase Cloud delete
       await deleteCloudMenuItem(deleteTargetId);
-      // 2. Local state update
+      // Local state update
       setMenuItems(prev => prev.filter(m => m.id !== deleteTargetId));
-      // 3. Firestore fallback
-      try {
-        await deleteDoc(doc(db, "menus", deleteTargetId));
-      } catch (e) {}
 
       setToast({ message: "Dish removed from catalog", type: "success" });
       setDeleteTargetId(null);
@@ -481,14 +406,10 @@ export default function OwnerView() {
 
   const handleMarkCashCollected = async (orderId) => {
     try {
-      // 1. Supabase Cloud update
+      // Supabase Cloud update
       await markCloudOrderCashCollected(orderId);
-      // 2. Local state update
+      // Local state update
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, cashStatus: 'collected', cash_status: 'collected' } : o));
-      // 3. Firestore fallback
-      try {
-        await updateDoc(doc(db, "orders", orderId), { cashStatus: 'collected' });
-      } catch (e) {}
 
       setToast({ message: `COD payment marked as Collected for #${orderId.slice(-6).toUpperCase()}`, type: "success" });
     } catch (e) {
@@ -1054,7 +975,7 @@ export default function OwnerView() {
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-2xl bg-[#1E1B1C] border border-white/10 overflow-hidden shrink-0 flex items-center justify-center p-1">
                             <img 
-                              src={item.imageUrl || "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=100&auto=format&fit=crop&q=60&fm=webp"} 
+                              src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
                               alt={item.name} 
                               className="w-full h-full object-contain"
                               loading="lazy"

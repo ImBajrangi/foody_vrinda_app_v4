@@ -1,15 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  addDoc,
-  doc,
-  getDocs,
-  serverTimestamp
-} from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import MapPicker from '../components/MapPicker';
@@ -32,10 +21,14 @@ import {
   Search,
   Sparkles,
   Check,
-  Navigation
+  Navigation,
+  Minus,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
-import { createCloudOrder, getCloudMenus, subscribeSingleCloudOrder } from '../supabase';
+import QuantityPickerSheet from '../components/QuantityPickerSheet';
+import { createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
 
 // Curated high-res transparent PNG cutout dishes (Exact Template Match)
 const DEFAULT_PRASAD_ITEMS = [
@@ -56,54 +49,97 @@ const DEFAULT_PRASAD_ITEMS = [
   },
   {
     id: 'prasad-2',
-    name: 'Paneer Makhani Meal',
-    subtitle: 'Rich cashew gravy, butter roti',
+    name: 'Royal Vedic Thali',
+    subtitle: 'Complete nutritional Satvik platter',
     category: 'Thali & Meals',
-    price: 160,
-    kcal: '320 kcal',
-    carbs: '38g',
-    fat: '18g',
+    price: 220,
+    kcal: '480 kcal',
+    carbs: '68g',
+    fat: '16g',
     protein: '22g',
     popular: true,
-    tag: 'Full Protein',
-    image: '/dishes/curry.png',
-    description: 'Fresh organic cottage cheese simmered in a luscious tomato and cashew butter gravy, infused with cardamom and pure desi ghee.'
-  },
-  {
-    id: 'prasad-3',
-    name: 'Special Satvik Thali',
-    subtitle: 'Pure Desi Ghee, Vedic spices',
-    category: 'Thali & Meals',
-    price: 180,
-    kcal: '360 kcal',
-    carbs: '48g',
-    fat: '14g',
-    protein: '16g',
-    popular: true,
-    tag: 'Pure Desi Ghee',
+    tag: 'Devotee Favorite',
     image: '/dishes/thali.png',
     description: 'Authentic Vrindavan Satvik Thali prepared without onion or garlic. Includes paneer sabzi, dal tadka, 4 phulkas, fragrant jeera rice, and fresh sweet.'
   },
   {
-    id: 'prasad-4',
-    name: 'Kesari Badam Kheer',
-    subtitle: 'Kashmiri saffron, roasted almond',
+    id: 'prasad-3',
+    name: 'Kesariya Rabdi Kheer',
+    subtitle: 'Slow simmered thickened milk dessert',
     category: 'Sweets & Prasad',
-    price: 90,
-    kcal: '240 kcal',
-    carbs: '42g',
-    fat: '8g',
+    price: 120,
+    kcal: '210 kcal',
+    carbs: '28g',
+    fat: '9g',
     protein: '7g',
     popular: true,
     tag: 'Sacred Prasad',
     image: '/dishes/sweet.png',
     description: 'Slow-cooked condensed milk pudding flavored with real Kashmiri saffron strands, green cardamom, and crunchy roasted California almonds.'
+  },
+  {
+    id: 'prasad-4',
+    name: 'Paneer Satvik Pizza (10")',
+    subtitle: 'Crispy thin crust with desi herbs',
+    category: 'Snacks',
+    price: 240,
+    kcal: '340 kcal',
+    carbs: '42g',
+    fat: '14g',
+    protein: '18g',
+    popular: true,
+    tag: 'Chef Special',
+    image: '/dishes/pizza.png',
+    description: 'Hand-tossed thin crust with fresh tomato basil coulis, diced fresh Malai paneer, bell peppers, sweet corn, and mozzarella cheese.'
+  },
+  {
+    id: 'prasad-5',
+    name: 'Paneer Makhani Meal',
+    subtitle: 'Rich cashew gravy, butter roti',
+    category: 'Thali & Meals',
+    price: 180,
+    kcal: '360 kcal',
+    carbs: '38g',
+    fat: '18g',
+    protein: '22g',
+    popular: true,
+    tag: 'Pure Desi Ghee',
+    image: '/dishes/curry.png',
+    description: 'Fresh organic cottage cheese simmered in a luscious tomato and cashew butter gravy, infused with cardamom and pure desi ghee.'
+  },
+  {
+    id: 'prasad-6',
+    name: 'Govind Bhog Basmati Rice',
+    subtitle: 'Steamed aromatic long grain rice',
+    category: 'Thali & Meals',
+    price: 90,
+    kcal: '210 kcal',
+    carbs: '44g',
+    fat: '3g',
+    protein: '5g',
+    popular: true,
+    tag: 'Vedic Grain',
+    image: '/dishes/rice.png',
+    description: 'Premium aged Govind Bhog long-grain basmati rice steamed with fragrant bay leaf, green cardamom, and a dollop of pure A2 cow ghee.'
   }
 ];
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const { user, allShops } = useAuth();
-  const { cart, selectedShopId, setSelectedShopId, addToCart, updateQuantity, clearCart, loadRazorpay, paymentSettings } = useCart();
+  const { 
+    cart, 
+    selectedShopId, 
+    setSelectedShopId, 
+    addToCart, 
+    updateQuantity, 
+    setExactQuantity,
+    removeFromCart,
+    clearCart, 
+    loadRazorpay, 
+    paymentSettings 
+  } = useCart();
+
+  const [editingQuantityItem, setEditingQuantityItem] = useState(null);
 
   const [deliveryCoords, setDeliveryCoords] = useState(() => {
     try {
@@ -116,6 +152,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [cookingNotes, setCookingNotes] = useState('');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalOpenCart = () => setShowCartDrawer(true);
+    window.addEventListener('foody-open-cart', handleGlobalOpenCart);
+    return () => window.removeEventListener('foody-open-cart', handleGlobalOpenCart);
+  }, []);
 
   useEffect(() => {
     if (deliveryCoords?.lat && deliveryCoords?.lng) {
@@ -271,11 +313,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }, 220);
   };
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
+  const showToast = (message, type = 'success', desc = '') => {
+    setToast({ message, type, desc });
     setTimeout(() => {
       setToast(prev => (prev && prev.message === message ? null : prev));
-    }, 4000);
+    }, 3000);
   };
 
   // Sync inputs with localStorage
@@ -305,50 +347,35 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
 
     setMenuLoading(true);
-    // Use plural 'menus' matching Firestore database schema
-    const q = query(collection(db, "menus"), where("shopId", "==", selectedShopId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMenuItems(items);
-      setMenuLoading(false);
-    }, (error) => {
-      console.warn("Notice: Fetching from 'menus' collection:", error.message);
-      // Fallback seamlessly so the customer experience never breaks
-      setMenuLoading(false);
-    });
-
-    return () => unsubscribe();
+    async function loadShopMenus() {
+      try {
+        const items = await getCloudMenus(selectedShopId);
+        setMenuItems(items || []);
+      } catch (err) {
+        console.warn("Notice loading menus:", err.message);
+      } finally {
+        setMenuLoading(false);
+      }
+    }
+    loadShopMenus();
   }, [selectedShopId]);
 
-  // Auto-switch to tracking view if trackingOrderId is set (Dual Supabase Realtime + Firebase)
+  // Auto-switch to tracking view if trackingOrderId is set (Supabase Realtime)
   useEffect(() => {
     if (trackingOrderId) {
-      let unsubSupabase = null;
-      try {
-        unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
-          setTrackingOrder(updatedOrder);
-          setIsTrackingModalOpen(true);
-        });
-      } catch (err) {
-        // Fallback
-      }
-
-      const unsubFirebase = onSnapshot(doc(db, "orders", trackingOrderId), (docSnap) => {
-        if (docSnap.exists()) {
-          setTrackingOrder({ id: docSnap.id, ...docSnap.data() });
-          setIsTrackingModalOpen(true);
-        }
-      }, () => {});
+      const unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
+        setTrackingOrder(updatedOrder);
+        setIsTrackingModalOpen(true);
+      });
 
       return () => {
-        if (unsubFirebase) unsubFirebase();
         if (unsubSupabase) unsubSupabase();
       };
     } else {
       setTrackingOrder(null);
       setIsTrackingModalOpen(false);
     }
-  }, [trackingOrderId, setTrackingOrderId]);
+  }, [trackingOrderId]);
 
   // Dynamic Shops handling
   const [showShopSwitcher, setShowShopSwitcher] = useState(false);
@@ -372,19 +399,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const isBelowMin = subtotal < minOrderAmount && minOrderAmount > 0;
 
   const handlePlaceOrder = async () => {
-    if (cart.length === 0) return showToast('Your cart is empty.', 'error');
+    if (cart.length === 0) return showToast('Basket is empty', 'error');
     if (!selectedShopId && allShops.length > 0) setSelectedShopId(allShops[0].id);
     if (user?.isAnonymous || !user) {
-      showToast("You need to log in to place an order.", 'error');
+      showToast("Login required", 'error', 'Sign in to order');
       return;
     }
 
     if (!checkoutName || !checkoutAddress || !checkoutPhone) {
-      return showToast("Please fill out all delivery details.", 'error');
+      return showToast("Missing details", 'error', 'Fill address & phone');
     }
 
     if (isBelowMin) {
-      return showToast(`Minimum order amount is ₹${minOrderAmount}. Add ₹${minOrderAmount - subtotal} more.`, 'error');
+      return showToast(`Min ₹${minOrderAmount}`, 'error', `Add ₹${minOrderAmount - subtotal} more`);
     }
 
     const orderPayload = {
@@ -399,7 +426,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       gstAmount,
       totalAmount,
       status: 'new',
-      createdAt: serverTimestamp(),
       userId: user.uid,
       isTestOrder: false,
       paymentMethod,
@@ -408,37 +434,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     };
 
     if (paymentMethod === 'cash') {
-      if (!paymentSettings?.codEnabled) return showToast("COD is currently disabled.", 'error');
+      if (!paymentSettings?.codEnabled) return showToast("COD unavailable", 'error');
       orderPayload.cashStatus = 'pending';
       orderPayload.paymentId = null;
 
       try {
-        const docRef = await addDoc(collection(db, "orders"), orderPayload);
-        // Sync to Supabase Cloud Database
-        createCloudOrder({ ...orderPayload, id: docRef.id });
-        showToast("Order placed successfully with Cash on Delivery!", 'success');
+        const cloudOrder = await createCloudOrder(orderPayload);
+        showToast("Order Placed!", 'success', 'Cash on Delivery');
         clearCart();
         setShowCartDrawer(false);
-        setTrackingOrderId(docRef.id);
+        setTrackingOrderId(cloudOrder.id);
       } catch (err) {
-        // Fallback directly to Supabase cloud order
-        try {
-          const cloudOrder = await createCloudOrder(orderPayload);
-          showToast("Order placed successfully with Cash on Delivery!", 'success');
-          clearCart();
-          setShowCartDrawer(false);
-          setTrackingOrderId(cloudOrder.id);
-        } catch (supabaseErr) {
-          console.error("Order placement error:", supabaseErr);
-          showToast("Failed to place order.", 'error');
-        }
+        console.error("Order placement error:", err);
+        showToast("Order failed", 'error', 'Please try again');
       }
     } else {
-      if (!paymentSettings?.onlinePaymentsEnabled) return showToast("Online payments are currently disabled.", 'error');
+      if (!paymentSettings?.onlinePaymentsEnabled) return showToast("Online payment unavailable", 'error');
 
       const scriptLoaded = await loadRazorpay();
       if (!scriptLoaded) {
-        return showToast("Failed to load payment gateway.", 'error');
+        return showToast("Gateway error", 'error', 'Failed to load Razorpay');
       }
 
       const rzpOptions = {
@@ -454,23 +469,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           orderPayload.cashStatus = 'none';
 
           try {
-            const docRef = await addDoc(collection(db, "orders"), orderPayload);
-            createCloudOrder({ ...orderPayload, id: docRef.id });
-            showToast("Payment successful! Order placed.", 'success');
+            const cloudOrder = await createCloudOrder(orderPayload);
+            showToast("Order Placed!", 'success', 'Payment confirmed');
             clearCart();
             setShowCartDrawer(false);
-            setTrackingOrderId(docRef.id);
-          } catch (err) {
-            try {
-              const cloudOrder = await createCloudOrder(orderPayload);
-              showToast("Payment successful! Order placed.", 'success');
-              clearCart();
-              setShowCartDrawer(false);
-              setTrackingOrderId(cloudOrder.id);
-            } catch (cloudErr) {
-              console.error(cloudErr);
-              showToast("Failed to record payment.", 'error');
-            }
+            setTrackingOrderId(cloudOrder.id);
+          } catch (cloudErr) {
+            console.error(cloudErr);
+            showToast("Payment error", 'error');
           }
         },
         prefill: {
@@ -480,7 +486,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         },
         theme: { color: "#E0FF33" },
         modal: {
-          ondismiss: () => showToast("Payment was cancelled.", 'info')
+          ondismiss: () => showToast("Payment cancelled", 'info')
         }
       };
 
@@ -512,22 +518,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   // Helper to get fallback cutout image if image fails or missing
   const getDishImage = (item, idx = 0) => {
-    if (item?.image && item.image.trim() !== '') return item.image;
-    if (item?.imageUrl && item.imageUrl.trim() !== '') return item.imageUrl;
-    const fallbacks = [
-      '/dishes/burger.png',
-      '/dishes/curry.png',
-      '/dishes/thali.png',
-      '/dishes/sweet.png',
-      '/dishes/pizza.png'
-    ];
-    return fallbacks[idx % fallbacks.length];
+    return resolveDishCutout(item?.image || item?.imageUrl, item?.name, item?.category);
   };
 
   // Combine database items with rich fallback items so the UI is always dynamic and stunning
   const displayItems = menuItems.length > 0 ? menuItems.map((it, i) => ({
     ...it,
-    image: getDishImage(it, i),
+    image: resolveDishCutout(it.image || it.imageUrl, it.name, it.category),
     subtitle: it.subtitle || (it.category === 'Thali & Meals' ? 'Rich gravy, hot rotis' : (it.category === 'Sweets & Prasad' ? 'Desi ghee, saffron flavored' : 'Cheesy crisp, special price')),
     kcal: it.kcal || `${Math.round(220 + ((it.price || 140) * 0.8))} kcal`,
     carbs: it.carbs || `${Math.round(35 + (i * 4))}g`,
@@ -565,7 +562,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     for (let i = 0; i < detailQuantity; i++) {
       addToCart(selectedDishDetails);
     }
-    showToast(`Added ${detailQuantity}x ${selectedDishDetails.name} to basket!`, 'success');
+    showToast(`+${detailQuantity} ${selectedDishDetails.name}`, 'success', `₹${(selectedDishDetails.price || 0) * detailQuantity}`);
     setSelectedDishDetails(null);
   };
 
@@ -593,7 +590,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         selectedAddons: spotlightAddons
       });
     }
-    showToast(`Added ${spotlightQty}x ${spotlightDish.name} to order!`, 'success');
+    showToast(`+${spotlightQty} ${spotlightDish.name}`, 'success', `₹${spotlightDish.price * spotlightQty}`);
   };
 
   const desktopDiscount = promocodeApplied ? Math.round(subtotal * 0.1) : 0;
@@ -608,39 +605,46 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           onLocationSelect={(coords) => {
             setDeliveryCoords(coords);
             setShowMapPicker(false);
-            showToast("Delivery location pinned accurately!", "success");
+            showToast("Location Pinned", "success");
           }}
           onClose={() => setShowMapPicker(false)}
         />
       )}
 
       {/* DYNAMIC SHOP SELECTOR & LIVE TIMING ROW (Flawless Single-Line Responsive Standard) */}
-      <div className="mb-5 flex items-center gap-2.5 sm:gap-3 justify-between w-full">
+      <div className="mb-6 flex items-center gap-2.5 sm:gap-3 justify-between w-full">
         <button
           onClick={() => allShops.length > 1 && (showShopSwitcher ? handleCloseShopSwitcher() : setShowShopSwitcher(true))}
-          className={`flex-1 min-w-0 flex items-center gap-2 bg-[#282526] hover:bg-[#322E30] border border-white/5 px-3.5 sm:px-4 py-2.5 rounded-full text-xs shadow-sm transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
+          className={`flex-1 min-w-0 h-11 sm:h-12 flex items-center gap-2.5 bg-[#282526] hover:bg-[#322E30] border border-white/10 hover:border-[#E0FF33]/40 px-4 rounded-full text-xs shadow-md transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
+          title={allShops.length > 1 ? "Switch Kitchen Branch" : "Current Branch"}
         >
-          <MapPin size={14} className="text-[#E0FF33] flex-shrink-0" />
-          <span className="font-bold text-white text-xs truncate flex-1 text-left min-w-0">
+          <MapPin size={15} className="text-[#E0FF33] flex-shrink-0" />
+          <span className="font-bold text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
             {activeShop?.name || 'Vrinda Cloud Kitchen'}
           </span>
           {allShops.length > 1 && (
-            <ChevronDown size={13} className={`text-zinc-400 flex-shrink-0 ml-1 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
+            <ChevronDown size={14} className={`text-zinc-400 flex-shrink-0 ml-1 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
           )}
         </button>
 
-        <div className="flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 bg-[#282526] px-3.5 py-2.5 rounded-full border border-white/5 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-pulse flex-shrink-0"></span>
-          <span className="text-[11px] font-bold text-zinc-300 whitespace-nowrap">25-35 min</span>
+        <div className="h-11 sm:h-12 flex-shrink-0 whitespace-nowrap flex items-center gap-2 bg-[#282526] px-4 rounded-full border border-white/10 shadow-md">
+          <span className="w-2 h-2 rounded-full bg-[#E0FF33] flex-shrink-0 shadow-[0_0_8px_#E0FF33]"></span>
+          <span className="text-xs font-bold text-zinc-200 whitespace-nowrap">25–35 min</span>
         </div>
       </div>
 
       {/* Dynamic Shops Popover (Apple Dropdown Physics & Smooth Hiding) */}
       {showShopSwitcher && allShops.length > 1 && (
         <div className={`mb-6 bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-2xl apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-3.5">
             <h4 className="text-xs font-black uppercase text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
-            <button onClick={handleCloseShopSwitcher} className="text-xs text-zinc-400 hover:text-white cursor-pointer apple-tap-target p-1">✕</button>
+            <button 
+              onClick={handleCloseShopSwitcher} 
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer transition-all border border-white/5 shadow-sm apple-tap-target"
+              title="Close"
+            >
+              <X size={18} strokeWidth={2.5} />
+            </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {allShops.map(s => (
@@ -649,7 +653,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 onClick={() => {
                   setSelectedShopId(s.id);
                   handleCloseShopSwitcher();
-                  showToast(`Switched to ${s.name}`, 'info');
+                  showToast(s.name, 'info', 'Branch active');
                 }}
                 className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-lg ring-1 ring-[#E0FF33]/50' : 'bg-[#1E1B1C] text-white hover:bg-white/5 border border-white/5'}`}
               >
@@ -672,36 +676,45 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       {/* 1 & 2. HERO HEADLINE & INTEGRATED SEARCH BAR (Responsive Desktop & Mobile) */}
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-[1.05] tracking-tight font-['Outfit']">
-            Your Smily <span className="text-[#E0FF33]">Food</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-['Outfit']">
+            Your <span className="text-[#E0FF33]">Foody</span>Smile
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-medium tracking-wide">
             100% Satvik · Pure Desi Ghee · Divine Vedic Flavors
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative w-full md:w-80 lg:w-96 flex-shrink-0">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search pure delicacies..."
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
-            className="w-full !bg-[#282526] border border-white/5 !rounded-2xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-zinc-500 shadow-inner focus:outline-none focus:ring-1 focus:ring-[#E0FF33] transition-all"
+            className="w-full h-11 sm:h-12 !bg-[#282526] border border-white/10 hover:border-white/20 focus:!border-[#E0FF33]/60 !rounded-full pl-11 pr-10 text-xs sm:text-sm text-white placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#E0FF33]/20 transition-all"
           />
+          {menuSearch && (
+            <button
+              onClick={() => setMenuSearch('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[10px] text-zinc-300 hover:text-white cursor-pointer transition-all"
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
       {/* 3. HORIZONTAL CATEGORY PILL CHIPS */}
-      <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-1.5 mb-6 sm:mb-8">
+      <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-1 mb-6 sm:mb-8">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target ${selectedCategory.toLowerCase() === cat.toLowerCase()
-              ? 'bg-white text-[#1E1B1C] font-black shadow-lg'
-              : 'bg-[#282526] text-zinc-400 hover:text-white border border-white/5'
+            className={`h-10 sm:h-11 px-4 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
+              ? 'bg-white text-[#1E1B1C] font-black shadow-lg shadow-white/10'
+              : 'bg-[#282526] text-zinc-400 hover:text-white border border-white/10 hover:border-white/20'
               }`}
           >
             {cat}
@@ -730,8 +743,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   {trackingOrder.status === 'out_for_delivery'
                     ? 'Rider is on the way to your location!'
                     : trackingOrder.status === 'completed'
-                    ? 'Order delivered successfully!'
-                    : 'Order is being prepared in the kitchen.'}
+                      ? 'Order delivered successfully!'
+                      : 'Order is being prepared in the kitchen.'}
                 </p>
               </div>
             </div>
@@ -818,7 +831,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     onClick={(e) => {
                       e.stopPropagation();
                       addToCart(item);
-                      showToast(`Added ${item.name} to basket!`, 'success');
+                      showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                     }}
                     className="bg-[#1E1B1C] hover:bg-black text-white font-black text-xs px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target"
                   >
@@ -827,17 +840,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </button>
                 </div>
 
-                {/* Right Side Dish Image */}
+                {/* Right Side Dish Image - Pristine Transparent Cutout */}
                 <div className="absolute right-[-8px] bottom-[-8px] sm:right-[-6px] sm:bottom-[-6px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-48 xl:h-48 pointer-events-none flex items-center justify-center">
                   <img
-                    src={item.image}
+                    src={resolveDishCutout(item.image, item.name, item.category)}
                     alt={item.name}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/dishes/burger.png';
                     }}
-                    className="w-full h-full object-contain drop-shadow-[0_12px_15px_rgba(0,0,0,0.18)] scale-105 sm:scale-110"
+                    className="w-full h-full object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.18)] scale-105 sm:scale-110 select-none pointer-events-none transition-transform duration-300"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -846,27 +860,47 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* BOTTOM FLOATING CART BAR (If cart has items - Mobile only) */}
+      {/* BOTTOM FLOATING CART BAR (Apple Dynamic Capsule Design) */}
       {cart.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-[400px] animate-slide-up lg:hidden">
+        <div className="fixed bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-28px)] sm:w-auto sm:min-w-[400px] max-w-[480px] animate-slide-up select-none pointer-events-none">
           <div
             onClick={() => setShowCartDrawer(true)}
-            className="bg-[#282526] border border-[#E0FF33]/40 rounded-full p-2.5 pl-5 pr-3 shadow-2xl flex items-center justify-between cursor-pointer backdrop-blur-xl"
+            className="pointer-events-auto bg-[#1E1B1C]/95 border border-[#E0FF33]/40 hover:border-[#E0FF33] rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(224,255,51,0.15)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#E0FF33]/15 flex items-center justify-center text-[#E0FF33]">
-                <ShoppingBag size={17} />
+            {/* Left: Icon + Quantity Badge + Price */}
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#282526] border border-white/10 flex items-center justify-center text-[#E0FF33] shadow-md group-hover:bg-[#322E30] transition-colors">
+                  <ShoppingBag size={18} />
+                </div>
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#E0FF33] text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-[#1E1B1C] shadow-sm leading-none">
+                  {cart.reduce((s, i) => s + i.quantity, 0)}
+                </span>
               </div>
-              <div>
-                <p className="text-xs font-black text-white">
-                  {cart.reduce((s, i) => s + i.quantity, 0)} Items Added
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight">
+                    ₹{totalAmount}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400">
+                    · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#E0FF33] font-semibold truncate tracking-wide">
+                  Satvik Prasad Basket
                 </p>
-                <p className="text-[10px] text-[#E0FF33] font-bold">₹{totalAmount} Total</p>
               </div>
             </div>
 
+            {/* Right: Single-Line CTA Button */}
             <button
-              className="bg-[#E0FF33] text-[#1E1B1C] font-black text-xs px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg cursor-pointer"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCartDrawer(true);
+              }}
+              className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-lg flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
             >
               <span>View Basket</span>
               <ChevronRight size={14} strokeWidth={3} />
@@ -897,8 +931,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             {/* Close Button (Desktop Only) */}
             <button
-              onClick={handleCloseDishDetail}
-              className="hidden md:flex absolute top-5 right-5 z-20 w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] text-zinc-400 hover:text-white items-center justify-center transition-all cursor-pointer apple-tap-target border border-white/10 shadow-md"
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseDishDetail(e);
+              }}
+              className="hidden md:flex absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 text-zinc-400 hover:text-white items-center justify-center transition-all cursor-pointer border border-white/10 shadow-md"
               title="Close (Esc)"
             >
               <X size={17} />
@@ -920,17 +959,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Top Navigation Bar: Back (Mobile), Share, Favorite */}
-              <div
-                onPointerDown={handleDetailPointerDown}
-                onPointerMove={handleDetailPointerMove}
-                onPointerUp={handleDetailPointerUp}
-                onPointerCancel={handleDetailPointerUp}
-                className="flex justify-between items-center z-10 mb-1.5 sm:mb-3 select-none"
-                style={{ touchAction: 'none' }}
-              >
+              <div className="flex justify-between items-center z-10 mb-1.5 sm:mb-3 select-none">
                 <button
-                  onClick={handleCloseDishDetail}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black apple-tap-target md:hidden"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseDishDetail(e);
+                  }}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden"
                   title="Go Back"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
@@ -938,11 +975,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 <div className="flex items-center gap-2 ml-auto">
                   <button
+                    type="button"
                     onClick={() => {
                       if (navigator.share) {
-                        navigator.share({ title: selectedDishDetails.name, text: 'Check out this Satvik meal from Foody Vrinda!' });
+                        navigator.share({ title: selectedDishDetails.name, text: 'Check out this Satvik meal from Foody Vrinda!' })
+                          .catch(err => {
+                            if (err.name !== 'AbortError') {
+                              console.warn('Share error:', err);
+                            }
+                          });
                       } else {
-                        showToast("Link copied to clipboard!", "success");
+                        showToast("Link Copied", "success");
                       }
                     }}
                     className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer apple-tap-target"
@@ -985,13 +1028,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <div className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px]">
                 <div className="w-36 h-32 xs:w-44 xs:h-36 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center">
                   <img
-                    src={selectedDishDetails.image}
+                    src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
                     alt={selectedDishDetails.name}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/dishes/burger.png';
                     }}
-                    className="w-full h-full object-contain drop-shadow-[0_16px_22px_rgba(0,0,0,0.2)]"
+                    className="w-full h-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
 
@@ -1078,39 +1123,43 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               {/* Sticky / Dedicated Action Dock (100% Accessible & Always Visible) */}
               <div className="bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-6 md:p-0 md:pt-4 md:pl-6 border-t border-white/10 md:border-t-0 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)] md:pb-0">
-                {/* Quantity Stepper */}
-                <div className="bg-[#CEF3E7] text-[#1E1B1C] rounded-full px-2.5 sm:px-4 py-2.5 sm:py-3.5 flex items-center gap-2 sm:gap-3.5 font-black text-sm sm:text-base shadow-sm flex-shrink-0">
+                {/* Quantity Stepper (High-accessibility tactile pills) */}
+                <div className="bg-[#282526] text-white rounded-full p-1 sm:p-1.5 border border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0">
                   <button
+                    type="button"
                     onClick={() => setDetailQuantity(Math.max(1, detailQuantity - 1))}
-                    className="apple-stepper-btn cursor-pointer px-1.5"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all apple-tap-target disabled:opacity-30 disabled:cursor-not-allowed"
+                    disabled={detailQuantity <= 1}
                     aria-label="Decrease quantity"
+                    title="Decrease quantity"
                   >
-                    -
+                    <Minus size={14} strokeWidth={2.5} />
                   </button>
-                  <span className="min-w-[14px] sm:min-w-[18px] text-center font-black">{detailQuantity}</span>
+                  <span className="min-w-[24px] sm:min-w-[28px] text-center font-black text-sm sm:text-base text-[#E0FF33] font-['Outfit'] select-none">
+                    {detailQuantity}
+                  </span>
                   <button
+                    type="button"
                     onClick={() => setDetailQuantity(detailQuantity + 1)}
-                    className="apple-stepper-btn cursor-pointer px-1.5"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                     aria-label="Increase quantity"
+                    title="Increase quantity"
                   >
-                    +
+                    <Plus size={14} strokeWidth={3} />
                   </button>
                 </div>
 
                 {/* Add to Cart Button */}
                 <button
+                  type="button"
                   onClick={handleDetailAddToCart}
-                  className="flex-1 min-w-0 bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black py-3 sm:py-3.5 md:py-4 px-4 sm:px-6 rounded-full shadow-lg flex items-center justify-between transition-all cursor-pointer apple-tap-target font-['Outfit']"
+                  className="flex-1 min-w-0 h-11 sm:h-12 bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
                 >
-                  <div className="flex items-center gap-1.5 truncate">
-                    <ShoppingBag size={16} className="text-[#1E1B1C] flex-shrink-0" />
-                    <span className="text-xs sm:text-sm font-black truncate">
-                      Add To Basket (₹{(selectedDishDetails.price || 0) * detailQuantity})
-                    </span>
-                  </div>
-                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#1E1B1C] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 ml-1">
-                    <ChevronRight size={13} strokeWidth={3} />
+                  <ShoppingBag size={17} className="text-[#1E1B1C] flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-black whitespace-nowrap">
+                    Add · ₹{(selectedDishDetails.price || 0) * detailQuantity}
                   </span>
+                  <ChevronRight size={14} strokeWidth={3} className="text-[#1E1B1C] flex-shrink-0" />
                 </button>
               </div>
 
@@ -1139,7 +1188,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-6 sm:p-8 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar justify-between apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
           >
             <div>
-              {/* Drag Handle Bar (Interactive Drag Down Area) */}
+              {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
               <div
                 onPointerDown={handleCartPointerDown}
                 onPointerMove={handleCartPointerMove}
@@ -1152,38 +1201,73 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors pointer-events-none" />
               </div>
 
-              <div
-                onPointerDown={handleCartPointerDown}
-                onPointerMove={handleCartPointerMove}
-                onPointerUp={handleCartPointerUp}
-                onPointerCancel={handleCartPointerUp}
-                className="flex justify-between items-center pb-4 border-b border-white/10 select-none"
-                style={{ touchAction: 'none' }}
-              >
-                <div className="flex items-center gap-2 pointer-events-none">
+              {/* Header Title & Close Button */}
+              <div className="flex justify-between items-center pb-4 border-b border-white/10 select-none">
+                <div className="flex items-center gap-2">
                   <ShoppingBag size={20} className="text-[#E0FF33]" />
                   <h3 className="text-xl sm:text-2xl font-black text-white font-['Outfit']">Your Basket</h3>
                 </div>
                 <button
-                  onClick={handleCloseCartDrawer}
-                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] flex items-center justify-center text-white cursor-pointer transition-all apple-tap-target border border-white/5 pointer-events-auto"
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseCartDrawer(e);
+                  }}
+                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30"
+                  title="Close Basket"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               {/* Items List */}
-              <div className="divide-y divide-white/5 my-4 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
+              <div className="divide-y divide-white/5 my-4 max-h-[32vh] overflow-y-auto pr-1 no-scrollbar">
                 {cart.map(item => (
-                  <div key={item.id} className="py-3 flex justify-between items-center">
-                    <div>
-                      <p className="font-bold text-sm text-white">{item.name}</p>
-                      <p className="text-xs text-zinc-400">₹{item.price} each</p>
+                  <div key={item.id} className="py-3 flex justify-between items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-sm text-white truncate">{item.name}</p>
+                      <p className="text-xs text-zinc-400 mt-0.5">₹{item.price} each</p>
                     </div>
-                    <div className="flex items-center gap-2.5 bg-[#282526] rounded-full px-3 py-1 border border-white/5">
-                      <button onClick={() => updateQuantity(item.id, -1)} className="text-zinc-400 hover:text-white font-bold cursor-pointer text-sm apple-stepper-btn">-</button>
-                      <span className="font-black text-sm text-[#E0FF33]">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className="text-zinc-400 hover:text-white font-bold cursor-pointer text-sm apple-stepper-btn">+</button>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Apple Qty Picker Trigger (Opens iOS Slider Sheet) */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingQuantityItem(item)}
+                        className="h-8 sm:h-9 px-3 rounded-full bg-[#1E1B1C] hover:bg-[#282526] border border-white/10 hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
+                        title="Change quantity"
+                      >
+                        <span className="text-zinc-400 font-medium">Qty</span>
+                        <span className="font-black text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
+                        <ChevronDown size={13} className="text-zinc-400" />
+                      </button>
+
+                      {/* Quick Stepper Buttons */}
+                      <div className="flex items-center gap-1 bg-[#1E1B1C] rounded-full p-1 border border-white/10 shadow-inner">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
+                          aria-label="Decrease quantity"
+                          title={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
+                        >
+                          {item.quantity === 1 ? (
+                            <Trash2 size={13} className="text-red-400" />
+                          ) : (
+                            <Minus size={13} strokeWidth={2.5} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(item.id, 1)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                          aria-label="Increase quantity"
+                          title="Increase quantity"
+                        >
+                          <Plus size={13} strokeWidth={3} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1266,9 +1350,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             <button
               onClick={handlePlaceOrder}
-              className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black py-4 rounded-full text-sm shadow-xl mt-4 cursor-pointer transition-all apple-tap-target"
+              className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl mt-4 cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
             >
-              Confirm & Place Order (₹{totalAmount})
+              <span className="font-black">Confirm & Place Order</span>
+              <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
+                ₹{totalAmount}
+              </span>
             </button>
           </div>
         </div>
@@ -1283,10 +1370,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         />
       )}
 
+      {/* Apple / Nike iOS Quantity Picker Sheet Modal */}
+      <QuantityPickerSheet
+        isOpen={!!editingQuantityItem}
+        item={editingQuantityItem}
+        onClose={() => setEditingQuantityItem(null)}
+        onUpdateQuantity={(itemId, qty) => {
+          setExactQuantity(itemId, qty);
+          showToast(`Qty: ${qty}`, 'info', 'Updated');
+        }}
+        onRemoveItem={(itemId) => {
+          removeFromCart(itemId);
+          showToast('Item Removed', 'info', 'From basket');
+        }}
+      />
+
       {/* Dynamic Island Toast Notification (Vrinda Tours Physics) */}
       {toast && (
         <DynamicToast
           message={toast.message}
+          desc={toast.desc}
           type={toast.type}
           onDismiss={() => setToast(null)}
         />

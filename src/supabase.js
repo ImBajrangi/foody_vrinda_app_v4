@@ -12,7 +12,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 15,
+      eventsPerSecond: 10,
     },
   },
 });
@@ -66,7 +66,7 @@ export const DEFAULT_PRASAD_ITEMS = [
     price: 140,
     kcal: '260 kcal',
     tag: 'Popular Choice',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80',
+    image: '/dishes/burger.png',
     description: 'Fresh baked artisanal whole wheat bun filled with pure paneer patty, garden crisp lettuce, heirloom tomatoes, and creamy satvik herbal cheese.',
     nutrition: { carbs: '32g', fat: '11g', protein: '14g', kcal: '260 kcal' },
     isAvailable: true
@@ -79,7 +79,7 @@ export const DEFAULT_PRASAD_ITEMS = [
     price: 220,
     kcal: '480 kcal',
     tag: 'Devotee Favorite',
-    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&auto=format&fit=crop&q=80',
+    image: '/dishes/thali.png',
     description: 'Steaming aromatic Govind Bhog rice, 4 whole wheat phulkas, Dal Makhani with desi ghee, Paneer Butter Masala, seasonal Subzi, sweet Gulab Jamun, and crisp Papad.',
     nutrition: { carbs: '68g', fat: '16g', protein: '22g', kcal: '480 kcal' },
     isAvailable: true
@@ -92,7 +92,7 @@ export const DEFAULT_PRASAD_ITEMS = [
     price: 120,
     kcal: '210 kcal',
     tag: 'Sacred Prasad',
-    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&auto=format&fit=crop&q=80',
+    image: '/dishes/sweet.png',
     description: 'Rich Govind Bhog rice kheer infused with pure Kashmiri saffron, crushed green cardamom, roasted almond slivers, pistachios, and pure chironji.',
     nutrition: { carbs: '28g', fat: '9g', protein: '7g', kcal: '210 kcal' },
     isAvailable: true
@@ -105,85 +105,228 @@ export const DEFAULT_PRASAD_ITEMS = [
     price: 240,
     kcal: '340 kcal',
     tag: 'Chef Special',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80',
+    image: '/dishes/pizza.png',
     description: 'Hand-tossed thin crust with fresh tomato basil coulis, diced fresh Malai paneer, bell peppers, sweet corn, and mozzarella cheese.',
     nutrition: { carbs: '42g', fat: '14g', protein: '18g', kcal: '340 kcal' },
     isAvailable: true
   },
   {
     id: 'prasad-5',
-    name: 'Vrindavan Special Matka Lassi',
-    subtitle: 'Chilled sweet creamy curd',
-    category: 'Beverages',
-    price: 80,
-    kcal: '160 kcal',
-    tag: 'Refreshing',
-    image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&auto=format&fit=crop&q=80',
-    description: 'Traditional earthen pot churned sweet creamy curd garnished with thick malai rabdi layer, pistachios, and saffron strands.',
-    nutrition: { carbs: '24g', fat: '6g', protein: '8g', kcal: '160 kcal' },
+    name: 'Paneer Makhani Meal',
+    subtitle: 'Rich cashew gravy, butter roti',
+    category: 'Meals',
+    price: 180,
+    kcal: '360 kcal',
+    tag: 'Pure Desi Ghee',
+    image: '/dishes/curry.png',
+    description: 'Fresh organic cottage cheese simmered in a luscious tomato and cashew butter gravy, infused with cardamom and pure desi ghee.',
+    nutrition: { carbs: '38g', fat: '18g', protein: '22g', kcal: '360 kcal' },
+    isAvailable: true
+  },
+  {
+    id: 'prasad-6',
+    name: 'Govind Bhog Basmati Rice',
+    subtitle: 'Steamed aromatic long grain rice',
+    category: 'Meals',
+    price: 90,
+    kcal: '210 kcal',
+    tag: 'Vedic Grain',
+    image: '/dishes/rice.png',
+    description: 'Premium aged Govind Bhog long-grain basmati rice steamed with fragrant bay leaf, green cardamom, and a dollop of pure A2 cow ghee.',
+    nutrition: { carbs: '44g', fat: '3g', protein: '5g', kcal: '210 kcal' },
     isAvailable: true
   }
 ];
 
-/**
- * 1. SHOPS CLOUD APIS
- */
+// Helper to intelligently resolve dish images to crisp transparent PNG cutouts
+export function resolveDishCutout(image, name = '', category = '') {
+  if (image && typeof image === 'string' && image.startsWith('/dishes/')) return image;
+  const lowerName = (name || '').toLowerCase();
+  const lowerCat = (category || '').toLowerCase();
+  
+  if (lowerName.includes('burger')) return '/dishes/burger.png';
+  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.png';
+  if (lowerName.includes('pizza') || lowerName.includes('bread') || lowerName.includes('snack')) return '/dishes/pizza.png';
+  if (lowerName.includes('kheer') || lowerName.includes('sweet') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
+  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.png';
+  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
+  
+  if (image && typeof image === 'string' && !image.includes('unsplash.com') && image.startsWith('http')) return image;
+  return '/dishes/burger.png';
+}
+
+// ========================================================================
+// 1. FREE-TIER OPTIMIZER: IN-MEMORY & SWR CACHE LAYER
+// ========================================================================
+const CACHE_TTL_MS = {
+  SHOPS: 30 * 60 * 1000,    // 30 minutes
+  MENUS: 15 * 60 * 1000,    // 15 minutes
+  ORDERS: 2 * 60 * 1000     // 2 minutes
+};
+
+const memoryCache = {
+  shops: { data: null, timestamp: 0 },
+  menus: {}, // [shopId]: { data, timestamp }
+  orders: {}, // [shopId]: { data, timestamp }
+};
+
+// In-flight request deduplication map
+const pendingRequests = new Map();
+
+function getCachedItem(type, key = 'default') {
+  const now = Date.now();
+  if (type === 'shops') {
+    if (memoryCache.shops.data && (now - memoryCache.shops.timestamp < CACHE_TTL_MS.SHOPS)) {
+      return memoryCache.shops.data;
+    }
+    const local = localStorage.getItem('foody_cache_shops');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.SHOPS)) {
+          memoryCache.shops = parsed;
+          return parsed.data;
+        }
+      } catch (e) {}
+    }
+  } else if (type === 'menus') {
+    const entry = memoryCache.menus[key];
+    if (entry && (now - entry.timestamp < CACHE_TTL_MS.MENUS)) {
+      return entry.data;
+    }
+    const local = localStorage.getItem(`foody_cache_menu_${key}`);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.MENUS)) {
+          memoryCache.menus[key] = parsed;
+          return parsed.data;
+        }
+      } catch (e) {}
+    }
+  }
+  return null;
+}
+
+function setCachedItem(type, key, data) {
+  const now = Date.now();
+  if (type === 'shops') {
+    memoryCache.shops = { data, timestamp: now };
+    try {
+      localStorage.setItem('foody_cache_shops', JSON.stringify({ data, timestamp: now }));
+    } catch (e) {}
+  } else if (type === 'menus') {
+    memoryCache.menus[key] = { data, timestamp: now };
+    try {
+      localStorage.setItem(`foody_cache_menu_${key}`, JSON.stringify({ data, timestamp: now }));
+    } catch (e) {}
+  }
+}
+
+export function invalidateCache(type, key) {
+  if (type === 'shops') {
+    memoryCache.shops = { data: null, timestamp: 0 };
+    localStorage.removeItem('foody_cache_shops');
+  } else if (type === 'menus') {
+    if (key) {
+      delete memoryCache.menus[key];
+      localStorage.removeItem(`foody_cache_menu_${key}`);
+    } else {
+      memoryCache.menus = {};
+    }
+  }
+}
+
+// ========================================================================
+// 2. SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
+// ========================================================================
 export async function getCloudShops() {
-  try {
-    const { data, error } = await supabase
-      .from('foody_shops')
-      .select('*')
-      .order('name');
+  const cached = getCachedItem('shops');
+  if (cached) return cached;
 
-    if (error || !data || data.length === 0) {
+  // Deduplicate concurrent in-flight calls
+  if (pendingRequests.has('getCloudShops')) {
+    return pendingRequests.get('getCloudShops');
+  }
+
+  const promise = (async () => {
+    try {
+      const { data, error } = await supabase
+        .from('foody_shops')
+        .select('*')
+        .order('name');
+
+      if (error || !data || data.length === 0) {
+        return SEED_SHOPS;
+      }
+      setCachedItem('shops', 'default', data);
+      return data;
+    } catch (err) {
+      console.warn('Supabase getCloudShops fallback:', err.message);
       return SEED_SHOPS;
+    } finally {
+      pendingRequests.delete('getCloudShops');
     }
+  })();
 
-    localStorage.setItem('foody_cached_shops', JSON.stringify(data));
-    return data;
-  } catch (err) {
-    console.warn('Supabase getCloudShops fallback to cache/seed:', err.message);
-    const cached = localStorage.getItem('foody_cached_shops');
-    return cached ? JSON.parse(cached) : SEED_SHOPS;
-  }
+  pendingRequests.set('getCloudShops', promise);
+  return promise;
 }
 
-/**
- * 2. MENUS CLOUD APIS
- */
-export async function getCloudMenus(shopId) {
-  try {
-    let query = supabase.from('foody_menus').select('*');
-    if (shopId) {
-      query = query.eq('shop_id', shopId);
-    }
-    const { data, error } = await query;
-    if (error || !data || data.length === 0) {
+// ========================================================================
+// 3. MENUS CLOUD APIS (PER-SHOP CACHING WITH DEDUPLICATION)
+// ========================================================================
+export async function getCloudMenus(shopId = 'all') {
+  const cached = getCachedItem('menus', shopId);
+  if (cached) return cached;
+
+  const reqKey = `getCloudMenus_${shopId}`;
+  if (pendingRequests.has(reqKey)) {
+    return pendingRequests.get(reqKey);
+  }
+
+  const promise = (async () => {
+    try {
+      let query = supabase.from('foody_menus').select('*');
+      if (shopId && shopId !== 'all') {
+        query = query.eq('shop_id', shopId);
+      }
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) {
+        return DEFAULT_PRASAD_ITEMS;
+      }
+      const mapped = data.map(d => ({
+        id: d.id,
+        shopId: d.shop_id,
+        name: d.name,
+        subtitle: d.subtitle,
+        description: d.description,
+        category: d.category,
+        price: Number(d.price),
+        image: resolveDishCutout(d.image, d.name, d.category),
+        tag: d.tag,
+        kcal: d.kcal || '250 kcal',
+        nutrition: d.nutrition || { carbs: '35g', fat: '12g', protein: '16g', kcal: '250 kcal' },
+        isAvailable: d.is_available ?? true
+      }));
+
+      setCachedItem('menus', shopId, mapped);
+      return mapped;
+    } catch (err) {
+      console.warn('Supabase getCloudMenus warning:', err.message);
       return DEFAULT_PRASAD_ITEMS;
+    } finally {
+      pendingRequests.delete(reqKey);
     }
-    return data.map(d => ({
-      id: d.id,
-      shopId: d.shop_id,
-      name: d.name,
-      subtitle: d.subtitle,
-      description: d.description,
-      category: d.category,
-      price: Number(d.price),
-      image: d.image || DEFAULT_PRASAD_ITEMS[0].image,
-      tag: d.tag,
-      kcal: d.kcal || '250 kcal',
-      nutrition: d.nutrition || { carbs: '35g', fat: '12g', protein: '16g', kcal: '250 kcal' },
-      isAvailable: d.is_available ?? true
-    }));
-  } catch (err) {
-    console.warn('Supabase getCloudMenus warning:', err.message);
-    return DEFAULT_PRASAD_ITEMS;
-  }
+  })();
+
+  pendingRequests.set(reqKey, promise);
+  return promise;
 }
 
-/**
- * 3. ORDERS CLOUD APIS & DISPATCH
- */
+// ========================================================================
+// 4. ORDERS CLOUD APIS & DISPATCH
+// ========================================================================
 export async function createCloudOrder(orderData) {
   try {
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -231,10 +374,11 @@ export async function createCloudOrder(orderData) {
 export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
   try {
     const payload = {
-      status: newStatus,
       updated_at: new Date().toISOString(),
       ...extra
     };
+    if (newStatus) payload.status = newStatus;
+
     const { data, error } = await supabase
       .from('foody_orders')
       .update(payload)
@@ -251,88 +395,182 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
   }
 }
 
-/**
- * 4. REALTIME ORDERS SUBSCRIPTION (FOR ALL DESKS)
- */
-export function subscribeCloudOrders(shopId, onUpdate) {
-  try {
-    const channelId = `foody-orders-${shopId || 'all'}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'foody_orders',
-          ...(shopId && shopId !== 'all' ? { filter: `shop_id=eq.${shopId}` } : {})
-        },
-        (payload) => {
-          if (onUpdate) onUpdate(payload);
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          // Connected cleanly
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  } catch (err) {
-    console.warn('subscribeCloudOrders exception:', err.message);
-    return () => {};
+// ========================================================================
+// 5. FREE-TIER SINGLETON REALTIME MULTIPLEXER (1 SHARED WEBSOCKET)
+// ========================================================================
+class RealtimeMultiplexer {
+  constructor() {
+    this.channel = null;
+    this.orderListeners = new Set();
+    this.singleOrderListeners = new Map(); // [orderId]: Set of callbacks
+    this.notificationListeners = new Set();
+    this.isSubscribed = false;
   }
-}
 
-/**
- * 5. REALTIME SINGLE ORDER TRACKER (FOR DEVOTEES)
- */
-export function subscribeSingleCloudOrder(orderId, onUpdate) {
-  if (!orderId) return () => {};
-  try {
-    const channelId = `foody-order-${orderId}`;
-    const channel = supabase
-      .channel(channelId)
+  ensureSubscribed() {
+    if (this.isSubscribed || this.channel) return;
+
+    this.channel = supabase
+      .channel('foody-global-multiplex')
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'foody_orders',
-          filter: `id=eq.${orderId}`
-        },
+        { event: '*', schema: 'public', table: 'foody_orders' },
         (payload) => {
-          if (onUpdate && payload.new) {
-            onUpdate({
-              id: payload.new.id,
-              ...payload.new,
-              shopId: payload.new.shop_id,
-              customerName: payload.new.customer_name,
-              customerPhone: payload.new.customer_phone,
-              deliveryAddress: payload.new.delivery_address,
-              deliveryCoordinates: payload.new.delivery_coordinates,
-              totalAmount: payload.new.total_amount,
-              paymentMethod: payload.new.payment_method
+          const raw = payload.new || payload.old;
+          if (!raw) return;
+
+          const normalized = {
+            id: raw.id,
+            ...raw,
+            shopId: raw.shop_id,
+            customerName: raw.customer_name,
+            customerPhone: raw.customer_phone,
+            customerAddress: raw.customer_address,
+            deliveryAddress: raw.delivery_address,
+            deliveryCoordinates: raw.delivery_coordinates,
+            totalAmount: raw.total_amount,
+            paymentMethod: raw.payment_method,
+            cashStatus: raw.cash_status,
+            cookingNotes: raw.cooking_notes,
+            createdAt: raw.created_at
+          };
+
+          // Broadcast to desk listeners
+          this.orderListeners.forEach(listener => {
+            try {
+              if (!listener.shopId || listener.shopId === 'all' || listener.shopId === raw.shop_id) {
+                listener.callback(normalized, payload.eventType);
+              }
+            } catch (e) {
+              console.error('Order listener error:', e);
+            }
+          });
+
+          // Broadcast to single-order devotees
+          const singleListeners = this.singleOrderListeners.get(raw.id);
+          if (singleListeners) {
+            singleListeners.forEach(cb => {
+              try {
+                cb(normalized);
+              } catch (e) {}
             });
           }
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'foody_notifications' },
+        (payload) => {
+          if (!payload.new) return;
+          const notif = {
+            id: payload.new.id,
+            userId: payload.new.user_id,
+            role: payload.new.role,
+            shopId: payload.new.shop_id,
+            orderId: payload.new.order_id,
+            message: payload.new.message,
+            read: payload.new.read,
+            createdAt: payload.new.created_at
+          };
+
+          this.notificationListeners.forEach(listener => {
+            try {
+              if (!listener.userId || listener.userId === notif.userId) {
+                listener.callback(notif);
+              }
+            } catch (e) {}
+          });
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          this.isSubscribed = true;
+        }
+      });
+  }
+
+  subscribeOrders(shopId, callback) {
+    this.ensureSubscribed();
+    const listenerObj = { shopId, callback };
+    this.orderListeners.add(listenerObj);
 
     return () => {
-      supabase.removeChannel(channel);
+      this.orderListeners.delete(listenerObj);
+      this.checkCleanup();
     };
-  } catch (err) {
-    console.warn('subscribeSingleCloudOrder exception:', err.message);
-    return () => {};
+  }
+
+  subscribeSingleOrder(orderId, callback) {
+    if (!orderId) return () => {};
+    this.ensureSubscribed();
+
+    if (!this.singleOrderListeners.has(orderId)) {
+      this.singleOrderListeners.set(orderId, new Set());
+    }
+    const set = this.singleOrderListeners.get(orderId);
+    set.add(callback);
+
+    return () => {
+      set.delete(callback);
+      if (set.size === 0) {
+        this.singleOrderListeners.delete(orderId);
+      }
+      this.checkCleanup();
+    };
+  }
+
+  subscribeNotifications(userId, callback) {
+    this.ensureSubscribed();
+    const listenerObj = { userId, callback };
+    this.notificationListeners.add(listenerObj);
+
+    return () => {
+      this.notificationListeners.delete(listenerObj);
+      this.checkCleanup();
+    };
+  }
+
+  checkCleanup() {
+    if (
+      this.orderListeners.size === 0 &&
+      this.singleOrderListeners.size === 0 &&
+      this.notificationListeners.size === 0 &&
+      this.channel
+    ) {
+      // Keep channel alive with a 15-second debounce before closing to prevent connect/disconnect flapping
+      setTimeout(() => {
+        if (
+          this.orderListeners.size === 0 &&
+          this.singleOrderListeners.size === 0 &&
+          this.notificationListeners.size === 0 &&
+          this.channel
+        ) {
+          supabase.removeChannel(this.channel);
+          this.channel = null;
+          this.isSubscribed = false;
+        }
+      }, 15000);
+    }
   }
 }
 
-/**
- * 6. REALTIME NOTIFICATIONS (DEVOTEE, KITCHEN, RIDERS)
- */
+const multiplexer = new RealtimeMultiplexer();
+
+export function subscribeCloudOrders(shopId, onUpdate) {
+  return multiplexer.subscribeOrders(shopId, onUpdate);
+}
+
+export function subscribeSingleCloudOrder(orderId, onUpdate) {
+  return multiplexer.subscribeSingleOrder(orderId, onUpdate);
+}
+
+export function subscribeCloudNotifications(userId, onNotification) {
+  return multiplexer.subscribeNotifications(userId, onNotification);
+}
+
+// ========================================================================
+// 6. NOTIFICATIONS CREATION & READ
+// ========================================================================
 export async function createCloudNotification({ userId, role, shopId, orderId, message }) {
   try {
     const notifId = `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -359,45 +597,20 @@ export async function createCloudNotification({ userId, role, shopId, orderId, m
   }
 }
 
-export function subscribeCloudNotifications(userId, onNotification) {
+export async function markCloudNotificationRead(notifId, isRead = true) {
   try {
-    const channelId = `foody-notifs-${userId || 'broadcast'}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'foody_notifications',
-          ...(userId ? { filter: `user_id=eq.${userId}` } : {})
-        },
-        (payload) => {
-          if (onNotification && payload.new) {
-            onNotification({
-              id: payload.new.id,
-              userId: payload.new.user_id,
-              role: payload.new.role,
-              shopId: payload.new.shop_id,
-              orderId: payload.new.order_id,
-              message: payload.new.message,
-              read: payload.new.read,
-              createdAt: payload.new.created_at
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    await supabase
+      .from('foody_notifications')
+      .update({ read: isRead })
+      .eq('id', notifId);
   } catch (err) {
-    console.warn('subscribeCloudNotifications exception:', err.message);
-    return () => {};
+    console.warn('markCloudNotificationRead warning:', err.message);
   }
 }
 
+// ========================================================================
+// 7. MENU & SHOP CRUD (WITH AUTOMATIC CACHE INVALIDATION)
+// ========================================================================
 export async function createCloudMenuItem(itemData) {
   try {
     const itemId = itemData.id || `menu-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -421,6 +634,8 @@ export async function createCloudMenuItem(itemData) {
       .upsert([payload])
       .select()
       .single();
+
+    invalidateCache('menus', itemData.shopId);
 
     if (error) {
       console.warn('createCloudMenuItem warning:', error.message);
@@ -453,6 +668,7 @@ export async function updateCloudMenuItem(itemId, itemData) {
       .eq('id', itemId)
       .select();
 
+    invalidateCache('menus');
     if (error) {
       console.warn('updateCloudMenuItem warning:', error.message);
     }
@@ -470,6 +686,7 @@ export async function deleteCloudMenuItem(itemId) {
       .delete()
       .eq('id', itemId);
 
+    invalidateCache('menus');
     if (error) {
       console.warn('deleteCloudMenuItem warning:', error.message);
     }
@@ -497,6 +714,7 @@ export async function updateCloudShop(shopId, shopData) {
       .eq('id', shopId)
       .select();
 
+    invalidateCache('shops');
     if (error) {
       console.warn('updateCloudShop warning:', error.message);
     }
@@ -509,15 +727,4 @@ export async function updateCloudShop(shopId, shopData) {
 
 export async function markCloudOrderCashCollected(orderId) {
   return updateCloudOrderStatus(orderId, undefined, { cash_status: 'collected' });
-}
-
-export async function markCloudNotificationRead(notifId, isRead = true) {
-  try {
-    await supabase
-      .from('foody_notifications')
-      .update({ read: isRead })
-      .eq('id', notifId);
-  } catch (err) {
-    console.warn('markCloudNotificationRead warning:', err.message);
-  }
 }

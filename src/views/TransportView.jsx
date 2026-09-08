@@ -1,20 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc, 
-  doc, 
-  addDoc, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { updateCloudOrderStatus } from '../supabase';
+import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import { 
   Truck, 
@@ -23,94 +12,113 @@ import {
   Phone, 
   Clock, 
   CheckCircle2, 
-  PackageCheck, 
-  AlertCircle, 
+  ShieldCheck, 
   Volume2, 
   VolumeX, 
-  Search, 
-  DollarSign, 
-  Flame,
-  Store,
-  Compass,
+  AlertCircle, 
+  Banknote, 
+  Map, 
+  List, 
+  Layers,
   ArrowRight,
-  ArrowLeft,
-  MessageCircle,
-  Star,
-  Home,
-  ShoppingBag,
-  List,
-  Map as MapIcon,
-  Check,
-  RotateCcw
+  Sparkles,
+  Search,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 export default function TransportView() {
   const { currentUserShopId, currentUserShopIds, allShops } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
   const [toast, setToast] = useState(null);
 
-  // Leaflet map container refs
+  // Audio Alarm Hook
+  const { isPlaying, playAlarm, stopAlarm } = useAudioAlarm();
+
+  // Leaflet Map Refs
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeGroupRef = useRef(null);
 
-  // Audio alarm control
-  const { isPlaying, playAlarm, stopAlarm } = useAudioAlarm();
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(prev => (prev && prev.message === message ? null : prev));
+    }, 4000);
+  };
 
   // Fast notification listener
   useFastNotify(currentUserShopId, 'delivery', () => {
     playAlarm();
-    setToast({
-      message: 'New ready-for-pickup order dispatched!',
-      type: 'warning'
-    });
+    showToast("New order ready for delivery pickup!", "info");
   });
 
-  // Load delivery orders (ready_for_pickup and out_for_delivery)
+  // Load delivery orders (ready_for_pickup and out_for_delivery) from Supabase Realtime
   useEffect(() => {
     const targetShopIds = currentUserShopIds.length > 0 ? currentUserShopIds : [currentUserShopId].filter(Boolean);
-
     if (targetShopIds.length === 0) return;
 
-    const q = query(
-      collection(db, "orders"),
-      where("status", "in", ["ready_for_pickup", "out_for_delivery"]),
-      where("shopId", "in", targetShopIds)
-    );
+    // 1. Supabase Cloud Query
+    async function fetchRiderOrders() {
+      try {
+        let queryBuilder = supabase
+          .from('foody_orders')
+          .select('*')
+          .in('status', ['ready_for_pickup', 'out_for_delivery'])
+          .order('created_at', { ascending: true });
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      activeOrders.sort((a, b) => {
-        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
-        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
-        return timeA - timeB;
-      });
-      setOrders(activeOrders);
+        if (targetShopIds.length === 1) {
+          queryBuilder = queryBuilder.eq('shop_id', targetShopIds[0]);
+        } else {
+          queryBuilder = queryBuilder.in('shop_id', targetShopIds);
+        }
 
-      if (activeOrders.length > 0) {
-        setSelectedOrder(prev => {
-          if (prev) {
-            const found = activeOrders.find(o => o.id === prev.id);
-            return found || activeOrders[0];
+        const { data, error } = await queryBuilder;
+        if (!error && data) {
+          const mapped = data.map(o => ({
+            id: o.id,
+            ...o,
+            shopId: o.shop_id,
+            customerName: o.customer_name,
+            customerPhone: o.customer_phone,
+            customerAddress: o.customer_address,
+            deliveryAddress: o.delivery_address,
+            deliveryCoordinates: o.delivery_coordinates,
+            totalAmount: o.total_amount,
+            paymentMethod: o.payment_method,
+            cashStatus: o.cash_status,
+            cookingNotes: o.cooking_notes,
+            createdAt: o.created_at
+          }));
+          setOrders(mapped);
+
+          if (mapped.length > 0) {
+            setSelectedOrder(prev => {
+              if (prev) {
+                const found = mapped.find(o => o.id === prev.id);
+                return found || mapped[0];
+              }
+              const inTransit = mapped.find(o => o.status === 'out_for_delivery');
+              return inTransit || mapped[0];
+            });
           }
-          const inTransit = activeOrders.find(o => o.status === 'out_for_delivery');
-          return inTransit || activeOrders[0];
-        });
-      } else {
-        setSelectedOrder(null);
+        }
+      } catch (err) {
+        console.warn('Supabase fetchRiderOrders note:', err.message);
       }
-    }, (error) => {
-      if (error.code === 'permission-denied') {
-        console.info("Delivery orders subscription: Authenticated staff access required.");
-      } else {
-        console.warn("Delivery orders snapshot warning:", error.message);
-      }
+    }
+    fetchRiderOrders();
+
+    // 2. Realtime Postgres stream
+    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, () => {
+      fetchRiderOrders();
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribeSupabase) unsubscribeSupabase();
+    };
   }, [currentUserShopId, currentUserShopIds]);
 
   const activeOrder = selectedOrder || orders[0];
@@ -142,13 +150,16 @@ export default function TransportView() {
       attributionControl: false
     });
 
-    // CARTO Voyager Tiles (Vrindavan Regional Basemap)
+    // CARTO Voyager Tiles (Vrindavan Regional Basemap matching Vrinda Tours standard)
+    const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
+    const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoSuffix}`,
       {
         maxZoom: 20,
         minZoom: 3,
-        subdomains: 'abcd'
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }
     ).addTo(map);
 
@@ -264,63 +275,55 @@ export default function TransportView() {
 
   const handleStartDelivery = async (orderId, orderData) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { 
-        status: 'out_for_delivery',
-        dispatchedAt: serverTimestamp()
-      });
       await updateCloudOrderStatus(orderId, 'out_for_delivery');
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'out_for_delivery' } : o));
 
-      await addDoc(collection(db, "notifications"), {
-        userId: orderData.userId,
-        message: `Your order is out for delivery with Sarathi Rider!`,
-        orderId,
-        read: false,
-        createdAt: serverTimestamp()
-      });
+      if (orderData?.userId) {
+        await createCloudNotification({
+          userId: orderData.userId,
+          message: `Your order is out for delivery with Sarathi Rider!`,
+          orderId
+        });
+      }
 
       setToast({
         message: `Order #${orderId.slice(-6).toUpperCase()} is Out for Delivery`,
         type: 'success'
       });
     } catch (e) {
-      await updateCloudOrderStatus(orderId, 'out_for_delivery');
+      console.error(e);
       setToast({
-        message: `Order #${orderId.slice(-6).toUpperCase()} is Out for Delivery`,
-        type: 'success'
+        message: `Failed to update status`,
+        type: 'error'
       });
     }
   };
 
   const handleCompleteDelivery = async (orderId, orderData) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { 
-        status: 'completed',
-        completedAt: serverTimestamp(),
-        cashStatus: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
-      });
+      const isCash = orderData?.paymentMethod === 'cash';
       await updateCloudOrderStatus(orderId, 'completed', {
-        cash_status: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
+        cash_status: isCash ? 'collected' : (orderData?.cashStatus || 'none')
       });
+      setOrders(prev => prev.filter(o => o.id !== orderId));
 
-      await addDoc(collection(db, "notifications"), {
-        userId: orderData.userId,
-        message: "Your prasad has been delivered safely! Radhe Radhe.",
-        orderId,
-        read: false,
-        createdAt: serverTimestamp()
-      });
+      if (orderData?.userId) {
+        await createCloudNotification({
+          userId: orderData.userId,
+          message: "Your prasad has been delivered safely! Radhe Radhe.",
+          orderId
+        });
+      }
 
       setToast({
         message: `Order #${orderId.slice(-6).toUpperCase()} Delivered Successfully!`,
         type: 'success'
       });
     } catch (e) {
-      await updateCloudOrderStatus(orderId, 'completed', {
-        cash_status: orderData.paymentMethod === 'cash' ? 'collected' : (orderData.cashStatus || 'none')
-      });
+      console.error(e);
       setToast({
-        message: `Order #${orderId.slice(-6).toUpperCase()} Delivered Successfully!`,
-        type: 'success'
+        message: `Failed to complete delivery`,
+        type: 'error'
       });
     }
   };

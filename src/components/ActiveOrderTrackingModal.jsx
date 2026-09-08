@@ -62,13 +62,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, allShops = []
       attributionControl: false
     });
 
-    // CARTO Voyager / Light Tiles
+    // CARTO Voyager Tiles (Vrindavan Regional Basemap matching Vrinda Tours standard)
+    const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
+    const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoSuffix}`,
       {
         maxZoom: 20,
         minZoom: 3,
-        subdomains: 'abcd'
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }
     ).addTo(map);
 

@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc, 
-  doc, 
-  getDoc, 
-  addDoc, 
-  getDocs, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { updateCloudOrderStatus, createCloudOrder, subscribeCloudOrders } from '../supabase';
+import { 
+  supabase, 
+  updateCloudOrderStatus, 
+  createCloudOrder, 
+  subscribeCloudOrders, 
+  getCloudMenus, 
+  createCloudNotification 
+} from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import { 
   ChefHat, 
@@ -33,7 +27,9 @@ import {
   VolumeX, 
   Flame, 
   Banknote,
-  Search
+  Search,
+  Minus,
+  Trash2
 } from 'lucide-react';
 
 export default function KitchenView() {
@@ -68,44 +64,60 @@ export default function KitchenView() {
     showToast("New order received in kitchen!", "info");
   });
 
-  // Load active orders (new & preparing)
+  // Load active orders (new & preparing) from Supabase Realtime
   useEffect(() => {
     if (!currentUserShopId) return;
 
-    const q = query(
-      collection(db, "orders"),
-      where("status", "in", ["new", "preparing"]),
-      where("shopId", "==", currentUserShopId)
-    );
+    // 1. Supabase Cloud fetch
+    async function fetchKitchenOrders() {
+      try {
+        const { data, error } = await supabase
+          .from('foody_orders')
+          .select('*')
+          .eq('shop_id', currentUserShopId)
+          .in('status', ['new', 'preparing'])
+          .order('created_at', { ascending: true });
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const activeOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Sort: older orders first (FIFO)
-      activeOrders.sort((a, b) => {
-        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
-        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
-        return timeA - timeB;
-      });
-      setOrders(activeOrders);
-    }, (error) => {
-      if (error.code === 'permission-denied') {
-        console.info("Kitchen orders subscription: Authenticated staff access required.");
-      } else {
-        console.warn("Kitchen orders snapshot warning:", error.message);
+        if (!error && data) {
+          const mapped = data.map(o => ({
+            id: o.id,
+            ...o,
+            shopId: o.shop_id,
+            customerName: o.customer_name,
+            customerPhone: o.customer_phone,
+            customerAddress: o.customer_address,
+            deliveryAddress: o.delivery_address,
+            totalAmount: o.total_amount,
+            cookingNotes: o.cooking_notes,
+            paymentMethod: o.payment_method,
+            createdAt: o.created_at
+          }));
+          setOrders(mapped);
+        }
+      } catch (err) {
+        console.warn('Supabase fetchKitchenOrders note:', err.message);
       }
+    }
+    fetchKitchenOrders();
+
+    // 2. Realtime Postgres stream
+    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, () => {
+      fetchKitchenOrders();
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribeSupabase) unsubscribeSupabase();
+    };
   }, [currentUserShopId]);
 
   // Load menu items for manual order creation
   const fetchMenu = async () => {
     if (!currentUserShopId) return;
     try {
-      const q = query(collection(db, "menus"), where("shopId", "==", currentUserShopId));
-      const snap = await getDocs(q);
-      const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setManualCart(items.map(i => ({ ...i, quantity: 0 })));
+      const cloudItems = await getCloudMenus(currentUserShopId);
+      if (cloudItems && cloudItems.length > 0) {
+        setManualCart(cloudItems.map(i => ({ ...i, quantity: 0 })));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -159,97 +171,66 @@ export default function KitchenView() {
       gstAmount: 0,
       totalAmount: total,
       status: 'new',
-      createdAt: serverTimestamp(),
-      userId: user.uid,
+      userId: user?.uid || null,
       paymentId: 'manual-cash-entry',
       paymentIds: ['manual-cash-entry'],
       isPaid: true,
       isTestOrder: false,
-      createdBy: user.email || 'staff',
+      createdBy: user?.email || 'staff',
       paymentMethod: 'cash',
       cashStatus: 'pending',
       cookingNotes
     };
 
     try {
-      const docRef = await addDoc(collection(db, "orders"), orderPayload);
-      createCloudOrder({ ...orderPayload, id: docRef.id });
+      const cloudOrder = await createCloudOrder(orderPayload);
       
       // Notify staff
-      const staffQuery = query(
-        collection(db, "users"), 
-        where("shopId", "==", currentUserShopId), 
-        where("role", "in", ["kitchen", "owner"])
-      );
-      const staffSnap = await getDocs(staffQuery);
-      staffSnap.docs.forEach(async (staffDoc) => {
-        await addDoc(collection(db, "notifications"), {
-          userId: staffDoc.id,
-          role: staffDoc.data().role,
-          shopId: currentUserShopId,
-          message: `New manual order #${docRef.id.slice(-6).toUpperCase()} created for ${customerName}.`,
-          orderId: docRef.id,
-          read: false,
-          createdAt: serverTimestamp()
-        });
+      await createCloudNotification({
+        role: 'kitchen',
+        shopId: currentUserShopId,
+        orderId: cloudOrder.id,
+        message: `New manual order #${cloudOrder.id.slice(-6).toUpperCase()} created for ${customerName}.`
       });
 
       showToast("Manual order created successfully!", "success");
       handleCloseCreateModal();
     } catch (err) {
-      try {
-        const cloudOrder = await createCloudOrder(orderPayload);
-        showToast("Manual order created successfully!", "success");
-        handleCloseCreateModal();
-      } catch (cloudErr) {
-        console.error(cloudErr);
-        showToast("Failed to create manual order.", "error");
-      }
+      console.error(err);
+      showToast("Failed to create manual order.", "error");
     }
   };
 
   const handleAcceptOrder = async (orderId) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { status: 'preparing' });
       await updateCloudOrderStatus(orderId, 'preparing');
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'preparing' } : o));
       showToast("Order accepted into preparation!", "success");
     } catch (e) {
-      await updateCloudOrderStatus(orderId, 'preparing');
-      showToast("Order accepted into preparation!", "success");
+      console.error(e);
+      showToast("Failed to accept order.", "error");
     }
   };
 
   const handleOrderReady = async (orderId, orderData) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { status: 'ready_for_pickup' });
       await updateCloudOrderStatus(orderId, 'ready_for_pickup');
+      setOrders(prev => prev.filter(o => o.id !== orderId));
       
-      // Notify customer
-      await addDoc(collection(db, "notifications"), {
-        userId: orderData.userId,
-        message: "Your Satvik meal is ready for pickup/delivery!",
-        orderId,
-        read: false,
-        createdAt: serverTimestamp()
-      });
-
-      // Broadcast to delivery staff
-      const deliveryQuery = query(
-        collection(db, "users"), 
-        where("shopId", "==", currentUserShopId), 
-        where("role", "==", "delivery")
-      );
-      const deliverySnap = await getDocs(deliveryQuery);
-      deliverySnap.docs.forEach(async (dDoc) => {
-        await addDoc(collection(db, "notifications"), {
-          userId: dDoc.id,
-          role: 'delivery',
-          shopId: currentUserShopId,
-          message: `Order #${orderId.slice(-6).toUpperCase()} is ready for rider dispatch.`,
-          orderId,
-          read: false,
-          createdAt: serverTimestamp()
+      // Notify customer & rider
+      if (orderData?.userId) {
+        await createCloudNotification({
+          userId: orderData.userId,
+          message: "Your Satvik meal is ready for pickup/delivery!",
+          orderId
         });
+      }
+
+      await createCloudNotification({
+        role: 'delivery',
+        shopId: currentUserShopId,
+        message: `Order #${orderId.slice(-6).toUpperCase()} is ready for rider dispatch.`,
+        orderId
       });
 
       showToast("Order marked ready for dispatch!", "success");
@@ -261,15 +242,19 @@ export default function KitchenView() {
 
   const toggleItemReady = async (orderId, itemId) => {
     try {
-      const orderRef = doc(db, "orders", orderId);
-      const snap = await getDoc(orderRef);
-      if (snap.exists()) {
-        const orderData = snap.data();
-        const updatedItems = orderData.items.map(item => 
-          String(item.id) === String(itemId) ? { ...item, ready: !item.ready } : item
-        );
-        await updateDoc(orderRef, { items: updatedItems });
-      }
+      const order = orders.find(o => o.id === orderId);
+      if (!order || !order.items) return;
+
+      const updatedItems = order.items.map(item => 
+        String(item.id) === String(itemId) ? { ...item, ready: !item.ready } : item
+      );
+
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, items: updatedItems } : o));
+
+      await supabase
+        .from('foody_orders')
+        .update({ items: updatedItems, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
     } catch (e) {
       console.error("Toggle item ready error:", e);
     }
@@ -608,22 +593,30 @@ export default function KitchenView() {
                           <p className="text-[10px] text-zinc-400">₹{item.price}</p>
                         </div>
 
-                        {/* Mint Stepper */}
-                        <div className="bg-[#CEF3E7] text-[#1E1B1C] rounded-full px-2.5 py-1 flex items-center gap-2 font-black text-xs shadow-sm flex-shrink-0">
+                        {/* High-accessibility Stepper */}
+                        <div className="bg-[#1E1B1C] rounded-full p-1 border border-white/10 flex items-center gap-1 shadow-inner flex-shrink-0">
                           <button 
                             type="button" 
                             onClick={() => handleUpdateManualQty(item.id, -1)}
-                            className="apple-stepper-btn cursor-pointer px-1"
+                            className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
+                            aria-label="Decrease quantity"
                           >
-                            -
+                            {item.quantity === 1 ? (
+                              <Trash2 size={11} className="text-red-400" />
+                            ) : (
+                              <Minus size={11} strokeWidth={2.5} />
+                            )}
                           </button>
-                          <span className="min-w-[14px] text-center">{item.quantity}</span>
+                          <span className="min-w-[18px] text-center font-black text-xs text-[#E0FF33] font-['Outfit'] select-none">
+                            {item.quantity}
+                          </span>
                           <button 
                             type="button" 
                             onClick={() => handleUpdateManualQty(item.id, 1)}
-                            className="apple-stepper-btn cursor-pointer px-1"
+                            className="w-6 h-6 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                            aria-label="Increase quantity"
                           >
-                            +
+                            <Plus size={11} strokeWidth={3} />
                           </button>
                         </div>
                       </div>

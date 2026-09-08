@@ -50,22 +50,18 @@ export function AuthProvider({ children }) {
   const [impersonatedShopId, setImpersonatedShopId] = useState(null);
   const [impersonatedRole, setImpersonatedRole] = useState(null);
 
-  // Helper to load all shops from Supabase / Firebase / Cache
+  // Helper to load all shops from Supabase & Cache
   const loadShops = async () => {
     try {
       const shops = await getCloudShops();
       if (shops && shops.length > 0) {
         setAllShops(shops);
+        localStorage.setItem('foody_cached_shops', JSON.stringify(shops));
         return shops;
       }
-
-      const snap = await getDocs(collection(db, "shops"));
-      const fbShops = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTimeout(() => setAllShops(fbShops), 0);
-      localStorage.setItem('foody_cached_shops', JSON.stringify(fbShops));
-      return fbShops;
+      return [];
     } catch (e) {
-      console.warn("Failed to load shops from cloud, using cache:", e);
+      console.warn("Notice loading shops from Supabase:", e);
       return [];
     }
   };
@@ -124,77 +120,55 @@ export function AuthProvider({ children }) {
           setCurrentUserShopIds([]);
           setCurrentShopName(resolveShopName(impersonatedShopId) || null);
         } else {
-          // Standard logged in user from Firestore
-          const userDocSnap = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDocSnap.exists()) {
-            const data = userDocSnap.data();
-            role = data.role || 'customer';
-            permissions = data.devPermissions || [];
-            activeShopId = data.shopId || null;
+          try {
+            // Standard logged in user from Firestore
+            const userDocSnap = await getDoc(doc(db, "users", currentUser.uid));
+            if (userDocSnap.exists()) {
+              const data = userDocSnap.data();
+              role = data.role || 'customer';
+              permissions = data.devPermissions || [];
+              activeShopId = data.shopId || null;
 
-            if (role === 'delivery' && data.shopIds && data.shopIds.length > 0) {
-              activeShopIds = data.shopIds;
-              activeShopId = data.shopIds[0];
-            } else {
-              activeShopIds = activeShopId ? [activeShopId] : [];
-            }
+              if (role === 'delivery' && data.shopIds && data.shopIds.length > 0) {
+                activeShopIds = data.shopIds;
+                activeShopId = data.shopIds[0];
+              } else {
+                activeShopIds = activeShopId ? [activeShopId] : [];
+              }
 
-            setUserData(data);
-            setUserRole(role);
-            setUserDevPermissions(permissions);
-            setCurrentUserShopId(activeShopId);
-            setCurrentUserShopIds(activeShopIds);
-            
-            const name = resolveShopName(activeShopId);
-            setCurrentShopName(role === 'delivery' && activeShopIds.length > 1 ? `${activeShopIds.length} Shops` : name);
-          } else {
-            // Check for pre-created staff invitation
-            const q = query(
-              collection(db, "users"), 
-              where("email", "==", currentUser.email), 
-              where("isPreCreated", "==", true)
-            );
-            const preCreatedSnap = await getDocs(q);
-
-            if (!preCreatedSnap.empty) {
-              const preCreatedDoc = preCreatedSnap.docs[0];
-              const preCreatedData = preCreatedDoc.data();
-
-              const finalUserData = {
-                ...preCreatedData,
-                uid: currentUser.uid,
-                isPreCreated: false,
-                linkedAt: serverTimestamp()
-              };
-
-              await setDoc(doc(db, "users", currentUser.uid), finalUserData);
-              await deleteDoc(preCreatedDoc.ref);
-
-              role = preCreatedData.role || 'customer';
-              activeShopId = preCreatedData.shopId || null;
-              activeShopIds = activeShopId ? [activeShopId] : [];
-
-              setUserData(finalUserData);
+              setUserData(data);
               setUserRole(role);
+              setUserDevPermissions(permissions);
               setCurrentUserShopId(activeShopId);
               setCurrentUserShopIds(activeShopIds);
-              setCurrentShopName(resolveShopName(activeShopId));
+              
+              const name = resolveShopName(activeShopId);
+              setCurrentShopName(role === 'delivery' && activeShopIds.length > 1 ? `${activeShopIds.length} Shops` : name);
             } else {
               // Create normal customer record
               const customerData = {
                 email: currentUser.email,
                 displayName: currentUser.displayName || currentUser.email.split('@')[0],
-                role: 'customer',
-                createdAt: serverTimestamp()
+                role: 'customer'
               };
-              await setDoc(doc(db, "users", currentUser.uid), customerData);
-              
               setUserData(customerData);
               setUserRole('customer');
               setCurrentUserShopId(null);
               setCurrentUserShopIds([]);
               setCurrentShopName(null);
             }
+          } catch (profileErr) {
+            // Safe fallback for customer profile
+            const fallbackData = {
+              email: currentUser.email,
+              displayName: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Devotee'),
+              role: 'customer'
+            };
+            setUserData(fallbackData);
+            setUserRole('customer');
+            setCurrentUserShopId(null);
+            setCurrentUserShopIds([]);
+            setCurrentShopName(null);
           }
         }
       } else {

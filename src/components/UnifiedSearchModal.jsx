@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { getCloudMenus, supabase, resolveDishCutout } from '../supabase';
 import { Sparkles, Search, Store, Utensils, Receipt, X } from 'lucide-react';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
@@ -53,10 +52,9 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         shop.address?.toLowerCase().includes(term)
       );
 
-      // 2. Search Menu Items (Firestore query)
-      const menuSnap = await getDocs(collection(db, "menus"));
-      const allMenuItems = menuSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const matchedMenuItems = allMenuItems.filter(item => {
+      // 2. Search Menu Items (Supabase cloud fetch)
+      const allMenuItems = await getCloudMenus('all');
+      const matchedMenuItems = (allMenuItems || []).filter(item => {
         const shop = allShops.find(s => s.id === item.shopId);
         item.shopName = shop ? shop.name : "Satvik Kitchen";
         return (
@@ -66,32 +64,30 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         );
       });
 
-      // 3. Search Orders (Firestore query based on role)
-      let ordersQuery;
-      const ordersRef = collection(db, "orders");
-
-      if (userRole === 'developer') {
-        ordersQuery = query(ordersRef);
-      } else if (['kitchen', 'owner', 'delivery'].includes(userRole) && currentUserShopId) {
-        ordersQuery = query(ordersRef, where("shopId", "==", currentUserShopId));
-      } else if (user) {
-        ordersQuery = query(ordersRef, where("userId", "==", user.uid));
-      }
-
+      // 3. Search Orders (Supabase query based on role)
       let matchedOrders = [];
-      if (ordersQuery) {
-        const ordersSnap = await getDocs(ordersQuery);
-        const allOrders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        matchedOrders = allOrders.filter(order => {
-          const itemsString = order.items?.map(i => i.name.toLowerCase()).join(' ') || '';
-          return (
-            order.id.toLowerCase().includes(term) ||
-            order.customerName?.toLowerCase().includes(term) ||
-            order.customerPhone?.includes(term) ||
-            itemsString.includes(term)
-          );
-        });
+      try {
+        let queryBuilder = supabase.from('foody_orders').select('*').limit(20);
+        if (['kitchen', 'owner', 'delivery'].includes(userRole) && currentUserShopId) {
+          queryBuilder = queryBuilder.eq('shop_id', currentUserShopId);
+        } else if (user?.uid) {
+          queryBuilder = queryBuilder.eq('user_id', user.uid);
+        }
+
+        const { data: ordersData } = await queryBuilder;
+        if (ordersData) {
+          matchedOrders = ordersData.filter(order => {
+            const itemsString = order.items?.map(i => i.name.toLowerCase()).join(' ') || '';
+            return (
+              order.id.toLowerCase().includes(term) ||
+              order.customer_name?.toLowerCase().includes(term) ||
+              order.customer_phone?.includes(term) ||
+              itemsString.includes(term)
+            );
+          });
+        }
+      } catch (err) {
+        console.warn("Orders search fallback:", err);
       }
 
       setResults({
@@ -221,13 +217,23 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                       onSelectShop(item.shopId, item.shopName);
                       handleAnimatedClose();
                     }}
-                    className="p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors flex justify-between items-center apple-tap-target"
+                    className="p-2.5 sm:p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors flex justify-between items-center gap-3 apple-tap-target"
                   >
-                    <div>
-                      <p className="font-bold text-white text-xs sm:text-sm">{item.name}</p>
-                      <p className="text-[11px] text-zinc-400">From {item.shopName}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#282526] border border-white/10 shrink-0 flex items-center justify-center p-0.5">
+                        <img 
+                          src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
+                          alt={item.name}
+                          className="w-full h-full object-contain drop-shadow-sm"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-white text-xs sm:text-sm truncate">{item.name}</p>
+                        <p className="text-[11px] text-zinc-400 truncate">From {item.shopName}</p>
+                      </div>
                     </div>
-                    <span className="text-xs font-black text-[#E0FF33]">₹{item.price}</span>
+                    <span className="text-xs font-black text-[#E0FF33] shrink-0">₹{item.price}</span>
                   </div>
                 ))}
               </div>
