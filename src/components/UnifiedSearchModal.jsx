@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { getCloudMenus, supabase, resolveDishCutout } from '../supabase';
-import { Sparkles, Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, Flame, Clock, MapPin, Plus, Minus } from 'lucide-react';
+import { Sparkles, Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, Flame, Clock, MapPin, Plus, Minus, Tag } from 'lucide-react';
+import { HitSoochiService } from '../services/hitSoochiService';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
   const { user, userRole, currentUserShopId, allShops } = useAuth();
@@ -84,9 +85,9 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         shop.address?.toLowerCase().includes(term)
       );
 
-      // 2. Search Menu Items (Supabase cloud fetch)
+      // 2. Search Menu Items (Supabase cloud fetch with HitSoochi ranking)
       const allMenuItems = await getCloudMenus('all');
-      const matchedMenuItems = (allMenuItems || []).filter(item => {
+      let matchedMenuItems = (allMenuItems || []).filter(item => {
         const shop = allShops.find(s => s.id === item.shopId);
         item.shopName = shop ? shop.name : "Satvik Kitchen";
         return (
@@ -95,6 +96,9 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           item.shopName?.toLowerCase().includes(term)
         );
       });
+
+      // Semantic ranking with Vedic ontology weights
+      matchedMenuItems = HitSoochiService.rankItems(matchedMenuItems, term);
 
       // 3. Search Orders (Supabase query based on role)
       let matchedOrders = [];
@@ -182,8 +186,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       return;
     }
     setExpandedOrder(order);
-    setExpandedDish(null);
     setExpandedShop(null);
+    setExpandedDish(null);
   };
 
   const handleAddDishToCart = (item, qty = 1) => {
@@ -195,8 +199,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
   const getStatusColor = (status) => {
     const map = {
-      'new': 'bg-blue-500/20 text-blue-400',
-      'accepted': 'bg-amber-500/20 text-amber-400',
+      'pending': 'bg-amber-500/20 text-amber-400',
+      'in_kitchen': 'bg-orange-500/20 text-orange-400',
       'preparing': 'bg-orange-500/20 text-orange-400',
       'ready': 'bg-emerald-500/20 text-emerald-400',
       'picked_up': 'bg-violet-500/20 text-violet-400',
@@ -218,8 +222,6 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     >
       <div className={`w-full max-w-2xl bg-[#242021] border border-white/10 text-white rounded-[32px] sm:rounded-[40px] shadow-[0_25px_70px_rgba(0,0,0,0.7)] relative flex flex-col max-h-[85vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}>
         
-
-
         {/* Search Input Area */}
         <div className="p-3.5 sm:p-5 border-b border-white/10 flex items-center gap-2.5 sm:gap-3 bg-[#1E1B1C]">
           <Search size={19} className="text-[#E0FF33] flex-shrink-0" strokeWidth={2.5} />
@@ -260,9 +262,34 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           )}
 
           {!loading && !searchTerm.trim() && (
-            <div className="text-center py-10 text-zinc-400">
-              <Sparkles className="w-8 h-8 text-[#E0FF33] mx-auto mb-2 opacity-90" />
-              <p className="text-xs font-medium">Type keywords to search kitchens, dishes, or orders.</p>
+            <div className="py-4 space-y-6">
+              <div className="text-center">
+                <Sparkles className="w-8 h-8 text-[#E0FF33] mx-auto mb-2 opacity-90" />
+                <h3 className="text-sm font-black text-white font-['Outfit']">Vedic HitSoochi Discovery</h3>
+                <p className="text-xs text-zinc-400 mt-1">Explore divine prasad, sacred meals, and pure kitchens</p>
+              </div>
+
+              {/* Quick Intent Pills */}
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2.5 flex items-center gap-1.5">
+                  <Tag size={12} className="text-[#E0FF33]" /> Popular Vedic Cravings
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {HitSoochiService.getCuratedSuggestions().map((sugg, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm(sugg.keyword);
+                        performSearch(sugg.keyword.toLowerCase());
+                      }}
+                      className="px-3.5 py-2 rounded-2xl bg-[#1E1B1C] hover:bg-[#2A2627] border border-white/5 hover:border-[#E0FF33]/40 text-xs font-bold text-zinc-300 hover:text-white transition-all flex items-center gap-1.5"
+                    >
+                      <span>{sugg.title}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

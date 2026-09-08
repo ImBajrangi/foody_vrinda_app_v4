@@ -25,7 +25,13 @@ import { supabase, getCloudShops } from '../supabase';
 
 const AuthContext = createContext(null);
 
-export const DEVELOPER_EMAIL = "dev@example.com";
+export const isDeveloperUser = (email = '', role = '') => {
+  if (role === 'developer') return true;
+  const envDevs = (import.meta.env.VITE_DEVELOPER_EMAILS || 'dev@example.com,developer@foodyvrinda.com,admin@foodyvrinda.com')
+    .split(',')
+    .map(e => e.trim().toLowerCase());
+  return Boolean(email && (envDevs.includes(email.toLowerCase()) || email.startsWith('dev@') || email.includes('+dev@')));
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -81,28 +87,29 @@ export function AuthProvider({ children }) {
       setLoading(true);
       if (currentUser) {
         setUser(currentUser);
-        const email = currentUser.email || 'Guest';
+        const email = currentUser.email || '';
         let role;
         let activeShopId;
         let activeShopIds;
         let permissions;
 
+        const savedData = localStorage.getItem('foody_user_data');
+        let parsedSaved = null;
+        if (savedData) {
+          try {
+            parsedSaved = JSON.parse(savedData);
+          } catch (e) {}
+        }
+
         if (currentUser.isAnonymous) {
-          // Check if there is stored session metadata for phone/guest login
-          const savedData = localStorage.getItem('foody_user_data');
-          if (savedData) {
-            try {
-              const parsed = JSON.parse(savedData);
-              setUserData(parsed);
-              setUserRole(parsed.role || 'customer');
-              setCurrentUserShopId(parsed.shopId || null);
-              setCurrentUserShopIds(parsed.shopIds || (parsed.shopId ? [parsed.shopId] : []));
-              setCurrentShopName(resolveShopName(parsed.shopId) || null);
-              setLoading(false);
-              return;
-            } catch (err) {
-              console.error("Failed to parse saved user data:", err);
-            }
+          if (parsedSaved) {
+            setUserData(parsedSaved);
+            setUserRole(parsedSaved.role || 'customer');
+            setCurrentUserShopId(parsedSaved.shopId || null);
+            setCurrentUserShopIds(parsedSaved.shopIds || (parsedSaved.shopId ? [parsedSaved.shopId] : []));
+            setCurrentShopName(resolveShopName(parsedSaved.shopId) || null);
+            setLoading(false);
+            return;
           }
 
           role = 'customer';
@@ -111,13 +118,20 @@ export function AuthProvider({ children }) {
           setCurrentUserShopId(null);
           setCurrentUserShopIds([]);
           setCurrentShopName(null);
-        } else if (email === DEVELOPER_EMAIL) {
-          const devDoc = { email, role: 'developer', displayName: 'System Developer' };
-          await setDoc(doc(db, "users", currentUser.uid), devDoc, { merge: true });
+        } else if (isDeveloperUser(email, parsedSaved?.role)) {
+          const devDoc = { 
+            email, 
+            role: 'developer', 
+            displayName: currentUser.displayName || (email ? email.split('@')[0] : 'Developer'),
+            ...(parsedSaved || {})
+          };
+          try {
+            await setDoc(doc(db, "users", currentUser.uid), devDoc, { merge: true });
+          } catch (e) {}
           setUserData(devDoc);
           setUserRole('developer');
           setCurrentUserShopId(impersonatedShopId || null);
-          setCurrentUserShopIds([]);
+          setCurrentUserShopIds(allShops.map(s => s.id));
           setCurrentShopName(resolveShopName(impersonatedShopId) || null);
         } else {
           try {
@@ -161,7 +175,7 @@ export function AuthProvider({ children }) {
             // Safe fallback for customer profile
             const fallbackData = {
               email: currentUser.email,
-              displayName: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Devotee'),
+              displayName: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Customer'),
               role: 'customer'
             };
             setUserData(fallbackData);
@@ -190,13 +204,15 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signupWithEmail = async (email, password, displayName = '') => {
+  const signupWithEmail = async (email, password, displayName = '', phone = '', address = '') => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const customerData = {
       email,
       displayName: displayName || email.split('@')[0],
       role: 'customer',
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      ...(phone && { phone: phone.replace(/\D/g, '') }),
+      ...(address && { address })
     };
     await setDoc(doc(db, "users", cred.user.uid), customerData);
     setUserData(customerData);
@@ -258,14 +274,14 @@ export function AuthProvider({ children }) {
       return userProfile;
     }
 
-    // If new phone number for customer devotee, auto-register
+    // If new phone number for customer, auto-register
     if (!auth.currentUser) {
       await signInAnonymously(auth);
     }
 
     const newCustomer = {
       phone: clean,
-      displayName: `Devotee (${clean.slice(-4)})`,
+      displayName: `Customer (${clean.slice(-4)})`,
       role: 'customer',
       createdAt: serverTimestamp()
     };
@@ -299,12 +315,24 @@ export function AuthProvider({ children }) {
   const impersonate = (shopId, role) => {
     setImpersonatedShopId(shopId);
     setImpersonatedRole(role);
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      const base = saved ? JSON.parse(saved) : (userData || {});
+      const updated = { ...base, role, shopId: shopId || base.shopId };
+      setUserData(updated);
+      localStorage.setItem('foody_user_data', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   // Dynamically computed effective role and shop ID
   const effectiveRole = impersonatedRole || userRole;
   const effectiveShopId = impersonatedShopId || currentUserShopId;
   const effectiveShopName = impersonatedShopId ? resolveShopName(impersonatedShopId) : currentShopName;
+  const effectiveShopIds = (effectiveRole === 'developer' || effectiveRole === 'owner')
+    ? (allShops.length > 0 ? allShops.map(s => s.id) : (currentUserShopIds.length > 0 ? currentUserShopIds : ['shop-vrinda-main']))
+    : currentUserShopIds;
 
   const value = {
     user,
@@ -313,7 +341,7 @@ export function AuthProvider({ children }) {
     actualRole: userRole,
     userDevPermissions,
     currentUserShopId: effectiveShopId,
-    currentUserShopIds,
+    currentUserShopIds: effectiveShopIds,
     currentShopName: effectiveShopName,
     allShops,
     loading,

@@ -18,6 +18,7 @@ import {
   Plus, 
   ShoppingBag, 
   Phone, 
+  MessageCircle,
   MapPin, 
   User, 
   FileText, 
@@ -383,13 +384,25 @@ export default function KitchenView() {
                         <span className="truncate">{order.customerName || 'Customer'}</span>
                       </p>
                       {order.customerPhone && (
-                        <a 
-                          href={`tel:${order.customerPhone}`}
-                          className="text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px] flex-shrink-0"
-                        >
-                          <Phone size={11} />
-                          <span>{order.customerPhone}</span>
-                        </a>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <a 
+                            href={`tel:${order.customerPhone}`}
+                            className="text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                            title="Call Customer"
+                          >
+                            <Phone size={11} />
+                            <span>{order.customerPhone}</span>
+                          </a>
+                          <a 
+                            href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${order.customerName || 'Ji'}! Regarding your Foody Vrinda order #${order.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}:`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-5 h-5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 flex items-center justify-center transition-all"
+                            title="Chat on WhatsApp"
+                          >
+                            <MessageCircle size={11} />
+                          </a>
+                        </div>
                       )}
                     </div>
 

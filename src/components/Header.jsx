@@ -61,12 +61,12 @@ export default function Header({
         </div>
       </div>
 
-      {/* Staff View Switcher (Only for kitchen/owner/delivery) */}
+      {/* Operational View Switcher (For staff / admin / developer / delivery) */}
       {['kitchen', 'delivery', 'owner', 'developer'].includes(userRole) && (
-        <div className="hidden lg:flex bg-[#282526] p-1 rounded-full border border-white/10 gap-1 shadow-sm">
+        <div className="hidden md:flex bg-[#282526] p-1 rounded-full border border-white/10 gap-1 shadow-sm">
           <button 
             onClick={() => setCurrentTab('customer')}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
               currentTab === 'customer' 
                 ? 'bg-white text-[#1E1B1C] font-black shadow-sm' 
                 : 'text-zinc-400 hover:text-white'
@@ -74,10 +74,11 @@ export default function Header({
           >
             Store
           </button>
+
           {['kitchen', 'owner', 'developer'].includes(userRole) && (
             <button 
               onClick={() => setCurrentTab('kitchen')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'kitchen' 
                   ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-sm' 
                   : 'text-zinc-400 hover:text-white'
@@ -86,16 +87,43 @@ export default function Header({
               Kitchen
             </button>
           )}
+
+          {['delivery', 'owner', 'developer'].includes(userRole) && (
+            <button 
+              onClick={() => setCurrentTab('delivery')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
+                currentTab === 'delivery' 
+                  ? 'bg-[#06B6D4] text-[#1E1B1C] font-black shadow-sm' 
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Rider
+            </button>
+          )}
+
           {['owner', 'developer'].includes(userRole) && (
             <button 
               onClick={() => setCurrentTab('owner')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'owner' 
-                  ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-sm' 
+                  ? 'bg-[#A855F7] text-white font-black shadow-sm' 
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               Admin
+            </button>
+          )}
+
+          {userRole === 'developer' && (
+            <button 
+              onClick={() => setCurrentTab('developer')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
+                currentTab === 'developer' 
+                  ? 'bg-gradient-to-r from-[#E0FF33] to-emerald-400 text-[#1E1B1C] font-black shadow-sm' 
+                  : 'text-emerald-400 hover:text-emerald-300'
+              }`}
+            >
+              Dev
             </button>
           )}
         </div>

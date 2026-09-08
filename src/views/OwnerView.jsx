@@ -53,9 +53,14 @@ import {
   ShieldCheck,
   CheckCircle2,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BarChart3,
+  Receipt,
+  Compass,
+  Check
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
+import MapPicker from '../components/MapPicker';
 
 ChartJS.register(
   CategoryScale,
@@ -68,7 +73,12 @@ ChartJS.register(
 );
 
 export default function OwnerView() {
-  const { allShops, currentUserShopId } = useAuth();
+  const { allShops = [], currentUserShopId, refreshShops } = useAuth();
+  
+  // Resolved Active Kitchen
+  const currentShop = (allShops && allShops.length > 0)
+    ? (allShops.find(s => s.id === currentUserShopId) || allShops[0])
+    : null;
   
   // Tab Navigation: 'analytics' | 'menu' | 'settings' | 'history'
   const [activeTab, setActiveTab] = useState('analytics');
@@ -77,7 +87,7 @@ export default function OwnerView() {
   const [toast, setToast] = useState(null);
 
   // Payments / Store Operational Settings
-  const [paymentConfig, setPaymentConfig] = useState(() => {
+  const [paymentsConfig, setPaymentsConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_payment_config');
       return saved ? JSON.parse(saved) : { onlinePaymentsEnabled: true, codEnabled: true };
@@ -96,6 +106,68 @@ export default function OwnerView() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [orderSearch, setOrderSearch] = useState('');
   const [selectedAuditOrder, setSelectedAuditOrder] = useState(null);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [mapTargetCoords, setMapTargetCoords] = useState({ lat: 27.5706, lng: 77.6593 });
+  const [coordinateCallback, setCoordinateCallback] = useState(null);
+
+  // Form State for Shop Profile
+  const [shopForm, setShopForm] = useState({
+    name: '',
+    address: '',
+    minimumOrderAmount: '100',
+    deliveryCharge: '30',
+    gstPercentage: '5',
+    lat: '27.5706',
+    lng: '77.6593',
+    openTime: '08:00',
+    closeTime: '22:00',
+    alwaysOpen: false,
+    timePeriods: ['morning', 'forenoon', 'afternoon', 'evening', 'night'],
+    daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    estimatedWaitTime: '15-20',
+    showWaitTime: true,
+    discountTag: '',
+    discountDescription: '',
+    imageUrl: ''
+  });
+
+  // Sync shop form dynamically with active kitchen
+  useEffect(() => {
+    const target = editingShop || currentShop;
+    if (target) {
+      if (!editingShop) {
+        setEditingShop(target);
+      }
+      setShopForm({
+        name: target.name || '',
+        address: target.address || '',
+        minimumOrderAmount: String(target.minimumOrderAmount ?? target.minimum_order_amount ?? 100),
+        deliveryCharge: String(target.deliveryCharge ?? target.delivery_charge ?? 0),
+        gstPercentage: String(target.gstPercentage ?? target.gst_percentage ?? 5),
+        lat: target.coordinates?.lat ? String(target.coordinates.lat) : '27.5706',
+        lng: target.coordinates?.lng ? String(target.coordinates.lng) : '77.6593',
+        openTime: target.schedule?.openTime || '08:00',
+        closeTime: target.schedule?.closeTime || '22:00',
+        alwaysOpen: target.schedule?.alwaysOpen || false,
+        timePeriods: Array.isArray(target.schedule?.timePeriods) && target.schedule.timePeriods.length > 0
+          ? target.schedule.timePeriods
+          : ['morning', 'forenoon', 'afternoon', 'evening', 'night'],
+        daysOpen: Array.isArray(target.schedule?.daysOpen) && target.schedule.daysOpen.length > 0
+          ? target.schedule.daysOpen
+          : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        estimatedWaitTime: String(target.estimatedWaitTime ?? target.estimated_wait_time ?? '15-20'),
+        showWaitTime: target.showWaitTime !== false,
+        discountTag: target.discountTag || target.discount_tag || '',
+        discountDescription: target.discountDescription || target.discount_description || '',
+        imageUrl: target.imageUrl || target.image || ''
+      });
+      setMapTargetCoords({
+        lat: parseFloat(target.coordinates?.lat) || 27.5706,
+        lng: parseFloat(target.coordinates?.lng) || 77.6593
+      });
+    }
+  }, [allShops, currentUserShopId, currentShop]);
 
   // Form State for Menu Item
   const [menuForm, setMenuForm] = useState({
@@ -167,15 +239,28 @@ export default function OwnerView() {
     loadMenus();
   }, [currentUserShopId]);
 
-  // Update Payment Config
-  const handleTogglePayment = (key, value) => {
-    setPaymentConfig(prev => {
-      const updated = { ...prev, [key]: value };
-      localStorage.setItem('foody_payment_config', JSON.stringify(updated));
-      return updated;
+  // Update Payment Config for active kitchen
+  const handleUpdatePaymentsConfig = async (key, value) => {
+    const updated = { ...paymentsConfig, [key]: value };
+    setPaymentsConfig(updated);
+    localStorage.setItem('foody_payment_config', JSON.stringify(updated));
+    window.dispatchEvent(new Event('foody_payment_config_changed'));
+
+    const targetShop = editingShop || currentShop || (allShops && allShops[0]);
+    if (targetShop?.id) {
+      await updateCloudShop(targetShop.id, {
+        paymentSettings: updated,
+        onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+        codEnabled: updated.codEnabled
+      });
+      if (refreshShops) await refreshShops();
+    }
+    setToast({ 
+      message: `${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'enabled' : 'disabled'} for ${targetShop?.name || 'this kitchen'}!`, 
+      type: "success" 
     });
-    setToast({ message: `Payment setting updated`, type: "success" });
   };
+  const handleTogglePayment = handleUpdatePaymentsConfig;
 
   // KPI Calculations
   const completedOrders = orders.filter(o => o.status === 'completed');
@@ -275,46 +360,69 @@ export default function OwnerView() {
     setShopForm({
       name: shop.name || '',
       address: shop.address || '',
-      minimumOrderAmount: shop.minimumOrderAmount || 0,
-      deliveryCharge: shop.deliveryCharge || 0,
-      gstPercentage: shop.gstPercentage || 5,
-      lat: shop.coordinates?.lat || '',
-      lng: shop.coordinates?.lng || '',
+      minimumOrderAmount: String(shop.minimumOrderAmount ?? shop.minimum_order_amount ?? 0),
+      deliveryCharge: String(shop.deliveryCharge ?? shop.delivery_charge ?? 0),
+      gstPercentage: String(shop.gstPercentage ?? shop.gst_percentage ?? 5),
+      lat: shop.coordinates?.lat ? String(shop.coordinates.lat) : '27.5706',
+      lng: shop.coordinates?.lng ? String(shop.coordinates.lng) : '77.6593',
       openTime: shop.schedule?.openTime || '08:00',
       closeTime: shop.schedule?.closeTime || '22:00',
       alwaysOpen: shop.schedule?.alwaysOpen || false,
-      imageUrl: shop.imageUrl || ''
+      timePeriods: Array.isArray(shop.schedule?.timePeriods) && shop.schedule.timePeriods.length > 0
+        ? shop.schedule.timePeriods
+        : ['morning', 'forenoon', 'afternoon', 'evening', 'night'],
+      daysOpen: Array.isArray(shop.schedule?.daysOpen) && shop.schedule.daysOpen.length > 0
+        ? shop.schedule.daysOpen
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      estimatedWaitTime: String(shop.estimatedWaitTime ?? shop.estimated_wait_time ?? '15-20'),
+      showWaitTime: shop.showWaitTime !== false,
+      discountTag: shop.discountTag || shop.discount_tag || '',
+      discountDescription: shop.discountDescription || shop.discount_description || '',
+      imageUrl: shop.imageUrl || shop.image || ''
+    });
+    setMapTargetCoords({
+      lat: parseFloat(shop.coordinates?.lat) || 27.5706,
+      lng: parseFloat(shop.coordinates?.lng) || 77.6593
     });
   };
 
   const handleSaveShopForm = async (e) => {
-    e.preventDefault();
-    if (!editingShop) return;
+    if (e && e.preventDefault) e.preventDefault();
+    const targetShop = editingShop || currentShop || (allShops && allShops[0]);
+    const shopId = targetShop?.id || currentUserShopId || 'shop-vrinda-main';
+
     try {
       const shopUpdateData = {
-        name: shopForm.name,
-        address: shopForm.address,
+        name: shopForm.name || targetShop?.name || 'Foody Kitchen',
+        address: shopForm.address || targetShop?.address || '',
         minimumOrderAmount: parseFloat(shopForm.minimumOrderAmount) || 0,
         deliveryCharge: parseFloat(shopForm.deliveryCharge) || 0,
         gstPercentage: parseFloat(shopForm.gstPercentage) || 0,
+        estimatedWaitTime: shopForm.estimatedWaitTime || '15-20',
+        showWaitTime: Boolean(shopForm.showWaitTime),
+        discountTag: shopForm.discountTag || '',
+        discountDescription: shopForm.discountDescription || '',
         coordinates: {
-          lat: parseFloat(shopForm.lat) || 0,
-          lng: parseFloat(shopForm.lng) || 0
+          lat: parseFloat(shopForm.lat) || targetShop?.coordinates?.lat || 27.5706,
+          lng: parseFloat(shopForm.lng) || targetShop?.coordinates?.lng || 77.6593
         },
         schedule: {
-          openTime: shopForm.openTime,
-          closeTime: shopForm.closeTime,
-          alwaysOpen: shopForm.alwaysOpen
+          openTime: shopForm.openTime || '08:00',
+          closeTime: shopForm.closeTime || '22:00',
+          alwaysOpen: Boolean(shopForm.alwaysOpen),
+          timePeriods: shopForm.timePeriods || ['morning', 'forenoon', 'afternoon', 'evening', 'night'],
+          daysOpen: shopForm.daysOpen || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         },
-        imageUrl: shopForm.imageUrl
+        imageUrl: shopForm.imageUrl || targetShop?.imageUrl || ''
       };
 
-      // Supabase Cloud Sync
-      await updateCloudShop(editingShop.id, shopUpdateData);
+      // Supabase & Local Cache Sync
+      await updateCloudShop(shopId, shopUpdateData);
 
-      setToast({ message: "Kitchen profile updated successfully!", type: "success" });
-      setEditingShop(null);
-      refreshShops();
+      setToast({ message: "Kitchen operational settings saved!", type: "success" });
+      if (refreshShops) {
+        await refreshShops();
+      }
     } catch (err) {
       console.error(err);
       setToast({ message: "Failed to save kitchen settings", type: "error" });
@@ -417,8 +525,6 @@ export default function OwnerView() {
       setToast({ message: "Failed to update cash status", type: "error" });
     }
   };
-
-  const currentShop = allShops.find(s => s.id === currentUserShopId);
 
   return (
     <div className="space-y-6 pb-20">
@@ -733,6 +839,121 @@ export default function OwnerView() {
                     type="time" 
                     value={shopForm.closeTime} 
                     onChange={(e) => setShopForm({...shopForm, closeTime: e.target.value})} 
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                </div>
+              </div>
+
+              {/* Vedic Time Periods Multi-Select */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                    Vedic Service Shifts (Time Periods)
+                  </label>
+                  <span className="text-[10px] text-neutral-500">Matches Mobile Schedule Engine</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { id: 'morning', label: 'Morning', icon: '🌅', time: '6-9 AM' },
+                    { id: 'forenoon', label: 'Forenoon', icon: '☀️', time: '9-12 PM' },
+                    { id: 'afternoon', label: 'Afternoon', icon: '🍽️', time: '12-4 PM' },
+                    { id: 'evening', label: 'Evening', icon: '🌆', time: '4-8 PM' },
+                    { id: 'night', label: 'Night', icon: '🌙', time: '8-12 AM' }
+                  ].map(period => {
+                    const isSelected = (shopForm.timePeriods || []).includes(period.id);
+                    return (
+                      <button
+                        key={period.id}
+                        type="button"
+                        onClick={() => {
+                          const current = shopForm.timePeriods || [];
+                          const updated = isSelected 
+                            ? current.filter(p => p !== period.id)
+                            : [...current, period.id];
+                          setShopForm({ ...shopForm, timePeriods: updated });
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition-all flex flex-col items-start gap-1 ${
+                          isSelected 
+                            ? 'bg-[#E0FF33]/15 border-[#E0FF33] text-[#E0FF33]' 
+                            : 'bg-[#1E1B1C] border-white/5 text-neutral-400 hover:border-white/20'
+                        }`}
+                      >
+                        <span className="text-base">{period.icon}</span>
+                        <span className="text-xs font-bold text-white leading-tight">{period.label}</span>
+                        <span className="text-[10px] text-neutral-400">{period.time}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Operating Days Selector */}
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  Operating Days of Week
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                    const isSelected = (shopForm.daysOpen || []).includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          const current = shopForm.daysOpen || [];
+                          const updated = isSelected 
+                            ? current.filter(d => d !== day)
+                            : [...current, day];
+                          setShopForm({ ...shopForm, daysOpen: updated });
+                        }}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${
+                          isSelected 
+                            ? 'bg-[#E0FF33] border-[#E0FF33] text-black shadow-md' 
+                            : 'bg-[#1E1B1C] border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Estimated Wait Time & Promo Discount */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Est. Wait Time
+                  </label>
+                  <input 
+                    type="text" 
+                    value={shopForm.estimatedWaitTime} 
+                    onChange={(e) => setShopForm({...shopForm, estimatedWaitTime: e.target.value})} 
+                    placeholder="15-20 min"
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Promo Tag (Optional)
+                  </label>
+                  <input 
+                    type="text" 
+                    value={shopForm.discountTag} 
+                    onChange={(e) => setShopForm({...shopForm, discountTag: e.target.value})} 
+                    placeholder="20% OFF"
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Promo Details
+                  </label>
+                  <input 
+                    type="text" 
+                    value={shopForm.discountDescription} 
+                    onChange={(e) => setShopForm({...shopForm, discountDescription: e.target.value})} 
+                    placeholder="On Sacred Sweets & Thalis"
                     className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                 </div>

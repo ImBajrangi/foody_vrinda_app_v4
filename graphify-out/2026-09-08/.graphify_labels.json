@@ -1,10 +1,10 @@
 {
-  "0": "AuthContext.jsx",
-  "1": "UnifiedSearchModal.jsx",
+  "0": "useAuth",
+  "1": "main.jsx",
   "2": "supabase.js",
   "3": "App.jsx",
   "4": "CustomerView.jsx",
-  "5": "KitchenView.jsx",
+  "5": "NotificationContext.jsx",
   "6": "React + Vite",
   "7": "eslint.config.js",
   "8": "vite.config.js",

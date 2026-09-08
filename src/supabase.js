@@ -78,7 +78,7 @@ export const DEFAULT_PRASAD_ITEMS = [
     category: 'Meals',
     price: 220,
     kcal: '480 kcal',
-    tag: 'Devotee Favorite',
+    tag: "Chef's Special",
     image: '/dishes/thali.png',
     description: 'Steaming aromatic Govind Bhog rice, 4 whole wheat phulkas, Dal Makhani with desi ghee, Paneer Butter Masala, seasonal Subzi, sweet Gulab Jamun, and crisp Papad.',
     nutrition: { carbs: '68g', fat: '16g', protein: '22g', kcal: '480 kcal' },
@@ -334,7 +334,7 @@ export async function createCloudOrder(orderData) {
       id: orderId,
       shop_id: orderData.shopId || 'shop-vrinda-main',
       user_id: orderData.userId || null,
-      customer_name: orderData.customerName || 'Devotee',
+      customer_name: orderData.customerName || 'Customer',
       customer_phone: orderData.customerPhone || '9876543210',
       customer_address: orderData.customerAddress || 'Vrindavan Dham',
       delivery_address: orderData.deliveryAddress || orderData.customerAddress || 'Vrindavan Dham',
@@ -349,7 +349,7 @@ export async function createCloudOrder(orderData) {
       payment_id: orderData.paymentId || null,
       cash_status: orderData.cashStatus || 'pending',
       cooking_notes: orderData.cookingNotes || '',
-      created_by: orderData.createdBy || orderData.customerName || 'Devotee',
+      created_by: orderData.createdBy || orderData.customerName || 'Customer',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -446,7 +446,7 @@ class RealtimeMultiplexer {
             }
           });
 
-          // Broadcast to single-order devotees
+          // Broadcast to customer single-order listeners
           const singleListeners = this.singleOrderListeners.get(raw.id);
           if (singleListeners) {
             singleListeners.forEach(cb => {
@@ -707,6 +707,50 @@ export async function updateCloudShop(shopId, shopData) {
     if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
     if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
     if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+
+    // Update local cache immediately for instantaneous UI reaction
+    try {
+      const cached = localStorage.getItem('foody_cached_shops');
+      let shops = cached ? JSON.parse(cached) : SEED_SHOPS;
+      let matched = false;
+      shops = shops.map(s => {
+        if (s.id === shopId) {
+          matched = true;
+          return {
+            ...s,
+            ...shopData,
+            name: shopData.name !== undefined ? shopData.name : s.name,
+            address: shopData.address !== undefined ? shopData.address : s.address,
+            minimum_order_amount: shopData.minimumOrderAmount !== undefined ? Number(shopData.minimumOrderAmount) : (s.minimum_order_amount ?? s.minimumOrderAmount),
+            minimumOrderAmount: shopData.minimumOrderAmount !== undefined ? Number(shopData.minimumOrderAmount) : (s.minimumOrderAmount ?? s.minimum_order_amount),
+            delivery_charge: shopData.deliveryCharge !== undefined ? Number(shopData.deliveryCharge) : (s.delivery_charge ?? s.deliveryCharge),
+            deliveryCharge: shopData.deliveryCharge !== undefined ? Number(shopData.deliveryCharge) : (s.deliveryCharge ?? s.delivery_charge),
+            gst_percentage: shopData.gstPercentage !== undefined ? Number(shopData.gstPercentage) : (s.gst_percentage ?? s.gstPercentage),
+            gstPercentage: shopData.gstPercentage !== undefined ? Number(shopData.gstPercentage) : (s.gstPercentage ?? s.gst_percentage),
+            coordinates: shopData.coordinates !== undefined ? shopData.coordinates : s.coordinates,
+            schedule: shopData.schedule !== undefined ? shopData.schedule : s.schedule,
+            imageUrl: shopData.imageUrl !== undefined ? shopData.imageUrl : s.imageUrl,
+          };
+        }
+        return s;
+      });
+      if (!matched && shopId) {
+        shops.push({
+          id: shopId,
+          ...shopData,
+          minimum_order_amount: Number(shopData.minimumOrderAmount || 0),
+          minimumOrderAmount: Number(shopData.minimumOrderAmount || 0),
+          delivery_charge: Number(shopData.deliveryCharge || 0),
+          deliveryCharge: Number(shopData.deliveryCharge || 0),
+          gst_percentage: Number(shopData.gstPercentage || 5),
+          gstPercentage: Number(shopData.gstPercentage || 5),
+        });
+      }
+      localStorage.setItem('foody_cached_shops', JSON.stringify(shops));
+      setCachedItem('shops', 'default', shops);
+    } catch (e) {
+      console.warn("Local cache update notice:", e);
+    }
 
     const { data, error } = await supabase
       .from('foody_shops')

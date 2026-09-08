@@ -1,42 +1,61 @@
-import { useEffect, useState, useRef } from 'react';
-import { ShoppingBag, Sparkles, Heart, HeartOff, Check, AlertCircle, AlertTriangle, Info, MapPin, Store } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { ShoppingBag, Sparkles, Heart, HeartOff, Check, AlertCircle, AlertTriangle, Store } from 'lucide-react';
 
 export default function DynamicToast({ 
   message, 
   title, 
   desc, 
   type = 'info', 
-  duration = 3200, 
+  duration = 2200, 
   onDismiss 
 }) {
   const [stage, setStage] = useState('visible'); // 'visible' | 'exiting'
   const timerRef = useRef(null);
   const touchStartY = useRef(null);
+  const isExitingRef = useRef(false);
 
-  const triggerDismiss = () => {
-    if (stage === 'exiting') return;
+  const triggerDismiss = useCallback(() => {
+    if (isExitingRef.current) return;
+    isExitingRef.current = true;
     setStage('exiting');
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setTimeout(() => {
       if (onDismiss) onDismiss();
-    }, 280);
-  };
+      isExitingRef.current = false;
+    }, 240);
+  }, [onDismiss]);
 
-  const handleMouseEnter = () => {
+  // Robust Auto-Hiding Timer
+  useEffect(() => {
+    if (!message && !title) return;
+    
+    isExitingRef.current = false;
+    setStage('visible');
+
     if (timerRef.current) clearTimeout(timerRef.current);
-  };
 
-  const handleMouseLeave = () => {
-    if (stage === 'visible') {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        triggerDismiss();
-      }, 2600);
-    }
+    timerRef.current = setTimeout(() => {
+      triggerDismiss();
+    }, duration);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [message, title, duration, triggerDismiss]);
+
+  // Instant Tap / Pointer Down Dismissal
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    triggerDismiss();
   };
 
   const handleTouchStart = (e) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
     if (e.touches && e.touches[0]) {
       touchStartY.current = e.touches[0].clientY;
     }
@@ -45,32 +64,12 @@ export default function DynamicToast({
   const handleTouchEnd = (e) => {
     if (touchStartY.current !== null && e.changedTouches && e.changedTouches[0]) {
       const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-      if (deltaY < -15) {
+      // Swipe up to dismiss or immediate tap
+      if (deltaY < -8 || Math.abs(deltaY) < 5) {
         triggerDismiss();
-        return;
       }
     }
-    if (stage === 'visible') {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        triggerDismiss();
-      }, 2600);
-    }
   };
-
-  useEffect(() => {
-    if (message || title) {
-      setStage('visible');
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        triggerDismiss();
-      }, duration);
-
-      return () => {
-        if (timerRef.current) clearTimeout(timerRef.current);
-      };
-    }
-  }, [message, title, duration]);
 
   if (!message && !title && stage !== 'exiting') return null;
 
@@ -86,7 +85,7 @@ export default function DynamicToast({
   const isFavAction = titleLower.includes('favourite') || titleLower.includes('favorite') || titleLower.includes('saved');
   const isFavRemove = isFavAction && (titleLower.includes('remove') || titleLower.includes('unsaved'));
   const isFavAdd = isFavAction && !isFavRemove;
-  const isBasketAction = titleLower.includes('basket') || titleLower.includes('cart') || titleLower.includes('added');
+  const isBasketAction = titleLower.includes('basket') || titleLower.includes('cart') || titleLower.includes('added') || titleLower.includes('+');
   const isShopAction = titleLower.includes('switch') || titleLower.includes('kitchen') || titleLower.includes('branch') || titleLower.includes('location') || titleLower.includes('store');
 
   const getEffectiveType = () => {
@@ -101,51 +100,51 @@ export default function DynamicToast({
 
   const getIcon = () => {
     if (isFavAdd) {
-      return <Heart size={16} strokeWidth={2.5} className="text-[#fb7185] fill-[#f43f5e]" />;
+      return <Heart size={15} strokeWidth={2.5} className="text-[#fb7185] fill-[#f43f5e]" />;
     }
     if (isFavRemove) {
-      return <HeartOff size={16} strokeWidth={2.5} className="text-[#fca5a5]" />;
+      return <HeartOff size={15} strokeWidth={2.5} className="text-[#fca5a5]" />;
     }
     if (isShopAction) {
-      return <Store size={16} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <Store size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
     if (isBasketAction && type === 'success') {
-      return <ShoppingBag size={16} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <ShoppingBag size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
     switch (type) {
       case 'success':
-        return <Check size={16} strokeWidth={3} className="text-[#E0FF33]" />;
+        return <Check size={15} strokeWidth={3} className="text-[#E0FF33]" />;
       case 'error':
-        return <AlertCircle size={16} strokeWidth={2.5} className="text-red-400" />;
+        return <AlertCircle size={15} strokeWidth={2.5} className="text-red-400" />;
       case 'warning':
-        return <AlertTriangle size={16} strokeWidth={2.5} className="text-amber-400" />;
+        return <AlertTriangle size={15} strokeWidth={2.5} className="text-amber-400" />;
       case 'info':
       default:
-        return <Sparkles size={16} strokeWidth={2.5} className="text-[#E0FF33]" />;
+        return <Sparkles size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
   };
 
   return (
     <aside
-      className={`dynamic-island-toast toast type-${effectiveType} stage-${stage}`}
+      className={`dynamic-island-toast toast type-${effectiveType} stage-${stage} select-none cursor-pointer active:scale-95 transition-all`}
       role={type === 'error' ? 'alert' : 'status'}
       aria-live="polite"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onClick={triggerDismiss}
+      onPointerDown={handlePointerDown}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onClick={triggerDismiss}
+      title="Tap to dismiss"
     >
       <div className={`dynamic-island-icon-wrap type-${effectiveType}`}>
         {getIcon()}
       </div>
 
-      <div className="dynamic-island-content">
-        <span className="dynamic-island-title">{cleanTitle}</span>
+      <div className="dynamic-island-content max-w-[260px] sm:max-w-[400px] overflow-hidden">
+        <span className="dynamic-island-title truncate">{cleanTitle}</span>
         {cleanDesc && (
           <>
-            <span className="text-zinc-500 text-xs">•</span>
-            <span className="dynamic-island-desc">{cleanDesc}</span>
+            <span className="text-zinc-500 text-xs shrink-0">•</span>
+            <span className="dynamic-island-desc truncate">{cleanDesc}</span>
           </>
         )}
       </div>

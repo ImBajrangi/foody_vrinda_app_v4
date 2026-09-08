@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const CartContext = createContext(null);
 
@@ -14,6 +14,55 @@ export function CartProvider({ children }) {
       return { onlinePaymentsEnabled: true, codEnabled: true };
     }
   });
+
+  // Keep paymentSettings synchronized across windows and state triggers
+  useEffect(() => {
+    const handleConfigChange = () => {
+      try {
+        const saved = localStorage.getItem('foody_payment_config');
+        if (saved) {
+          setPaymentSettings(JSON.parse(saved));
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('storage', handleConfigChange);
+    window.addEventListener('foody_payment_config_changed', handleConfigChange);
+    return () => {
+      window.removeEventListener('storage', handleConfigChange);
+      window.removeEventListener('foody_payment_config_changed', handleConfigChange);
+    };
+  }, []);
+
+  const updateGlobalPaymentConfig = useCallback((newConfig) => {
+    setPaymentSettings(prev => {
+      const updated = typeof newConfig === 'function' ? newConfig(prev) : { ...prev, ...newConfig };
+      try {
+        localStorage.setItem('foody_payment_config', JSON.stringify(updated));
+        window.dispatchEvent(new Event('foody_payment_config_changed'));
+      } catch (e) {}
+      return updated;
+    });
+  }, []);
+
+  // Helper to resolve specific shop payment options considering global master flags
+  const resolveShopPaymentOptions = useCallback((shop) => {
+    const globalOnline = paymentSettings?.onlinePaymentsEnabled !== false;
+    const globalCod = paymentSettings?.codEnabled !== false;
+
+    const shopOnline = shop?.paymentSettings?.onlinePaymentsEnabled ?? shop?.onlinePaymentsEnabled ?? true;
+    const shopCod = shop?.paymentSettings?.codEnabled ?? shop?.codEnabled ?? true;
+
+    return {
+      onlineAvailable: globalOnline && shopOnline,
+      codAvailable: globalCod && shopCod,
+      globalOnline,
+      globalCod,
+      shopOnline,
+      shopCod,
+      shopName: shop?.name || 'Kitchen'
+    };
+  }, [paymentSettings]);
 
   const addToCart = (item, shopId) => {
     const targetShopId = shopId || item.shopId || selectedShopId;
@@ -50,14 +99,23 @@ export function CartProvider({ children }) {
     });
   };
 
-  const setExactQuantity = (itemId, exactQty) => {
+  const setExactQuantity = (itemId, exactQty, itemObj = null) => {
     setCart(prevCart => {
       if (exactQty <= 0) {
         const updated = prevCart.filter(i => i.id !== itemId);
         if (updated.length === 0) setSelectedShopId(null);
         return updated;
       }
-      return prevCart.map(i => i.id === itemId ? { ...i, quantity: exactQty } : i);
+      const existing = prevCart.find(i => i.id === itemId);
+      if (existing) {
+        return prevCart.map(i => i.id === itemId ? { ...i, quantity: exactQty } : i);
+      }
+      if (itemObj) {
+        const targetShopId = itemObj.shopId || selectedShopId;
+        if (targetShopId) setSelectedShopId(targetShopId);
+        return [...prevCart, { ...itemObj, quantity: exactQty, shopId: targetShopId }];
+      }
+      return prevCart;
     });
   };
 
@@ -79,6 +137,9 @@ export function CartProvider({ children }) {
   // Helper to load Razorpay checkout script dynamically
   const loadRazorpay = () => {
     return new Promise((resolve) => {
+      if (window.Razorpay) {
+        return resolve(true);
+      }
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
@@ -93,6 +154,8 @@ export function CartProvider({ children }) {
     selectedShopId,
     setSelectedShopId,
     paymentSettings,
+    updateGlobalPaymentConfig,
+    resolveShopPaymentOptions,
     addToCart,
     updateQuantity,
     setExactQuantity,
@@ -115,3 +178,4 @@ export function useCart() {
   }
   return context;
 }
+

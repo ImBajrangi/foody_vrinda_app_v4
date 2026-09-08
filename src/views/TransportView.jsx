@@ -24,7 +24,11 @@ import {
   Sparkles,
   Search,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  PackageCheck,
+  Store,
+  Check,
+  Star
 } from 'lucide-react';
 
 export default function TransportView() {
@@ -32,6 +36,7 @@ export default function TransportView() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
 
   // Audio Alarm Hook
@@ -239,11 +244,9 @@ export default function TransportView() {
     riderMarker.bindTooltip('Sarathi Rider', { permanent: false, direction: 'top' });
     group.addLayer(riderMarker);
 
-    // 4. Dashed Navigation Path
+    // 4. Navigation Path (OSRM Real Road Geometry)
     const routeLine = L.polyline([
       [shopLat, shopLng],
-      [midLat + 0.001, midLng - 0.001],
-      [midLat, midLng],
       [destLat, destLng]
     ], {
       color: '#0f172a',
@@ -253,6 +256,18 @@ export default function TransportView() {
       lineCap: 'round'
     });
     group.addLayer(routeLine);
+
+    fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.routes?.[0]?.geometry?.coordinates) {
+          const latLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          if (latLngs.length > 1) {
+            routeLine.setLatLngs(latLngs);
+          }
+        }
+      })
+      .catch(() => {});
 
     group.addTo(map);
     routeGroupRef.current = group;
@@ -387,7 +402,7 @@ export default function TransportView() {
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
-            <MapIcon className="w-3.5 h-3.5" />
+            <Map className="w-3.5 h-3.5" />
             <span>Carto HUD</span>
           </button>
           <button
@@ -460,7 +475,7 @@ export default function TransportView() {
                   </div>
                   <div>
                     <h4 className="font-black text-base tracking-tight font-['Outfit']">
-                      {activeOrder.customerName || 'Madhu Devotee'}
+                      {activeOrder.customerName || 'Customer'}
                     </h4>
                     <div className="flex items-center gap-0.5 text-amber-400 text-xs mt-0.5">
                       {[...Array(5)].map((_, i) => (
@@ -472,16 +487,22 @@ export default function TransportView() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => setToast({ message: 'Opening chat message...', type: 'info' })}
-                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-95"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                  </button>
                   {activeOrder.customerPhone && (
                     <a 
-                      href={`tel:${activeOrder.customerPhone}`}
+                      href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-emerald-500/20 text-white hover:text-emerald-400 flex items-center justify-center transition-all active:scale-95"
+                      title="WhatsApp Customer"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                    </a>
+                  )}
+                  {activeOrder.customerPhone && (
+                    <a 
+                      href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
                       className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-95"
+                      title="Call Customer"
                     >
                       <Phone className="w-5 h-5" />
                     </a>
@@ -604,7 +625,7 @@ export default function TransportView() {
                     >
                       <div>
                         <p className="font-bold text-white text-xs">#{o.id.slice(-6).toUpperCase()}</p>
-                        <p className="text-[10px] text-neutral-400 font-medium">{o.customerName || 'Devotee'}</p>
+                        <p className="text-[10px] text-neutral-400 font-medium">{o.customerName || 'Customer'}</p>
                       </div>
                       <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase ${
                         o.status === 'ready_for_pickup' ? 'bg-amber-400/15 text-amber-300' : 'bg-cyan-400/15 text-cyan-300'
@@ -680,7 +701,7 @@ export default function TransportView() {
 
                       <div className="bg-[#1E1B1C] border border-white/5 rounded-2xl p-3.5 space-y-2 text-xs text-neutral-300 font-['Plus_Jakarta_Sans']">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-white">{order.customerName || 'Anonymous Devotee'}</span>
+                          <span className="font-bold text-white">{order.customerName || 'Customer'}</span>
                           {order.customerPhone && (
                             <a href={`tel:${order.customerPhone}`} className="text-[#E0FF33] font-bold text-xs hover:underline flex items-center gap-1">
                               <Phone className="w-3 h-3" />
@@ -717,7 +738,7 @@ export default function TransportView() {
                         }}
                         className="flex-1 py-3 px-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all border border-white/10"
                       >
-                        <MapIcon className="w-4 h-4 text-[#E0FF33]" />
+                        <Map className="w-4 h-4 text-[#E0FF33]" />
                         <span>Map View</span>
                       </button>
 

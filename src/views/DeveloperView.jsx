@@ -35,16 +35,28 @@ import {
   Sparkles
 } from 'lucide-react';
 
+import { updateCloudShop } from '../supabase';
+
 export default function DeveloperView({ setCurrentTab }) {
-  const { allShops, impersonate } = useAuth();
+  const { allShops = [], impersonate, refreshShops } = useAuth();
   
   const [stats, setStats] = useState({ shops: 0, items: 0, orders: 0, notifications: 0 });
-  const [paymentsConfig, setPaymentsConfig] = useState({ onlinePaymentsEnabled: true, codEnabled: true });
+  const [paymentsConfig, setPaymentsConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_payment_config');
+      return saved ? JSON.parse(saved) : { onlinePaymentsEnabled: true, codEnabled: true };
+    } catch (e) {
+      return { onlinePaymentsEnabled: true, codEnabled: true };
+    }
+  });
   const [toast, setToast] = useState(null);
 
   // Impersonation state
   const [selectedShopId, setSelectedShopId] = useState('');
   const [selectedDeliveryShopId, setSelectedDeliveryShopId] = useState('');
+
+  // Per-kitchen payment override state
+  const [selectedPaymentShopId, setSelectedPaymentShopId] = useState(allShops[0]?.id || '');
 
   // Simulator state
   const [simShopId, setSimShopId] = useState('');
@@ -80,11 +92,14 @@ export default function DeveloperView({ setCurrentTab }) {
     fetchStats();
   }, []);
 
-  // Sync payments config
+  // Sync payments config from Firestore & localStorage
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, "settings", "paymentConfig"), (docSnap) => {
       if (docSnap.exists()) {
-        setPaymentsConfig(docSnap.data());
+        const data = docSnap.data();
+        setPaymentsConfig(data);
+        localStorage.setItem('foody_payment_config', JSON.stringify(data));
+        window.dispatchEvent(new Event('foody_payment_config_changed'));
       }
     });
     return () => unsubscribe();
@@ -111,12 +126,39 @@ export default function DeveloperView({ setCurrentTab }) {
 
   const handleUpdatePaymentsConfig = async (key, value) => {
     try {
-      await updateDoc(doc(db, "settings", "paymentConfig"), { [key]: value });
-      setToast({ message: `Dev Override: ${key} updated`, type: 'success' });
+      const updated = { ...paymentsConfig, [key]: value };
+      setPaymentsConfig(updated);
+      localStorage.setItem('foody_payment_config', JSON.stringify(updated));
+      window.dispatchEvent(new Event('foody_payment_config_changed'));
+      
+      try {
+        await updateDoc(doc(db, "settings", "paymentConfig"), { [key]: value });
+      } catch (e) {}
+
+      setToast({ message: `Global Master: ${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`, type: 'success' });
     } catch (e) {
       console.error(e);
       setToast({ message: 'Failed to update payment setting', type: 'error' });
     }
+  };
+
+  const handleToggleKitchenPayment = async (shopId, key, value) => {
+    if (!shopId) return;
+    const targetShop = allShops.find(s => s.id === shopId);
+    const existing = targetShop?.paymentSettings || { onlinePaymentsEnabled: true, codEnabled: true };
+    const updated = { ...existing, [key]: value };
+
+    await updateCloudShop(shopId, {
+      paymentSettings: updated,
+      onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+      codEnabled: updated.codEnabled
+    });
+
+    if (refreshShops) await refreshShops();
+    setToast({
+      message: `${targetShop?.name || 'Kitchen'}: ${key === 'onlinePaymentsEnabled' ? 'Online Pay' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`,
+      type: 'success'
+    });
   };
 
   const handleImpersonateShop = (shopId) => {
@@ -340,48 +382,112 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
         </div>
 
-        {/* Global Configuration Bypass */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-[#E0FF33]" />
-            <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Payment Gateways Override</h3>
+        {/* Global & Per-Kitchen Configuration */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-5 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-[#E0FF33]" />
+              <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Payment Gateways Master</h3>
+            </div>
+            <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2 py-0.5 rounded-full">Global & Specific</span>
           </div>
-          <p className="text-xs text-neutral-400">Directly override Firestore global settings flags for testing checkout flows.</p>
           
-          <div className="space-y-3 pt-2">
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-white">Online Razorpay Checkout</p>
-                <p className="text-[10px] text-neutral-500">Enable/disable gateway on customer cart</p>
+          {/* 1. Global Master Switches */}
+          <div className="space-y-2">
+            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">1. Global Master Switches (All Kitchens)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-white">Online Razorpay</p>
+                  <p className="text-[10px] text-neutral-500">Platform-wide UPI/Cards</p>
+                </div>
+                <button 
+                  onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    paymentsConfig.onlinePaymentsEnabled 
+                      ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
+                      : 'bg-red-400/20 text-red-300 border border-red-400/30'
+                  }`}
+                >
+                  {paymentsConfig.onlinePaymentsEnabled ? 'Enabled' : 'Disabled'}
+                </button>
               </div>
-              <button 
-                onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                  paymentsConfig.onlinePaymentsEnabled 
-                    ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
-                    : 'bg-red-400/20 text-red-300 border border-red-400/30'
-                }`}
+
+              <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-white">Cash on Delivery</p>
+                  <p className="text-[10px] text-neutral-500">Platform-wide COD</p>
+                </div>
+                <button 
+                  onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    paymentsConfig.codEnabled 
+                      ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
+                      : 'bg-red-400/20 text-red-300 border border-red-400/30'
+                  }`}
+                >
+                  {paymentsConfig.codEnabled ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Specific Kitchen Master Switches */}
+          <div className="space-y-2 pt-2 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">2. Kitchen-Specific Payment Config</p>
+              <select
+                value={selectedPaymentShopId}
+                onChange={(e) => setSelectedPaymentShopId(e.target.value)}
+                className="bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl px-2.5 py-1 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
               >
-                {paymentsConfig.onlinePaymentsEnabled ? 'Enabled' : 'Disabled'}
-              </button>
+                {allShops.map(s => <option key={s.id} value={s.id} className="bg-[#1E1B1C]">{s.name}</option>)}
+              </select>
             </div>
 
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-white">Cash on Delivery (COD)</p>
-                <p className="text-[10px] text-neutral-500">Allow physical cash collection</p>
-              </div>
-              <button 
-                onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                  paymentsConfig.codEnabled 
-                    ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
-                    : 'bg-red-400/20 text-red-300 border border-red-400/30'
-                }`}
-              >
-                {paymentsConfig.codEnabled ? 'Enabled' : 'Disabled'}
-              </button>
-            </div>
+            {(() => {
+              const activeTargetShop = allShops.find(s => s.id === (selectedPaymentShopId || allShops[0]?.id)) || allShops[0];
+              const shopOnline = activeTargetShop?.paymentSettings?.onlinePaymentsEnabled ?? activeTargetShop?.onlinePaymentsEnabled ?? true;
+              const shopCod = activeTargetShop?.paymentSettings?.codEnabled ?? activeTargetShop?.codEnabled ?? true;
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-white">Online Pay</p>
+                      <p className="text-[10px] text-neutral-500 truncate max-w-[120px]">{activeTargetShop?.name}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'onlinePaymentsEnabled', !shopOnline)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        shopOnline 
+                          ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
+                          : 'bg-red-400/20 text-red-300 border border-red-400/30'
+                      }`}
+                    >
+                      {shopOnline ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-white">Cash on Delivery</p>
+                      <p className="text-[10px] text-neutral-500 truncate max-w-[120px]">{activeTargetShop?.name}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'codEnabled', !shopCod)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                        shopCod 
+                          ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30' 
+                          : 'bg-red-400/20 text-red-300 border border-red-400/30'
+                      }`}
+                    >
+                      {shopCod ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
