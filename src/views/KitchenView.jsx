@@ -11,6 +11,7 @@ import {
   createCloudNotification 
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
+import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import { 
   ChefHat, 
   Clock, 
@@ -49,8 +50,8 @@ export default function KitchenView() {
   const [manualCart, setManualCart] = useState([]);
   const [itemSearch, setItemSearch] = useState('');
 
-  // Alarm sound control
-  const { isPlaying, playAlarm, stopAlarm } = useAudioAlarm();
+  // Audio Alarm hook
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -59,10 +60,10 @@ export default function KitchenView() {
     }, 4000);
   };
 
-  // Fast notification listener
-  useFastNotify(currentUserShopId, 'kitchen', () => {
-    playAlarm();
-    showToast("New order received in kitchen!", "info");
+  // Fast Realtime notification listener with role-tailored alarm
+  useFastNotify(currentUserShopId, 'kitchen', (alertData) => {
+    playRoleAlarm('kitchen', alertData, true);
+    showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} received in kitchen!`, "info");
   });
 
   // Load active orders (new & preparing) from Supabase Realtime
@@ -203,6 +204,7 @@ export default function KitchenView() {
   };
 
   const handleAcceptOrder = async (orderId) => {
+    stopAlarm();
     try {
       await updateCloudOrderStatus(orderId, 'preparing');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'preparing' } : o));
@@ -214,6 +216,7 @@ export default function KitchenView() {
   };
 
   const handleOrderReady = async (orderId, orderData) => {
+    stopAlarm();
     try {
       await updateCloudOrderStatus(orderId, 'ready_for_pickup');
       setOrders(prev => prev.filter(o => o.id !== orderId));
@@ -268,6 +271,13 @@ export default function KitchenView() {
 
   return (
     <div className="space-y-6 text-white pb-20">
+      {/* ACTIVE TACTILE ALARM BANNER (DYNAMIC ISLAND STYLE) */}
+      <ActiveAlarmBanner 
+        isPlaying={isPlaying} 
+        activeAlert={activeAlert} 
+        onSilence={stopAlarm} 
+      />
+
       {/* TOAST NOTIFICATION */}
       {toast && (
         <DynamicToast 
@@ -306,28 +316,6 @@ export default function KitchenView() {
           <span>Create Manual Order</span>
         </button>
       </div>
-
-      {/* ALARM STOP GLOWING BANNER */}
-      {isPlaying && (
-        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white font-black p-4 sm:p-5 rounded-[28px] shadow-[0_0_35px_rgba(239,68,68,0.5)] flex flex-col sm:flex-row items-center justify-between gap-3 animate-pulse">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center animate-bounce">
-              <Volume2 size={20} className="text-white" />
-            </div>
-            <div>
-              <p className="text-sm sm:text-base font-black uppercase tracking-wider">New Order Received!</p>
-              <p className="text-xs text-white/80 font-semibold">Incoming ticket awaiting chef confirmation</p>
-            </div>
-          </div>
-          <button 
-            onClick={stopAlarm}
-            className="bg-white text-red-600 hover:bg-zinc-100 font-black text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg transition-all cursor-pointer apple-tap-target flex items-center gap-2 flex-shrink-0"
-          >
-            <VolumeX size={16} strokeWidth={2.5} />
-            <span>Silence Alarm</span>
-          </button>
-        </div>
-      )}
 
       {/* ORDERS GRID */}
       {orders.length === 0 ? (

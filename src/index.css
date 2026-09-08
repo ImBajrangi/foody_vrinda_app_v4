@@ -1631,9 +1631,95 @@
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out both;
+/* Leaflet Luxury Map Badges & Tooltip Overrides */
+.leaflet-tooltip {
+  background: #181617 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 9999px !important;
+  padding: 4px 10px !important;
+  font-family: 'Outfit', -apple-system, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  white-space: nowrap !important;
 }
-.animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+.leaflet-tooltip-top:before {
+  border-top-color: #181617 !important;
 }
+.leaflet-tooltip-bottom:before {
+  border-bottom-color: #181617 !important;
+}
+.leaflet-tooltip-left:before {
+  border-left-color: #181617 !important;
+}
+.leaflet-tooltip-right:before {
+  border-right-color: #181617 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1E1B1C !important;
+  color: #FFFFFF !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6) !important;
+}
+
+.leaflet-popup-tip {
+  background: #1E1B1C !important;
+}
+
+/* Specular Intelligence Text Shimmer (Apple Dynamic Island standard) */
+@keyframes specularTextShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.specular-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(224, 255, 51, 1) 50%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: specularTextShimmer 2.8s ease-in-out infinite;
+}
+
+body.sheet-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Animated Flowing Laser Route (Vrinda Tours / Uber moving dots standard) */
+@keyframes flowRouteDash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -28px;
+  }
+}
+
+path.animated-delivery-route,
+.leaflet-pane path.animated-delivery-route,
+.leaflet-overlay-pane svg path.animated-delivery-route,
+.leaflet-interactive.animated-delivery-route {
+  stroke: #E0FF33 !important;
+  stroke-dasharray: 6px 10px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  animation: flowRouteDash 0.85s linear infinite !important;
+  filter: drop-shadow(0 0 3px rgba(224, 255, 51, 0.6)) !important;
+}
+
+
+
+

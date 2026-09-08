@@ -34,6 +34,7 @@ import {
   Tag as TagIcon
 } from 'lucide-react';
 import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
+import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
 import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
@@ -1782,6 +1783,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             setReviewOrderTarget(order);
             setIsReviewModalOpen(true);
           }}
+        />
+      )}
+
+      {/* Floating Dynamic Island Live Order Activity Capsule (Apple Dynamic Island / Vrinda Tours Standard) */}
+      {!isTrackingModalOpen && trackingOrder && (
+        <ActiveOrderCapsule
+          order={trackingOrder}
+          allShops={allShops}
+          hasBottomBar={cart.length > 0}
+          onClick={() => setIsTrackingModalOpen(true)}
         />
       )}
 

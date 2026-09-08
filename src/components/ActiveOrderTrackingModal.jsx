@@ -1,33 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
-import { 
-  ArrowLeft, 
-  Phone, 
-  MessageCircle, 
-  Clock, 
-  ChevronDown, 
-  ChevronUp, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Phone,
+  MessageCircle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
   RotateCcw,
   Sparkles,
   Star,
-  AlarmClock,
   ShieldCheck,
   CheckCircle2,
-  Navigation,
   Bike,
   Utensils,
   PackageCheck,
-  Check
+  Check,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { subscribeSingleCloudOrder } from '../supabase';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 
 export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeGroupRef = useRef(null);
+
   const [showItems, setShowItems] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Live order state with automatic realtime WebSocket sync
   const [liveOrder, setLiveOrder] = useState(order);
@@ -44,8 +47,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         setLiveOrder(prev => ({ ...prev, ...updated }));
         if (onToast && updated.status && updated.status !== liveOrder.status) {
           onToast(
-            `Status: ${updated.status.replace(/_/g, ' ').toUpperCase()}`, 
-            'info', 
+            `Status: ${updated.status.replace(/_/g, ' ').toUpperCase()}`,
+            'info',
             'Realtime Dispatch Update'
           );
         }
@@ -67,16 +70,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     ? (allShops.find(s => s.id === (currentOrder?.shopId || currentOrder?.shop_id)) || allShops[0])
     : { name: 'Foody Vrinda Kitchen', coordinates: { lat: 27.5706, lng: 77.6593 } };
 
-  const handleAnimatedClose = () => {
+  const handleAnimatedClose = useCallback(() => {
     if (closing) return;
     setClosing(true);
     setTimeout(() => {
       setClosing(false);
       onClose();
-    }, 220);
-  };
+    }, 200);
+  }, [closing, onClose]);
 
-  // Ensure healthy visual separation between shop and customer
+  // Coordinates calculation
   const shopLat = parseFloat(shop?.coordinates?.lat || shop?.lat) || 27.5706;
   const shopLng = parseFloat(shop?.coordinates?.lng || shop?.lng) || 77.6593;
 
@@ -94,7 +97,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
   const status = currentOrder?.status || 'new';
 
-  // Step stage index (0: placed/new, 1: preparing, 2: ready/dispatched, 3: completed)
   const getStageIndex = () => {
     switch (status) {
       case 'new': return 0;
@@ -108,7 +110,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
   const currentStage = getStageIndex();
 
-  // Initialize Carto Leaflet Map with Uber & Vrinda Tours Navigation Standard
+  // Initialize Carto Leaflet Map
   useEffect(() => {
     if (!order || !mapContainerRef.current) return;
 
@@ -123,7 +125,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       attributionControl: false
     });
 
-    // Clean Light Basemap matching Vrinda Tours standard
     const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
     const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
     L.tileLayer(
@@ -138,105 +139,133 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     const group = L.featureGroup();
 
-    // 1. Destination Drop-Off Target Glow Ring (Uber Style)
+    // 1. Destination Target Radius Glow
     const destTargetGlow = L.circleMarker([destLat, destLng], {
-      radius: 18,
-      color: '#18181A',
+      radius: 15,
+      color: '#181617',
       fillColor: '#E0FF33',
-      fillOpacity: 0.25,
-      weight: 2,
-      dashArray: '3, 3'
+      fillOpacity: 0.12,
+      weight: 1.5,
+      dashArray: '4, 4'
     });
     group.addLayer(destTargetGlow);
 
-    // 2. Origin Store Pin: White Teardrop Location Marker
+    // 2. Origin Kitchen Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
+    const shortShopName = (shop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const originIcon = L.divIcon({
-      className: 'carto-store-pin',
+      className: 'custom-kitchen-pin',
       html: `
-        <div style="
-          width: 34px;
-          height: 34px;
-          background: #FFFFFF;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-          border: 2px solid #0F172A;
-        ">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
           <div style="
-            width: 12px;
-            height: 12px;
-            background: #E0FF33;
+            width: 30px;
+            height: 30px;
+            background: #181617;
+            border: 2.5px solid #E0FF33;
             border-radius: 50%;
-            border: 2px solid #0F172A;
-            transform: rotate(45deg);
-          "></div>
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            cursor: pointer;
+          ">
+            <span style="font-size: 13px; line-height: 1;">🍲</span>
+          </div>
+          <div style="width: 2px; height: 6px; background: #181617;"></div>
         </div>
       `,
-      iconSize: [34, 34],
-      iconAnchor: [17, 34]
+      iconSize: [32, 38],
+      iconAnchor: [16, 38]
     });
-    const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 100 });
-    storeMarker.bindTooltip(shop?.name || 'Kitchen Store', { permanent: true, direction: 'bottom', offset: [0, 6] });
+    const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 200 });
+    storeMarker.bindTooltip(`🍲 ${shortShopName}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    storeMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      storeMarker.toggleTooltip();
+    });
     group.addLayer(storeMarker);
 
-    // 3. Destination Pin: Circular House Pin
+    // 3. Destination Pin (Clean Iconic Home Token - Zero Permanent Overlay Collisions)
     const destIcon = L.divIcon({
-      className: 'carto-home-pin',
+      className: 'custom-home-pin',
       html: `
-        <div style="
-          width: 42px;
-          height: 42px;
-          background: #FFFFFF;
-          border: 2.5px solid #0F172A;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-          font-size: 20px;
-        ">🏡</div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
+          <div style="
+            width: 30px;
+            height: 30px;
+            background: #FFFFFF;
+            border: 2.5px solid #181617;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            cursor: pointer;
+          ">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div style="width: 2px; height: 6px; background: #181617;"></div>
+        </div>
       `,
-      iconSize: [42, 42],
-      iconAnchor: [21, 21]
+      iconSize: [32, 38],
+      iconAnchor: [16, 38]
     });
-    const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 100 });
-    destMarker.bindTooltip('Your Sacred Delivery', { permanent: false, direction: 'top' });
+    const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 200 });
+    destMarker.bindTooltip('🏡 Drop-off (You)', { permanent: false, direction: 'top', offset: [0, -32] });
+    destMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      destMarker.toggleTooltip();
+    });
     group.addLayer(destMarker);
 
-    // 4. Intermediate Live Delivery Rider Pin (Scooter Illustration Badge)
+    // 4. Live Rider Pin (Modern Navigational Vehicle Puck)
     const riderIcon = L.divIcon({
-      className: 'carto-rider-pin',
+      className: 'custom-rider-pin',
       html: `
-        <div style="
-          width: 48px;
-          height: 48px;
-          background: #FFFFFF;
-          border: 2.5px solid #E0FF33;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 0 20px rgba(224, 255, 51, 0.8), 0 8px 24px rgba(0,0,0,0.25);
-          font-size: 24px;
-        ">🛵</div>
+        <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <div style="
+            width: 34px;
+            height: 34px;
+            background: #181617;
+            border: 2px solid #E0FF33;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
+            cursor: pointer;
+          ">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18.5" cy="17.5" r="2.5"></circle>
+              <circle cx="5.5" cy="17.5" r="2.5"></circle>
+              <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
+              <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
+              <path d="M9 18h6"></path>
+            </svg>
+          </div>
+        </div>
       `,
-      iconSize: [48, 48],
-      iconAnchor: [24, 24]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
 
-    const initialRiderPos = status === 'completed' 
+    const initialRiderPos = status === 'completed'
       ? [destLat, destLng]
       : status === 'out_for_delivery'
         ? [midLat, midLng]
         : [shopLat + (destLat - shopLat) * 0.45, shopLng + (destLng - shopLng) * 0.45];
 
-    const riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 300 });
+    const riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
+    riderMarker.bindTooltip(`🛵 ${riderName}`, { permanent: false, direction: 'top', offset: [0, -20] });
+    riderMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      riderMarker.toggleTooltip();
+    });
     group.addLayer(riderMarker);
 
-    // 5. Professional Multi-Layer Uber Route:
+    // 5. Route lines (Animated Flowing Moving Laser Dots)
     let currentRouteCoords = [
       [shopLat, shopLng],
       [midLat, midLng],
@@ -245,16 +274,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     const roadCasing = L.polyline(currentRouteCoords, {
       color: '#FFFFFF',
-      weight: 8,
-      opacity: 0.9,
+      weight: 6,
+      opacity: 0.95,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(roadCasing);
 
     const baseSolidLine = L.polyline(currentRouteCoords, {
-      color: '#1E293B',
-      weight: 5,
+      color: '#0F172A',
+      weight: 4,
       opacity: 0.95,
       lineCap: 'round',
       lineJoin: 'round'
@@ -263,8 +292,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     const dashedActiveLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
-      weight: 2.5,
-      dashArray: '8, 8',
+      weight: 2.8,
+      dashArray: '6, 8',
+      className: 'animated-delivery-route',
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
@@ -273,16 +303,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     let animInterval = null;
 
-    // Fetch real road navigation geometry from OSRM
+    // Fetch OSRM route
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
         if (data?.routes?.[0]?.geometry?.coordinates) {
           const routeObj = data.routes[0];
           const rawLatLngs = routeObj.geometry.coordinates.map(c => [c[1], c[0]]);
-          
+
           if (rawLatLngs.length > 1) {
-            // Real dynamic metrics from OSRM
             const distM = routeObj.distance;
             const durS = routeObj.duration;
             setRealDistance(distM < 1000 ? `${Math.round(distM)}m` : `${(distM / 1000).toFixed(1)}km`);
@@ -291,7 +320,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               setRoadSummary(routeObj.legs[0].summary);
             }
 
-            // Guarantee seamless endpoints: connect explicitly to [shopLat, shopLng] and [destLat, destLng]
             const latLngs = [
               [shopLat, shopLng],
               ...rawLatLngs,
@@ -321,24 +349,28 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
             if (mapInstanceRef.current && routeGroupRef.current) {
               mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
-                paddingTopLeft: [70, 40],
-                paddingBottomRight: [40, 240],
+                paddingTopLeft: [50, 30],
+                paddingBottomRight: [30, isExpanded ? 240 : 100],
                 maxZoom: 16
               });
             }
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
+
+    // Click on map collapses the bottom sheet to peek mode
+    map.on('click', () => {
+      setIsExpanded(false);
+    });
 
     group.addTo(map);
     routeGroupRef.current = group;
     mapInstanceRef.current = map;
 
-    // Fit route bounds nicely with bottom padding
     map.fitBounds(group.getBounds(), {
-      paddingTopLeft: [70, 40],
-      paddingBottomRight: [40, 240],
+      paddingTopLeft: [50, 30],
+      paddingBottomRight: [30, isExpanded ? 240 : 100],
       maxZoom: 16
     });
 
@@ -351,20 +383,57 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     };
   }, [order?.id, shopLat, shopLng, destLat, destLng, status]);
 
+  // Adjust map bounds when toggling peek / expanded
+  useEffect(() => {
+    if (mapInstanceRef.current && routeGroupRef.current) {
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+        mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
+          paddingTopLeft: [50, 30],
+          paddingBottomRight: [30, isExpanded ? 220 : 90],
+          maxZoom: 16,
+          animate: true
+        });
+      }, 200);
+    }
+  }, [isExpanded]);
+
   const handleRecenter = () => {
     if (mapInstanceRef.current && routeGroupRef.current) {
       mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
-        paddingTopLeft: [70, 40],
-        paddingBottomRight: [40, 240],
+        paddingTopLeft: [50, 30],
+        paddingBottomRight: [30, isExpanded ? 220 : 90],
         maxZoom: 16,
         animate: true
       });
     }
   };
 
+  // 120fps GPU synchronized drag-to-dismiss gesture hook (Vrinda Tours Standard)
+  const { 
+    dragY: modalDragY, 
+    isDragging: isModalDragging, 
+    sheetStyle: modalSheetStyle, 
+    handleProps: modalHandleProps, 
+    triggerClose: triggerModalClose 
+  } = useBottomSheetDrag(handleAnimatedClose, 65);
+
+  // Bottom drawer gesture hook for smooth collapse to peek mode
+  const {
+    dragY: drawerDragY,
+    isDragging: isDrawerDragging,
+    sheetStyle: drawerSheetStyle,
+    handleProps: drawerHandleProps
+  } = useBottomSheetDrag(() => {
+    if (isExpanded) {
+      setIsExpanded(false);
+    } else {
+      handleAnimatedClose();
+    }
+  }, 45);
+
   const isStep4 = status === 'completed';
 
-  // Dynamic ETA calculation based on real distance/duration + kitchen prep time
   const getDynamicEstimatedTime = () => {
     const basePrep = (status === 'new' || status === 'preparing') ? 12 : 2;
     const travel = realDurationMins || 8;
@@ -382,7 +451,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     return `${minTime}–${maxTime} Min`;
   };
 
-  // Dynamic Rider & Shop Context
   const isOutForDelivery = status === 'out_for_delivery';
   const isDelivered = status === 'completed';
 
@@ -391,7 +459,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const riderRating = parseFloat(currentOrder?.rider_rating || shop?.rating || 4.9).toFixed(1);
   const riderPhoto = currentOrder?.rider_avatar || currentOrder?.rider_photo || shop?.managerPhoto || shop?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
 
-  // Dynamic Address Label (Detect Home, Office, Hotel, Ashram, or Street)
   const customerAddress = currentOrder?.customerAddress || currentOrder?.delivery_address || currentOrder?.deliveryAddress || 'Vrindavan Dham';
   const getAddressLabel = () => {
     const addr = customerAddress.toLowerCase();
@@ -402,15 +469,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     return 'Destination';
   };
 
-  // Dynamic Status Milestone Labels
   const getActiveMilestone = () => {
     switch (status) {
       case 'new':
         return { active: 'Order Placed & Verified', past: 'Awaiting Kitchen Preparation', icon: PackageCheck };
       case 'preparing':
-        return { active: 'Bhog Cooking in Pure Desi Ghee', past: 'Order Confirmed by Kitchen', icon: Utensils };
+        return { active: 'Cooking in Pure Desi Ghee', past: 'Order Confirmed by Kitchen', icon: Utensils };
       case 'ready_for_pickup':
-        return { active: 'Packed & Awaiting Sarathi Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
+        return { active: 'Packed & Awaiting Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
       case 'out_for_delivery':
         return { active: `On its way with ${riderName}`, past: 'Dispatched from Sacred Kitchen', icon: Bike };
       case 'completed':
@@ -423,250 +489,334 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const milestones = getActiveMilestone();
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}>
-      
-      {/* Luxury Obsidian Modal Container */}
-      <div className={`w-full max-w-[440px] bg-[#18181A] text-white rounded-t-[36px] sm:rounded-[36px] shadow-[0_25px_100px_rgba(0,0,0,0.95)] border border-white/10 overflow-hidden flex flex-col h-[94vh] sm:h-auto sm:max-h-[92vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}>
-        
-        {/* Top Leaflet Map Section */}
-        <div className="relative flex-1 bg-[#edf2f7] min-h-[280px] sm:min-h-[320px] overflow-hidden">
-          <div ref={mapContainerRef} className="w-full h-full min-h-[280px] sm:min-h-[320px] z-0" />
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          if (isExpanded) {
+            setIsExpanded(false);
+          } else {
+            handleAnimatedClose();
+          }
+        }
+      }}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
+    >
 
-          {/* Floating Back Button (Top Left) */}
+      {/* Luxury Obsidian Modal Container with 120fps Gesture Support */}
+      <div 
+        style={modalSheetStyle}
+        className={`w-full max-w-[440px] bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
+      >
+
+        {/* Top Header Grab Bar (Drag down anywhere on top to shrink to floating capsule) */}
+        <div 
+          {...modalHandleProps}
+          className="absolute top-0 inset-x-0 h-9 z-[600] flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto select-none"
+          title="Drag down to shrink to floating capsule"
+        >
+          <div className="w-12 h-1.5 bg-white/40 hover:bg-white/70 rounded-full shadow-sm transition-colors" />
+        </div>
+
+        {/* Top Leaflet Map Section - Outer Click Collapses to Peek Mode */}
+        <div
+          onClick={() => {
+            if (isExpanded) setIsExpanded(false);
+          }}
+          className="relative flex-1 bg-[#edf2f7] overflow-hidden cursor-pointer pt-3"
+        >
+          <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
+
+          {/* Floating Back / Minimize Button (Top Left) */}
           <div className="absolute top-4 left-4 z-[500] flex items-center gap-2">
             <button
-              onClick={handleAnimatedClose}
-              className="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-lg backdrop-blur-md flex items-center justify-center border border-zinc-200/80 active:scale-95 transition-all cursor-pointer"
-              aria-label="Back"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAnimatedClose();
+              }}
+              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
+              title="Shrink to Floating Dynamic Island Capsule"
+              aria-label="Minimize"
             >
-              <ArrowLeft className="w-4.5 h-4.5 stroke-[2.4]" />
+              <ArrowLeft className="w-4.5 h-4.5 stroke-[2.2]" />
             </button>
           </div>
 
-          {/* Dynamic Floating Live GPS Pill (Top Center) */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] pointer-events-none">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-white/15 text-white shadow-xl">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E0FF33] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E0FF33]"></span>
-              </span>
-              <span className="text-[11px] font-black uppercase tracking-wider font-['Outfit'] text-[#E0FF33]">
-                {status === 'out_for_delivery' ? 'Live Sarathi GPS' : 'Kitchen Dispatch Live'}
-              </span>
-            </div>
-          </div>
-
-          {/* Floating Recenter (Top Right) */}
+          {/* Floating Controls (Top Right): Recenter & Shrink Capsule Button */}
           <div className="absolute top-4 right-4 z-[500] flex items-center gap-2">
             <button
-              onClick={handleRecenter}
-              className="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-zinc-900 shadow-lg backdrop-blur-md flex items-center justify-center border border-zinc-200/80 active:scale-95 transition-all cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRecenter();
+              }}
+              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
               title="Re-center route"
             >
               <RotateCcw className="w-4 h-4 stroke-[2.2]" />
             </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAnimatedClose();
+              }}
+              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-[#E0FF33] backdrop-blur-md flex items-center justify-center border border-[#E0FF33]/30 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
+              title="Minimize to Floating Capsule"
+            >
+              <Minimize2 className="w-4 h-4 stroke-[2.2]" />
+            </button>
           </div>
         </div>
 
-        {/* Bottom Curved Obsidian Card (100% Dynamic Realtime HUD) */}
-        <div className="bg-[#18181A] rounded-t-[32px] px-4 pt-3.5 pb-5 -mt-5 relative z-30 shadow-[0_-20px_50px_rgba(0,0,0,0.6)] border-t border-white/5 space-y-3.5 overflow-y-auto max-h-[58vh] no-scrollbar">
-          
-          {/* Subtle Mobile Drag Indicator Pill */}
-          <div className="w-10 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-1" />
+        {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
+        <div
+          style={{
+            transform: isDrawerDragging ? `translateY(${Math.max(0, drawerDragY)}px)` : undefined,
+            transition: isDrawerDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'max-h-[92px]'
+            } no-scrollbar`}
+        >
 
-          {/* 4-Step Animated Milestone Progress Bar */}
-          <div className="px-1 space-y-1.5">
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { label: 'Placed', icon: Check },
-                { label: 'Cooking', icon: Utensils },
-                { label: 'On Way', icon: Bike },
-                { label: 'Delivered', icon: CheckCircle2 }
-              ].map((st, idx) => {
-                const isPassed = currentStage >= idx;
-                const isCurrent = currentStage === idx;
-                return (
-                  <div key={idx} className="space-y-1">
-                    <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                      isPassed ? 'bg-[#E0FF33] shadow-[0_0_8px_rgba(224,255,51,0.5)]' : 'bg-white/10'
-                    }`} />
-                    <p className={`text-[10px] text-center font-bold truncate transition-colors ${
-                      isCurrent ? 'text-[#E0FF33]' : isPassed ? 'text-zinc-300' : 'text-zinc-600'
-                    }`}>
-                      {st.label}
-                    </p>
-                  </div>
-                );
-              })}
+          {/* Interactive Drag Handle Header */}
+          <div
+            {...drawerHandleProps}
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors"
+          >
+            <div className="w-10 h-1 bg-white/30 hover:bg-white/60 rounded-full mb-1 transition-colors" />
+            <div className="w-full flex items-center justify-between text-neutral-400 text-[11px] font-bold">
+              <span className="flex items-center gap-1.5 text-white">
+                <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-pulse" />
+                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-[#E0FF33]">
+                  {milestones.active}
+                </span>
+              </span>
+              <span className="flex items-center gap-1 text-neutral-400 hover:text-white transition-colors text-[10px]">
+                {isExpanded ? 'Drag down to minimize' : 'Tap to expand details'}
+                {isExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+              </span>
             </div>
           </div>
 
-          {/* 1. Dynamic Rider / Kitchen Header Bar */}
-          <div className="flex items-center justify-between px-1 pt-0.5 gap-2">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {/* Avatar with warm ring */}
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 bg-zinc-800 shrink-0 shadow-md relative">
-                <img 
-                  src={riderPhoto} 
-                  alt={riderName} 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border border-black flex items-center justify-center text-[9px] text-black font-black">
-                  ✓
+          {/* Collapsed Peek Mode Summary Bar */}
+          {!isExpanded && (
+            <div
+              onClick={() => setIsExpanded(true)}
+              className="px-4 pb-3 flex items-center justify-between cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-[#221F20] border border-white/10 flex items-center justify-center text-[#E0FF33]">
+                  <Clock size={15} />
                 </div>
-              </div>
-              
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="font-bold text-white text-sm sm:text-base font-['Outfit'] tracking-tight truncate">
-                    {riderName}
-                  </h4>
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
-                </div>
-                {/* Dynamic Star Rating */}
-                <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5">
-                  <div className="flex items-center gap-0.5">
-                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                    <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                  </div>
-                  <span className="text-zinc-400 text-[10px] font-bold ml-0.5">({riderRating})</span>
-                  <span className="text-zinc-600 text-[9px]">•</span>
-                  <span className="text-emerald-400 text-[10px] font-bold">100% Satvik Verified</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Action Icons: WhatsApp & Phone */}
-            <div className="flex items-center gap-2 shrink-0">
-              <a 
-                href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${currentOrder?.customerName || 'Customer'})`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                  if (onToast) onToast("Connecting WhatsApp...", "info", "Opening dispatch chat");
-                }}
-                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-sm"
-                title="Chat with dispatch"
-              >
-                <MessageCircle className="w-4.5 h-4.5 stroke-[1.8]" />
-              </a>
-
-              <a 
-                href={`tel:${riderPhone}`}
-                className="w-10 h-10 rounded-full border border-white/20 hover:border-white/50 text-white flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-sm"
-                title="Call dispatch"
-              >
-                <Phone className="w-4.5 h-4.5 stroke-[1.8]" />
-              </a>
-            </div>
-          </div>
-
-          {/* 2. Inner Curved Warm Ivory Card (Dynamic Real Data) */}
-          <div className="bg-[#FAF5EB] text-[#18181A] rounded-[24px] p-4 shadow-md space-y-3">
-            
-            {/* Top Row: Delivery Time & Real Distance */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#18181A] text-white flex items-center justify-center shrink-0 shadow-sm">
-                <Clock className="w-5 h-5 stroke-[2.2]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base font-black text-zinc-900 font-['Outfit'] leading-tight">
-                  Estimated Delivery: {getDynamicEstimatedTime()}
-                </h3>
-                <p className="text-xs text-zinc-600 font-medium mt-0.5 flex items-center gap-1.5">
-                  <span>Distance:</span>
-                  <span className="font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">{realDistance || 'Calculating...'}</span>
-                  {roadSummary && <span className="text-[10px] text-zinc-500 font-normal truncate">via {roadSummary}</span>}
-                </p>
-              </div>
-            </div>
-
-            {/* Precision Connected Vertical Timeline Stepper */}
-            <div className="pl-4 ml-1 space-y-2 relative before:absolute before:left-[21px] before:top-2 before:bottom-2 before:w-[2px] before:border-l-2 before:border-dashed before:border-zinc-300">
-              <div className="flex items-center gap-3 relative z-10">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-[#FAF5EB] shrink-0 animate-pulse" />
-                <span className="text-xs font-bold text-zinc-900 leading-tight">{milestones.active}</span>
-              </div>
-              <div className="flex items-center gap-3 relative z-10">
-                <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 ring-4 ring-[#FAF5EB] shrink-0" />
-                <span className="text-xs font-medium text-zinc-500 leading-tight">{milestones.past}</span>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-zinc-200/80" />
-
-            {/* Bottom Row: Dynamic Destination Address & Dynamic Arrival Window */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-full bg-[#18181A] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <MapPin className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs sm:text-sm font-black text-zinc-900 font-['Outfit'] leading-tight">
-                    {getAddressLabel()}
-                  </h4>
-                  <p className="text-[11px] text-zinc-600 font-medium truncate mt-0.5" title={customerAddress}>
-                    {customerAddress}
+                <div>
+                  <p className="text-xs font-black text-white font-['Outfit']">
+                    Estimated {getDynamicEstimatedTime()}
+                  </p>
+                  <p className="text-[10px] text-neutral-400 truncate">
+                    {realDistance || '2.2km'} • {getAddressLabel()} ({customerAddress})
                   </p>
                 </div>
               </div>
 
-              {/* Dynamic Arrived Time Box */}
-              <div className="text-right shrink-0">
-                <div className="flex items-center justify-end gap-1 text-[10px] font-bold text-zinc-500">
-                  <AlarmClock className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Arrived Window</span>
-                </div>
-                <p className="text-xs sm:text-sm font-black text-zinc-900 font-['Outfit'] mt-0.5">
-                  {getDynamicArrivalWindow()}
-                </p>
-              </div>
+              <span className="bg-[#E0FF33]/15 text-[#E0FF33] text-[10px] font-black px-2.5 py-1 rounded-full border border-[#E0FF33]/20 shrink-0">
+                {getDynamicArrivalWindow()}
+              </span>
             </div>
+          )}
 
-          </div>
+          {/* Expanded Full Details */}
+          {isExpanded && (
+            <div className="px-4 pb-5 space-y-2.5">
 
-          {/* 3. Collapsible Order Items Details */}
-          <div className="bg-[#242021] rounded-2xl p-3 border border-white/5 text-xs">
-            <button 
-              onClick={() => setShowItems(!showItems)}
-              className="w-full flex items-center justify-between text-zinc-300 font-bold cursor-pointer"
-            >
-              <span>Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} Details ({currentOrder?.items?.length || 0} {(currentOrder?.items?.length || 0) === 1 ? 'item' : 'items'})</span>
-              {showItems ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showItems && (
-              <div className="mt-2.5 space-y-1.5 pt-2 border-t border-white/5 text-zinc-400">
-                {currentOrder?.items?.map((it, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-[11px]">
-                    <span className="text-white font-medium">{it.name} × {it.quantity}</span>
-                    <span className="font-bold text-[#E0FF33]">₹{it.price * it.quantity}</span>
+              {/* 1. Hero Dynamic Status & ETA Card */}
+              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3.5 relative overflow-hidden">
+                <div className="flex items-start justify-between gap-3 mb-2.5">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-[#E0FF33] font-['Outfit']">
+                      Estimated Delivery
+                    </p>
+                    <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit'] tracking-tight">
+                      {getDynamicEstimatedTime()}
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span>Distance: <strong className="text-white font-bold">{realDistance || '2.2km'}</strong></span>
+                      {roadSummary && <span className="text-[10px] text-neutral-500">• via {roadSummary}</span>}
+                    </p>
                   </div>
-                ))}
-                <div className="pt-2 border-t border-white/5 flex justify-between font-black text-white text-xs">
-                  <span>Total Paid</span>
-                  <span className="text-[#E0FF33]">₹{currentOrder?.totalAmount}</span>
+
+                  {/* Arrival Window Pill */}
+                  <div className="bg-[#E0FF33]/15 border border-[#E0FF33]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
+                    <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Arrival in</p>
+                    <p className="text-xs font-black text-[#E0FF33] font-['Outfit']">
+                      {getDynamicArrivalWindow()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 4-Step Animated Milestone Progress Stepper */}
+                <div className="pt-2 border-t border-white/5 space-y-1">
+                  <div className="grid grid-cols-4 gap-1">
+                    {[
+                      { label: 'Placed', icon: Check },
+                      { label: 'Cooking', icon: Utensils },
+                      { label: 'On Way', icon: Bike },
+                      { label: 'Delivered', icon: CheckCircle2 }
+                    ].map((st, idx) => {
+                      const isPassed = currentStage >= idx;
+                      const isCurrent = currentStage === idx;
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className={`h-1 rounded-full transition-all duration-300 ${isPassed ? 'bg-[#E0FF33]' : 'bg-white/10'
+                            }`} />
+                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-[#E0FF33] font-black' : isPassed ? 'text-neutral-300' : 'text-neutral-600'
+                            }`}>
+                            {st.label}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Delivered Status CTA: Rate & Review */}
-          {isStep4 && (
-            <button
-              onClick={() => {
-                if (onRateOrder) onRateOrder(currentOrder);
-                else onClose();
-              }}
-              className="w-full py-3.5 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit']"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Rate & Review This Prasad Order</span>
-            </button>
+              {/* 2. Delivery Sarathi Partner Card */}
+              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#E0FF33]/60 bg-[#141213] shrink-0 relative aspect-square">
+                    <img
+                      src={riderPhoto}
+                      alt={riderName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <h4 className="font-bold text-white text-xs sm:text-sm font-['Outfit'] tracking-tight truncate">
+                        {riderName}
+                      </h4>
+                      <ShieldCheck className="w-3 h-3 text-[#E0FF33] shrink-0" />
+                    </div>
+
+                    <div className="flex items-center gap-1 text-amber-400 text-[10px] mt-0.5">
+                      <div className="flex items-center gap-0.5">
+                        <Star className="w-2.5 h-2.5 fill-amber-400 stroke-amber-400" />
+                        <span className="text-white text-[10px] font-black ml-0.5">{riderRating}</span>
+                      </div>
+                      <span className="text-neutral-600 text-[9px]">•</span>
+                      <span className="text-emerald-400 text-[10px] font-medium truncate">
+                        {isOutForDelivery ? 'Sarathi Partner' : 'Sacred Kitchen Dispatch'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Action Buttons */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <a
+                    href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${currentOrder?.customerName || 'Customer'})`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      if (onToast) onToast("Connecting WhatsApp...", "info", "Opening dispatch chat");
+                    }}
+                    className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    title="WhatsApp dispatch"
+                  >
+                    <MessageCircle className="w-4 h-4 stroke-[2]" />
+                  </a>
+
+                  <a
+                    href={`tel:${riderPhone}`}
+                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    title="Call dispatch"
+                  >
+                    <Phone className="w-4 h-4 stroke-[2]" />
+                  </a>
+                </div>
+              </div>
+
+              {/* 3. Delivery Route Location Details */}
+              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3 space-y-2.5">
+                {/* Origin */}
+                <div className="flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-white/5 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <Utensils className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">From Kitchen</p>
+                    <p className="text-xs font-bold text-white truncate font-['Outfit']">{shop?.name || 'Foody Vrinda Sacred Kitchen'}</p>
+                    <p className="text-[10px] text-neutral-400 truncate">{shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-dashed border-white/5 ml-3 pl-3" />
+
+                {/* Drop-off Destination */}
+                <div className="flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">{getAddressLabel()} Drop-off</p>
+                      <span className="text-[9px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 px-1.5 py-0.2 rounded-md border border-[#E0FF33]/20">
+                        {realDistance || '2.2km'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 truncate" title={customerAddress}>
+                      {customerAddress}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Collapsible Order Items Details */}
+              <div className="bg-[#141213] rounded-[18px] p-3 border border-white/[0.06] text-xs">
+                <button
+                  onClick={() => setShowItems(!showItems)}
+                  className="w-full flex items-center justify-between text-neutral-300 hover:text-white font-bold cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}</span>
+                    <span className="text-[9px] font-black px-2 py-0.2 rounded-full bg-white/10 text-neutral-300">
+                      {currentOrder?.items?.length || 1} {(currentOrder?.items?.length || 1) === 1 ? 'item' : 'items'}
+                    </span>
+                  </div>
+                  {showItems ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showItems && (
+                  <div className="mt-2.5 space-y-1.5 pt-2 border-t border-white/5 text-neutral-400">
+                    {currentOrder?.items?.map((it, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[11px]">
+                        <span className="text-white font-medium">{it.name} × {it.quantity}</span>
+                        <span className="font-bold text-[#E0FF33]">₹{it.price * it.quantity}</span>
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t border-white/5 flex justify-between items-center font-black text-white text-xs">
+                      <span>Total Amount Paid</span>
+                      <span className="text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || '140'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Delivered Status CTA: Rate & Review */}
+              {isStep4 && (
+                <button
+                  onClick={() => {
+                    if (onRateOrder) onRateOrder(currentOrder);
+                    else onClose();
+                  }}
+                  className="w-full py-3 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Rate & Review This Prasad Order</span>
+                </button>
+              )}
+
+            </div>
           )}
 
         </div>
@@ -674,4 +824,3 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     </div>
   );
 }
-

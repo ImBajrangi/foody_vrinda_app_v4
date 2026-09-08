@@ -1,41 +1,97 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { subscribeCloudOrders } from '../supabase';
 
-export function useFastNotify(shopId, role, onAlert) {
+/**
+ * High-speed Realtime Staff Notification Hook
+ * Delivers instant auditory alarms & push alerts across Kitchen, Rider/Delivery, and Owner roles.
+ */
+export function useFastNotify(shopIds, role, onAlert) {
+  const lastAlertedOrdersRef = useRef(new Set());
+
   useEffect(() => {
-    if (!shopId || !role) return;
+    if (!shopIds || !role || !onAlert) return;
 
-    let unsubscribeSupabase = null;
+    const targetShops = Array.isArray(shopIds) ? shopIds : [shopIds].filter(Boolean);
+    if (targetShops.length === 0) return;
 
-    try {
-      unsubscribeSupabase = subscribeCloudOrders(shopId, (order, eventType) => {
-        if (!order) return;
+    const normalizedRole = (role || '').toLowerCase().trim();
+    const isKitchenStaff = ['kitchen', 'chef', 'bhojanalaya', 'cook'].includes(normalizedRole);
+    const isDeliveryStaff = ['delivery', 'transport', 'rider', 'sarathi', 'driver'].includes(normalizedRole);
+    const isManagement = ['owner', 'admin', 'manager', 'developer', 'staff'].includes(normalizedRole);
 
-        let shouldAlarm = false;
-        let alertTitle = "";
+    const unsubs = [];
 
-        if (eventType === 'INSERT' && order.status === 'new') {
-          if (role === 'kitchen' || role === 'owner') {
-            shouldAlarm = true;
-            alertTitle = "NEW ORDER!";
+    targetShops.forEach(sId => {
+      try {
+        const unsub = subscribeCloudOrders(sId, (order, eventType) => {
+          if (!order || !order.id) return;
+
+          const alertKey = `${order.id}-${order.status}`;
+          if (lastAlertedOrdersRef.current.has(alertKey)) {
+            return; // Deduplicate alert to prevent double ringing
           }
-        } else if (order.status === 'ready_for_pickup') {
-          if (role === 'delivery' || role === 'owner') {
-            shouldAlarm = true;
-            alertTitle = "ORDER READY FOR PICKUP!";
-          }
-        }
 
-        if (shouldAlarm && onAlert) {
-          onAlert({ order, orderId: order.id, title: alertTitle });
-        }
-      });
-    } catch (sbErr) {
-      console.warn("Supabase Realtime alert hook note:", sbErr.message);
-    }
+          let shouldAlarm = false;
+          let alertTitle = "";
+
+          if (order.status === 'new') {
+            if (isKitchenStaff || isManagement) {
+              shouldAlarm = true;
+              alertTitle = "NEW ORDER IN KITCHEN!";
+            }
+          } else if (order.status === 'ready_for_pickup') {
+            if (isDeliveryStaff || isManagement) {
+              shouldAlarm = true;
+              alertTitle = "ORDER READY FOR PICKUP!";
+            }
+          } else if (order.status === 'cancelled') {
+            if (isKitchenStaff || isDeliveryStaff || isManagement) {
+              shouldAlarm = true;
+              alertTitle = "ORDER CANCELLED!";
+            }
+          }
+
+          if (shouldAlarm) {
+            lastAlertedOrdersRef.current.add(alertKey);
+            // Prune set when exceeding threshold
+            if (lastAlertedOrdersRef.current.size > 120) {
+              lastAlertedOrdersRef.current.clear();
+            }
+
+            onAlert({ 
+              order, 
+              orderId: order.id, 
+              title: alertTitle, 
+              role: normalizedRole,
+              status: order.status
+            });
+
+            // Native Browser Notification for staff when tab is in background
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              try {
+                new Notification(alertTitle, {
+                  body: `Order #${(order.id || '').slice(-6).toUpperCase()} • ₹${order.total_amount || order.totalAmount || 0} (${order.customer_name || 'Customer'})`,
+                  icon: '/favicon.ico',
+                  tag: alertKey
+                });
+              } catch (e) {
+                // Ignore notification construct failure
+              }
+            }
+          }
+        });
+
+        if (unsub) unsubs.push(unsub);
+      } catch (err) {
+        console.warn("useFastNotify subscription note:", err.message);
+      }
+    });
 
     return () => {
-      if (unsubscribeSupabase) unsubscribeSupabase();
+      unsubs.forEach(fn => {
+        try { fn(); } catch (e) {}
+      });
     };
-  }, [shopId, role, onAlert]);
+  }, [shopIds, role, onAlert]);
 }
+

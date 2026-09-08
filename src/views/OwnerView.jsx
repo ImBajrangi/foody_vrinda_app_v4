@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   supabase, 
   getCloudMenus, 
@@ -12,6 +12,8 @@ import {
   resolveDishCutout
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
+import { useAudioAlarm } from '../hooks/useAudioAlarm';
+import { useFastNotify } from '../hooks/useFastNotify';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -60,6 +62,7 @@ import {
   Check
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
+import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import MapPicker from '../components/MapPicker';
 
 ChartJS.register(
@@ -86,6 +89,17 @@ export default function OwnerView() {
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
 
+  // Audio & Realtime Alert Hook for Owner Management
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
+
+  useFastNotify(currentUserShopId, 'owner', (alertData) => {
+    playRoleAlarm('owner', alertData, true);
+    setToast({
+      message: `${alertData.title} (#${alertData.orderId.slice(-6).toUpperCase()})`,
+      type: 'info'
+    });
+  });
+
   // Payments / Store Operational Settings
   const [paymentsConfig, setPaymentsConfig] = useState(() => {
     try {
@@ -110,6 +124,10 @@ export default function OwnerView() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [mapTargetCoords, setMapTargetCoords] = useState({ lat: 27.5706, lng: 77.6593 });
   const [coordinateCallback, setCoordinateCallback] = useState(null);
+
+  // Form Auto-Scroll & Focus Refs
+  const menuFormRef = useRef(null);
+  const dishNameInputRef = useRef(null);
 
   // Form State for Shop Profile
   const [shopForm, setShopForm] = useState({
@@ -444,6 +462,31 @@ export default function OwnerView() {
       nutrition: typeof item.nutrition === 'object' ? item.nutrition.kcal : (item.nutrition || ''),
       ingredients: item.ingredients || ''
     });
+
+    // Auto-scroll up to the edit form and highlight the input
+    setTimeout(() => {
+      menuFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      dishNameInputRef.current?.focus();
+    }, 50);
+
+    setToast({ message: `Editing "${item.name}" — modify in the form!`, type: "info" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMenuItem(null);
+    setMenuForm({ 
+      name: '', 
+      description: '', 
+      price: 0, 
+      category: 'Main', 
+      isSatvik: true, 
+      isDailySpecial: false, 
+      spicyLevel: 'Mild', 
+      imageUrl: '', 
+      nutrition: '', 
+      ingredients: '' 
+    });
+    setToast({ message: "Edit mode cancelled", type: "info" });
   };
 
   const handleSaveMenuForm = async (e) => {
@@ -1014,17 +1057,48 @@ export default function OwnerView() {
       {activeTab === 'menu' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Menu Item Form (Add / Edit) */}
-          <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 shadow-xl h-fit">
+          <div 
+            ref={menuFormRef}
+            className={`bg-[#282526] rounded-3xl p-5 sm:p-6 shadow-xl h-fit transition-all duration-300 ${
+              editingMenuItem 
+                ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30' 
+                : 'border border-white/5'
+            }`}
+          >
             <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
-              <h3 className="text-base font-black text-white font-['Outfit']">
-                {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-black text-white font-['Outfit']">
+                  {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
+                </h3>
+              </div>
               {editingMenuItem && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
-                  EDIT MODE
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider animate-pulse">
+                  EDITING LIVE
                 </span>
               )}
             </div>
+
+            {/* Prominent Active Edit Notice Banner */}
+            {editingMenuItem && (
+              <div className="mb-4 p-3.5 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
+                    <Edit2 size={15} strokeWidth={3} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-black tracking-wider text-[#E0FF33]">Now Editing Dish</p>
+                    <p className="text-xs font-bold text-white truncate">{editingMenuItem.name}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white text-[10px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer border border-white/10"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
 
             <form onSubmit={handleSaveMenuForm} className="space-y-4">
               {/* Dish Name Input */}
@@ -1033,12 +1107,17 @@ export default function OwnerView() {
                   Dish Name
                 </label>
                 <input 
+                  ref={dishNameInputRef}
                   type="text" 
                   value={menuForm.name} 
                   onChange={(e) => setMenuForm({...menuForm, name: e.target.value})} 
                   placeholder="e.g. Shahi Vrindavan Thali"
                   required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
+                  className={`w-full bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${
+                    editingMenuItem 
+                      ? 'border-[#E0FF33]/50 ring-2 ring-[#E0FF33]/20' 
+                      : 'border-white/10 focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10'
+                  }`}
                 />
               </div>
 
@@ -1287,28 +1366,15 @@ export default function OwnerView() {
               <div className="flex gap-2 pt-2">
                 <button 
                   type="submit" 
-                  className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-[0_8px_25px_rgba(224,255,51,0.25)] active:scale-[0.98] cursor-pointer font-['Outfit']"
+                  className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-[0_8px_25px_rgba(224,255,51,0.25)] active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
                 >
-                  {editingMenuItem ? 'Update Dish Catalog' : 'Publish Dish to Menu'}
+                  <CheckCircle2 size={16} />
+                  <span>{editingMenuItem ? 'Save & Update Dish' : 'Publish Dish to Menu'}</span>
                 </button>
                 {editingMenuItem && (
                   <button 
                     type="button" 
-                    onClick={() => {
-                      setEditingMenuItem(null);
-                      setMenuForm({ 
-                        name: '', 
-                        description: '', 
-                        price: 0, 
-                        category: 'Main', 
-                        isSatvik: true, 
-                        isDailySpecial: false, 
-                        spicyLevel: 'Mild', 
-                        imageUrl: '', 
-                        nutrition: '', 
-                        ingredients: '' 
-                      });
-                    }} 
+                    onClick={handleCancelEdit} 
                     className="py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/5 cursor-pointer"
                   >
                     Cancel
@@ -1319,86 +1385,209 @@ export default function OwnerView() {
           </div>
 
           {/* Menu Catalog Table & Showcase */}
-          <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-white/5">
               <div>
-                <h3 className="text-base font-black text-white font-['Outfit']">Dish Catalog ({menuItems.length})</h3>
+                <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">Dish Catalog ({menuItems.length})</h3>
                 <p className="text-xs text-neutral-400">All live dishes visible to customers</p>
               </div>
+              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                {menuItems.length} Dishes Live
+              </span>
             </div>
 
-            <div className="overflow-x-auto no-scrollbar">
+            {/* Mobile Card List (< sm screens) */}
+            <div className="sm:hidden space-y-3">
+              {menuItems.length === 0 ? (
+                <div className="py-8 text-center text-neutral-500 text-xs font-semibold">
+                  No dishes added yet. Use the form above to add your first dish.
+                </div>
+              ) : (
+                menuItems.map(item => {
+                  const isBeingEdited = editingMenuItem?.id === item.id;
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${
+                        isBeingEdited 
+                          ? 'bg-[#1E1B1C] border-2 border-[#E0FF33] shadow-[0_0_25px_rgba(224,255,51,0.25)] ring-2 ring-[#E0FF33]/20' 
+                          : 'bg-[#1E1B1C] border border-white/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 shrink-0 flex items-center justify-center p-1 relative">
+                          <img 
+                            src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
+                            alt={item.name} 
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                          {isBeingEdited && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center text-[9px] font-black">
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-1">
+                            <div className="min-w-0">
+                              <p className="font-bold text-white text-sm font-['Outfit'] truncate">{item.name}</p>
+                              {isBeingEdited && (
+                                <span className="inline-block text-[9px] font-black text-[#E0FF33] uppercase tracking-wider">
+                                  ✏️ Active in Form Above
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-black text-[#E0FF33] text-sm font-['Outfit'] shrink-0">₹{item.price}</span>
+                          </div>
+                          <p className="text-[11px] text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
+                          
+                          <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 whitespace-nowrap">
+                              {item.category}
+                            </span>
+                            {(item.isSatvik === true || item.isSatvik === undefined) && (
+                              <span className="inline-flex items-center bg-emerald-400/10 text-emerald-300 border border-emerald-400/20 text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap">
+                                Satvik
+                              </span>
+                            )}
+                            {item.isDailySpecial && (
+                              <span className="inline-flex items-center bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap">
+                                Special
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+                        <button 
+                          onClick={() => handleEditMenuItem(item)}
+                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                            isBeingEdited 
+                              ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] font-black shadow-md' 
+                              : 'bg-white/5 hover:bg-white/10 text-white border-white/5'
+                          }`}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
+                        </button>
+                        <button 
+                          onClick={() => setDeleteTargetId(item.id)}
+                          className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table (>= sm screens) */}
+            <div className="hidden sm:block overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5">
-                    <th className="pb-3">Dish</th>
-                    <th className="pb-3">Category</th>
-                    <th className="pb-3">Price</th>
-                    <th className="pb-3">Badges</th>
-                    <th className="pb-3 text-right">Actions</th>
+                    <th className="pb-3 pr-3 whitespace-nowrap">Dish</th>
+                    <th className="pb-3 px-3 whitespace-nowrap">Category</th>
+                    <th className="pb-3 px-3 whitespace-nowrap">Price</th>
+                    <th className="pb-3 px-3 whitespace-nowrap">Badges</th>
+                    <th className="pb-3 pl-3 text-right whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-neutral-200">
-                  {menuItems.map(item => (
-                    <tr key={item.id} className="hover:bg-white/5 transition-all group">
-                      <td className="py-3.5 pr-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-[#1E1B1C] border border-white/10 overflow-hidden shrink-0 flex items-center justify-center p-1">
-                            <img 
-                              src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
-                              alt={item.name} 
-                              className="w-full h-full object-contain"
-                              loading="lazy"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-bold text-white text-xs sm:text-sm font-['Outfit']">{item.name}</p>
-                            <p className="text-[10px] text-neutral-400 truncate max-w-xs">{item.description || 'No description provided'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 pr-3">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10">
-                          {item.category}
-                        </span>
-                      </td>
-                      <td className="py-3.5 pr-3 font-bold text-[#E0FF33] font-['Outfit']">
-                        ₹{item.price}
-                      </td>
-                      <td className="py-3.5 pr-3">
-                        <div className="flex flex-wrap gap-1">
-                          {(item.isSatvik === true || item.isSatvik === undefined) && (
-                            <span className="bg-emerald-400/10 text-emerald-300 border border-emerald-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full">
-                              Satvik
-                            </span>
-                          )}
-                          {item.isDailySpecial && (
-                            <span className="bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full">
-                              Special
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button 
-                            onClick={() => handleEditMenuItem(item)}
-                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all"
-                            title="Edit Dish"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => setDeleteTargetId(item.id)}
-                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
-                            title="Delete Dish"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                  {menuItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs font-semibold">
+                        No dishes added yet. Use the form to add dishes.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    menuItems.map(item => {
+                      const isBeingEdited = editingMenuItem?.id === item.id;
+                      return (
+                        <tr 
+                          key={item.id} 
+                          className={`transition-all group ${
+                            isBeingEdited 
+                              ? 'bg-[#E0FF33]/10 border-l-4 border-l-[#E0FF33]' 
+                              : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <td className="py-3.5 pr-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-11 h-11 rounded-2xl bg-[#1E1B1C] overflow-hidden shrink-0 flex items-center justify-center p-1 ${
+                                isBeingEdited ? 'border-2 border-[#E0FF33]' : 'border border-white/10'
+                              }`}>
+                                <img 
+                                  src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
+                                  alt={item.name} 
+                                  className="w-full h-full object-contain"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="min-w-0 max-w-[180px] lg:max-w-xs">
+                                <p className="font-bold text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
+                                <p className="text-[10px] text-neutral-400 truncate">{item.description || 'No description provided'}</p>
+                                {isBeingEdited && (
+                                  <span className="text-[9px] font-black text-[#E0FF33] uppercase">
+                                    ✏️ Editing
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 whitespace-nowrap">
+                              {item.category}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 font-black text-[#E0FF33] font-['Outfit'] whitespace-nowrap">
+                            ₹{item.price}
+                          </td>
+                          <td className="py-3.5 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                              {(item.isSatvik === true || item.isSatvik === undefined) && (
+                                <span className="inline-flex items-center bg-emerald-400/10 text-emerald-300 border border-emerald-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  Satvik
+                                </span>
+                              )}
+                              {item.isDailySpecial && (
+                                <span className="inline-flex items-center bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  Special
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3.5 pl-3 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button 
+                                onClick={() => handleEditMenuItem(item)}
+                                className={`p-2 rounded-xl transition-all cursor-pointer ${
+                                  isBeingEdited 
+                                    ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md font-bold' 
+                                    : 'bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white'
+                                }`}
+                                title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => setDeleteTargetId(item.id)}
+                                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                                title="Delete Dish"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1408,73 +1597,153 @@ export default function OwnerView() {
 
       {/* VIEW 4: CASH AUDIT */}
       {activeTab === 'audit' && (
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between pb-4 border-b border-white/5">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/5 gap-2">
             <div>
-              <h3 className="text-base font-black text-white font-['Outfit']">Cash on Delivery (COD) Audit Log</h3>
+              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">Cash on Delivery (COD) Audit Log</h3>
               <p className="text-xs text-neutral-400">Reconcile physical cash receipts collected by couriers</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                {orders.filter(o => o.paymentMethod === 'cash').length} COD Tickets
+              </span>
             </div>
           </div>
 
-          <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full text-left text-sm">
+          {/* Mobile Card Layout (< md screens) */}
+          <div className="md:hidden space-y-3">
+            {orders.filter(o => o.paymentMethod === 'cash').length === 0 ? (
+              <div className="py-8 text-center text-neutral-500 text-xs font-semibold">
+                No Cash on Delivery orders recorded.
+              </div>
+            ) : (
+              orders
+                .filter(o => o.paymentMethod === 'cash')
+                .map(order => {
+                  const date = order.createdAt?.toDate 
+                    ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) 
+                    : 'Recent';
+                  const isCollected = order.cashStatus === 'collected';
+                  return (
+                    <div key={order.id} className="bg-[#1E1B1C] border border-white/10 rounded-2xl p-4 space-y-3 shadow-md">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-black text-white text-sm font-['Outfit']">
+                            #{order.id.slice(-6).toUpperCase()}
+                          </p>
+                          <p className="text-[10px] text-neutral-400 mt-0.5">{date}</p>
+                        </div>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+                          isCollected 
+                            ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20' 
+                            : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                        }`}>
+                          {isCollected ? 'Collected' : 'Pending with Courier'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between py-2 border-y border-white/5 text-xs">
+                        <div>
+                          <p className="font-bold text-white">{order.customerName || 'Customer'}</p>
+                          <p className="text-[11px] text-neutral-400">{order.customerPhone || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-neutral-400 uppercase font-semibold">Amount</p>
+                          <p className="font-black text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-1">
+                        {!isCollected ? (
+                          <button 
+                            onClick={() => handleMarkCashCollected(order.id)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Confirm Cash Received</span>
+                          </button>
+                        ) : (
+                          <div className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                            <span>Cash Reconciled</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
+
+          {/* Desktop Table Layout (>= md screens) */}
+          <div className="hidden md:block overflow-x-auto no-scrollbar">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5">
-                  <th className="pb-3">Order Ticket</th>
-                  <th className="pb-3">Customer</th>
-                  <th className="pb-3">COD Amount</th>
-                  <th className="pb-3">Collection Status</th>
-                  <th className="pb-3 text-right">Reconcile Action</th>
+                  <th className="pb-3 whitespace-nowrap">Order Ticket</th>
+                  <th className="pb-3 whitespace-nowrap">Customer</th>
+                  <th className="pb-3 whitespace-nowrap">COD Amount</th>
+                  <th className="pb-3 whitespace-nowrap">Collection Status</th>
+                  <th className="pb-3 text-right whitespace-nowrap">Reconcile Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-neutral-200">
-                {orders
-                  .filter(o => o.paymentMethod === 'cash')
-                  .map(order => {
-                    const date = order.createdAt?.toDate 
-                      ? order.createdAt.toDate().toLocaleDateString('en-IN') 
-                      : 'Recent';
-                    const isCollected = order.cashStatus === 'collected';
-                    return (
-                      <tr key={order.id} className="hover:bg-white/5 transition-all">
-                        <td className="py-3.5 pr-3">
-                          <p className="font-bold text-white text-xs font-['Outfit']">#{order.id.slice(-6).toUpperCase()}</p>
-                          <p className="text-[10px] text-neutral-500">{date}</p>
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          <p className="font-semibold text-xs text-white">{order.customerName}</p>
-                          <p className="text-[10px] text-neutral-400">{order.customerPhone}</p>
-                        </td>
-                        <td className="py-3.5 pr-3 font-bold text-[#E0FF33] font-['Outfit']">
-                          ₹{order.totalAmount}
-                        </td>
-                        <td className="py-3.5 pr-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            isCollected 
-                              ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20' 
-                              : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
-                          }`}>
-                            {isCollected ? 'Collected' : 'Pending with Courier'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 text-right">
-                          {!isCollected ? (
-                            <button 
-                              onClick={() => handleMarkCashCollected(order.id)}
-                              className="px-3 py-1.5 rounded-xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-[10px] uppercase tracking-wider transition-all shadow-md active:scale-95"
-                            >
-                              Confirm Cash Received
-                            </button>
-                          ) : (
-                            <span className="text-[10px] text-neutral-500 font-bold inline-flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>Reconciled</span>
+                {orders.filter(o => o.paymentMethod === 'cash').length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs font-semibold">
+                      No Cash on Delivery orders recorded.
+                    </td>
+                  </tr>
+                ) : (
+                  orders
+                    .filter(o => o.paymentMethod === 'cash')
+                    .map(order => {
+                      const date = order.createdAt?.toDate 
+                        ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) 
+                        : 'Recent';
+                      const isCollected = order.cashStatus === 'collected';
+                      return (
+                        <tr key={order.id} className="hover:bg-white/5 transition-all">
+                          <td className="py-3.5 pr-4 whitespace-nowrap">
+                            <p className="font-bold text-white text-xs font-['Outfit']">#{order.id.slice(-6).toUpperCase()}</p>
+                            <p className="text-[10px] text-neutral-500">{date}</p>
+                          </td>
+                          <td className="py-3.5 pr-4 whitespace-nowrap">
+                            <p className="font-semibold text-xs text-white">{order.customerName || 'Customer'}</p>
+                            <p className="text-[10px] text-neutral-400">{order.customerPhone || 'N/A'}</p>
+                          </td>
+                          <td className="py-3.5 pr-4 font-black text-[#E0FF33] font-['Outfit'] text-sm whitespace-nowrap">
+                            ₹{order.totalAmount}
+                          </td>
+                          <td className="py-3.5 pr-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+                              isCollected 
+                                ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20' 
+                                : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                            }`}>
+                              {isCollected ? 'Collected' : 'Pending with Courier'}
                             </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                          <td className="py-3.5 text-right whitespace-nowrap">
+                            {!isCollected ? (
+                              <button 
+                                onClick={() => handleMarkCashCollected(order.id)}
+                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Confirm Cash Received</span>
+                              </button>
+                            ) : (
+                              <span className="text-xs text-emerald-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Reconciled</span>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                )}
               </tbody>
             </table>
           </div>
@@ -1523,6 +1792,18 @@ export default function OwnerView() {
           }}
         />
       )}
+
+      {/* Realtime Live Alarm HUD Banner */}
+      <ActiveAlarmBanner 
+        isPlaying={isPlaying} 
+        activeAlert={activeAlert} 
+        onSilence={stopAlarm} 
+        onActionClick={() => {
+          setActiveTab('analytics');
+          stopAlarm();
+        }} 
+      />
     </div>
   );
 }
+

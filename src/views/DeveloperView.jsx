@@ -30,6 +30,7 @@ import {
   Plus, 
   Minus, 
   ShieldAlert, 
+  ShieldCheck,
   Truck, 
   ChefHat,
   Sparkles
@@ -68,7 +69,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [isSimulating, setIsSimulating] = useState(false);
 
   // Alarm testing
-  const { isPlaying, playAlarm, stopAlarm } = useAudioAlarm();
+  const { isPlaying, playRoleAlarm, playAlarm, stopAlarm } = useAudioAlarm();
 
   // Load overall system statistics
   useEffect(() => {
@@ -647,29 +648,59 @@ export default function DeveloperView({ setCurrentTab }) {
 
         {/* Audio System Test Debug */}
         <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-4 shadow-xl">
-          <div className="flex items-center gap-2">
-            <Volume2 className="w-4 h-4 text-cyan-400" />
-            <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Audio Alert Ringer Test</h3>
-          </div>
-          <p className="text-xs text-neutral-400">Plays the kitchen live order wave chime and triggers web notifications test.</p>
-          
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <button 
-              onClick={handleTestAlarm}
-              className="flex-1 py-3 px-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg"
-            >
-              <Volume2 className="w-4 h-4" />
-              <span>Test Alert Chime Loop</span>
-            </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-cyan-400" />
+              <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Multi-Role Audio Synthesizer Test</h3>
+            </div>
             {isPlaying && (
               <button 
                 onClick={stopAlarm}
-                className="flex-1 py-3 px-4 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg"
+                className="px-4 py-1.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                <VolumeX className="w-4 h-4" />
-                <span>Stop Alert Sound</span>
+                <VolumeX className="w-3.5 h-3.5" />
+                <span>Silence Active Sound</span>
               </button>
             )}
+          </div>
+          <p className="text-xs text-neutral-400">Audition role-tailored Web Audio frequency profiles with zero latency and haptic mobile feedback.</p>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <button 
+              onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'ord-test-kitch' }, true)}
+              className="py-3 px-3 rounded-2xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+            >
+              <ChefHat className="w-4 h-4 text-amber-400" />
+              <span>Kitchen Buzzer</span>
+              <span className="text-[9px] text-amber-400/70">880/1174Hz Urgent Loop</span>
+            </button>
+
+            <button 
+              onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
+              className="py-3 px-3 rounded-2xl bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-300 border border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+            >
+              <Truck className="w-4 h-4 text-cyan-400" />
+              <span>Sarathi Chime</span>
+              <span className="text-[9px] text-cyan-400/70">3-Tone Ascending Ping</span>
+            </button>
+
+            <button 
+              onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
+              className="py-3 px-3 rounded-2xl bg-[#E0FF33]/20 hover:bg-[#E0FF33]/30 text-[#E0FF33] border border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#E0FF33]" />
+              <span>Admin Bell</span>
+              <span className="text-[9px] text-[#E0FF33]/70">Resonant Executive Ping</span>
+            </button>
+
+            <button 
+              onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
+              className="py-3 px-3 rounded-2xl bg-emerald-400/20 hover:bg-emerald-400/30 text-emerald-300 border border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>Prasad Blessing</span>
+              <span className="text-[9px] text-emerald-400/70">528Hz Solfeggio Chime</span>
+            </button>
           </div>
         </div>
 

@@ -40,6 +40,66 @@ export class HitSoochiService {
   static baseUrl = import.meta.env.VITE_HITSOOCHI_URL || 'http://localhost:8000';
 
   /**
+   * Curated Vedic search intents and popular cravings
+   */
+  static getCuratedSuggestions() {
+    return [
+      { title: '🍛 Royal Vedic Thali', keyword: 'thali' },
+      { title: '🍔 Satvik Burgers', keyword: 'burger' },
+      { title: '🍧 Kesariya Rabdi Kheer', keyword: 'kheer' },
+      { title: '🍕 Satvik Paneer Pizza', keyword: 'pizza' },
+      { title: '🙏 Govind Bhog Prasad', keyword: 'prasad' },
+      { title: '🧀 Paneer Makhani', keyword: 'paneer' },
+      { title: '🍚 Basmati Rice & Bhog', keyword: 'rice' }
+    ];
+  }
+
+  /**
+   * Rank menu items by query relevance and Vedic semantic ontology
+   */
+  static rankItems(items = [], query = '') {
+    if (!query || !items || items.length === 0) return items;
+    const clean = query.trim().toLowerCase();
+
+    // Check ontology keywords for semantic relevance boost
+    let boostKeywords = [];
+    for (const [key, val] of Object.entries(LOCAL_SATVIK_ONTOLOGY)) {
+      if (clean.includes(key) || val.boostKeywords.some(kw => clean.includes(kw))) {
+        boostKeywords = [...boostKeywords, ...val.boostKeywords, key];
+      }
+    }
+
+    return [...items].sort((a, b) => {
+      const aName = (a.name || '').toLowerCase();
+      const bName = (b.name || '').toLowerCase();
+      const aCat = (a.category || '').toLowerCase();
+      const bCat = (b.category || '').toLowerCase();
+      const aDesc = (a.description || '').toLowerCase();
+      const bDesc = (b.description || '').toLowerCase();
+
+      // Score A
+      let scoreA = 0;
+      if (aName === clean) scoreA += 100;
+      else if (aName.startsWith(clean)) scoreA += 50;
+      else if (aName.includes(clean)) scoreA += 30;
+      if (aCat.includes(clean)) scoreA += 20;
+      if (aDesc.includes(clean)) scoreA += 10;
+      if (boostKeywords.some(kw => aName.includes(kw) || aCat.includes(kw) || aDesc.includes(kw))) scoreA += 15;
+
+      // Score B
+      let scoreB = 0;
+      if (bName === clean) scoreB += 100;
+      else if (bName.startsWith(clean)) scoreB += 50;
+      else if (bName.includes(clean)) scoreB += 30;
+      if (bCat.includes(clean)) scoreB += 20;
+      if (bDesc.includes(clean)) scoreB += 10;
+      if (boostKeywords.some(kw => bName.includes(kw) || bCat.includes(kw) || bDesc.includes(kw))) scoreB += 15;
+
+      return scoreB - scoreA;
+    });
+  }
+
+  /**
    * Optimize query and extract domain intent
    */
   static async optimizeQuery(query) {

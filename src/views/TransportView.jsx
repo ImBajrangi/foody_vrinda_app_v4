@@ -5,6 +5,7 @@ import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
+import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import { 
   Truck, 
   Navigation, 
@@ -36,15 +37,15 @@ import {
 } from 'lucide-react';
 
 export default function TransportView() {
-  const { currentUserShopId, currentUserShopIds, allShops } = useAuth();
+  const { currentUserShopId, currentUserShopIds = [], allShops } = useAuth();
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
 
-  // Audio Alarm Hook
-  const { isPlaying, playAlarm, stopAlarm } = useAudioAlarm();
+  // Audio Alarm hook
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
 
   // Leaflet Map Refs
   const mapContainerRef = useRef(null);
@@ -58,29 +59,30 @@ export default function TransportView() {
     }, 4000);
   };
 
-  // Fast notification listener
-  useFastNotify(currentUserShopId, 'delivery', () => {
-    playAlarm();
-    showToast("New order ready for delivery pickup!", "info");
+  const targetShopIds = (currentUserShopIds && currentUserShopIds.length > 0)
+    ? currentUserShopIds 
+    : [currentUserShopId].filter(Boolean);
+
+  // Fast notification listener with role-tailored delivery chime
+  useFastNotify(targetShopIds, 'delivery', (alertData) => {
+    playRoleAlarm('delivery', alertData, true);
+    showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} ready for Sarathi Pickup!`, "info");
   });
 
-  // Load delivery orders (ready_for_pickup and out_for_delivery) from Supabase Realtime
+  // Load delivery orders (ready_for_pickup, ready, out_of_kitchen, out_for_delivery, in_transit) from Supabase Realtime
   useEffect(() => {
-    const targetShopIds = currentUserShopIds.length > 0 ? currentUserShopIds : [currentUserShopId].filter(Boolean);
-    if (targetShopIds.length === 0) return;
-
     // 1. Supabase Cloud Query
     async function fetchRiderOrders() {
       try {
         let queryBuilder = supabase
           .from('foody_orders')
           .select('*')
-          .in('status', ['ready_for_pickup', 'out_for_delivery'])
+          .in('status', ['ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit'])
           .order('created_at', { ascending: true });
 
         if (targetShopIds.length === 1) {
           queryBuilder = queryBuilder.eq('shop_id', targetShopIds[0]);
-        } else {
+        } else if (targetShopIds.length > 1) {
           queryBuilder = queryBuilder.in('shop_id', targetShopIds);
         }
 
@@ -109,7 +111,7 @@ export default function TransportView() {
                 const found = mapped.find(o => o.id === prev.id);
                 return found || mapped[0];
               }
-              const inTransit = mapped.find(o => o.status === 'out_for_delivery');
+              const inTransit = mapped.find(o => ['out_for_delivery', 'picked_up', 'in_transit'].includes(o.status));
               return inTransit || mapped[0];
             });
           }
@@ -120,8 +122,9 @@ export default function TransportView() {
     }
     fetchRiderOrders();
 
-    // 2. Realtime Postgres stream
-    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, () => {
+    // 2. Realtime Postgres stream (listen to shop or global 'all')
+    const subShopId = targetShopIds.length === 1 ? targetShopIds[0] : 'all';
+    const unsubscribeSupabase = subscribeCloudOrders(subShopId, () => {
       fetchRiderOrders();
     });
 
@@ -174,90 +177,138 @@ export default function TransportView() {
 
     const group = L.featureGroup();
 
-    // 1. Origin Kitchen Store Pin
+    // 1. Origin Kitchen Store Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
+    const shortShopName = (activeShop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const storeIcon = L.divIcon({
-      className: 'carto-store-pin',
+      className: 'custom-kitchen-pin',
       html: `
-        <div style="
-          width: 38px;
-          height: 38px;
-          background: #0f172a;
-          color: white;
-          border: 2px solid white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.35);
-          font-size: 16px;
-        ">🛒</div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
+          <div style="
+            width: 30px;
+            height: 30px;
+            background: #181617;
+            border: 2.5px solid #E0FF33;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            cursor: pointer;
+          ">
+            <span style="font-size: 13px; line-height: 1;">🍲</span>
+          </div>
+          <div style="width: 2px; height: 6px; background: #181617;"></div>
+        </div>
       `,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
+      iconSize: [32, 38],
+      iconAnchor: [16, 38]
     });
-    const storeMarker = L.marker([shopLat, shopLng], { icon: storeIcon });
-    storeMarker.bindTooltip(activeShop?.name || 'Kitchen Store', { permanent: false, direction: 'top' });
+    const storeMarker = L.marker([shopLat, shopLng], { icon: storeIcon, zIndexOffset: 200 });
+    storeMarker.bindTooltip(`🍲 ${shortShopName}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    storeMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      storeMarker.toggleTooltip();
+    });
     group.addLayer(storeMarker);
 
-    // 2. Destination Customer Home Pin
+    // 2. Destination Customer Home Pin (Clean Iconic Home Token - Zero Permanent Overlay Collisions)
     const homeIcon = L.divIcon({
-      className: 'carto-home-pin',
+      className: 'custom-home-pin',
       html: `
-        <div style="
-          width: 38px;
-          height: 38px;
-          background: #ffffff;
-          border: 2px solid #e2e8f0;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-          font-size: 17px;
-        ">🏠</div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
+          <div style="
+            width: 30px;
+            height: 30px;
+            background: #FFFFFF;
+            border: 2.5px solid #181617;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            cursor: pointer;
+          ">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div style="width: 2px; height: 6px; background: #181617;"></div>
+        </div>
       `,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
+      iconSize: [32, 38],
+      iconAnchor: [16, 38]
     });
-    const homeMarker = L.marker([destLat, destLng], { icon: homeIcon });
-    homeMarker.bindTooltip(activeOrder.customerName || 'Delivery Home', { permanent: false, direction: 'top' });
+    const homeMarker = L.marker([destLat, destLng], { icon: homeIcon, zIndexOffset: 200 });
+    homeMarker.bindTooltip(`🏡 ${activeOrder.customerName || 'Drop-off'}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    homeMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      homeMarker.toggleTooltip();
+    });
     group.addLayer(homeMarker);
 
-    // 3. Animated Live Scooter Rider Pin (Midpoint)
+    // 3. Animated Live Scooter Rider Pin (Modern Navigational Vehicle Puck)
     const riderIcon = L.divIcon({
-      className: 'carto-rider-pin',
+      className: 'custom-rider-pin',
       html: `
-        <div style="
-          width: 44px;
-          height: 44px;
-          background: #ffffff;
-          border: 2px solid #E0FF33;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-          font-size: 20px;
-          animation: bounce 1.5s infinite;
-        ">🛵</div>
+        <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <div style="
+            width: 34px;
+            height: 34px;
+            background: #181617;
+            border: 2px solid #E0FF33;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
+            cursor: pointer;
+          ">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18.5" cy="17.5" r="2.5"></circle>
+              <circle cx="5.5" cy="17.5" r="2.5"></circle>
+              <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
+              <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
+              <path d="M9 18h6"></path>
+            </svg>
+          </div>
+        </div>
       `,
-      iconSize: [44, 44],
-      iconAnchor: [22, 22]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
-    const riderMarker = L.marker([midLat, midLng], { icon: riderIcon });
-    riderMarker.bindTooltip('Sarathi Rider', { permanent: false, direction: 'top' });
+    const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
+    riderMarker.bindTooltip('🛵 Sarathi Rider', { permanent: false, direction: 'top', offset: [0, -20] });
+    riderMarker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e);
+      riderMarker.toggleTooltip();
+    });
     group.addLayer(riderMarker);
 
-    // 4. Navigation Path (OSRM Real Road Geometry)
+    // 4. Luxury Laser Polyline (Outer Casing + Animated Glowing Neon Route)
+    const routeCasing = L.polyline([
+      [shopLat, shopLng],
+      [destLat, destLng]
+    ], {
+      color: '#181617',
+      weight: 6,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(routeCasing);
+
     const routeLine = L.polyline([
       [shopLat, shopLng],
       [destLat, destLng]
     ], {
-      color: '#0f172a',
-      weight: 3.5,
+      color: '#E0FF33',
+      weight: 2.8,
       dashArray: '6, 8',
-      opacity: 0.9,
-      lineCap: 'round'
+      className: 'animated-delivery-route',
+      opacity: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
     });
     group.addLayer(routeLine);
 
@@ -267,6 +318,7 @@ export default function TransportView() {
         if (data?.routes?.[0]?.geometry?.coordinates) {
           const latLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
           if (latLngs.length > 1) {
+            routeCasing.setLatLngs(latLngs);
             routeLine.setLatLngs(latLngs);
           }
         }
@@ -293,6 +345,7 @@ export default function TransportView() {
   }, [viewMode, activeOrder?.id, activeShop?.id]);
 
   const handleStartDelivery = async (orderId, orderData) => {
+    stopAlarm();
     try {
       await updateCloudOrderStatus(orderId, 'out_for_delivery', {
         rider_name: 'Govind Das (Sarathi)',
@@ -331,6 +384,7 @@ export default function TransportView() {
   };
 
   const handleCompleteDelivery = async (orderId, orderData) => {
+    stopAlarm();
     try {
       const isCash = orderData?.paymentMethod === 'cash';
       await updateCloudOrderStatus(orderId, 'completed', {
@@ -341,13 +395,13 @@ export default function TransportView() {
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
-          message: "Your prasad has been delivered safely! Radhe Radhe.",
+          message: `Your order has been delivered with blessings!`,
           orderId
         });
       }
 
       setToast({
-        message: `Order #${orderId.slice(-6).toUpperCase()} Delivered Successfully!`,
+        message: `Order #${orderId.slice(-6).toUpperCase()} Completed & Delivered!`,
         type: 'success'
       });
     } catch (e) {
@@ -382,17 +436,27 @@ export default function TransportView() {
 
   return (
     <div className="space-y-4 pb-20 max-w-5xl mx-auto">
-      <DynamicToast toast={toast} onClose={() => setToast(null)} />
+      {/* Dynamic Tactile Alarm Banner (Apple Dynamic Island Style) */}
+      <ActiveAlarmBanner 
+        isPlaying={isPlaying} 
+        activeAlert={activeAlert} 
+        onSilence={stopAlarm} 
+        onActionClick={(alert) => {
+          const target = orders.find(o => o.id === alert.orderId) || alert.order;
+          if (target) {
+            setSelectedOrder(target);
+            setViewMode('map');
+          }
+        }}
+      />
 
-      {/* Alarm Banner */}
-      {isPlaying && (
-        <button 
-          onClick={stopAlarm}
-          className="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:opacity-95 text-white font-black py-3.5 px-6 rounded-2xl shadow-xl flex items-center justify-center gap-3 text-xs sm:text-sm tracking-wider uppercase transition-all"
-        >
-          <Volume2 className="w-5 h-5 animate-bounce" />
-          <span>ORDER READY FOR DISPATCH - CLICK TO SILENCE ALARM</span>
-        </button>
+      {/* Toast Notification */}
+      {toast && (
+        <DynamicToast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
       )}
 
       {/* Top Controls: Switcher between Map View and List View */}
@@ -450,157 +514,143 @@ export default function TransportView() {
               <div className="absolute top-4 inset-x-4 flex items-center justify-between z-[500] pointer-events-none">
                 <button 
                   onClick={() => setViewMode('list')}
-                  className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 active:scale-95 transition-all pointer-events-auto"
+                  className="w-10 h-10 rounded-full bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer pointer-events-auto"
                   title="View all dispatch orders"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
                 </button>
 
                 <div className="flex items-center gap-2 pointer-events-auto">
                   <button
                     onClick={handleRecenterMap}
-                    className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 active:scale-95 transition-all"
+                    className="w-10 h-10 rounded-full bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer"
                     title="Re-center route"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <RotateCcw className="w-4 h-4 stroke-[2.2]" />
                   </button>
-
-                  <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white shadow-lg bg-slate-900 flex items-center justify-center">
-                    <img 
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
-                      alt="Rider Avatar" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* BOTTOM CURVED SHEET CARD (Black Upper Header + White Inset Card) */}
-            <div className="bg-[#181617] rounded-t-[38px] p-4 pt-5 -mt-8 relative z-30 shadow-[0_-15px_40px_rgba(0,0,0,0.35)] flex flex-col gap-4">
+            {/* BOTTOM OBSIDIAN LUXURY SHEET (Cohesive Luxury Dark Standard) */}
+            <div className="bg-[#1E1B1C] rounded-t-[36px] p-4.5 pt-4 -mt-8 relative z-30 shadow-[0_-25px_60px_rgba(0,0,0,0.85)] border-t border-white/10 flex flex-col gap-3.5">
               
-              {/* Dark Upper Header Section */}
-              <div className="flex items-center justify-between px-2 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/20 border-2 border-amber-400 overflow-hidden shrink-0 shadow-md">
-                    <img 
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" 
-                      alt="Rider profile" 
-                      className="w-full h-full object-cover"
-                    />
+              {/* Mobile Drag Indicator */}
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-0.5" />
+
+              {/* Customer Profile & Quick Connect Bar */}
+              <div className="flex items-center justify-between px-1 text-white">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-12 h-12 rounded-full bg-[#282526] border-2 border-amber-400 overflow-hidden shrink-0 shadow-md aspect-square flex items-center justify-center">
+                    <span className="text-xl">👤</span>
                   </div>
-                  <div>
-                    <h4 className="font-black text-base tracking-tight font-['Outfit']">
-                      {activeOrder.customerName || 'Customer'}
-                    </h4>
-                    <div className="flex items-center gap-0.5 text-amber-400 text-xs mt-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-current" />
-                      ))}
-                      <span className="text-[10px] text-neutral-400 font-bold ml-1">4.9</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-base tracking-tight font-['Outfit'] text-white truncate">
+                        {activeOrder.customerName || 'Customer'}
+                      </h4>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-neutral-300 shrink-0">
+                        #{activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-white text-[11px] font-black ml-0.5">5.0</span>
+                      <span className="text-neutral-600 text-[10px]">•</span>
+                      <span className="text-neutral-400 text-[11px] font-medium truncate">
+                        {activeOrder.items?.length || 1} {(activeOrder.items?.length || 1) === 1 ? 'item' : 'items'}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   {activeOrder.customerPhone && (
                     <a 
                       href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
-                      target="_blank"
+                      target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-emerald-500/20 text-white hover:text-emerald-400 flex items-center justify-center transition-all active:scale-95"
+                      className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="WhatsApp Customer"
                     >
-                      <MessageCircle className="w-5 h-5" />
+                      <MessageCircle className="w-4.5 h-4.5 stroke-[2]" />
                     </a>
                   )}
                   {activeOrder.customerPhone && (
                     <a 
                       href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
-                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-95"
+                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
-                      <Phone className="w-5 h-5" />
+                      <Phone className="w-4.5 h-4.5 stroke-[2]" />
                     </a>
                   )}
                 </div>
               </div>
 
-              {/* Inner White High-Contrast Card */}
-              <div className="bg-white rounded-[28px] p-5 shadow-lg text-slate-900 space-y-4">
+              {/* Telemetry & Destination Route Card */}
+              <div className="bg-[#282526] rounded-[24px] p-4 border border-white/10 shadow-md space-y-3.5">
                 
-                {/* Delivery Time & Distance Row with Vertical Timeline */}
-                <div className="flex items-start gap-3">
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className="w-9 h-9 rounded-full bg-[#1e293b] text-white flex items-center justify-center shadow-md">
-                      <Clock className="w-4 h-4" />
+                {/* Delivery Time & Status Row */}
+                <div className="flex items-start justify-between gap-2 pb-3 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0">
+                      <Clock className="w-4.5 h-4.5 text-[#E0FF33]" />
                     </div>
-                    <div className="w-0.5 h-14 border-l-2 border-dashed border-slate-300 my-1" />
-                    <div className="w-9 h-9 rounded-full bg-[#0f172a] text-white flex items-center justify-center shadow-md">
-                      <MapPin className="w-4 h-4" />
+                    <div>
+                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
+                      <h5 className="font-bold text-sm text-white font-['Outfit']">
+                        Delivery Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </h5>
                     </div>
                   </div>
+                  <span className="text-[11px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30">
+                    Live Active
+                  </span>
+                </div>
 
-                  <div className="flex-1 space-y-4">
-                    {/* Delivery Time Info */}
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h5 className="font-extrabold text-sm text-slate-900">
-                          Delivery time {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </h5>
-                      </div>
-                      <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                        Distance from you: <span className="font-bold text-rose-600">305m</span>
-                      </p>
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 font-bold mt-2">
-                        <span className="text-emerald-600 font-black">● Making</span>
-                        <span>● Order placed</span>
-                      </div>
+                {/* Drop-off Destination */}
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4.5 h-4.5 text-[#E0FF33]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Delivery Destination</p>
+                      <span className="text-[10px] font-bold text-neutral-400">ETA: ~8–10 Min</span>
                     </div>
-
-                    {/* Destination Address Info */}
-                    <div className="pt-1">
-                      <div className="flex items-center justify-between">
-                        <h5 className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-                          <span>Home Destination</span>
-                        </h5>
-                        <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
-                          ⏰ ETA: 8-10 Min
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 font-medium line-clamp-2 mt-0.5">
-                        {activeOrder.customerAddress || activeOrder.deliveryAddress || '2760 Raman Reti, Parikrama Marg, Vrindavan'}
-                      </p>
-                    </div>
+                    <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 line-clamp-2">
+                      {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Raman Reti, Parikrama Marg, Vrindavan'}
+                    </p>
                   </div>
                 </div>
 
-                {/* COD Cash Amount Callout */}
+                {/* COD Cash Collection Callout Banner */}
                 {activeOrder.paymentMethod === 'cash' && (
-                  <div className="p-2.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs font-bold text-amber-900">
-                    <span>Cash on Delivery to Collect:</span>
-                    <span className="font-black text-sm text-amber-700">₹{activeOrder.totalAmount}</span>
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-300">
+                    <span className="font-bold">Cash on Delivery to Collect:</span>
+                    <span className="font-black text-sm text-amber-400 font-['Outfit']">₹{activeOrder.totalAmount}</span>
                   </div>
                 )}
 
-                {/* Primary Partner Actions */}
+                {/* Primary Navigation & Status CTAs */}
                 <div className="pt-1 space-y-2">
                   {activeOrder.deliveryCoordinates?.lat && (
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
+                      className="w-full py-3 px-4 rounded-2xl bg-[#151314] hover:bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
                     >
                       <Compass className="w-4 h-4 text-[#E0FF33]" />
                       <span>Open Live GPS in Google Maps</span>
                     </a>
                   )}
 
-                  {activeOrder.status === 'ready_for_pickup' ? (
+                  {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                     <button 
                       onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                      className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
                     >
                       <span>Pick Up & Start Delivery</span>
                       <ArrowRight className="w-4 h-4" />
@@ -608,7 +658,7 @@ export default function TransportView() {
                   ) : (
                     <button 
                       onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                      className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Mark Delivered & Reconcile Cash</span>
@@ -629,6 +679,7 @@ export default function TransportView() {
               <div className="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
                 {orders.map(o => {
                   const isCur = o.id === activeOrder.id;
+                  const isReadyOrder = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status);
                   return (
                     <div 
                       key={o.id}
@@ -644,9 +695,9 @@ export default function TransportView() {
                         <p className="text-[10px] text-neutral-400 font-medium">{o.customerName || 'Customer'}</p>
                       </div>
                       <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase ${
-                        o.status === 'ready_for_pickup' ? 'bg-amber-400/15 text-amber-300' : 'bg-cyan-400/15 text-cyan-300'
+                        isReadyOrder ? 'bg-amber-400/15 text-amber-300' : 'bg-cyan-400/15 text-cyan-300'
                       }`}>
-                        {o.status === 'ready_for_pickup' ? 'Ready' : 'In Transit'}
+                        {isReadyOrder ? 'Ready' : 'In Transit'}
                       </span>
                     </div>
                   );
@@ -685,7 +736,7 @@ export default function TransportView() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredOrders.map(order => {
                 const shopName = allShops.find(s => s.id === order.shopId)?.name || 'Kitchen';
-                const isReady = order.status === 'ready_for_pickup';
+                const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);
 
                 return (
                   <div 
