@@ -397,6 +397,10 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       'payment_id',
       'cash_status',
       'cooking_notes',
+      'rider_name',
+      'rider_phone',
+      'rider_rating',
+      'rider_avatar',
       'created_by',
       'updated_at'
     ];

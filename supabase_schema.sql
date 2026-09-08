@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS public.foody_orders (
     payment_id TEXT,
     cash_status TEXT DEFAULT 'pending', -- 'pending' | 'collected'
     cooking_notes TEXT,
+    rider_name TEXT,
+    rider_phone TEXT,
+    rider_rating TEXT,
+    rider_avatar TEXT,
     created_by TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
