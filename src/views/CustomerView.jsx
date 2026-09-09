@@ -663,7 +663,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
     // Seamless in-flow authentication for guest shoppers
     if (!isUserLoggedIn) {
-      showToast("Almost there!", 'info', 'Quick sign in to confirm order & live tracking');
+      showToast("Sign in to Order", 'info');
       window.dispatchEvent(new CustomEvent('foody-open-auth'));
       return;
     }

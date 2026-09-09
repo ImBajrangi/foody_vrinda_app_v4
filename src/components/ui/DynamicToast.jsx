@@ -100,27 +100,27 @@ export default function DynamicToast({
 
   const getIcon = () => {
     if (isFavAdd) {
-      return <Heart size={15} strokeWidth={2.5} className="text-[#fb7185] fill-[#f43f5e]" />;
+      return <Heart size={12} strokeWidth={2.5} className="text-[#fb7185] fill-[#f43f5e]" />;
     }
     if (isFavRemove) {
-      return <HeartOff size={15} strokeWidth={2.5} className="text-[#fca5a5]" />;
+      return <HeartOff size={12} strokeWidth={2.5} className="text-[#fca5a5]" />;
     }
     if (isShopAction) {
-      return <Store size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <Store size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
     if (isBasketAction && type === 'success') {
-      return <ShoppingBag size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <ShoppingBag size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
     switch (type) {
       case 'success':
-        return <Check size={15} strokeWidth={3} className="text-[#E0FF33]" />;
+        return <Check size={12} strokeWidth={3} className="text-[#E0FF33]" />;
       case 'error':
-        return <AlertCircle size={15} strokeWidth={2.5} className="text-red-400" />;
+        return <AlertCircle size={12} strokeWidth={2.5} className="text-red-400" />;
       case 'warning':
-        return <AlertTriangle size={15} strokeWidth={2.5} className="text-amber-400" />;
+        return <AlertTriangle size={12} strokeWidth={2.5} className="text-amber-400" />;
       case 'info':
       default:
-        return <Sparkles size={15} strokeWidth={2.5} className="text-[#E0FF33]" />;
+        return <Sparkles size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
     }
   };
 
