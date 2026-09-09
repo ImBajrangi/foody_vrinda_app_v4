@@ -102,38 +102,61 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
   const rawShopName = shop?.name || 'Prem Mandir';
   const cleanShop = rawShopName.replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
 
-  // Touch / Pointer Swipe Down Handlers
+  // Touch / Pointer Swipe Up (Open Map) & Swipe Down (Hide) Handlers
   const handlePointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
     setIsDragging(true);
     hasMovedRef.current = false;
-    dragStartYRef.current = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
-  };
+    const startY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0]?.clientY) || 0;
+    dragStartYRef.current = startY;
 
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    const currentY = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
-    const diff = currentY - dragStartYRef.current;
-    if (diff > 4) {
-      hasMovedRef.current = true;
-      setDragY(Math.min(80, diff));
-    } else {
-      setDragY(0);
-    }
-  };
+    const onMove = (ev) => {
+      const currentY = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0]?.clientY) || 0;
+      const diff = currentY - startY;
+      if (Math.abs(diff) > 3) {
+        hasMovedRef.current = true;
+        setDragY(diff);
+      }
+    };
 
-  const handlePointerUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (dragY > 25) {
-      // Swiped down -> hide/close with sleek slide down
-      setIsDismissing(true);
-      setTimeout(() => {
-        setIsDismissed(true);
-        if (onClose) onClose();
-      }, 200);
-    } else {
-      setDragY(0);
-    }
+    const onEnd = (ev) => {
+      setIsDragging(false);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
+      window.removeEventListener('pointercancel', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+
+      const currentY = ev.clientY !== undefined ? ev.clientY : (ev.changedTouches && ev.changedTouches[0]?.clientY) || (dragStartYRef.current + dragY);
+      const finalDiff = currentY - dragStartYRef.current;
+
+      if (finalDiff < -15) {
+        // Swiped UP -> Open Live Map Tracking smoothly
+        setDragY(0);
+        if (onClick) onClick();
+      } else if (finalDiff > 20) {
+        // Swiped DOWN -> Hide capsule
+        setIsDismissing(true);
+        setTimeout(() => {
+          setIsDismissed(true);
+          if (onClose) onClose();
+        }, 180);
+      } else {
+        setDragY(0);
+      }
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerup', onEnd, { passive: true });
+    window.addEventListener('pointercancel', onEnd, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd, { passive: true });
+    window.addEventListener('touchcancel', onEnd, { passive: true });
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('mouseup', onEnd, { passive: true });
   };
 
   const handleClick = (e) => {
@@ -149,26 +172,21 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
     <div
       onClick={handleClick}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
       onTouchStart={handlePointerDown}
-      onTouchMove={handlePointerMove}
-      onTouchEnd={handlePointerUp}
       role="button"
       tabIndex={0}
-      title="Tap to view live order • Swipe down to hide"
+      title="Swipe up or tap to open live map tracking • Swipe down to hide"
       style={
         isEmbedded
           ? {
               transform: isDismissing 
                 ? 'translateY(40px) scale(0.92)' 
-                : dragY > 0 
-                  ? `translateY(${dragY}px)` 
+                : dragY !== 0 
+                  ? `translateY(${dragY}px) scale(${dragY < 0 ? 1.02 : 0.98})` 
                   : 'translateY(0)',
-              opacity: isDismissing ? 0 : Math.max(0.1, 1 - dragY / 70),
+              opacity: isDismissing ? 0 : dragY > 0 ? Math.max(0.1, 1 - dragY / 70) : 1,
               transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
-              touchAction: 'pan-x'
+              touchAction: 'none'
             }
           : {
               bottom: hasBottomBar 
@@ -176,14 +194,14 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
                 : 'calc(16px + env(safe-area-inset-bottom, 0px))',
               transform: isDismissing 
                 ? 'translate(-50%, 40px) scale(0.92)' 
-                : dragY > 0 
-                  ? `translate(-50%, ${dragY}px)` 
+                : dragY !== 0 
+                  ? `translate(-50%, ${dragY}px) scale(${dragY < 0 ? 1.02 : 0.98})` 
                   : 'translate(-50%, 0)',
-              opacity: isDismissing ? 0 : Math.max(0.1, 1 - dragY / 70),
+              opacity: isDismissing ? 0 : dragY > 0 ? Math.max(0.1, 1 - dragY / 70) : 1,
               transition: isDragging 
                 ? 'none' 
                 : 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
-              touchAction: 'pan-x'
+              touchAction: 'none'
             }
       }
       className={`${
