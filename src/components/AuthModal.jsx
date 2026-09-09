@@ -481,84 +481,96 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* AUTHENTICATED PROFILE VIEW */}
         {(isAuthenticated && !showLoginView) ? (
-          <div className="space-y-3.5 relative z-10">
+          <div className="space-y-3 relative z-10">
 
-            {/* 1. Main Luxury Profile Card */}
-            <div className="p-4 rounded-3xl bg-[#151314] border border-white/10 shadow-lg space-y-3 relative overflow-hidden">
-              <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden shadow-md ring-2 ring-[#E0FF33]/10">
-                  {user?.photoURL ? (
-                    <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="font-['Outfit'] font-black text-2xl text-[#E0FF33]">
-                      {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
-                    </span>
-                  )}
+            {/* 1. Elite Hero Identity Card */}
+            <div className="p-4 rounded-3xl bg-[#151314] border border-white/10 shadow-lg relative overflow-hidden">
+              <div className="flex items-start gap-3.5">
+                {/* Avatar with Glow Ring */}
+                <div className="relative shrink-0">
+                  <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-xl font-black overflow-hidden shadow-md ring-2 ring-[#E0FF33]/15">
+                    {user?.photoURL ? (
+                      <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="font-['Outfit'] font-black text-2xl text-[#E0FF33]">
+                        {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-[#151314] flex items-center justify-center shadow-sm">
+                    <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
+                  </div>
                 </div>
                 
+                {/* User Info Details (Full width, no cramped truncation) */}
                 <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    {isEditingName ? (
-                      <div className="flex items-center gap-1.5 flex-1">
-                        <input
-                          type="text"
-                          value={nameInput}
-                          onChange={(e) => setNameInput(e.target.value)}
-                          className="bg-[#282526] text-white text-xs px-2.5 py-1 rounded-xl border border-white/20 focus:outline-none focus:border-[#E0FF33] w-full"
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSaveName}
-                          className="p-1 rounded-lg bg-[#E0FF33] text-black hover:bg-[#d4f820] cursor-pointer shrink-0"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsEditingName(false)}
-                          className="p-1 rounded-lg bg-white/10 text-zinc-400 hover:text-white cursor-pointer shrink-0"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] truncate">
-                          {userData?.displayName || user.displayName || 'Customer'}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNameInput(userData?.displayName || user.displayName || '');
-                            setIsEditingName(true);
-                          }}
-                          className="text-zinc-500 hover:text-[#E0FF33] transition-colors p-0.5"
-                          title="Edit Name"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+                  {/* Name + Edit Action */}
+                  {isEditingName ? (
+                    <div className="flex items-center gap-1.5 py-0.5">
+                      <input
+                        type="text"
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        className="bg-[#282526] text-white text-xs px-2.5 py-1 rounded-xl border border-white/20 focus:outline-none focus:border-[#E0FF33] w-full font-['Plus_Jakarta_Sans'] font-semibold"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveName}
+                        className="p-1 rounded-lg bg-[#E0FF33] text-black hover:bg-[#d4f820] cursor-pointer shrink-0"
+                        title="Save Name"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingName(false)}
+                        className="p-1 rounded-lg bg-white/10 text-zinc-400 hover:text-white cursor-pointer shrink-0"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] tracking-tight leading-snug">
+                        {userData?.displayName || user.displayName || 'Customer'}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNameInput(userData?.displayName || user.displayName || '');
+                          setIsEditingName(true);
+                        }}
+                        className="text-zinc-500 hover:text-[#E0FF33] transition-colors p-0.5 cursor-pointer"
+                        title="Edit Name"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                  {/* Badges & Contact Row */}
+                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                    <span className="text-xs text-zinc-300 font-medium font-mono">
+                      {user.phone ? `+91 ${user.phone.replace(/\D/g, '').slice(-10).replace(/(\d{5})(\d{5})/, '$1 $2')}` : (user.email || user.phoneNumber || userData?.phone || 'Member')}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
                       isAuthorizedDeveloper
                         ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
                         : isAuthorizedAdmin
                           ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
                           : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
                     }`}>
-                      {isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}
+                      <Sparkles className="w-2.5 h-2.5" />
+                      <span>{isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}</span>
                     </span>
                   </div>
 
-                  <p className="text-xs text-zinc-400 font-medium truncate">
-                    {user.phone ? `+91 ${user.phone.replace(/\D/g, '').slice(-10)}` : (user.email || user.phoneNumber || userData?.phone || 'Member Account')}
-                  </p>
-
+                  {/* Branch / Kitchen Location */}
                   {currentShopName && (
-                    <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
-                      <Store className="w-3 h-3 shrink-0" />
+                    <p className="text-[11px] font-bold text-amber-400/90 flex items-center gap-1.5 pt-0.5">
+                      <Store className="w-3.5 h-3.5 shrink-0 text-amber-400" />
                       <span className="truncate">{currentShopName}</span>
                     </p>
                   )}
@@ -566,27 +578,29 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* 2. Quick Customer Loyalty & Account Stat Badges */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5 shadow-sm">
+            {/* 2. Unified Loyalty & Devotee Tier Bar (Apple Wallet Style 2-Column Strip) */}
+            <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 grid grid-cols-2 divide-x divide-white/5 shadow-sm">
+              {/* Left: Prasad Coins */}
+              <div className="flex items-center gap-2.5 pr-2">
                 <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Prasad Coins</span>
-                  <span className="text-xs font-black text-white font-['Outfit'] block">150 Coins</span>
-                  <span className="text-[9px] text-emerald-400 font-medium">₹15 savings ready</span>
+                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Prasad Coins</div>
+                  <div className="text-sm font-black text-white font-['Outfit'] mt-0.5">150 Coins</div>
+                  <div className="text-[10px] text-emerald-400 font-semibold leading-none mt-0.5">₹15 savings ready</div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5 shadow-sm">
+              {/* Right: Account Tier */}
+              <div className="flex items-center gap-2.5 pl-3">
                 <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Account Tier</span>
-                  <span className="text-xs font-black text-white font-['Outfit'] block">Satvik Devotee</span>
-                  <span className="text-[9px] text-cyan-400 font-medium">Priority Kitchen Prep</span>
+                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Account Tier</div>
+                  <div className="text-sm font-black text-white font-['Outfit'] mt-0.5">Satvik Devotee</div>
+                  <div className="text-[10px] text-cyan-400 font-semibold leading-none mt-0.5">Priority Prep</div>
                 </div>
               </div>
             </div>
@@ -671,8 +685,8 @@ export default function AuthModal({ isOpen, onClose }) {
               )}
             </div>
 
-            {/* 4. Quick Account Hub Links */}
-            <div className="p-2 rounded-2xl bg-[#151314] border border-white/5 divide-y divide-white/5">
+            {/* 4. Grouped Quick Action Links */}
+            <div className="p-1 rounded-2xl bg-[#151314] border border-white/5 divide-y divide-white/5">
               <button
                 type="button"
                 onClick={() => {
@@ -717,9 +731,9 @@ export default function AuthModal({ isOpen, onClose }) {
               </a>
             </div>
 
-            {/* 5. Authorized Workspaces Switcher: ONLY for verified Admin or Developer accounts */}
+            {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
+              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between px-1">
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     {isAuthorizedDeveloper ? 'Developer Operational Switcher' : 'Administrator Workspaces'}
@@ -757,24 +771,24 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 6. Switch Account & Sign Out Actions */}
-            <div className="flex flex-col gap-2 pt-1">
+            {/* 6. Clean, Uncluttered Footer Actions */}
+            <div className="space-y-2 pt-1">
               <button 
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="w-full py-3 px-4 rounded-2xl bg-[#282526] hover:bg-[#322E30] text-zinc-200 hover:text-white border border-white/10 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#282526] hover:bg-[#322E30] text-zinc-200 hover:text-white border border-white/10 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-sm font-['Outfit']"
               >
-                <LogIn className="w-4 h-4 text-[#E0FF33]" />
+                <LogIn className="w-3.5 h-3.5 text-[#E0FF33]" />
                 <span>Switch Account / Sign In</span>
               </button>
 
               <button 
                 type="button"
                 onClick={handleLogout}
-                className="w-full py-2.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                className="w-full py-2 text-rose-400 hover:text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out of Account</span>
+                <span>Sign out of Foody Vrinda</span>
               </button>
             </div>
           </div>
