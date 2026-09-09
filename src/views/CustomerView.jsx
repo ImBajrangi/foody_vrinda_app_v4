@@ -1115,6 +1115,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
+      {/* Brand Footer with Privacy Policy, Terms, and Contact Links */}
+      <footer className="w-full mt-16 mb-24 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
+        <div className="flex items-center gap-2">
+          <img src="/app-icon.png" alt="FoodyVrinda" className="w-5 h-5 rounded-full object-cover" />
+          <span className="font-black text-white text-sm font-['Outfit'] tracking-tight">Foody Vrinda (FoodyVrinda)</span>
+        </div>
+        <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[320px]">
+          100% Satvik Cloud Kitchen & Divine Prasad Delivery in Vrindavan Dham.
+        </p>
+        <div className="flex items-center gap-4 text-xs font-semibold text-zinc-400 pt-1">
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
+            Privacy Policy
+          </a>
+          <span>•</span>
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
+            Terms of Service
+          </a>
+          <span>•</span>
+          <a href="https://wa.me/919870152058?text=Hello%20Foody%20Vrinda" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors">
+            Support
+          </a>
+        </div>
+        <div className="text-[10px] text-zinc-600 pt-1">
+          © 2026 FoodyVrinda. All rights reserved.
+        </div>
+      </footer>
+
       {/* BOTTOM FLOATING CART BAR (Apple Dynamic Capsule Design) */}
       {cart.length > 0 && (
         <div className="fixed bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-28px)] sm:w-auto sm:min-w-[400px] max-w-[480px] animate-slide-up select-none pointer-events-none">

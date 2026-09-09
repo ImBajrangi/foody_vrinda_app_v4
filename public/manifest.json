@@ -1,24 +1,29 @@
 {
-  "name": "Foody Vrinda",
-  "short_name": "Foody Vrinda",
+  "name": "Foody Vrinda (FoodyVrinda)",
+  "short_name": "FoodyVrinda",
   "description": "Authentic Satvik Cloud Kitchen delivering pure vegetarian meals prepared with devotion.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f5f7",
-  "theme_color": "#0071e3",
+  "background_color": "#1E1B1C",
+  "theme_color": "#1E1B1C",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://vrindopnishad.in/apple-touch-icon.png?v=3",
-      "sizes": "180x180",
+      "src": "/app-icon.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://vrindopnishad.in/apple-touch-icon-light-theme.png?v=3",
-      "sizes": "180x180",
+      "src": "/app-icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }
