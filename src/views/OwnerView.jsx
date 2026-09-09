@@ -9,7 +9,12 @@ import {
   markCloudOrderCashCollected, 
   subscribeCloudOrders,
   DEFAULT_PRASAD_ITEMS,
-  resolveDishCutout
+  resolveDishCutout,
+  subscribeCloudUsers,
+  createCloudUser,
+  updateCloudUser,
+  getCachedUsers,
+  saveCachedUsers
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
@@ -59,7 +64,11 @@ import {
   BarChart3,
   Receipt,
   Compass,
-  Check
+  Check,
+  Users,
+  UserPlus,
+  UserCheck,
+  Play
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -125,6 +134,21 @@ export default function OwnerView() {
   const [mapTargetCoords, setMapTargetCoords] = useState({ lat: 27.5706, lng: 77.6593 });
   const [coordinateCallback, setCoordinateCallback] = useState(null);
 
+  // Staff & Role Management State with local cache fallback
+  const [usersList, setUsersList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_cached_users');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [isAddingStaff, setIsAddingStaff] = useState(false);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffPhone, setNewStaffPhone] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState('kitchen');
+  const [staffSearch, setStaffSearch] = useState('');
+
   // Form Auto-Scroll & Focus Refs
   const menuFormRef = useRef(null);
   const dishNameInputRef = useRef(null);
@@ -185,7 +209,63 @@ export default function OwnerView() {
         lng: parseFloat(target.coordinates?.lng) || 77.6593
       });
     }
-  }, [allShops, currentUserShopId, currentShop]);
+  }, [currentUserShopId, currentShop]);
+
+  // Real-time Supabase users listener
+  useEffect(() => {
+    const unsubscribe = subscribeCloudUsers((users) => {
+      if (users && users.length > 0) {
+        setUsersList(users);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleUpdateStaffRole = async (userId, newRole) => {
+    const targetShopId = currentShop?.id || currentUserShopId;
+    setUsersList(prev => {
+      const updated = prev.map(u => u.id === userId ? { ...u, role: newRole, shopId: targetShopId } : u);
+      saveCachedUsers(updated);
+      return updated;
+    });
+    setToast({ message: `Role updated to ${newRole.toUpperCase()}`, type: 'success' });
+    await updateCloudUser(userId, { role: newRole, shopId: targetShopId });
+  };
+
+  const handleAddStaffMember = async (e) => {
+    e.preventDefault();
+    if (!newStaffPhone.trim()) {
+      setToast({ message: 'Mobile phone is required', type: 'error' });
+      return;
+    }
+    const cleanPhone = newStaffPhone.trim().replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setToast({ message: 'Please enter a valid 10-digit mobile number', type: 'error' });
+      return;
+    }
+    const userId = `user_${cleanPhone}`;
+    const targetShopId = currentShop?.id || currentUserShopId;
+    const newStaffRecord = {
+      id: userId,
+      phone: cleanPhone,
+      displayName: newStaffName.trim() || `Staff (${cleanPhone.slice(-4)})`,
+      role: newStaffRole,
+      shopId: targetShopId
+    };
+
+    setUsersList(prev => {
+      const updated = [newStaffRecord, ...prev.filter(u => u.id !== userId)];
+      saveCachedUsers(updated);
+      return updated;
+    });
+    setToast({ message: `Staff added as ${newStaffRole.toUpperCase()}`, type: 'success' });
+    setIsAddingStaff(false);
+    setNewStaffName('');
+    setNewStaffPhone('');
+    setNewStaffRole('kitchen');
+
+    await createCloudUser(newStaffRecord);
+  };
 
   // Form State for Menu Item
   const [menuForm, setMenuForm] = useState({
@@ -258,27 +338,32 @@ export default function OwnerView() {
   }, [currentUserShopId]);
 
   // Update Payment Config for active kitchen
-  const handleUpdatePaymentsConfig = async (key, value) => {
-    const updated = { ...paymentsConfig, [key]: value };
-    setPaymentsConfig(updated);
-    localStorage.setItem('foody_payment_config', JSON.stringify(updated));
-    window.dispatchEvent(new Event('foody_payment_config_changed'));
-
+  const handleToggleKitchenPayment = async (key, value) => {
     const targetShop = editingShop || currentShop || (allShops && allShops[0]);
-    if (targetShop?.id) {
-      await updateCloudShop(targetShop.id, {
-        paymentSettings: updated,
-        onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
-        codEnabled: updated.codEnabled
-      });
-      if (refreshShops) await refreshShops();
-    }
+    if (!targetShop?.id) return;
+
+    const currentOnline = targetShop?.paymentSettings?.onlinePaymentsEnabled ?? targetShop?.onlinePaymentsEnabled ?? true;
+    const currentCod = targetShop?.paymentSettings?.codEnabled ?? targetShop?.codEnabled ?? true;
+
+    const updated = {
+      onlinePaymentsEnabled: key === 'onlinePaymentsEnabled' ? value : currentOnline,
+      codEnabled: key === 'codEnabled' ? value : currentCod
+    };
+
+    await updateCloudShop(targetShop.id, {
+      paymentSettings: updated,
+      onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+      codEnabled: updated.codEnabled
+    });
+
+    if (refreshShops) await refreshShops();
     setToast({ 
       message: `${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'enabled' : 'disabled'} for ${targetShop?.name || 'this kitchen'}!`, 
       type: "success" 
     });
   };
-  const handleTogglePayment = handleUpdatePaymentsConfig;
+  const handleUpdatePaymentsConfig = handleToggleKitchenPayment;
+  const handleTogglePayment = handleToggleKitchenPayment;
 
   // KPI Calculations
   const completedOrders = orders.filter(o => o.status === 'completed');
@@ -596,6 +681,7 @@ export default function OwnerView() {
             { id: 'summary', label: 'Analytics', icon: BarChart3 },
             { id: 'shops', label: 'Profile', icon: Store },
             { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed },
+            { id: 'staff', label: 'Staff & Roles', icon: Users },
             { id: 'audit', label: 'Cash Audit', icon: Receipt },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -701,56 +787,83 @@ export default function OwnerView() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Payment Gateway Configurations */}
             <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
-              <div>
-                <h3 className="text-base font-bold text-white font-['Outfit']">Payment Gateways & Collection</h3>
-                <p className="text-xs text-neutral-400 mt-0.5">Toggle customer checkout payment methods live</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-bold text-white font-['Outfit']">Payment Gateways & Collection</h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Managing payments for <span className="text-[#E0FF33] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 text-neutral-400 border border-white/10 self-start sm:self-auto">
+                  Kitchen-Level Config
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div 
-                  onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                    paymentsConfig.onlinePaymentsEnabled 
-                      ? 'bg-[#1E1B1C] border-[#E0FF33]/30' 
-                      : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-[#E0FF33]" />
-                      <p className="font-bold text-sm text-white">Online Gateway</p>
-                    </div>
-                    <p className="text-xs text-neutral-400">UPI, Cards & Netbanking via Razorpay</p>
-                  </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    paymentsConfig.onlinePaymentsEnabled ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
-                  }`}>
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                </div>
+              {(() => {
+                const targetShop = editingShop || currentShop || (allShops && allShops[0]);
+                const shopOnline = targetShop?.paymentSettings?.onlinePaymentsEnabled ?? targetShop?.onlinePaymentsEnabled ?? true;
+                const shopCod = targetShop?.paymentSettings?.codEnabled ?? targetShop?.codEnabled ?? true;
+                const isGlobalOnlineOff = paymentsConfig.onlinePaymentsEnabled === false;
+                const isGlobalCodOff = paymentsConfig.codEnabled === false;
 
-                <div 
-                  onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                    paymentsConfig.codEnabled 
-                      ? 'bg-[#1E1B1C] border-[#E0FF33]/30' 
-                      : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-[#E0FF33]" />
-                      <p className="font-bold text-sm text-white">Cash on Delivery (COD)</p>
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div 
+                      onClick={() => handleToggleKitchenPayment('onlinePaymentsEnabled', !shopOnline)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                        shopOnline 
+                          ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm' 
+                          : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-[#E0FF33]" />
+                          <p className="font-bold text-sm text-white">Online Gateway</p>
+                          {isGlobalOnlineOff && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                              Platform Disabled
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-400">UPI, Cards & Netbanking via Razorpay</p>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        shopOnline ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
+                      }`}>
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
                     </div>
-                    <p className="text-xs text-neutral-400">Physical collection upon delivery</p>
+
+                    <div 
+                      onClick={() => handleToggleKitchenPayment('codEnabled', !shopCod)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                        shopCod 
+                          ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm' 
+                          : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-[#E0FF33]" />
+                          <p className="font-bold text-sm text-white">Cash on Delivery (COD)</p>
+                          {isGlobalCodOff && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                              Platform Disabled
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-400">Physical collection upon delivery</p>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                        shopCod ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
+                      }`}>
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    </div>
                   </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    paymentsConfig.codEnabled ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
-                  }`}>
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
 
             {/* Merchant Plan Status */}
@@ -1746,6 +1859,184 @@ export default function OwnerView() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Staff & Role Management Tab */}
+      {activeTab === 'staff' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#282526] border border-white/5 p-6 rounded-3xl">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-xs font-bold text-amber-300">
+                <Users className="w-3.5 h-3.5" />
+                <span>Kitchen Staff Directory</span>
+              </div>
+              <h3 className="text-xl font-bold text-white font-['Outfit']">
+                {currentShop?.name || 'Kitchen'} Team & Active Roles
+              </h3>
+              <p className="text-xs text-neutral-400">
+                Manage roles for cooks, kitchen helpers, and delivery sarathis assigned to this kitchen.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAddingStaff(!isAddingStaff)}
+              className="px-4 py-2.5 rounded-2xl bg-[#E0FF33] hover:bg-[#CCFF00] text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>{isAddingStaff ? 'Cancel' : 'Add Staff Member'}</span>
+            </button>
+          </div>
+
+          {/* Add Staff Form */}
+          {isAddingStaff && (
+            <form onSubmit={handleAddStaffMember} className="p-5 bg-[#282526] rounded-3xl border border-[#E0FF33]/30 space-y-4 animate-fadeIn shadow-xl">
+              <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                <span className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                  Assign Staff to {currentShop?.name}
+                </span>
+                <button type="button" onClick={() => setIsAddingStaff(false)} className="text-neutral-400 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Staff Name</label>
+                  <input
+                    type="text"
+                    value={newStaffName}
+                    onChange={(e) => setNewStaffName(e.target.value)}
+                    placeholder="e.g. Shyam Cook"
+                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
+                  <input
+                    type="tel"
+                    value={newStaffPhone}
+                    onChange={(e) => setNewStaffPhone(e.target.value)}
+                    placeholder="9876543210"
+                    required
+                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Role</label>
+                  <select
+                    value={newStaffRole}
+                    onChange={(e) => setNewStaffRole(e.target.value)}
+                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                  >
+                    <option value="kitchen">Kitchen Staff / Cook</option>
+                    <option value="delivery">Delivery Sarathi</option>
+                    <option value="owner">Co-Owner / Manager</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    Save Staff
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* Staff Search */}
+          <div className="relative w-full max-w-sm">
+            <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={staffSearch}
+              onChange={(e) => setStaffSearch(e.target.value)}
+              placeholder="Search team by name or phone..."
+              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
+            />
+          </div>
+
+          {/* Staff Roster Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(() => {
+              const shopId = currentShop?.id || currentUserShopId;
+              const filtered = usersList.filter(u => {
+                const belongsToShop = (u.shopId === shopId) || (u.role === 'kitchen' || u.role === 'delivery');
+                const q = staffSearch.toLowerCase().trim();
+                const matchesSearch = !q || 
+                  (u.displayName || '').toLowerCase().includes(q) ||
+                  (u.phone || '').includes(q) ||
+                  (u.id || '').toLowerCase().includes(q);
+                return belongsToShop && matchesSearch;
+              });
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="col-span-full text-center py-12 bg-[#282526] rounded-3xl border border-white/5">
+                    <Users className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-neutral-300">No staff members found for this kitchen.</p>
+                    <p className="text-xs text-neutral-500 mt-1">Click "Add Staff Member" above to assign cooks or riders.</p>
+                  </div>
+                );
+              }
+
+              return filtered.map(u => {
+                const role = u.role || 'customer';
+                return (
+                  <div 
+                    key={u.id}
+                    className="p-4 bg-[#282526] rounded-3xl border border-white/5 hover:border-white/10 transition-all space-y-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs ${
+                          role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                          role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                          role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                          'bg-white/10 text-neutral-300'
+                        }`}>
+                          {role === 'kitchen' ? <ChefHat className="w-5 h-5" /> :
+                           role === 'delivery' ? <Truck className="w-5 h-5" /> :
+                           <ShieldCheck className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <p className="font-bold text-xs text-white font-['Outfit']">
+                            {u.displayName || `Staff (${(u.phone || '').slice(-4)})`}
+                          </p>
+                          <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
+                            {u.phone ? `+91 ${u.phone}` : u.id}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${
+                        role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                        role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                        'bg-purple-400/20 text-purple-300 border border-purple-400/30'
+                      }`}>
+                        {role}
+                      </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                      <label className="text-[10px] font-bold text-neutral-400 uppercase">Change Role:</label>
+                      <select
+                        value={role}
+                        onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
+                        className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                      >
+                        <option value="kitchen">Kitchen Cook</option>
+                        <option value="delivery">Delivery Sarathi</option>
+                        <option value="owner">Store Manager</option>
+                        <option value="customer">Remove / Demote</option>
+                      </select>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       )}

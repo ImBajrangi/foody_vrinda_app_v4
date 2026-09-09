@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.foody_orders (
 CREATE TABLE IF NOT EXISTS public.foody_notifications (
     id TEXT PRIMARY KEY,
     user_id TEXT,
-    role TEXT, -- 'customer' | 'kitchen' | 'delivery' | 'owner'
+    role TEXT, -- 'customer' | 'kitchen' | 'delivery' | 'owner' | 'developer'
     shop_id TEXT,
     order_id TEXT,
     message TEXT NOT NULL,
@@ -76,17 +76,34 @@ CREATE TABLE IF NOT EXISTS public.foody_notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. PERFORMANCE INDEXES
+-- 5. USERS & ROLES TABLE (Staff, Admins, Riders & Devs)
+CREATE TABLE IF NOT EXISTS public.foody_users (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    role TEXT NOT NULL DEFAULT 'customer', -- 'customer' | 'kitchen' | 'delivery' | 'owner' | 'developer'
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
+    dev_permissions JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. PERFORMANCE INDEXES
 CREATE INDEX IF NOT EXISTS idx_orders_shop_status ON public.foody_orders (shop_id, status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.foody_orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_menus_shop ON public.foody_menus (shop_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.foody_notifications (user_id, read);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.foody_users (role);
+
 
 -- 6. ENABLE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.foody_shops ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_menus ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 
 -- 7. PUBLIC ACCESS POLICIES (Devotee & Operational Desks)
 DROP POLICY IF EXISTS "Public read shops" ON public.foody_shops;
@@ -117,6 +134,11 @@ CREATE POLICY "Public update notifications" ON public.foody_notifications FOR UP
 DROP POLICY IF EXISTS "Public delete notifications" ON public.foody_notifications;
 CREATE POLICY "Public delete notifications" ON public.foody_notifications FOR DELETE USING (true);
 
+DROP POLICY IF EXISTS "Public read users" ON public.foody_users;
+CREATE POLICY "Public read users" ON public.foody_users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public write users" ON public.foody_users;
+CREATE POLICY "Public write users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
+
 -- 8. ENABLE REALTIME BROADCASTING (IDEMPOTENT & SAFE ON RE-RUNS)
 DO $$
 BEGIN
@@ -139,7 +161,22 @@ BEGIN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications;
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
+
+    BEGIN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
 END $$;
+
+-- 9. SEED DATA - USERS & ROLES
+INSERT INTO public.foody_users (id, display_name, email, phone, role, shop_id, shop_ids)
+VALUES
+('master_dev_108', 'Master Developer (Foody Vrinda)', 'developer@foodyvrinda.com', '9876543210', 'developer', 'shop-vrinda-main', '["shop-vrinda-main", "shop-prem-mandir", "shop-banke-bihari"]'::jsonb),
+('store_owner_main', 'Vrinda Store Owner', 'owner@foodyvrinda.com', '9876543211', 'owner', 'shop-vrinda-main', '["shop-vrinda-main"]'::jsonb),
+('kitchen_chef_radhe', 'Head Chef Radhe', 'chef@foodyvrinda.com', '9876543212', 'kitchen', 'shop-vrinda-main', '["shop-vrinda-main"]'::jsonb),
+('rider_sarathi_gopal', 'Sarathi Gopal', 'sarathi@foodyvrinda.com', '9876543213', 'delivery', 'shop-vrinda-main', '["shop-vrinda-main", "shop-prem-mandir", "shop-banke-bihari"]'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
 
 -- 8. SEED DATA - KITCHEN BRANCHES
 INSERT INTO public.foody_shops (id, name, address, phone, coordinates, is_open, minimum_order_amount, delivery_charge, gst_percentage)

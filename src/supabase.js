@@ -29,7 +29,10 @@ export const SEED_SHOPS = [
     minimumOrderAmount: 0,
     deliveryCharge: 0,
     gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true }
+    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true },
+    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
+    onlinePaymentsEnabled: true,
+    codEnabled: true
   },
   {
     id: 'shop-prem-mandir',
@@ -41,7 +44,10 @@ export const SEED_SHOPS = [
     minimumOrderAmount: 50,
     deliveryCharge: 20,
     gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: true, deliveryReady: true }
+    alarmSettings: { kitchenNew: true, kitchenReady: true, deliveryReady: true },
+    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
+    onlinePaymentsEnabled: true,
+    codEnabled: true
   },
   {
     id: 'shop-banke-bihari',
@@ -53,7 +59,10 @@ export const SEED_SHOPS = [
     minimumOrderAmount: 100,
     deliveryCharge: 0,
     gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true }
+    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true },
+    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
+    onlinePaymentsEnabled: true,
+    codEnabled: true
   }
 ];
 
@@ -208,12 +217,86 @@ function getCachedItem(type, key = 'default') {
   return null;
 }
 
+export function normalizeShop(s) {
+  if (!s) return s;
+
+  // Extract payment settings handling nested object or top-level properties
+  const onlinePaymentsEnabled = s.paymentSettings?.onlinePaymentsEnabled 
+    ?? s.payment_settings?.onlinePaymentsEnabled 
+    ?? s.onlinePaymentsEnabled 
+    ?? s.online_payments_enabled 
+    ?? true;
+
+  const codEnabled = s.paymentSettings?.codEnabled 
+    ?? s.payment_settings?.codEnabled 
+    ?? s.codEnabled 
+    ?? s.cod_enabled 
+    ?? true;
+
+  const paymentSettings = {
+    onlinePaymentsEnabled,
+    codEnabled
+  };
+
+  const alarmSettings = s.alarm_settings ?? s.alarmSettings ?? { kitchenNew: true, kitchenReady: false, deliveryReady: true };
+
+  return {
+    ...s,
+    id: s.id,
+    name: s.name || '',
+    address: s.address || '',
+    phone: s.phone || '',
+    coordinates: s.coordinates || { lat: 27.5706, lng: 77.6593 },
+    isOpen: s.is_open ?? s.isOpen ?? true,
+    is_open: s.is_open ?? s.isOpen ?? true,
+    minimumOrderAmount: Number(s.minimum_order_amount ?? s.minimumOrderAmount ?? 0),
+    minimum_order_amount: Number(s.minimum_order_amount ?? s.minimumOrderAmount ?? 0),
+    deliveryCharge: Number(s.delivery_charge ?? s.deliveryCharge ?? 0),
+    delivery_charge: Number(s.delivery_charge ?? s.deliveryCharge ?? 0),
+    gstPercentage: Number(s.gst_percentage ?? s.gstPercentage ?? 5),
+    gst_percentage: Number(s.gst_percentage ?? s.gstPercentage ?? 5),
+    alarmSettings,
+    alarm_settings: alarmSettings,
+    paymentSettings,
+    payment_settings: paymentSettings,
+    onlinePaymentsEnabled,
+    online_payments_enabled: onlinePaymentsEnabled,
+    codEnabled,
+    cod_enabled: codEnabled
+  };
+}
+
+export function getCachedShops() {
+  try {
+    const raw = localStorage.getItem('foody_cached_shops') || localStorage.getItem('foody_cache_shops');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : parsed?.data;
+      if (Array.isArray(list) && list.length > 0) {
+        return list.map(normalizeShop);
+      }
+    }
+  } catch (e) {}
+  return SEED_SHOPS.map(normalizeShop);
+}
+
+export function saveCachedShops(shopsList) {
+  const normalized = (shopsList || []).map(normalizeShop);
+  try {
+    localStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
+    localStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: Date.now() }));
+  } catch (e) {}
+  return normalized;
+}
+
 function setCachedItem(type, key, data) {
   const now = Date.now();
   if (type === 'shops') {
-    memoryCache.shops = { data, timestamp: now };
+    const normalized = Array.isArray(data) ? data.map(normalizeShop) : data;
+    memoryCache.shops = { data: normalized, timestamp: now };
     try {
-      localStorage.setItem('foody_cache_shops', JSON.stringify({ data, timestamp: now }));
+      localStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
+      localStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: now }));
     } catch (e) {}
   } else if (type === 'menus') {
     memoryCache.menus[key] = { data, timestamp: now };
@@ -227,6 +310,7 @@ export function invalidateCache(type, key) {
   if (type === 'shops') {
     memoryCache.shops = { data: null, timestamp: 0 };
     localStorage.removeItem('foody_cache_shops');
+    localStorage.removeItem('foody_cached_shops');
   } else if (type === 'menus') {
     if (key) {
       delete memoryCache.menus[key];
@@ -241,8 +325,10 @@ export function invalidateCache(type, key) {
 // 2. SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
 // ========================================================================
 export async function getCloudShops() {
-  const cached = getCachedItem('shops');
-  if (cached) return cached;
+  const localCached = getCachedShops();
+  if (memoryCache.shops?.data && memoryCache.shops.data.length > 0) {
+    return memoryCache.shops.data;
+  }
 
   // Deduplicate concurrent in-flight calls
   if (pendingRequests.has('getCloudShops')) {
@@ -256,14 +342,34 @@ export async function getCloudShops() {
         .select('*')
         .order('name');
 
-      if (error || !data || data.length === 0) {
-        return SEED_SHOPS;
+      if (!error && data && data.length > 0) {
+        const local = getCachedShops();
+        const merged = data.map(d => {
+          const localMatch = local.find(l => l.id === d.id);
+          const base = normalizeShop(d);
+          if (localMatch) {
+            return {
+              ...base,
+              paymentSettings: localMatch.paymentSettings || base.paymentSettings,
+              onlinePaymentsEnabled: localMatch.onlinePaymentsEnabled ?? base.onlinePaymentsEnabled,
+              codEnabled: localMatch.codEnabled ?? base.codEnabled,
+              alarmSettings: localMatch.alarmSettings || base.alarmSettings
+            };
+          }
+          return base;
+        });
+        const finalShops = saveCachedShops(merged);
+        memoryCache.shops = { data: finalShops, timestamp: Date.now() };
+        return finalShops;
       }
-      setCachedItem('shops', 'default', data);
-      return data;
+      const fallback = saveCachedShops(localCached.length > 0 ? localCached : SEED_SHOPS);
+      memoryCache.shops = { data: fallback, timestamp: Date.now() };
+      return fallback;
     } catch (err) {
       console.warn('Supabase getCloudShops fallback:', err.message);
-      return SEED_SHOPS;
+      const fallback = saveCachedShops(localCached.length > 0 ? localCached : SEED_SHOPS);
+      memoryCache.shops = { data: fallback, timestamp: Date.now() };
+      return fallback;
     } finally {
       pendingRequests.delete('getCloudShops');
     }
@@ -428,6 +534,52 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
     return null;
   }
 }
+
+export async function getCloudOrders(shopId = 'all') {
+  try {
+    let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false });
+    if (shopId && shopId !== 'all') {
+      query = query.eq('shop_id', shopId);
+    }
+    const { data, error } = await query;
+    if (error || !data) return [];
+    return data.map(raw => ({
+      id: raw.id,
+      ...raw,
+      shopId: raw.shop_id,
+      customerName: raw.customer_name,
+      customerPhone: raw.customer_phone,
+      customerAddress: raw.customer_address,
+      deliveryAddress: raw.delivery_address,
+      deliveryCoordinates: raw.delivery_coordinates,
+      totalAmount: raw.total_amount,
+      paymentMethod: raw.payment_method,
+      cashStatus: raw.cash_status,
+      cookingNotes: raw.cooking_notes,
+      createdAt: raw.created_at
+    }));
+  } catch (err) {
+    console.warn('getCloudOrders exception:', err);
+    return [];
+  }
+}
+
+export async function broadcastAlarmEvent(alarmType, orderDetails = {}) {
+  try {
+    window.dispatchEvent(new CustomEvent('foody_alarm_trigger', {
+      detail: { type: alarmType, order: orderDetails, timestamp: Date.now() }
+    }));
+    await createCloudNotification({
+      role: 'all',
+      shopId: orderDetails?.shopId || null,
+      orderId: orderDetails?.id || null,
+      message: `Alarm: ${alarmType}`
+    });
+  } catch (err) {
+    console.warn('broadcastAlarmEvent error:', err);
+  }
+}
+
 
 // ========================================================================
 // 5. FREE-TIER SINGLETON REALTIME MULTIPLEXER (1 SHARED WEBSOCKET)
@@ -732,71 +884,78 @@ export async function deleteCloudMenuItem(itemId) {
 }
 
 export async function updateCloudShop(shopId, shopData) {
+  if (!shopId) return null;
   try {
-    const payload = {};
-    if (shopData.name !== undefined) payload.name = shopData.name;
-    if (shopData.address !== undefined) payload.address = shopData.address;
-    if (shopData.minimumOrderAmount !== undefined) payload.minimum_order_amount = Number(shopData.minimumOrderAmount);
-    if (shopData.deliveryCharge !== undefined) payload.delivery_charge = Number(shopData.deliveryCharge);
-    if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
-    if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
-    if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+    // 1. Get current list and merge update cleanly
+    const currentList = getCachedShops();
+    let updatedShop = null;
+    let found = false;
 
-    // Update local cache immediately for instantaneous UI reaction
-    try {
-      const cached = localStorage.getItem('foody_cached_shops');
-      let shops = cached ? JSON.parse(cached) : SEED_SHOPS;
-      let matched = false;
-      shops = shops.map(s => {
-        if (s.id === shopId) {
-          matched = true;
-          return {
-            ...s,
-            ...shopData,
-            name: shopData.name !== undefined ? shopData.name : s.name,
-            address: shopData.address !== undefined ? shopData.address : s.address,
-            minimum_order_amount: shopData.minimumOrderAmount !== undefined ? Number(shopData.minimumOrderAmount) : (s.minimum_order_amount ?? s.minimumOrderAmount),
-            minimumOrderAmount: shopData.minimumOrderAmount !== undefined ? Number(shopData.minimumOrderAmount) : (s.minimumOrderAmount ?? s.minimum_order_amount),
-            delivery_charge: shopData.deliveryCharge !== undefined ? Number(shopData.deliveryCharge) : (s.delivery_charge ?? s.deliveryCharge),
-            deliveryCharge: shopData.deliveryCharge !== undefined ? Number(shopData.deliveryCharge) : (s.deliveryCharge ?? s.delivery_charge),
-            gst_percentage: shopData.gstPercentage !== undefined ? Number(shopData.gstPercentage) : (s.gst_percentage ?? s.gstPercentage),
-            gstPercentage: shopData.gstPercentage !== undefined ? Number(shopData.gstPercentage) : (s.gstPercentage ?? s.gst_percentage),
-            coordinates: shopData.coordinates !== undefined ? shopData.coordinates : s.coordinates,
-            schedule: shopData.schedule !== undefined ? shopData.schedule : s.schedule,
-            imageUrl: shopData.imageUrl !== undefined ? shopData.imageUrl : s.imageUrl,
+    const nextList = currentList.map(s => {
+      if (s.id === shopId) {
+        found = true;
+        const merged = { ...s, ...shopData };
+        
+        // Ensure nested paymentSettings and root payment flags stay synced
+        if (shopData.paymentSettings) {
+          merged.paymentSettings = {
+            onlinePaymentsEnabled: shopData.paymentSettings.onlinePaymentsEnabled !== undefined ? shopData.paymentSettings.onlinePaymentsEnabled : (s.paymentSettings?.onlinePaymentsEnabled ?? true),
+            codEnabled: shopData.paymentSettings.codEnabled !== undefined ? shopData.paymentSettings.codEnabled : (s.paymentSettings?.codEnabled ?? true)
           };
+          merged.onlinePaymentsEnabled = merged.paymentSettings.onlinePaymentsEnabled;
+          merged.codEnabled = merged.paymentSettings.codEnabled;
+        } else if (shopData.onlinePaymentsEnabled !== undefined || shopData.codEnabled !== undefined) {
+          merged.paymentSettings = {
+            onlinePaymentsEnabled: shopData.onlinePaymentsEnabled !== undefined ? shopData.onlinePaymentsEnabled : (s.onlinePaymentsEnabled ?? true),
+            codEnabled: shopData.codEnabled !== undefined ? shopData.codEnabled : (s.codEnabled ?? true)
+          };
+          merged.onlinePaymentsEnabled = merged.paymentSettings.onlinePaymentsEnabled;
+          merged.codEnabled = merged.paymentSettings.codEnabled;
         }
-        return s;
-      });
-      if (!matched && shopId) {
-        shops.push({
-          id: shopId,
-          ...shopData,
-          minimum_order_amount: Number(shopData.minimumOrderAmount || 0),
-          minimumOrderAmount: Number(shopData.minimumOrderAmount || 0),
-          delivery_charge: Number(shopData.deliveryCharge || 0),
-          deliveryCharge: Number(shopData.deliveryCharge || 0),
-          gst_percentage: Number(shopData.gstPercentage || 5),
-          gstPercentage: Number(shopData.gstPercentage || 5),
-        });
+        
+        updatedShop = normalizeShop(merged);
+        return updatedShop;
       }
-      localStorage.setItem('foody_cached_shops', JSON.stringify(shops));
-      setCachedItem('shops', 'default', shops);
-    } catch (e) {
-      console.warn("Local cache update notice:", e);
+      return normalizeShop(s);
+    });
+
+    if (!found) {
+      updatedShop = normalizeShop({ id: shopId, ...shopData });
+      nextList.push(updatedShop);
     }
 
-    const { data, error } = await supabase
-      .from('foody_shops')
-      .update(payload)
-      .eq('id', shopId)
-      .select();
+    // 2. Immediately persist to cache & memory
+    const saved = saveCachedShops(nextList);
+    memoryCache.shops = { data: saved, timestamp: Date.now() };
 
-    invalidateCache('shops');
-    if (error) {
-      console.warn('updateCloudShop warning:', error.message);
+    // 3. Broadcast instant update event across all windows & components
+    window.dispatchEvent(new CustomEvent('foody_shops_changed', { 
+      detail: { shopId, shopData: updatedShop, shops: saved } 
+    }));
+
+    // 4. Update Supabase foody_shops table safely
+    try {
+      const payload = {};
+      if (shopData.name !== undefined) payload.name = shopData.name;
+      if (shopData.address !== undefined) payload.address = shopData.address;
+      if (shopData.phone !== undefined) payload.phone = shopData.phone;
+      if (shopData.minimumOrderAmount !== undefined) payload.minimum_order_amount = Number(shopData.minimumOrderAmount);
+      if (shopData.deliveryCharge !== undefined) payload.delivery_charge = Number(shopData.deliveryCharge);
+      if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
+      if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
+      if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+      
+      if (Object.keys(payload).length > 0) {
+        await supabase
+          .from('foody_shops')
+          .update(payload)
+          .eq('id', shopId);
+      }
+    } catch (sbErr) {
+      console.warn("Supabase shop update note:", sbErr?.message);
     }
-    return data;
+
+    return updatedShop;
   } catch (err) {
     console.warn('updateCloudShop exception:', err.message);
     return null;
@@ -806,3 +965,274 @@ export async function updateCloudShop(shopId, shopData) {
 export async function markCloudOrderCashCollected(orderId) {
   return updateCloudOrderStatus(orderId, undefined, { cash_status: 'collected' });
 }
+
+// ==========================================
+// SUPABASE CLOUD USERS & ROLE MANAGEMENT
+// ==========================================
+
+export const SEED_USERS = [
+  {
+    id: 'master_dev_108',
+    displayName: 'Master Developer (Foody Vrinda)',
+    email: 'developer@foodyvrinda.com',
+    phone: '9876543210',
+    role: 'developer',
+    shopId: 'shop-vrinda-main',
+    shopIds: ['shop-vrinda-main', 'shop-prem-mandir', 'shop-banke-bihari']
+  },
+  {
+    id: 'store_owner_main',
+    displayName: 'Vrinda Store Owner',
+    email: 'owner@foodyvrinda.com',
+    phone: '9876543211',
+    role: 'owner',
+    shopId: 'shop-vrinda-main',
+    shopIds: ['shop-vrinda-main']
+  },
+  {
+    id: 'kitchen_chef_radhe',
+    displayName: 'Head Chef Radhe',
+    email: 'chef@foodyvrinda.com',
+    phone: '9876543212',
+    role: 'kitchen',
+    shopId: 'shop-vrinda-main',
+    shopIds: ['shop-vrinda-main']
+  },
+  {
+    id: 'rider_sarathi_gopal',
+    displayName: 'Sarathi Gopal',
+    email: 'sarathi@foodyvrinda.com',
+    phone: '9876543213',
+    role: 'delivery',
+    shopId: 'shop-vrinda-main',
+    shopIds: ['shop-vrinda-main', 'shop-prem-mandir', 'shop-banke-bihari']
+  }
+];
+
+export function getCachedUsers() {
+  try {
+    const saved = localStorage.getItem('foody_cached_users');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return SEED_USERS;
+}
+
+export function saveCachedUsers(users) {
+  try {
+    localStorage.setItem('foody_cached_users', JSON.stringify(users));
+  } catch (e) {}
+  return users;
+}
+
+let usersTableAvailable = null; // null: unknown, true: exists, false: missing from remote DB
+
+export function checkUsersTableStatus() {
+  return usersTableAvailable;
+}
+
+export const USERS_TABLE_SQL_SCHEMA = `-- Run this in your Supabase Project SQL Editor to enable cloud persistence for users:
+CREATE TABLE IF NOT EXISTS public.foody_users (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    role TEXT NOT NULL DEFAULT 'customer',
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
+    dev_permissions JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read users" ON public.foody_users;
+CREATE POLICY "Public read users" ON public.foody_users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public write users" ON public.foody_users;
+CREATE POLICY "Public write users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
+END $$;
+`;
+
+export async function getCloudUsers() {
+  const cached = getCachedUsers();
+  if (usersTableAvailable === false) {
+    return cached;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('foody_users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      // If table doesn't exist (HTTP 404 or PostgREST code PGRST205)
+      if (error.code === 'PGRST205' || error.message?.includes('does not exist') || error.code === '42P01') {
+        usersTableAvailable = false;
+      }
+      return cached;
+    }
+
+    usersTableAvailable = true;
+    if (data && data.length > 0) {
+      const mapped = data.map(u => ({
+        id: u.id,
+        displayName: u.display_name || u.displayName || u.email?.split('@')[0] || 'User',
+        email: u.email || '',
+        phone: u.phone || '',
+        role: u.role || 'customer',
+        shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
+        shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
+        devPermissions: u.dev_permissions || [],
+        createdAt: u.created_at
+      }));
+      saveCachedUsers(mapped);
+      return mapped;
+    }
+    return cached;
+  } catch (e) {
+    usersTableAvailable = false;
+    return cached;
+  }
+}
+
+export async function createCloudUser(userData) {
+  const currentUsers = getCachedUsers();
+  const userId = userData.id || `user_${(userData.phone || Date.now()).toString().replace(/\D/g, '')}`;
+  const newUser = {
+    id: userId,
+    displayName: userData.displayName || userData.name || `User (${(userData.phone || '').slice(-4)})`,
+    email: userData.email || `${userData.phone || userId}@foodyvrinda.com`,
+    phone: userData.phone || '',
+    role: userData.role || 'customer',
+    shopId: userData.shopId || 'shop-vrinda-main',
+    shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : ['shop-vrinda-main']),
+    createdAt: new Date().toISOString()
+  };
+
+  const nextList = [newUser, ...currentUsers.filter(u => u.id !== userId)];
+  saveCachedUsers(nextList);
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: nextList } }));
+
+  if (usersTableAvailable !== false) {
+    try {
+      const { error } = await supabase
+        .from('foody_users')
+        .upsert({
+          id: newUser.id,
+          display_name: newUser.displayName,
+          email: newUser.email,
+          phone: newUser.phone,
+          role: newUser.role,
+          shop_id: newUser.shopId,
+          shop_ids: newUser.shopIds
+        });
+      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
+        usersTableAvailable = false;
+      }
+    } catch (e) {
+      usersTableAvailable = false;
+    }
+  }
+  return newUser;
+}
+
+export async function updateCloudUser(userId, updates) {
+  const currentUsers = getCachedUsers();
+  const updatedList = currentUsers.map(u => {
+    if (u.id === userId) {
+      return { ...u, ...updates, updatedAt: new Date().toISOString() };
+    }
+    return u;
+  });
+
+  saveCachedUsers(updatedList);
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList } }));
+
+  if (usersTableAvailable !== false) {
+    try {
+      const payload = {};
+      if (updates.role !== undefined) payload.role = updates.role;
+      if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
+      if (updates.shopIds !== undefined) payload.shop_ids = updates.shopIds;
+      if (updates.displayName !== undefined) payload.display_name = updates.displayName;
+      if (updates.phone !== undefined) payload.phone = updates.phone;
+
+      if (Object.keys(payload).length > 0) {
+        const { error } = await supabase
+          .from('foody_users')
+          .update(payload)
+          .eq('id', userId);
+        if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
+          usersTableAvailable = false;
+        }
+      }
+    } catch (e) {
+      usersTableAvailable = false;
+    }
+  }
+  return updatedList.find(u => u.id === userId);
+}
+
+export async function deleteCloudUser(userId) {
+  const currentUsers = getCachedUsers();
+  const updatedList = currentUsers.filter(u => u.id !== userId);
+  saveCachedUsers(updatedList);
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList } }));
+
+  if (usersTableAvailable !== false) {
+    try {
+      const { error } = await supabase
+        .from('foody_users')
+        .delete()
+        .eq('id', userId);
+      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
+        usersTableAvailable = false;
+      }
+    } catch (e) {
+      usersTableAvailable = false;
+    }
+  }
+  return true;
+}
+
+export function subscribeCloudUsers(onUsersUpdate) {
+  let channel = null;
+  if (usersTableAvailable !== false) {
+    try {
+      channel = supabase
+        .channel('public:foody_users')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'foody_users' }, async () => {
+          const users = await getCloudUsers();
+          if (onUsersUpdate) onUsersUpdate(users);
+        })
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            usersTableAvailable = false;
+          }
+        });
+    } catch (e) {
+      usersTableAvailable = false;
+    }
+  }
+
+  const handleLocalChange = (e) => {
+    if (e?.detail?.users && onUsersUpdate) {
+      onUsersUpdate(e.detail.users);
+    }
+  };
+  window.addEventListener('foody_users_changed', handleLocalChange);
+
+  return () => {
+    if (channel) {
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {}
+    }
+    window.removeEventListener('foody_users_changed', handleLocalChange);
+  };
+}
+

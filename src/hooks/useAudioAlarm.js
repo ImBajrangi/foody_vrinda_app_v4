@@ -15,26 +15,100 @@ function getAudioContext() {
 
 export function useAudioAlarm() {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [audioState, setAudioState] = useState('suspended');
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeAlert, setActiveAlert] = useState(null); // { role, title, orderId, order }
+  const [volume, setVolumeState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_alarm_volume');
+      return saved !== null ? parseFloat(saved) : 0.85;
+    } catch (e) {
+      return 0.85;
+    }
+  });
+  const [notificationPermission, setNotificationPermission] = useState(() => {
+    return (typeof window !== 'undefined' && 'Notification' in window) ? Notification.permission : 'default';
+  });
   
   const loopTimerRef = useRef(null);
   const isPlayingRef = useRef(false);
+  const volumeRef = useRef(volume);
 
-  // Auto-unlock AudioContext on any user interaction in the viewport
+  const setVolume = useCallback((val) => {
+    const clamped = Math.max(0, Math.min(1, val));
+    volumeRef.current = clamped;
+    setVolumeState(clamped);
+    try {
+      localStorage.setItem('foody_alarm_volume', clamped.toString());
+    } catch (e) {}
+  }, []);
+
+  // Check state of AudioContext periodically & on visibility change
+  const syncAudioState = useCallback(() => {
+    const ctx = getAudioContext();
+    if (ctx) {
+      setAudioState(ctx.state);
+      setAudioUnlocked(ctx.state === 'running');
+    }
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Request browser notification permissions for staff
+  const requestNotificationPermission = useCallback(async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const perm = await Notification.requestPermission();
+        setNotificationPermission(perm);
+        return perm === 'granted';
+      } catch (e) {
+        console.warn("Notification permission request note:", e);
+      }
+    }
+    return false;
+  }, []);
+
+  // Auto-unlock AudioContext on user interaction in the viewport
   const unlockAudio = useCallback(async () => {
     try {
       const ctx = getAudioContext();
-      if (ctx && ctx.state === 'suspended') {
-        await ctx.resume();
+      if (ctx) {
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        setAudioState(ctx.state);
+        setAudioUnlocked(ctx.state === 'running');
       }
-      setAudioUnlocked(true);
     } catch (e) {
       console.warn("Audio unlock attempt note:", e);
     }
   }, []);
 
+  // Explicit warm-up with subtle micro-click
+  const warmUpAudio = useCallback(async () => {
+    await unlockAudio();
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'running') {
+      try {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(440, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } catch (e) {}
+    }
+  }, [unlockAudio]);
+
   useEffect(() => {
+    syncAudioState();
+
     const handleFirstInteraction = () => {
       unlockAudio();
     };
@@ -42,13 +116,15 @@ export function useAudioAlarm() {
     window.addEventListener('click', handleFirstInteraction, { passive: true });
     window.addEventListener('touchstart', handleFirstInteraction, { passive: true });
     window.addEventListener('keydown', handleFirstInteraction, { passive: true });
+    document.addEventListener('visibilitychange', syncAudioState);
 
     return () => {
       window.removeEventListener('click', handleFirstInteraction);
       window.removeEventListener('touchstart', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
+      document.removeEventListener('visibilitychange', syncAudioState);
     };
-  }, [unlockAudio]);
+  }, [unlockAudio, syncAudioState]);
 
   // 1. Synthesize Kitchen Buzzer (Urgent Dual-Tone Pulsing Alarm)
   const synthesizeKitchenTone = useCallback(() => {
@@ -59,6 +135,7 @@ export function useAudioAlarm() {
     }
 
     const now = ctx.currentTime;
+    const vol = volumeRef.current;
     
     // Dual Oscillator for piercing kitchen-grade acoustic cut
     const osc1 = ctx.createOscillator();
@@ -73,11 +150,11 @@ export function useAudioAlarm() {
     osc2.frequency.setValueAtTime(880, now);
     osc2.frequency.setValueAtTime(1174, now + 0.12);
 
-    // Punchy envelope
+    // Punchy envelope scaled by volume
     gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.35, now + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.2, now + 0.12);
-    gainNode.gain.exponentialRampToValueAtTime(0.4, now + 0.14);
+    gainNode.gain.exponentialRampToValueAtTime(0.35 * vol, now + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.2 * vol, now + 0.12);
+    gainNode.gain.exponentialRampToValueAtTime(0.4 * vol, now + 0.14);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
 
     osc1.connect(gainNode);
@@ -106,6 +183,7 @@ export function useAudioAlarm() {
     }
 
     const now = ctx.currentTime;
+    const vol = volumeRef.current;
     const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5 -> E5 -> G5 -> C6
 
     freqs.forEach((freq, idx) => {
@@ -117,7 +195,7 @@ export function useAudioAlarm() {
       osc.frequency.setValueAtTime(freq, noteTime);
 
       gainNode.gain.setValueAtTime(0.001, noteTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.3, noteTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.3 * vol, noteTime + 0.02);
       gainNode.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.28);
 
       osc.connect(gainNode);
@@ -143,6 +221,7 @@ export function useAudioAlarm() {
     }
 
     const now = ctx.currentTime;
+    const vol = volumeRef.current;
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -151,7 +230,7 @@ export function useAudioAlarm() {
     osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.08);
 
     gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.35, now + 0.03);
+    gainNode.gain.exponentialRampToValueAtTime(0.35 * vol, now + 0.03);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
 
     osc.connect(gainNode);
@@ -170,6 +249,7 @@ export function useAudioAlarm() {
     }
 
     const now = ctx.currentTime;
+    const vol = volumeRef.current;
     [528, 660].forEach((f, i) => {
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
@@ -179,7 +259,7 @@ export function useAudioAlarm() {
       osc.frequency.setValueAtTime(f, t);
 
       gainNode.gain.setValueAtTime(0.001, t);
-      gainNode.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
+      gainNode.gain.exponentialRampToValueAtTime(0.25 * vol, t + 0.03);
       gainNode.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
 
       osc.connect(gainNode);
@@ -203,7 +283,6 @@ export function useAudioAlarm() {
 
   // Trigger Role-Tailored Alarm
   const playRoleAlarm = useCallback((role = 'kitchen', alertInfo = null, loop = true) => {
-    // Attempt unlock if suspended
     const ctx = getAudioContext();
     if (ctx && ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -247,7 +326,6 @@ export function useAudioAlarm() {
     }
 
     if (loop) {
-      // Loop interval tailored by urgency
       const intervalMs = role === 'kitchen' ? 1400 : 2200;
       loopTimerRef.current = setInterval(() => {
         if (isPlayingRef.current) {
@@ -283,8 +361,14 @@ export function useAudioAlarm() {
 
   return {
     audioUnlocked,
+    audioState,
     isPlaying,
     activeAlert,
+    volume,
+    setVolume,
+    notificationPermission,
+    requestNotificationPermission,
+    warmUpAudio,
     enableAudio: unlockAudio,
     playRoleAlarm,
     playAlarm,

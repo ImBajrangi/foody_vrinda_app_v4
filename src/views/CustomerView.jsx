@@ -259,7 +259,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const currentCartShop = (allShops && allShops.length > 0)
     ? (allShops.find(s => s.id === selectedShopId) || allShops[0])
     : null;
-  const { onlineAvailable, codAvailable } = resolveShopPaymentOptions(currentCartShop);
+  const { onlineAvailable, codAvailable, globalOnline, globalCod } = resolveShopPaymentOptions(currentCartShop);
 
   // Auto-switch payment method if selected method is disabled for this kitchen
   useEffect(() => {
@@ -1698,7 +1698,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <Zap size={14} className={onlineAvailable && paymentMethod === 'online' ? 'text-[#1E1B1C]' : 'text-[#E0FF33]'} />
                       <span>Online Pay</span>
                     </div>
-                    {!onlineAvailable && <span className="text-[9px] text-zinc-500 font-medium">(Unavailable)</span>}
+                    {!onlineAvailable && (
+                      <span className="text-[9px] text-zinc-500 font-medium">
+                        {!globalOnline ? '(Platform Off)' : '(Kitchen Off)'}
+                      </span>
+                    )}
                   </button>
 
                   <button
@@ -1716,7 +1720,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <Banknote size={14} className={codAvailable && paymentMethod === 'cash' ? 'text-[#1E1B1C]' : 'text-emerald-400'} />
                       <span>Cash</span>
                     </div>
-                    {!codAvailable && <span className="text-[9px] text-zinc-500 font-medium">(Unavailable)</span>}
+                    {!codAvailable && (
+                      <span className="text-[9px] text-zinc-500 font-medium">
+                        {!globalCod ? '(Platform Off)' : '(Kitchen Off)'}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>

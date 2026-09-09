@@ -54,12 +54,14 @@ export function CartProvider({ children }) {
     const shopCod = shop?.paymentSettings?.codEnabled ?? shop?.codEnabled ?? true;
 
     return {
-      onlineAvailable: globalOnline && shopOnline,
-      codAvailable: globalCod && shopCod,
+      onlineAvailable: Boolean(globalOnline && shopOnline),
+      codAvailable: Boolean(globalCod && shopCod),
       globalOnline,
       globalCod,
       shopOnline,
       shopCod,
+      reasonOnlineUnavailable: !globalOnline ? 'Platform Master Disabled' : (!shopOnline ? 'Kitchen Online Pay Disabled' : null),
+      reasonCodUnavailable: !globalCod ? 'Platform Master Disabled' : (!shopCod ? 'Kitchen COD Disabled' : null),
       shopName: shop?.name || 'Kitchen'
     };
   }, [paymentSettings]);

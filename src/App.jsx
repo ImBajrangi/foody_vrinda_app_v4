@@ -13,6 +13,7 @@ import OwnerView from './views/OwnerView';
 import DeveloperView from './views/DeveloperView';
 import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
+import EmergencyDevModal from './components/EmergencyDevModal';
 
 export default function App() {
   const { userRole, isAuthorizedAdmin, isAuthorizedDeveloper } = useAuth();
@@ -21,20 +22,19 @@ export default function App() {
 
   // Navigation tab
   const [currentTab, setCurrentTab] = useState('customer');
-  const [prevUserRole, setPrevUserRole] = useState(userRole);
 
   // Modals Visibility
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+  const [isEmergencyDevOpen, setIsEmergencyDevOpen] = useState(false);
 
   // Active Customer Tracking Order ID
   const [trackingOrderId, setTrackingOrderId] = useState(null);
 
-  // Sync tab with user's role on load/change during rendering
-  if (userRole !== prevUserRole) {
-    setPrevUserRole(userRole);
+  // Sync tab with user's role on load or role change
+  useEffect(() => {
     if (['kitchen', 'owner', 'developer'].includes(userRole)) {
       if (userRole === 'owner' && !isAuthorizedAdmin) {
         setCurrentTab('customer');
@@ -48,18 +48,29 @@ export default function App() {
     } else {
       setCurrentTab('customer');
     }
-  }
+  }, [userRole, isAuthorizedAdmin, isAuthorizedDeveloper]);
 
-  // Global Ctrl+K hotkey for search
+  // Global Ctrl+K (search) & Ctrl+Shift+D (Emergency Dev Console) hotkeys
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsSearchOpen(true);
       }
+      // Emergency Developer Mode Hotkey: Ctrl+Shift+D / Cmd+Shift+D
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        setIsEmergencyDevOpen(true);
+      }
     };
+    const handleOpenEmergency = () => setIsEmergencyDevOpen(true);
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('foody_open_emergency_dev', handleOpenEmergency);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('foody_open_emergency_dev', handleOpenEmergency);
+    };
   }, []);
 
   // Dynamic Tab Meta Updates for Search Engines
@@ -151,6 +162,7 @@ export default function App() {
               requiredRole="Administrator" 
               onAuthenticate={() => setIsAuthOpen(true)}
               onReturnStore={() => setCurrentTab('customer')}
+              onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
             />
           )
         )}
@@ -163,6 +175,7 @@ export default function App() {
               requiredRole="Developer" 
               onAuthenticate={() => setIsAuthOpen(true)}
               onReturnStore={() => setCurrentTab('customer')}
+              onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
             />
           )
         )}
@@ -193,6 +206,15 @@ export default function App() {
           setCurrentTab('customer');
         }}
         onSelectOrder={handleSearchOrderSelect}
+      />
+
+      {/* Emergency Developer Console Reclaim Modal */}
+      <EmergencyDevModal
+        isOpen={isEmergencyDevOpen}
+        onClose={() => setIsEmergencyDevOpen(false)}
+        onSuccess={() => {
+          setCurrentTab('developer');
+        }}
       />
     </div>
   );

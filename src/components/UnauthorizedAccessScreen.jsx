@@ -1,6 +1,11 @@
-import { ShieldAlert, LogIn, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, LogIn, ArrowLeft, KeyRound } from 'lucide-react';
 
-export default function UnauthorizedAccessScreen({ requiredRole = 'Administrator', onAuthenticate, onReturnStore }) {
+export default function UnauthorizedAccessScreen({ 
+  requiredRole = 'Administrator', 
+  onAuthenticate, 
+  onReturnStore,
+  onEmergencyOverride 
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 py-12 text-center animate-fade-in">
       <div className="w-full max-w-md bg-[#18181A] border border-white/10 rounded-[32px] p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col items-center gap-5 text-white">
@@ -31,6 +36,16 @@ export default function UnauthorizedAccessScreen({ requiredRole = 'Administrator
             <span>Sign In with Admin Account</span>
           </button>
 
+          {onEmergencyOverride && (
+            <button
+              onClick={onEmergencyOverride}
+              className="w-full py-3 px-5 rounded-full bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 border border-amber-400/30 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer font-['Outfit']"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>Emergency Master Key Override</span>
+            </button>
+          )}
+
           <button
             onClick={onReturnStore}
             className="w-full py-3 px-5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer font-['Outfit']"
@@ -41,7 +56,7 @@ export default function UnauthorizedAccessScreen({ requiredRole = 'Administrator
         </div>
 
         <p className="text-[11px] text-zinc-500 font-mono">
-          Security policy: RBAC verification enforced.
+          Security policy: RBAC verification enforced. (Press <kbd className="text-[#E0FF33]">Ctrl+Shift+D</kbd> for Emergency Recovery)
         </p>
       </div>
     </div>

@@ -112,6 +112,8 @@ export default function AuthModal({ isOpen, onClose }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [showLoginView, setShowLoginView] = useState(false);
+
 
   // Helper to get allowed workspaces by verified role
   const getAuthorizedWorkspaces = (role) => {
@@ -360,8 +362,9 @@ export default function AuthModal({ isOpen, onClose }) {
         )}
 
         {/* AUTHENTICATED PROFILE VIEW */}
-        {isAuthenticated ? (
+        {(isAuthenticated && !showLoginView) ? (
           <div className="space-y-3.5 relative z-10">
+
             {/* 1. Main Profile Card */}
             <div className="flex items-center gap-3.5 p-4 rounded-3xl bg-[#151314] border border-white/5">
               <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden shadow-md">
@@ -483,19 +486,43 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 5. Sign Out Button */}
-            <button 
-              type="button"
-              onClick={handleLogout}
-              className="w-full py-3 px-4 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out of Account</span>
-            </button>
+            {/* 5. Switch Account & Sign Out Actions */}
+            <div className="flex flex-col gap-2 pt-1">
+              <button 
+                type="button"
+                onClick={() => setShowLoginView(true)}
+                className="w-full py-3 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-md"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Switch Account / Sign In</span>
+              </button>
+
+              <button 
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-2.5 px-4 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out of Account</span>
+              </button>
+            </div>
           </div>
         ) : (
           /* GUEST / SIGN-IN PORTAL DESK */
           <div className="space-y-3.5 relative z-10">
+            {isAuthenticated && showLoginView && (
+              <div className="flex items-center justify-between pb-1 border-b border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShowLoginView(false)}
+                  className="text-xs text-[#E0FF33] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>← Back to Active Profile</span>
+                </button>
+                <span className="text-[10px] text-zinc-500">Currently: {user?.email || 'Logged In'}</span>
+              </div>
+            )}
+
             {/* Multi-Role Segmented Switcher Strip (Only shown when staff access is active) */}
             {showStaffSignIn && (
               <div className="grid grid-cols-5 bg-[#151314] p-1 rounded-2xl border border-white/5 gap-1 animate-fade-in">
