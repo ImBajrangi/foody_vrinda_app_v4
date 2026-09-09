@@ -142,18 +142,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     const group = L.featureGroup();
 
-    // 1. Destination Target Radius Glow
-    const destTargetGlow = L.circleMarker([destLat, destLng], {
-      radius: 15,
-      color: '#181617',
-      fillColor: '#E0FF33',
-      fillOpacity: 0.12,
-      weight: 1.5,
-      dashArray: '4, 4'
-    });
-    group.addLayer(destTargetGlow);
-
-    // 2. Origin Kitchen Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
+    // 1. Origin Kitchen Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
     const shortShopName = (shop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const originIcon = L.divIcon({
       className: 'custom-kitchen-pin',
