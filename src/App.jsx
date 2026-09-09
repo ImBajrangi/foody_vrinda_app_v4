@@ -14,6 +14,8 @@ import DeveloperView from './views/DeveloperView';
 import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import EmergencyDevModal from './components/EmergencyDevModal';
+import CompleteProfileModal from './components/CompleteProfileModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   const { userRole, isAuthorizedAdmin, isAuthorizedDeveloper } = useAuth();
@@ -50,6 +52,7 @@ export default function App() {
 
   // Modals Visibility
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
@@ -98,25 +101,42 @@ export default function App() {
     };
     const handleOpenEmergency = () => setIsEmergencyDevOpen(true);
     const handleOpenAuth = () => setIsAuthOpen(true);
+    const handleOpenCompleteProfile = (e) => {
+      const isForced = e?.detail?.force === true;
+      if (!isForced) {
+        try {
+          const lastDismissed = localStorage.getItem('foody_profile_prompt_dismissed_at');
+          const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+          if (lastDismissed && (Date.now() - parseInt(lastDismissed, 10)) < ONE_DAY_MS) {
+            // User dismissed recently; keep it side and do not impose on user
+            return;
+          }
+        } catch (_) {}
+      }
+      setIsCompleteProfileOpen(true);
+    };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('foody_open_emergency_dev', handleOpenEmergency);
     window.addEventListener('foody-open-auth', handleOpenAuth);
     window.addEventListener('foody_open_auth', handleOpenAuth);
+    window.addEventListener('foody-complete-profile', handleOpenCompleteProfile);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('foody_open_emergency_dev', handleOpenEmergency);
       window.removeEventListener('foody-open-auth', handleOpenAuth);
       window.removeEventListener('foody_open_auth', handleOpenAuth);
+      window.removeEventListener('foody-complete-profile', handleOpenCompleteProfile);
     };
   }, []);
 
   // Dynamic Tab Meta Updates for Search Engines
   useEffect(() => {
     const titleMap = {
-      kitchen: "Kitchen Operations Console | Foody Vrinda",
-      delivery: "Rider Dispatch Board | Foody Vrinda Express",
-      owner: "Management Console & Analytics | Foody Vrinda",
+      customer: "Foody Vrinda | 100% Pure Satvik Desi Ghee Prasad Delivery",
+      kitchen: "Kitchen Dashboard | Foody Vrinda",
+      delivery: "Sarathi Fleet Dispatch | Foody Vrinda",
+      owner: "Temple Kitchen Operations Desk | Foody Vrinda",
       developer: "Developer Console | Foody Vrinda Platform"
     };
 
@@ -174,55 +194,71 @@ export default function App() {
           setTrackingOrderId(null);
           setCurrentTab('customer');
         }}
-        onToggleRewards={() => setIsRewardsOpen(!isRewardsOpen)}
-        onOpenCart={() => window.dispatchEvent(new CustomEvent('foody-open-cart'))}
+        onOpenCart={() => {
+          if (currentTab !== 'customer') {
+            setCurrentTab('customer');
+          }
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('foody-open-cart'));
+          }, 30);
+        }}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
       />
 
-      <main className="min-h-[70vh]">
-        {currentTab === 'customer' && (
-          <CustomerView 
-            trackingOrderId={trackingOrderId}
-            setTrackingOrderId={setTrackingOrderId}
-          />
-        )}
-        
-        {currentTab === 'kitchen' && <KitchenView />}
-
-        {currentTab === 'delivery' && <TransportView />}
-
-        {currentTab === 'owner' && (
-          isAuthorizedAdmin ? (
-            <OwnerView />
-          ) : (
-            <UnauthorizedAccessScreen 
-              requiredRole="Administrator" 
-              onAuthenticate={() => setIsAuthOpen(true)}
-              onReturnStore={() => setCurrentTab('customer')}
-              onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
+      <main className="w-full">
+        <ErrorBoundary>
+          {currentTab === 'customer' && (
+            <CustomerView 
+              trackingOrderId={trackingOrderId}
+              setTrackingOrderId={setTrackingOrderId}
             />
-          )
-        )}
+          )}
+          
+          {currentTab === 'kitchen' && <KitchenView />}
 
-        {currentTab === 'developer' && (
-          isAuthorizedDeveloper ? (
-            <DeveloperView setCurrentTab={setCurrentTab} />
-          ) : (
-            <UnauthorizedAccessScreen 
-              requiredRole="Developer" 
-              onAuthenticate={() => setIsAuthOpen(true)}
-              onReturnStore={() => setCurrentTab('customer')}
-              onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
-            />
-          )
-        )}
+          {currentTab === 'delivery' && <TransportView />}
+
+          {currentTab === 'owner' && (
+            isAuthorizedAdmin ? (
+              <OwnerView />
+            ) : (
+              <UnauthorizedAccessScreen 
+                requiredRole="Administrator" 
+                onAuthenticate={() => setIsAuthOpen(true)}
+                onReturnStore={() => setCurrentTab('customer')}
+                onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
+              />
+            )
+          )}
+
+          {currentTab === 'developer' && (
+            isAuthorizedDeveloper ? (
+              <DeveloperView setCurrentTab={setCurrentTab} />
+            ) : (
+              <UnauthorizedAccessScreen 
+                requiredRole="Developer" 
+                onAuthenticate={() => setIsAuthOpen(true)}
+                onReturnStore={() => setCurrentTab('customer')}
+                onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
+              />
+            )
+          )}
+        </ErrorBoundary>
       </main>
 
       {/* OVERLAY MODALS */}
       <AuthModal 
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+      />
+
+      <CompleteProfileModal
+        isOpen={isCompleteProfileOpen}
+        onClose={() => setIsCompleteProfileOpen(false)}
+        onSaveComplete={() => {
+          setIsCompleteProfileOpen(false);
+        }}
       />
 
       <RewardsModal 

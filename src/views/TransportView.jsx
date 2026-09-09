@@ -54,7 +54,7 @@ export default function TransportView() {
   useEffect(() => {
     try {
       localStorage.setItem('foody_transport_view_mode', viewMode);
-    } catch (e) {}
+    } catch (e) { }
   }, [viewMode]);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
@@ -250,7 +250,6 @@ export default function TransportView() {
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
           cursor: pointer;
         ">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -311,53 +310,26 @@ export default function TransportView() {
       group.addLayer(riderMarker);
     }
 
-    // Dynamic Parabolic Arc Generator for off-road doorstep connection
-    const generateParabolicArc = (start, end, numPoints = 30, bendFactor = 0.22) => {
-      const [lat0, lng0] = start;
-      const [lat1, lng1] = end;
-      const dLat = lat1 - lat0;
-      const dLng = lng1 - lng0;
-      const dist = Math.hypot(dLat, dLng);
-      if (dist < 0.00001) return [start, end];
-
-      const midLat = (lat0 + lat1) / 2;
-      const midLng = (lng0 + lng1) / 2;
-      const normLat = -dLng / dist;
-      const normLng = dLat / dist;
-
-      const controlLat = midLat + normLat * dist * bendFactor;
-      const controlLng = midLng + normLng * dist * bendFactor;
-
-      const points = [];
-      for (let i = 0; i <= numPoints; i++) {
-        const t = i / numPoints;
-        const invT = 1 - t;
-        const lat = invT * invT * lat0 + 2 * invT * t * controlLat + t * t * lat1;
-        const lng = invT * invT * lng0 + 2 * invT * t * controlLng + t * t * lng1;
-        points.push([lat, lng]);
-      }
-      return points;
-    };
-
-    // 4. Luxury Laser Polyline (Outer Casing + Animated Glowing Neon Route)
-    const routeCasing = L.polyline([
+    // 4. Seamless Continuous Driving Road Polyline
+    let currentRouteCoords = [
       [shopLat, shopLng],
       [destLat, destLng]
-    ], {
+    ];
+
+    // Clean Road Casing (Subtle Dark Underlay)
+    const routeCasing = L.polyline(currentRouteCoords, {
       color: '#181617',
-      weight: 6,
-      opacity: 0.95,
+      weight: 5.5,
+      opacity: 0.9,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(routeCasing);
 
-    const routeLine = L.polyline([
-      [shopLat, shopLng],
-      [destLat, destLng]
-    ], {
+    // Glowing Neon Driving Road Line
+    const routeLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
-      weight: 2.8,
+      weight: 3.5,
       dashArray: '6, 8',
       className: 'animated-delivery-route',
       opacity: 1,
@@ -366,53 +338,20 @@ export default function TransportView() {
     });
     group.addLayer(routeLine);
 
-    // Dynamic Parabolic Arc with Flowing Circle Dots reaching destination
-    const walkingConnector = L.polyline([], {
-      color: '#6366F1',
-      weight: 5,
-      dashArray: '0, 12',
-      className: 'animated-parabolic-dots',
-      lineCap: 'round',
-      lineJoin: 'round',
-      opacity: 0.95
-    });
-    group.addLayer(walkingConnector);
-
-    // Road Drop-off Terminus Dot (Vehicle stop location)
-    const dropOffStopDot = L.circleMarker([destLat, destLng], {
-      radius: 4,
-      color: '#181617',
-      fillColor: '#6366F1',
-      fillOpacity: 1,
-      weight: 2
-    });
-
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
         if (data?.routes?.[0]?.geometry?.coordinates) {
           const rawLatLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
           if (rawLatLngs.length > 0) {
-            const roadLatLngs = [
+            const fullRoute = [
               [shopLat, shopLng],
-              ...rawLatLngs
+              ...rawLatLngs,
+              [destLat, destLng]
             ];
-            const roadEnd = rawLatLngs[rawLatLngs.length - 1];
 
-            routeCasing.setLatLngs(roadLatLngs);
-            routeLine.setLatLngs(roadLatLngs);
-
-            // Connect road terminus directly to destination pin with dynamic parabolic circle dots arc
-            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 30, 0.22);
-            walkingConnector.setLatLngs(walkingArc);
-
-            const isOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
-            if (isOffset) {
-              dropOffStopDot.setLatLng(roadEnd);
-              if (!group.hasLayer(dropOffStopDot)) {
-                group.addLayer(dropOffStopDot);
-              }
-            }
+            routeCasing.setLatLngs(fullRoute);
+            routeLine.setLatLngs(fullRoute);
 
             if (mapInstanceRef.current && routeGroupRef.current) {
               mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
@@ -600,8 +539,8 @@ export default function TransportView() {
           <button
             onClick={() => setViewMode('list')}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
-                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+              : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
           >
             <List className="w-3.5 h-3.5 shrink-0" />
@@ -610,8 +549,8 @@ export default function TransportView() {
           <button
             onClick={() => setViewMode('map')}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
-                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+              : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
           >
             <Map className="w-3.5 h-3.5 shrink-0" />
@@ -631,8 +570,8 @@ export default function TransportView() {
                 key={s.id}
                 onClick={() => impersonate(s.id, userRole)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
-                    : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                  ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
+                  : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
                   }`}
               >
                 <Store className="w-3 h-3" />
@@ -886,8 +825,8 @@ export default function TransportView() {
                         key={o.id}
                         onClick={() => setSelectedOrder(o)}
                         className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${isCur
-                            ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]'
-                            : 'bg-[#1E1B1C]/60 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C]'
+                          ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]'
+                          : 'bg-[#1E1B1C]/60 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C]'
                           }`}
                       >
                         <div className="min-w-0 pr-2">
@@ -964,8 +903,8 @@ export default function TransportView() {
                         </div>
 
                         <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
-                            ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
-                            : 'bg-cyan-400/10 text-cyan-300 border-cyan-400/20'
+                          ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+                          : 'bg-cyan-400/10 text-cyan-300 border-cyan-400/20'
                           }`}>
                           <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-400' : 'bg-cyan-400'}`} />
                           <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>

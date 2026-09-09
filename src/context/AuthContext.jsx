@@ -534,12 +534,18 @@ export function AuthProvider({ children }) {
         const activeShopId = existingRecord?.shopId || allShops[0]?.id || 'shop-vrinda-main';
         const activeShopIds = existingRecord?.shopIds || allShops.map(s => s.id);
 
+        const userPhone = existingRecord?.phone || u.user_metadata?.phone || u.phone || '';
+        const userAddr = existingRecord?.address || existingRecord?.customerAddress || u.user_metadata?.address || '';
+
         const userProfile = {
           id: u.id,
           email,
           displayName: u.user_metadata?.displayName || u.user_metadata?.name || u.user_metadata?.full_name || email.split('@')[0],
           photoURL: avatarUrl,
           avatar_url: avatarUrl,
+          phone: userPhone,
+          address: userAddr,
+          customerAddress: userAddr,
           role,
           shopId: activeShopId,
           shopIds: activeShopIds,
@@ -552,6 +558,13 @@ export function AuthProvider({ children }) {
         setCurrentShopName(resolveShopName(userProfile.shopId));
         localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
         syncUserToCloudList(userProfile);
+
+        // If phone or address is missing for a newly logged-in customer, prompt profile completion
+        if (!userPhone || !userAddr) {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('foody-complete-profile', { detail: userProfile }));
+          }, 450);
+        }
       }
     });
 
@@ -559,6 +572,38 @@ export function AuthProvider({ children }) {
       subscription?.unsubscribe();
     };
   }, [allShops, resolveShopName, syncUserToCloudList]);
+
+  // Update user profile fields (Name, Phone, Default Address) and sync to cache & Supabase
+  const updateUserProfile = useCallback(async ({ displayName, phone, address, customerAddress }) => {
+    const cleanPhone = (phone || '').replace(/\D/g, '').slice(0, 10);
+    const cleanAddr = (address || customerAddress || '').trim();
+    const cleanName = (displayName || '').trim();
+
+    setUserData(prev => {
+      const updated = {
+        ...(prev || {}),
+        ...(cleanName ? { displayName: cleanName } : {}),
+        ...(cleanPhone ? { phone: cleanPhone } : {}),
+        ...(cleanAddr ? { address: cleanAddr, customerAddress: cleanAddr } : {})
+      };
+      try {
+        localStorage.setItem('foody_user_data', JSON.stringify(updated));
+      } catch (_) {}
+      syncUserToCloudList(updated);
+      return updated;
+    });
+
+    const activeId = user?.id || userData?.id;
+    if (activeId) {
+      try {
+        await updateCloudUser(activeId, {
+          ...(cleanName ? { displayName: cleanName } : {}),
+          ...(cleanPhone ? { phone: cleanPhone } : {}),
+          ...(cleanAddr ? { address: cleanAddr } : {})
+        });
+      } catch (_) {}
+    }
+  }, [user?.id, userData?.id, syncUserToCloudList]);
 
 
   const loginWithEmail = async (email, password) => {
@@ -840,6 +885,7 @@ export function AuthProvider({ children }) {
     logout,
     impersonate,
     updateUserRole,
+    updateUserProfile,
     setUserRole,
     refreshShops: loadShops
   };

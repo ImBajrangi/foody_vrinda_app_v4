@@ -1,45 +1,89 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
- * Ultra-responsive 120fps 1:1 drag-to-dismiss gesture hook.
- * Follows the user's finger/mouse 1:1 down the screen with zero clamping and zero latency.
- * Reference: Vrinda Tours Standard
+ * Ultra-responsive 120fps native-grade drag-to-dismiss gesture hook.
+ * Strictly operates on designated drag handles (top pill / header bar) only.
+ * NEVER interferes with or intercepts content or page scrolling anywhere.
  */
 export function useBottomSheetDrag(onClose, threshold = 40) {
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const sheetRef = useRef(null);
   const startYRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const lastYRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const velocityYRef = useRef(0);
   const currentDiffRef = useRef(0);
   const hasMovedRef = useRef(false);
   const isDraggingRef = useRef(false);
+  const rafIdRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
+
+  const updateSheetTransform = (translateY, transition = 'none') => {
+    if (sheetRef.current) {
+      sheetRef.current.style.transform = translateY !== 0 ? `translate3d(0, ${translateY}px, 0)` : '';
+      sheetRef.current.style.transition = transition;
+    }
+  };
 
   const startDrag = useCallback((clientY) => {
     startYRef.current = clientY;
+    lastYRef.current = clientY;
+    startTimeRef.current = performance.now();
+    lastTimeRef.current = startTimeRef.current;
+    velocityYRef.current = 0;
     currentDiffRef.current = 0;
     hasMovedRef.current = false;
     isDraggingRef.current = true;
     setIsDragging(true);
 
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'none';
+      sheetRef.current.style.willChange = 'transform';
+    }
+
     const onMove = (e) => {
       if (!isDraggingRef.current) return;
       const currentY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0]?.clientY) || 0;
+      const now = performance.now();
       const deltaY = currentY - startYRef.current;
-      if (deltaY > 0) {
-        if (deltaY > 4) {
-          hasMovedRef.current = true;
-        }
-        currentDiffRef.current = deltaY;
-        setDragY(deltaY);
-      } else {
-        currentDiffRef.current = 0;
-        setDragY(0);
+
+      const dt = now - lastTimeRef.current;
+      if (dt > 8) {
+        velocityYRef.current = (currentY - lastYRef.current) / dt;
+        lastYRef.current = currentY;
+        lastTimeRef.current = now;
       }
+
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = requestAnimationFrame(() => {
+        if (!isDraggingRef.current) return;
+        let clampedDelta;
+        if (deltaY > 0) {
+          if (deltaY > 4) hasMovedRef.current = true;
+          clampedDelta = deltaY;
+        } else {
+          // Upward rubber-band resistance
+          clampedDelta = deltaY * 0.18;
+        }
+        currentDiffRef.current = clampedDelta;
+        updateSheetTransform(clampedDelta, 'none');
+      });
     };
 
     const onEnd = () => {
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
       setIsDragging(false);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
 
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onEnd);
@@ -51,11 +95,31 @@ export function useBottomSheetDrag(onClose, threshold = 40) {
       window.removeEventListener('mouseup', onEnd);
 
       const finalDiff = currentDiffRef.current;
+      const velocity = velocityYRef.current;
       currentDiffRef.current = 0;
-      setDragY(0);
 
-      if (finalDiff > threshold || (hasMovedRef.current && finalDiff > 30)) {
-        onClose?.();
+      // Fast flick down (>0.35 px/ms) or dragged down past threshold
+      const shouldDismiss = (velocity > 0.35 && finalDiff > 12) || finalDiff > threshold || (hasMovedRef.current && finalDiff > 25);
+
+      if (shouldDismiss) {
+        if (sheetRef.current) {
+          sheetRef.current.style.transition = 'transform 0.22s cubic-bezier(0.32, 0, 0.67, 0)';
+          sheetRef.current.style.transform = 'translate3d(0, 100%, 0)';
+        }
+        onCloseRef.current?.();
+      } else {
+        // Natural spring-back to resting position
+        if (sheetRef.current) {
+          sheetRef.current.style.transition = 'transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+          sheetRef.current.style.transform = 'translate3d(0, 0, 0)';
+          setTimeout(() => {
+            if (sheetRef.current && !isDraggingRef.current) {
+              sheetRef.current.style.transform = '';
+              sheetRef.current.style.transition = '';
+              sheetRef.current.style.willChange = '';
+            }
+          }, 300);
+        }
       }
     };
 
@@ -67,17 +131,15 @@ export function useBottomSheetDrag(onClose, threshold = 40) {
     window.addEventListener('touchcancel', onEnd, { passive: true });
     window.addEventListener('mousemove', onMove, { passive: true });
     window.addEventListener('mouseup', onEnd, { passive: true });
-  }, [threshold, onClose]);
+  }, [threshold]);
 
   const handlePointerDown = useCallback((e) => {
     if (e.button !== undefined && e.button !== 0) return;
-    startDrag(e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0]?.clientY) || 0);
+    const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0]?.clientY) || 0;
+    startDrag(clientY);
   }, [startDrag]);
 
   const sheetStyle = {
-    transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
-    transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1)',
-    touchAction: 'pan-x',
     userSelect: isDragging ? 'none' : undefined,
     WebkitUserSelect: isDragging ? 'none' : undefined
   };
@@ -94,12 +156,15 @@ export function useBottomSheetDrag(onClose, threshold = 40) {
   };
 
   return {
-    dragY,
+    sheetRef,
+    dragY: 0,
     isDragging,
     sheetStyle,
     handleProps,
     hasMoved: () => hasMovedRef.current
   };
 }
+
+
 
 

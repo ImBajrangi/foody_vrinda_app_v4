@@ -116,17 +116,54 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Google Maps JS SDK -->
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBbFR_K70QZEhfKNfKfsddE0ad-vXo0Eto&libraries=places&loading=async"></script>
+  <style>
+    html, body {
+      background-color: #121011 !important;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
 </head>
 
-<body class="text-white bg-[#1E1B1C] antialiased selection:bg-[#E0FF33] selection:text-[#1E1B1C]">
+<body class="text-white bg-[#121011] antialiased selection:bg-[#E0FF33] selection:text-[#121011]" style="background-color: #121011;">
   <div id="root">
-    <div
-      style="padding: 24px; text-align: center; color: #ffffff; font-family: 'Laila', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <h1 style="font-size: 26px; font-weight: 800; margin: 0 0 6px 0; color: #ffffff;">वृन्दोपनिषद् <span style="font-size: 16px; color: #E0FF33; font-family: sans-serif;">(vrindopnishad)</span></h1>
-      <p style="color: #a1a1aa; font-size: 13px; margin: 0;">Foody Vrinda · Authentic Satvik Cloud Kitchen & Divine Prasad Delivery</p>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(circle at 50% 40%, #1a1718 0%, #121011 75%); padding: 24px; text-align: center; box-sizing: border-box; position: relative;">
+      
+      <!-- Static Brand Medallion -->
+      <div style="position: relative; width: 76px; height: 76px; margin-bottom: 22px;">
+        <div style="width: 100%; height: 100%; border-radius: 22px; background: #181617; border: 1.5px solid rgba(224, 255, 51, 0.28); display: flex; align-items: center; justify-content: center; box-shadow: 0 14px 36px rgba(0,0,0,0.85), 0 0 20px rgba(224, 255, 51, 0.1), inset 0 1px 1px rgba(255,255,255,0.12); overflow: hidden; padding: 10px; box-sizing: border-box;">
+          
+          <!-- Official Foody Vrinda Brand Logo (Lightweight WebP) -->
+          <img src="/foodyVrinda-logo.webp" alt="Foody Vrinda" width="56" height="56" fetchpriority="high" decoding="async" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: block;" />
+        </div>
+      </div>
+
+      <!-- Static Minimalist Brand Hierarchy -->
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(224,255,51,0.08); border: 1px solid rgba(224,255,51,0.2); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;">
+          <span style="font-size: 9.5px; font-weight: 800; color: #E0FF33; letter-spacing: 1.2px; text-transform: uppercase; font-family: 'Outfit', sans-serif;">
+            100% PURE SATVIK • DESI GHEE
+          </span>
+        </div>
+
+        <h1 style="font-size: 24px; font-weight: 900; margin: 0 0 4px 0; color: #ffffff; letter-spacing: -0.5px; font-family: 'Outfit', sans-serif;">
+          FOODY VRINDA
+        </h1>
+        
+        <p style="color: #8b8f96; font-size: 12.5px; font-weight: 500; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;">
+          Temple Kitchens of Sri Dham Vrindavan
+        </p>
+      </div>
+
+      <!-- Subtle Static Devotional Footer -->
+      <div style="position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.22); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; font-family: 'Laila', serif;">
+        श्री धाम वृन्दावन • राधे राधे
+      </div>
+
     </div>
   </div>
   <script type="module" src="/src/main.jsx"></script>

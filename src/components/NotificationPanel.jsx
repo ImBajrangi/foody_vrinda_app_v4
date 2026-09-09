@@ -262,42 +262,42 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 <div 
                   key={n.id} 
                   onClick={() => handleNotificationItemClick(n.id, n.orderId)}
-                  className={`p-3 rounded-xl transition-all cursor-pointer border relative group ${
+                  className={`p-3.5 rounded-2xl transition-all cursor-pointer border relative group ${
                     isUnread 
-                      ? 'bg-[#221F20] border-white/10 hover:border-[#E0FF33]/40 shadow-sm' 
-                      : 'bg-[#181617]/70 border-white/5 hover:bg-[#1C1A1B] opacity-75 hover:opacity-100'
+                      ? 'bg-[#201D1E] border-[#E0FF33]/20 hover:border-[#E0FF33]/45 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.5)]' 
+                      : 'bg-[#181617]/80 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C] opacity-80 hover:opacity-100'
                   }`}
                 >
                   {/* Top Line: Avatar Icon + Title + Status Tag + Time */}
-                  <div className="flex items-center gap-2.5 mb-1.5">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${details.iconBg}`}>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${details.iconBg} shadow-inner`}>
                       {details.icon}
                     </div>
 
-                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
                       <h4 className={`text-xs font-bold font-['Outfit'] truncate ${isUnread ? 'text-white' : 'text-neutral-300'}`}>
                         {n.title || 'Foody Vrinda Update'}
                       </h4>
-                      <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded border shrink-0 ${details.tagBg}`}>
+                      <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${details.tagBg}`}>
                         {n.statusTag || details.tag}
                       </span>
                     </div>
 
-                    <span className="text-[9.5px] text-neutral-500 font-medium shrink-0 flex items-center gap-0.5">
-                      <Clock size={9} />
+                    <span className="text-[10px] text-zinc-500 font-medium shrink-0 flex items-center gap-1">
+                      <Clock size={10} />
                       {relativeTime}
                     </span>
                   </div>
 
                   {/* Body Line: Direct concise text */}
-                  <p className={`text-[11.5px] leading-snug pl-9 pr-1 font-['Plus_Jakarta_Sans'] ${
-                    isUnread ? 'text-neutral-200 font-medium' : 'text-neutral-400'
+                  <p className={`text-xs leading-relaxed pl-10.5 pr-2 font-['Plus_Jakarta_Sans'] ${
+                    isUnread ? 'text-zinc-200 font-medium' : 'text-zinc-400'
                   }`}>
                     {n.message}
                   </p>
 
                   {/* Bottom Action Line */}
-                  <div className="flex items-center justify-between pt-2 pl-9">
+                  <div className="flex items-center justify-between pt-2.5 pl-10.5">
                     {n.orderId ? (
                       <button
                         type="button"
@@ -305,31 +305,31 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                           e.stopPropagation();
                           handleNotificationItemClick(n.id, n.orderId);
                         }}
-                        className="text-[10px] font-bold text-black bg-[#E0FF33] hover:bg-[#d4f820] active:scale-95 px-2.5 py-1 rounded-md flex items-center gap-1 cursor-pointer transition-all shadow-[0_1px_4px_rgba(224,255,51,0.2)]"
+                        className="h-7 px-3.5 rounded-xl bg-[#E0FF33] hover:bg-[#D4FF00] text-[#141213] font-black text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-[0_2px_12px_rgba(224,255,51,0.25)] active:scale-95"
                       >
                         <span>Track Order</span>
-                        <ArrowRight size={10} className="stroke-[2.5]" />
+                        <ArrowRight size={11} className="stroke-[3]" />
                       </button>
                     ) : (
                       <span />
                     )}
 
                     {/* Quick Icon Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button 
                         type="button" 
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleNotificationRead(n.id, !n.read);
                         }}
-                        className={`p-1 rounded-md text-[10px] border transition-all cursor-pointer ${
+                        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs border transition-all cursor-pointer ${
                           n.read 
-                            ? 'text-neutral-500 hover:text-white border-transparent hover:bg-white/5' 
-                            : 'text-[#E0FF33] bg-[#E0FF33]/10 border-[#E0FF33]/20 hover:bg-[#E0FF33]/20'
+                            ? 'text-zinc-500 hover:text-white border-transparent hover:bg-white/5' 
+                            : 'text-[#E0FF33] bg-[#E0FF33]/15 border-[#E0FF33]/30 hover:bg-[#E0FF33]/25'
                         }`}
                         title={n.read ? "Mark as unread" : "Mark as read"}
                       >
-                        {n.read ? <Check size={11} /> : <CheckCheck size={11} />}
+                        {n.read ? <Check size={12} /> : <CheckCheck size={12} />}
                       </button>
                       
                       {deleteNotification && (
@@ -339,10 +339,10 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                             e.stopPropagation();
                             deleteNotification(n.id);
                           }}
-                          className="p-1 rounded-md text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-xl flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/15 transition-all cursor-pointer"
                           title="Dismiss"
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={12} />
                         </button>
                       )}
                     </div>
@@ -350,7 +350,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
 
                   {/* Subtle Unread Glow Indicator */}
                   {isUnread && (
-                    <span className="absolute top-2.5 right-2 w-1.5 h-1.5 rounded-full bg-[#E0FF33] shadow-[0_0_6px_rgba(224,255,51,0.9)] pointer-events-none" />
+                    <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-[#E0FF33] shadow-[0_0_8px_#E0FF33] pointer-events-none animate-pulse" />
                   )}
                 </div>
               );

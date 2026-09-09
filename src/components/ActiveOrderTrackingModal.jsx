@@ -90,9 +90,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   let destLat = parseFloat(rawDest?.lat);
   let destLng = parseFloat(rawDest?.lng);
 
-  if (isNaN(destLat) || isNaN(destLng) || (Math.abs(destLat - shopLat) < 0.0015 && Math.abs(destLng - shopLng) < 0.0015)) {
-    destLat = shopLat + 0.0120;
-    destLng = shopLng + 0.0095;
+  if (isNaN(destLat) || isNaN(destLng) || (Math.abs(destLat - shopLat) < 0.004 && Math.abs(destLng - shopLng) < 0.004)) {
+    destLat = shopLat + 0.0135;
+    destLng = shopLng + 0.0098;
   }
 
   const midLat = (shopLat + destLat) / 2;
@@ -156,7 +156,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(224,255,51,0.25);
           cursor: pointer;
         ">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -191,7 +190,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
           cursor: pointer;
         ">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -257,8 +255,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Continuous Route Polyline & Dynamic Parabolic Walking Arc (Uber/Google Maps Style)
-    const generateParabolicArc = (start, end, numPoints = 30, bendFactor = 0.22) => {
+    // 5. Continuous Route Polyline & Ultra-Smooth Upward-Arched Parabolic Dotted Arcs
+    const generateParabolicArc = (start, end, numPoints = 50, bendFactor = 0.28) => {
       const [lat0, lng0] = start;
       const [lat1, lng1] = end;
       const dLat = lat1 - lat0;
@@ -268,8 +266,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
       const midLat = (lat0 + lat1) / 2;
       const midLng = (lng0 + lng1) / 2;
-      const normLat = -dLng / dist;
-      const normLng = dLat / dist;
+
+      // Calculate perpendicular normal with strict upward (overhead arc) orientation
+      let normLat = -dLng / dist;
+      let normLng = dLat / dist;
+
+      // Ensure the parabolic arc always inclines upwards mostly
+      if (normLat < 0) {
+        normLat = -normLat;
+        normLng = -normLng;
+      }
+      if (normLat < 0.25) {
+        normLat = 0.45;
+      }
 
       const controlLat = midLat + normLat * dist * bendFactor;
       const controlLng = midLng + normLng * dist * bendFactor;
@@ -291,8 +300,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       [destLat, destLng]
     ];
 
+    // Road Casing (Dark Contrast Underlay)
     const roadCasing = L.polyline(currentRouteCoords, {
-      color: '#FFFFFF',
+      color: '#181617',
       weight: 6,
       opacity: 0.95,
       lineCap: 'round',
@@ -300,43 +310,47 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadCasing);
 
-    const baseSolidLine = L.polyline(currentRouteCoords, {
-      color: '#181617',
-      weight: 4,
-      opacity: 0.95,
-      lineCap: 'round',
-      lineJoin: 'round'
-    });
-    group.addLayer(baseSolidLine);
-
-    const dashedActiveLine = L.polyline(currentRouteCoords, {
+    // Glowing Animated Neon Delivery Route Dashes
+    const roadLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
-      weight: 2.8,
+      weight: 3.2,
       dashArray: '6, 8',
       className: 'animated-delivery-route',
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
     });
-    group.addLayer(dashedActiveLine);
+    group.addLayer(roadLine);
 
-    // Dynamic Parabolic Arc with Flowing Circle Dots reaching destination
-    const walkingConnector = L.polyline([], {
-      color: '#6366F1',
-      weight: 5,
-      dashArray: '0, 12',
-      className: 'animated-parabolic-dots',
+    // Start Connector Casing & Parabolic Obsidian Beads (Kitchen -> Road Start)
+    const startConnectorCasing = L.polyline([], {
+      color: '#121011',
+      weight: 8,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
       lineCap: 'round',
-      lineJoin: 'round',
-      opacity: 0.95
+      lineJoin: 'round'
     });
-    group.addLayer(walkingConnector);
+    group.addLayer(startConnectorCasing);
 
-    // Road Drop-off Terminus Dot (where vehicle stops and walking begins)
+    // End Connector Casing & Parabolic Obsidian Beads (Road End -> Doorstep)
+    const walkingConnectorCasing = L.polyline([], {
+      color: '#121011',
+      weight: 8,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(walkingConnectorCasing);
+
+    // Road Drop-off Terminus Dot (Where vehicle stops and walking begins)
     const dropOffStopDot = L.circleMarker([destLat, destLng], {
-      radius: 4,
+      radius: 4.5,
       color: '#181617',
-      fillColor: '#6366F1',
+      fillColor: '#E0FF33',
       fillOpacity: 1,
       weight: 2
     });
@@ -360,26 +374,30 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               setRoadSummary(routeObj.legs[0].summary);
             }
 
-            // Road driving segment
-            const roadLatLngs = [
-              [shopLat, shopLng],
-              ...rawLatLngs
-            ];
-
+            const roadStart = rawLatLngs[0];
             const roadEnd = rawLatLngs[rawLatLngs.length - 1];
 
-            currentRouteCoords = roadLatLngs;
-            roadCasing.setLatLngs(roadLatLngs);
-            baseSolidLine.setLatLngs(roadLatLngs);
-            dashedActiveLine.setLatLngs(roadLatLngs);
+            // Set main road driving path with continuous animated dashes
+            currentRouteCoords = rawLatLngs;
+            roadCasing.setLatLngs(rawLatLngs);
+            roadLine.setLatLngs(rawLatLngs);
 
-            // Connect road terminus directly to destination pin with dynamic parabolic circle dots arc
-            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 30, 0.22);
-            walkingConnector.setLatLngs(walkingArc);
+            // Connect Kitchen -> Road Start with parabolic obsidian dots
+            const isStartOffset = Math.hypot(roadStart[0] - shopLat, roadStart[1] - shopLng) > 0.0001;
+            if (isStartOffset) {
+              const startArc = generateParabolicArc([shopLat, shopLng], roadStart, 50, 0.22);
+              startConnectorCasing.setLatLngs(startArc);
+            } else {
+              startConnectorCasing.setLatLngs([]);
+            }
+
+            // Connect Road End -> Doorstep Pin with parabolic obsidian dots
+            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 50, 0.22);
+            walkingConnectorCasing.setLatLngs(walkingArc);
 
             // Show drop-off stop dot at road terminus if destination is offset
-            const isOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
-            if (isOffset) {
+            const isEndOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
+            if (isEndOffset) {
               dropOffStopDot.setLatLng(roadEnd);
               if (!group.hasLayer(dropOffStopDot)) {
                 group.addLayer(dropOffStopDot);
@@ -387,29 +405,25 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             }
 
             if (riderMarker) {
-              const riderIndex = Math.min(Math.floor(roadLatLngs.length * 0.45), roadLatLngs.length - 1);
-              if (roadLatLngs[riderIndex]) {
-                riderMarker.setLatLng(roadLatLngs[riderIndex]);
+              const riderIndex = Math.min(Math.floor(rawLatLngs.length * 0.45), rawLatLngs.length - 1);
+              if (rawLatLngs[riderIndex]) {
+                riderMarker.setLatLng(rawLatLngs[riderIndex]);
               }
 
               if (status === 'out_for_delivery') {
                 let stepPercent = 0.35;
                 animInterval = setInterval(() => {
                   stepPercent = (stepPercent + 0.015) % 0.95;
-                  const idx = Math.min(Math.floor(stepPercent * roadLatLngs.length), roadLatLngs.length - 1);
-                  if (roadLatLngs[idx] && riderMarker) {
-                    riderMarker.setLatLng(roadLatLngs[idx]);
+                  const idx = Math.min(Math.floor(stepPercent * rawLatLngs.length), rawLatLngs.length - 1);
+                  if (rawLatLngs[idx] && riderMarker) {
+                    riderMarker.setLatLng(rawLatLngs[idx]);
                   }
                 }, 1000);
               }
             }
 
             if (mapInstanceRef.current && routeGroupRef.current) {
-              mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
-                paddingTopLeft: [50, 30],
-                paddingBottomRight: [30, isExpanded ? 240 : 100],
-                maxZoom: 16
-              });
+              applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
             }
           }
         }
@@ -425,13 +439,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     routeGroupRef.current = group;
     mapInstanceRef.current = map;
 
-    map.fitBounds(group.getBounds(), {
-      paddingTopLeft: [50, 30],
-      paddingBottomRight: [30, isExpanded ? 240 : 100],
-      maxZoom: 16
-    });
+    // Initial viewport framing with layout stabilization timer
+    applyProfessionalViewport(map, group, isExpanded, false);
+    const stabilizeTimer = setTimeout(() => {
+      if (mapInstanceRef.current && routeGroupRef.current) {
+        applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, false);
+      }
+    }, 160);
 
     return () => {
+      if (stabilizeTimer) clearTimeout(stabilizeTimer);
       if (animInterval) clearInterval(animInterval);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -440,45 +457,72 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     };
   }, [order?.id, shopLat, shopLng, destLat, destLng, status]);
 
-  // Adjust map bounds when toggling peek / expanded
+  // Dynamic Professional Viewport Adjuster (Uber / Swiggy Map Standard)
+  const applyProfessionalViewport = (map, group, isExpandedMode = false, animate = true) => {
+    if (!map || !group) return;
+    try {
+      map.invalidateSize();
+      const rawBounds = group.getBounds();
+      if (!rawBounds || !rawBounds.isValid()) return;
+
+      const ne = rawBounds.getNorthEast();
+      const sw = rawBounds.getSouthWest();
+      const latDiff = Math.abs(ne.lat - sw.lat);
+      const lngDiff = Math.abs(ne.lng - sw.lng);
+      const maxSpan = Math.max(latDiff, lngDiff);
+
+      let paddedBounds = rawBounds;
+      let targetMaxZoom = 16;
+
+      // Smart proximity padding: ensures breathing room on close addresses while keeping full route visible
+      if (maxSpan < 0.005) {
+        paddedBounds = rawBounds.pad(0.35);
+        targetMaxZoom = 17;
+      } else if (maxSpan < 0.02) {
+        paddedBounds = rawBounds.pad(0.18);
+        targetMaxZoom = 16;
+      } else {
+        paddedBounds = rawBounds.pad(0.10);
+        targetMaxZoom = 15;
+      }
+
+      map.fitBounds(paddedBounds, {
+        paddingTopLeft: [65, 35],
+        paddingBottomRight: [35, isExpandedMode ? 320 : 100],
+        maxZoom: targetMaxZoom,
+        animate: animate,
+        duration: animate ? 0.6 : 0
+      });
+    } catch (_) { }
+  };
+
+  // Adjust map bounds when toggling peek / expanded safely
   useEffect(() => {
-    if (mapInstanceRef.current && routeGroupRef.current) {
-      setTimeout(() => {
-        mapInstanceRef.current.invalidateSize();
-        mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
-          paddingTopLeft: [50, 30],
-          paddingBottomRight: [30, isExpanded ? 220 : 90],
-          maxZoom: 16,
-          animate: true
-        });
-      }, 200);
-    }
+    if (!mapInstanceRef.current || !routeGroupRef.current) return;
+    const timer = setTimeout(() => {
+      applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
+    }, 120);
+    return () => clearTimeout(timer);
   }, [isExpanded]);
 
   const handleRecenter = () => {
     if (mapInstanceRef.current && routeGroupRef.current) {
-      mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
-        paddingTopLeft: [50, 30],
-        paddingBottomRight: [30, isExpanded ? 220 : 90],
-        maxZoom: 16,
-        animate: true
-      });
+      applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
     }
   };
 
   // 120fps GPU synchronized drag-to-dismiss gesture hook (Vrinda Tours Standard)
-  const { 
-    dragY: modalDragY, 
-    isDragging: isModalDragging, 
-    sheetStyle: modalSheetStyle, 
-    handleProps: modalHandleProps, 
-    triggerClose: triggerModalClose,
+  const {
+    sheetRef: modalSheetRef,
+    isDragging: isModalDragging,
+    sheetStyle: modalSheetStyle,
+    handleProps: modalHandleProps,
     hasMoved: modalHasMoved
   } = useBottomSheetDrag(handleAnimatedClose, 35);
 
   // Bottom drawer gesture hook for smooth collapse to peek mode
   const {
-    dragY: drawerDragY,
+    sheetRef: drawerSheetRef,
     isDragging: isDrawerDragging,
     sheetStyle: drawerSheetStyle,
     handleProps: drawerHandleProps,
@@ -562,13 +606,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     >
 
       {/* Luxury Obsidian Modal Container with 120fps Gesture Support */}
-      <div 
+      <div
+        ref={modalSheetRef}
         style={modalSheetStyle}
         className={`w-full max-w-[440px] bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
       >
 
         {/* Top Header Grab Bar (Drag down anywhere on top to shrink to floating capsule) */}
-        <div 
+        <div
           {...modalHandleProps}
           className="absolute top-0 inset-x-0 h-9 z-[600] flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto select-none touch-none"
           title="Drag down to shrink to floating capsule"
@@ -627,6 +672,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
         {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
         <div
+          ref={drawerSheetRef}
           style={drawerSheetStyle}
           className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'max-h-[92px]'
             } no-scrollbar`}

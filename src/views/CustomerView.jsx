@@ -43,6 +43,7 @@ import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
 import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { fetchAddressSuggestions } from '../services/addressService';
 import { supabase, createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
@@ -200,7 +201,7 @@ const DEFAULT_PRASAD_ITEMS = [
 ];
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
-  const { user, userData, allShops, isAuthenticated } = useAuth();
+  const { user, userData, allShops, isAuthenticated, updateUserProfile } = useAuth();
   const { requestSystemNotificationPermission } = useNotifications();
 
   // Strict verification: User must be authenticated (phone lookup / email / registered account)
@@ -227,6 +228,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const geo = useGeolocation();
 
   const [editingQuantityItem, setEditingQuantityItem] = useState(null);
+  const [selectedDishDetails, setSelectedDishDetails] = useState(null);
+  const [detailQuantity, setDetailQuantity] = useState(1);
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [menuSearch, setMenuSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const [deliveryCoords, setDeliveryCoords] = useState(() => {
     try {
@@ -236,52 +243,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       return { lat: null, lng: null };
     }
   });
+
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [cookingNotes, setCookingNotes] = useState('');
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [cookingNotes, setCookingNotes] = useState('');
 
-  useEffect(() => {
-    const handleGlobalOpenCart = () => setShowCartDrawer(true);
-    window.addEventListener('foody-open-cart', handleGlobalOpenCart);
-    return () => window.removeEventListener('foody-open-cart', handleGlobalOpenCart);
-  }, []);
-
-  useEffect(() => {
-    if (deliveryCoords?.lat && deliveryCoords?.lng) {
-      localStorage.setItem('deliveryCoords', JSON.stringify(deliveryCoords));
-    }
-  }, [deliveryCoords]);
-
-  // Auto-fill delivery coords from GPS when no manual pin set
-  useEffect(() => {
-    if (geo.coords && (!deliveryCoords?.lat || !deliveryCoords?.lng)) {
-      setDeliveryCoords(geo.coords);
-    }
-  }, [geo.coords]);
-
-  const [menuSearch, setMenuSearch] = useState('');
-  const [menuItems, setMenuItems] = useState([]);
-  const [menuLoading, setMenuLoading] = useState(false);
-
-  // Premium Menu filters and detail modal states (Template Right Screen)
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedDishDetails, setSelectedDishDetails] = useState(null);
-  const [detailQuantity, setDetailQuantity] = useState(1);
+  // Favorites state
   const [favorites, setFavorites] = useState(() => {
     try {
-      const saved = localStorage.getItem('foody_user_favs');
-      return saved ? JSON.parse(saved) : ['prasad-1'];
+      return JSON.parse(localStorage.getItem('foody_favorites')) || [];
     } catch {
-      return ['prasad-1'];
+      return [];
     }
   });
 
-  const toggleFavorite = (itemId, e) => {
-    if (e) e.stopPropagation();
+  const toggleFavorite = (dishId) => {
     setFavorites(prev => {
-      const updated = prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId];
+      const updated = prev.includes(dishId)
+        ? prev.filter(id => id !== dishId)
+        : [...prev, dishId];
       try {
-        localStorage.setItem('foody_user_favs', JSON.stringify(updated));
+        localStorage.setItem('foody_favorites', JSON.stringify(updated));
       } catch (err) {
         console.error("Failed to save favorites", err);
       }
@@ -289,17 +271,43 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     });
   };
 
-  // Checkout details
-  const [checkoutName, setCheckoutName] = useState(localStorage.getItem('customerName') || '');
-  const [checkoutAddress, setCheckoutAddress] = useState(localStorage.getItem('customerAddress') || '');
-  const [checkoutPhone, setCheckoutPhone] = useState(localStorage.getItem('customerPhone') || '');
+  // Checkout details with full profile auto-fill
+  const [checkoutName, setCheckoutName] = useState(() => localStorage.getItem('customerName') || '');
+  const [checkoutAddress, setCheckoutAddress] = useState(() => localStorage.getItem('customerAddress') || '');
+  const [checkoutPhone, setCheckoutPhone] = useState(() => localStorage.getItem('customerPhone') || '');
 
-  // Auto-fill checkout fields from user profile + geo address
+  // Visual validation shake state & input focus refs
+  const [shakeField, setShakeField] = useState(null);
+  const nameInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
+  const addressInputRef = useRef(null);
+
+  const triggerShake = (field) => {
+    setShakeField(field);
+    if (field === 'name' && nameInputRef.current) {
+      nameInputRef.current.focus();
+    } else if (field === 'phone' && phoneInputRef.current) {
+      phoneInputRef.current.focus();
+    } else if (field === 'address' && addressInputRef.current) {
+      addressInputRef.current.focus();
+    }
+    setTimeout(() => {
+      setShakeField(null);
+    }, 1200);
+  };
+
+  // Auto-fill checkout fields from user profile + geo address for instant future orders
   useEffect(() => {
     if (userData) {
-      if (!checkoutName && userData.displayName) setCheckoutName(userData.displayName);
-      if (!checkoutPhone && userData.phone) setCheckoutPhone(userData.phone);
-      if (!checkoutAddress && userData.address) setCheckoutAddress(userData.address);
+      if (userData.displayName && (!checkoutName || checkoutName === 'Guest')) {
+        setCheckoutName(userData.displayName);
+      }
+      if (userData.phone && !checkoutPhone) {
+        setCheckoutPhone(userData.phone.replace(/\D/g, '').slice(0, 10));
+      }
+      if ((userData.address || userData.customerAddress) && !checkoutAddress) {
+        setCheckoutAddress(userData.address || userData.customerAddress);
+      }
     }
   }, [userData]);
 
@@ -348,8 +356,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   useEffect(() => {
     const handleOpenOrders = () => setIsOrderHistoryOpen(true);
+    const handleOpenCart = () => setShowCartDrawer(true);
+
     window.addEventListener('foody-open-orders', handleOpenOrders);
-    return () => window.removeEventListener('foody-open-orders', handleOpenOrders);
+    window.addEventListener('foody-open-cart', handleOpenCart);
+    window.addEventListener('foody_open_cart', handleOpenCart);
+    return () => {
+      window.removeEventListener('foody-open-orders', handleOpenOrders);
+      window.removeEventListener('foody-open-cart', handleOpenCart);
+      window.removeEventListener('foody_open_cart', handleOpenCart);
+    };
   }, []);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewOrderTarget, setReviewOrderTarget] = useState(null);
@@ -385,100 +401,40 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearTimeout(timer);
   }, [checkoutAddress]);
 
-  // Unified Pointer & Touch Drag-to-Dismiss Gesture States
-  const [detailDragOffset, setDetailDragOffset] = useState(0);
-  const [isDraggingDetail, setIsDraggingDetail] = useState(false);
-  const detailStartY = useRef(0);
-
-  const [cartDragOffset, setCartDragOffset] = useState(0);
-  const [isDraggingCart, setIsDraggingCart] = useState(false);
-  const cartStartY = useRef(0);
-
-  const handleDetailPointerDown = (e) => {
-    if (e.button !== undefined && e.button !== 0) return;
-    detailStartY.current = e.clientY;
-    setIsDraggingDetail(true);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) { }
-  };
-
-  const handleDetailPointerMove = (e) => {
-    if (!isDraggingDetail) return;
-    const deltaY = e.clientY - detailStartY.current;
-    if (deltaY > 0) {
-      setDetailDragOffset(deltaY);
-    } else {
-      setDetailDragOffset(0);
-    }
-  };
-
-  const handleDetailPointerUp = (e) => {
-    if (!isDraggingDetail) return;
-    setIsDraggingDetail(false);
-    try {
-      if (e && e.currentTarget && e.currentTarget.releasePointerCapture) {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      }
-    } catch (_) { }
-    if (detailDragOffset > 60) {
-      handleCloseDishDetail();
-    }
-    setDetailDragOffset(0);
-  };
-
-  const handleCartPointerDown = (e) => {
-    if (e.button !== undefined && e.button !== 0) return;
-    cartStartY.current = e.clientY;
-    setIsDraggingCart(true);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) { }
-  };
-
-  const handleCartPointerMove = (e) => {
-    if (!isDraggingCart) return;
-    const deltaY = e.clientY - cartStartY.current;
-    if (deltaY > 0) {
-      setCartDragOffset(deltaY);
-    } else {
-      setCartDragOffset(0);
-    }
-  };
-
-  const handleCartPointerUp = (e) => {
-    if (!isDraggingCart) return;
-    setIsDraggingCart(false);
-    try {
-      if (e && e.currentTarget && e.currentTarget.releasePointerCapture) {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      }
-    } catch (_) { }
-    if (cartDragOffset > 60) {
-      handleCloseCartDrawer();
-    }
-    setCartDragOffset(0);
-  };
-
-  const handleCloseDishDetail = () => {
+  const handleCloseDishDetail = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     if (isDetailClosing) return;
     setIsDetailClosing(true);
-    setDetailDragOffset(0);
     setTimeout(() => {
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
     }, 220);
   };
 
-  const handleCloseCartDrawer = () => {
+  const handleCloseCartDrawer = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     if (isCartClosing) return;
     setIsCartClosing(true);
-    setCartDragOffset(0);
     setTimeout(() => {
       setShowCartDrawer(false);
       setIsCartClosing(false);
     }, 220);
   };
+
+  // 120fps ultra-fluid gesture hooks (Vrinda Map Modal Standard)
+  const {
+    sheetRef: detailSheetRef,
+    sheetStyle: detailSheetStyle,
+    handleProps: detailHandleProps,
+    isDragging: isDraggingDetail
+  } = useBottomSheetDrag(handleCloseDishDetail, 35);
+
+  const {
+    sheetRef: cartSheetRef,
+    sheetStyle: cartSheetStyle,
+    handleProps: cartHandleProps,
+    isDragging: isDraggingCart
+  } = useBottomSheetDrag(handleCloseCartDrawer, 35);
 
   const handleCloseShopSwitcher = () => {
     if (isShopClosing) return;
@@ -608,7 +564,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             items: Array.isArray(orderRecord.items) ? orderRecord.items : []
           };
           setTrackingOrder(mapped);
-          setIsTrackingModalOpen(true);
+          // Keep modal minimized on initial load/reload so the storefront stays clean and accessible
         }
       } catch (err) {
         console.warn('loadTargetOrder exception:', err);
@@ -621,7 +577,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     const unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
       if (!updatedOrder || !isMounted) return;
       setTrackingOrder(prev => ({ ...(prev || {}), ...updatedOrder }));
-      setIsTrackingModalOpen(true);
       if (updatedOrder.status === 'delivered' || updatedOrder.status === 'completed') {
         setTimeout(() => {
           setReviewOrderTarget(updatedOrder);
@@ -668,28 +623,49 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       return;
     }
 
-    // Strict Field Validations
+    // Strict Field Validations with Visual Shake Feedback
     const cleanName = (checkoutName || '').trim();
     if (cleanName.length < 2 || !/^[a-zA-Z\s'.]+$/.test(cleanName)) {
+      triggerShake('name');
       return showToast("Name required", 'error', 'Enter valid recipient name (letters only)');
     }
 
     const cleanPhone = (checkoutPhone || '').replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
+      triggerShake('phone');
       return showToast("Invalid Phone", 'error', 'Enter valid 10-digit mobile number');
     }
 
     const cleanAddress = (checkoutAddress || '').trim();
     if (cleanAddress.length < 4) {
+      triggerShake('address');
       return showToast("Address required", 'error', 'Enter street or landmark name');
     }
 
     if (!deliveryCoords || typeof deliveryCoords.lat !== 'number' || typeof deliveryCoords.lng !== 'number') {
+      triggerShake('address');
       return showToast("Pin Location", 'error', 'Please pin your delivery address on map');
     }
 
     if (isBelowMin) {
       return showToast(`Min ₹${minOrderAmount}`, 'error', `Add ₹${minOrderAmount - subtotal} more`);
+    }
+
+    // Auto-save verified delivery details to local storage and user profile for instant 1-tap future checkout
+    try {
+      localStorage.setItem('customerName', cleanName);
+      localStorage.setItem('customerPhone', cleanPhone);
+      localStorage.setItem('customerAddress', cleanAddress);
+      if (updateUserProfile && isUserLoggedIn) {
+        updateUserProfile({
+          displayName: cleanName,
+          phone: cleanPhone,
+          address: cleanAddress,
+          customerAddress: cleanAddress
+        });
+      }
+    } catch (err) {
+      console.warn("Could not sync profile fields to storage:", err);
     }
 
     const orderPayload = {
@@ -1448,14 +1424,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 apple-overlay ${isDetailClosing ? 'closing' : ''}`}
         >
           <div
-            style={
-              detailDragOffset > 0 || isDraggingDetail
-                ? {
-                  transform: `translateY(${detailDragOffset}px)`,
-                  transition: isDraggingDetail ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1)'
-                }
-                : undefined
-            }
+            ref={detailSheetRef}
+            style={detailSheetStyle}
             className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative apple-modal-spring max-md:apple-sheet-spring ${isDraggingDetail ? 'sheet-dragging' : ''} ${isDetailClosing ? 'closing' : ''}`}
           >
 
@@ -1477,12 +1447,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="w-full md:w-[46%] lg:w-[44%] bg-[#FAF5EB] md:rounded-[30px] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0">
               {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
               <div
-                onPointerDown={handleDetailPointerDown}
-                onPointerMove={handleDetailPointerMove}
-                onPointerUp={handleDetailPointerUp}
-                onPointerCancel={handleDetailPointerUp}
-                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing md:hidden select-none"
-                style={{ touchAction: 'none' }}
+                {...detailHandleProps}
+                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing md:hidden select-none touch-none"
                 title="Drag down to close"
               >
                 <div className="w-12 h-1.5 bg-zinc-400/80 hover:bg-zinc-500 active:bg-zinc-600 rounded-full transition-colors pointer-events-none" />
@@ -1749,52 +1715,50 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 apple-overlay ${isCartClosing ? 'closing' : ''}`}
         >
           <div
-            style={
-              cartDragOffset > 0 || isDraggingCart
-                ? {
-                  transform: `translateY(${cartDragOffset}px)`,
-                  transition: isDraggingCart ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1)'
-                }
-                : undefined
-            }
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-6 sm:p-8 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[92vh] overflow-y-auto no-scrollbar justify-between apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
+            ref={cartSheetRef}
+            style={cartSheetStyle}
+            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
           >
-            <div>
+            {/* Top Fixed Header & Grab Bar */}
+            <div className="shrink-0">
               {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
               <div
-                onPointerDown={handleCartPointerDown}
-                onPointerMove={handleCartPointerMove}
-                onPointerUp={handleCartPointerUp}
-                onPointerCancel={handleCartPointerUp}
-                className="w-full py-3.5 -mt-5 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing sm:hidden select-none"
-                style={{ touchAction: 'none' }}
+                {...cartHandleProps}
+                className="w-full py-2.5 -mt-3 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing sm:hidden select-none touch-none"
                 title="Drag down to close"
               >
                 <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors pointer-events-none" />
               </div>
 
-              {/* Header Title & Close Button */}
-              <div className="flex justify-between items-center pb-4 border-b border-white/10 select-none">
-                <div className="flex items-center gap-2">
+              {/* Header Title & Close Button - Draggable header bar */}
+              <div
+                {...cartHandleProps}
+                className="flex justify-between items-center pb-3 border-b border-white/10 select-none cursor-grab active:cursor-grabbing touch-none"
+              >
+                <div className="flex items-center gap-2 pointer-events-none">
                   <ShoppingBag size={20} className="text-[#E0FF33]" />
                   <h3 className="text-xl sm:text-2xl font-black text-white font-['Outfit']">Your Basket</h3>
                 </div>
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCloseCartDrawer(e);
                   }}
-                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30"
+                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30 pointer-events-auto"
                   title="Close Basket"
                 >
                   <X size={16} />
                 </button>
               </div>
+            </div>
 
+            {/* Middle Scrollable Content (Items + Bill + Delivery Details Form + Payment) */}
+            <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar pr-0.5 space-y-4 my-2.5">
               {/* Items List */}
-              <div className="divide-y divide-white/5 my-4 max-h-[32vh] overflow-y-auto pr-1 no-scrollbar">
+              <div className="divide-y divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
                 {cart.map(item => (
                   <div key={item.id} className="py-3 flex justify-between items-center gap-3">
                     <div className="min-w-0 flex-1">
@@ -1846,7 +1810,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Bill Details */}
-              <div className="bg-[#151314] rounded-2xl p-4 space-y-2 text-xs text-zinc-400 mb-4 border border-white/5">
+              <div className="bg-[#151314] rounded-2xl p-4 space-y-2 text-xs text-zinc-400 border border-white/5">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="text-white font-bold">₹{subtotal}</span>
@@ -1875,20 +1839,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Name Input */}
-                <div className="relative flex items-center bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20 rounded-2xl px-3.5 py-1 transition-all shadow-inner">
-                  <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-[#E0FF33] shrink-0 mr-2.5">
+                <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                  shakeField === 'name'
+                    ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                    : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                }`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
+                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                  }`}>
                     <User size={15} />
                   </div>
                   <div className="flex-1 min-w-0 py-1.5">
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
-                      Recipient Name
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                        Recipient Name
+                      </label>
+                      {shakeField === 'name' && (
+                        <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">Name Required</span>
+                      )}
+                    </div>
                     <input
+                      ref={nameInputRef}
                       type="text"
                       value={checkoutName}
                       onChange={(e) => {
                         const sanitized = e.target.value.replace(/[^a-zA-Z\s'.]/g, '');
                         setCheckoutName(sanitized);
+                        if (shakeField === 'name') setShakeField(null);
                       }}
                       maxLength={40}
                       placeholder="e.g. Rahul"
@@ -1905,17 +1882,29 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Phone Input */}
-                <div className="relative flex items-center bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20 rounded-2xl px-3.5 py-1 transition-all shadow-inner">
-                  <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-[#E0FF33] shrink-0 mr-2.5">
+                <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                  shakeField === 'phone'
+                    ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                    : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                }`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
+                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                  }`}>
                     <Phone size={14} />
                   </div>
                   <div className="flex-1 min-w-0 py-1.5">
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
-                      Contact Phone
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                        Contact Phone
+                      </label>
+                      {shakeField === 'phone' && (
+                        <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">10 Digits Required</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-zinc-400 select-none">+91</span>
                       <input
+                        ref={phoneInputRef}
                         type="tel"
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -1924,6 +1913,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         onChange={(e) => {
                           const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
                           setCheckoutPhone(digitsOnly);
+                          if (shakeField === 'phone') setShakeField(null);
                         }}
                         placeholder="9876543210"
                         className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
@@ -1941,18 +1931,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Address Input */}
                 <div className="relative">
-                  <div className="relative flex items-center bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20 rounded-2xl px-3.5 py-1 transition-all shadow-inner">
-                    <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-[#E0FF33] shrink-0 mr-2.5">
+                  <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                    shakeField === 'address'
+                      ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                    : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                  }`}>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
+                      shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                    }`}>
                       <MapPin size={15} />
                     </div>
                     <div className="flex-1 min-w-0 py-1.5">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
-                        Delivery Address
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                          Delivery Address
+                        </label>
+                        {shakeField === 'address' && (
+                          <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">Address Required</span>
+                        )}
+                      </div>
                       <input
+                        ref={addressInputRef}
                         type="text"
                         value={checkoutAddress}
-                        onChange={(e) => setCheckoutAddress(e.target.value)}
+                        onChange={(e) => {
+                          setCheckoutAddress(e.target.value);
+                          if (shakeField === 'address') setShakeField(null);
+                        }}
                         placeholder="Street, Ashram, or Landmark..."
                         className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                       />
@@ -2054,27 +2059,30 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
             </div>
 
-            {/* Seamless Trust & Live Tracking Micro-Indicator */}
-            <div className="flex items-center justify-between text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans'] px-1 pt-2">
-              <div className="flex items-center gap-1.5 text-[#E0FF33]">
-                <Zap size={13} className="text-[#E0FF33]" />
-                <span className="font-bold text-neutral-300">Live GPS tracking included</span>
+            {/* Bottom Fixed Action Footer */}
+            <div className="shrink-0 pt-2 border-t border-white/5 space-y-2">
+              {/* Seamless Trust & Live Tracking Micro-Indicator */}
+              <div className="flex items-center justify-between text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
+                <div className="flex items-center gap-1.5 text-[#E0FF33]">
+                  <Zap size={13} className="text-[#E0FF33]" />
+                  <span className="font-bold text-neutral-300">Live GPS tracking included</span>
+                </div>
+                <span className="text-[10px] text-neutral-500 font-medium">Satvik Cloud Kitchen</span>
               </div>
-              <span className="text-[10px] text-neutral-500 font-medium">Satvik Cloud Kitchen</span>
-            </div>
 
-            <button
-              onClick={handlePlaceOrder}
-              disabled={!onlineAvailable && !codAvailable}
-              className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl mt-3 cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
-            >
-              <span className="font-black">
-                {!onlineAvailable && !codAvailable ? 'Kitchen Payments Disabled' : 'Proceed to Place Order'}
-              </span>
-              <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
-                ₹{totalAmount}
-              </span>
-            </button>
+              <button
+                onClick={handlePlaceOrder}
+                disabled={!onlineAvailable && !codAvailable}
+                className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+              >
+                <span className="font-black">
+                  {!onlineAvailable && !codAvailable ? 'Kitchen Payments Disabled' : 'Proceed to Place Order'}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
+                  ₹{totalAmount}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}

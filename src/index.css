@@ -1475,6 +1475,7 @@
 }
 
 @media (max-width: 640px) {
+
   .dynamic-island-toast,
   .toast {
     top: max(12px, calc(6px + env(safe-area-inset-top, 6px))) !important;
@@ -1816,31 +1817,58 @@ path.animated-delivery-route,
 .leaflet-overlay-pane svg path.animated-delivery-route,
 .leaflet-interactive.animated-delivery-route {
   stroke: #E0FF33 !important;
-  stroke-dasharray: 6px 10px !important;
+  stroke-dasharray: 6px 9px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
-  animation: flowRouteDash 0.85s linear infinite !important;
-  filter: drop-shadow(0 0 3px rgba(224, 255, 51, 0.6)) !important;
+  stroke-width: 3.2px !important;
+  animation: flowRouteDash 0.75s linear infinite !important;
+  filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.75)) !important;
 }
 
 @keyframes flowParabolicDots {
   0% {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 0px;
   }
+
   100% {
-    stroke-dashoffset: -24px;
+    stroke-dashoffset: -34px;
   }
 }
 
-path.animated-parabolic-dots,
-.leaflet-pane path.animated-parabolic-dots,
-.leaflet-overlay-pane svg path.animated-parabolic-dots,
-.leaflet-interactive.animated-parabolic-dots {
-  stroke: #6366F1 !important;
-  stroke-dasharray: 0px 12px !important;
+/* 🌟 Mind-Blowing Obsidian Depth for Parabolic Dots */
+path.casing-parabolic-dots,
+.leaflet-pane path.casing-parabolic-dots,
+.leaflet-overlay-pane svg path.casing-parabolic-dots,
+.leaflet-interactive.casing-parabolic-dots {
+  stroke: #121011 !important;
+  stroke-dasharray: 1px 16px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
-  stroke-width: 5px !important;
-  animation: flowParabolicDots 1.2s linear infinite !important;
-  filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.55)) !important;
+  stroke-width: 8px !important;
+  opacity: 0.98 !important;
+  animation: flowParabolicDots 1.15s linear infinite !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) !important;
+}
+
+/* Visual Validation Error Shake Animation */
+@keyframes shakeHorizontal {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+.animate-shake {
+  animation: shakeHorizontal 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
