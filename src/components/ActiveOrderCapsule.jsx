@@ -14,7 +14,7 @@ import { subscribeSingleCloudOrder } from '../supabase';
  * Standard: Vrinda Tours Apple Dynamic Island Live Ride Capsule
  * Zero ripple noise, compact typography with zero text clipping.
  */
-export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasBottomBar = false }) {
+export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasBottomBar = false, isEmbedded = false }) {
   const [liveOrder, setLiveOrder] = useState(order);
 
   useEffect(() => {
@@ -100,13 +100,19 @@ export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasB
       role="button"
       tabIndex={0}
       title="Tap to view live order tracking map"
-      style={{
-        bottom: hasBottomBar 
-          ? 'calc(80px + env(safe-area-inset-bottom, 0px))' 
-          : 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        transition: 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease'
-      }}
-      className="fixed left-1/2 -translate-x-1/2 z-[45] flex items-center gap-2.5 h-[40px] px-3 sm:px-3.5 rounded-full bg-[#181617]/95 text-white border border-[#E0FF33]/35 shadow-[0_14px_36px_-6px_rgba(0,0,0,0.75),0_0_16px_rgba(224,255,51,0.12)] backdrop-blur-2xl cursor-pointer select-none hover:border-[#E0FF33]/70 hover:bg-[#201D1E] active:scale-[0.97] apple-modal-spring"
+      style={
+        isEmbedded
+          ? {}
+          : {
+              bottom: hasBottomBar 
+                ? 'calc(104px + env(safe-area-inset-bottom, 0px))' 
+                : 'calc(16px + env(safe-area-inset-bottom, 0px))',
+              transition: 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease'
+            }
+      }
+      className={`${
+        isEmbedded ? 'relative' : 'fixed left-1/2 -translate-x-1/2 z-[45]'
+      } flex items-center gap-2.5 h-[40px] px-3 sm:px-3.5 rounded-full bg-[#181617]/95 text-white border border-[#E0FF33]/35 shadow-[0_14px_36px_-6px_rgba(0,0,0,0.75),0_0_16px_rgba(224,255,51,0.12)] backdrop-blur-2xl cursor-pointer select-none hover:border-[#E0FF33]/70 hover:bg-[#201D1E] active:scale-[0.97] transition-all`}
     >
       {/* Cute Solid Glyph Node (Zero distracting ripples) */}
       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#242122] border border-[#E0FF33]/50 shrink-0">

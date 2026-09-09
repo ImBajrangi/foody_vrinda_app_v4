@@ -152,14 +152,14 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (image && typeof image === 'string' && image.startsWith('/dishes/')) return image;
   const lowerName = (name || '').toLowerCase();
   const lowerCat = (category || '').toLowerCase();
-  
+
   if (lowerName.includes('burger')) return '/dishes/burger.png';
   if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.png';
   if (lowerName.includes('pizza') || lowerName.includes('bread') || lowerName.includes('snack')) return '/dishes/pizza.png';
   if (lowerName.includes('kheer') || lowerName.includes('sweet') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
   if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.png';
   if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
-  
+
   if (image && typeof image === 'string' && !image.includes('unsplash.com') && image.startsWith('http')) return image;
   return '/dishes/burger.png';
 }
@@ -198,7 +198,7 @@ function getCachedItem(type, key = 'default') {
           memoryCache.shops = parsed;
           return parsed.data;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   } else if (type === 'menus') {
     const entry = memoryCache.menus[key];
@@ -213,7 +213,7 @@ function getCachedItem(type, key = 'default') {
           memoryCache.menus[key] = parsed;
           return parsed.data;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   } else if (type === 'users') {
     if (memoryCache.users.data && (now - memoryCache.users.timestamp < CACHE_TTL_MS.USERS)) {
@@ -228,16 +228,16 @@ export function normalizeShop(s) {
   if (!s) return s;
 
   // Extract payment settings handling nested object or top-level properties
-  const onlinePaymentsEnabled = s.paymentSettings?.onlinePaymentsEnabled 
-    ?? s.payment_settings?.onlinePaymentsEnabled 
-    ?? s.onlinePaymentsEnabled 
-    ?? s.online_payments_enabled 
+  const onlinePaymentsEnabled = s.paymentSettings?.onlinePaymentsEnabled
+    ?? s.payment_settings?.onlinePaymentsEnabled
+    ?? s.onlinePaymentsEnabled
+    ?? s.online_payments_enabled
     ?? true;
 
-  const codEnabled = s.paymentSettings?.codEnabled 
-    ?? s.payment_settings?.codEnabled 
-    ?? s.codEnabled 
-    ?? s.cod_enabled 
+  const codEnabled = s.paymentSettings?.codEnabled
+    ?? s.payment_settings?.codEnabled
+    ?? s.codEnabled
+    ?? s.cod_enabled
     ?? true;
 
   const paymentSettings = {
@@ -283,7 +283,7 @@ export function getCachedShops() {
         return list.map(normalizeShop);
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return SEED_SHOPS.map(normalizeShop);
 }
 
@@ -292,7 +292,7 @@ export function saveCachedShops(shopsList) {
   try {
     localStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
     localStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: Date.now() }));
-  } catch (e) {}
+  } catch (e) { }
   return normalized;
 }
 
@@ -304,17 +304,17 @@ function setCachedItem(type, key, data) {
     try {
       localStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
       localStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: now }));
-    } catch (e) {}
+    } catch (e) { }
   } else if (type === 'menus') {
     memoryCache.menus[key] = { data, timestamp: now };
     try {
       localStorage.setItem(`foody_cache_menu_${key}`, JSON.stringify({ data, timestamp: now }));
-    } catch (e) {}
+    } catch (e) { }
   } else if (type === 'users') {
     memoryCache.users = { data, timestamp: now };
     try {
       localStorage.setItem('foody_cached_users', JSON.stringify(data));
-    } catch (e) {}
+    } catch (e) { }
   }
 }
 
@@ -654,7 +654,7 @@ class RealtimeMultiplexer {
             singleListeners.forEach(cb => {
               try {
                 cb(normalized);
-              } catch (e) {}
+              } catch (e) { }
             });
           }
         }
@@ -680,7 +680,7 @@ class RealtimeMultiplexer {
               if (!listener.userId || listener.userId === notif.userId) {
                 listener.callback(notif);
               }
-            } catch (e) {}
+            } catch (e) { }
           });
         }
       )
@@ -730,8 +730,8 @@ class RealtimeMultiplexer {
       const cleanEmail = (raw.email || '').toLowerCase().trim();
       const cleanPhone = (raw.phone || '').replace(/\D/g, '');
 
-      const idx = current.findIndex(u => 
-        (cleanId && String(u.id).trim() === cleanId) || 
+      const idx = current.findIndex(u =>
+        (cleanId && String(u.id).trim() === cleanId) ||
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
         (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       );
@@ -748,8 +748,8 @@ class RealtimeMultiplexer {
     setCachedItem('users', 'all', next);
 
     // 2. Dispatch cross-component event
-    window.dispatchEvent(new CustomEvent('foody_users_changed', { 
-      detail: { users: next, updatedUser: normalized, eventType: payload.eventType } 
+    window.dispatchEvent(new CustomEvent('foody_users_changed', {
+      detail: { users: next, updatedUser: normalized, eventType: payload.eventType }
     }));
 
     // 3. Notify user listeners directly
@@ -774,7 +774,7 @@ class RealtimeMultiplexer {
   }
 
   subscribeSingleOrder(orderId, callback) {
-    if (!orderId) return () => {};
+    if (!orderId) return () => { };
     this.ensureSubscribed();
 
     if (!this.singleOrderListeners.has(orderId)) {
@@ -994,7 +994,7 @@ export async function updateCloudShop(shopId, shopData) {
       if (s.id === shopId) {
         found = true;
         const merged = { ...s, ...shopData };
-        
+
         // Ensure nested paymentSettings and root payment flags stay synced
         if (shopData.paymentSettings) {
           merged.paymentSettings = {
@@ -1011,7 +1011,7 @@ export async function updateCloudShop(shopId, shopData) {
           merged.onlinePaymentsEnabled = merged.paymentSettings.onlinePaymentsEnabled;
           merged.codEnabled = merged.paymentSettings.codEnabled;
         }
-        
+
         updatedShop = normalizeShop(merged);
         return updatedShop;
       }
@@ -1028,8 +1028,8 @@ export async function updateCloudShop(shopId, shopData) {
     memoryCache.shops = { data: saved, timestamp: Date.now() };
 
     // 3. Broadcast instant update event across all windows & components
-    window.dispatchEvent(new CustomEvent('foody_shops_changed', { 
-      detail: { shopId, shopData: updatedShop, shops: saved } 
+    window.dispatchEvent(new CustomEvent('foody_shops_changed', {
+      detail: { shopId, shopData: updatedShop, shops: saved }
     }));
 
     // 4. Update Supabase foody_shops table safely
@@ -1043,7 +1043,7 @@ export async function updateCloudShop(shopId, shopData) {
       if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
       if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
       if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
-      
+
       if (Object.keys(payload).length > 0) {
         await supabase
           .from('foody_shops')
@@ -1115,14 +1115,14 @@ export function getCachedUsers() {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  } catch (e) {}
+  } catch (e) { }
   return SEED_USERS;
 }
 
 export function saveCachedUsers(users) {
   try {
     localStorage.setItem('foody_cached_users', JSON.stringify(users));
-  } catch (e) {}
+  } catch (e) { }
   return users;
 }
 
@@ -1327,7 +1327,7 @@ export async function getCloudRoles() {
       setCachedItem('roles', 'all', data);
       return data;
     }
-  } catch (e) {}
+  } catch (e) { }
   return DEFAULT_ROLES;
 }
 
@@ -1358,7 +1358,7 @@ export async function getCloudUsers(forceRefresh = false) {
         if (!error && data && data.length > 0) {
           loggedUsers = data;
         }
-      } catch (e) {}
+      } catch (e) { }
 
       // 2. Also fetch from foody_users to merge any staff or historical users
       let legacyUsers = [];
@@ -1370,7 +1370,7 @@ export async function getCloudUsers(forceRefresh = false) {
         if (!error && data && data.length > 0) {
           legacyUsers = data;
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const combinedMap = new Map();
       loggedUsers.forEach(u => combinedMap.set(u.id, u));
@@ -1452,7 +1452,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         isLoggedInUser: true
       };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // 2. Try foody_users fallback
   try {
@@ -1479,7 +1479,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         isLoggedInUser: true
       };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return null;
 }
@@ -1507,17 +1507,17 @@ export async function recordLoggedInUser(userProfile) {
       dbShop = liveProfile.shopId;
       dbShops = liveProfile.shopIds;
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // Determine current preserved role from live DB, cache, or profile so we never downgrade
   const current = getCachedUsers();
-  const existingUser = current.find(u => 
-    (cleanId && String(u.id).trim() === cleanId) || 
+  const existingUser = current.find(u =>
+    (cleanId && String(u.id).trim() === cleanId) ||
     (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
     (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
   );
 
-  const finalRole = dbRole 
+  const finalRole = dbRole
     || (existingUser?.role && existingUser.role !== 'customer' ? existingUser.role : null)
     || (userProfile.role && userProfile.role !== 'customer' ? userProfile.role : null)
     || 'customer';
@@ -1541,8 +1541,8 @@ export async function recordLoggedInUser(userProfile) {
   };
 
   // 1. Update in-memory & local storage cache
-  const idx = current.findIndex(u => 
-    (cleanId && String(u.id).trim() === cleanId) || 
+  const idx = current.findIndex(u =>
+    (cleanId && String(u.id).trim() === cleanId) ||
     (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
     (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
   );
@@ -1560,7 +1560,7 @@ export async function recordLoggedInUser(userProfile) {
   // 2. Persist directly to Supabase foody_logged_users
   try {
     await supabase.from('foody_logged_users').upsert(payload);
-  } catch (e) {}
+  } catch (e) { }
 
   // 3. Mirror to foody_users for backward compatibility
   try {
@@ -1577,7 +1577,7 @@ export async function recordLoggedInUser(userProfile) {
       updated_at: new Date().toISOString()
     };
     await supabase.from('foody_users').upsert(legacy);
-  } catch (e) {}
+  } catch (e) { }
 
   return payload;
 }
@@ -1617,10 +1617,10 @@ export async function createCloudUser(userData) {
 
   try {
     await supabase.from('foody_logged_users').upsert(dbPayload);
-  } catch (e) {}
+  } catch (e) { }
   try {
     await supabase.from('foody_users').upsert(dbPayload);
-  } catch (e) {}
+  } catch (e) { }
 
   return newUser;
 }
@@ -1642,13 +1642,12 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const cleanEmail = (updates.email || '').toLowerCase().trim();
   const cleanPhone = (updates.phone || '').replace(/\D/g, '');
 
-  const userExists = currentUsers.find(u => 
-    (cleanId && String(u.id).trim() === cleanId) || 
+  const userExists = currentUsers.find(u =>
+    (cleanId && String(u.id).trim() === cleanId) ||
     (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
     (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
   );
 
-  // Grand Admin is immutable: once assigned grand_admin, no one can update or downgrade that role
   if (userExists?.role === 'grand_admin' && updates.role && updates.role !== 'grand_admin') {
     console.warn("Permission Denied: Grand Admin role is permanent and cannot be modified or downgraded.");
     delete updates.role;
@@ -1662,7 +1661,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   if (userExists) {
     updatedList = currentUsers.map(u => {
       if (
-        (cleanId && String(u.id).trim() === cleanId) || 
+        (cleanId && String(u.id).trim() === cleanId) ||
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
         (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       ) {
@@ -1699,7 +1698,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
         new_role: updates.role,
         target_shop: updates.shopId || updates.shop_id || null
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 2. Direct Update to BOTH tables: foody_logged_users & foody_users
@@ -1738,7 +1737,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       };
       await supabase.from('foody_logged_users').upsert(full);
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // Update in foody_users
   try {
@@ -1763,7 +1762,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       };
       await supabase.from('foody_users').upsert(full);
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return updatedUserObj;
 }
@@ -1777,10 +1776,10 @@ export async function deleteCloudUser(userId) {
 
   try {
     await supabase.from('foody_logged_users').delete().eq('id', userId);
-  } catch (e) {}
+  } catch (e) { }
   try {
     await supabase.from('foody_users').delete().eq('id', userId);
-  } catch (e) {}
+  } catch (e) { }
 
   return true;
 }
@@ -1815,7 +1814,7 @@ export async function createCloudReview(reviewData) {
     const nextReviews = [reviewData, ...existing];
     localStorage.setItem(localKey, JSON.stringify(nextReviews));
     window.dispatchEvent(new CustomEvent('foody_reviews_changed', { detail: { reviews: nextReviews } }));
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const payload = {
@@ -1848,7 +1847,7 @@ export async function getCloudReviews(shopId = 'all') {
   let localData = [];
   try {
     localData = JSON.parse(localStorage.getItem(localKey) || '[]');
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     let query = supabase.from('foody_reviews').select('*').order('created_at', { ascending: false }).limit(50);
@@ -1859,7 +1858,7 @@ export async function getCloudReviews(shopId = 'all') {
     if (!error && data && data.length > 0) {
       try {
         localStorage.setItem(localKey, JSON.stringify(data));
-      } catch (e) {}
+      } catch (e) { }
       return data;
     }
     return localData;

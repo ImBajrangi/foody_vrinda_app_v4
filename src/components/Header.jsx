@@ -142,7 +142,7 @@ export default function Header({
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Admin
+                Owner
               </button>
             )}
 
@@ -174,6 +174,7 @@ export default function Header({
               ⌘K
             </kbd>
           </button>
+
 
           {/* Quick Cart Trigger (Uniform Circular Button with floating badge) */}
           {totalQty > 0 && onOpenCart && (
@@ -252,7 +253,7 @@ export default function Header({
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Admin
+              Owner
             </button>
           )}
 

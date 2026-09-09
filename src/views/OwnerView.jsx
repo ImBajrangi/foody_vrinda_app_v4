@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { 
-  supabase, 
-  getCloudMenus, 
-  createCloudMenuItem, 
-  updateCloudMenuItem, 
-  deleteCloudMenuItem, 
-  updateCloudShop, 
-  markCloudOrderCashCollected, 
+import { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  supabase,
+  getCloudMenus,
+  createCloudMenuItem,
+  updateCloudMenuItem,
+  deleteCloudMenuItem,
+  updateCloudShop,
+  markCloudOrderCashCollected,
   subscribeCloudOrders,
+  updateCloudOrderStatus,
   DEFAULT_PRASAD_ITEMS,
   resolveDishCutout,
   subscribeCloudUsers,
@@ -21,29 +22,29 @@ import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
-  Title, 
-  Tooltip, 
-  Legend, 
-  ArcElement 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
 } from 'chart.js';
-import { 
-  DollarSign, 
-  ShoppingBag, 
-  TrendingUp, 
-  CheckCircle, 
-  Clock, 
+import {
+  DollarSign,
+  ShoppingBag,
+  TrendingUp,
+  CheckCircle,
+  Clock,
   AlertCircle,
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Settings, 
-  MapPin, 
-  Phone, 
+  Plus,
+  Edit2,
+  Trash2,
+  Settings,
+  MapPin,
+  Phone,
   Store,
   Eye,
   EyeOff,
@@ -69,7 +70,27 @@ import {
   Users,
   UserPlus,
   UserCheck,
-  Play
+  Play,
+  Crown,
+  Lock,
+  Terminal,
+  Mail,
+  Copy,
+  Printer,
+  ExternalLink,
+  Sunrise,
+  Sun,
+  Sunset,
+  Moon,
+  Utensils,
+  Zap,
+  Gift,
+  CakeSlice,
+  Sandwich,
+  CupSoda,
+  Bike,
+  Shield,
+  RotateCcw
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -86,13 +107,14 @@ ChartJS.register(
 );
 
 export default function OwnerView() {
-  const { allShops = [], currentUserShopId, refreshShops, updateUserRole } = useAuth();
-  
+  const { allShops = [], currentUserShopId, refreshShops, updateUserRole, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
+
   // Resolved Active Kitchen
   const currentShop = (allShops && allShops.length > 0)
     ? (allShops.find(s => s.id === currentUserShopId) || allShops[0])
     : null;
-  
+
   // Tab Navigation: 'analytics' | 'menu' | 'settings' | 'history'
   const [activeTab, setActiveTab] = useState('analytics');
   const [orders, setOrders] = useState([]);
@@ -129,6 +151,7 @@ export default function OwnerView() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [selectedAuditOrder, setSelectedAuditOrder] = useState(null);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
@@ -149,10 +172,12 @@ export default function OwnerView() {
   const [newStaffPhone, setNewStaffPhone] = useState('');
   const [newStaffRole, setNewStaffRole] = useState('kitchen');
   const [staffSearch, setStaffSearch] = useState('');
+  const [staffRoleFilter, setStaffRoleFilter] = useState('all');
 
   // Form Auto-Scroll & Focus Refs
   const menuFormRef = useRef(null);
   const dishNameInputRef = useRef(null);
+  const descriptionInputRef = useRef(null);
 
   // Form State for Shop Profile
   const [shopForm, setShopForm] = useState({
@@ -220,7 +245,7 @@ export default function OwnerView() {
         if (users && users.length > 0) {
           setUsersList(users);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     refreshUsers();
 
@@ -234,8 +259,8 @@ export default function OwnerView() {
 
   const handleUpdateStaffRole = async (userId, newRole) => {
     const target = usersList.find(u => u.id === userId);
-    if (target?.role === 'grand_admin') {
-      setToast({ message: 'Grand Admin role is permanent and cannot be modified.', type: 'warning' });
+    if (target?.role === 'grand_admin' || target?.role === 'developer') {
+      setToast({ message: 'Platform administrators cannot be modified from the kitchen staff portal.', type: 'warning' });
       return;
     }
     const targetShopId = currentShop?.id || currentUserShopId;
@@ -249,6 +274,26 @@ export default function OwnerView() {
       await updateUserRole(userId, newRole, targetShopId);
     } else {
       await updateCloudUser(userId, { role: newRole, shopId: targetShopId });
+    }
+  };
+
+  const handleRemoveStaffMember = async (userId, staffName) => {
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin' || target?.role === 'developer') {
+      setToast({ message: 'Platform administrators cannot be removed from the kitchen staff portal.', type: 'warning' });
+      return;
+    }
+    const targetShopId = currentShop?.id || currentUserShopId;
+    setUsersList(prev => {
+      const updated = prev.filter(u => u.id !== userId);
+      saveCachedUsers(updated);
+      return updated;
+    });
+    setToast({ message: `${staffName || 'Staff member'} removed from kitchen roster`, type: 'info' });
+    if (updateUserRole) {
+      await updateUserRole(userId, 'customer', targetShopId);
+    } else {
+      await updateCloudUser(userId, { role: 'customer' });
     }
   };
 
@@ -357,6 +402,24 @@ export default function OwnerView() {
     loadMenus();
   }, [currentUserShopId]);
 
+  // Mass Items Handler: Filtered Menu Catalog with search & category filter
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => {
+      const q = (searchQuery || '').toLowerCase().trim();
+      const matchSearch = !q ||
+        item.name?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q) ||
+        item.category?.toLowerCase().includes(q);
+
+      const matchCategory = categoryFilter === 'All' ||
+        item.category === categoryFilter ||
+        (categoryFilter === 'Meals' && item.category === 'Main') ||
+        (categoryFilter === 'Sweets' && item.category === 'Sweets & Prasad');
+
+      return matchSearch && matchCategory;
+    });
+  }, [menuItems, searchQuery, categoryFilter]);
+
   // Update Payment Config for active kitchen
   const handleToggleKitchenPayment = async (key, value) => {
     const targetShop = editingShop || currentShop || (allShops && allShops[0]);
@@ -377,9 +440,9 @@ export default function OwnerView() {
     });
 
     if (refreshShops) await refreshShops();
-    setToast({ 
-      message: `${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'enabled' : 'disabled'} for ${targetShop?.name || 'this kitchen'}!`, 
-      type: "success" 
+    setToast({
+      message: `${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'enabled' : 'disabled'} for ${targetShop?.name || 'this kitchen'}!`,
+      type: "success"
     });
   };
   const handleUpdatePaymentsConfig = handleToggleKitchenPayment;
@@ -572,6 +635,10 @@ export default function OwnerView() {
     setTimeout(() => {
       menuFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       dishNameInputRef.current?.focus();
+      if (descriptionInputRef.current) {
+        descriptionInputRef.current.style.height = 'auto';
+        descriptionInputRef.current.style.height = `${Math.max(90, descriptionInputRef.current.scrollHeight)}px`;
+      }
     }, 50);
 
     setToast({ message: `Editing "${item.name}" — modify in the form!`, type: "info" });
@@ -579,18 +646,21 @@ export default function OwnerView() {
 
   const handleCancelEdit = () => {
     setEditingMenuItem(null);
-    setMenuForm({ 
-      name: '', 
-      description: '', 
-      price: 0, 
-      category: 'Main', 
-      isSatvik: true, 
-      isDailySpecial: false, 
-      spicyLevel: 'Mild', 
-      imageUrl: '', 
-      nutrition: '', 
-      ingredients: '' 
+    setMenuForm({
+      name: '',
+      description: '',
+      price: 0,
+      category: 'Main',
+      isSatvik: true,
+      isDailySpecial: false,
+      spicyLevel: 'Mild',
+      imageUrl: '',
+      nutrition: '',
+      ingredients: ''
     });
+    if (descriptionInputRef.current) {
+      descriptionInputRef.current.style.height = 'auto';
+    }
     setToast({ message: "Edit mode cancelled", type: "info" });
   };
 
@@ -626,17 +696,17 @@ export default function OwnerView() {
       }
 
       setEditingMenuItem(null);
-      setMenuForm({ 
-        name: '', 
-        description: '', 
-        price: 0, 
-        category: 'Main', 
-        isSatvik: true, 
-        isDailySpecial: false, 
-        spicyLevel: 'Mild', 
-        imageUrl: '', 
-        nutrition: '', 
-        ingredients: '' 
+      setMenuForm({
+        name: '',
+        description: '',
+        price: 0,
+        category: 'Main',
+        isSatvik: true,
+        isDailySpecial: false,
+        spicyLevel: 'Mild',
+        imageUrl: '',
+        nutrition: '',
+        ingredients: ''
       });
     } catch (err) {
       console.error(err);
@@ -665,7 +735,10 @@ export default function OwnerView() {
       // Supabase Cloud update
       await markCloudOrderCashCollected(orderId);
       // Local state update
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, cashStatus: 'collected', cash_status: 'collected' } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, cashStatus: 'collected', cash_status: 'collected', cashCollected: true, cash_collected: true } : o));
+      if (selectedAuditOrder && selectedAuditOrder.id === orderId) {
+        setSelectedAuditOrder(prev => ({ ...prev, cashStatus: 'collected', cash_status: 'collected', cashCollected: true, cash_collected: true }));
+      }
 
       setToast({ message: `COD payment marked as Collected for #${orderId.slice(-6).toUpperCase()}`, type: "success" });
     } catch (e) {
@@ -678,56 +751,326 @@ export default function OwnerView() {
     <div className="space-y-6 pb-20">
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Top Header Hero */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#282526] border border-white/5 p-6 rounded-3xl relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+      {/* Top Hero Card */}
+      <div className="bg-[#282526] border border-white/5 p-6 sm:p-7 rounded-3xl relative overflow-hidden shadow-2xl space-y-4">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#E0FF33]">
+            <Store className="w-3.5 h-3.5" />
+            <span>Store Owner Console</span>
+          </div>
+
+          {/* Live Kitchen Status Pill */}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-xs font-bold text-emerald-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Kitchen Online
+            </span>
+            {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-xs font-black text-[#E0FF33]">
+                <ShoppingBag className="w-3 h-3" />
+                {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length} Active Orders
+              </span>
+            )}
+          </div>
+        </div>
 
         <div className="space-y-1 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#E0FF33]">
-            <Store className="w-3.5 h-3.5" />
-            <span>Kitchen Admin Console</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-['Outfit']">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-['Outfit']">
             {currentShop ? currentShop.name : 'Kitchen Management'}
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans']">
-            Manage live dishes, audit revenue, configure payment gateways, and edit profile.
+          <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-2xl">
+            Manage live dishes, audit revenue, configure payment gateways, and edit branch profile.
           </p>
         </div>
 
-        {/* Quick Tabs Pill Row */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#1E1B1C] border border-white/5 overflow-x-auto relative z-10 no-scrollbar">
-          {[
-            { id: 'summary', label: 'Analytics', icon: BarChart3 },
-            { id: 'shops', label: 'Profile', icon: Store },
-            { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed },
-            { id: 'staff', label: 'Staff & Roles', icon: Users },
-            { id: 'audit', label: 'Cash Audit', icon: Receipt },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  if (tab.id === 'shops' && currentShop) {
-                    handleEditShopClick(currentShop);
-                  }
-                }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#E0FF33] text-black shadow-lg'
-                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        {/* BRANCH SELECTOR — Integrated inside Hero for easy switching */}
+        {isGlobalRole && allShops.length > 1 && (
+          <div className="pt-3 border-t border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar relative z-10">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Switch Branch:</span>
+            {allShops.map(s => {
+              const isActive = currentUserShopId === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => impersonate(s.id, userRole)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
+                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-md'
+                    : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                    }`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>{s.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Dedicated Full-Width Segmented Tab Navigation */}
+      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#282526] border border-white/5 overflow-x-auto no-scrollbar shadow-xl">
+        {[
+          {
+            id: 'orders',
+            label: 'Live Orders',
+            icon: ShoppingBag,
+            badge: orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length
+          },
+          { id: 'summary', label: 'Analytics', icon: BarChart3 },
+          { id: 'shops', label: 'Store Profile', icon: Store },
+          { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed },
+          { id: 'staff', label: 'Staff & Roles', icon: Users },
+          { id: 'audit', label: 'Cash Audit', icon: Receipt },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (tab.id === 'shops' && currentShop) {
+                  handleEditShopClick(currentShop);
+                }
+              }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${isActive
+                ? 'bg-[#E0FF33] text-black shadow-lg font-black'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              {Boolean(tab.badge) && (
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-[#E0FF33]' : 'bg-[#E0FF33] text-black'
+                  }`}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* VIEW 0: LIVE ORDERS DISPATCH BOARD */}
+      {activeTab === 'orders' && (
+        <div className="space-y-6">
+          {/* Top Filter and Search Ribbon */}
+          <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 shadow-xl space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white font-['Outfit']">Live Orders Dispatch Board</h3>
+                  <p className="text-xs text-neutral-400">Track and manage live customer tickets in real-time</p>
+                </div>
+              </div>
+
+              {/* Order ID Search */}
+              <div className="relative w-full md:w-72">
+                <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Search order #, customer, phone..."
+                  className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                />
+              </div>
+            </div>
+
+            {/* Status Filter Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+              {[
+                { id: 'all', label: 'All Orders', count: orders.length },
+                { id: 'new', label: 'New Tickets', count: orders.filter(o => o.status === 'new').length },
+                { id: 'preparing', label: 'Cooking / Preparing', count: orders.filter(o => o.status === 'preparing').length },
+                { id: 'ready', label: 'Ready for Pickup', count: orders.filter(o => o.status === 'ready').length },
+                { id: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered' || o.status === 'completed').length }
+              ].map(f => {
+                const isActive = (orderStatusFilter || 'all') === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => setOrderStatusFilter(f.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isActive
+                      ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                      : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                      }`}
+                  >
+                    <span>{f.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${isActive ? 'bg-black text-white' : 'bg-white/10 text-neutral-300'
+                      }`}>
+                      {f.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Orders Grid */}
+          {(() => {
+            const filteredOrders = orders.filter(o => {
+              const matchesSearch = !orderSearch ||
+                (o.id && o.id.toLowerCase().includes(orderSearch.toLowerCase())) ||
+                (o.customerName && o.customerName.toLowerCase().includes(orderSearch.toLowerCase())) ||
+                (o.customerPhone && o.customerPhone.includes(orderSearch));
+
+              const matchesStatus = (orderStatusFilter === 'all' || !orderStatusFilter)
+                ? true
+                : (orderStatusFilter === 'delivered' ? (o.status === 'delivered' || o.status === 'completed') : o.status === orderStatusFilter);
+
+              return matchesSearch && matchesStatus;
+            });
+
+            if (filteredOrders.length === 0) {
+              return (
+                <div className="bg-[#282526] border border-white/5 rounded-3xl p-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 text-neutral-400 flex items-center justify-center mx-auto">
+                    <ShoppingBag className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-base font-bold text-white font-['Outfit']">No Orders Found</h4>
+                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                    {orderSearch ? `No tickets match "${orderSearch}". Try searching by order ID or customer name.` : "No active orders under this filter status."}
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredOrders.map(o => {
+                  const rawId = o.id || '';
+                  const shortId = rawId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase();
+                  const isNew = o.status === 'new' || o.status === 'placed' || o.status === 'pending';
+                  const isPreparing = o.status === 'preparing';
+                  const rawMethod = String(o.payment_method || o.paymentMethod || o.payment || '').toLowerCase().trim();
+                  const isCod = rawMethod === 'cash' || rawMethod === 'cod';
+                  const isCollected = isCod && (o.cash_status === 'collected' || o.cashStatus === 'collected' || o.cash_collected === true || o.cashCollected === true);
+
+                  return (
+                    <div
+                      key={o.id}
+                      className={`bg-[#282526] rounded-3xl p-5 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${isNew ? 'border-[#E0FF33]/40 shadow-[0_10px_30px_rgba(224,255,51,0.06)] ring-1 ring-[#E0FF33]/20' : 'border-white/10'
+                        }`}
+                    >
+                      <div className="space-y-3">
+                        {/* Header: ID + Time + Status */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-xs font-black px-2.5 py-1 rounded-xl bg-white/10 text-white border border-white/10">
+                            #{shortId}
+                          </span>
+                          <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${isNew ? 'bg-[#E0FF33]/20 text-[#E0FF33] border-[#E0FF33]/30 font-black' :
+                            isPreparing ? 'bg-amber-400/20 text-amber-300 border-amber-400/30' :
+                              o.status === 'ready' || o.status === 'ready_for_pickup' ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/30' :
+                                'bg-emerald-400/20 text-emerald-300 border-emerald-400/30'
+                            }`}>
+                            {o.status || 'new'}
+                          </span>
+                        </div>
+
+                        {/* Customer Info */}
+                        <div>
+                          <h4 className="text-base font-black text-white font-['Outfit']">
+                            {o.customerName || o.customer_name || 'Customer'}
+                          </h4>
+                          <p className="text-xs text-neutral-400 font-medium truncate mt-0.5">
+                            {o.customerAddress || o.customer_address || o.deliveryAddress || o.delivery_address || 'Vrindavan Area'}
+                          </p>
+                          {(o.customerPhone || o.customer_phone) && (
+                            <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
+                              +91 {o.customerPhone || o.customer_phone}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Items Summary */}
+                        <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1.5 text-xs">
+                          {Array.isArray(o.items) && o.items.slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-neutral-300">
+                              <span className="truncate pr-2">{item.quantity || item.qty || 1}x {item.name}</span>
+                              <span className="font-mono text-neutral-400 shrink-0">₹{(item.price || 0) * (item.quantity || item.qty || 1)}</span>
+                            </div>
+                          ))}
+                          {Array.isArray(o.items) && o.items.length > 3 && (
+                            <p className="text-[10px] text-[#E0FF33] font-bold">
+                              +{o.items.length - 3} more items...
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Amount & Payment */}
+                        <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
+                          <span className="font-['Outfit'] text-base font-black text-white">
+                            ₹{o.totalAmount || o.total_amount || o.total || 0}
+                          </span>
+                          {isCod ? (
+                            isCollected ? (
+                              <span className="text-[10px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-neutral-400" /> COD Collected
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20 flex items-center gap-1">
+                                <Banknote className="w-3 h-3" /> Cash to Collect
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-[10px] font-bold text-neutral-300 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1">
+                              <CreditCard className="w-3 h-3 text-emerald-400" /> Paid Online
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAuditOrder(o)}
+                          className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                        >
+                          <Receipt className="w-3.5 h-3.5 text-[#E0FF33]" />
+                          <span>View Ticket</span>
+                        </button>
+
+                        {isNew && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await updateCloudOrderStatus(o.id, 'preparing');
+                              setToast({ message: `Order #${shortId} moved to kitchen prep!`, type: 'success' });
+                            }}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
+                          >
+                            <span>Accept</span>
+                          </button>
+                        )}
+
+                        {isPreparing && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await updateCloudOrderStatus(o.id, 'ready');
+                              setToast({ message: `Order #${shortId} ready for dispatch!`, type: 'success' });
+                            }}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
+                          >
+                            <span>Ready</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       {/* VIEW 1: SUMMARY / ANALYTICS */}
       {activeTab === 'summary' && (
@@ -828,13 +1171,12 @@ export default function OwnerView() {
 
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div 
+                    <div
                       onClick={() => handleToggleKitchenPayment('onlinePaymentsEnabled', !shopOnline)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        shopOnline 
-                          ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm' 
-                          : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
-                      }`}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${shopOnline
+                        ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm'
+                        : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
+                        }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -848,20 +1190,18 @@ export default function OwnerView() {
                         </div>
                         <p className="text-xs text-neutral-400">UPI, Cards & Netbanking via Razorpay</p>
                       </div>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                        shopOnline ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${shopOnline ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
+                        }`}>
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       onClick={() => handleToggleKitchenPayment('codEnabled', !shopCod)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        shopCod 
-                          ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm' 
-                          : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
-                      }`}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${shopCod
+                        ? 'bg-[#1E1B1C] border-[#E0FF33]/30 shadow-sm'
+                        : 'bg-[#1E1B1C]/50 border-white/5 opacity-60'
+                        }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -875,9 +1215,8 @@ export default function OwnerView() {
                         </div>
                         <p className="text-xs text-neutral-400">Physical collection upon delivery</p>
                       </div>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                        shopCod ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${shopCod ? 'bg-[#E0FF33] text-black' : 'bg-white/10 text-neutral-500'
+                        }`}>
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                     </div>
@@ -900,7 +1239,7 @@ export default function OwnerView() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setToast({ message: 'Kitchen is active with all premium features enabled!', type: 'success' })}
                 className="w-full mt-6 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all border border-white/5"
               >
@@ -922,119 +1261,260 @@ export default function OwnerView() {
           </div>
 
           <form onSubmit={handleSaveShopForm} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Kitchen Brand Name</label>
-                <input 
-                  type="text" 
-                  value={shopForm.name} 
-                  onChange={(e) => setShopForm({...shopForm, name: e.target.value})} 
-                  required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
+            {/* 1. Core Kitchen Identity & Location */}
+            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                <Store className="w-4 h-4 text-[#E0FF33]" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                  1. Brand Identity & Location
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Kitchen Brand Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={shopForm.name}
+                    onChange={(e) => setShopForm({ ...shopForm, name: e.target.value })}
+                    required
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Address / Physical Location *
+                  </label>
+                  <input
+                    type="text"
+                    value={shopForm.address}
+                    onChange={(e) => setShopForm({ ...shopForm, address: e.target.value })}
+                    required
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Address / Location</label>
-                <input 
-                  type="text" 
-                  value={shopForm.address} 
-                  onChange={(e) => setShopForm({...shopForm, address: e.target.value})} 
-                  required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
+                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  Kitchen Banner / Cover Image URL
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={shopForm.imageUrl}
+                    onChange={(e) => setShopForm({ ...shopForm, imageUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                  {shopForm.imageUrl && (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-black/40">
+                      <img
+                        src={shopForm.imageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Pricing, Delivery & Taxation Rules */}
+            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                <CreditCard className="w-4 h-4 text-cyan-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                  2. Pricing, Delivery & Taxation
+                </h4>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Minimum Order Value (₹)</label>
-                <input 
-                  type="number" 
-                  value={shopForm.minimumOrderAmount} 
-                  onChange={(e) => setShopForm({...shopForm, minimumOrderAmount: e.target.value})} 
-                  required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Minimum Order Value (₹) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={shopForm.minimumOrderAmount}
+                      onChange={(e) => setShopForm({ ...shopForm, minimumOrderAmount: e.target.value })}
+                      required
+                      className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    Base Delivery Charge (₹) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={shopForm.deliveryCharge}
+                      onChange={(e) => setShopForm({ ...shopForm, deliveryCharge: e.target.value })}
+                      required
+                      className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                    GST Rate (%) *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={shopForm.gstPercentage}
+                      onChange={(e) => setShopForm({ ...shopForm, gstPercentage: e.target.value })}
+                      required
+                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Geolocation & Map Positioning */}
+            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-white/5 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                    3. Geolocation & Map Coordinates
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCoordinateCallback(() => (lat, lng) => {
+                      setShopForm(prev => ({ ...prev, lat: String(lat), lng: String(lng) }));
+                    });
+                    setMapTargetCoords({ lat: shopForm.lat, lng: shopForm.lng });
+                    setShowMapPicker(true);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Compass className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  <span>Pin on Google Maps</span>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Base Delivery Charge (₹)</label>
-                <input 
-                  type="number" 
-                  value={shopForm.deliveryCharge} 
-                  onChange={(e) => setShopForm({...shopForm, deliveryCharge: e.target.value})} 
-                  required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">GST Rate (%)</label>
-                <input 
-                  type="number" 
-                  value={shopForm.gstPercentage} 
-                  onChange={(e) => setShopForm({...shopForm, gstPercentage: e.target.value})} 
-                  required 
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Latitude</label>
-                  <input 
-                    type="text" 
-                    value={shopForm.lat} 
-                    onChange={(e) => setShopForm({...shopForm, lat: e.target.value})} 
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  <input
+                    type="text"
+                    value={shopForm.lat}
+                    onChange={(e) => setShopForm({ ...shopForm, lat: e.target.value })}
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Longitude</label>
-                  <input 
-                    type="text" 
-                    value={shopForm.lng} 
-                    onChange={(e) => setShopForm({...shopForm, lng: e.target.value})} 
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  <input
+                    type="text"
+                    value={shopForm.lng}
+                    onChange={(e) => setShopForm({ ...shopForm, lng: e.target.value })}
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Opening Time</label>
-                  <input 
-                    type="time" 
-                    value={shopForm.openTime} 
-                    onChange={(e) => setShopForm({...shopForm, openTime: e.target.value})} 
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
+            {/* 4. Operating Hours & Schedule */}
+            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-white/5 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                    4. Operating Hours & Service Shifts
+                  </h4>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Closing Time</label>
-                  <input 
-                    type="time" 
-                    value={shopForm.closeTime} 
-                    onChange={(e) => setShopForm({...shopForm, closeTime: e.target.value})} 
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
+
+                <div
+                  onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
+                  className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                >
+                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors relative ${shopForm.alwaysOpen ? 'bg-[#E0FF33]' : 'bg-neutral-700'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-[#18181A] shadow-sm transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <span className="text-xs font-bold text-neutral-200">Open 24/7 Always</span>
                 </div>
               </div>
 
-              {/* Vedic Time Periods Multi-Select */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider">
-                    Vedic Service Shifts (Time Periods)
-                  </label>
-                  <span className="text-[10px] text-neutral-500">Matches Mobile Schedule Engine</span>
+              {!shopForm.alwaysOpen ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Opening Time</label>
+                    <input
+                      type="time"
+                      value={shopForm.openTime}
+                      onChange={(e) => setShopForm({ ...shopForm, openTime: e.target.value })}
+                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Closing Time</label>
+                    <input
+                      type="time"
+                      value={shopForm.closeTime}
+                      onChange={(e) => setShopForm({ ...shopForm, closeTime: e.target.value })}
+                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    />
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              ) : (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2.5 text-emerald-300 text-xs font-bold">
+                  <CheckCircle className="w-4 h-4 shrink-0" />
+                  <span>Kitchen is operational 24/7 — Live orders will be accepted at all hours.</span>
+                </div>
+              )}
+
+              {/* Vedic Service Shifts Multi-Select (FULL-WIDTH 5-COLUMN GRID) */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
+                  <div>
+                    <label className="block text-xs font-bold text-white uppercase tracking-wider">
+                      Vedic Service Shifts (Time Periods)
+                    </label>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">Controls mobile customer scheduling & meal dispatch windows</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShopForm({ ...shopForm, timePeriods: ['morning', 'forenoon', 'afternoon', 'evening', 'night'] })}
+                      className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-neutral-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setShopForm({ ...shopForm, timePeriods: [] })}
+                      className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   {[
-                    { id: 'morning', label: 'Morning', icon: '🌅', time: '6-9 AM' },
-                    { id: 'forenoon', label: 'Forenoon', icon: '☀️', time: '9-12 PM' },
-                    { id: 'afternoon', label: 'Afternoon', icon: '🍽️', time: '12-4 PM' },
-                    { id: 'evening', label: 'Evening', icon: '🌆', time: '4-8 PM' },
-                    { id: 'night', label: 'Night', icon: '🌙', time: '8-12 AM' }
+                    { id: 'morning', label: 'Morning', icon: <Sunrise className="w-5 h-5 text-amber-400" />, time: '6-9 AM', desc: 'Bhog & Early Breakfast' },
+                    { id: 'forenoon', label: 'Forenoon', icon: <Sun className="w-5 h-5 text-amber-300" />, time: '9-12 PM', desc: 'Midday Prasad' },
+                    { id: 'afternoon', label: 'Afternoon', icon: <Utensils className="w-5 h-5 text-[#E0FF33]" />, time: '12-4 PM', desc: 'Rajbhog Thali' },
+                    { id: 'evening', label: 'Evening', icon: <Sunset className="w-5 h-5 text-orange-400" />, time: '4-8 PM', desc: 'Sandhya Aarti' },
+                    { id: 'night', label: 'Night', icon: <Moon className="w-5 h-5 text-cyan-300" />, time: '8-12 AM', desc: 'Shayan Prasad' }
                   ].map(period => {
                     const isSelected = (shopForm.timePeriods || []).includes(period.id);
                     return (
@@ -1043,31 +1523,63 @@ export default function OwnerView() {
                         type="button"
                         onClick={() => {
                           const current = shopForm.timePeriods || [];
-                          const updated = isSelected 
+                          const updated = isSelected
                             ? current.filter(p => p !== period.id)
                             : [...current, period.id];
                           setShopForm({ ...shopForm, timePeriods: updated });
                         }}
-                        className={`p-3 rounded-2xl border text-left transition-all flex flex-col items-start gap-1 ${
-                          isSelected 
-                            ? 'bg-[#E0FF33]/15 border-[#E0FF33] text-[#E0FF33]' 
-                            : 'bg-[#1E1B1C] border-white/5 text-neutral-400 hover:border-white/20'
-                        }`}
+                        className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[90px] cursor-pointer active:scale-95 ${isSelected
+                          ? 'bg-[#E0FF33]/15 border-[#E0FF33] text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]'
+                          : 'bg-[#282526] border-white/5 text-neutral-400 hover:border-white/20 hover:text-white'
+                          }`}
                       >
-                        <span className="text-base">{period.icon}</span>
-                        <span className="text-xs font-bold text-white leading-tight">{period.label}</span>
-                        <span className="text-[10px] text-neutral-400">{period.time}</span>
+                        <div className="flex items-center justify-between w-full">
+                          <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shadow-inner">
+                            {period.icon}
+                          </div>
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-[#E0FF33] text-black' : 'bg-white/5 text-neutral-400'
+                            }`}>
+                            {period.time}
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs font-bold text-white font-['Outfit']">{period.label}</p>
+                          <p className="text-[10px] text-neutral-400 truncate">{period.desc}</p>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Operating Days Selector */}
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                  Operating Days of Week
-                </label>
+              {/* Operating Days of Week */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1">
+                  <div>
+                    <label className="block text-xs font-bold text-white uppercase tracking-wider">
+                      Operating Days of Week
+                    </label>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">Days on which kitchen accepts online delivery tickets</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] })}
+                      className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
+                    >
+                      All 7 Days
+                    </button>
+                    <span className="text-neutral-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] })}
+                      className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
+                    >
+                      Weekdays Only
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
                     const isSelected = (shopForm.daysOpen || []).includes(day);
@@ -1077,16 +1589,15 @@ export default function OwnerView() {
                         type="button"
                         onClick={() => {
                           const current = shopForm.daysOpen || [];
-                          const updated = isSelected 
+                          const updated = isSelected
                             ? current.filter(d => d !== day)
                             : [...current, day];
                           setShopForm({ ...shopForm, daysOpen: updated });
                         }}
-                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${
-                          isSelected 
-                            ? 'bg-[#E0FF33] border-[#E0FF33] text-black shadow-md' 
-                            : 'bg-[#1E1B1C] border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
-                        }`}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border cursor-pointer active:scale-95 ${isSelected
+                          ? 'bg-[#E0FF33] border-[#E0FF33] text-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                          : 'bg-[#282526] border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
+                          }`}
                       >
                         {day}
                       </button>
@@ -1094,92 +1605,91 @@ export default function OwnerView() {
                   })}
                 </div>
               </div>
+            </div>
 
-              {/* Estimated Wait Time & Promo Discount */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 5. Service Speed & Promotional Offers */}
+            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                <Sparkles className="w-4 h-4 text-[#E0FF33]" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+                  5. Service Speed & Promotional Offers
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Est. Wait Time
                   </label>
-                  <input 
-                    type="text" 
-                    value={shopForm.estimatedWaitTime} 
-                    onChange={(e) => setShopForm({...shopForm, estimatedWaitTime: e.target.value})} 
+                  <input
+                    type="text"
+                    value={shopForm.estimatedWaitTime}
+                    onChange={(e) => setShopForm({ ...shopForm, estimatedWaitTime: e.target.value })}
                     placeholder="15-20 min"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Promo Tag (Optional)
                   </label>
-                  <input 
-                    type="text" 
-                    value={shopForm.discountTag} 
-                    onChange={(e) => setShopForm({...shopForm, discountTag: e.target.value})} 
+                  <input
+                    type="text"
+                    value={shopForm.discountTag}
+                    onChange={(e) => setShopForm({ ...shopForm, discountTag: e.target.value })}
                     placeholder="20% OFF"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
                     Promo Details
                   </label>
-                  <input 
-                    type="text" 
-                    value={shopForm.discountDescription} 
-                    onChange={(e) => setShopForm({...shopForm, discountDescription: e.target.value})} 
+                  <input
+                    type="text"
+                    value={shopForm.discountDescription}
+                    onChange={(e) => setShopForm({ ...shopForm, discountDescription: e.target.value })}
                     placeholder="On Sacred Sweets & Thalis"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Kitchen Cover / Logo URL</label>
-                <input 
-                  type="text" 
-                  value={shopForm.imageUrl} 
-                  onChange={(e) => setShopForm({...shopForm, imageUrl: e.target.value})} 
-                  placeholder="https://..."
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
-              </div>
+              {/* Live Preview Capsule */}
+              {(shopForm.discountTag || shopForm.estimatedWaitTime) && (
+                <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase">Customer Card Preview:</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{shopForm.estimatedWaitTime || '15-20'} min</span>
+                    </span>
+                    {shopForm.discountTag && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 text-xs font-black flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[#E0FF33]" />
+                        <span>{shopForm.discountTag} {shopForm.discountDescription ? `• ${shopForm.discountDescription}` : ''}</span>
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-neutral-500">Live preview as seen by buyers</span>
+                </div>
+              )}
             </div>
 
+            {/* Footer Form Action Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/5">
-              <div className="flex items-center gap-4">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setCoordinateCallback(() => (lat, lng) => {
-                      setShopForm(prev => ({ ...prev, lat: String(lat), lng: String(lng) }));
-                    });
-                    setMapTargetCoords({ lat: shopForm.lat, lng: shopForm.lng });
-                    setShowMapPicker(true);
-                  }}
-                  className="px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all"
-                >
-                  <Compass className="w-4 h-4 text-[#E0FF33]" />
-                  <span>Pin on Google Maps</span>
-                </button>
+              <p className="text-xs text-neutral-400 text-center sm:text-left">
+                Changes saved here sync immediately across customer applications and kitchen dispatch.
+              </p>
 
-                <div 
-                  onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
-                  className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
-                >
-                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors relative ${shopForm.alwaysOpen ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-[#18181A] shadow-sm transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </div>
-                  <span className="text-xs font-bold text-neutral-200">Open 24/7 Always</span>
-                </div>
-              </div>
-
-              <button 
-                type="submit" 
-                className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-lg active:scale-[0.98]"
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 font-['Outfit']"
               >
-                Save Kitchen Settings
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Save Kitchen Settings</span>
               </button>
             </div>
           </form>
@@ -1190,13 +1700,12 @@ export default function OwnerView() {
       {activeTab === 'menu' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Menu Item Form (Add / Edit) */}
-          <div 
+          <div
             ref={menuFormRef}
-            className={`bg-[#282526] rounded-3xl p-5 sm:p-6 shadow-xl h-fit transition-all duration-300 ${
-              editingMenuItem 
-                ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30' 
-                : 'border border-white/5'
-            }`}
+            className={`bg-[#282526] rounded-3xl p-5 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
+              ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30'
+              : 'border border-white/5'
+              }`}
           >
             <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
               <div className="flex items-center gap-2">
@@ -1205,7 +1714,7 @@ export default function OwnerView() {
                 </h3>
               </div>
               {editingMenuItem && (
-                <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider animate-pulse">
+                <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider">
                   EDITING LIVE
                 </span>
               )}
@@ -1239,33 +1748,46 @@ export default function OwnerView() {
                 <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
                   Dish Name
                 </label>
-                <input 
+                <input
                   ref={dishNameInputRef}
-                  type="text" 
-                  value={menuForm.name} 
-                  onChange={(e) => setMenuForm({...menuForm, name: e.target.value})} 
+                  type="text"
+                  value={menuForm.name}
+                  onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
                   placeholder="e.g. Shahi Vrindavan Thali"
-                  required 
-                  className={`w-full bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${
-                    editingMenuItem 
-                      ? 'border-[#E0FF33]/50 ring-2 ring-[#E0FF33]/20' 
-                      : 'border-white/10 focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10'
-                  }`}
+                  required
+                  className={`w-full bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${editingMenuItem
+                    ? 'border-[#E0FF33]/50 ring-2 ring-[#E0FF33]/20'
+                    : 'border-white/10 focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10'
+                    }`}
                 />
               </div>
 
-              {/* Description Input */}
+              {/* Description Input — ChatGPT-Style Smart Auto-Expanding Box */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
-                  Description
-                </label>
-                <textarea 
-                  rows={2}
-                  value={menuForm.description} 
-                  onChange={(e) => setMenuForm({...menuForm, description: e.target.value})} 
-                  placeholder="Rich fragrant gravy prepared with pure desi ghee..."
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans'] resize-none"
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+                    Description
+                  </label>
+                  {menuForm.description && (
+                    <span className="text-[10px] text-neutral-500 font-medium font-['Plus_Jakarta_Sans']">
+                      {menuForm.description.length} chars
+                    </span>
+                  )}
+                </div>
+                <div className="relative bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-[#E0FF33]/15 transition-all shadow-inner overflow-hidden">
+                  <textarea
+                    ref={descriptionInputRef}
+                    rows={3}
+                    value={menuForm.description}
+                    onChange={(e) => {
+                      setMenuForm({ ...menuForm, description: e.target.value });
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${Math.max(88, e.target.scrollHeight)}px`;
+                    }}
+                    placeholder="Rich fragrant gravy prepared with pure desi ghee, fresh spices, and sacred herbs..."
+                    className="w-full bg-transparent px-4 py-3 text-xs sm:text-[13px] leading-relaxed text-white placeholder:text-neutral-600 focus:outline-none font-['Plus_Jakarta_Sans'] resize-none min-h-[88px] max-h-[260px] overflow-y-auto no-scrollbar block"
+                  />
+                </div>
               </div>
 
               {/* Price with Quick Stepper Controls */}
@@ -1278,38 +1800,38 @@ export default function OwnerView() {
                     <button
                       type="button"
                       onClick={() => setMenuForm(prev => ({ ...prev, price: Math.max(0, Number(prev.price || 0) - 10) }))}
-                      className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-[10px] font-bold transition-all border border-white/5 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-[10px] font-bold transition-all border border-white/5 cursor-pointer"
                     >
                       -₹10
                     </button>
                     <button
                       type="button"
                       onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 10 }))}
-                      className="px-2 py-0.5 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
                     >
                       +₹10
                     </button>
                     <button
                       type="button"
                       onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 50 }))}
-                      className="px-2 py-0.5 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-[#E0FF33]/10 hover:bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-bold transition-all border border-[#E0FF33]/20 cursor-pointer"
                     >
                       +₹50
                     </button>
                   </div>
                 </div>
 
-                <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
-                  <span className="text-sm font-black text-[#E0FF33] font-['Outfit'] pr-2.5 border-r border-white/10 select-none">
+                <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-[#E0FF33]/15 transition-all px-4 py-2.5 shadow-inner">
+                  <span className="text-base font-black text-[#E0FF33] font-['Outfit'] pr-3 border-r border-white/10 select-none">
                     ₹
                   </span>
-                  <input 
-                    type="number" 
-                    value={menuForm.price || ''} 
-                    onChange={(e) => setMenuForm({...menuForm, price: Math.max(0, Number(e.target.value))})} 
+                  <input
+                    type="number"
+                    value={menuForm.price || ''}
+                    onChange={(e) => setMenuForm({ ...menuForm, price: Math.max(0, Number(e.target.value)) })}
                     placeholder="0"
-                    required 
-                    className="w-full bg-transparent pl-3 pr-1 py-1.5 text-sm text-white focus:outline-none font-['Outfit'] font-black no-spinners"
+                    required
+                    className="w-full bg-transparent pl-3.5 pr-2 py-0.5 text-base text-white focus:outline-none font-['Outfit'] font-black no-spinners placeholder:text-neutral-600"
                   />
                 </div>
               </div>
@@ -1319,14 +1841,14 @@ export default function OwnerView() {
                 <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
                   Category
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { id: 'Meals', label: 'Main Course', icon: '🍛' },
-                    { id: 'Sweets', label: 'Sweets & Prasad', icon: '🍧' },
-                    { id: 'Snacks', label: 'Snacks & Bakes', icon: '🥪' },
-                    { id: 'Drinks', label: 'Beverages', icon: '🥛' }
+                    { id: 'Meals', label: 'Meals', icon: <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" /> },
+                    { id: 'Sweets', label: 'Sweets', icon: <CakeSlice className="w-3.5 h-3.5 text-purple-400" /> },
+                    { id: 'Snacks', label: 'Snacks', icon: <Sandwich className="w-3.5 h-3.5 text-orange-400" /> },
+                    { id: 'Drinks', label: 'Drinks', icon: <CupSoda className="w-3.5 h-3.5 text-cyan-400" /> }
                   ].map(cat => {
-                    const isSelected = menuForm.category === cat.id || 
+                    const isSelected = menuForm.category === cat.id ||
                       (cat.id === 'Meals' && menuForm.category === 'Main') ||
                       (cat.id === 'Sweets' && menuForm.category === 'Sweets & Prasad');
                     return (
@@ -1334,14 +1856,13 @@ export default function OwnerView() {
                         key={cat.id}
                         type="button"
                         onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
-                        className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_2px_10px_rgba(224,255,51,0.25)]'
-                            : 'bg-[#1E1B1C] text-zinc-400 border-white/5 hover:text-white hover:border-white/15'
-                        }`}
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer whitespace-nowrap ${isSelected
+                          ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_2px_10px_rgba(224,255,51,0.25)]'
+                          : 'bg-[#1E1B1C] text-zinc-400 border-white/5 hover:text-white hover:border-white/15'
+                          }`}
                       >
-                        <span className="text-xs">{cat.icon}</span>
-                        <span className="truncate text-[11px]">{cat.label}</span>
+                        {cat.icon}
+                        <span>{cat.label}</span>
                       </button>
                     );
                   })}
@@ -1353,14 +1874,14 @@ export default function OwnerView() {
                 <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
                   Dish Cutout Visual Asset
                 </label>
-                <div className="grid grid-cols-6 gap-2 mb-2.5">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-2.5">
                   {[
-                    { src: '/dishes/burger.png', name: 'Burger', icon: '🍔' },
-                    { src: '/dishes/thali.png', name: 'Thali', icon: '🍱' },
-                    { src: '/dishes/sweet.png', name: 'Kheer', icon: '🍧' },
-                    { src: '/dishes/pizza.png', name: 'Pizza', icon: '🍕' },
-                    { src: '/dishes/curry.png', name: 'Paneer', icon: '🍲' },
-                    { src: '/dishes/rice.png', name: 'Rice', icon: '🍚' }
+                    { src: '/dishes/burger.png', name: 'Burger' },
+                    { src: '/dishes/thali.png', name: 'Thali' },
+                    { src: '/dishes/sweet.png', name: 'Kheer' },
+                    { src: '/dishes/pizza.png', name: 'Pizza' },
+                    { src: '/dishes/curry.png', name: 'Paneer' },
+                    { src: '/dishes/rice.png', name: 'Rice' }
                   ].map((asset) => {
                     const isSelected = menuForm.imageUrl === asset.src;
                     return (
@@ -1368,21 +1889,20 @@ export default function OwnerView() {
                         key={asset.src}
                         type="button"
                         onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
-                        className={`aspect-square rounded-2xl p-1.5 border transition-all flex flex-col items-center justify-center relative group cursor-pointer ${
-                          isSelected 
-                            ? 'bg-[#FAF5EB] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.4)] ring-2 ring-[#E0FF33]' 
-                            : 'bg-[#1E1B1C] border-white/5 hover:border-white/20 hover:bg-[#282526]'
-                        }`}
+                        className={`aspect-square rounded-2xl p-2 border transition-all flex flex-col items-center justify-center relative group cursor-pointer ${isSelected
+                          ? 'bg-[#FAF5EB]/10 border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.3)] ring-2 ring-[#E0FF33]'
+                          : 'bg-[#1E1B1C] border-white/10 hover:border-white/20 hover:bg-[#282526]'
+                          }`}
                         title={asset.name}
                       >
-                        <img 
-                          src={asset.src} 
-                          alt={asset.name} 
-                          className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform" 
+                        <img
+                          src={asset.src}
+                          alt={asset.name}
+                          className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform"
                         />
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center text-[9px] font-black shadow-sm">
-                            ✓
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </div>
                         )}
                       </button>
@@ -1391,84 +1911,82 @@ export default function OwnerView() {
                 </div>
 
                 <div className="relative">
-                  <input 
-                    type="text" 
-                    value={menuForm.imageUrl} 
-                    onChange={(e) => setMenuForm({...menuForm, imageUrl: e.target.value})} 
-                    placeholder="Or enter custom cutout URL (https://...)"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-3.5 pr-10 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  <input
+                    type="text"
+                    value={menuForm.imageUrl}
+                    onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
+                    placeholder="Or enter custom cutout image URL (https://...)"
+                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                   {menuForm.imageUrl && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm">
                       <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Spiciness & Nutrition Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {/* Web UI Spiciness Segmented Selector */}
-                <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Spiciness
-                  </label>
-                  <div className="flex bg-[#1E1B1C] p-1 rounded-2xl border border-white/10 gap-1">
-                    {[
-                      { id: 'Mild', label: 'Mild', icon: '🟢' },
-                      { id: 'Medium', label: 'Medium', icon: '🟡' },
-                      { id: 'Spicy', label: 'Spicy', icon: '🌶️' }
-                    ].map(spice => {
-                      const isSelected = menuForm.spicyLevel === spice.id;
-                      return (
-                        <button
-                          key={spice.id}
-                          type="button"
-                          onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
-                          className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#282526] text-white border border-white/15 font-black shadow-sm'
-                              : 'text-neutral-400 hover:text-white'
+              {/* Spiciness Level Selector */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                  Spiciness Level
+                </label>
+                <div className="flex bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/10 gap-1.5">
+                  {[
+                    { id: 'Mild', label: 'Mild', icon: <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.5)]" /> },
+                    { id: 'Medium', label: 'Medium', icon: <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 shadow-[0_0_8px_rgba(251,191,36,0.5)]" /> },
+                    { id: 'Spicy', label: 'Spicy', icon: <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" /> }
+                  ].map(spice => {
+                    const isSelected = menuForm.spicyLevel === spice.id;
+                    return (
+                      <button
+                        key={spice.id}
+                        type="button"
+                        onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none ${isSelected
+                          ? 'bg-[#2A2728] text-white border border-white/20 font-black shadow-sm ring-1 ring-white/10'
+                          : 'text-neutral-400 hover:text-white hover:bg-white/5'
                           }`}
-                        >
-                          <span className="text-[10px]">{spice.icon}</span>
-                          <span className="text-[11px]">{spice.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                      >
+                        {spice.icon}
+                        <span>{spice.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
 
-                {/* Nutrition Input */}
-                <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Nutrition Info
-                  </label>
-                  <input 
-                    type="text" 
-                    value={menuForm.nutrition} 
-                    onChange={(e) => setMenuForm({...menuForm, nutrition: e.target.value})} 
-                    placeholder="e.g. 260 kcal, 14g P"
-                    className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                </div>
+              {/* Nutrition Info Input */}
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
+                  Nutrition Info
+                </label>
+                <input
+                  type="text"
+                  value={menuForm.nutrition}
+                  onChange={(e) => setMenuForm({ ...menuForm, nutrition: e.target.value })}
+                  placeholder="e.g. 260 kcal, 14g Protein, 100% Satvik"
+                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
+                />
               </div>
 
               {/* Web UI Custom Toggle Switches */}
               <div className="space-y-2.5 pt-3 border-t border-white/5">
                 {/* 100% Satvik Toggle */}
-                <div 
+                <div
                   onClick={() => setMenuForm(prev => ({ ...prev, isSatvik: !prev.isSatvik }))}
                   className="p-3 rounded-2xl bg-[#1E1B1C] border border-white/5 hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-base">✨</span>
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
                     <div>
                       <p className="text-xs font-bold text-white leading-tight">100% Satvik Prasad</p>
                       <p className="text-[10px] text-neutral-500 font-medium">Strictly without onion or garlic</p>
                     </div>
                   </div>
-                  
+
                   {/* Custom Animated Toggle Switch */}
                   <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${menuForm.isSatvik ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
                     <div className={`w-5 h-5 rounded-full bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isSatvik ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -1476,18 +1994,20 @@ export default function OwnerView() {
                 </div>
 
                 {/* Chef's Recommendation Toggle */}
-                <div 
+                <div
                   onClick={() => setMenuForm(prev => ({ ...prev, isDailySpecial: !prev.isDailySpecial }))}
                   className="p-3 rounded-2xl bg-[#1E1B1C] border border-white/5 hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-base">👑</span>
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                      <Crown className="w-4 h-4" />
+                    </div>
                     <div>
                       <p className="text-xs font-bold text-white leading-tight">Chef's Special Recommendation</p>
                       <p className="text-[10px] text-neutral-500 font-medium">Highlight with glowing banner on top</p>
                     </div>
                   </div>
-                  
+
                   {/* Custom Animated Toggle Switch */}
                   <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${menuForm.isDailySpecial ? 'bg-[#E0FF33]' : 'bg-white/10'}`}>
                     <div className={`w-5 h-5 rounded-full bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -1497,17 +2017,17 @@ export default function OwnerView() {
 
               {/* Submit CTA */}
               <div className="flex gap-2 pt-2">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] text-black font-black text-xs uppercase tracking-wider transition-all shadow-[0_8px_25px_rgba(224,255,51,0.25)] active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 size={16} />
                   <span>{editingMenuItem ? 'Save & Update Dish' : 'Publish Dish to Menu'}</span>
                 </button>
                 {editingMenuItem && (
-                  <button 
-                    type="button" 
-                    onClick={handleCancelEdit} 
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
                     className="py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all border border-white/5 cursor-pointer"
                   >
                     Cancel
@@ -1517,47 +2037,93 @@ export default function OwnerView() {
             </form>
           </div>
 
-          {/* Menu Catalog Table & Showcase */}
+          {/* Menu Catalog Table & Showcase — Scaled for Mass Items */}
           <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-4 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/5">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">Dish Catalog ({menuItems.length})</h3>
+                <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">
+                  Dish Catalog ({filteredMenuItems.length}{filteredMenuItems.length !== menuItems.length ? ` of ${menuItems.length}` : ''})
+                </h3>
                 <p className="text-xs text-neutral-400">All live dishes visible to customers</p>
               </div>
-              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap self-start sm:self-auto">
                 {menuItems.length} Dishes Live
               </span>
             </div>
 
+            {/* Mass Items Filter Toolbar: Search & Category Filter */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search dishes by name or ingredients..."
+                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white text-xs cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Category Filter Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                {['All', 'Meals', 'Sweets', 'Snacks', 'Drinks'].map(cat => {
+                  const isActive = categoryFilter === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none ${isActive
+                        ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-sm'
+                        : 'bg-[#1E1B1C] text-neutral-400 border-white/5 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Mobile Card List (< sm screens) */}
-            <div className="sm:hidden space-y-3">
-              {menuItems.length === 0 ? (
-                <div className="py-8 text-center text-neutral-500 text-xs font-semibold">
-                  No dishes added yet. Use the form above to add your first dish.
+            <div className="sm:hidden space-y-3 max-h-[580px] overflow-y-auto no-scrollbar p-0.5">
+              {filteredMenuItems.length === 0 ? (
+                <div className="py-12 text-center text-neutral-500 text-xs font-semibold">
+                  {menuItems.length === 0
+                    ? "No dishes added yet. Use the form above to add your first dish."
+                    : "No dishes match your current search/filter."}
                 </div>
               ) : (
-                menuItems.map(item => {
+                filteredMenuItems.map(item => {
                   const isBeingEdited = editingMenuItem?.id === item.id;
                   return (
-                    <div 
-                      key={item.id} 
-                      className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${
-                        isBeingEdited 
-                          ? 'bg-[#1E1B1C] border-2 border-[#E0FF33] shadow-[0_0_25px_rgba(224,255,51,0.25)] ring-2 ring-[#E0FF33]/20' 
-                          : 'bg-[#1E1B1C] border border-white/10'
-                      }`}
+                    <div
+                      key={item.id}
+                      className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
+                        ? 'bg-[#1E1B1C] border-2 border-[#E0FF33] shadow-[0_0_25px_rgba(224,255,51,0.25)] ring-2 ring-[#E0FF33]/20'
+                        : 'bg-[#1E1B1C] border border-white/10'
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 shrink-0 flex items-center justify-center p-1 relative">
-                          <img 
-                            src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
-                            alt={item.name} 
+                          <img
+                            src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                            alt={item.name}
                             className="w-full h-full object-contain"
                             loading="lazy"
                           />
                           {isBeingEdited && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center text-[9px] font-black">
-                              ✓
+                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center">
+                              <Check size={10} className="stroke-[3]" />
                             </div>
                           )}
                         </div>
@@ -1566,15 +2132,15 @@ export default function OwnerView() {
                             <div className="min-w-0">
                               <p className="font-bold text-white text-sm font-['Outfit'] truncate">{item.name}</p>
                               {isBeingEdited && (
-                                <span className="inline-block text-[9px] font-black text-[#E0FF33] uppercase tracking-wider">
-                                  ✏️ Active in Form Above
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-[#E0FF33] uppercase tracking-wider">
+                                  <Edit2 size={10} className="stroke-[2.5]" /> Active in Form
                                 </span>
                               )}
                             </div>
                             <span className="font-black text-[#E0FF33] text-sm font-['Outfit'] shrink-0">₹{item.price}</span>
                           </div>
                           <p className="text-[11px] text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
-                          
+
                           <div className="flex items-center gap-1.5 flex-wrap mt-2">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 whitespace-nowrap">
                               {item.category}
@@ -1594,18 +2160,17 @@ export default function OwnerView() {
                       </div>
 
                       <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
-                        <button 
+                        <button
                           onClick={() => handleEditMenuItem(item)}
-                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                            isBeingEdited 
-                              ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] font-black shadow-md' 
-                              : 'bg-white/5 hover:bg-white/10 text-white border-white/5'
-                          }`}
+                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
+                            ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] font-black shadow-md'
+                            : 'bg-white/5 hover:bg-white/10 text-white border-white/5'
+                            }`}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
                         </button>
-                        <button 
+                        <button
                           onClick={() => setDeleteTargetId(item.id)}
                           className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
                         >
@@ -1619,45 +2184,45 @@ export default function OwnerView() {
               )}
             </div>
 
-            {/* Desktop Table (>= sm screens) */}
-            <div className="hidden sm:block overflow-x-auto no-scrollbar">
+            {/* Desktop Table (>= sm screens) with Smooth Scroll Container */}
+            <div className="hidden sm:block overflow-x-auto max-h-[580px] overflow-y-auto no-scrollbar">
               <table className="w-full text-left text-sm">
-                <thead>
+                <thead className="sticky top-0 bg-[#282526] z-10">
                   <tr className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5">
-                    <th className="pb-3 pr-3 whitespace-nowrap">Dish</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Category</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Price</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Badges</th>
-                    <th className="pb-3 pl-3 text-right whitespace-nowrap">Actions</th>
+                    <th className="pb-3 pr-3 whitespace-nowrap bg-[#282526]">Dish</th>
+                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Category</th>
+                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Price</th>
+                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Badges</th>
+                    <th className="pb-3 pl-3 text-right whitespace-nowrap bg-[#282526]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-neutral-200">
-                  {menuItems.length === 0 ? (
+                  {filteredMenuItems.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs font-semibold">
-                        No dishes added yet. Use the form to add dishes.
+                      <td colSpan={5} className="py-12 text-center text-neutral-500 text-xs font-semibold">
+                        {menuItems.length === 0
+                          ? "No dishes added yet. Use the form to add dishes."
+                          : "No dishes match your search or category filter."}
                       </td>
                     </tr>
                   ) : (
-                    menuItems.map(item => {
+                    filteredMenuItems.map(item => {
                       const isBeingEdited = editingMenuItem?.id === item.id;
                       return (
-                        <tr 
-                          key={item.id} 
-                          className={`transition-all group ${
-                            isBeingEdited 
-                              ? 'bg-[#E0FF33]/10 border-l-4 border-l-[#E0FF33]' 
-                              : 'hover:bg-white/5'
-                          }`}
+                        <tr
+                          key={item.id}
+                          className={`transition-all group ${isBeingEdited
+                            ? 'bg-[#E0FF33]/10 border-l-4 border-l-[#E0FF33]'
+                            : 'hover:bg-white/5'
+                            }`}
                         >
                           <td className="py-3.5 pr-3">
                             <div className="flex items-center gap-3">
-                              <div className={`w-11 h-11 rounded-2xl bg-[#1E1B1C] overflow-hidden shrink-0 flex items-center justify-center p-1 ${
-                                isBeingEdited ? 'border-2 border-[#E0FF33]' : 'border border-white/10'
-                              }`}>
-                                <img 
-                                  src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)} 
-                                  alt={item.name} 
+                              <div className={`w-11 h-11 rounded-2xl bg-[#1E1B1C] overflow-hidden shrink-0 flex items-center justify-center p-1 ${isBeingEdited ? 'border-2 border-[#E0FF33]' : 'border border-white/10'
+                                }`}>
+                                <img
+                                  src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                                  alt={item.name}
                                   className="w-full h-full object-contain"
                                   loading="lazy"
                                 />
@@ -1666,8 +2231,8 @@ export default function OwnerView() {
                                 <p className="font-bold text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
                                 <p className="text-[10px] text-neutral-400 truncate">{item.description || 'No description provided'}</p>
                                 {isBeingEdited && (
-                                  <span className="text-[9px] font-black text-[#E0FF33] uppercase">
-                                    ✏️ Editing
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-[#E0FF33] uppercase">
+                                    <Edit2 size={10} className="stroke-[2.5]" /> Editing
                                   </span>
                                 )}
                               </div>
@@ -1697,18 +2262,17 @@ export default function OwnerView() {
                           </td>
                           <td className="py-3.5 pl-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button 
+                              <button
                                 onClick={() => handleEditMenuItem(item)}
-                                className={`p-2 rounded-xl transition-all cursor-pointer ${
-                                  isBeingEdited 
-                                    ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md font-bold' 
-                                    : 'bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white'
-                                }`}
+                                className={`p-2 rounded-xl transition-all cursor-pointer ${isBeingEdited
+                                  ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md font-bold'
+                                  : 'bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white'
+                                  }`}
                                 title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => setDeleteTargetId(item.id)}
                                 className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
                                 title="Delete Dish"
@@ -1751,12 +2315,15 @@ export default function OwnerView() {
               </div>
             ) : (
               orders
-                .filter(o => o.paymentMethod === 'cash')
+                .filter(o => {
+                  const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
+                  return m === 'cash' || m === 'cod';
+                })
                 .map(order => {
-                  const date = order.createdAt?.toDate 
-                    ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) 
+                  const date = order.createdAt?.toDate
+                    ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                     : 'Recent';
-                  const isCollected = order.cashStatus === 'collected';
+                  const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
                   return (
                     <div key={order.id} className="bg-[#1E1B1C] border border-white/10 rounded-2xl p-4 space-y-3 shadow-md">
                       <div className="flex items-start justify-between gap-2">
@@ -1766,29 +2333,28 @@ export default function OwnerView() {
                           </p>
                           <p className="text-[10px] text-neutral-400 mt-0.5">{date}</p>
                         </div>
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
-                          isCollected 
-                            ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20' 
-                            : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
-                        }`}>
-                          {isCollected ? 'Collected' : 'Pending with Courier'}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
+                          ? 'bg-white/5 text-neutral-400 border border-white/10'
+                          : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                          }`}>
+                          {isCollected ? 'Collected' : 'Pending'}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between py-2 border-y border-white/5 text-xs">
                         <div>
-                          <p className="font-bold text-white">{order.customerName || 'Customer'}</p>
-                          <p className="text-[11px] text-neutral-400">{order.customerPhone || 'N/A'}</p>
+                          <p className="font-bold text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                          <p className="text-[11px] text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] text-neutral-400 uppercase font-semibold">Amount</p>
-                          <p className="font-black text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount}</p>
+                          <p className="font-black text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
                         </div>
                       </div>
 
                       <div className="pt-1">
                         {!isCollected ? (
-                          <button 
+                          <button
                             onClick={() => handleMarkCashCollected(order.id)}
                             className="w-full py-2.5 px-4 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                           >
@@ -1796,8 +2362,8 @@ export default function OwnerView() {
                             <span>Confirm Cash Received</span>
                           </button>
                         ) : (
-                          <div className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          <div className="w-full py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-neutral-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
+                            <CheckCircle2 className="w-4 h-4 text-neutral-400" />
                             <span>Cash Reconciled</span>
                           </div>
                         )}
@@ -1821,7 +2387,10 @@ export default function OwnerView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-neutral-200">
-                {orders.filter(o => o.paymentMethod === 'cash').length === 0 ? (
+                {orders.filter(o => {
+                  const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
+                  return m === 'cash' || m === 'cod';
+                }).length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs font-semibold">
                       No Cash on Delivery orders recorded.
@@ -1829,12 +2398,15 @@ export default function OwnerView() {
                   </tr>
                 ) : (
                   orders
-                    .filter(o => o.paymentMethod === 'cash')
+                    .filter(o => {
+                      const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
+                      return m === 'cash' || m === 'cod';
+                    })
                     .map(order => {
-                      const date = order.createdAt?.toDate 
-                        ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) 
+                      const date = order.createdAt?.toDate
+                        ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
                         : 'Recent';
-                      const isCollected = order.cashStatus === 'collected';
+                      const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
                       return (
                         <tr key={order.id} className="hover:bg-white/5 transition-all">
                           <td className="py-3.5 pr-4 whitespace-nowrap">
@@ -1842,24 +2414,23 @@ export default function OwnerView() {
                             <p className="text-[10px] text-neutral-500">{date}</p>
                           </td>
                           <td className="py-3.5 pr-4 whitespace-nowrap">
-                            <p className="font-semibold text-xs text-white">{order.customerName || 'Customer'}</p>
-                            <p className="text-[10px] text-neutral-400">{order.customerPhone || 'N/A'}</p>
+                            <p className="font-semibold text-xs text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                            <p className="text-[10px] text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
                           </td>
                           <td className="py-3.5 pr-4 font-black text-[#E0FF33] font-['Outfit'] text-sm whitespace-nowrap">
-                            ₹{order.totalAmount}
+                            ₹{order.totalAmount || order.total_amount || 0}
                           </td>
                           <td className="py-3.5 pr-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
-                              isCollected 
-                                ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20' 
-                                : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
-                            }`}>
-                              {isCollected ? 'Collected' : 'Pending with Courier'}
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
+                              ? 'bg-white/5 text-neutral-400 border border-white/10'
+                              : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                              }`}>
+                              {isCollected ? 'Collected' : 'Pending Payment'}
                             </span>
                           </td>
                           <td className="py-3.5 text-right whitespace-nowrap">
                             {!isCollected ? (
-                              <button 
+                              <button
                                 onClick={() => handleMarkCashCollected(order.id)}
                                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
                               >
@@ -1867,8 +2438,8 @@ export default function OwnerView() {
                                 <span>Confirm Cash Received</span>
                               </button>
                             ) : (
-                              <span className="text-xs text-emerald-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-xs text-neutral-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
                                 <span>Reconciled</span>
                               </span>
                             )}
@@ -1966,104 +2537,226 @@ export default function OwnerView() {
             </form>
           )}
 
-          {/* Staff Search */}
-          <div className="relative w-full max-w-sm">
-            <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={staffSearch}
-              onChange={(e) => setStaffSearch(e.target.value)}
-              placeholder="Search team by name or phone..."
-              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
-            />
-          </div>
+          {/* Quick Metrics Ribbon & Role Directory Management */}
+          {(() => {
+            const shopId = currentShop?.id || currentUserShopId;
 
-          {/* Staff Roster Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(() => {
-              const shopId = currentShop?.id || currentUserShopId;
-              const filtered = usersList.filter(u => {
-                const belongsToShop = (u.shopId === shopId) || (u.role === 'kitchen' || u.role === 'delivery');
-                const q = staffSearch.toLowerCase().trim();
-                const matchesSearch = !q || 
-                  (u.displayName || '').toLowerCase().includes(q) ||
-                  (u.phone || '').includes(q) ||
-                  (u.id || '').toLowerCase().includes(q);
-                return belongsToShop && matchesSearch;
-              });
+            // Kitchen specific staff (assigned to this kitchen) - only kitchen, delivery, owner roles
+            const isAssignedToThisShop = (u) => {
+              if (!['kitchen', 'delivery', 'owner'].includes(u.role)) return false;
+              return (u.shopId === shopId) || (Array.isArray(u.shopIds) && u.shopIds.includes(shopId)) || !u.shopId;
+            };
 
-              if (filtered.length === 0) {
-                return (
-                  <div className="col-span-full text-center py-12 bg-[#282526] rounded-3xl border border-white/5">
-                    <Users className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-neutral-300">No staff members found for this kitchen.</p>
-                    <p className="text-xs text-neutral-500 mt-1">Click "Add Staff Member" above to assign cooks or riders.</p>
-                  </div>
-                );
-              }
+            const cooksCount = usersList.filter(u => u.role === 'kitchen' && isAssignedToThisShop(u)).length;
+            const deliveryCount = usersList.filter(u => u.role === 'delivery' && isAssignedToThisShop(u)).length;
+            const managersCount = usersList.filter(u => u.role === 'owner' && isAssignedToThisShop(u)).length;
+            const totalStaffCount = cooksCount + deliveryCount + managersCount;
 
-              return filtered.map(u => {
-                const role = u.role || 'customer';
-                return (
-                  <div 
-                    key={u.id}
-                    className="p-4 bg-[#282526] rounded-3xl border border-white/5 hover:border-white/10 transition-all space-y-3"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs ${
-                          role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                          role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                          role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                          'bg-white/10 text-neutral-300'
-                        }`}>
-                          {role === 'kitchen' ? <ChefHat className="w-5 h-5" /> :
-                           role === 'delivery' ? <Truck className="w-5 h-5" /> :
-                           <ShieldCheck className="w-5 h-5" />}
-                        </div>
-                        <div>
-                          <p className="font-bold text-xs text-white font-['Outfit']">
-                            {u.displayName || `Staff (${(u.phone || '').slice(-4)})`}
-                          </p>
-                          <p className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                            {u.phone ? `+91 ${u.phone}` : u.id}
-                          </p>
-                        </div>
-                      </div>
-
-                      <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full ${
-                        role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                        role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                        'bg-purple-400/20 text-purple-300 border border-purple-400/30'
-                      }`}>
-                        {role}
-                      </span>
+            return (
+              <div className="space-y-4">
+                {/* Metric Summary Ribbon - 3 Key Store Roles */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-amber-400/20 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Kitchen Cooks</p>
+                      <p className="text-xl font-black text-amber-300 font-['Outfit'] mt-0.5">{cooksCount}</p>
                     </div>
+                    <div className="w-9 h-9 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center">
+                      <ChefHat className="w-4 h-4" />
+                    </div>
+                  </div>
 
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                      <label className="text-[10px] font-bold text-neutral-400 uppercase">Role:</label>
-                      {role === 'grand_admin' ? (
-                        <span className="text-xs font-black text-amber-300 flex items-center gap-1">
-                          👑 Grand Admin (Permanent)
-                        </span>
-                      ) : (
-                        <select
-                          value={role}
-                          onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
-                          className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-cyan-400/20 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Delivery Sarathi</p>
+                      <p className="text-xl font-black text-cyan-300 font-['Outfit'] mt-0.5">{deliveryCount}</p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl bg-cyan-400/15 text-cyan-300 flex items-center justify-center">
+                      <Truck className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-purple-400/20 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Store Managers</p>
+                      <p className="text-xl font-black text-purple-300 font-['Outfit'] mt-0.5">{managersCount}</p>
+                    </div>
+                    <div className="w-9 h-9 rounded-xl bg-purple-400/15 text-purple-300 flex items-center justify-center">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                  <div className="relative w-full sm:w-80 shrink-0">
+                    <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={staffSearch}
+                      onChange={(e) => setStaffSearch(e.target.value)}
+                      placeholder="Search store staff by name, phone, or UID..."
+                      className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 shrink min-w-0">
+                    {[
+                      { id: 'all', label: 'All Staff', icon: Users, count: totalStaffCount },
+                      { id: 'kitchen', label: 'Cooks', icon: ChefHat, count: cooksCount },
+                      { id: 'delivery', label: 'Sarathi', icon: Bike, count: deliveryCount },
+                      { id: 'owner', label: 'Managers', icon: ShieldCheck, count: managersCount }
+                    ].map(tab => {
+                      const IconComp = tab.icon;
+                      const isActive = staffRoleFilter === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setStaffRoleFilter(tab.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
+                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                            : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                            }`}
                         >
-                          <option value="kitchen">Kitchen Cook</option>
-                          <option value="delivery">Delivery Sarathi</option>
-                          <option value="owner">Store Manager</option>
-                          <option value="customer">Remove / Demote</option>
-                        </select>
-                      )}
-                    </div>
+                          <IconComp size={13} className={isActive ? 'text-black stroke-[2.5]' : 'text-neutral-400'} />
+                          <span>{tab.label}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${isActive ? 'bg-black/20 text-black' : 'bg-white/5 text-neutral-400'
+                            }`}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                );
-              });
-            })()}
-          </div>
+                </div>
+
+                {/* Staff Roster Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(() => {
+                    const filtered = usersList.filter(u => {
+                      const role = u.role || 'customer';
+
+                      // Strictly store staff roles only (no customers, no developers, no grand admins)
+                      if (!['kitchen', 'delivery', 'owner'].includes(role)) return false;
+
+                      // Filter tab matching
+                      if (staffRoleFilter === 'kitchen' && role !== 'kitchen') return false;
+                      if (staffRoleFilter === 'delivery' && role !== 'delivery') return false;
+                      if (staffRoleFilter === 'owner' && role !== 'owner') return false;
+
+                      // Branch matching: for cooks/riders/managers must be assigned to this kitchen
+                      const belongsToShop = isAssignedToThisShop(u);
+                      if (!belongsToShop) return false;
+
+                      // Search query matching
+                      const q = staffSearch.toLowerCase().trim();
+                      return !q ||
+                        (u.displayName || '').toLowerCase().includes(q) ||
+                        (u.phone || '').includes(q) ||
+                        (u.email || '').toLowerCase().includes(q) ||
+                        (u.id || '').toLowerCase().includes(q);
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="col-span-full text-center py-12 bg-[#282526] rounded-3xl border border-white/5">
+                          <Users className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
+                          <p className="text-sm font-bold text-neutral-300">No staff members found for this filter.</p>
+                          <p className="text-xs text-neutral-500 mt-1">Click "Add Staff Member" above to assign cooks or delivery sarathis to this kitchen.</p>
+                        </div>
+                      );
+                    }
+
+                    return filtered.map(u => {
+                      const role = u.role || 'customer';
+                      return (
+                        <div
+                          key={u.id}
+                          className="p-5 bg-[#282526] rounded-3xl border border-white/5 hover:border-white/10 transition-all space-y-4 shadow-lg flex flex-col justify-between"
+                        >
+                          {/* Top Identity Header */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                                role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                                  'bg-purple-400/20 text-purple-300 border border-purple-400/30'
+                                }`}>
+                                {role === 'kitchen' ? <ChefHat className="w-5 h-5 text-amber-300" /> :
+                                  role === 'delivery' ? <Truck className="w-5 h-5 text-cyan-300" /> :
+                                    <ShieldCheck className="w-5 h-5 text-purple-300" />}
+                              </div>
+
+                              <div className="min-w-0">
+                                <p className="font-bold text-sm text-white truncate font-['Outfit']">
+                                  {u.displayName || (u.email ? u.email.split('@')[0] : `Staff (${(u.phone || '').slice(-4)})`)}
+                                </p>
+                                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 mt-0.5 truncate">
+                                  {u.phone ? (
+                                    <span className="font-mono text-neutral-300 flex items-center gap-1">
+                                      <Phone className="w-3 h-3 text-neutral-500 shrink-0" />
+                                      +91 {u.phone}
+                                    </span>
+                                  ) : u.email ? (
+                                    <span className="truncate text-neutral-300 flex items-center gap-1">
+                                      <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
+                                      {u.email}
+                                    </span>
+                                  ) : (
+                                    <span className="font-mono text-neutral-500 text-[10px] truncate">
+                                      UID: {u.id.slice(0, 14)}...
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Role Badge */}
+                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 tracking-wider ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                              role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                                'bg-purple-400/20 text-purple-300 border border-purple-400/30'
+                              }`}>
+                              {role === 'kitchen' ? 'Kitchen Cook' :
+                                role === 'delivery' ? 'Delivery Sarathi' :
+                                  'Store Manager'}
+                            </span>
+                          </div>
+
+                          {/* Bottom Role Control Row */}
+                          <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider shrink-0">
+                              Role Scope:
+                            </label>
+
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={role}
+                                onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
+                                className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                              >
+                                <option value="kitchen">Kitchen Cook</option>
+                                <option value="delivery">Delivery Sarathi</option>
+                                <option value="owner">Store Manager</option>
+                                <option value="customer">Remove / Demote</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveStaffMember(u.id, u.displayName)}
+                                title="Remove staff member from kitchen roster"
+                                className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -2100,7 +2793,7 @@ export default function OwnerView() {
 
       {/* Google Maps Picker Modal */}
       {showMapPicker && (
-        <MapPicker 
+        <MapPicker
           initialLat={mapTargetCoords.lat}
           initialLng={mapTargetCoords.lng}
           onClose={() => setShowMapPicker(false)}
@@ -2110,15 +2803,355 @@ export default function OwnerView() {
         />
       )}
 
+      {/* Detailed Order Ticket & Audit Modal */}
+      {selectedAuditOrder && (() => {
+        const o = selectedAuditOrder;
+        const shortId = o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : '-----';
+        const rawMethod = String(o.payment_method || o.paymentMethod || o.payment || '').toLowerCase().trim();
+        const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+        const isCollected = isCash
+          ? (o.cash_status === 'collected' || o.cashStatus === 'collected' || o.cash_collected === true || o.cashCollected === true)
+          : true;
+        const totalAmount = o.total_amount ?? o.totalAmount ?? o.total ?? 0;
+        const items = Array.isArray(o.items) ? o.items : [];
+        const isNew = o.status === 'new' || o.status === 'pending' || o.status === 'placed';
+        const isPreparing = o.status === 'preparing';
+        const isReady = o.status === 'ready' || o.status === 'ready_for_pickup';
+        const isOut = o.status === 'out_for_delivery';
+        const isDelivered = o.status === 'delivered' || o.status === 'completed';
+        const phone = o.customer_phone || o.customerPhone || '';
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+        return (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-fadeIn"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedAuditOrder(null);
+            }}
+          >
+            <div className="w-full max-w-xl bg-[#1A1718] border border-white/10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#221F20] shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-black text-white font-['Outfit']">
+                        Order Ticket #{shortId}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(o.id);
+                          setToast({ message: `Full Order ID copied to clipboard!`, type: 'info' });
+                        }}
+                        className="text-neutral-400 hover:text-[#E0FF33] p-1 rounded-md transition-colors cursor-pointer"
+                        title="Copy full UUID"
+                      >
+                        <Copy size={13} />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-neutral-400 font-['Plus_Jakarta_Sans']">
+                      <Clock size={11} />
+                      <span>{o.created_at || o.createdAt ? new Date(o.created_at || o.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) : 'Recent'}</span>
+                      <span>•</span>
+                      <span className="font-mono text-[11px] text-neutral-500">{o.id.slice(0, 13)}...</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                    title="Print KOT Ticket"
+                  >
+                    <Printer size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAuditOrder(null)}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans']">
+                {/* Status Bar */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-400 uppercase font-bold tracking-wider">Kitchen Status:</span>
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${isNew ? 'bg-amber-400/15 text-amber-300 border-amber-400/30' :
+                      isPreparing ? 'bg-orange-400/15 text-orange-300 border-orange-400/30' :
+                        isReady ? 'bg-cyan-400/15 text-cyan-300 border-cyan-400/30' :
+                          isOut ? 'bg-purple-400/15 text-purple-300 border-purple-400/30' :
+                            'bg-emerald-400/15 text-emerald-300 border-emerald-400/30'
+                      }`}>
+                      {o.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-xs font-bold">
+                    {isCash ? (
+                      isCollected ? (
+                        <span className="flex items-center gap-1 text-neutral-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                          <CheckCircle2 size={13} className="text-neutral-400" /> COD (₹{totalAmount}) Collected
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+                          <Banknote size={13} /> COD (₹{totalAmount}) Due
+                        </span>
+                      )
+                    ) : (
+                      <span className="flex items-center gap-1 text-neutral-300 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                        <CreditCard size={13} className="text-emerald-400" /> Paid Online (Prepaid)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Customer Information Card */}
+                <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Customer Details</span>
+                      <h4 className="text-sm font-bold text-white font-['Outfit'] mt-0.5">
+                        {o.customer_name || o.customerName || 'Devotee Customer'}
+                      </h4>
+                      {phone && (
+                        <p className="text-xs text-neutral-400 font-mono mt-0.5">{phone}</p>
+                      )}
+                    </div>
+
+                    {phone && (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`tel:${phone}`}
+                          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold flex items-center gap-1.5 transition-all"
+                        >
+                          <Phone size={12} /> Call
+                        </a>
+                        <a
+                          href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all"
+                        >
+                          <ExternalLink size={12} /> WhatsApp
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-white/5 flex items-start gap-2 text-xs text-neutral-300">
+                    <MapPin size={14} className="text-[#E0FF33] shrink-0 mt-0.5" />
+                    <span>{o.delivery_address || o.deliveryAddress || o.customerAddress || 'Direct Pickup / Dine-in'}</span>
+                  </div>
+
+                  {(o.cooking_notes || o.cookingNotes) && (
+                    <div className="p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/25 text-xs text-amber-200 flex items-start gap-2">
+                      <ChefHat size={14} className="text-amber-300 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="font-bold">Chef Instructions:</strong> {o.cooking_notes || o.cookingNotes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Items Breakdown Table */}
+                <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-2.5">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10 text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                    <span>Item Breakdown ({items.reduce((acc, it) => acc + (it.quantity || it.qty || 1), 0)} Items)</span>
+                    <span>Amount</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {items.map((item, idx) => {
+                      const qty = item.quantity || item.qty || 1;
+                      const price = item.price || 0;
+                      const total = qty * price;
+                      return (
+                        <div key={idx} className="flex justify-between items-center text-xs py-1">
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className="w-5 h-5 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-400 font-bold shrink-0">
+                              veg
+                            </span>
+                            <span className="text-white font-medium truncate">{item.name}</span>
+                            <span className="text-neutral-400 font-bold shrink-0">x {qty}</span>
+                          </div>
+                          <span className="font-mono font-bold text-white shrink-0">₹{total}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pricing Summary */}
+                  <div className="pt-3 border-t border-white/10 space-y-1.5 text-xs">
+                    <div className="flex justify-between text-neutral-400">
+                      <span>Dishes Subtotal</span>
+                      <span className="font-mono">₹{items.reduce((acc, it) => acc + ((it.quantity || it.qty || 1) * (it.price || 0)), 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-neutral-400">
+                      <span>Delivery & Temple Packaging</span>
+                      <span className="font-mono">₹{o.delivery_fee || o.deliveryFee || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-black text-white font-['Outfit'] pt-2 border-t border-white/10">
+                      <span className="text-[#E0FF33]">Total Paid / Bill</span>
+                      <span className="text-[#E0FF33] font-mono text-base">₹{totalAmount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flexible Payment Settlement Card (Handles Before, During, or After Delivery) */}
+                <div className={`p-4 rounded-2xl border transition-all ${!isCash
+                  ? 'bg-white/5 border-white/10'
+                  : isCollected
+                    ? 'bg-white/5 border-white/10'
+                    : 'bg-amber-400/10 border-amber-400/30'
+                  }`}>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${!isCash || isCollected ? 'bg-white/5 text-neutral-400 border border-white/10' : 'bg-amber-400/20 text-amber-300'
+                        }`}>
+                        {!isCash ? <CreditCard size={18} className="text-emerald-400" /> : isCollected ? <CheckCircle2 size={18} className="text-neutral-400" /> : <Banknote size={18} />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-white font-['Outfit']">
+                            {!isCash ? 'Prepaid Online Transaction' : isCollected ? 'Cash Collected & Verified' : 'Cash on Delivery (COD)'}
+                          </p>
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${!isCash || isCollected ? 'bg-white/10 text-neutral-400 border border-white/15' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                            }`}>
+                            {!isCash ? 'Prepaid' : isCollected ? 'Collected' : 'Pending'}
+                          </span>
+                        </div>
+                        <p className={`text-[11px] mt-0.5 ${!isCash || isCollected ? 'text-neutral-400' : 'text-amber-200/80'}`}>
+                          {!isCash
+                            ? `₹${totalAmount} paid & verified digitally (Zero cash due)`
+                            : isCollected
+                              ? `₹${totalAmount} cash confirmed received (No further collection needed)`
+                              : `₹${totalAmount} due from customer (Can be collected at counter or on delivery)`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Flexible Cash Collection Toggle */}
+                    {isCash && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!isCollected) {
+                            await markCloudOrderCashCollected(o.id);
+                            setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true }));
+                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true } : ord));
+                            setToast({ message: `Cash marked as collected for #${shortId}`, type: 'success' });
+                          } else {
+                            await updateCloudOrderStatus(o.id, undefined, { cash_status: 'pending' });
+                            setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false }));
+                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false } : ord));
+                            setToast({ message: `Cash marked as pending for #${shortId}`, type: 'info' });
+                          }
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95 ${isCollected
+                          ? 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
+                          : 'bg-[#E0FF33] hover:bg-[#d4f820] text-black shadow-[0_0_15px_rgba(224,255,51,0.2)]'
+                          }`}
+                      >
+                        {isCollected ? (
+                          <>
+                            <RotateCcw size={12} />
+                            <span>Mark Unpaid</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={12} />
+                            <span>Confirm Cash Received</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer / Kitchen Workflow Action Buttons */}
+              <div className="p-4 sm:p-5 border-t border-white/10 bg-[#221F20] flex flex-wrap items-center gap-2.5 justify-end shrink-0">
+                {isNew && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await updateCloudOrderStatus(o.id, 'preparing');
+                      setSelectedAuditOrder(prev => ({ ...prev, status: 'preparing' }));
+                      setToast({ message: `Order #${shortId} moved to Kitchen Prep!`, type: 'success' });
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                  >
+                    <ChefHat size={14} />
+                    <span>Start Preparation</span>
+                  </button>
+                )}
+
+                {isPreparing && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await updateCloudOrderStatus(o.id, 'ready_for_pickup');
+                      setSelectedAuditOrder(prev => ({ ...prev, status: 'ready_for_pickup' }));
+                      setToast({ message: `Order #${shortId} is Ready for Sarathi pickup!`, type: 'success' });
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Dishes Ready For Dispatch</span>
+                  </button>
+                )}
+
+                {isReady && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await updateCloudOrderStatus(o.id, 'out_for_delivery');
+                      setSelectedAuditOrder(prev => ({ ...prev, status: 'out_for_delivery' }));
+                      setToast({ message: `Order #${shortId} handed over to rider!`, type: 'success' });
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-purple-400 hover:bg-purple-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                  >
+                    <Truck size={14} />
+                    <span>Handover To Rider</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedAuditOrder(null)}
+                  className="py-3 px-5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Realtime Live Alarm HUD Banner */}
-      <ActiveAlarmBanner 
-        isPlaying={isPlaying} 
-        activeAlert={activeAlert} 
-        onSilence={stopAlarm} 
-        onActionClick={() => {
-          setActiveTab('analytics');
+      <ActiveAlarmBanner
+        isPlaying={isPlaying}
+        activeAlert={activeAlert}
+        onSilence={stopAlarm}
+        onActionClick={(alert) => {
+          setActiveTab('orders');
           stopAlarm();
-        }} 
+          if (alert?.orderId) {
+            setOrderSearch(alert.orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5));
+          }
+        }}
       />
     </div>
   );

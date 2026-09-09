@@ -32,7 +32,16 @@ import {
   RefreshCw,
   Crown,
   Lock,
-  X
+  Globe,
+  Banknote,
+  X,
+  Info,
+  Copy,
+  ExternalLink,
+  Calendar,
+  Mail,
+  Phone,
+  Bike
 } from 'lucide-react';
 import { 
   updateCloudShop, 
@@ -75,9 +84,19 @@ export default function DeveloperView({ setCurrentTab }) {
   });
   const [toast, setToast] = useState(null);
 
-  const [selectedShopId, setSelectedShopId] = useState('');
-  const [selectedDeliveryShopId, setSelectedDeliveryShopId] = useState('');
-  const [selectedPaymentShopId, setSelectedPaymentShopId] = useState(allShops[0]?.id || '');
+  const [selectedShopId, setSelectedShopId] = useState(() => allShops[0]?.id || '');
+  const [selectedDeliveryShopId, setSelectedDeliveryShopId] = useState(() => allShops[0]?.id || '');
+  const [selectedOwnerShopId, setSelectedOwnerShopId] = useState(() => allShops[0]?.id || '');
+  const [selectedPaymentShopId, setSelectedPaymentShopId] = useState(() => allShops[0]?.id || '');
+
+  useEffect(() => {
+    if (allShops && allShops.length > 0) {
+      if (!selectedShopId) setSelectedShopId(allShops[0].id);
+      if (!selectedDeliveryShopId) setSelectedDeliveryShopId(allShops[0].id);
+      if (!selectedOwnerShopId) setSelectedOwnerShopId(allShops[0].id);
+      if (!selectedPaymentShopId) setSelectedPaymentShopId(allShops[0].id);
+    }
+  }, [allShops]);
 
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
@@ -88,6 +107,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [newUserRole, setNewUserRole] = useState('kitchen');
   const [newUserShopId, setNewUserShopId] = useState('');
   const [userToDelete, setUserToDelete] = useState(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState(null);
 
   const [simShopId, setSimShopId] = useState('');
   const [simMenuItems, setSimMenuItems] = useState([]);
@@ -95,6 +115,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [simName, setSimName] = useState('Vrindavan Dev Client');
   const [simAddress, setSimAddress] = useState('108 Vedic Enclave, Raman Reti, Vrindavan');
   const [simPhone, setSimPhone] = useState('9876543210');
+  const [simPaymentMethod, setSimPaymentMethod] = useState('online');
   const [isSimulating, setIsSimulating] = useState(false);
 
   const {
@@ -378,6 +399,8 @@ export default function DeveloperView({ setCurrentTab }) {
     else if (targetRole === 'delivery') setCurrentTab('delivery');
     else if (targetRole === 'owner') setCurrentTab('owner');
     else if (targetRole === 'developer') setCurrentTab('developer');
+    else if (targetRole === 'customer') setCurrentTab('customer');
+    else if (targetRole === 'grand_admin') setCurrentTab('developer');
   };
 
   const handleImpersonateShop = (shopId) => {
@@ -392,6 +415,13 @@ export default function DeveloperView({ setCurrentTab }) {
     impersonate(shopId, 'delivery');
     setToast({ message: "Switched view to Delivery Rider", type: 'success' });
     setCurrentTab('delivery');
+  };
+
+  const handleImpersonateOwner = (shopId) => {
+    if (!shopId) return setToast({ message: "Please select a store first", type: 'warning' });
+    impersonate(shopId, 'owner');
+    setToast({ message: "Switched view to Store Owner", type: 'success' });
+    setCurrentTab('owner');
   };
 
   const handleUpdateSimQty = (itemId, delta) => {
@@ -423,6 +453,8 @@ export default function DeveloperView({ setCurrentTab }) {
       deliveryAddress: simAddress,
       customerPhone: simPhone,
       customer_phone: simPhone,
+      deliveryCoordinates: { lat: 27.5785 + (Math.random() * 0.006), lng: 77.6680 + (Math.random() * 0.006) },
+      delivery_coordinates: { lat: 27.5785 + (Math.random() * 0.006), lng: 77.6680 + (Math.random() * 0.006) },
       items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, ready: false })),
       subtotal: total,
       deliveryCharge: 0,
@@ -430,12 +462,12 @@ export default function DeveloperView({ setCurrentTab }) {
       totalAmount: total,
       total_amount: total,
       status: 'new',
-      isPaid: true,
+      isPaid: simPaymentMethod === 'online',
       isTestOrder: true,
-      paymentMethod: 'online',
-      payment_method: 'online',
-      cashStatus: 'none',
-      cash_status: 'none'
+      paymentMethod: simPaymentMethod,
+      payment_method: simPaymentMethod,
+      cashStatus: simPaymentMethod === 'cash' ? 'pending' : 'none',
+      cash_status: simPaymentMethod === 'cash' ? 'pending' : 'none'
     };
 
     try {
@@ -535,22 +567,29 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* Main Dev Tools Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Impersonation Settings */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-[#E0FF33]" />
-            <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Instant Role Impersonation</h3>
+        {/* Impersonation Settings — Full Width with Side-by-Side Layout */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Instant Role Impersonation</h3>
+                <p className="text-[11px] text-neutral-400">Jump directly into any kitchen, delivery rider, or store owner view with specific shop context.</p>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-neutral-400">Jump directly into any kitchen or delivery staff view with specific shop context.</p>
 
-          <div className="space-y-4 pt-2">
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-2">
-              <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                <ChefHat className="w-3.5 h-3.5 text-amber-400" />
-                <span>Impersonate Kitchen Staff</span>
-              </label>
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto no-scrollbar pr-0.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Kitchen Staff Impersonation */}
+            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                  <ChefHat className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Impersonate Kitchen Staff</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
                   {allShops.map(s => {
                     const isSelected = selectedShopId === s.id;
                     return (
@@ -558,7 +597,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         key={s.id}
                         type="button"
                         onClick={() => setSelectedShopId(s.id)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left truncate cursor-pointer ${isSelected
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
                             ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
                             : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
                           }`}
@@ -568,24 +607,25 @@ export default function DeveloperView({ setCurrentTab }) {
                     );
                   })}
                 </div>
-                <button
-                  onClick={() => handleImpersonateShop(selectedShopId)}
-                  disabled={!selectedShopId}
-                  className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <ChefHat className="w-4 h-4" />
-                  <span>Launch Kitchen Staff View</span>
-                </button>
               </div>
+              <button
+                onClick={() => handleImpersonateShop(selectedShopId)}
+                disabled={!selectedShopId}
+                className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+              >
+                <ChefHat className="w-4 h-4" />
+                <span>Launch Kitchen Staff View</span>
+              </button>
             </div>
 
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-2">
-              <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Impersonate Delivery Rider</span>
-              </label>
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto no-scrollbar pr-0.5">
+            {/* Delivery Rider Impersonation */}
+            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Impersonate Delivery Rider</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
                   {allShops.map(s => {
                     const isSelected = selectedDeliveryShopId === s.id;
                     return (
@@ -593,7 +633,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         key={s.id}
                         type="button"
                         onClick={() => setSelectedDeliveryShopId(s.id)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left truncate cursor-pointer ${isSelected
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
                             ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/40 shadow-sm'
                             : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
                           }`}
@@ -603,75 +643,150 @@ export default function DeveloperView({ setCurrentTab }) {
                     );
                   })}
                 </div>
-                <button
-                  onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
-                  disabled={!selectedDeliveryShopId}
-                  className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <Truck className="w-4 h-4" />
-                  <span>Launch Sarathi Rider View</span>
-                </button>
               </div>
+              <button
+                onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
+                disabled={!selectedDeliveryShopId}
+                className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+              >
+                <Truck className="w-4 h-4" />
+                <span>Launch Sarathi Rider View</span>
+              </button>
+            </div>
+
+            {/* Store Owner Impersonation */}
+            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Impersonate Store Owner</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                  {allShops.map(s => {
+                    const isSelected = selectedOwnerShopId === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedOwnerShopId(s.id)}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                            ? 'bg-purple-400/20 text-purple-300 border-purple-400/40 shadow-sm'
+                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                          }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <button
+                onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
+                disabled={!selectedOwnerShopId}
+                className="w-full py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Launch Store Owner View</span>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Global & Per-Kitchen Configuration */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-5 shadow-xl">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-[#E0FF33]" />
-              <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Payment Gateways Master</h3>
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-6 shadow-xl md:col-span-2">
+          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Payment Gateways Master</h3>
+                <p className="text-[11px] text-neutral-400">Manage real-time payment methods globally & per-kitchen</p>
+              </div>
             </div>
-            <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2 py-0.5 rounded-full">Global & Specific</span>
+            <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-[#E0FF33]/20">
+              Global & Branch Config
+            </span>
           </div>
 
           {/* 1. Global Master Switches */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">1. Global Master Switches (All Kitchens)</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-white">Online Razorpay</p>
-                  <p className="text-[10px] text-neutral-500">Platform-wide UPI/Cards</p>
+          <div className="space-y-3">
+            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33]" />
+              1. Global Master Switches (All Kitchens)
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Online Razorpay Global */}
+              <div className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Online Payments (Razorpay & UPI)</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">Platform-wide UPI, Credit/Debit Cards & Netbanking</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${paymentsConfig.onlinePaymentsEnabled
-                      ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
-                      : 'bg-red-400/20 text-red-300 border border-red-400/30'
-                    }`}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    paymentsConfig.onlinePaymentsEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                  }`}
+                  role="switch"
+                  aria-checked={paymentsConfig.onlinePaymentsEnabled}
                 >
-                  {paymentsConfig.onlinePaymentsEnabled ? 'Enabled' : 'Disabled'}
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      paymentsConfig.onlinePaymentsEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
 
-              <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-white">Cash on Delivery</p>
-                  <p className="text-[10px] text-neutral-500">Platform-wide COD</p>
+              {/* Cash on Delivery Global */}
+              <div className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                    <Banknote className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">Platform-wide Physical Cash Collection on Delivery</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${paymentsConfig.codEnabled
-                      ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
-                      : 'bg-red-400/20 text-red-300 border border-red-400/30'
-                    }`}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    paymentsConfig.codEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                  }`}
+                  role="switch"
+                  aria-checked={paymentsConfig.codEnabled}
                 >
-                  {paymentsConfig.codEnabled ? 'Enabled' : 'Disabled'}
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      paymentsConfig.codEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
             </div>
           </div>
 
           {/* 2. Specific Kitchen Master Switches */}
-          <div className="space-y-2 pt-2 border-t border-white/5">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">2. Kitchen-Specific Payment Config</p>
-                <span className="text-[10px] text-neutral-500 font-medium">Select a kitchen to manage</span>
+          <div className="space-y-3 pt-3 border-t border-white/5">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  2. Kitchen-Specific Payment Config
+                </p>
+                <span className="text-[10px] text-neutral-400 font-medium">Select kitchen branch to configure</span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {allShops.map(s => {
                   const isSelected = (selectedPaymentShopId || allShops[0]?.id) === s.id;
                   return (
@@ -679,12 +794,13 @@ export default function DeveloperView({ setCurrentTab }) {
                       key={s.id}
                       type="button"
                       onClick={() => setSelectedPaymentShopId(s.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${isSelected
-                          ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-md'
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
+                          ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.25)]'
                           : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
                         }`}
                     >
-                      <span className="truncate max-w-[150px]">{s.name}</span>
+                      <Store className="w-3.5 h-3.5" />
+                      <span className="whitespace-nowrap">{s.name}</span>
                       {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
                     </button>
                   );
@@ -700,52 +816,78 @@ export default function DeveloperView({ setCurrentTab }) {
               const isGlobalCodOff = paymentsConfig.codEnabled === false;
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  <div className={`p-3 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between ${isGlobalOnlineOff ? 'border-amber-500/30' : 'border-white/5'
-                    }`}>
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-white">Online Pay</p>
-                        {isGlobalOnlineOff && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                            Global Off
-                          </span>
-                        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  <div className={`p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${
+                    isGlobalOnlineOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/5 hover:border-white/10'
+                  }`}>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                        <CreditCard className="w-5 h-5" />
                       </div>
-                      <p className="text-[10px] text-neutral-400 truncate max-w-[130px]">{activeTargetShop?.name}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
+                          {isGlobalOnlineOff && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                              Disabled Globally
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                      </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'onlinePaymentsEnabled', !shopOnline)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 ${shopOnline
-                          ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-400/30'
-                          : 'bg-red-400/20 text-red-300 border border-red-400/30 hover:bg-red-400/30'
-                        }`}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        shopOnline ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                      }`}
+                      role="switch"
+                      aria-checked={shopOnline}
                     >
-                      {shopOnline ? 'Enabled' : 'Disabled'}
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          shopOnline ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
                     </button>
                   </div>
 
-                  <div className={`p-3 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between ${isGlobalCodOff ? 'border-amber-500/30' : 'border-white/5'
-                    }`}>
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-bold text-white">Cash on Delivery</p>
-                        {isGlobalCodOff && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                            Global Off
-                          </span>
-                        )}
+                  <div className={`p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${
+                    isGlobalCodOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/5 hover:border-white/10'
+                  }`}>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                        <Banknote className="w-5 h-5" />
                       </div>
-                      <p className="text-[10px] text-neutral-400 truncate max-w-[130px]">{activeTargetShop?.name}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                          {isGlobalCodOff && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                              Disabled Globally
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                      </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'codEnabled', !shopCod)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 ${shopCod
-                          ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-400/30'
-                          : 'bg-red-400/20 text-red-300 border border-red-400/30 hover:bg-red-400/30'
-                        }`}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        shopCod ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                      }`}
+                      role="switch"
+                      aria-checked={shopCod}
                     >
-                      {shopCod ? 'Enabled' : 'Disabled'}
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          shopCod ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
                     </button>
                   </div>
                 </div>
@@ -765,8 +907,15 @@ export default function DeveloperView({ setCurrentTab }) {
           <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Target Kitchen</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+                    Target Kitchen
+                  </label>
+                  <span className="text-[10px] text-neutral-500 font-bold font-['Plus_Jakarta_Sans']">
+                    {allShops.length} Locations
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                   {allShops.map(s => {
                     const isSelected = simShopId === s.id;
                     return (
@@ -774,13 +923,15 @@ export default function DeveloperView({ setCurrentTab }) {
                         key={s.id}
                         type="button"
                         onClick={() => handleSimShopChange(s.id)}
-                        className={`p-3 rounded-2xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${isSelected
-                            ? 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/40 shadow-sm'
-                            : 'bg-[#1E1B1C] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
-                          }`}
+                        className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 cursor-pointer shrink-0 select-none ${
+                          isSelected
+                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] shadow-[0_2px_10px_rgba(224,255,51,0.25)] font-black'
+                            : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                        }`}
                       >
-                        <span className="truncate">{s.name}</span>
-                        {isSelected && <span className="w-2 h-2 rounded-full bg-[#E0FF33]" />}
+                        <Store className="w-3.5 h-3.5" />
+                        <span className="whitespace-nowrap">{s.name}</span>
+                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />}
                       </button>
                     );
                   })}
@@ -818,6 +969,36 @@ export default function DeveloperView({ setCurrentTab }) {
                   required
                   className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl p-3 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Simulated Payment Gateway</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSimPaymentMethod('online')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      simPaymentMethod === 'online'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 shadow-sm font-black'
+                        : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
+                    }`}
+                  >
+                    <CreditCard size={13} />
+                    <span>Paid Online</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimPaymentMethod('cash')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      simPaymentMethod === 'cash'
+                        ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm font-black'
+                        : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
+                    }`}
+                  >
+                    <Banknote size={13} />
+                    <span>Cash on Delivery</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -912,7 +1093,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-ping shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#E0FF33] shrink-0" />
                     <p className="text-xs font-bold text-white font-['Outfit'] truncate">
                       Logged-In Supabase User: <span className="text-[#E0FF33]">{user.email || user.phone || 'Authenticated User'}</span>
                     </p>
@@ -951,316 +1132,403 @@ export default function DeveloperView({ setCurrentTab }) {
             </div>
           )}
 
-          {/* Quick Stats Chips */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold text-neutral-500 uppercase">Total Users</p>
-              <p className="text-lg font-black text-white mt-0.5 font-['Outfit']">{usersList.length}</p>
-            </div>
-            <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-amber-400/20">
-              <p className="text-[10px] font-bold text-amber-400 uppercase">Kitchen Chefs</p>
-              <p className="text-lg font-black text-amber-300 mt-0.5 font-['Outfit']">
-                {usersList.filter(u => u.role === 'kitchen').length}
-              </p>
-            </div>
-            <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-cyan-400/20">
-              <p className="text-[10px] font-bold text-cyan-400 uppercase">Riders (Sarathi)</p>
-              <p className="text-lg font-black text-cyan-300 mt-0.5 font-['Outfit']">
-                {usersList.filter(u => u.role === 'delivery').length}
-              </p>
-            </div>
-            <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-purple-400/20">
-              <p className="text-[10px] font-bold text-purple-400 uppercase">Store Owners</p>
-              <p className="text-lg font-black text-purple-300 mt-0.5 font-['Outfit']">
-                {usersList.filter(u => u.role === 'owner').length}
-              </p>
-            </div>
-            <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-emerald-400/20">
-              <p className="text-[10px] font-bold text-emerald-400 uppercase">Customers</p>
-              <p className="text-lg font-black text-emerald-300 mt-0.5 font-['Outfit']">
-                {usersList.filter(u => !u.role || u.role === 'customer').length}
-              </p>
-            </div>
-          </div>
-
-          {/* New User Creation Form */}
-          {isCreatingUser && (
-            <form onSubmit={handleCreateTestUser} className="p-4 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-3 animate-fadeIn">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <span className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">Provision New User / Staff Record</span>
-                <button type="button" onClick={() => setIsCreatingUser(false)} className="text-neutral-400 hover:text-white">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
-                <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    value={newUserName}
-                    onChange={(e) => setNewUserName(e.target.value)}
-                    placeholder="e.g. Radhe Chef"
-                    className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
-                  <input
-                    type="tel"
-                    value={newUserPhone}
-                    onChange={(e) => setNewUserPhone(e.target.value)}
-                    placeholder="9876543210"
-                    required
-                    className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Role</label>
-                  <select
-                    value={newUserRole}
-                    onChange={(e) => setNewUserRole(e.target.value)}
-                    className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                  >
-                    <option value="kitchen">Kitchen Staff</option>
-                    <option value="delivery">Delivery Sarathi</option>
-                    <option value="owner">Store Owner</option>
-                    <option value="developer">Developer Admin</option>
-                    <option value="customer">Customer</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Kitchen</label>
-                  <select
-                    value={newUserShopId}
-                    onChange={(e) => setNewUserShopId(e.target.value)}
-                    className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                  >
-                    {allShops.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider cursor-pointer"
-                  >
-                    Save User
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-2.5 items-center justify-between">
-            <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Search by name, phone, email, UID..."
-                className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
-              {[
-                { id: 'all', label: 'All' },
-                { id: 'grand_admin', label: '👑 Grand Admin' },
-                { id: 'kitchen', label: 'Kitchen' },
-                { id: 'delivery', label: 'Delivery' },
-                { id: 'owner', label: 'Owner' },
-                { id: 'customer', label: 'Customer' },
-                { id: 'developer', label: 'Developer' }
-              ].map(f => (
-                <button
-                  key={f.id}
-                  onClick={() => setUserRoleFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${userRoleFilter === f.id
-                      ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
-                      : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
-                    }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* User Directory List */}
-          <div className="space-y-2 max-h-96 overflow-y-auto pr-1 no-scrollbar">
-            {(() => {
-              // Merge active logged-in user dynamically if not in list
-              let effectiveList = [...usersList];
-              if (user && (user.email || user.id)) {
-                const cleanEmail = (user.email || '').toLowerCase().trim();
-                const exists = effectiveList.some(u => 
-                  u.id === user.id || 
-                  (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
-                );
-                if (!exists) {
-                  effectiveList.unshift({
-                    id: user.id,
-                    displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In User',
-                    email: user.email || '',
-                    phone: userData?.phone || user.phone || '',
-                    role: userData?.role || 'developer',
-                    shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
-                    shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
-                    isLoggedInUser: true
-                  });
-                }
+          {/* Quick Stats Grid & Effective Directory List Computation */}
+          {(() => {
+            let effectiveList = [...usersList];
+            if (user && (user.email || user.id)) {
+              const cleanEmail = (user.email || '').toLowerCase().trim();
+              const exists = effectiveList.some(u => 
+                u.id === user.id || 
+                (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+              );
+              if (!exists) {
+                effectiveList.unshift({
+                  id: user.id,
+                  displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In User',
+                  email: user.email || '',
+                  phone: userData?.phone || user.phone || '',
+                  role: userData?.role || 'developer',
+                  shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
+                  shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
+                  isLoggedInUser: true
+                });
               }
+            }
 
-              const filtered = effectiveList.filter(u => {
-                const matchesRole = userRoleFilter === 'all' || (u.role || 'customer') === userRoleFilter;
-                const q = userSearch.toLowerCase().trim();
-                const matchesSearch = !q ||
-                  (u.displayName || '').toLowerCase().includes(q) ||
-                  (u.phone || '').includes(q) ||
-                  (u.email || '').toLowerCase().includes(q) ||
-                  (u.id || '').toLowerCase().includes(q);
-                return matchesRole && matchesSearch;
-              });
+            const grandAdminCount = effectiveList.filter(u => u.role === 'grand_admin').length;
+            const developerCount = effectiveList.filter(u => u.role === 'developer').length;
+            const ownerCount = effectiveList.filter(u => u.role === 'owner').length;
+            const kitchenCount = effectiveList.filter(u => u.role === 'kitchen').length;
+            const deliveryCount = effectiveList.filter(u => u.role === 'delivery').length;
+            const customerCount = effectiveList.filter(u => !u.role || u.role === 'customer').length;
 
-              if (filtered.length === 0) {
-                return (
-                  <div className="text-center py-10 bg-[#1E1B1C] rounded-2xl border border-white/5">
-                    <Users className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
-                    <p className="text-xs font-bold text-neutral-400">No registered users matched the criteria.</p>
-                    <p className="text-[11px] text-neutral-600 mt-0.5">Add a new staff account above or adjust your search.</p>
-                  </div>
-                );
-              }
-
-              return filtered.map(u => {
-                const role = u.role || 'customer';
-                const assignedShop = allShops.find(s => s.id === u.shopId) || allShops[0];
-                const isCurrentSessionUser = u.isLoggedInUser || u.id === user?.id || (user?.email && u.email?.toLowerCase().trim() === user?.email?.toLowerCase().trim());
-
-                return (
-                  <div
-                    key={u.id}
-                    className={`p-3 bg-[#1E1B1C] rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-                      isCurrentSessionUser 
-                        ? 'border-[#E0FF33]/40 shadow-[0_0_15px_rgba(224,255,51,0.08)] bg-gradient-to-r from-[#E0FF33]/5 via-[#1E1B1C] to-[#1E1B1C]' 
-                        : 'border-white/5 hover:border-white/10'
-                    }`}
-                  >
-                    {/* User Identity Details */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
-                        role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]' :
-                        role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                        role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                        role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                        role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                        'bg-white/10 text-neutral-300 border border-white/10'
-                      }`}>
-                        {role === 'grand_admin' ? <Crown className="w-4 h-4 text-amber-300" /> :
-                         role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
-                         role === 'delivery' ? <Truck className="w-4 h-4" /> :
-                         role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
-                         role === 'developer' ? <Terminal className="w-4 h-4" /> :
-                         <Sparkles className="w-4 h-4" />}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-xs text-white truncate font-['Outfit']">
-                            {u.displayName || u.email || `User (${(u.phone || '').slice(-4)})`}
-                          </p>
-                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                            role === 'grand_admin' ? 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-amber-300 border border-amber-400/50 flex items-center gap-1 font-black' :
-                            role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                            role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                            role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                            role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                            'bg-white/5 text-neutral-400 border border-white/10'
-                          }`}>
-                            {role === 'grand_admin' ? '👑 Grand Admin' : role}
-                          </span>
-                          {isCurrentSessionUser && (
-                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/40 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse" />
-                              Active (You)
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">
-                          {u.phone ? `+91 ${u.phone}` : ''} {u.email ? `• ${u.email}` : ''} <span className="text-neutral-600">({u.id.slice(0, 12)})</span>
-                        </p>
-                      </div>
+            return (
+              <>
+                {/* 5-Metric Role Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Total Users</p>
+                      <Users className="w-3.5 h-3.5 text-neutral-500" />
                     </div>
+                    <p className="text-xl font-black text-white mt-1 font-['Outfit']">{effectiveList.length}</p>
+                  </div>
 
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/25 hover:border-[#E0FF33]/40 transition-all">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-[#E0FF33] uppercase tracking-wider">Developers</p>
+                      <Terminal className="w-3.5 h-3.5 text-[#E0FF33]" />
+                    </div>
+                    <p className="text-xl font-black text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
+                  </div>
 
-                    {/* Interactive Role & Shop Selectors + Actions */}
-                    <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-auto">
-                      {/* Role Selector: Immutable Lock for Grand Admin */}
-                      {role === 'grand_admin' ? (
-                        <div 
-                          className="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 select-none cursor-not-allowed shadow-[0_0_12px_rgba(245,158,11,0.15)]"
-                          title="Grand Admin role is permanent and cannot be modified or downgraded."
-                        >
-                          <Lock className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Permanent Grand Admin</span>
-                        </div>
-                      ) : (
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-purple-400/20 hover:border-purple-400/35 transition-all">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Store Owners</p>
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                    </div>
+                    <p className="text-xl font-black text-purple-300 mt-1 font-['Outfit']">{ownerCount}</p>
+                  </div>
+
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-amber-400/20 hover:border-amber-400/35 transition-all">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Kitchen Chefs</p>
+                      <ChefHat className="w-3.5 h-3.5 text-amber-400" />
+                    </div>
+                    <p className="text-xl font-black text-amber-300 mt-1 font-['Outfit']">{kitchenCount}</p>
+                  </div>
+
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-cyan-400/20 hover:border-cyan-400/35 transition-all">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Riders (Sarathi)</p>
+                      <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                    </div>
+                    <p className="text-xl font-black text-cyan-300 mt-1 font-['Outfit']">{deliveryCount}</p>
+                  </div>
+                </div>
+
+                {/* New User Creation Form */}
+                {isCreatingUser && (
+                  <form onSubmit={handleCreateTestUser} className="p-4 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-3 animate-fadeIn">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                      <span className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">Provision New User / Staff Record</span>
+                      <button type="button" onClick={() => setIsCreatingUser(false)} className="text-neutral-400 hover:text-white">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          placeholder="e.g. Radhe Chef"
+                          className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
+                        <input
+                          type="tel"
+                          value={newUserPhone}
+                          onChange={(e) => setNewUserPhone(e.target.value)}
+                          placeholder="9876543210"
+                          required
+                          className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Role</label>
                         <select
-                          value={role}
-                          onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                          className="bg-[#282526] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                          value={newUserRole}
+                          onChange={(e) => setNewUserRole(e.target.value)}
+                          className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
                         >
-                          <option value="customer">Customer</option>
                           <option value="kitchen">Kitchen Staff</option>
                           <option value="delivery">Delivery Sarathi</option>
                           <option value="owner">Store Owner</option>
-                          <option value="developer">Developer</option>
-                          <option value="grand_admin">👑 Grand Admin (Permanent)</option>
+                          <option value="developer">Developer Admin</option>
+                          <option value="customer">Customer</option>
                         </select>
-                      )}
-
-                      {/* Kitchen Assignment Selector */}
-                      {(role === 'kitchen' || role === 'delivery' || role === 'owner') && (
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Kitchen</label>
                         <select
-                          value={u.shopId || (allShops[0]?.id || '')}
-                          onChange={(e) => handleUpdateUserShop(u.id, e.target.value)}
-                          className="bg-[#282526] text-xs font-bold text-neutral-300 border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer max-w-[140px] truncate"
+                          value={newUserShopId}
+                          onChange={(e) => setNewUserShopId(e.target.value)}
+                          disabled={newUserRole === 'grand_admin' || newUserRole === 'developer'}
+                          className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33] disabled:opacity-50"
                         >
-                          {allShops.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
+                          {(newUserRole === 'grand_admin' || newUserRole === 'developer') ? (
+                            <option value="">Global Access (All Kitchens)</option>
+                          ) : (
+                            allShops.map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))
+                          )}
                         </select>
-                      )}
-
-                      {/* Instant Test Impersonate */}
-                      <button
-                        onClick={() => handleQuickImpersonateUser(u)}
-                        title="Launch test view as this user"
-                        className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 hover:border-white/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1"
-                      >
-                        <Play className="w-3 h-3 text-[#E0FF33] fill-current" />
-                        <span>Test View</span>
-                      </button>
-
-                      {/* Delete User (Disabled / Hidden for Grand Admin) */}
-                      {role !== 'grand_admin' && (
+                      </div>
+                      <div className="flex items-end">
                         <button
-                          onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
-                          title="Delete user"
-                          className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer"
+                          type="submit"
+                          className="w-full py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          Save User
                         </button>
-                      )}
+                      </div>
                     </div>
+                  </form>
+                )}
+
+                {/* Search & Role Filter Bar */}
+                <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between pt-1">
+                  <div className="relative w-full lg:w-72 shrink-0">
+                    <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      placeholder="Search name, phone, email, UID..."
+                      className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    />
                   </div>
-                );
-              });
-            })()}
-          </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 shrink min-w-0">
+                    {[
+                      { id: 'all', label: 'All', count: effectiveList.length },
+                      { id: 'developer', label: 'Developers', count: developerCount },
+                      { id: 'owner', label: 'Owners', count: ownerCount },
+                      { id: 'kitchen', label: 'Kitchen', count: kitchenCount },
+                      { id: 'delivery', label: 'Delivery', count: deliveryCount },
+                      { id: 'customer', label: 'Customers', count: customerCount }
+                    ].map(f => {
+                      const isActive = userRoleFilter === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => setUserRoleFilter(f.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+                            isActive
+                              ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                              : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                          }`}
+                        >
+                          <span>{f.label}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                            isActive ? 'bg-black/20 text-black' : 'bg-white/5 text-neutral-400'
+                          }`}>
+                            {f.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* User Directory List */}
+                <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
+                  {(() => {
+                    const filtered = effectiveList.filter(u => {
+                      const matchesRole = userRoleFilter === 'all' || (u.role || 'customer') === userRoleFilter;
+                      const q = userSearch.toLowerCase().trim();
+                      const matchesSearch = !q ||
+                        (u.displayName || '').toLowerCase().includes(q) ||
+                        (u.phone || '').includes(q) ||
+                        (u.email || '').toLowerCase().includes(q) ||
+                        (u.id || '').toLowerCase().includes(q);
+                      return matchesRole && matchesSearch;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="text-center py-10 bg-[#1E1B1C] rounded-2xl border border-white/5">
+                          <Users className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
+                          <p className="text-xs font-bold text-neutral-400">No registered users matched the criteria.</p>
+                          <p className="text-[11px] text-neutral-600 mt-0.5">Add a new staff account above or adjust your search.</p>
+                        </div>
+                      );
+                    }
+
+                    return filtered.map(u => {
+                      const role = u.role || 'customer';
+                      const assignedShop = allShops.find(s => s.id === u.shopId) || allShops[0];
+                      const isCurrentSessionUser = u.isLoggedInUser || u.id === user?.id || (user?.email && u.email?.toLowerCase().trim() === user?.email?.toLowerCase().trim());
+
+                      return (
+                        <div
+                          key={u.id}
+                          className={`p-3.5 bg-[#1E1B1C] hover:bg-[#232021] rounded-2xl border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-sm ${
+                            isCurrentSessionUser 
+                              ? 'border-[#E0FF33]/30 bg-[#1E1B1C]/90' 
+                              : 'border-white/5 hover:border-white/15'
+                          }`}
+                        >
+                          {/* Left: User Identity & Contact */}
+                          <div 
+                            onClick={() => setSelectedUserDetail(u)}
+                            className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group/user"
+                            title="Click to view detailed user profile"
+                          >
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 ${
+                              role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]' :
+                              role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 shadow-[0_0_12px_rgba(224,255,51,0.15)]' :
+                              role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                              role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                              role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                              'bg-white/10 text-neutral-300 border border-white/10'
+                            }`}>
+                              {role === 'grand_admin' ? <Crown className="w-4 h-4" /> :
+                               role === 'developer' ? <Terminal className="w-4 h-4" /> :
+                               role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
+                               role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
+                               role === 'delivery' ? <Truck className="w-4 h-4" /> :
+                               <Sparkles className="w-4 h-4" />}
+                            </div>
+
+                            <div className="min-w-0 flex-1 space-y-0.5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-bold text-sm text-white group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
+                                  {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
+                                </p>
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${
+                                  role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/30' :
+                                  role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
+                                  role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                                  role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                                  role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                                  'bg-white/5 text-neutral-400 border border-white/10'
+                                }`}>
+                                  {role === 'grand_admin' ? <><Crown size={11} className="stroke-[2.5]" /> Grand Admin</> :
+                                   role === 'developer' ? <><Terminal size={11} className="stroke-[2.5]" /> Developer</> :
+                                   role === 'owner' ? <><ShieldCheck size={11} className="stroke-[2.5]" /> Owner</> :
+                                   role === 'kitchen' ? <><ChefHat size={11} className="stroke-[2.5]" /> Cook</> :
+                                   role === 'delivery' ? <><Bike size={11} className="stroke-[2.5]" /> Sarathi</> :
+                                   'Customer'}
+                                </span>
+                                {isCurrentSessionUser && (
+                                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse" />
+                                    You
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-neutral-400 truncate">
+                                {u.phone && (
+                                  <span className="font-mono text-neutral-300 flex items-center gap-1 shrink-0">
+                                    <Phone className="w-3 h-3 text-neutral-500" />
+                                    +91 {u.phone}
+                                  </span>
+                                )}
+                                {u.email && (
+                                  <span className="truncate flex items-center gap-1 text-neutral-300">
+                                    <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
+                                    {u.email}
+                                  </span>
+                                )}
+                                <span className="font-mono text-neutral-500 text-[10px] shrink-0">
+                                  ({u.id.slice(0, 8)})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Controls & Interactive Actions */}
+                          <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5">
+                            {/* Role Dropdown */}
+                            {role === 'grand_admin' ? (
+                              <div 
+                                className="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 select-none cursor-not-allowed shrink-0"
+                                title="Grand Admin role is permanent across the platform"
+                              >
+                                <Lock className="w-3 h-3 shrink-0 text-amber-400" />
+                                <span>Grand Admin</span>
+                              </div>
+                            ) : (
+                              <select
+                                value={role}
+                                onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                                className="bg-[#151314] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0"
+                              >
+                                <option value="customer">Customer</option>
+                                <option value="kitchen">Kitchen Staff</option>
+                                <option value="delivery">Delivery Sarathi</option>
+                                <option value="owner">Store Owner</option>
+                                <option value="developer">Developer</option>
+                              </select>
+                            )}
+
+                            {/* Scope / Branch Assignment */}
+                            {(role === 'kitchen' || role === 'delivery' || role === 'owner') ? (
+                              <select
+                                value={u.shopId || (allShops[0]?.id || '')}
+                                onChange={(e) => handleUpdateUserShop(u.id, e.target.value)}
+                                className="bg-[#151314] text-xs font-bold text-neutral-300 border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0 max-w-[150px] truncate"
+                              >
+                                {allShops.map(s => (
+                                  <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                              </select>
+                            ) : (role === 'grand_admin' || role === 'developer') ? (
+                              <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-300 flex items-center gap-1.5 shrink-0">
+                                <Globe className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                                <span>Global Access</span>
+                              </div>
+                            ) : (
+                              <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-400 flex items-center gap-1.5 shrink-0">
+                                <Users className="w-3.5 h-3.5 shrink-0" />
+                                <span>Public User</span>
+                              </div>
+                            )}
+
+                            {/* Impersonate / Launch Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleQuickImpersonateUser(u)}
+                              title={`Sign in as ${u.displayName || u.email || 'user'}`}
+                              className="px-3 py-1.5 rounded-xl bg-[#E0FF33]/15 hover:bg-[#E0FF33] text-[#E0FF33] hover:text-black font-black text-xs border border-[#E0FF33]/30 flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                            >
+                              <Play className="w-3 h-3 fill-current shrink-0" />
+                              <span>Test Login</span>
+                            </button>
+
+                            {/* View Profile Info Button */}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedUserDetail(u)}
+                              title="View account metadata & permissions"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-all active:scale-95 cursor-pointer shrink-0"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Delete or Protected Lock */}
+                            {role === 'grand_admin' ? (
+                              <div 
+                                className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400/60 shrink-0 cursor-not-allowed"
+                                title="Permanent protected account"
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
+                                title="Delete user account"
+                                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer shrink-0"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* Audio System Telemetry & Role Synthesizer */}
@@ -1408,6 +1676,134 @@ export default function DeveloperView({ setCurrentTab }) {
                 className="flex-1 py-2.5 rounded-2xl bg-red-500 hover:bg-red-400 text-white font-bold text-xs transition-all shadow-lg active:scale-95 cursor-pointer"
               >
                 Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detailed User Profile Info Modal */}
+      {selectedUserDetail && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-[#1E1B1C] border border-white/10 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl animate-scaleUp relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-start justify-between gap-3 border-b border-white/5 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center font-black text-lg">
+                  {(selectedUserDetail.displayName || selectedUserDetail.email || 'U')[0].toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-base font-['Outfit']">
+                    {selectedUserDetail.displayName || 'User Profile'}
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-mono">
+                    UID: {selectedUserDetail.id.slice(0, 16)}...
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedUserDetail(null)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center cursor-pointer transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Profile Fields */}
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-neutral-400">Assigned Platform Role</span>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white uppercase text-sm flex items-center gap-1.5">
+                    {selectedUserDetail.role === 'grand_admin' ? (
+                      <>
+                        <Crown size={14} className="text-amber-400 stroke-[2.5]" />
+                        <span>Grand Admin (Permanent Root)</span>
+                      </>
+                    ) : selectedUserDetail.role === 'developer' ? (
+                      <>
+                        <Terminal size={14} className="text-[#E0FF33] stroke-[2.5]" />
+                        <span>Developer</span>
+                      </>
+                    ) : selectedUserDetail.role === 'owner' ? (
+                      <>
+                        <ShieldCheck size={14} className="text-purple-400 stroke-[2.5]" />
+                        <span>Owner</span>
+                      </>
+                    ) : selectedUserDetail.role === 'kitchen' ? (
+                      <>
+                        <ChefHat size={14} className="text-amber-400 stroke-[2.5]" />
+                        <span>Cook</span>
+                      </>
+                    ) : selectedUserDetail.role === 'delivery' ? (
+                      <>
+                        <Bike size={14} className="text-cyan-400 stroke-[2.5]" />
+                        <span>Sarathi Rider</span>
+                      </>
+                    ) : (
+                      selectedUserDetail.role || 'customer'
+                    )}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#E0FF33]/15 text-[#E0FF33] font-bold border border-[#E0FF33]/30 font-mono">
+                    {selectedUserDetail.role === 'grand_admin' ? 'Level 6 (Permanent)' : selectedUserDetail.role === 'developer' ? 'Level 5 (Admin)' : 'Standard'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-neutral-400 flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-cyan-400" /> Email
+                  </span>
+                  <p className="font-bold text-white truncate">{selectedUserDetail.email || 'Not Provided'}</p>
+                </div>
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-neutral-400 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-emerald-400" /> Phone
+                  </span>
+                  <p className="font-bold text-white truncate">{selectedUserDetail.phone ? `+91 ${selectedUserDetail.phone}` : 'Not Linked'}</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold text-neutral-400">Full Supabase Auth UID</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedUserDetail.id);
+                      setToast({ message: 'UID copied to clipboard!', type: 'success' });
+                    }}
+                    className="text-[10px] text-[#E0FF33] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" /> Copy
+                  </button>
+                </div>
+                <p className="font-mono text-[11px] text-neutral-300 break-all select-all">{selectedUserDetail.id}</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-neutral-400">Assigned Branch Kitchen</span>
+                <p className="font-bold text-white">
+                  {allShops.find(s => s.id === selectedUserDetail.shopId)?.name || (selectedUserDetail.role === 'developer' || selectedUserDetail.role === 'grand_admin' ? 'Global (All Kitchens)' : 'Public Customer Scope')}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleQuickImpersonateUser(selectedUserDetail);
+                  setSelectedUserDetail(null);
+                }}
+                className="flex-1 py-3 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Switch to this User View</span>
               </button>
             </div>
           </div>

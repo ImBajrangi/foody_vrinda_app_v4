@@ -19,7 +19,7 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
   const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [reviewOrder, setReviewOrder] = useState(null);
+  const [selectedReviewOrder, setSelectedReviewOrder] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -222,18 +222,30 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
                         <span className="text-base font-black text-white font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</span>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         {/* Live Track Button if Active */}
-                        {['new', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(order.status) && onTrackOrder && (
+                        {['new', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(order.status) && onTrackOrder ? (
                           <button
                             onClick={() => {
                               onTrackOrder(order);
                               onClose();
                             }}
-                            className="h-8 px-3 rounded-xl bg-[#E0FF33] text-[#1E1B1C] text-xs font-black flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
+                            className="h-8 px-3 rounded-xl bg-[#E0FF33] hover:bg-[#d4f820] text-[#1E1B1C] text-xs font-black flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
                           >
                             <Navigation size={12} className="fill-[#1E1B1C]" />
-                            <span>Track</span>
+                            <span>Track Live</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (onTrackOrder) onTrackOrder(order);
+                              onClose();
+                            }}
+                            className="h-8 px-2.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                            title="View full order details & receipt"
+                          >
+                            <Receipt size={12} className="text-[#E0FF33]" />
+                            <span>Receipt</span>
                           </button>
                         )}
 
@@ -241,7 +253,7 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
                         {(order.status === 'completed' || order.status === 'delivered') && (
                           <button
                             onClick={() => setSelectedReviewOrder(order)}
-                            className="h-8 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                            className="h-8 px-2.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
                           >
                             <Star size={12} className="text-[#E0FF33] fill-[#E0FF33]" />
                             <span>Rate</span>
@@ -251,11 +263,11 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
                         {/* 1-Tap Re-Order Button */}
                         <button
                           onClick={() => handleReOrder(order)}
-                          className="h-8 px-3 rounded-xl bg-[#322E30] hover:bg-[#3D383A] text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
+                          className="h-8 px-2.5 sm:px-3 rounded-xl bg-[#322E30] hover:bg-[#3D383A] text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
                           title="Re-order these items"
                         >
                           <RotateCcw size={12} />
-                          <span>Re-order</span>
+                          <span className="hidden sm:inline">Re-order</span>
                         </button>
                       </div>
                     </div>

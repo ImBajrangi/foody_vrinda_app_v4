@@ -155,7 +155,7 @@ export default function AuthModal({ isOpen, onClose }) {
         { role: 'customer', label: 'Storefront', icon: Sparkles },
         { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
         { role: 'delivery', label: 'Rider Board', icon: Truck },
-        { role: 'owner', label: 'Admin Desk', icon: ShieldCheck },
+        { role: 'owner', label: 'Store Owner', icon: ShieldCheck },
         { role: 'developer', label: 'Developer Console', icon: Terminal, fullWidth: true }
       ];
     }
@@ -164,7 +164,7 @@ export default function AuthModal({ isOpen, onClose }) {
         { role: 'customer', label: 'Storefront', icon: Sparkles },
         { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
         { role: 'delivery', label: 'Rider Board', icon: Truck },
-        { role: 'owner', label: 'Admin Desk', icon: ShieldCheck }
+        { role: 'owner', label: 'Store Owner', icon: ShieldCheck }
       ];
     }
     if (role === 'kitchen') {
@@ -836,7 +836,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 {[
                   { id: 'kitchen', label: 'Kitchen Chef', icon: ChefHat },
                   { id: 'delivery', label: 'Sarathi Rider', icon: Truck },
-                  { id: 'owner', label: 'Admin Desk', icon: ShieldCheck }
+                  { id: 'owner', label: 'Store Owner', icon: ShieldCheck }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   const isActive = selectedDesk === tab.id;

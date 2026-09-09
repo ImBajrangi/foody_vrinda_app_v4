@@ -16,7 +16,7 @@ const DEFAULT_SEEDS = [
   {
     id: 'welcome-vrinda-blessing',
     title: 'Welcome to Foody Vrinda',
-    message: 'Experience 100% Satvik Divine Bhog & Prasad prepared in pure A2 Desi Ghee.',
+    message: '100% Pure Satvik Bhog & Prasad in A2 Desi Ghee.',
     type: 'system',
     read: false,
     createdAt: new Date().toISOString()
@@ -34,15 +34,25 @@ export function NotificationProvider({ children }) {
     isAuthorizedDeveloper 
   } = useAuth();
   
-  // Initial state with cleanup of any legacy mock order seeds & stale foreign notifications
+  // Initial state with cleanup of any legacy mock order seeds & stale verbose strings
   const [notifications, setNotifications] = useState(() => {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Filter out legacy mock seed order W399A and any invalid seeds
-          const sanitized = parsed.filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A');
+          // Filter out legacy mock seed order W399A and streamline verbose legacy text
+          const sanitized = parsed
+            .filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A')
+            .map(n => {
+              let msg = n.message || '';
+              if (msg.includes('Experience 100% Satvik Divine Bhog & Prasad')) {
+                msg = '100% Pure Satvik Bhog & Prasad in A2 Desi Ghee.';
+              } else if (msg.includes('Received for preparation at')) {
+                msg = msg.replace('Received for preparation at', 'Queued at') + ' • Kitchen prep';
+              }
+              return { ...n, message: msg };
+            });
           if (sanitized.length > 0) return sanitized;
         }
       }
@@ -251,37 +261,46 @@ export function NotificationProvider({ children }) {
       }
 
       const orderShort = orderData.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase();
-      let title = 'Order Update';
+      let title = `Order #${orderShort}`;
       let msg = '';
+      let statusTag = '';
 
       if (eventType === 'INSERT' || orderData.status === 'new') {
         if (userRole === 'kitchen') {
           title = `New Order #${orderShort}`;
-          msg = `New order received in kitchen. Tap to start prep.`;
+          msg = `Queued in kitchen • Tap to start prep`;
+          statusTag = 'New';
         } else {
           title = `Order #${orderShort} Placed`;
-          msg = `Received for preparation at ${orderData.shopName || 'Sacred Kitchen'}.`;
+          msg = `Queued at ${orderData.shopName || 'Sacred Kitchen'}`;
+          statusTag = 'Placed';
         }
       } else if (orderData.status === 'preparing') {
-        title = `Cooking Bhog #${orderShort}`;
-        msg = `Kitchen has started cooking your pure Satvik dishes in desi ghee.`;
+        title = `Order #${orderShort} Cooking`;
+        msg = `Cooking in pure Desi Ghee`;
+        statusTag = 'Cooking';
       } else if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
         if (userRole === 'delivery') {
-          title = `Order #${orderShort} Ready for Pickup`;
-          msg = `Order is packed and ready for rider dispatch.`;
+          title = `Order #${orderShort} Ready`;
+          msg = `Packed & ready for pickup`;
+          statusTag = 'Ready';
         } else {
           title = `Order #${orderShort} Ready`;
-          msg = `Packed warm and waiting for Sarathi Rider pickup.`;
+          msg = `Packed warm & awaiting pickup`;
+          statusTag = 'Ready';
         }
       } else if (orderData.status === 'out_for_delivery') {
-        title = `Sarathi On The Way #${orderShort}`;
-        msg = `Rider ${orderData.rider_name || 'Govind'} is heading to your destination.`;
+        title = `Order #${orderShort} On The Way`;
+        msg = `Sarathi ${orderData.rider_name || 'Rider'} heading to destination`;
+        statusTag = 'On Way';
       } else if (orderData.status === 'completed') {
-        title = `Order #${orderShort} Delivered!`;
-        msg = `Delivered safely. Radhe Radhe! Please enjoy your sacred Prasad.`;
+        title = `Order #${orderShort} Delivered`;
+        msg = `Delivered safely • Radhe Radhe`;
+        statusTag = 'Delivered';
       } else if (orderData.status === 'cancelled') {
         title = `Order #${orderShort} Cancelled`;
-        msg = `Order has been cancelled. Please reach out to support if needed.`;
+        msg = `Order cancelled`;
+        statusTag = 'Cancelled';
       }
 
       if (msg) {
@@ -291,6 +310,7 @@ export function NotificationProvider({ children }) {
           message: msg,
           type: 'order',
           orderId: orderData.id,
+          statusTag,
           read: false,
           createdAt: new Date().toISOString()
         });

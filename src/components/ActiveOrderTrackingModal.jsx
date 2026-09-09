@@ -168,7 +168,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             box-shadow: 0 4px 14px rgba(0,0,0,0.5);
             cursor: pointer;
           ">
-            <span style="font-size: 13px; line-height: 1;">🍲</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+              <path d="M2 7h20"/>
+            </svg>
           </div>
           <div style="width: 2px; height: 6px; background: #181617;"></div>
         </div>
@@ -177,7 +182,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       iconAnchor: [16, 38]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 200 });
-    storeMarker.bindTooltip(`🍲 ${shortShopName}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -32] });
     storeMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       storeMarker.toggleTooltip();
@@ -213,7 +218,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       iconAnchor: [16, 38]
     });
     const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 200 });
-    destMarker.bindTooltip('🏡 Drop-off (You)', { permanent: false, direction: 'top', offset: [0, -32] });
+    destMarker.bindTooltip('Drop-off (You)', { permanent: false, direction: 'top', offset: [0, -32] });
     destMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       destMarker.toggleTooltip();
@@ -258,7 +263,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         : [shopLat + (destLat - shopLat) * 0.45, shopLng + (destLng - shopLng) * 0.45];
 
     const riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
-    riderMarker.bindTooltip(`🛵 ${riderName}`, { permanent: false, direction: 'top', offset: [0, -20] });
+    riderMarker.bindTooltip(`${riderName} (Sarathi)`, { permanent: false, direction: 'top', offset: [0, -20] });
     riderMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       riderMarker.toggleTooltip();

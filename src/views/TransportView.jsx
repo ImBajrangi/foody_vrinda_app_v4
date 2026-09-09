@@ -33,11 +33,14 @@ import {
   PackageCheck,
   Store,
   Check,
-  Star
+  Star,
+  User,
+  CreditCard
 } from 'lucide-react';
 
 export default function TransportView() {
-  const { currentUserShopId, currentUserShopIds = [], allShops } = useAuth();
+  const { currentUserShopId, currentUserShopIds = [], allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
@@ -145,15 +148,24 @@ export default function TransportView() {
       mapContainerRef.current._leaflet_id = null;
     }
 
-    // Coordinates setup
+    // Coordinates setup with guaranteed separation (minimum ~1.2km offset if missing or identical)
     const shopLat = parseFloat(activeShop?.coordinates?.lat) || 27.5706;
     const shopLng = parseFloat(activeShop?.coordinates?.lng) || 77.6593;
 
-    const destLat = parseFloat(activeOrder.deliveryCoordinates?.lat) || (shopLat + 0.008);
-    const destLng = parseFloat(activeOrder.deliveryCoordinates?.lng) || (shopLng + 0.006);
+    let rawDestLat = parseFloat(activeOrder.deliveryCoordinates?.lat || activeOrder.delivery_coordinates?.lat);
+    let rawDestLng = parseFloat(activeOrder.deliveryCoordinates?.lng || activeOrder.delivery_coordinates?.lng);
 
-    const midLat = (shopLat + destLat) / 2;
-    const midLng = (shopLng + destLng) / 2;
+    if (isNaN(rawDestLat) || isNaN(rawDestLng) || (Math.abs(rawDestLat - shopLat) < 0.003 && Math.abs(rawDestLng - shopLng) < 0.003)) {
+      rawDestLat = shopLat + 0.0115;
+      rawDestLng = shopLng + 0.0085;
+    }
+
+    const destLat = rawDestLat;
+    const destLng = rawDestLng;
+
+    // Dynamic Rider position along route (45% between kitchen and customer)
+    const midLat = shopLat + (destLat - shopLat) * 0.45;
+    const midLng = shopLng + (destLng - shopLng) * 0.45;
 
     const map = L.map(mapContainerRef.current, {
       center: [midLat, midLng],
@@ -162,7 +174,7 @@ export default function TransportView() {
       attributionControl: false
     });
 
-    // CARTO Voyager Tiles (Vrindavan Regional Basemap matching Vrinda Tours standard)
+    // CARTO Voyager Tiles (Vrindavan Regional Basemap)
     const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
     const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
     L.tileLayer(
@@ -177,94 +189,93 @@ export default function TransportView() {
 
     const group = L.featureGroup();
 
-    // 1. Origin Kitchen Store Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
+    // 1. Origin Store Pin (Clean Luxury Store Puck)
     const shortShopName = (activeShop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const storeIcon = L.divIcon({
       className: 'custom-kitchen-pin',
       html: `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
-          <div style="
-            width: 30px;
-            height: 30px;
-            background: #181617;
-            border: 2.5px solid #E0FF33;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-            cursor: pointer;
-          ">
-            <span style="font-size: 13px; line-height: 1;">🍲</span>
-          </div>
-          <div style="width: 2px; height: 6px; background: #181617;"></div>
+        <div style="
+          width: 36px;
+          height: 36px;
+          background: #181617;
+          border: 2.5px solid #E0FF33;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 10px rgba(224,255,51,0.25);
+          cursor: pointer;
+        ">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+            <path d="M2 7h20"/>
+          </svg>
         </div>
       `,
-      iconSize: [32, 38],
-      iconAnchor: [16, 38]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: storeIcon, zIndexOffset: 200 });
-    storeMarker.bindTooltip(`🍲 ${shortShopName}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -20] });
     storeMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       storeMarker.toggleTooltip();
     });
     group.addLayer(storeMarker);
 
-    // 2. Destination Customer Home Pin (Clean Iconic Home Token - Zero Permanent Overlay Collisions)
+    // 2. Destination Customer Home Pin (Clean Luxury Drop-off Puck)
     const homeIcon = L.divIcon({
       className: 'custom-home-pin',
       html: `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
-          <div style="
-            width: 30px;
-            height: 30px;
-            background: #FFFFFF;
-            border: 2.5px solid #181617;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-            cursor: pointer;
-          ">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-          </div>
-          <div style="width: 2px; height: 6px; background: #181617;"></div>
+        <div style="
+          width: 36px;
+          height: 36px;
+          background: #FFFFFF;
+          border: 2.5px solid #181617;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+          cursor: pointer;
+        ">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
         </div>
       `,
-      iconSize: [32, 38],
-      iconAnchor: [16, 38]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
     const homeMarker = L.marker([destLat, destLng], { icon: homeIcon, zIndexOffset: 200 });
-    homeMarker.bindTooltip(`🏡 ${activeOrder.customerName || 'Drop-off'}`, { permanent: false, direction: 'top', offset: [0, -32] });
+    homeMarker.bindTooltip(`${activeOrder.customerName || 'Drop-off Destination'}`, { permanent: false, direction: 'top', offset: [0, -20] });
     homeMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       homeMarker.toggleTooltip();
     });
     group.addLayer(homeMarker);
 
-    // 3. Animated Live Scooter Rider Pin (Modern Navigational Vehicle Puck)
+    // 3. Live Scooter Rider Vehicle Pin (Animated GPS Pulse)
     const riderIcon = L.divIcon({
       className: 'custom-rider-pin',
       html: `
-        <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+        <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
           <div style="
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             background: #181617;
-            border: 2px solid #E0FF33;
+            border: 2.5px solid #E0FF33;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 0 16px rgba(224,255,51,0.4);
             cursor: pointer;
           ">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="18.5" cy="17.5" r="2.5"></circle>
               <circle cx="5.5" cy="17.5" r="2.5"></circle>
               <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
@@ -274,11 +285,11 @@ export default function TransportView() {
           </div>
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [38, 38],
+      iconAnchor: [19, 19]
     });
     const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
-    riderMarker.bindTooltip('🛵 Sarathi Rider', { permanent: false, direction: 'top', offset: [0, -20] });
+    riderMarker.bindTooltip('Sarathi Rider (Live GPS)', { permanent: false, direction: 'top', offset: [0, -22] });
     riderMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       riderMarker.toggleTooltip();
@@ -329,12 +340,18 @@ export default function TransportView() {
     routeGroupRef.current = group;
     mapInstanceRef.current = map;
 
-    // Fit route bounds nicely
+    // Fit route bounds nicely and ensure map invalidates size for responsive desktop grid
     map.fitBounds(group.getBounds(), {
       paddingTopLeft: [50, 50],
-      paddingBottomRight: [50, 160],
+      paddingBottomRight: [50, 60],
       maxZoom: 16
     });
+
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
 
     return () => {
       if (mapInstanceRef.current) {
@@ -386,9 +403,10 @@ export default function TransportView() {
   const handleCompleteDelivery = async (orderId, orderData) => {
     stopAlarm();
     try {
-      const isCash = orderData?.paymentMethod === 'cash';
+      const rawMethod = String(orderData?.payment_method || orderData?.paymentMethod || '').toLowerCase().trim();
+      const isCash = rawMethod === 'cash' || rawMethod === 'cod';
       await updateCloudOrderStatus(orderId, 'completed', {
-        cash_status: isCash ? 'collected' : (orderData?.cashStatus || 'none')
+        cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none')
       });
       setOrders(prev => prev.filter(o => o.id !== orderId));
 
@@ -499,50 +517,95 @@ export default function TransportView() {
         </div>
       </div>
 
-      {/* VIEW MODE 1: INTERACTIVE CARTO MAP HUD (MATCHING REFERENCE DESIGN) */}
+      {/* BRANCH SELECTOR — Global roles can switch delivery branches inline */}
+      {isGlobalRole && allShops.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
+          {allShops.map(s => {
+            const isActive = currentUserShopId === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => impersonate(s.id, userRole)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
+                    : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                }`}
+              >
+                <Store className="w-3 h-3" />
+                <span>{s.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* VIEW MODE 1: PROFESSIONAL RESPONSIVE DISPATCH & CARTO MAP HUD */}
       {viewMode === 'map' && activeOrder && (
-        <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
           
-          {/* Mobile Phone Mock Frame Container */}
-          <div className="w-full max-w-[430px] bg-[#f8fafc] rounded-[44px] shadow-[0_25px_80px_rgba(0,0,0,0.6)] border-[8px] border-[#2c2829] overflow-hidden relative flex flex-col min-h-[660px] text-slate-800 font-['Plus_Jakarta_Sans'] select-none">
-            
-            {/* Top CARTO Voyager Leaflet Map Canvas */}
-            <div className="relative flex-1 bg-[#edf2f7] min-h-[340px] overflow-hidden">
-              <div ref={mapContainerRef} className="w-full h-full min-h-[340px] z-0" />
+          {/* Main Map Viewport (Left / Top) */}
+          <div className="lg:col-span-7 xl:col-span-8 w-full h-[400px] sm:h-[500px] lg:h-[680px] bg-[#1E1B1C] rounded-3xl overflow-hidden relative border border-white/10 shadow-2xl flex flex-col">
+            <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
 
-              {/* TOP FLOATING CONTROLS (Back Arrow, Re-center & Profile Avatar) */}
-              <div className="absolute top-4 inset-x-4 flex items-center justify-between z-[500] pointer-events-none">
-                <button 
-                  onClick={() => setViewMode('list')}
-                  className="w-10 h-10 rounded-full bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer pointer-events-auto"
-                  title="View all dispatch orders"
+            {/* TOP FLOATING CONTROLS */}
+            <div className="absolute top-4 inset-x-4 flex items-center justify-between z-[500] pointer-events-none">
+              <button 
+                onClick={() => setViewMode('list')}
+                className="px-3.5 py-2 rounded-xl bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center gap-2 border border-white/15 active:scale-95 transition-all cursor-pointer pointer-events-auto text-xs font-bold"
+                title="View all dispatch orders"
+              >
+                <ArrowLeft className="w-4 h-4 stroke-[2.2]" />
+                <span className="hidden sm:inline">Orders List ({orders.length})</span>
+              </button>
+
+              <div className="flex items-center gap-2 pointer-events-auto">
+                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1E1B1C]/90 backdrop-blur-md text-[#E0FF33] border border-white/15 text-[11px] font-black shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-pulse" />
+                  Live GPS Route
+                </span>
+                <button
+                  onClick={handleRecenterMap}
+                  className="w-9 h-9 rounded-xl bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer"
+                  title="Re-center route"
                 >
-                  <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+                  <RotateCcw className="w-4 h-4 stroke-[2.2]" />
                 </button>
-
-                <div className="flex items-center gap-2 pointer-events-auto">
-                  <button
-                    onClick={handleRecenterMap}
-                    className="w-10 h-10 rounded-full bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer"
-                    title="Re-center route"
-                  >
-                    <RotateCcw className="w-4 h-4 stroke-[2.2]" />
-                  </button>
-                </div>
               </div>
             </div>
 
-            {/* BOTTOM OBSIDIAN LUXURY SHEET (Cohesive Luxury Dark Standard) */}
-            <div className="bg-[#1E1B1C] rounded-t-[36px] p-4.5 pt-4 -mt-8 relative z-30 shadow-[0_-25px_60px_rgba(0,0,0,0.85)] border-t border-white/10 flex flex-col gap-3.5">
-              
-              {/* Mobile Drag Indicator */}
-              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-0.5" />
+            {/* BOTTOM FLOATING ROUTE RIBBON */}
+            <div className="absolute bottom-4 inset-x-4 z-[500] pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-[#1E1B1C]/90 backdrop-blur-md border border-white/10 shadow-xl text-xs text-white">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-[#E0FF33]/15 text-[#E0FF33] text-[10px] font-black border border-[#E0FF33]/30">
+                  ORIGIN
+                </span>
+                <span className="font-bold truncate max-w-[140px]">
+                  {activeShop?.name || 'Kitchen Store'}
+                </span>
+              </div>
+              <ArrowRight size={14} className="text-[#E0FF33] stroke-[2.5]" />
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-black border border-emerald-500/30">
+                  DROP-OFF
+                </span>
+                <span className="font-bold truncate max-w-[160px]">
+                  {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Customer Address'}
+                </span>
+              </div>
+            </div>
+          </div>
 
-              {/* Customer Profile & Quick Connect Bar */}
-              <div className="flex items-center justify-between px-1 text-white">
+          {/* Dispatch Sidebar & Action Console (Right / Bottom) */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-4 w-full">
+            {/* Primary Active Dispatch Card */}
+            <div className="bg-[#282526] border border-white/10 rounded-3xl p-5 shadow-2xl space-y-4">
+              {/* Customer Profile & Direct Contact Actions */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-12 h-12 rounded-full bg-[#282526] border-2 border-amber-400 overflow-hidden shrink-0 shadow-md aspect-square flex items-center justify-center">
-                    <span className="text-xl">👤</span>
+                  <div className="w-12 h-12 rounded-2xl bg-[#1E1B1C] border-2 border-amber-400 overflow-hidden shrink-0 shadow-md flex items-center justify-center">
+                    <User size={22} className="text-amber-400 stroke-[2.2]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
@@ -570,7 +633,7 @@ export default function TransportView() {
                       href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="WhatsApp Customer"
                     >
                       <MessageCircle className="w-4.5 h-4.5 stroke-[2]" />
@@ -579,7 +642,7 @@ export default function TransportView() {
                   {activeOrder.customerPhone && (
                     <a 
                       href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
-                      className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
                       <Phone className="w-4.5 h-4.5 stroke-[2]" />
@@ -588,123 +651,146 @@ export default function TransportView() {
                 </div>
               </div>
 
-              {/* Telemetry & Destination Route Card */}
-              <div className="bg-[#282526] rounded-[24px] p-4 border border-white/10 shadow-md space-y-3.5">
-                
-                {/* Delivery Time & Status Row */}
-                <div className="flex items-start justify-between gap-2 pb-3 border-b border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0">
-                      <Clock className="w-4.5 h-4.5 text-[#E0FF33]" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
-                      <h5 className="font-bold text-sm text-white font-['Outfit']">
-                        Delivery Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </h5>
-                    </div>
+              {/* ETA & Drop-off Target */}
+              <div className="flex items-start justify-between gap-2 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/5 text-white flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-[#E0FF33]" />
                   </div>
-                  <span className="text-[11px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30">
-                    Live Active
-                  </span>
-                </div>
-
-                {/* Drop-off Destination */}
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4.5 h-4.5 text-[#E0FF33]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Delivery Destination</p>
-                      <span className="text-[10px] font-bold text-neutral-400">ETA: ~8–10 Min</span>
-                    </div>
-                    <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 line-clamp-2">
-                      {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Raman Reti, Parikrama Marg, Vrindavan'}
-                    </p>
+                  <div>
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
+                    <h5 className="font-bold text-sm text-white font-['Outfit']">
+                      Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </h5>
                   </div>
                 </div>
+                <span className="text-[10px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30">
+                  Live Active
+                </span>
+              </div>
 
-                {/* COD Cash Collection Callout Banner */}
-                {activeOrder.paymentMethod === 'cash' && (
-                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-300">
-                    <span className="font-bold">Cash on Delivery to Collect:</span>
-                    <span className="font-black text-sm text-amber-400 font-['Outfit']">₹{activeOrder.totalAmount}</span>
+              {/* Destination Address */}
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
+                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-[#E0FF33]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Destination</p>
+                    <span className="text-[10px] font-bold text-neutral-400">ETA: ~8–10 Min</span>
                   </div>
-                )}
-
-                {/* Primary Navigation & Status CTAs */}
-                <div className="pt-1 space-y-2">
-                  {activeOrder.deliveryCoordinates?.lat && (
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-full py-3 px-4 rounded-2xl bg-[#151314] hover:bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
-                    >
-                      <Compass className="w-4 h-4 text-[#E0FF33]" />
-                      <span>Open Live GPS in Google Maps</span>
-                    </a>
-                  )}
-
-                  {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
-                    <button 
-                      onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
-                    >
-                      <span>Pick Up & Start Delivery</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Mark Delivered & Reconcile Cash</span>
-                    </button>
-                  )}
+                  <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 line-clamp-2 leading-relaxed">
+                    {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Raman Reti, Parikrama Marg, Vrindavan'}
+                  </p>
                 </div>
               </div>
 
-            </div>
-          </div>
-
-          {/* Side Drawer for Multi-Order Switching */}
-          {orders.length > 1 && (
-            <div className="w-full max-w-sm bg-[#282526] border border-white/5 rounded-3xl p-5 space-y-3">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">
-                Other Active Deliveries ({orders.length})
-              </h4>
-              <div className="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
-                {orders.map(o => {
-                  const isCur = o.id === activeOrder.id;
-                  const isReadyOrder = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status);
+              {/* COD Cash Collection Callout Banner */}
+              {(() => {
+                const rawMethod = String(activeOrder.payment_method || activeOrder.paymentMethod || '').toLowerCase().trim();
+                const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+                const isCollected = activeOrder.cash_status === 'collected' || activeOrder.cashStatus === 'collected' || activeOrder.cash_collected || activeOrder.cashCollected;
+                if (!isCash) {
                   return (
-                    <div 
-                      key={o.id}
-                      onClick={() => setSelectedOrder(o)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                        isCur 
-                          ? 'bg-[#1E1B1C] border-[#E0FF33]/40 shadow-md' 
-                          : 'bg-[#1E1B1C]/50 border-white/5 hover:border-white/10'
-                      }`}
-                    >
-                      <div>
-                        <p className="font-bold text-white text-xs">#{o.id.slice(-6).toUpperCase()}</p>
-                        <p className="text-[10px] text-neutral-400 font-medium">{o.customerName || 'Customer'}</p>
-                      </div>
-                      <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase ${
-                        isReadyOrder ? 'bg-amber-400/15 text-amber-300' : 'bg-cyan-400/15 text-cyan-300'
-                      }`}>
-                        {isReadyOrder ? 'Ready' : 'In Transit'}
-                      </span>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300">
+                      <span className="font-bold flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Prepaid Online:</span>
+                      <span className="font-black text-xs px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300">NO CASH TO COLLECT</span>
                     </div>
                   );
-                })}
+                }
+                if (isCollected) {
+                  return (
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300">
+                      <span className="font-bold flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Cash Received in Advance:</span>
+                      <span className="font-black text-xs px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300">ALREADY COLLECTED</span>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-300">
+                    <span className="font-bold flex items-center gap-1.5"><Banknote className="w-3.5 h-3.5" /> Cash on Delivery (Collect at Door):</span>
+                    <span className="font-black text-sm text-amber-400 font-['Outfit']">₹{activeOrder.totalAmount || activeOrder.total_amount || 0}</span>
+                  </div>
+                );
+              })()}
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-1">
+                {activeOrder.deliveryCoordinates?.lat && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full py-3 px-4 rounded-2xl bg-[#1E1B1C] hover:bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
+                  >
+                    <Compass className="w-4 h-4 text-[#E0FF33]" />
+                    <span>Open Live GPS in Google Maps</span>
+                  </a>
+                )}
+
+                {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
+                  <button 
+                    onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
+                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
+                  >
+                    <span>Pick Up & Start Delivery</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
+                    className="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
+                  >
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>Mark Delivered & Reconcile Cash</span>
+                  </button>
+                )}
               </div>
             </div>
-          )}
+
+            {/* Other Active Deliveries Queue (Directly in Sidebar) */}
+            {orders.length > 1 && (
+              <div className="bg-[#282526] border border-white/10 rounded-3xl p-4.5 space-y-3 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-white text-xs uppercase tracking-wider font-['Outfit']">
+                    Other Active Deliveries ({orders.length - 1})
+                  </h4>
+                  <span className="text-[10px] text-neutral-400 font-bold">Tap to switch</span>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                  {orders.map(o => {
+                    const isCur = o.id === activeOrder.id;
+                    const isReadyOrder = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status);
+                    return (
+                      <div 
+                        key={o.id}
+                        onClick={() => setSelectedOrder(o)}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                          isCur 
+                            ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]' 
+                            : 'bg-[#1E1B1C]/60 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C]'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-bold text-white text-xs truncate">
+                            #{o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} • {o.customerName || 'Customer'}
+                          </p>
+                          <p className="text-[10px] text-neutral-400 truncate">
+                            {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${
+                          isReadyOrder ? 'bg-amber-400/15 text-amber-300 border border-amber-400/25' : 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/25'
+                        }`}>
+                          {isReadyOrder ? 'Ready' : 'In Transit'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -784,15 +870,30 @@ export default function TransportView() {
 
                         <div className="pt-1 flex items-center justify-between border-t border-white/5">
                           <span className="text-[11px] text-neutral-400">Payment:</span>
-                          {order.paymentMethod === 'cash' ? (
-                            <span className="px-2 py-0.5 rounded-lg bg-amber-400/20 text-amber-300 font-extrabold text-[10px]">
-                              CASH DUE: ₹{order.totalAmount}
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-lg bg-emerald-400/20 text-emerald-300 font-bold text-[10px]">
-                              PAID ONLINE
-                            </span>
-                          )}
+                          {(() => {
+                            const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
+                            const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+                            const isCollected = order.cash_status === 'collected' || order.cashStatus === 'collected' || order.cash_collected || order.cashCollected;
+                            if (!isCash) {
+                              return (
+                                <span className="px-2 py-0.5 rounded-lg bg-emerald-400/20 text-emerald-300 font-bold text-[10px]">
+                                  PAID ONLINE
+                                </span>
+                              );
+                            }
+                            if (isCollected) {
+                              return (
+                                <span className="px-2 py-0.5 rounded-lg bg-emerald-400/20 text-emerald-300 font-bold text-[10px]">
+                                  CASH COLLECTED
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className="px-2 py-0.5 rounded-lg bg-amber-400/20 text-amber-300 font-extrabold text-[10px]">
+                                CASH DUE: ₹{order.totalAmount || order.total_amount || 0}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>

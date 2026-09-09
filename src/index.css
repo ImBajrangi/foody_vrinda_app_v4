@@ -29,11 +29,18 @@
     color: #1E1B1C;
   }
 
-  body {
+  html, body {
     font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #1E1B1C !important;
     min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
     color: #FFFFFF;
+  }
+
+  #root {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

@@ -44,13 +44,13 @@ export class HitSoochiService {
    */
   static getCuratedSuggestions() {
     return [
-      { title: '🍛 Royal Vedic Thali', keyword: 'thali' },
-      { title: '🍔 Satvik Burgers', keyword: 'burger' },
-      { title: '🍧 Kesariya Rabdi Kheer', keyword: 'kheer' },
-      { title: '🍕 Satvik Paneer Pizza', keyword: 'pizza' },
-      { title: '🙏 Govind Bhog Prasad', keyword: 'prasad' },
-      { title: '🧀 Paneer Makhani', keyword: 'paneer' },
-      { title: '🍚 Basmati Rice & Bhog', keyword: 'rice' }
+      { title: 'Royal Vedic Thali', keyword: 'thali', type: 'meal' },
+      { title: 'Satvik Burgers', keyword: 'burger', type: 'snack' },
+      { title: 'Kesariya Rabdi Kheer', keyword: 'kheer', type: 'sweet' },
+      { title: 'Satvik Paneer Pizza', keyword: 'pizza', type: 'snack' },
+      { title: 'Govind Bhog Prasad', keyword: 'prasad', type: 'prasad' },
+      { title: 'Paneer Makhani', keyword: 'paneer', type: 'curry' },
+      { title: 'Basmati Rice & Bhog', keyword: 'rice', type: 'prasad' }
     ];
   }
 

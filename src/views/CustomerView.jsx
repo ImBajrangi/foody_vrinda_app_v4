@@ -31,7 +31,10 @@ import {
   User,
   Phone,
   Compass,
-  Tag as TagIcon
+  Tag as TagIcon,
+  ExternalLink,
+  MessageCircle,
+  Store
 } from 'lucide-react';
 import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
 import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
@@ -39,7 +42,7 @@ import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
 import { fetchAddressSuggestions } from '../services/addressService';
-import { createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
+import { supabase, createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
 
 // Curated high-res transparent PNG cutout dishes (Exact Template Match)
@@ -274,6 +277,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [trackingOrder, setTrackingOrder] = useState(null);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenOrders = () => setIsOrderHistoryOpen(true);
+    window.addEventListener('foody-open-orders', handleOpenOrders);
+    return () => window.removeEventListener('foody-open-orders', handleOpenOrders);
+  }, []);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewOrderTarget, setReviewOrderTarget] = useState(null);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
@@ -459,29 +468,104 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     loadShopMenus();
   }, [selectedShopId]);
 
-  // Auto-switch to tracking view if trackingOrderId is set (Supabase Realtime)
+  // Auto-switch to tracking view if trackingOrderId is set (Immediate Fetch + Supabase Realtime)
   useEffect(() => {
-    if (trackingOrderId) {
-      const unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
-        if (!updatedOrder) return;
-        setTrackingOrder(updatedOrder);
-        setIsTrackingModalOpen(true);
-        if (updatedOrder.status === 'delivered' || updatedOrder.status === 'completed') {
-          // Trigger celebratory review modal automatically when delivery is done
-          setTimeout(() => {
-            setReviewOrderTarget(updatedOrder);
-            setIsReviewModalOpen(true);
-          }, 600);
-        }
-      });
-
-      return () => {
-        if (unsubSupabase) unsubSupabase();
-      };
-    } else {
+    if (!trackingOrderId) {
       setTrackingOrder(null);
       setIsTrackingModalOpen(false);
+      return;
     }
+
+    let isMounted = true;
+
+    // 1. Immediate cloud fetch to display detailed view info without delay
+    async function loadTargetOrder() {
+      try {
+        let orderRecord = null;
+
+        // Try exact match first
+        const { data, error } = await supabase
+          .from('foody_orders')
+          .select('*')
+          .eq('id', trackingOrderId)
+          .maybeSingle();
+
+        if (data) {
+          orderRecord = data;
+        } else {
+          // If not found and it's a short 5-character ID or substring, try ilike search
+          const cleanSearch = trackingOrderId.replace(/[^a-zA-Z0-9-]/g, '');
+          if (cleanSearch) {
+            const { data: searchResults } = await supabase
+              .from('foody_orders')
+              .select('*')
+              .ilike('id', `%${cleanSearch}%`)
+              .limit(1);
+
+            if (searchResults && searchResults.length > 0) {
+              orderRecord = searchResults[0];
+            }
+          }
+
+          // Fallback to local storage order history if offline or local mock
+          if (!orderRecord) {
+            try {
+              const rawHist = localStorage.getItem('foody_orders_history');
+              if (rawHist) {
+                const hist = JSON.parse(rawHist);
+                const found = hist.find(o =>
+                  o.id === trackingOrderId ||
+                  (o.id && o.id.toLowerCase().includes(trackingOrderId.toLowerCase()))
+                );
+                if (found) orderRecord = found;
+              }
+            } catch (_) { }
+          }
+        }
+
+        if (orderRecord && isMounted) {
+          const mapped = {
+            ...orderRecord,
+            id: orderRecord.id,
+            shopId: orderRecord.shop_id || orderRecord.shopId,
+            customerName: orderRecord.customer_name || orderRecord.customerName,
+            customerPhone: orderRecord.customer_phone || orderRecord.customerPhone,
+            customerAddress: orderRecord.customer_address || orderRecord.customerAddress,
+            deliveryAddress: orderRecord.delivery_address || orderRecord.deliveryAddress,
+            totalAmount: orderRecord.total_amount || orderRecord.totalAmount,
+            cookingNotes: orderRecord.cooking_notes || orderRecord.cookingNotes,
+            paymentMethod: orderRecord.payment_method || orderRecord.paymentMethod,
+            deliveryCoordinates: orderRecord.delivery_coordinates || orderRecord.deliveryCoordinates,
+            createdAt: orderRecord.created_at || orderRecord.createdAt,
+            items: Array.isArray(orderRecord.items) ? orderRecord.items : []
+          };
+          setTrackingOrder(mapped);
+          setIsTrackingModalOpen(true);
+        }
+      } catch (err) {
+        console.warn('loadTargetOrder exception:', err);
+      }
+    }
+
+    loadTargetOrder();
+
+    // 2. Realtime WebSocket subscription for live status changes
+    const unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
+      if (!updatedOrder || !isMounted) return;
+      setTrackingOrder(prev => ({ ...(prev || {}), ...updatedOrder }));
+      setIsTrackingModalOpen(true);
+      if (updatedOrder.status === 'delivered' || updatedOrder.status === 'completed') {
+        setTimeout(() => {
+          setReviewOrderTarget(updatedOrder);
+          setIsReviewModalOpen(true);
+        }, 600);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      if (unsubSupabase) unsubSupabase();
+    };
   }, [trackingOrderId]);
 
   // Dynamic Shops handling
@@ -769,7 +853,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const desktopTotal = Math.max(0, subtotal - desktopDiscount + (subtotal > 0 ? deliveryCharge + gstAmount : 0));
 
   return (
-    <div className="w-full pb-28 text-white">
+    <div className="w-full pb-6 text-white">
       {/* MAP PICKER MODAL */}
       {showMapPicker && (
         <MapPicker
@@ -940,7 +1024,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         <div className="mb-6 bg-[#282526] border border-[#E0FF33]/40 rounded-[28px] p-4 sm:p-5 shadow-2xl relative apple-modal-spring overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#E0FF33]/15 flex items-center justify-center text-[#E0FF33] shrink-0 animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-[#E0FF33]/15 flex items-center justify-center text-[#E0FF33] shrink-0">
                 <Navigation className="w-5 h-5" />
               </div>
               <div>
@@ -1121,80 +1205,118 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* Brand Footer with Privacy Policy, Terms, and Contact Links */}
-      <footer className="w-full max-w-2xl mx-auto mt-20 mb-28 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
-        <div className="flex items-center gap-2 bg-[#282526] px-3.5 py-1.5 rounded-full border border-white/10 shadow-sm">
-          <img src="/app-icon.png" alt="vrindopnishad" className="w-4 h-4 rounded-full object-cover" />
-          <span className="text-white text-sm font-laila font-bold tracking-tight">वृन्दोपनिषद्</span>
-          <span className="font-extrabold text-zinc-400 text-[10px] font-['Outfit']">(vrindopnishad · Foody Vrinda)</span>
+      {/* Minimal & Low-Profile Regulatory Footer */}
+      <footer className="w-full max-w-lg mx-auto mt-8 mb-4 px-4 text-center select-none space-y-1 text-zinc-500 text-[11px] font-['Plus_Jakarta_Sans']">
+        <div className="flex items-center justify-center gap-1.5 text-zinc-400 font-medium">
+          <span className="font-laila text-xs font-bold text-zinc-300">वृन्दोपनिषद्</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-[10px] text-zinc-500 font-['Outfit'] font-semibold">vrindopnishad (Foody Vrinda)</span>
         </div>
-        <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[340px] leading-relaxed">
-          100% Satvik Cloud Kitchen & Divine Prasad Delivery in Vrindavan Dham.
+        
+        <p className="text-[10px] text-zinc-600">
+          100% Satvik Cloud Kitchen & Prasad Delivery • Vrindavan Dham
         </p>
-        <div className="flex items-center gap-3.5 text-xs font-semibold text-zinc-400 pt-0.5">
-          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
+
+        <div className="flex items-center justify-center gap-3 pt-0.5 text-[11px] text-zinc-500">
+          <a
+            href="/privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-zinc-300 transition-colors"
+          >
             Privacy Policy
           </a>
-          <span className="text-zinc-600">•</span>
-          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
+          <span className="text-zinc-700">•</span>
+          <a
+            href="/terms.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-zinc-300 transition-colors"
+          >
             Terms of Service
           </a>
-          <span className="text-zinc-600">•</span>
-          <a href="https://wa.me/919870152058?text=Hello%20vrindopnishad" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors">
-            Support
+          <span className="text-zinc-700">•</span>
+          <a
+            href="mailto:vrinda.connect.us@gmail.com"
+            className="hover:text-zinc-300 transition-colors"
+          >
+            Contact
           </a>
         </div>
-        <div className="text-[10px] text-zinc-600 pt-1">
-          © 2026 vrindopnishad (Foody Vrinda). All rights reserved.
-        </div>
+
+        <p className="text-[9px] text-zinc-600/70 pt-0.5">
+          © 2026 vrindopnishad. All rights reserved.
+        </p>
       </footer>
 
-      {/* BOTTOM FLOATING CART BAR (Apple Dynamic Capsule Design) */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-28px)] sm:w-auto sm:min-w-[400px] max-w-[480px] animate-slide-up select-none pointer-events-none">
-          <div
-            onClick={() => setShowCartDrawer(true)}
-            className="pointer-events-auto bg-[#1E1B1C]/95 border border-[#E0FF33]/40 hover:border-[#E0FF33] rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(224,255,51,0.15)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
-          >
-            {/* Left: Icon + Quantity Badge + Price */}
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#282526] border border-white/10 flex items-center justify-center text-[#E0FF33] shadow-md group-hover:bg-[#322E30] transition-colors">
-                  <ShoppingBag size={18} />
-                </div>
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#E0FF33] text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-[#1E1B1C] shadow-sm leading-none">
-                  {cart.reduce((s, i) => s + i.quantity, 0)}
-                </span>
-              </div>
+      {/* BOTTOM FLOATING HUD STACK (Active Order Tracker + Dynamic Cart Capsule - Non-overlapping) */}
+      {((!isTrackingModalOpen && trackingOrder) || cart.length > 0) && (
+        <div
+          style={{
+            bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))'
+          }}
+          className="fixed left-1/2 -translate-x-1/2 z-40 w-[calc(100%-28px)] sm:w-auto sm:min-w-[400px] max-w-[480px] flex flex-col items-center gap-2.5 pointer-events-none select-none transition-all duration-300"
+        >
+          {/* Active Order Activity Capsule */}
+          {!isTrackingModalOpen && trackingOrder && (
+            <div className="pointer-events-auto w-auto flex justify-center animate-fadeIn">
+              <ActiveOrderCapsule
+                order={trackingOrder}
+                allShops={allShops}
+                isEmbedded={true}
+                onClick={() => setIsTrackingModalOpen(true)}
+              />
+            </div>
+          )}
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-                  <span className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight">
-                    ₹{totalAmount}
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400">
-                    · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
-                  </span>
+          {/* Floating Cart Bar */}
+          {cart.length > 0 && (
+            <div className="pointer-events-auto w-full animate-slide-up">
+              <div
+                onClick={() => setShowCartDrawer(true)}
+                className="bg-[#1E1B1C]/95 border border-[#E0FF33]/40 hover:border-[#E0FF33] rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(224,255,51,0.15)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              >
+                {/* Left: Icon + Quantity Badge + Price */}
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#282526] border border-white/10 flex items-center justify-center text-[#E0FF33] shadow-md group-hover:bg-[#322E30] transition-colors">
+                      <ShoppingBag size={18} />
+                    </div>
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#E0FF33] text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-[#1E1B1C] shadow-sm leading-none">
+                      {cart.reduce((s, i) => s + i.quantity, 0)}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                      <span className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight">
+                        ₹{totalAmount}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400">
+                        · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-[#E0FF33] font-semibold truncate tracking-wide">
+                      Satvik Prasad Basket
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[10px] text-[#E0FF33] font-semibold truncate tracking-wide">
-                  Satvik Prasad Basket
-                </p>
+
+                {/* Right: Single-Line CTA Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCartDrawer(true);
+                  }}
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-lg flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                >
+                  <span>View Basket</span>
+                  <ChevronRight size={14} strokeWidth={3} />
+                </button>
               </div>
             </div>
-
-            {/* Right: Single-Line CTA Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCartDrawer(true);
-              }}
-              className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-lg flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
-            >
-              <span>View Basket</span>
-              <ChevronRight size={14} strokeWidth={3} />
-            </button>
-          </div>
+          )}
         </div>
       )}
 
@@ -1808,6 +1930,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <OrderHistoryDrawer
         isOpen={isOrderHistoryOpen}
         onClose={() => setIsOrderHistoryOpen(false)}
+        userId={user?.id}
+        userPhone={userData?.phone || user?.phone || checkoutPhone}
+        allShops={allShops}
         onTrackOrder={(order) => {
           if (order?.id && setTrackingOrderId) {
             setTrackingOrderId(order.id);
@@ -1819,6 +1944,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           setReviewOrderTarget(order);
           setIsReviewModalOpen(true);
         }}
+        onToast={showToast}
       />
 
       {/* 5-Star Customer Review & Rating Modal */}
@@ -1849,16 +1975,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             setReviewOrderTarget(order);
             setIsReviewModalOpen(true);
           }}
-        />
-      )}
-
-      {/* Floating Dynamic Island Live Order Activity Capsule (Apple Dynamic Island / Vrinda Tours Standard) */}
-      {!isTrackingModalOpen && trackingOrder && (
-        <ActiveOrderCapsule
-          order={trackingOrder}
-          allShops={allShops}
-          hasBottomBar={cart.length > 0}
-          onClick={() => setIsTrackingModalOpen(true)}
         />
       )}
 

@@ -31,11 +31,12 @@ import {
   Banknote,
   Search,
   Minus,
-  Trash2
+  Store
 } from 'lucide-react';
 
 export default function KitchenView() {
-  const { user, currentUserShopId } = useAuth();
+  const { currentUserShopId, allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
@@ -276,6 +277,19 @@ export default function KitchenView() {
         isPlaying={isPlaying} 
         activeAlert={activeAlert} 
         onSilence={stopAlarm} 
+        onActionClick={(alert) => {
+          stopAlarm();
+          if (alert?.orderId) {
+            const el = document.getElementById(`kitchen-order-${alert.orderId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-4', 'ring-[#E0FF33]', 'scale-[1.02]');
+              setTimeout(() => {
+                el.classList.remove('ring-4', 'ring-[#E0FF33]', 'scale-[1.02]');
+              }, 2500);
+            }
+          }
+        }}
       />
 
       {/* TOAST NOTIFICATION */}
@@ -317,6 +331,30 @@ export default function KitchenView() {
         </button>
       </div>
 
+      {/* BRANCH SELECTOR — Global roles can switch kitchen branches inline */}
+      {isGlobalRole && allShops.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
+          {allShops.map(s => {
+            const isActive = currentUserShopId === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => impersonate(s.id, userRole)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
+                    : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                }`}
+              >
+                <Store className="w-3 h-3" />
+                <span>{s.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ORDERS GRID */}
       {orders.length === 0 ? (
         <div className="bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-zinc-400 border border-white/5 flex flex-col items-center justify-center">
@@ -334,7 +372,8 @@ export default function KitchenView() {
             return (
               <div 
                 key={order.id} 
-                className={`bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${
+                id={`kitchen-order-${order.id}`}
+                className={`bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
                   isNew ? 'border-[#E0FF33]/40 ring-1 ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-white/10'
                 }`}
               >
