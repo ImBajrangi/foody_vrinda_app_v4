@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { updateCloudUser } from '../supabase';
 import { 
   X, 
   LogIn, 
@@ -23,14 +24,19 @@ import {
   Compass,
   Zap,
   MapPin,
-  Terminal
+  Terminal,
+  Edit3,
+  ShoppingBag,
+  Gift,
+  Headphones,
+  ChevronRight
 } from 'lucide-react';
 
 const DESK_CONFIG = {
   customer: {
-    icon: Sparkles,
-    title: 'Customer Storefront',
-    subtitle: 'Order delicious Satvik food & quick delivery in Vrindavan',
+    icon: User,
+    title: 'My Account',
+    subtitle: 'Verified Satvik Member • Foody Vrinda',
     badge: 'Customer',
     color: '#E0FF33',
     accentBg: 'rgba(224, 255, 51, 0.12)',
@@ -107,6 +113,12 @@ export default function AuthModal({ isOpen, onClose }) {
   const [signupPhone, setSignupPhone] = useState('');
   const [signupAddress, setSignupAddress] = useState('');
   
+  // Profile inline editing states
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressInput, setAddressInput] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+
   // Demo selection
   const [demoShopId, setDemoShopId] = useState('');
 
@@ -115,6 +127,24 @@ export default function AuthModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
   const [showLoginView, setShowLoginView] = useState(false);
+
+  // Sync profile editing inputs when userData changes
+  useEffect(() => {
+    if (userData) {
+      setAddressInput(userData.address || userData.customerAddress || '');
+      setNameInput(userData.displayName || user?.displayName || '');
+    }
+  }, [userData, user]);
+
+  // Auto-clear success message after 3 seconds
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => {
+        setSuccessMsg('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
 
   // Helper to get allowed workspaces by verified role
   const getAuthorizedWorkspaces = (role) => {
@@ -191,8 +221,18 @@ export default function AuthModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const currentTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
-  const DeskIcon = currentTheme.icon;
+  const isAuthenticated = Boolean(
+    user && 
+    !user.isAnonymous && 
+    (user.email || user.phone || user.phoneNumber) && 
+    user.email !== 'Guest' && 
+    user.email !== 'Local User' &&
+    user.displayName !== 'Guest' &&
+    userData?.isLoggedInUser
+  );
+
+  const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
+  const ActiveDeskIcon = activeDeskTheme.icon;
 
   // Phone Lookup Sign In
   const handlePhoneSubmit = async (e) => {
@@ -202,10 +242,10 @@ export default function AuthModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       const profile = await loginWithPhoneLookup(phoneInput);
-      setSuccessMsg(`Welcome, ${profile.displayName || 'Customer'}!`);
+      setSuccessMsg(`Welcome back, ${profile.displayName || 'Customer'}!`);
       setTimeout(() => {
         handleAnimatedClose();
-      }, 450);
+      }, 500);
     } catch (err) {
       setError(err.message || 'Phone sign-in failed. Please try again.');
     } finally {
@@ -298,24 +338,43 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
+  const handleSaveAddress = async () => {
+    if (!addressInput.trim()) return;
+    try {
+      const updated = {
+        ...(userData || {}),
+        address: addressInput.trim()
+      };
+      localStorage.setItem('foody_user_data', JSON.stringify(updated));
+      updateCloudUser({ id: user.id || userData?.id, address: addressInput.trim() }).catch(() => {});
+      setIsEditingAddress(false);
+      setSuccessMsg('Delivery address updated!');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) return;
+    try {
+      const updated = {
+        ...(userData || {}),
+        displayName: nameInput.trim()
+      };
+      localStorage.setItem('foody_user_data', JSON.stringify(updated));
+      updateCloudUser({ id: user.id || userData?.id, displayName: nameInput.trim() }).catch(() => {});
+      setIsEditingName(false);
+      setSuccessMsg('Name updated!');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     clearCart();
     handleAnimatedClose();
   };
-
-  const isAuthenticated = Boolean(
-    user && 
-    !user.isAnonymous && 
-    (user.email || user.phone || user.phoneNumber) && 
-    user.email !== 'Guest' && 
-    user.email !== 'Local User' &&
-    user.displayName !== 'Guest' &&
-    userData?.isLoggedInUser
-  );
-
-  const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
-  const ActiveDeskIcon = activeDeskTheme.icon;
 
   const getSignupTitle = () => {
     if (signupStep === 1) return 'Step 1: Your Identity';
@@ -333,13 +392,13 @@ export default function AuthModal({ isOpen, onClose }) {
     ? (showStaffSignIn 
         ? (activeDeskTheme.title || 'Staff Portal') 
         : (isSignup ? getSignupTitle() : 'Welcome to Foody Vrinda'))
-    : currentTheme.title;
+    : (isAuthorizedDeveloper ? 'Developer Console' : isAuthorizedAdmin ? 'Administrator Account' : 'My Account');
 
   const modalSubtitle = (!isAuthenticated || showLoginView)
     ? (showStaffSignIn 
         ? (activeDeskTheme.subtitle || 'Authorized personnel login') 
         : (isSignup ? getSignupSubtitle() : 'Sign in to track live orders & manage address'))
-    : currentTheme.subtitle;
+    : 'Verified Satvik Member • Foody Vrinda';
 
   return (
     <div 
@@ -415,7 +474,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {successMsg && (
           <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold flex items-center gap-2 relative z-10 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -424,88 +483,241 @@ export default function AuthModal({ isOpen, onClose }) {
         {(isAuthenticated && !showLoginView) ? (
           <div className="space-y-3.5 relative z-10">
 
-            {/* 1. Main Profile Card */}
-            <div className="flex items-center gap-3.5 p-4 rounded-3xl bg-[#151314] border border-white/5">
-              <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden shadow-md">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
-                    {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] truncate">
-                    {userData?.displayName || user.displayName || 'Customer'}
-                  </h4>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                    isAuthorizedDeveloper
-                      ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
-                      : isAuthorizedAdmin
-                        ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
-                        : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                  }`}>
-                    {isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}
-                  </span>
+            {/* 1. Main Luxury Profile Card */}
+            <div className="p-4 rounded-3xl bg-[#151314] border border-white/10 shadow-lg space-y-3 relative overflow-hidden">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-lg font-black shrink-0 overflow-hidden shadow-md ring-2 ring-[#E0FF33]/10">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-['Outfit'] font-black text-2xl text-[#E0FF33]">
+                      {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-zinc-400 truncate">{user.email || user.phoneNumber || userData?.phone || user.phone || 'Member Account'}</p>
-                {currentShopName && (
-                  <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
-                    <Store className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{currentShopName}</span>
+                
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    {isEditingName ? (
+                      <div className="flex items-center gap-1.5 flex-1">
+                        <input
+                          type="text"
+                          value={nameInput}
+                          onChange={(e) => setNameInput(e.target.value)}
+                          className="bg-[#282526] text-white text-xs px-2.5 py-1 rounded-xl border border-white/20 focus:outline-none focus:border-[#E0FF33] w-full"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveName}
+                          className="p-1 rounded-lg bg-[#E0FF33] text-black hover:bg-[#d4f820] cursor-pointer shrink-0"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingName(false)}
+                          className="p-1 rounded-lg bg-white/10 text-zinc-400 hover:text-white cursor-pointer shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] truncate">
+                          {userData?.displayName || user.displayName || 'Customer'}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNameInput(userData?.displayName || user.displayName || '');
+                            setIsEditingName(true);
+                          }}
+                          className="text-zinc-500 hover:text-[#E0FF33] transition-colors p-0.5"
+                          title="Edit Name"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                      isAuthorizedDeveloper
+                        ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
+                        : isAuthorizedAdmin
+                          ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                    }`}>
+                      {isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-zinc-400 font-medium truncate">
+                    {user.phone ? `+91 ${user.phone.replace(/\D/g, '').slice(-10)}` : (user.email || user.phoneNumber || userData?.phone || 'Member Account')}
                   </p>
-                )}
+
+                  {currentShopName && (
+                    <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
+                      <Store className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{currentShopName}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* 2. Quick Customer Loyalty & Account Stat Badges */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
+              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5 shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Prasad Coins</span>
-                  <span className="text-xs font-black text-white font-['Outfit']">150 Coins</span>
+                  <span className="text-xs font-black text-white font-['Outfit'] block">150 Coins</span>
+                  <span className="text-[9px] text-emerald-400 font-medium">₹15 savings ready</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
+              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5 shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Account Tier</span>
-                  <span className="text-xs font-black text-white font-['Outfit']">Satvik Devotee</span>
+                  <span className="text-xs font-black text-white font-['Outfit'] block">Satvik Devotee</span>
+                  <span className="text-[9px] text-cyan-400 font-medium">Priority Kitchen Prep</span>
                 </div>
               </div>
             </div>
 
-            {/* 3. Saved Delivery Address Card */}
-            {(userData?.address || userData?.customerAddress) ? (
-              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#E0FF33] shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            {/* 3. Interactive Saved Delivery Address Card */}
+            <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     Default Delivery Address
                   </span>
-                  <p className="text-xs text-zinc-300 font-medium line-clamp-2 mt-0.5">
-                    {userData.address || userData.customerAddress}
-                  </p>
                 </div>
+                {!isEditingAddress && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddressInput(userData?.address || userData?.customerAddress || '');
+                      setIsEditingAddress(true);
+                    }}
+                    className="text-[11px] font-bold text-[#E0FF33] hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>{(userData?.address || userData?.customerAddress) ? 'Edit' : '+ Add Address'}</span>
+                  </button>
+                )}
               </div>
-            ) : (
-              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 flex items-center gap-2.5">
-                <MapPin className="w-4 h-4 text-zinc-500 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs text-zinc-400 font-medium">No saved address yet</span>
-                </div>
-              </div>
-            )}
 
-            {/* 4. Authorized Workspaces Switcher */}
+              {isEditingAddress ? (
+                <div className="space-y-2 pt-1 animate-fade-in">
+                  <textarea
+                    rows={2}
+                    value={addressInput}
+                    onChange={(e) => setAddressInput(e.target.value)}
+                    placeholder="Enter your street, flat no., or landmark in Vrindavan..."
+                    className="w-full bg-[#1E1B1C] text-xs text-white p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#E0FF33]/50 resize-none font-['Plus_Jakarta_Sans']"
+                    autoFocus
+                  />
+                  
+                  {/* Quick Landmark Chips */}
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      'Near ISKCON Temple, Raman Reti',
+                      'Prem Mandir Area',
+                      'Parikrama Marg',
+                      'Chhatikara Road'
+                    ].map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => setAddressInput(loc)}
+                        className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-[#E0FF33]/10 hover:text-[#E0FF33] border border-white/5 text-[9px] font-medium text-zinc-400 cursor-pointer transition-all"
+                      >
+                        + {loc}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAddress(false)}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white text-xs font-bold cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveAddress}
+                      className="px-4 py-1.5 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] cursor-pointer"
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-300 font-medium leading-relaxed pl-5">
+                  {(userData?.address || userData?.customerAddress) || (
+                    <span className="text-zinc-500 italic">No default address saved yet. Tap '+ Add Address' above to set one.</span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {/* 4. Quick Account Hub Links */}
+            <div className="p-2 rounded-2xl bg-[#151314] border border-white/5 divide-y divide-white/5">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAnimatedClose();
+                  window.dispatchEvent(new CustomEvent('foody-open-orders'));
+                }}
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-[#E0FF33]" />
+                  <span>My Orders & Live Tracking</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAnimatedClose();
+                  window.dispatchEvent(new CustomEvent('foody_open_rewards'));
+                }}
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Gift className="w-4 h-4 text-purple-400" />
+                  <span>Prasad Rewards & Devotee Perks</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+              </button>
+
+              <a
+                href="https://wa.me/919870152058?text=Hello%20Foody%20Vrinda%20Support"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Headphones className="w-4 h-4 text-cyan-400" />
+                  <span>Vrindavan Kitchen Support (+91 98701 52058)</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+              </a>
+            </div>
+
+            {/* 5. Authorized Workspaces Switcher: ONLY for verified Admin or Developer accounts */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
               <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between px-1">
@@ -545,21 +757,21 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 5. Switch Account & Sign Out Actions */}
+            {/* 6. Switch Account & Sign Out Actions */}
             <div className="flex flex-col gap-2 pt-1">
               <button 
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="w-full py-3 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-md"
+                className="w-full py-3 px-4 rounded-2xl bg-[#282526] hover:bg-[#322E30] text-zinc-200 hover:text-white border border-white/10 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-sm"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-4 h-4 text-[#E0FF33]" />
                 <span>Switch Account / Sign In</span>
               </button>
 
               <button 
                 type="button"
                 onClick={handleLogout}
-                className="w-full py-2.5 px-4 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out of Account</span>
