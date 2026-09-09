@@ -33,6 +33,16 @@ export default function Header({
     return 'Guest';
   };
 
+  const userAvatar = user?.photoURL || 
+    userData?.photoURL || 
+    userData?.avatar_url || 
+    userData?.picture || 
+    user?.user_metadata?.avatar_url || 
+    user?.user_metadata?.picture || 
+    user?.user_metadata?.photoURL || 
+    user?.identities?.[0]?.identity_data?.avatar_url || 
+    user?.identities?.[0]?.identity_data?.picture || null;
+
   const hasStaffOrSpecialRole = isStaff || isAuthorizedAdmin || isAuthorizedDeveloper;
 
   return (
@@ -45,13 +55,20 @@ export default function Header({
             className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-[#282526] border border-white/10 hover:border-[#E0FF33]/50 flex items-center justify-center text-white font-black text-sm shadow-md transition-all flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 ring-1 ring-white/5"
             title="Profile & Settings"
           >
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+            {userAvatar ? (
+              <img 
+                src={userAvatar} 
+                alt={getDisplayName()} 
+                className="w-full h-full object-cover" 
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             ) : (
               <img 
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80" 
                 alt="Avatar" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover" 
               />
             )}
           </button>

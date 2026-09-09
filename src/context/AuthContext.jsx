@@ -251,8 +251,18 @@ export function AuthProvider({ children }) {
         }
 
         if (currentSbUser) {
-          setUser(currentSbUser);
           const email = currentSbUser.email || '';
+          const avatarUrl = currentSbUser.user_metadata?.avatar_url || 
+            currentSbUser.user_metadata?.picture || 
+            currentSbUser.user_metadata?.photoURL || 
+            currentSbUser.identities?.[0]?.identity_data?.avatar_url || 
+            currentSbUser.identities?.[0]?.identity_data?.picture || 
+            parsedSaved?.photoURL || 
+            parsedSaved?.avatar_url || '';
+
+          currentSbUser.photoURL = avatarUrl;
+          setUser(currentSbUser);
+          
           let role = parsedSaved?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
           let activeShopId = parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
           let activeShopIds = parsedSaved?.shopIds || [activeShopId];
@@ -260,7 +270,9 @@ export function AuthProvider({ children }) {
           const userProfile = {
             id: currentSbUser.id,
             email,
-            displayName: currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || email.split('@')[0],
+            displayName: currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || currentSbUser.user_metadata?.full_name || email.split('@')[0],
+            photoURL: avatarUrl,
+            avatar_url: avatarUrl,
             role,
             shopId: activeShopId,
             shopIds: activeShopIds,
@@ -310,13 +322,23 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const u = session.user;
-        setUser(u);
         const email = u.email || '';
+        const avatarUrl = u.user_metadata?.avatar_url || 
+          u.user_metadata?.picture || 
+          u.user_metadata?.photoURL || 
+          u.identities?.[0]?.identity_data?.avatar_url || 
+          u.identities?.[0]?.identity_data?.picture || '';
+
+        u.photoURL = avatarUrl;
+        setUser(u);
+        
         const role = isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer');
         const userProfile = {
           id: u.id,
           email,
-          displayName: u.user_metadata?.displayName || u.user_metadata?.name || email.split('@')[0],
+          displayName: u.user_metadata?.displayName || u.user_metadata?.name || u.user_metadata?.full_name || email.split('@')[0],
+          photoURL: avatarUrl,
+          avatar_url: avatarUrl,
           role,
           shopId: allShops[0]?.id || 'shop-vrinda-main',
           shopIds: allShops.map(s => s.id),

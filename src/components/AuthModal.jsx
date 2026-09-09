@@ -400,6 +400,16 @@ export default function AuthModal({ isOpen, onClose }) {
         : (isSignup ? getSignupSubtitle() : 'Sign in to track live orders & manage address'))
     : 'Verified Satvik Member • Foody Vrinda';
 
+  const userAvatar = user?.photoURL || 
+    userData?.photoURL || 
+    userData?.avatar_url || 
+    userData?.picture || 
+    user?.user_metadata?.avatar_url || 
+    user?.user_metadata?.picture || 
+    user?.user_metadata?.photoURL || 
+    user?.identities?.[0]?.identity_data?.avatar_url || 
+    user?.identities?.[0]?.identity_data?.picture || null;
+
   return (
     <div 
       onClick={(e) => {
@@ -493,11 +503,18 @@ export default function AuthModal({ isOpen, onClose }) {
                 {/* Avatar with Glow Ring */}
                 <div className="relative shrink-0">
                   <div className="w-12 h-12 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-lg font-black overflow-hidden shadow-md ring-2 ring-[#E0FF33]/15">
-                    {user?.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                    {userAvatar ? (
+                      <img 
+                        src={userAvatar} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
                     ) : (
                       <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
-                        {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
+                        {(userData?.displayName ? userData.displayName.charAt(0) : user?.email?.charAt(0) || user?.phone?.slice(-1) || 'U').toUpperCase()}
                       </span>
                     )}
                   </div>
