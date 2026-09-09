@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Star, X, Check, Sparkles, Heart } from 'lucide-react';
-import { supabase } from '../supabase';
+import { Star, Sparkles, X, Check, Heart, ThumbsUp, Coffee, Smile } from 'lucide-react';
+import { createCloudReview } from '../supabase';
 
 const REVIEW_TAGS = [
   'Authentic Vedic Taste',
@@ -57,20 +57,7 @@ export default function ReviewModal({
     };
 
     try {
-      // 1. Save to Supabase reviews table if available
-      try {
-        await supabase.from('foody_reviews').insert([reviewData]);
-      } catch (e) {
-        console.warn("Notice saving review to Supabase:", e);
-      }
-
-      // 2. Save locally for instantaneous reflection
-      try {
-        const localKey = `foody_reviews_${reviewData.shop_id}`;
-        const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
-        localStorage.setItem(localKey, JSON.stringify([reviewData, ...existing]));
-      } catch (e) {}
-
+      await createCloudReview(reviewData);
       setSubmitted(true);
       if (onReviewSubmitted) onReviewSubmitted(reviewData);
       setTimeout(() => {

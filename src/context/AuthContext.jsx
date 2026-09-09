@@ -265,7 +265,7 @@ export function AuthProvider({ children }) {
               displayName: userProfile.displayName || u.displayName,
               email: userProfile.email || u.email,
               phone: userProfile.phone || u.phone,
-              role: userProfile.role || u.role, // Allow incoming profile role to update
+              role: userProfile.role || u.role,
               shopId: userProfile.shopId || u.shopId,
               shopIds: userProfile.shopIds || u.shopIds,
               isLoggedInUser: true
@@ -273,6 +273,14 @@ export function AuthProvider({ children }) {
           }
           return u;
         });
+        updateCloudUser(cleanId, {
+          displayName: userProfile.displayName,
+          email: userProfile.email,
+          phone: userProfile.phone,
+          role: userProfile.role || exists.role,
+          shopId: userProfile.shopId || exists.shopId,
+          shopIds: userProfile.shopIds || exists.shopIds
+        }).catch(() => {});
       }
 
       saveCachedUsers(nextList);

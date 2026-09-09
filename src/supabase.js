@@ -1272,3 +1272,203 @@ export function subscribeCloudUsers(onUsersUpdate) {
   };
 }
 
+// ==========================================
+// 8. REVIEWS & RATINGS CLOUD APIS
+// ==========================================
+
+export async function createCloudReview(reviewData) {
+  const localKey = `foody_reviews_${reviewData.shop_id || reviewData.shopId || 'all'}`;
+  try {
+    const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const nextReviews = [reviewData, ...existing];
+    localStorage.setItem(localKey, JSON.stringify(nextReviews));
+    window.dispatchEvent(new CustomEvent('foody_reviews_changed', { detail: { reviews: nextReviews } }));
+  } catch (e) {}
+
+  try {
+    const payload = {
+      order_id: reviewData.order_id || reviewData.orderId || `REV-${Date.now()}`,
+      shop_id: reviewData.shop_id || reviewData.shopId || 'shop-vrinda-main',
+      customer_name: reviewData.customer_name || reviewData.customerName || 'Devotee Customer',
+      rating: Number(reviewData.rating || 5),
+      tags: reviewData.tags || [],
+      comment: reviewData.comment || '',
+      created_at: reviewData.created_at || new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('foody_reviews')
+      .insert([payload])
+      .select();
+
+    if (error) {
+      console.warn('createCloudReview cloud notice:', error.message);
+    }
+    return data ? data[0] : payload;
+  } catch (e) {
+    console.warn('createCloudReview notice:', e.message);
+    return reviewData;
+  }
+}
+
+export async function getCloudReviews(shopId = 'all') {
+  const localKey = `foody_reviews_${shopId}`;
+  let localData = [];
+  try {
+    localData = JSON.parse(localStorage.getItem(localKey) || '[]');
+  } catch (e) {}
+
+  try {
+    let query = supabase.from('foody_reviews').select('*').order('created_at', { ascending: false }).limit(50);
+    if (shopId && shopId !== 'all') {
+      query = query.eq('shop_id', shopId);
+    }
+    const { data, error } = await query;
+    if (!error && data && data.length > 0) {
+      try {
+        localStorage.setItem(localKey, JSON.stringify(data));
+      } catch (e) {}
+      return data;
+    }
+    return localData;
+  } catch (e) {
+    return localData;
+  }
+}
+
+export const COMPLETE_FOODY_DATABASE_SCHEMA_SQL = `-- Run this in your Supabase SQL Editor to ensure all tables, indexes, and real-time publications are active:
+
+-- 1. FOODY SHOPS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_shops (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    address TEXT,
+    phone TEXT,
+    coordinates JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
+    is_open BOOLEAN DEFAULT true,
+    minimum_order_amount NUMERIC DEFAULT 0,
+    delivery_charge NUMERIC DEFAULT 0,
+    gst_percentage NUMERIC DEFAULT 5,
+    alarm_settings JSONB DEFAULT '{"kitchenNew": true, "kitchenReady": false, "deliveryReady": true}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. FOODY MENUS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_menus (
+    id TEXT PRIMARY KEY,
+    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    subtitle TEXT,
+    description TEXT,
+    category TEXT DEFAULT 'Meals',
+    price NUMERIC NOT NULL DEFAULT 0,
+    image TEXT,
+    tag TEXT,
+    kcal TEXT,
+    nutrition JSONB DEFAULT '{"carbs": "30g", "fat": "10g", "protein": "12g", "kcal": "250 kcal"}'::jsonb,
+    is_available BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. FOODY ORDERS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_orders (
+    id TEXT PRIMARY KEY,
+    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id),
+    user_id TEXT,
+    customer_name TEXT NOT NULL,
+    customer_phone TEXT NOT NULL,
+    customer_address TEXT,
+    delivery_address TEXT,
+    delivery_coordinates JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
+    items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    subtotal NUMERIC NOT NULL DEFAULT 0,
+    delivery_charge NUMERIC DEFAULT 0,
+    gst_amount NUMERIC DEFAULT 0,
+    total_amount NUMERIC NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending',
+    payment_method TEXT DEFAULT 'cash',
+    payment_id TEXT,
+    cash_status TEXT DEFAULT 'pending',
+    cooking_notes TEXT,
+    created_by TEXT DEFAULT 'customer',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. FOODY USERS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_users (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    role TEXT NOT NULL DEFAULT 'customer',
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
+    dev_permissions JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. FOODY REVIEWS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_reviews (
+    id BIGSERIAL PRIMARY KEY,
+    order_id TEXT,
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    customer_name TEXT,
+    rating INT NOT NULL DEFAULT 5,
+    tags JSONB DEFAULT '[]'::jsonb,
+    comment TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. FOODY NOTIFICATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_notifications (
+    id TEXT PRIMARY KEY,
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    role TEXT DEFAULT 'all',
+    type TEXT DEFAULT 'order_update',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    order_id TEXT,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
+ALTER TABLE public.foody_shops ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access shops" ON public.foody_shops;
+CREATE POLICY "Public access shops" ON public.foody_shops FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_menus ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access menus" ON public.foody_menus;
+CREATE POLICY "Public access menus" ON public.foody_menus FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access orders" ON public.foody_orders;
+CREATE POLICY "Public access orders" ON public.foody_orders FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access users" ON public.foody_users;
+CREATE POLICY "Public access users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access reviews" ON public.foody_reviews;
+CREATE POLICY "Public access reviews" ON public.foody_reviews FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access notifications" ON public.foody_notifications;
+CREATE POLICY "Public access notifications" ON public.foody_notifications FOR ALL USING (true) WITH CHECK (true);
+
+-- ENABLE REALTIME REPLICATION FOR INSTANT DISPATCH
+DO $$ BEGIN
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications; EXCEPTION WHEN duplicate_object THEN NULL; END;
+END $$;
+`;
+
+
