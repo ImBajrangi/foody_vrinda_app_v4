@@ -125,8 +125,42 @@ CREATE TRIGGER trg_foody_orders_updated_at
     FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- ------------------------------------------------------------------------
--- 4. ALL LOGGED-IN USERS & ROLE MANAGEMENT TABLE (foody_logged_users)
--- Stores all logged-in members with their verified role, shop access & profile
+-- 4. ROLES MASTER CATALOG (foody_roles)
+-- Provides foreign-key relational dropdown selection in Supabase Table Editor
+-- ------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.foody_roles (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    icon TEXT,
+    hierarchy_level INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS trg_foody_roles_updated_at ON public.foody_roles;
+CREATE TRIGGER trg_foody_roles_updated_at
+    BEFORE UPDATE ON public.foody_roles
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- Populate core enterprise roles
+INSERT INTO public.foody_roles (id, name, description, icon, hierarchy_level)
+VALUES 
+    ('customer', 'Customer / Devotee', 'Standard user placing orders, exploring menus, and tracking prasadam deliveries', 'Sparkles', 1),
+    ('delivery', 'Delivery Sarathi', 'Fleet rider partners fulfilling and delivering dispatched orders across Vrindavan', 'Truck', 2),
+    ('kitchen', 'Kitchen Staff / Chef', 'Kitchen staff managing live KDS tickets, preparation states, and dish availability', 'ChefHat', 3),
+    ('owner', 'Store Owner / Admin', 'Kitchen and store administrators overseeing menus, orders, pricing & shop analytics', 'ShieldCheck', 4),
+    ('developer', 'Master Developer', 'System administrator with root debug access, database management, and system overrides', 'Terminal', 5)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    icon = EXCLUDED.icon,
+    hierarchy_level = EXCLUDED.hierarchy_level,
+    updated_at = NOW();
+
+-- ------------------------------------------------------------------------
+-- 5. ALL LOGGED-IN USERS & ROLE MANAGEMENT TABLE (foody_logged_users)
+-- Stores all logged-in members with foreign-key verified role & shop access
 -- ------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     id TEXT PRIMARY KEY,
@@ -134,8 +168,8 @@ CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     email TEXT,
     phone TEXT,
     avatar_url TEXT,
-    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
-    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
+    role TEXT NOT NULL DEFAULT 'customer' REFERENCES public.foody_roles(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main' REFERENCES public.foody_shops(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
     dev_permissions JSONB DEFAULT '[]'::jsonb,
     login_method TEXT DEFAULT 'email',
@@ -157,8 +191,8 @@ CREATE TABLE IF NOT EXISTS public.foody_users (
     email TEXT,
     phone TEXT,
     avatar_url TEXT,
-    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
-    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    role TEXT NOT NULL DEFAULT 'customer' REFERENCES public.foody_roles(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    shop_id TEXT DEFAULT 'shop-vrinda-main' REFERENCES public.foody_shops(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
     dev_permissions JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
@@ -170,6 +204,60 @@ CREATE TABLE IF NOT EXISTS public.foody_users (
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Explicit migration: Enforce Foreign Key constraints on existing tables
+-- Pre-normalize invalid or null roles and shops to prevent FK failure
+UPDATE public.foody_users 
+SET role = 'customer' 
+WHERE role IS NULL OR role NOT IN (SELECT id FROM public.foody_roles);
+
+UPDATE public.foody_logged_users 
+SET role = 'customer' 
+WHERE role IS NULL OR role NOT IN (SELECT id FROM public.foody_roles);
+
+UPDATE public.foody_users 
+SET shop_id = 'shop-vrinda-main' 
+WHERE shop_id IS NULL OR shop_id NOT IN (SELECT id FROM public.foody_shops);
+
+UPDATE public.foody_logged_users 
+SET shop_id = 'shop-vrinda-main' 
+WHERE shop_id IS NULL OR shop_id NOT IN (SELECT id FROM public.foody_shops);
+
+-- Safely re-create Foreign Key constraints (provides the green 🔗 link icon and dropdown selection in Supabase Studio!)
+DO $$
+BEGIN
+    -- 1. foody_logged_users -> foody_roles
+    ALTER TABLE public.foody_logged_users DROP CONSTRAINT IF EXISTS fk_foody_logged_users_role;
+    ALTER TABLE public.foody_logged_users DROP CONSTRAINT IF EXISTS foody_logged_users_role_check;
+    ALTER TABLE public.foody_logged_users
+        ADD CONSTRAINT fk_foody_logged_users_role
+        FOREIGN KEY (role) REFERENCES public.foody_roles(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT;
+
+    -- 2. foody_users -> foody_roles
+    ALTER TABLE public.foody_users DROP CONSTRAINT IF EXISTS fk_foody_users_role;
+    ALTER TABLE public.foody_users DROP CONSTRAINT IF EXISTS foody_users_role_check;
+    ALTER TABLE public.foody_users
+        ADD CONSTRAINT fk_foody_users_role
+        FOREIGN KEY (role) REFERENCES public.foody_roles(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT;
+
+    -- 3. foody_logged_users -> foody_shops
+    ALTER TABLE public.foody_logged_users DROP CONSTRAINT IF EXISTS fk_foody_logged_users_shop;
+    ALTER TABLE public.foody_logged_users
+        ADD CONSTRAINT fk_foody_logged_users_shop
+        FOREIGN KEY (shop_id) REFERENCES public.foody_shops(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT;
+
+    -- 4. foody_users -> foody_shops
+    ALTER TABLE public.foody_users DROP CONSTRAINT IF EXISTS fk_foody_users_shop;
+    ALTER TABLE public.foody_users
+        ADD CONSTRAINT fk_foody_users_shop
+        FOREIGN KEY (shop_id) REFERENCES public.foody_shops(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Notice applying foreign key constraints: %', SQLERRM;
+END $$;
 
 DROP TRIGGER IF EXISTS trg_foody_users_updated_at ON public.foody_users;
 CREATE TRIGGER trg_foody_users_updated_at
@@ -242,6 +330,7 @@ ALTER TABLE public.foody_orders REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_logged_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_notifications REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_roles REPLICA IDENTITY FULL;
 
 -- ------------------------------------------------------------------------
 -- 9. ROW LEVEL SECURITY (RLS) POLICIES
@@ -253,6 +342,7 @@ ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_logged_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.foody_roles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public access shops" ON public.foody_shops;
 CREATE POLICY "Public access shops" ON public.foody_shops FOR ALL USING (true) WITH CHECK (true);
@@ -275,6 +365,9 @@ CREATE POLICY "Public access reviews" ON public.foody_reviews FOR ALL USING (tru
 DROP POLICY IF EXISTS "Public access notifications" ON public.foody_notifications;
 CREATE POLICY "Public access notifications" ON public.foody_notifications FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public access roles" ON public.foody_roles;
+CREATE POLICY "Public access roles" ON public.foody_roles FOR ALL USING (true) WITH CHECK (true);
+
 -- ------------------------------------------------------------------------
 -- 10. REALTIME STREAMING PUBLICATION (Idempotent)
 -- ------------------------------------------------------------------------
@@ -287,7 +380,11 @@ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_reviews; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_roles; EXCEPTION WHEN duplicate_object THEN NULL; END;
 END $$;
+
+-- Immediately refresh Supabase Studio PostgREST schema cache
+NOTIFY pgrst, 'reload schema';
 
 -- ------------------------------------------------------------------------
 -- 11. AUTOMATIC AUTH.USERS -> PUBLIC.FOODY_USERS SYNC TRIGGER
