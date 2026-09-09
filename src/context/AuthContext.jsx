@@ -231,8 +231,16 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const currentSbUser = session?.user || null;
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          // If refresh token is expired or invalid (HTTP 400), safely clean up stale session
+          try {
+            await supabase.auth.signOut();
+          } catch (e) {}
+        }
+
+        const currentSbUser = data?.session?.user || null;
 
         const savedData = localStorage.getItem('foody_user_data');
         let parsedSaved = null;
@@ -331,29 +339,45 @@ export function AuthProvider({ children }) {
 
 
   const loginWithEmail = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+    if (error) {
+      if (error.message?.toLowerCase().includes('invalid login credentials') || error.status === 400) {
+        throw new Error('Invalid email or password. If you are a new member, please register below.');
+      }
+      if (error.message?.toLowerCase().includes('email not confirmed')) {
+        throw new Error('Please check your email inbox to verify your account, or sign in with your mobile number.');
+      }
+      throw error;
+    }
     return data;
   };
 
   const signupWithEmail = async (email, password, displayName = '', phone = '', address = '') => {
+    const cleanEmail = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password,
       options: {
         data: { displayName, phone, address }
       }
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message?.toLowerCase().includes('user already registered') || error.message?.toLowerCase().includes('already registered')) {
+        throw new Error('This email is already registered. Please sign in instead.');
+      }
+      throw error;
+    }
 
     if (data?.user) {
       await createCloudUser({
         id: data.user.id,
-        email,
-        displayName: displayName || email.split('@')[0],
+        email: cleanEmail,
+        displayName: displayName || cleanEmail.split('@')[0],
         phone,
+        address,
         role: 'customer'
-      });
+      }).catch(() => {});
     }
     return data;
   };

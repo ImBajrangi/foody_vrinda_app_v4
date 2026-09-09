@@ -320,7 +320,7 @@ export default function AuthModal({ isOpen, onClose }) {
         'auth/email-already-in-use': 'This email is already registered. Please log in.', 
         'auth/weak-password': 'Password must be at least 6 characters.' 
       };
-      setError(messages[err.code] || `Authentication failed: ${err.message}`);
+      setError(messages[err.code] || err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
