@@ -123,12 +123,12 @@ export default function DeveloperView({ setCurrentTab }) {
   const [simPaymentMethod, setSimPaymentMethod] = useState('online');
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Mobile / Desktop Collapsible Section state (smart defaults: focused workspace)
+  // Mobile / Desktop Collapsible Section state (default: all collapsed)
   const [collapsedSections, setCollapsedSections] = useState({
-    impersonation: false,
-    payments: false,
-    simulator: false,
-    users: false,
+    impersonation: true,
+    payments: true,
+    simulator: true,
+    users: true,
     alarm: true
   });
 
