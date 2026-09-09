@@ -434,23 +434,27 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* Top Header Row */}
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <div 
-              className="w-10 h-10 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
-              style={{ 
-                background: activeDeskTheme.accentBg, 
-                borderColor: activeDeskTheme.border, 
-                color: activeDeskTheme.color 
-              }}
-            >
-              <ActiveDeskIcon className="w-5 h-5" />
-            </div>
+            {(!isAuthenticated || showLoginView) && (
+              <div 
+                className="w-9 h-9 rounded-xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
+                style={{ 
+                  background: activeDeskTheme.accentBg, 
+                  borderColor: activeDeskTheme.border, 
+                  color: activeDeskTheme.color 
+                }}
+              >
+                <ActiveDeskIcon className="w-4.5 h-4.5" />
+              </div>
+            )}
             <div>
               <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5">
-                {modalSubtitle}
-              </p>
+              {(!isAuthenticated || showLoginView) && (
+                <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5">
+                  {modalSubtitle}
+                </p>
+              )}
             </div>
           </div>
 
@@ -483,27 +487,27 @@ export default function AuthModal({ isOpen, onClose }) {
         {(isAuthenticated && !showLoginView) ? (
           <div className="space-y-3 relative z-10">
 
-            {/* 1. Elite Hero Identity Card */}
-            <div className="p-4 rounded-3xl bg-[#151314] border border-white/10 shadow-lg relative overflow-hidden">
-              <div className="flex items-start gap-3.5">
+            {/* 1. Hero Identity Card */}
+            <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/10 shadow-sm relative overflow-hidden">
+              <div className="flex items-center gap-3.5">
                 {/* Avatar with Glow Ring */}
                 <div className="relative shrink-0">
-                  <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-xl font-black overflow-hidden shadow-md ring-2 ring-[#E0FF33]/15">
+                  <div className="w-12 h-12 rounded-2xl bg-[#282526] border border-[#E0FF33]/30 flex items-center justify-center text-white text-lg font-black overflow-hidden shadow-md ring-2 ring-[#E0FF33]/15">
                     {user?.photoURL ? (
                       <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-['Outfit'] font-black text-2xl text-[#E0FF33]">
+                      <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
                         {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
                       </span>
                     )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-[#151314] flex items-center justify-center shadow-sm">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#151314] flex items-center justify-center shadow-sm">
                     <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
                   </div>
                 </div>
                 
-                {/* User Info Details (Full width, no cramped truncation) */}
-                <div className="space-y-1 min-w-0 flex-1">
+                {/* User Info Details */}
+                <div className="space-y-0.5 min-w-0 flex-1">
                   {/* Name + Edit Action */}
                   {isEditingName ? (
                     <div className="flex items-center gap-1.5 py-0.5">
@@ -532,8 +536,8 @@ export default function AuthModal({ isOpen, onClose }) {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] tracking-tight leading-snug">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-black text-white text-base font-['Outfit'] tracking-tight">
                         {userData?.displayName || user.displayName || 'Customer'}
                       </h4>
                       <button
@@ -550,68 +554,46 @@ export default function AuthModal({ isOpen, onClose }) {
                     </div>
                   )}
 
-                  {/* Badges & Contact Row */}
-                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                    <span className="text-xs text-zinc-300 font-medium font-mono">
-                      {user.phone ? `+91 ${user.phone.replace(/\D/g, '').slice(-10).replace(/(\d{5})(\d{5})/, '$1 $2')}` : (user.email || user.phoneNumber || userData?.phone || 'Member')}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider inline-flex items-center gap-1 ${
-                      isAuthorizedDeveloper
-                        ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
-                        : isAuthorizedAdmin
-                          ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
-                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                    }`}>
-                      <Sparkles className="w-2.5 h-2.5" />
-                      <span>{isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}</span>
-                    </span>
-                  </div>
-
-                  {/* Branch / Kitchen Location */}
-                  {currentShopName && (
-                    <p className="text-[11px] font-bold text-amber-400/90 flex items-center gap-1.5 pt-0.5">
-                      <Store className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                      <span className="truncate">{currentShopName}</span>
-                    </p>
-                  )}
+                  {/* Contact info */}
+                  <p className="text-xs text-zinc-400 font-medium font-mono">
+                    {user.phone ? `+91 ${user.phone.replace(/\D/g, '').slice(-10).replace(/(\d{5})(\d{5})/, '$1 $2')}` : (user.email || user.phoneNumber || userData?.phone || 'Member')}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* 2. Unified Loyalty & Devotee Tier Bar (Apple Wallet Style 2-Column Strip) */}
+            {/* 2. Unified Loyalty & Tier Strip */}
             <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 grid grid-cols-2 divide-x divide-white/5 shadow-sm">
               {/* Left: Prasad Coins */}
               <div className="flex items-center gap-2.5 pr-2">
-                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
-                  <Sparkles className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Prasad Coins</div>
-                  <div className="text-sm font-black text-white font-['Outfit'] mt-0.5">150 Coins</div>
-                  <div className="text-[10px] text-emerald-400 font-semibold leading-none mt-0.5">₹15 savings ready</div>
+                  <div className="text-xs font-black text-white font-['Outfit']">150 Coins</div>
+                  <div className="text-[10px] text-emerald-400 font-medium">₹15 savings</div>
                 </div>
               </div>
 
               {/* Right: Account Tier */}
               <div className="flex items-center gap-2.5 pl-3">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Account Tier</div>
-                  <div className="text-sm font-black text-white font-['Outfit'] mt-0.5">Satvik Devotee</div>
-                  <div className="text-[10px] text-cyan-400 font-semibold leading-none mt-0.5">Priority Prep</div>
+                  <div className="text-xs font-black text-white font-['Outfit']">Satvik Devotee</div>
+                  <div className="text-[10px] text-cyan-400 font-medium">Priority Prep</div>
                 </div>
               </div>
             </div>
 
-            {/* 3. Interactive Saved Delivery Address Card */}
-            <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 space-y-2">
+            {/* 3. Delivery Address */}
+            <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#E0FF33]" />
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    Default Delivery Address
+                  <span className="text-[11px] font-bold text-zinc-300">
+                    Delivery Address
                   </span>
                 </div>
                 {!isEditingAddress && (
@@ -623,7 +605,6 @@ export default function AuthModal({ isOpen, onClose }) {
                     }}
                     className="text-[11px] font-bold text-[#E0FF33] hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    <Edit3 className="w-3 h-3" />
                     <span>{(userData?.address || userData?.customerAddress) ? 'Edit' : '+ Add Address'}</span>
                   </button>
                 )}
@@ -635,7 +616,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     rows={2}
                     value={addressInput}
                     onChange={(e) => setAddressInput(e.target.value)}
-                    placeholder="Enter your street, flat no., or landmark in Vrindavan..."
+                    placeholder="Enter delivery address in Vrindavan..."
                     className="w-full bg-[#1E1B1C] text-xs text-white p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#E0FF33]/50 resize-none font-['Plus_Jakarta_Sans']"
                     autoFocus
                   />
@@ -663,29 +644,29 @@ export default function AuthModal({ isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="px-3 py-1.5 rounded-xl bg-white/5 text-zinc-400 hover:text-white text-xs font-bold cursor-pointer"
+                      className="px-3 py-1 rounded-xl bg-white/5 text-zinc-400 hover:text-white text-xs font-bold cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveAddress}
-                      className="px-4 py-1.5 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] cursor-pointer"
+                      className="px-3.5 py-1 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] cursor-pointer"
                     >
-                      Save Address
+                      Save
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-zinc-300 font-medium leading-relaxed pl-5">
+                <p className="text-xs text-zinc-400 font-medium pl-5">
                   {(userData?.address || userData?.customerAddress) || (
-                    <span className="text-zinc-500 italic">No default address saved yet. Tap '+ Add Address' above to set one.</span>
+                    <span className="text-zinc-500">No address saved yet</span>
                   )}
                 </p>
               )}
             </div>
 
-            {/* 4. Grouped Quick Action Links */}
+            {/* 4. Grouped Navigation Links */}
             <div className="p-1 rounded-2xl bg-[#151314] border border-white/5 divide-y divide-white/5">
               <button
                 type="button"
@@ -712,7 +693,7 @@ export default function AuthModal({ isOpen, onClose }) {
               >
                 <div className="flex items-center gap-2.5">
                   <Gift className="w-4 h-4 text-purple-400" />
-                  <span>Prasad Rewards & Devotee Perks</span>
+                  <span>Prasad Rewards & Perks</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
               </button>
@@ -725,7 +706,7 @@ export default function AuthModal({ isOpen, onClose }) {
               >
                 <div className="flex items-center gap-2.5">
                   <Headphones className="w-4 h-4 text-cyan-400" />
-                  <span>Vrindavan Kitchen Support (+91 98701 52058)</span>
+                  <span>Support & Help (WhatsApp)</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
               </a>
@@ -733,10 +714,10 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
+              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between px-1">
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    {isAuthorizedDeveloper ? 'Developer Operational Switcher' : 'Administrator Workspaces'}
+                    {isAuthorizedDeveloper ? 'Operational Switcher' : 'Admin Workspaces'}
                   </span>
                   <span className="text-[10px] font-black text-[#E0FF33] px-2 py-0.5 rounded-full bg-[#E0FF33]/10 border border-[#E0FF33]/20">
                     {isAuthorizedDeveloper ? 'DEVELOPER' : 'ADMIN'}
@@ -771,24 +752,24 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 6. Clean, Uncluttered Footer Actions */}
-            <div className="space-y-2 pt-1">
+            {/* 6. Clean, Minimalist Footer Actions */}
+            <div className="flex items-center justify-between pt-1 px-1">
               <button 
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#282526] hover:bg-[#322E30] text-zinc-200 hover:text-white border border-white/10 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-sm font-['Outfit']"
+                className="text-xs text-zinc-400 hover:text-white font-medium flex items-center gap-1.5 transition-colors cursor-pointer py-1"
               >
                 <LogIn className="w-3.5 h-3.5 text-[#E0FF33]" />
-                <span>Switch Account / Sign In</span>
+                <span>Switch Account</span>
               </button>
 
               <button 
                 type="button"
                 onClick={handleLogout}
-                className="w-full py-2 text-rose-400 hover:text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer py-1"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Sign out of Foody Vrinda</span>
+                <span>Sign Out</span>
               </button>
             </div>
           </div>
