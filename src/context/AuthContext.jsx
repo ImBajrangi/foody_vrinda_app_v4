@@ -7,7 +7,8 @@ import {
   getCloudUsers, 
   createCloudUser, 
   updateCloudUser, 
-  getCachedUsers 
+  getCachedUsers,
+  saveCachedUsers 
 } from '../supabase';
 
 const AuthContext = createContext(null);
@@ -176,6 +177,54 @@ export function AuthProvider({ children }) {
     return shop ? shop.name : null;
   }, [allShops]);
 
+  // Listen for real-time user database / role updates
+  useEffect(() => {
+    const handleUsersChanged = (e) => {
+      const users = e?.detail?.users || getCachedUsers();
+      if (!users || !Array.isArray(users)) return;
+
+      const currentId = user?.id;
+      const currentEmail = (user?.email || '').toLowerCase().trim();
+      if (!currentId && !currentEmail) return;
+
+      const match = users.find(u => 
+        (currentId && String(u.id).trim() === String(currentId).trim()) || 
+        (currentEmail && u.email && u.email.toLowerCase().trim() === currentEmail)
+      );
+
+      if (match && match.role) {
+        if (match.role !== userRole || match.shopId !== currentUserShopId) {
+          setUserRole(match.role);
+          if (match.shopId) {
+            setCurrentUserShopId(match.shopId);
+            setCurrentUserShopIds(match.shopIds || [match.shopId]);
+            setCurrentShopName(resolveShopName(match.shopId));
+          }
+          setUserData(prev => {
+            const updated = {
+              ...(prev || {}),
+              role: match.role,
+              shopId: match.shopId || prev?.shopId,
+              shopIds: match.shopIds || prev?.shopIds,
+              displayName: match.displayName || prev?.displayName
+            };
+            try {
+              localStorage.setItem('foody_user_data', JSON.stringify(updated));
+            } catch (err) {}
+            return updated;
+          });
+        }
+      }
+    };
+
+    window.addEventListener('foody_users_changed', handleUsersChanged);
+    window.addEventListener('storage', handleUsersChanged);
+    return () => {
+      window.removeEventListener('foody_users_changed', handleUsersChanged);
+      window.removeEventListener('storage', handleUsersChanged);
+    };
+  }, [user, userRole, currentUserShopId, resolveShopName]);
+
   const syncUserToCloudList = useCallback((userProfile) => {
     if (!userProfile || !userProfile.id) return;
     try {
@@ -184,7 +233,7 @@ export function AuthProvider({ children }) {
       const cleanId = String(userProfile.id).trim();
 
       const exists = currentCached.find(u => 
-        u.id === cleanId || 
+        String(u.id).trim() === cleanId || 
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
       );
 
@@ -205,13 +254,16 @@ export function AuthProvider({ children }) {
         createCloudUser(newUser).catch(() => {});
       } else {
         nextList = currentCached.map(u => {
-          if (u.id === cleanId || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
+          if (String(u.id).trim() === cleanId || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
             return {
               ...u,
               id: cleanId,
               displayName: userProfile.displayName || u.displayName,
               email: userProfile.email || u.email,
               phone: userProfile.phone || u.phone,
+              role: u.role || userProfile.role, // Preserve assigned role
+              shopId: u.shopId || userProfile.shopId,
+              shopIds: u.shopIds || userProfile.shopIds,
               isLoggedInUser: true
             };
           }
@@ -252,6 +304,9 @@ export function AuthProvider({ children }) {
 
         if (currentSbUser) {
           const email = currentSbUser.email || '';
+          const cleanEmail = email.toLowerCase().trim();
+          const cleanId = String(currentSbUser.id).trim();
+
           const avatarUrl = currentSbUser.user_metadata?.avatar_url || 
             currentSbUser.user_metadata?.picture || 
             currentSbUser.user_metadata?.photoURL || 
@@ -263,9 +318,15 @@ export function AuthProvider({ children }) {
           currentSbUser.photoURL = avatarUrl;
           setUser(currentSbUser);
           
-          let role = parsedSaved?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
-          let activeShopId = parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
-          let activeShopIds = parsedSaved?.shopIds || [activeShopId];
+          const cachedUsersList = getCachedUsers();
+          const existingRecord = cachedUsersList.find(u => 
+            String(u.id).trim() === cleanId || 
+            (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+          );
+
+          let role = existingRecord?.role || parsedSaved?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
+          let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
+          let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || [activeShopId];
 
           const userProfile = {
             id: currentSbUser.id,
@@ -326,6 +387,9 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         const u = session.user;
         const email = u.email || '';
+        const cleanEmail = email.toLowerCase().trim();
+        const cleanId = String(u.id).trim();
+
         const avatarUrl = u.user_metadata?.avatar_url || 
           u.user_metadata?.picture || 
           u.user_metadata?.photoURL || 
@@ -335,7 +399,16 @@ export function AuthProvider({ children }) {
         u.photoURL = avatarUrl;
         setUser(u);
         
-        const role = isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer');
+        const cachedUsersList = getCachedUsers();
+        const existingRecord = cachedUsersList.find(usr => 
+          String(usr.id).trim() === cleanId || 
+          (cleanEmail && usr.email && usr.email.toLowerCase().trim() === cleanEmail)
+        );
+
+        const role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
+        const activeShopId = existingRecord?.shopId || allShops[0]?.id || 'shop-vrinda-main';
+        const activeShopIds = existingRecord?.shopIds || allShops.map(s => s.id);
+
         const userProfile = {
           id: u.id,
           email,
@@ -343,8 +416,8 @@ export function AuthProvider({ children }) {
           photoURL: avatarUrl,
           avatar_url: avatarUrl,
           role,
-          shopId: allShops[0]?.id || 'shop-vrinda-main',
-          shopIds: allShops.map(s => s.id),
+          shopId: activeShopId,
+          shopIds: activeShopIds,
           isLoggedInUser: true
         };
         setUserData(userProfile);
