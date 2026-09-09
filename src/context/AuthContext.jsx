@@ -807,9 +807,17 @@ export function AuthProvider({ children }) {
     ? (allShops.length > 0 ? allShops.map(s => s.id) : (currentUserShopIds.length > 0 ? currentUserShopIds : ['shop-vrinda-main']))
     : currentUserShopIds;
 
+  // Strictly check if the user has authenticated with credentials / phone lookup
+  const isAuthenticated = Boolean(
+    (user && !user.isAnonymous && (user.email || user.phone || user.phoneNumber) && user.email !== 'Guest' && user.displayName !== 'Guest') ||
+    (userData && userData.isLoggedInUser === true && (userData.phone || userData.email || userData.id))
+  );
+
   const value = {
     user,
     userData,
+    isAuthenticated,
+    isLoggedIn: isAuthenticated,
     userRole: effectiveRole,
     actualRole: userRole,
     isGrandAdmin,

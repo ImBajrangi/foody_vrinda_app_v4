@@ -200,13 +200,14 @@ const DEFAULT_PRASAD_ITEMS = [
 ];
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
-  const { user, userData, allShops } = useAuth();
+  const { user, userData, allShops, isAuthenticated } = useAuth();
   const { requestSystemNotificationPermission } = useNotifications();
 
-  // Determine whether the user is registered/logged in
+  // Strict verification: User must be authenticated (phone lookup / email / registered account)
   const isUserLoggedIn = Boolean(
-    (user && !user.isAnonymous && (user.email || user.phone || user.id)) ||
-    (userData && (userData.phone || userData.email || userData.isLoggedInUser || userData.role))
+    isAuthenticated ||
+    (user && !user.isAnonymous && (user.email || user.phone || user.phoneNumber) && user.email !== 'Guest' && user.displayName !== 'Guest') ||
+    (userData && userData.isLoggedInUser === true && (userData.phone || userData.email || userData.id))
   );
   const {
     cart,
