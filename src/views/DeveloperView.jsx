@@ -553,23 +553,6 @@ export default function DeveloperView({ setCurrentTab }) {
     <div className="space-y-6 pb-20">
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Top Header Hero */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#282526] border border-white/5 p-6 rounded-3xl relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-        <div className="space-y-1 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs font-semibold text-red-400">
-            <Terminal className="w-3.5 h-3.5" />
-            <span>Developer Sandbox</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-['Outfit']">
-            Diagnostics & Simulator
-          </h2>
-          <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans']">
-            Simulate live mock orders, switch role views without re-auth, and test audio alarm triggers.
-          </p>
-        </div>
-      </div>
 
       {/* System Statistics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -32,6 +32,7 @@ import {
   Headphones,
   ChevronRight
 } from 'lucide-react';
+import { SOCIAL_LINKS } from '../constants/socialLinks';
 
 const DESK_CONFIG = {
   customer: {
@@ -801,16 +802,21 @@ export default function AuthModal({ isOpen, onClose }) {
               </button>
 
               <a
-                href="https://wa.me/919870152058?text=Hello%20Foody%20Vrinda%20Support"
+                href={SOCIAL_LINKS.whatsappChannel}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
               >
                 <div className="flex items-center gap-2.5">
-                  <Headphones className="w-4 h-4 text-cyan-400" />
-                  <span>Support & Help (WhatsApp)</span>
+                  <div className="w-4 h-4 text-emerald-400 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.055-1.928-.485-1.528-.636-2.505-2.203-2.582-2.305-.077-.102-.624-.827-.624-1.577 0-.75.385-1.12.522-1.272.137-.154.298-.192.399-.192.1 0 .201.002.289.006.092.004.215-.035.335.253.127.304.433 1.053.471 1.13.038.077.064.167.013.268-.051.102-.077.167-.154.256-.077.09-.161.2-.23.268-.077.077-.157.161-.067.315.09.154.398.657.854 1.063.587.522 1.082.684 1.236.76.154.077.244.064.334-.038.09-.102.385-.448.487-.601.103-.154.205-.128.346-.077.141.051.897.423 1.051.5.154.077.256.115.295.179.039.064.039.372-.105.777z"/>
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 1.891.527 3.66 1.443 5.176L2 22l4.985-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.05c-1.637 0-3.153-.487-4.432-1.328l-.317-.209-2.962.83.83-2.887-.229-.335A8.006 8.006 0 014 12c0-4.411 3.589-8.05 8-8.05s8 3.639 8 8.05-3.589 8.05-8 8.05z"/>
+                    </svg>
+                  </div>
+                  <span>Official WhatsApp Channel</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Join</span>
               </a>
             </div>
 

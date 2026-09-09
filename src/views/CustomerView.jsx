@@ -43,6 +43,7 @@ import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
 import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
+import SocialLinksBar from '../components/ui/SocialLinksBar';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { fetchAddressSuggestions } from '../services/addressService';
 import { supabase, createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
@@ -1300,18 +1301,30 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* Minimal & Low-Profile Regulatory Footer */}
-      <footer className="w-full max-w-lg mx-auto mt-8 mb-4 px-4 text-center select-none space-y-1 text-zinc-500 text-[11px] font-['Plus_Jakarta_Sans']">
-        <div className="flex items-center justify-center gap-1.5 text-zinc-400 font-medium">
-          <span className="font-laila text-xs font-bold text-zinc-300">वृन्दोपनिषद्</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-[10px] text-zinc-500 font-['Outfit'] font-semibold">vrindopnishad (Foody Vrinda)</span>
+      {/* Streamlined Satvik Devotee Footer */}
+      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-zinc-500 text-[11px] font-['Plus_Jakarta_Sans']">
+        {/* Sacred Brand & Mission */}
+        <div className="space-y-0.5">
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-laila text-xs font-bold text-zinc-300">
+              वृन्दोपनिषद्
+            </span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-[11px] text-[#E0FF33] font-['Outfit'] font-black">
+              Foody Vrinda
+            </span>
+          </div>
+          <p className="text-[10px] text-zinc-500">
+            100% Satvik Cloud Kitchen & Prasad Delivery • Vrindavan Dham
+          </p>
         </div>
-        
-        <p className="text-[10px] text-zinc-600">
-          100% Satvik Cloud Kitchen & Prasad Delivery • Vrindavan Dham
-        </p>
 
+        {/* Subtle Social & Community Capsule */}
+        <div className="flex justify-center pt-0.5">
+          <SocialLinksBar compact={true} showLabel={false} />
+        </div>
+
+        {/* Regulatory Links & Policy */}
         <div className="flex items-center justify-center gap-3 pt-0.5 text-[11px] text-zinc-500">
           <a
             href="/privacy.html"
@@ -1339,7 +1352,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           </a>
         </div>
 
-        <p className="text-[9px] text-zinc-600/70 pt-0.5">
+        <p className="text-[9px] text-zinc-600/70 pt-0.5 font-['Outfit']">
           © 2026 vrindopnishad. All rights reserved.
         </p>
       </footer>
