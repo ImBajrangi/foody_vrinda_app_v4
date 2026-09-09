@@ -76,12 +76,17 @@ export default function App() {
       }
     };
     const handleOpenEmergency = () => setIsEmergencyDevOpen(true);
+    const handleOpenAuth = () => setIsAuthOpen(true);
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('foody_open_emergency_dev', handleOpenEmergency);
+    window.addEventListener('foody-open-auth', handleOpenAuth);
+    window.addEventListener('foody_open_auth', handleOpenAuth);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('foody_open_emergency_dev', handleOpenEmergency);
+      window.removeEventListener('foody-open-auth', handleOpenAuth);
+      window.removeEventListener('foody_open_auth', handleOpenAuth);
     };
   }, []);
 
