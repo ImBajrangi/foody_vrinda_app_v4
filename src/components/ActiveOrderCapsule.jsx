@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Bike, 
   Utensils, 
@@ -12,14 +12,22 @@ import { subscribeSingleCloudOrder } from '../supabase';
 /**
  * Floating Dynamic Island Live Order Activity Capsule
  * Standard: Vrinda Tours Apple Dynamic Island Live Ride Capsule
- * Zero ripple noise, compact typography with zero text clipping.
+ * Supports swipe-down to dismiss / hide effortlessly with haptic-like fluid animation.
  */
-export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasBottomBar = false, isEmbedded = false }) {
+export default function ActiveOrderCapsule({ order, onClick, onClose, allShops = [], hasBottomBar = false, isEmbedded = false }) {
   const [liveOrder, setLiveOrder] = useState(order);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissing, setIsDismissing] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartYRef = useRef(0);
+  const hasMovedRef = useRef(false);
 
   useEffect(() => {
     setLiveOrder(order);
-  }, [order]);
+    setIsDismissed(false);
+    setIsDismissing(false);
+  }, [order?.id, order?.status]);
 
   // Realtime Supabase PostgreSQL live updates
   useEffect(() => {
@@ -35,7 +43,7 @@ export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasB
   }, [order?.id]);
 
   const currentOrder = liveOrder || order;
-  if (!currentOrder || currentOrder.status === 'cancelled' || currentOrder.status === 'returned') {
+  if (!currentOrder || isDismissed || currentOrder.status === 'cancelled' || currentOrder.status === 'returned') {
     return null;
   }
 
@@ -94,24 +102,92 @@ export default function ActiveOrderCapsule({ order, onClick, allShops = [], hasB
   const rawShopName = shop?.name || 'Prem Mandir';
   const cleanShop = rawShopName.replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
 
+  // Touch / Pointer Swipe Down Handlers
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    dragStartYRef.current = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const currentY = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+    const diff = currentY - dragStartYRef.current;
+    if (diff > 4) {
+      hasMovedRef.current = true;
+      setDragY(Math.min(80, diff));
+    } else {
+      setDragY(0);
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragY > 25) {
+      // Swiped down -> hide/close with sleek slide down
+      setIsDismissing(true);
+      setTimeout(() => {
+        setIsDismissed(true);
+        if (onClose) onClose();
+      }, 200);
+    } else {
+      setDragY(0);
+    }
+  };
+
+  const handleClick = (e) => {
+    if (hasMovedRef.current || isDismissing) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (onClick) onClick(e);
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onTouchStart={handlePointerDown}
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
       role="button"
       tabIndex={0}
-      title="Tap to view live order tracking map"
+      title="Tap to view live order • Swipe down to hide"
       style={
         isEmbedded
-          ? {}
+          ? {
+              transform: isDismissing 
+                ? 'translateY(40px) scale(0.92)' 
+                : dragY > 0 
+                  ? `translateY(${dragY}px)` 
+                  : 'translateY(0)',
+              opacity: isDismissing ? 0 : Math.max(0.1, 1 - dragY / 70),
+              transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
+              touchAction: 'pan-x'
+            }
           : {
               bottom: hasBottomBar 
                 ? 'calc(104px + env(safe-area-inset-bottom, 0px))' 
                 : 'calc(16px + env(safe-area-inset-bottom, 0px))',
-              transition: 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease'
+              transform: isDismissing 
+                ? 'translate(-50%, 40px) scale(0.92)' 
+                : dragY > 0 
+                  ? `translate(-50%, ${dragY}px)` 
+                  : 'translate(-50%, 0)',
+              opacity: isDismissing ? 0 : Math.max(0.1, 1 - dragY / 70),
+              transition: isDragging 
+                ? 'none' 
+                : 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
+              touchAction: 'pan-x'
             }
       }
       className={`${
-        isEmbedded ? 'relative' : 'fixed left-1/2 -translate-x-1/2 z-[45]'
+        isEmbedded ? 'relative' : 'fixed left-1/2 z-[45]'
       } flex items-center gap-2.5 h-[40px] px-3 sm:px-3.5 rounded-full bg-[#181617]/95 text-white border border-[#E0FF33]/35 shadow-[0_14px_36px_-6px_rgba(0,0,0,0.75),0_0_16px_rgba(224,255,51,0.12)] backdrop-blur-2xl cursor-pointer select-none hover:border-[#E0FF33]/70 hover:bg-[#201D1E] active:scale-[0.97] transition-all`}
     >
       {/* Cute Solid Glyph Node (Zero distracting ripples) */}
