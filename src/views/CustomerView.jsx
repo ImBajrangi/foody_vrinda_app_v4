@@ -660,9 +660,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     if (cart.length === 0) return showToast('Basket is empty', 'error');
     if (!selectedShopId && allShops.length > 0) setSelectedShopId(allShops[0].id);
 
-    // Require Registration / Login before placing an order
+    // Seamless in-flow authentication for guest shoppers
     if (!isUserLoggedIn) {
-      showToast("Sign In Required", 'info', 'Please login or register to place your order');
+      showToast("Almost there!", 'info', 'Quick sign in to confirm order & live tracking');
       window.dispatchEvent(new CustomEvent('foody-open-auth'));
       return;
     }
@@ -2053,39 +2053,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
             </div>
 
-            {/* Login / Register prompt banner for unauthenticated customers */}
-            {!isUserLoggedIn && (
-              <div className="p-3.5 rounded-2xl bg-[#E0FF33]/10 border border-[#E0FF33]/30 flex items-center justify-between gap-3 shadow-lg mt-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/20 text-[#E0FF33] flex items-center justify-center shrink-0">
-                    <UserCheck className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-black text-white font-['Outfit'] truncate">Sign In / Register First</p>
-                    <p className="text-[10px] text-neutral-400 truncate">Required to place and track your live order</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('foody-open-auth'))}
-                  className="px-3 py-1.5 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider shrink-0 transition-all active:scale-95 shadow-md cursor-pointer"
-                >
-                  Sign In
-                </button>
+            {/* Seamless Trust & Live Tracking Micro-Indicator */}
+            <div className="flex items-center justify-between text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans'] px-1 pt-2">
+              <div className="flex items-center gap-1.5 text-[#E0FF33]">
+                <Zap size={13} className="text-[#E0FF33]" />
+                <span className="font-bold text-neutral-300">Live GPS tracking included</span>
               </div>
-            )}
+              <span className="text-[10px] text-neutral-500 font-medium">Satvik Cloud Kitchen</span>
+            </div>
 
             <button
               onClick={handlePlaceOrder}
               disabled={!onlineAvailable && !codAvailable}
-              className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl mt-4 cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+              className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl mt-3 cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
             >
               <span className="font-black">
-                {!isUserLoggedIn
-                  ? 'Login / Register to Order'
-                  : !onlineAvailable && !codAvailable
-                    ? 'Kitchen Payments Disabled'
-                    : 'Confirm & Place Order'}
+                {!onlineAvailable && !codAvailable ? 'Kitchen Payments Disabled' : 'Proceed to Place Order'}
               </span>
               <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
                 ₹{totalAmount}
