@@ -90,7 +90,11 @@ import {
   CupSoda,
   Bike,
   Shield,
-  RotateCcw
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -120,6 +124,28 @@ export default function OwnerView() {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
+
+  // Mobile / Section Collapsible States for peaceful UI & focused workflow
+  const [isMenuFormCollapsed, setIsMenuFormCollapsed] = useState(false);
+  const [collapsedShopSections, setCollapsedShopSections] = useState({
+    identity: false,
+    pricing: false,
+    map: false,
+    timing: false,
+    promo: false
+  });
+
+  const toggleShopSection = (secKey) => {
+    setCollapsedShopSections(prev => ({ ...prev, [secKey]: !prev[secKey] }));
+  };
+
+  const collapseAllShopSections = () => {
+    setCollapsedShopSections({ identity: true, pricing: true, map: true, timing: true, promo: true });
+  };
+
+  const expandAllShopSections = () => {
+    setCollapsedShopSections({ identity: false, pricing: false, map: false, timing: false, promo: false });
+  };
 
   // Audio & Realtime Alert Hook for Owner Management
   const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
@@ -617,6 +643,7 @@ export default function OwnerView() {
 
   // Menu items Add/Edit
   const handleEditMenuItem = (item) => {
+    setIsMenuFormCollapsed(false);
     setEditingMenuItem(item);
     setMenuForm({
       name: item.name || '',
@@ -1252,428 +1279,578 @@ export default function OwnerView() {
 
       {/* VIEW 2: KITCHEN PROFILE */}
       {activeTab === 'shops' && (
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 shadow-xl">
-          <div className="flex items-center justify-between pb-6 border-b border-white/5 mb-6">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/5 mb-6 gap-3">
             <div>
-              <h3 className="text-xl font-black text-white font-['Outfit']">Kitchen Operational Settings</h3>
+              <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit']">Kitchen Operational Settings</h3>
               <p className="text-xs text-neutral-400 mt-0.5">Configure store address, delivery fees, minimum order thresholds & operating hours</p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={collapseAllShopSections}
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white text-xs font-bold transition-all border border-white/5 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>Minimize All</span>
+              </button>
+              <button
+                type="button"
+                onClick={expandAllShopSections}
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white text-xs font-bold transition-all border border-white/5 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Expand All</span>
+              </button>
             </div>
           </div>
 
-          <form onSubmit={handleSaveShopForm} className="space-y-6">
+          <form onSubmit={handleSaveShopForm} className="space-y-4">
             {/* 1. Core Kitchen Identity & Location */}
-            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-                <Store className="w-4 h-4 text-[#E0FF33]" />
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
-                  1. Brand Identity & Location
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Kitchen Brand Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={shopForm.name}
-                    onChange={(e) => setShopForm({ ...shopForm, name: e.target.value })}
-                    required
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
+            <div className="bg-[#1E1B1C] rounded-2xl border border-white/5 overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => toggleShopSection('identity')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-white/[0.02] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                      1. Brand Identity & Location
+                    </h4>
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      {shopForm.name ? `${shopForm.name} • ${shopForm.address || 'Address not set'}` : 'Set store name and physical address'}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Address / Physical Location *
-                  </label>
-                  <input
-                    type="text"
-                    value={shopForm.address}
-                    onChange={(e) => setShopForm({ ...shopForm, address: e.target.value })}
-                    required
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                    {collapsedShopSections.identity ? 'Expand' : 'Minimize'}
+                  </span>
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedShopSections.identity ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
+              </button>
 
-              <div>
-                <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                  Kitchen Banner / Cover Image URL
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    value={shopForm.imageUrl}
-                    onChange={(e) => setShopForm({ ...shopForm, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/..."
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                  {shopForm.imageUrl && (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-black/40">
-                      <img
-                        src={shopForm.imageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => e.target.style.display = 'none'}
+              {!collapsedShopSections.identity && (
+                <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-white/5 animate-fadeIn">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Kitchen Brand Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={shopForm.name}
+                        onChange={(e) => setShopForm({ ...shopForm, name: e.target.value })}
+                        required
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                       />
                     </div>
-                  )}
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Address / Physical Location *
+                      </label>
+                      <input
+                        type="text"
+                        value={shopForm.address}
+                        onChange={(e) => setShopForm({ ...shopForm, address: e.target.value })}
+                        required
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                      Kitchen Banner / Cover Image URL
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={shopForm.imageUrl}
+                        onChange={(e) => setShopForm({ ...shopForm, imageUrl: e.target.value })}
+                        placeholder="https://images.unsplash.com/..."
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                      {shopForm.imageUrl && (
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-black/40">
+                          <img
+                            src={shopForm.imageUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* 2. Pricing, Delivery & Taxation Rules */}
-            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-                <CreditCard className="w-4 h-4 text-cyan-400" />
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
-                  2. Pricing, Delivery & Taxation
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Minimum Order Value (₹) *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
-                    <input
-                      type="number"
-                      value={shopForm.minimumOrderAmount}
-                      onChange={(e) => setShopForm({ ...shopForm, minimumOrderAmount: e.target.value })}
-                      required
-                      className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                    />
+            <div className="bg-[#1E1B1C] rounded-2xl border border-white/5 overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => toggleShopSection('pricing')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-white/[0.02] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-400 transition-colors">
+                      2. Pricing, Delivery & Taxation
+                    </h4>
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      Min Order: ₹{shopForm.minimumOrderAmount || 0} • Delivery: ₹{shopForm.deliveryCharge || 0} • GST: {shopForm.gstPercentage || 0}%
+                    </p>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Base Delivery Charge (₹) *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
-                    <input
-                      type="number"
-                      value={shopForm.deliveryCharge}
-                      onChange={(e) => setShopForm({ ...shopForm, deliveryCharge: e.target.value })}
-                      required
-                      className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                    />
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                    {collapsedShopSections.pricing ? 'Expand' : 'Minimize'}
+                  </span>
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedShopSections.pricing ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
+              </button>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    GST Rate (%) *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={shopForm.gstPercentage}
-                      onChange={(e) => setShopForm({ ...shopForm, gstPercentage: e.target.value })}
-                      required
-                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">%</span>
+              {!collapsedShopSections.pricing && (
+                <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-white/5 animate-fadeIn">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Minimum Order Value (₹) *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
+                        <input
+                          type="number"
+                          value={shopForm.minimumOrderAmount}
+                          onChange={(e) => setShopForm({ ...shopForm, minimumOrderAmount: e.target.value })}
+                          required
+                          className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Base Delivery Charge (₹) *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">₹</span>
+                        <input
+                          type="number"
+                          value={shopForm.deliveryCharge}
+                          onChange={(e) => setShopForm({ ...shopForm, deliveryCharge: e.target.value })}
+                          required
+                          className="w-full bg-[#282526] border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        GST Rate (%) *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={shopForm.gstPercentage}
+                          onChange={(e) => setShopForm({ ...shopForm, gstPercentage: e.target.value })}
+                          required
+                          className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 font-bold text-sm">%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* 3. Geolocation & Map Positioning */}
-            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-rose-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
-                    3. Geolocation & Map Coordinates
-                  </h4>
+            <div className="bg-[#1E1B1C] rounded-2xl border border-white/5 overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => toggleShopSection('map')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-white/[0.02] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-rose-400/10 text-rose-400 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] group-hover:text-rose-400 transition-colors">
+                      3. Geolocation & Map Coordinates
+                    </h4>
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      Lat: {shopForm.lat || '27.5706'} • Lng: {shopForm.lng || '77.6593'} (Vrindavan Center)
+                    </p>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCoordinateCallback(() => (lat, lng) => {
-                      setShopForm(prev => ({ ...prev, lat: String(lat), lng: String(lng) }));
-                    });
-                    setMapTargetCoords({ lat: shopForm.lat, lng: shopForm.lng });
-                    setShowMapPicker(true);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
-                >
-                  <Compass className="w-3.5 h-3.5 text-[#E0FF33]" />
-                  <span>Pin on Google Maps</span>
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Latitude</label>
-                  <input
-                    type="text"
-                    value={shopForm.lat}
-                    onChange={(e) => setShopForm({ ...shopForm, lat: e.target.value })}
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
-                  />
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                    {collapsedShopSections.map ? 'Expand' : 'Minimize'}
+                  </span>
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedShopSections.map ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Longitude</label>
-                  <input
-                    type="text"
-                    value={shopForm.lng}
-                    onChange={(e) => setShopForm({ ...shopForm, lng: e.target.value })}
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
-                  />
+              </button>
+
+              {!collapsedShopSections.map && (
+                <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-white/5 animate-fadeIn">
+                  <div className="flex items-center justify-between pt-4 pb-2 border-b border-white/5 flex-wrap gap-2">
+                    <span className="text-xs text-neutral-400">Pinpoint accurate kitchen location for Sarathi routing</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCoordinateCallback(() => (lat, lng) => {
+                          setShopForm(prev => ({ ...prev, lat: String(lat), lng: String(lng) }));
+                        });
+                        setMapTargetCoords({ lat: shopForm.lat, lng: shopForm.lng });
+                        setShowMapPicker(true);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Compass className="w-3.5 h-3.5 text-[#E0FF33]" />
+                      <span>Pin on Google Maps</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Latitude</label>
+                      <input
+                        type="text"
+                        value={shopForm.lat}
+                        onChange={(e) => setShopForm({ ...shopForm, lat: e.target.value })}
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Longitude</label>
+                      <input
+                        type="text"
+                        value={shopForm.lng}
+                        onChange={(e) => setShopForm({ ...shopForm, lng: e.target.value })}
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-[#E0FF33]/50 transition-all"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* 4. Operating Hours & Schedule */}
-            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
-                    4. Operating Hours & Service Shifts
-                  </h4>
+            <div className="bg-[#1E1B1C] rounded-2xl border border-white/5 overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => toggleShopSection('timing')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-white/[0.02] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-400 transition-colors">
+                      4. Operating Hours & Service Shifts
+                    </h4>
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      {shopForm.alwaysOpen ? '24/7 Always Open' : `${shopForm.openTime || '06:00'} to ${shopForm.closeTime || '23:00'}`} • {(shopForm.daysOpen || []).length} active days • {(shopForm.timePeriods || []).length} shifts
+                    </p>
+                  </div>
                 </div>
 
-                <div
-                  onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
-                  className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
-                >
-                  <div className={`w-9 h-5 rounded-full p-0.5 transition-colors relative ${shopForm.alwaysOpen ? 'bg-[#E0FF33]' : 'bg-neutral-700'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-[#18181A] shadow-sm transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                    {collapsedShopSections.timing ? 'Expand' : 'Minimize'}
+                  </span>
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedShopSections.timing ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-bold text-neutral-200">Open 24/7 Always</span>
                 </div>
-              </div>
+              </button>
 
-              {!shopForm.alwaysOpen ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Opening Time</label>
-                    <input
-                      type="time"
-                      value={shopForm.openTime}
-                      onChange={(e) => setShopForm({ ...shopForm, openTime: e.target.value })}
-                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                    />
+              {!collapsedShopSections.timing && (
+                <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-white/5 animate-fadeIn">
+                  <div className="flex items-center justify-between pt-4 pb-2 border-b border-white/5 flex-wrap gap-2">
+                    <span className="text-xs text-neutral-400">Set active dispatch hours</span>
+                    <div
+                      onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
+                      className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                    >
+                      <div className={`w-9 h-5 rounded-full p-0.5 transition-colors relative ${shopForm.alwaysOpen ? 'bg-[#E0FF33]' : 'bg-neutral-700'}`}>
+                        <div className={`w-4 h-4 rounded-full bg-[#18181A] shadow-sm transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                      <span className="text-xs font-bold text-neutral-200">Open 24/7 Always</span>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Closing Time</label>
-                    <input
-                      type="time"
-                      value={shopForm.closeTime}
-                      onChange={(e) => setShopForm({ ...shopForm, closeTime: e.target.value })}
-                      className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                    />
+
+                  {!shopForm.alwaysOpen ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Opening Time</label>
+                        <input
+                          type="time"
+                          value={shopForm.openTime}
+                          onChange={(e) => setShopForm({ ...shopForm, openTime: e.target.value })}
+                          className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Closing Time</label>
+                        <input
+                          type="time"
+                          value={shopForm.closeTime}
+                          onChange={(e) => setShopForm({ ...shopForm, closeTime: e.target.value })}
+                          className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2.5 text-emerald-300 text-xs font-bold">
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>Kitchen is operational 24/7 — Live orders will be accepted at all hours.</span>
+                    </div>
+                  )}
+
+                  {/* Vedic Service Shifts Multi-Select */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
+                      <div>
+                        <label className="block text-xs font-bold text-white uppercase tracking-wider">
+                          Vedic Service Shifts (Time Periods)
+                        </label>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">Controls mobile customer scheduling & meal dispatch windows</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShopForm({ ...shopForm, timePeriods: ['morning', 'forenoon', 'afternoon', 'evening', 'night'] })}
+                          className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
+                        >
+                          Select All
+                        </button>
+                        <span className="text-neutral-600">•</span>
+                        <button
+                          type="button"
+                          onClick={() => setShopForm({ ...shopForm, timePeriods: [] })}
+                          className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {[
+                        { id: 'morning', label: 'Morning', icon: <Sunrise className="w-5 h-5 text-amber-400" />, time: '6-9 AM', desc: 'Bhog & Breakfast' },
+                        { id: 'forenoon', label: 'Forenoon', icon: <Sun className="w-5 h-5 text-amber-300" />, time: '9-12 PM', desc: 'Midday Prasad' },
+                        { id: 'afternoon', label: 'Afternoon', icon: <Utensils className="w-5 h-5 text-[#E0FF33]" />, time: '12-4 PM', desc: 'Rajbhog Thali' },
+                        { id: 'evening', label: 'Evening', icon: <Sunset className="w-5 h-5 text-orange-400" />, time: '4-8 PM', desc: 'Sandhya Aarti' },
+                        { id: 'night', label: 'Night', icon: <Moon className="w-5 h-5 text-cyan-300" />, time: '8-12 AM', desc: 'Shayan Prasad' }
+                      ].map(period => {
+                        const isSelected = (shopForm.timePeriods || []).includes(period.id);
+                        return (
+                          <button
+                            key={period.id}
+                            type="button"
+                            onClick={() => {
+                              const current = shopForm.timePeriods || [];
+                              const updated = isSelected
+                                ? current.filter(p => p !== period.id)
+                                : [...current, period.id];
+                              setShopForm({ ...shopForm, timePeriods: updated });
+                            }}
+                            className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[90px] cursor-pointer active:scale-95 ${isSelected
+                              ? 'bg-[#E0FF33]/15 border-[#E0FF33] text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]'
+                              : 'bg-[#282526] border-white/5 text-neutral-400 hover:border-white/20 hover:text-white'
+                              }`}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shadow-inner">
+                                {period.icon}
+                              </div>
+                              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-[#E0FF33] text-black' : 'bg-white/5 text-neutral-400'}`}>
+                                {period.time}
+                              </span>
+                            </div>
+                            <div className="mt-2">
+                              <p className="text-xs font-bold text-white font-['Outfit']">{period.label}</p>
+                              <p className="text-[10px] text-neutral-400 truncate">{period.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2.5 text-emerald-300 text-xs font-bold">
-                  <CheckCircle className="w-4 h-4 shrink-0" />
-                  <span>Kitchen is operational 24/7 — Live orders will be accepted at all hours.</span>
+
+                  {/* Operating Days of Week */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1">
+                      <div>
+                        <label className="block text-xs font-bold text-white uppercase tracking-wider">
+                          Operating Days of Week
+                        </label>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">Days on which kitchen accepts online delivery tickets</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] })}
+                          className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
+                        >
+                          All 7 Days
+                        </button>
+                        <span className="text-neutral-600">•</span>
+                        <button
+                          type="button"
+                          onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] })}
+                          className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
+                        >
+                          Weekdays Only
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                        const isSelected = (shopForm.daysOpen || []).includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              const current = shopForm.daysOpen || [];
+                              const updated = isSelected
+                                ? current.filter(d => d !== day)
+                                : [...current, day];
+                              setShopForm({ ...shopForm, daysOpen: updated });
+                            }}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border cursor-pointer active:scale-95 ${isSelected
+                              ? 'bg-[#E0FF33] border-[#E0FF33] text-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                              : 'bg-[#282526] border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
+                              }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
-
-              {/* Vedic Service Shifts Multi-Select (FULL-WIDTH 5-COLUMN GRID) */}
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
-                  <div>
-                    <label className="block text-xs font-bold text-white uppercase tracking-wider">
-                      Vedic Service Shifts (Time Periods)
-                    </label>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">Controls mobile customer scheduling & meal dispatch windows</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShopForm({ ...shopForm, timePeriods: ['morning', 'forenoon', 'afternoon', 'evening', 'night'] })}
-                      className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
-                    >
-                      Select All
-                    </button>
-                    <span className="text-neutral-600">•</span>
-                    <button
-                      type="button"
-                      onClick={() => setShopForm({ ...shopForm, timePeriods: [] })}
-                      className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {[
-                    { id: 'morning', label: 'Morning', icon: <Sunrise className="w-5 h-5 text-amber-400" />, time: '6-9 AM', desc: 'Bhog & Early Breakfast' },
-                    { id: 'forenoon', label: 'Forenoon', icon: <Sun className="w-5 h-5 text-amber-300" />, time: '9-12 PM', desc: 'Midday Prasad' },
-                    { id: 'afternoon', label: 'Afternoon', icon: <Utensils className="w-5 h-5 text-[#E0FF33]" />, time: '12-4 PM', desc: 'Rajbhog Thali' },
-                    { id: 'evening', label: 'Evening', icon: <Sunset className="w-5 h-5 text-orange-400" />, time: '4-8 PM', desc: 'Sandhya Aarti' },
-                    { id: 'night', label: 'Night', icon: <Moon className="w-5 h-5 text-cyan-300" />, time: '8-12 AM', desc: 'Shayan Prasad' }
-                  ].map(period => {
-                    const isSelected = (shopForm.timePeriods || []).includes(period.id);
-                    return (
-                      <button
-                        key={period.id}
-                        type="button"
-                        onClick={() => {
-                          const current = shopForm.timePeriods || [];
-                          const updated = isSelected
-                            ? current.filter(p => p !== period.id)
-                            : [...current, period.id];
-                          setShopForm({ ...shopForm, timePeriods: updated });
-                        }}
-                        className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[90px] cursor-pointer active:scale-95 ${isSelected
-                          ? 'bg-[#E0FF33]/15 border-[#E0FF33] text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]'
-                          : 'bg-[#282526] border-white/5 text-neutral-400 hover:border-white/20 hover:text-white'
-                          }`}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shadow-inner">
-                            {period.icon}
-                          </div>
-                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${isSelected ? 'bg-[#E0FF33] text-black' : 'bg-white/5 text-neutral-400'
-                            }`}>
-                            {period.time}
-                          </span>
-                        </div>
-                        <div className="mt-2">
-                          <p className="text-xs font-bold text-white font-['Outfit']">{period.label}</p>
-                          <p className="text-[10px] text-neutral-400 truncate">{period.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Operating Days of Week */}
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1">
-                  <div>
-                    <label className="block text-xs font-bold text-white uppercase tracking-wider">
-                      Operating Days of Week
-                    </label>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">Days on which kitchen accepts online delivery tickets</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] })}
-                      className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer"
-                    >
-                      All 7 Days
-                    </button>
-                    <span className="text-neutral-600">•</span>
-                    <button
-                      type="button"
-                      onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] })}
-                      className="text-[10px] font-bold text-neutral-400 hover:underline cursor-pointer"
-                    >
-                      Weekdays Only
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-                    const isSelected = (shopForm.daysOpen || []).includes(day);
-                    return (
-                      <button
-                        key={day}
-                        type="button"
-                        onClick={() => {
-                          const current = shopForm.daysOpen || [];
-                          const updated = isSelected
-                            ? current.filter(d => d !== day)
-                            : [...current, day];
-                          setShopForm({ ...shopForm, daysOpen: updated });
-                        }}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border cursor-pointer active:scale-95 ${isSelected
-                          ? 'bg-[#E0FF33] border-[#E0FF33] text-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                          : 'bg-[#282526] border-white/10 text-neutral-400 hover:text-white hover:border-white/20'
-                          }`}
-                      >
-                        {day}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
 
             {/* 5. Service Speed & Promotional Offers */}
-            <div className="p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-                <Sparkles className="w-4 h-4 text-[#E0FF33]" />
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
-                  5. Service Speed & Promotional Offers
-                </h4>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Est. Wait Time
-                  </label>
-                  <input
-                    type="text"
-                    value={shopForm.estimatedWaitTime}
-                    onChange={(e) => setShopForm({ ...shopForm, estimatedWaitTime: e.target.value })}
-                    placeholder="15-20 min"
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Promo Tag (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={shopForm.discountTag}
-                    onChange={(e) => setShopForm({ ...shopForm, discountTag: e.target.value })}
-                    placeholder="20% OFF"
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
-                    Promo Details
-                  </label>
-                  <input
-                    type="text"
-                    value={shopForm.discountDescription}
-                    onChange={(e) => setShopForm({ ...shopForm, discountDescription: e.target.value })}
-                    placeholder="On Sacred Sweets & Thalis"
-                    className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                </div>
-              </div>
-
-              {/* Live Preview Capsule */}
-              {(shopForm.discountTag || shopForm.estimatedWaitTime) && (
-                <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase">Customer Card Preview:</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{shopForm.estimatedWaitTime || '15-20'} min</span>
-                    </span>
-                    {shopForm.discountTag && (
-                      <span className="px-2.5 py-1 rounded-lg bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 text-xs font-black flex items-center gap-1.5">
-                        <Gift className="w-3.5 h-3.5 text-[#E0FF33]" />
-                        <span>{shopForm.discountTag} {shopForm.discountDescription ? `• ${shopForm.discountDescription}` : ''}</span>
-                      </span>
-                    )}
+            <div className="bg-[#1E1B1C] rounded-2xl border border-white/5 overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => toggleShopSection('promo')}
+                className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-white/[0.02] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] text-neutral-500">Live preview as seen by buyers</span>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                      5. Service Speed & Promotional Offers
+                    </h4>
+                    <p className="text-[11px] text-neutral-400 truncate">
+                      Wait Time: {shopForm.estimatedWaitTime || '15-20 min'} {shopForm.discountTag ? `• Promo: ${shopForm.discountTag}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                    {collapsedShopSections.promo ? 'Expand' : 'Minimize'}
+                  </span>
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedShopSections.promo ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+              </button>
+
+              {!collapsedShopSections.promo && (
+                <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-white/5 animate-fadeIn">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Est. Wait Time
+                      </label>
+                      <input
+                        type="text"
+                        value={shopForm.estimatedWaitTime}
+                        onChange={(e) => setShopForm({ ...shopForm, estimatedWaitTime: e.target.value })}
+                        placeholder="15-20 min"
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Promo Tag (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={shopForm.discountTag}
+                        onChange={(e) => setShopForm({ ...shopForm, discountTag: e.target.value })}
+                        placeholder="20% OFF"
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                        Promo Details
+                      </label>
+                      <input
+                        type="text"
+                        value={shopForm.discountDescription}
+                        onChange={(e) => setShopForm({ ...shopForm, discountDescription: e.target.value })}
+                        placeholder="On Sacred Sweets & Thalis"
+                        className="w-full bg-[#282526] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Preview Capsule */}
+                  {(shopForm.discountTag || shopForm.estimatedWaitTime) && (
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-neutral-400 uppercase">Customer Card Preview:</span>
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>{shopForm.estimatedWaitTime || '15-20'} min</span>
+                        </span>
+                        {shopForm.discountTag && (
+                          <span className="px-2.5 py-1 rounded-lg bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 text-xs font-black flex items-center gap-1.5">
+                            <Gift className="w-3.5 h-3.5 text-[#E0FF33]" />
+                            <span>{shopForm.discountTag} {shopForm.discountDescription ? `• ${shopForm.discountDescription}` : ''}</span>
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-neutral-500">Live preview as seen by buyers</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1698,49 +1875,91 @@ export default function OwnerView() {
 
       {/* VIEW 3: MANAGE MENU */}
       {activeTab === 'menu' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Menu Item Form (Add / Edit) */}
-          <div
-            ref={menuFormRef}
-            className={`bg-[#282526] rounded-3xl p-5 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
-              ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30'
-              : 'border border-white/5'
-              }`}
-          >
-            <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-black text-white font-['Outfit']">
-                  {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
-                </h3>
+        <div className="space-y-4">
+          {/* Mobile Quick Expand Banner when Form is Collapsed */}
+          {isMenuFormCollapsed && !editingMenuItem && (
+            <div className="bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 flex items-center justify-between gap-3 shadow-lg lg:hidden animate-fadeIn">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-2xl bg-[#E0FF33] text-black flex items-center justify-center font-black">
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-white font-['Outfit']">Add New Dish to Menu</h4>
+                  <p className="text-[10px] text-neutral-400">Form minimized for clean dish catalog browsing</p>
+                </div>
               </div>
-              {editingMenuItem && (
-                <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider">
-                  EDITING LIVE
-                </span>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsMenuFormCollapsed(false)}
+                className="px-3 py-1.5 rounded-xl bg-[#E0FF33] text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md"
+              >
+                Open Form
+              </button>
             </div>
+          )}
 
-            {/* Prominent Active Edit Notice Banner */}
-            {editingMenuItem && (
-              <div className="mb-4 p-3.5 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
-                    <Edit2 size={15} strokeWidth={3} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Menu Item Form (Add / Edit) */}
+            <div
+              ref={menuFormRef}
+              className={`bg-[#282526] rounded-3xl p-4 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
+                ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30'
+                : 'border border-white/5'
+                }`}
+            >
+              <button
+                type="button"
+                onClick={() => setIsMenuFormCollapsed(!isMenuFormCollapsed)}
+                className="w-full flex items-center justify-between pb-4 border-b border-white/5 mb-4 text-left cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <UtensilsCrossed className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-black tracking-wider text-[#E0FF33]">Now Editing Dish</p>
-                    <p className="text-xs font-bold text-white truncate">{editingMenuItem.name}</p>
+                  <div>
+                    <h3 className="text-base font-black text-white font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                      {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
+                    </h3>
+                    {isMenuFormCollapsed && (
+                      <p className="text-[10px] text-neutral-400">Tap to expand and configure dish fields</p>
+                    )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white text-[10px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer border border-white/10"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
+                <div className="flex items-center gap-2">
+                  {editingMenuItem && (
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider">
+                      EDITING LIVE
+                    </span>
+                  )}
+                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${isMenuFormCollapsed ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+              </button>
+
+              {!isMenuFormCollapsed && (
+                <>
+                  {/* Prominent Active Edit Notice Banner */}
+                  {editingMenuItem && (
+                    <div className="mb-4 p-3.5 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
+                          <Edit2 size={15} strokeWidth={3} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase font-black tracking-wider text-[#E0FF33]">Now Editing Dish</p>
+                          <p className="text-xs font-bold text-white truncate">{editingMenuItem.name}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white text-[10px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer border border-white/10"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
 
             <form onSubmit={handleSaveMenuForm} className="space-y-4">
               {/* Dish Name Input */}
@@ -2035,7 +2254,9 @@ export default function OwnerView() {
                 )}
               </div>
             </form>
-          </div>
+          </>
+        )}
+      </div>
 
           {/* Menu Catalog Table & Showcase — Scaled for Mass Items */}
           <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
@@ -2290,6 +2511,7 @@ export default function OwnerView() {
             </div>
           </div>
         </div>
+      </div>
       )}
 
       {/* VIEW 4: CASH AUDIT */}
@@ -2824,28 +3046,28 @@ export default function OwnerView() {
 
         return (
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-fadeIn"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-[3px] animate-fadeIn"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedAuditOrder(null);
             }}
           >
-            <div className="w-full max-w-xl bg-[#1A1718] border border-white/10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
-              {/* Modal Header */}
-              <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#221F20] shrink-0">
+            <div className="w-full max-w-lg bg-[#282526] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="p-4 sm:p-5 border-b border-white/5 flex items-center justify-between bg-[#221F20] shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
                     <Receipt className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-black text-white font-['Outfit']">
-                        Order Ticket #{shortId}
+                        Order #{shortId}
                       </h3>
                       <button
                         type="button"
                         onClick={() => {
                           navigator.clipboard.writeText(o.id);
-                          setToast({ message: `Full Order ID copied to clipboard!`, type: 'info' });
+                          setToast({ message: `Copied #${shortId}`, type: 'info' });
                         }}
                         className="text-neutral-400 hover:text-[#E0FF33] p-1 rounded-md transition-colors cursor-pointer"
                         title="Copy full UUID"
@@ -2853,11 +3075,9 @@ export default function OwnerView() {
                         <Copy size={13} />
                       </button>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-neutral-400 font-['Plus_Jakarta_Sans']">
+                    <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-['Plus_Jakarta_Sans'] mt-0.5">
                       <Clock size={11} />
                       <span>{o.created_at || o.createdAt ? new Date(o.created_at || o.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) : 'Recent'}</span>
-                      <span>•</span>
-                      <span className="font-mono text-[11px] text-neutral-500">{o.id.slice(0, 13)}...</span>
                     </div>
                   </div>
                 </div>
@@ -2866,7 +3086,7 @@ export default function OwnerView() {
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
                     title="Print KOT Ticket"
                   >
                     <Printer size={15} />
@@ -2874,7 +3094,7 @@ export default function OwnerView() {
                   <button
                     type="button"
                     onClick={() => setSelectedAuditOrder(null)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
                   >
                     <X size={16} />
                   </button>
@@ -2882,47 +3102,51 @@ export default function OwnerView() {
               </div>
 
               {/* Modal Body */}
-              <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans']">
-                {/* Status Bar */}
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-neutral-400 uppercase font-bold tracking-wider">Kitchen Status:</span>
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${isNew ? 'bg-amber-400/15 text-amber-300 border-amber-400/30' :
-                      isPreparing ? 'bg-orange-400/15 text-orange-300 border-orange-400/30' :
-                        isReady ? 'bg-cyan-400/15 text-cyan-300 border-cyan-400/30' :
-                          isOut ? 'bg-purple-400/15 text-purple-300 border-purple-400/30' :
-                            'bg-emerald-400/15 text-emerald-300 border-emerald-400/30'
-                      }`}>
-                      {o.status.replace(/_/g, ' ')}
-                    </span>
+              <div className="p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto space-y-3 font-['Plus_Jakarta_Sans']">
+                {/* Status & Payment Bar (Symmetric 2-Column Grid) */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className={`py-2.5 px-3 rounded-2xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-2 shadow-sm min-w-0 ${isNew ? 'bg-amber-400/10 text-amber-300 border-amber-400/20' :
+                    isPreparing ? 'bg-orange-400/10 text-orange-300 border-orange-400/20' :
+                      isReady ? 'bg-cyan-400/10 text-cyan-300 border-cyan-400/20' :
+                        isOut ? 'bg-purple-400/10 text-purple-300 border-purple-400/20' :
+                          'bg-emerald-400/10 text-emerald-300 border-emerald-400/20'
+                    }`}>
+                    <span className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${isNew ? 'bg-amber-400' :
+                      isPreparing ? 'bg-orange-400' :
+                        isReady ? 'bg-cyan-400' :
+                          isOut ? 'bg-purple-400' :
+                            'bg-emerald-400'
+                      }`} />
+                    <span className="truncate">{o.status.replace(/_/g, ' ')}</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs font-bold">
-                    {isCash ? (
-                      isCollected ? (
-                        <span className="flex items-center gap-1 text-neutral-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
-                          <CheckCircle2 size={13} className="text-neutral-400" /> COD (₹{totalAmount}) Collected
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
-                          <Banknote size={13} /> COD (₹{totalAmount}) Due
-                        </span>
-                      )
+                  {isCash ? (
+                    isCollected ? (
+                      <div className="py-2.5 px-3 rounded-2xl bg-white/5 border border-white/10 text-neutral-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm min-w-0">
+                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                        <span className="truncate">COD Paid (₹{totalAmount})</span>
+                      </div>
                     ) : (
-                      <span className="flex items-center gap-1 text-neutral-300 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
-                        <CreditCard size={13} className="text-emerald-400" /> Paid Online (Prepaid)
-                      </span>
-                    )}
-                  </div>
+                      <div className="py-2.5 px-3 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm min-w-0">
+                        <Banknote size={14} className="text-amber-300 shrink-0" />
+                        <span className="truncate">Collect ₹{totalAmount}</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="py-2.5 px-3 rounded-2xl bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm min-w-0">
+                      <CreditCard size={14} className="text-emerald-400 shrink-0" />
+                      <span className="truncate">Paid Online (₹{totalAmount})</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Customer Information Card */}
-                <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-3">
-                  <div className="flex items-start justify-between">
+                <div className="p-4 rounded-2xl bg-[#1E1B1C] border border-white/5 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
                     <div>
                       <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Customer Details</span>
                       <h4 className="text-sm font-bold text-white font-['Outfit'] mt-0.5">
-                        {o.customer_name || o.customerName || 'Devotee Customer'}
+                        {o.customer_name || o.customerName || 'Customer'}
                       </h4>
                       {phone && (
                         <p className="text-xs text-neutral-400 font-mono mt-0.5">{phone}</p>
@@ -2933,7 +3157,7 @@ export default function OwnerView() {
                       <div className="flex items-center gap-2">
                         <a
                           href={`tel:${phone}`}
-                          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold flex items-center gap-1.5 transition-all"
+                          className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
                         >
                           <Phone size={12} /> Call
                         </a>
@@ -2941,7 +3165,7 @@ export default function OwnerView() {
                           href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all"
+                          className="px-3.5 py-1.5 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
                         >
                           <ExternalLink size={12} /> WhatsApp
                         </a>
@@ -2949,24 +3173,24 @@ export default function OwnerView() {
                     )}
                   </div>
 
-                  <div className="pt-2 border-t border-white/5 flex items-start gap-2 text-xs text-neutral-300">
+                  <div className="pt-2.5 border-t border-white/5 flex items-start gap-2 text-xs text-neutral-300">
                     <MapPin size={14} className="text-[#E0FF33] shrink-0 mt-0.5" />
                     <span>{o.delivery_address || o.deliveryAddress || o.customerAddress || 'Direct Pickup / Dine-in'}</span>
                   </div>
 
                   {(o.cooking_notes || o.cookingNotes) && (
-                    <div className="p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/25 text-xs text-amber-200 flex items-start gap-2">
+                    <div className="p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/20 text-xs text-amber-200 flex items-start gap-2">
                       <ChefHat size={14} className="text-amber-300 shrink-0 mt-0.5" />
                       <div>
-                        <strong className="font-bold">Chef Instructions:</strong> {o.cooking_notes || o.cookingNotes}
+                        <strong className="font-bold text-amber-300">Cooking Notes:</strong> {o.cooking_notes || o.cookingNotes}
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Items Breakdown Table */}
-                <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-2.5">
-                  <div className="flex justify-between items-center pb-2 border-b border-white/10 text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                <div className="p-4 rounded-2xl bg-[#1E1B1C] border border-white/5 space-y-2.5">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/5 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                     <span>Item Breakdown ({items.reduce((acc, it) => acc + (it.quantity || it.qty || 1), 0)} Items)</span>
                     <span>Amount</span>
                   </div>
@@ -2979,11 +3203,13 @@ export default function OwnerView() {
                       return (
                         <div key={idx} className="flex justify-between items-center text-xs py-1">
                           <div className="flex items-center gap-2 min-w-0 pr-2">
-                            <span className="w-5 h-5 rounded-md bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] text-emerald-400 font-bold shrink-0">
-                              veg
+                            <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                             </span>
                             <span className="text-white font-medium truncate">{item.name}</span>
-                            <span className="text-neutral-400 font-bold shrink-0">x {qty}</span>
+                            <span className="text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 font-bold px-2 py-0.5 rounded-full text-[11px] shrink-0">
+                              ×{qty}
+                            </span>
                           </div>
                           <span className="font-mono font-bold text-white shrink-0">₹{total}</span>
                         </div>
@@ -2992,96 +3218,69 @@ export default function OwnerView() {
                   </div>
 
                   {/* Pricing Summary */}
-                  <div className="pt-3 border-t border-white/10 space-y-1.5 text-xs">
+                  <div className="pt-3 border-t border-white/5 space-y-1.5 text-xs">
                     <div className="flex justify-between text-neutral-400">
                       <span>Dishes Subtotal</span>
                       <span className="font-mono">₹{items.reduce((acc, it) => acc + ((it.quantity || it.qty || 1) * (it.price || 0)), 0)}</span>
                     </div>
-                    <div className="flex justify-between text-neutral-400">
-                      <span>Delivery & Temple Packaging</span>
-                      <span className="font-mono">₹{o.delivery_fee || o.deliveryFee || 0}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-black text-white font-['Outfit'] pt-2 border-t border-white/10">
-                      <span className="text-[#E0FF33]">Total Paid / Bill</span>
-                      <span className="text-[#E0FF33] font-mono text-base">₹{totalAmount}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Flexible Payment Settlement Card (Handles Before, During, or After Delivery) */}
-                <div className={`p-4 rounded-2xl border transition-all ${!isCash
-                  ? 'bg-white/5 border-white/10'
-                  : isCollected
-                    ? 'bg-white/5 border-white/10'
-                    : 'bg-amber-400/10 border-amber-400/30'
-                  }`}>
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${!isCash || isCollected ? 'bg-white/5 text-neutral-400 border border-white/10' : 'bg-amber-400/20 text-amber-300'
-                        }`}>
-                        {!isCash ? <CreditCard size={18} className="text-emerald-400" /> : isCollected ? <CheckCircle2 size={18} className="text-neutral-400" /> : <Banknote size={18} />}
+                    {(o.delivery_fee > 0 || o.deliveryFee > 0) && (
+                      <div className="flex justify-between text-neutral-400">
+                        <span>Delivery & Temple Packaging</span>
+                        <span className="font-mono">₹{o.delivery_fee || o.deliveryFee}</span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-white font-['Outfit']">
-                            {!isCash ? 'Prepaid Online Transaction' : isCollected ? 'Cash Collected & Verified' : 'Cash on Delivery (COD)'}
-                          </p>
-                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${!isCash || isCollected ? 'bg-white/10 text-neutral-400 border border-white/15' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                            }`}>
-                            {!isCash ? 'Prepaid' : isCollected ? 'Collected' : 'Pending'}
-                          </span>
-                        </div>
-                        <p className={`text-[11px] mt-0.5 ${!isCash || isCollected ? 'text-neutral-400' : 'text-amber-200/80'}`}>
-                          {!isCash
-                            ? `₹${totalAmount} paid & verified digitally (Zero cash due)`
-                            : isCollected
-                              ? `₹${totalAmount} cash confirmed received (No further collection needed)`
-                              : `₹${totalAmount} due from customer (Can be collected at counter or on delivery)`}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Flexible Cash Collection Toggle */}
-                    {isCash && (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!isCollected) {
-                            await markCloudOrderCashCollected(o.id);
-                            setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true }));
-                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true } : ord));
-                            setToast({ message: `Cash marked as collected for #${shortId}`, type: 'success' });
-                          } else {
-                            await updateCloudOrderStatus(o.id, undefined, { cash_status: 'pending' });
-                            setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false }));
-                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false } : ord));
-                            setToast({ message: `Cash marked as pending for #${shortId}`, type: 'info' });
-                          }
-                        }}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95 ${isCollected
-                          ? 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
-                          : 'bg-[#E0FF33] hover:bg-[#d4f820] text-black shadow-[0_0_15px_rgba(224,255,51,0.2)]'
-                          }`}
-                      >
-                        {isCollected ? (
-                          <>
-                            <RotateCcw size={12} />
-                            <span>Mark Unpaid</span>
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 size={12} />
-                            <span>Confirm Cash Received</span>
-                          </>
-                        )}
-                      </button>
                     )}
+                    <div className="p-3 rounded-2xl bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex justify-between items-center mt-2">
+                      <span className="text-sm font-black text-white font-['Outfit']">Total Paid / Bill</span>
+                      <span className="text-[#E0FF33] font-mono text-base font-black">₹{totalAmount}</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* COD Reconcile Card (Conditional) */}
+                {isCash && (
+                  <div className="p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5 flex items-center justify-between gap-3">
+                    <div className="text-xs">
+                      <p className="font-bold text-white font-['Outfit']">Cash on Delivery</p>
+                      <p className="text-neutral-400 text-[11px]">{isCollected ? 'Cash marked as collected' : 'Payment due on delivery'}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!isCollected) {
+                          await markCloudOrderCashCollected(o.id);
+                          setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true }));
+                          setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'collected', cashStatus: 'collected', cash_collected: true, cashCollected: true } : ord));
+                          setToast({ message: `Cash marked as collected for #${shortId}`, type: 'success' });
+                        } else {
+                          await updateCloudOrderStatus(o.id, undefined, { cash_status: 'pending' });
+                          setSelectedAuditOrder(prev => ({ ...prev, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false }));
+                          setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, cash_status: 'pending', cashStatus: 'pending', cash_collected: false, cashCollected: false } : ord));
+                          setToast({ message: `Cash marked as pending for #${shortId}`, type: 'info' });
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${isCollected
+                        ? 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
+                        : 'bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] shadow-md'
+                        }`}
+                    >
+                      {isCollected ? (
+                        <>
+                          <RotateCcw size={12} />
+                          <span>Mark Unpaid</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={12} />
+                          <span>Confirm Cash</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Modal Footer / Kitchen Workflow Action Buttons */}
-              <div className="p-4 sm:p-5 border-t border-white/10 bg-[#221F20] flex flex-wrap items-center gap-2.5 justify-end shrink-0">
+              {/* Modal Footer */}
+              <div className="p-4 sm:p-5 border-t border-white/5 bg-[#221F20] flex items-center gap-2.5 justify-end shrink-0">
                 {isNew && (
                   <button
                     type="button"
@@ -3090,7 +3289,7 @@ export default function OwnerView() {
                       setSelectedAuditOrder(prev => ({ ...prev, status: 'preparing' }));
                       setToast({ message: `Order #${shortId} moved to Kitchen Prep!`, type: 'success' });
                     }}
-                    className="flex-1 py-3 px-4 rounded-xl bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                    className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.25)] cursor-pointer active:scale-95"
                   >
                     <ChefHat size={14} />
                     <span>Start Preparation</span>
@@ -3105,7 +3304,7 @@ export default function OwnerView() {
                       setSelectedAuditOrder(prev => ({ ...prev, status: 'ready_for_pickup' }));
                       setToast({ message: `Order #${shortId} is Ready for Sarathi pickup!`, type: 'success' });
                     }}
-                    className="flex-1 py-3 px-4 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                    className="flex-1 py-3.5 px-5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <CheckCircle2 size={14} />
                     <span>Dishes Ready For Dispatch</span>
@@ -3120,7 +3319,7 @@ export default function OwnerView() {
                       setSelectedAuditOrder(prev => ({ ...prev, status: 'out_for_delivery' }));
                       setToast({ message: `Order #${shortId} handed over to rider!`, type: 'success' });
                     }}
-                    className="flex-1 py-3 px-4 rounded-xl bg-purple-400 hover:bg-purple-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                    className="flex-1 py-3.5 px-5 rounded-2xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.25)] cursor-pointer active:scale-95"
                   >
                     <Truck size={14} />
                     <span>Handover To Rider</span>
@@ -3130,7 +3329,7 @@ export default function OwnerView() {
                 <button
                   type="button"
                   onClick={() => setSelectedAuditOrder(null)}
-                  className="py-3 px-5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors cursor-pointer"
+                  className="py-3.5 px-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors cursor-pointer"
                 >
                   Close
                 </button>

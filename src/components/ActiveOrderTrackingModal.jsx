@@ -18,12 +18,15 @@ import {
   PackageCheck,
   Check,
   Maximize2,
-  Minimize2
+  Minimize2,
+  BellRing
 } from 'lucide-react';
 import { subscribeSingleCloudOrder } from '../supabase';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
+import { useNotifications } from '../context/NotificationContext';
 
 export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
+  const { systemNotificationPermission, requestSystemNotificationPermission } = useNotifications();
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeGroupRef = useRef(null);
@@ -226,49 +229,51 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     group.addLayer(destMarker);
 
     // 4. Live Rider Pin (Modern Navigational Vehicle Puck)
-    const riderIcon = L.divIcon({
-      className: 'custom-rider-pin',
-      html: `
-        <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <div style="
-            width: 34px;
-            height: 34px;
-            background: #181617;
-            border: 2px solid #E0FF33;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
-            cursor: pointer;
-          ">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="18.5" cy="17.5" r="2.5"></circle>
-              <circle cx="5.5" cy="17.5" r="2.5"></circle>
-              <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
-              <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
-              <path d="M9 18h6"></path>
-            </svg>
+    // ONLY display when order is actively in transit AND system/software has assigned rider info
+    const assignedRiderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.rider?.name;
+    const hasLiveRiderInfo = (status === 'out_for_delivery') && Boolean(assignedRiderName || currentOrder?.rider_phone || currentOrder?.riderPhone || currentOrder?.rider_id);
+
+    let riderMarker = null;
+    if (hasLiveRiderInfo) {
+      const riderIcon = L.divIcon({
+        className: 'custom-rider-pin',
+        html: `
+          <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <div style="
+              width: 34px;
+              height: 34px;
+              background: #181617;
+              border: 2px solid #E0FF33;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
+              cursor: pointer;
+            ">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18.5" cy="17.5" r="2.5"></circle>
+                <circle cx="5.5" cy="17.5" r="2.5"></circle>
+                <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
+                <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
+                <path d="M9 18h6"></path>
+              </svg>
+            </div>
           </div>
-        </div>
-      `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
-    });
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
 
-    const initialRiderPos = status === 'completed'
-      ? [destLat, destLng]
-      : status === 'out_for_delivery'
-        ? [midLat, midLng]
-        : [shopLat + (destLat - shopLat) * 0.45, shopLng + (destLng - shopLng) * 0.45];
-
-    const riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
-    riderMarker.bindTooltip(`${riderName} (Sarathi)`, { permanent: false, direction: 'top', offset: [0, -20] });
-    riderMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      riderMarker.toggleTooltip();
-    });
-    group.addLayer(riderMarker);
+      const initialRiderPos = [midLat, midLng];
+      riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
+      riderMarker.bindTooltip(`${assignedRiderName || 'Sarathi Rider'} (Live Delivery)`, { permanent: false, direction: 'top', offset: [0, -20] });
+      riderMarker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        riderMarker.toggleTooltip();
+      });
+      group.addLayer(riderMarker);
+    }
 
     // 5. Route lines (Animated Flowing Moving Laser Dots)
     let currentRouteCoords = [
@@ -336,20 +341,22 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             baseSolidLine.setLatLngs(latLngs);
             dashedActiveLine.setLatLngs(latLngs);
 
-            const riderIndex = Math.min(Math.floor(latLngs.length * 0.45), latLngs.length - 1);
-            if (latLngs[riderIndex]) {
-              riderMarker.setLatLng(latLngs[riderIndex]);
-            }
+            if (riderMarker) {
+              const riderIndex = Math.min(Math.floor(latLngs.length * 0.45), latLngs.length - 1);
+              if (latLngs[riderIndex]) {
+                riderMarker.setLatLng(latLngs[riderIndex]);
+              }
 
-            if (status === 'out_for_delivery') {
-              let stepPercent = 0.35;
-              animInterval = setInterval(() => {
-                stepPercent = (stepPercent + 0.015) % 0.95;
-                const idx = Math.min(Math.floor(stepPercent * latLngs.length), latLngs.length - 1);
-                if (latLngs[idx]) {
-                  riderMarker.setLatLng(latLngs[idx]);
-                }
-              }, 1000);
+              if (status === 'out_for_delivery') {
+                let stepPercent = 0.35;
+                animInterval = setInterval(() => {
+                  stepPercent = (stepPercent + 0.015) % 0.95;
+                  const idx = Math.min(Math.floor(stepPercent * latLngs.length), latLngs.length - 1);
+                  if (latLngs[idx] && riderMarker) {
+                    riderMarker.setLatLng(latLngs[idx]);
+                  }
+                }, 1000);
+              }
             }
 
             if (mapInstanceRef.current && routeGroupRef.current) {
@@ -681,6 +688,25 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     })}
                   </div>
                 </div>
+
+                {/* 1-Tap OS Notification Permission Activation */}
+                {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
+                  <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <BellRing className="w-3.5 h-3.5 text-[#E0FF33] shrink-0 animate-bounce" />
+                      <p className="text-[10px] text-neutral-300 truncate">
+                        Get live order updates on lock screen
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={requestSystemNotificationPermission}
+                      className="px-2.5 py-1 rounded-lg bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                    >
+                      Enable
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* 2. Delivery Sarathi Partner Card */}

@@ -151,8 +151,8 @@ export default function Header({
                 onClick={() => setCurrentTab('developer')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'developer' 
-                    ? 'bg-gradient-to-r from-[#E0FF33] to-emerald-400 text-[#1E1B1C] font-black shadow-sm' 
-                    : 'text-emerald-400 hover:text-emerald-300'
+                    ? 'bg-emerald-500 text-white font-black shadow-sm' 
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Dev
@@ -262,8 +262,8 @@ export default function Header({
               onClick={() => setCurrentTab('developer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 currentTab === 'developer' 
-                  ? 'bg-gradient-to-r from-[#E0FF33] to-emerald-400 text-[#1E1B1C] font-black shadow-sm' 
-                  : 'text-emerald-400 hover:text-emerald-300'
+                  ? 'bg-emerald-500 text-white font-black shadow-sm' 
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               Dev

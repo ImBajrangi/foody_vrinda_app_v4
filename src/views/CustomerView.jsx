@@ -44,9 +44,67 @@ import ReviewModal from '../components/ReviewModal';
 import { fetchAddressSuggestions } from '../services/addressService';
 import { supabase, createCloudOrder, getCloudMenus, subscribeSingleCloudOrder, resolveDishCutout, invalidateCache } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
+import { useNotifications } from '../context/NotificationContext';
 
 // Curated high-res transparent PNG cutout dishes (Exact Template Match)
 const DEFAULT_PRASAD_ITEMS = [
+  {
+    id: 'combo-1',
+    name: 'Maha Satvik Family Feast Combo',
+    subtitle: 'Royal Thali + Paneer Makhani + 2x Kheer',
+    category: 'Combo Offers',
+    price: 460,
+    originalPrice: 560,
+    discountPercent: 18,
+    isCombo: true,
+    comboItems: ['Royal Vedic Thali', 'Paneer Makhani Meal', 'Kesariya Rabdi Kheer (x2)'],
+    kcal: '950 kcal',
+    carbs: '124g',
+    fat: '39g',
+    protein: '51g',
+    popular: true,
+    tag: 'Save ₹100',
+    image: '/dishes/thali.png',
+    description: 'Complete family feast platter combining our signature Royal Vedic Thali, creamy Paneer Makhani Meal, and two portions of chilled Kesariya Rabdi Kheer in pure A2 Desi Ghee.'
+  },
+  {
+    id: 'combo-2',
+    name: 'Evening Snack & Pizza Duo Combo',
+    subtitle: 'Paneer Pizza (10") + Satvik Burger',
+    category: 'Combo Offers',
+    price: 320,
+    originalPrice: 380,
+    discountPercent: 16,
+    isCombo: true,
+    comboItems: ['Paneer Satvik Pizza (10")', 'Cheese With Satvik Burger'],
+    kcal: '600 kcal',
+    carbs: '87g',
+    fat: '94g',
+    protein: '53g',
+    popular: true,
+    tag: 'Save ₹60',
+    image: '/dishes/pizza.png',
+    description: 'Crisp 10-inch hand-tossed Paneer Satvik Pizza paired with our signature crispy spiced Paneer Burger for the ultimate evening prasad snack.'
+  },
+  {
+    id: 'combo-3',
+    name: 'Royal Bhog & Prasad Sweet Combo',
+    subtitle: 'Paneer Makhani + Basmati Rice + Rabdi Kheer',
+    category: 'Combo Offers',
+    price: 330,
+    originalPrice: 390,
+    discountPercent: 15,
+    isCombo: true,
+    comboItems: ['Paneer Makhani Meal', 'Govind Bhog Basmati Rice', 'Kesariya Rabdi Kheer'],
+    kcal: '780 kcal',
+    carbs: '110g',
+    fat: '30g',
+    protein: '34g',
+    popular: true,
+    tag: 'Best Value',
+    image: '/dishes/curry.png',
+    description: 'A divine trio combining rich Paneer Makhani, fragrant steamed Govind Bhog Basmati Rice, and traditional Kesariya Rabdi Kheer.'
+  },
   {
     id: 'prasad-1',
     name: 'Cheese With Satvik Burger',
@@ -141,6 +199,7 @@ const DEFAULT_PRASAD_ITEMS = [
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const { user, userData, allShops } = useAuth();
+  const { requestSystemNotificationPermission } = useNotifications();
   const {
     cart,
     selectedShopId,
@@ -627,7 +686,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       customerAddress: cleanAddress,
       deliveryAddress: cleanAddress,
       customerPhone: cleanPhone,
-      items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity, ready: false })),
+      items: cart.map(item => ({ 
+        id: item.id, 
+        name: item.name, 
+        price: item.price, 
+        quantity: item.quantity, 
+        isCombo: Boolean(item.isCombo),
+        comboItems: item.comboItems || null,
+        ready: false 
+      })),
       subtotal,
       deliveryCharge,
       gstAmount,
@@ -659,6 +726,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         clearCart();
         setShowCartDrawer(false);
         setTrackingOrderId(cloudOrder.id);
+        // Prompt for OS Notifications for real-time tracking
+        requestSystemNotificationPermission();
       } catch (err) {
         console.error("Order placement error:", err);
         showToast("Order failed", 'error', 'Please try again');
@@ -697,6 +766,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             clearCart();
             setShowCartDrawer(false);
             setTrackingOrderId(cloudOrder.id);
+            // Prompt for OS Notifications for real-time tracking
+            requestSystemNotificationPermission();
           } catch (cloudErr) {
             console.error(cloudErr);
             showToast("Payment recorded, finalizing order...", 'info');
@@ -1021,22 +1092,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
       {trackingOrder && (
-        <div className="mb-6 bg-[#282526] border border-[#E0FF33]/40 rounded-[28px] p-4 sm:p-5 shadow-2xl relative apple-modal-spring overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#E0FF33]/15 flex items-center justify-center text-[#E0FF33] shrink-0">
+        <div className="mb-6 bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-2xl relative apple-modal-spring overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+            {/* Left: Icon & Status Text */}
+            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-inner">
                 <Navigation className="w-5 h-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20">
                     Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                   </span>
                   <span className="text-[11px] font-bold text-zinc-400 capitalize">
                     • {trackingOrder.status?.replace(/_/g, ' ')}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm font-black text-white mt-0.5 font-['Outfit']">
+                <p className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">
                   {trackingOrder.status === 'out_for_delivery'
                     ? 'Rider is on the way to your location!'
                     : trackingOrder.status === 'completed'
@@ -1044,16 +1116,29 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       : 'Order is being prepared in the kitchen.'}
                 </p>
               </div>
+
+              {/* Close Button on mobile (visible top right) */}
+              <button
+                onClick={() => {
+                  setTrackingOrderId(null);
+                  setIsTrackingModalOpen(false);
+                }}
+                className="sm:hidden w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs shrink-0 cursor-pointer"
+                title="Dismiss banner"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-center">
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
               {(trackingOrder.status === 'delivered' || trackingOrder.status === 'completed') && (
                 <button
                   onClick={() => {
                     setReviewOrderTarget(trackingOrder);
                     setIsReviewModalOpen(true);
                   }}
-                  className="px-4 py-2 rounded-full bg-[#E0FF33] text-[#1E1B1C] font-black text-xs hover:bg-[#ccff00] shadow-lg flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-[#E0FF33] text-[#1E1B1C] font-black text-xs hover:bg-[#ccff00] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <Star className="w-3.5 h-3.5 fill-[#1E1B1C]" />
                   <span>Rate & Review</span>
@@ -1061,7 +1146,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs shadow-lg flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] border border-white/10"
+                className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] border border-white/10"
               >
                 <Navigation className="w-3.5 h-3.5 text-[#E0FF33]" />
                 <span>Live Map Track</span>
@@ -1071,7 +1156,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   setTrackingOrderId(null);
                   setIsTrackingModalOpen(false);
                 }}
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs apple-tap-target cursor-pointer"
+                className="hidden sm:flex w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white items-center justify-center text-xs apple-tap-target cursor-pointer shrink-0"
                 title="Dismiss banner"
               >
                 ✕
@@ -1112,12 +1197,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Top Row: Dish Name + Optional Selection Pill + Outline Heart Button */}
                 <div className="flex justify-between items-start z-10 gap-2">
                   <div className="max-w-[62%]">
+                    {item.isCombo && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-[9px] font-black uppercase tracking-wider mb-1 shadow-xs">
+                        <Sparkles size={10} className="text-[#E0FF33]" />
+                        {item.tag || 'Combo Offer'}
+                      </span>
+                    )}
                     <h3 className="text-xl sm:text-2xl font-black text-[#1E1B1C] leading-[1.1] tracking-tight">
                       {item.name}
                     </h3>
                     <p className="text-[11px] sm:text-xs font-semibold text-zinc-600 mt-1 leading-snug">
                       {item.subtitle || 'Cheesy satvik, special price'}
                     </p>
+                    {item.comboItems && item.comboItems.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {item.comboItems.map((ci, cidx) => (
+                          <span key={cidx} className="text-[9.5px] font-bold bg-black/5 text-zinc-700 px-1.5 py-0.5 rounded-md border border-black/5">
+                            + {ci}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <button
@@ -1134,8 +1234,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
                 <div className="mt-3 sm:mt-4 z-10">
-                  <div className="text-2xl sm:text-3xl font-black text-[#1E1B1C] mb-2 sm:mb-3 font-['Outfit']">
-                    ₹{item.price}
+                  <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
+                    <span className="text-2xl sm:text-3xl font-black text-[#1E1B1C] font-['Outfit']">
+                      ₹{item.price}
+                    </span>
+                    {item.originalPrice && (
+                      <span className="text-xs sm:text-sm font-bold text-zinc-400 line-through font-['Outfit']">
+                        ₹{item.originalPrice}
+                      </span>
+                    )}
                   </div>
 
                   {quantityInCart === 0 ? (
@@ -1522,6 +1629,31 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     </div>
                   );
                 })()}
+
+                {/* Bundled Combo Items Breakdown */}
+                {selectedDishDetails.comboItems && selectedDishDetails.comboItems.length > 0 && (
+                  <div className="bg-[#151314] border border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] sm:text-xs font-black uppercase text-[#E0FF33] tracking-wider flex items-center gap-1.5">
+                        <Sparkles size={12} />
+                        Included in this Combo Pack
+                      </span>
+                      {selectedDishDetails.tag && (
+                        <span className="text-[9px] font-bold bg-[#E0FF33]/15 text-[#E0FF33] px-2 py-0.5 rounded-full">
+                          {selectedDishDetails.tag}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5 pt-1">
+                      {selectedDishDetails.comboItems.map((ci, cidx) => (
+                        <div key={cidx} className="flex items-center gap-2 text-xs text-neutral-200 bg-white/5 px-2.5 py-1.5 rounded-xl border border-white/5">
+                          <Check size={12} className="text-[#E0FF33] shrink-0 stroke-[3]" />
+                          <span className="font-semibold">{ci}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Description */}
                 <div>

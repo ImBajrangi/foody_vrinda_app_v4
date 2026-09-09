@@ -41,11 +41,16 @@ import {
   Calendar,
   Mail,
   Phone,
-  Bike
+  Bike,
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { 
   updateCloudShop, 
   getCloudShops, 
+  getCachedShops,
   getCloudMenus, 
   getCloudOrders, 
   createCloudOrder, 
@@ -118,6 +123,42 @@ export default function DeveloperView({ setCurrentTab }) {
   const [simPaymentMethod, setSimPaymentMethod] = useState('online');
   const [isSimulating, setIsSimulating] = useState(false);
 
+  // Mobile / Desktop Collapsible Section state (smart defaults: focused workspace)
+  const [collapsedSections, setCollapsedSections] = useState({
+    impersonation: false,
+    payments: false,
+    simulator: false,
+    users: false,
+    alarm: true
+  });
+
+  const toggleSection = (key) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const collapseAll = () => {
+    setCollapsedSections({
+      impersonation: true,
+      payments: true,
+      simulator: true,
+      users: true,
+      alarm: true
+    });
+  };
+
+  const expandAll = () => {
+    setCollapsedSections({
+      impersonation: false,
+      payments: false,
+      simulator: false,
+      users: false,
+      alarm: false
+    });
+  };
+
   const {
     audioUnlocked,
     audioState,
@@ -134,27 +175,27 @@ export default function DeveloperView({ setCurrentTab }) {
 
   const [usersList, setUsersList] = useState(() => getCachedUsers());
 
-  const refreshUsersList = async () => {
-    try {
-      const cloudUsers = await getCloudUsers();
-      if (cloudUsers && cloudUsers.length > 0) {
-        setUsersList(cloudUsers);
-      }
-    } catch (e) {}
-  };
-
   useEffect(() => {
-    refreshUsersList();
+    // 1. Initial synchronous hydration for stats from cache with zero cloud requests
+    const cachedShops = getCachedShops();
+    const cachedUsers = getCachedUsers();
+    setStats({
+      shops: cachedShops.length || 3,
+      items: 6,
+      orders: 0,
+      notifications: cachedUsers.length
+    });
+
+    // 2. Realtime listener updates user state dynamically without polling
     const unsubscribe = subscribeCloudUsers((list) => {
       if (list && list.length > 0) {
         setUsersList(list);
+        setStats(prev => ({ ...prev, notifications: list.length }));
       }
     });
-    return () => unsubscribe();
-  }, []);
 
-  useEffect(() => {
-    const fetchStats = async () => {
+    // 3. SWR background revalidation (deduplicated & cached)
+    (async () => {
       try {
         const [shops, menus, orders, users] = await Promise.all([
           getCloudShops(),
@@ -166,16 +207,17 @@ export default function DeveloperView({ setCurrentTab }) {
           setUsersList(users);
         }
         setStats({
-          shops: shops.length,
-          items: menus.length,
-          orders: orders.length,
-          notifications: users.length
+          shops: (shops || []).length,
+          items: (menus || []).length,
+          orders: (orders || []).length,
+          notifications: (users || []).length
         });
       } catch (e) {
         console.warn("fetchStats note:", e);
       }
-    };
-    fetchStats();
+    })();
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -564,150 +606,235 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
       </div>
 
+      {/* Mobile / Desktop Section Quick Toolbar & Minimizer */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-[#282526] border border-white/5 shadow-xl">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          {[
+            { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
+            { id: 'users', label: 'Users & Roles', icon: Users },
+            { id: 'payments', label: 'Payments', icon: CreditCard },
+            { id: 'simulator', label: 'Simulator', icon: Flame },
+            { id: 'alarm', label: 'Alarms', icon: Volume2 }
+          ].map(sec => {
+            const isExpanded = !collapsedSections[sec.id];
+            const Icon = sec.icon;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                onClick={() => toggleSection(sec.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  isExpanded
+                    ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 shadow-sm'
+                    : 'bg-[#1E1B1C] text-neutral-400 border border-white/5 hover:text-white'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{sec.label}</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${isExpanded ? 'bg-[#E0FF33]' : 'bg-neutral-600'}`} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+          <button
+            type="button"
+            onClick={expandAll}
+            title="Expand All Sections"
+            className="px-2.5 py-1.5 rounded-xl bg-[#1E1B1C] hover:bg-white/10 text-neutral-300 text-[11px] font-bold border border-white/5 flex items-center gap-1 transition-all cursor-pointer"
+          >
+            <Maximize2 className="w-3 h-3" />
+            <span>Expand All</span>
+          </button>
+          <button
+            type="button"
+            onClick={collapseAll}
+            title="Collapse All Sections"
+            className="px-2.5 py-1.5 rounded-xl bg-[#1E1B1C] hover:bg-white/10 text-neutral-300 text-[11px] font-bold border border-white/5 flex items-center gap-1 transition-all cursor-pointer"
+          >
+            <Minimize2 className="w-3 h-3" />
+            <span>Collapse All</span>
+          </button>
+        </div>
+      </div>
+
       {/* Main Dev Tools Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Impersonation Settings — Full Width with Side-by-Side Layout */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+        {/* 1. Impersonation Settings — Full Width with Side-by-Side Layout */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <button
+            type="button"
+            onClick={() => toggleSection('impersonation')}
+            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center shrink-0">
                 <UserCheck className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Instant Role Impersonation</h3>
-                <p className="text-[11px] text-neutral-400">Jump directly into any kitchen, delivery rider, or store owner view with specific shop context.</p>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  Instant Role Impersonation
+                </h3>
+                <p className="text-[11px] text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Kitchen Staff Impersonation */}
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                  <ChefHat className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Impersonate Kitchen Staff</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                  {allShops.map(s => {
-                    const isSelected = selectedShopId === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setSelectedShopId(s.id)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
-                          }`}
-                      >
-                        {s.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <button
-                onClick={() => handleImpersonateShop(selectedShopId)}
-                disabled={!selectedShopId}
-                className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
-              >
-                <ChefHat className="w-4 h-4" />
-                <span>Launch Kitchen Staff View</span>
-              </button>
             </div>
 
-            {/* Delivery Rider Impersonation */}
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Impersonate Delivery Rider</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                  {allShops.map(s => {
-                    const isSelected = selectedDeliveryShopId === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setSelectedDeliveryShopId(s.id)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
-                          }`}
-                      >
-                        {s.name}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                {collapsedSections.impersonation ? 'Expand' : 'Minimize'}
+              </span>
+              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.impersonation ? '' : 'rotate-180'}`}>
+                <ChevronDown className="w-4 h-4" />
               </div>
-              <button
-                onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
-                disabled={!selectedDeliveryShopId}
-                className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
-              >
-                <Truck className="w-4 h-4" />
-                <span>Launch Sarathi Rider View</span>
-              </button>
             </div>
+          </button>
 
-            {/* Store Owner Impersonation */}
-            <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Impersonate Store Owner</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                  {allShops.map(s => {
-                    const isSelected = selectedOwnerShopId === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setSelectedOwnerShopId(s.id)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-purple-400/20 text-purple-300 border-purple-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
-                          }`}
-                      >
-                        {s.name}
-                      </button>
-                    );
-                  })}
+          {!collapsedSections.impersonation && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-white/5 animate-fadeIn">
+              {/* Kitchen Staff Impersonation */}
+              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                    <ChefHat className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Impersonate Kitchen Staff</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                    {allShops.map(s => {
+                      const isSelected = selectedShopId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedShopId(s.id)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
+                              : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            }`}
+                        >
+                          {s.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+                <button
+                  onClick={() => handleImpersonateShop(selectedShopId)}
+                  disabled={!selectedShopId}
+                  className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                >
+                  <ChefHat className="w-4 h-4" />
+                  <span>Launch Kitchen Staff View</span>
+                </button>
               </div>
-              <button
-                onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
-                disabled={!selectedOwnerShopId}
-                className="w-full py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Launch Store Owner View</span>
-              </button>
+
+              {/* Delivery Rider Impersonation */}
+              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Impersonate Delivery Rider</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                    {allShops.map(s => {
+                      const isSelected = selectedDeliveryShopId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedDeliveryShopId(s.id)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/40 shadow-sm'
+                              : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            }`}
+                        >
+                          {s.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
+                  disabled={!selectedDeliveryShopId}
+                  className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                >
+                  <Truck className="w-4 h-4" />
+                  <span>Launch Sarathi Rider View</span>
+                </button>
+              </div>
+
+              {/* Store Owner Impersonation */}
+              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Impersonate Store Owner</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                    {allShops.map(s => {
+                      const isSelected = selectedOwnerShopId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedOwnerShopId(s.id)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-purple-400/20 text-purple-300 border-purple-400/40 shadow-sm'
+                              : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            }`}
+                        >
+                          {s.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
+                  disabled={!selectedOwnerShopId}
+                  className="w-full py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Launch Store Owner View</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Global & Per-Kitchen Configuration */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-6 shadow-xl md:col-span-2">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+        {/* 2. Global & Per-Kitchen Payment Configuration */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
+          <button
+            type="button"
+            onClick={() => toggleSection('payments')}
+            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center shrink-0">
                 <CreditCard className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Payment Gateways Master</h3>
-                <p className="text-[11px] text-neutral-400">Manage real-time payment methods globally & per-kitchen</p>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  Payment Gateways Master
+                </h3>
+                <p className="text-[11px] text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
               </div>
             </div>
-            <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-[#E0FF33]/20">
-              Global & Branch Config
-            </span>
-          </div>
+
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2 py-0.5 rounded-full border border-[#E0FF33]/20 hidden sm:inline">
+                Master Switches
+              </span>
+              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.payments ? '' : 'rotate-180'}`}>
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </button>
+
+          {!collapsedSections.payments && (
+            <div className="space-y-6 pt-3 border-t border-white/5 animate-fadeIn">
 
           {/* 1. Global Master Switches */}
           <div className="space-y-3">
@@ -894,17 +1021,41 @@ export default function DeveloperView({ setCurrentTab }) {
               );
             })()}
           </div>
+            </div>
+          )}
         </div>
 
-        {/* Simulator Container */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-4 shadow-xl">
-          <div className="flex items-center gap-2">
-            <Flame className="w-4 h-4 text-rose-400" />
-            <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">End-to-End Order Flow Simulator</h3>
-          </div>
-          <p className="text-xs text-neutral-400">Generate simulated tickets into Firestore without going through the public payment gateway.</p>
+        {/* 3. Simulator Container */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <button
+            type="button"
+            onClick={() => toggleSection('simulator')}
+            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
+                <Flame className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  End-to-End Order Simulator
+                </h3>
+                <p className="text-[11px] text-neutral-400 truncate">Generate simulated tickets into Supabase without going through payment gateways.</p>
+              </div>
+            </div>
 
-          <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                {collapsedSections.simulator ? 'Expand' : 'Minimize'}
+              </span>
+              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.simulator ? '' : 'rotate-180'}`}>
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </button>
+
+          {!collapsedSections.simulator && (
+            <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-white/5 animate-fadeIn">
             <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -1048,87 +1199,103 @@ export default function DeveloperView({ setCurrentTab }) {
               </button>
             </div>
           </form>
+          )}
         </div>
 
-        {/* Registered Users & Role Directory Management */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-5 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center">
+        {/* 4. Registered Users & Role Directory Management */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <button
+              type="button"
+              onClick={() => toggleSection('users')}
+              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+            >
+              <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                 <Users className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Registered Users & Role Matrix</h3>
-                <p className="text-xs text-neutral-400 mt-0.5">Manage live roles, assign kitchen locations, and test role-based permissions in real-time.</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                    Registered Users & Role Matrix
+                  </h3>
+                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.users ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">Manage live roles, assign kitchen locations, and test role-based permissions.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
               <button
                 type="button"
                 onClick={handleRestoreDefaultAccounts}
                 title="Restore default developer, owner, chef and delivery accounts"
-                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Restore Master Accounts</span>
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">Restore Master</span>
               </button>
 
               <button
-                onClick={() => setIsCreatingUser(!isCreatingUser)}
-                className="px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                onClick={() => {
+                  if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
+                  setIsCreatingUser(!isCreatingUser);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>{isCreatingUser ? 'Close Form' : 'Add Staff / User'}</span>
+                <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
               </button>
             </div>
           </div>
 
+          {!collapsedSections.users && (
+            <div className="space-y-5 pt-3 border-t border-white/5 animate-fadeIn">
+
           {/* Active Supabase Logged-In User Banner */}
           {user && (user.email || user.phone || user.id) && (
-            <div className="p-3.5 bg-gradient-to-r from-[#E0FF33]/10 via-[#282526] to-cyan-500/10 border border-[#E0FF33]/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/20 border border-[#E0FF33]/40 text-[#E0FF33] flex items-center justify-center shrink-0">
-                  <Terminal className="w-4 h-4" />
+            <div className="p-3.5 bg-[#1E1B1C] border border-white/10 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <Terminal className="w-5 h-5" />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#E0FF33] shrink-0" />
-                    <p className="text-xs font-bold text-white font-['Outfit'] truncate">
-                      Logged-In Supabase User: <span className="text-[#E0FF33]">{user.email || user.phone || 'Authenticated User'}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">
+                      {user.email || user.phone || 'Authenticated User'}
                     </p>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30">
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 tracking-wider shrink-0">
                       {userData?.role || 'developer'}
                     </span>
                   </div>
-                  <p className="text-[10px] text-neutral-400 font-mono truncate mt-0.5">
-                    UID: {user.id} • Session Active in Supabase Auth
+                  <p className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">
+                    UID: {user.id}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => {
-                    const uProfile = {
-                      id: user.id,
-                      email: user.email || '',
-                      displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In Dev',
-                      phone: userData?.phone || '',
-                      role: userData?.role || 'developer',
-                      shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
-                      shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
-                      isLoggedInUser: true
-                    };
-                    createCloudUser(uProfile);
-                    setToast({ message: "Active Supabase account synced to users directory!", type: "success" });
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d6f727] cursor-pointer active:scale-95 transition-all shadow-sm flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Sync My Account</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const uProfile = {
+                    id: user.id,
+                    email: user.email || '',
+                    displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In Dev',
+                    phone: userData?.phone || '',
+                    role: userData?.role || 'developer',
+                    shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
+                    shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
+                    isLoggedInUser: true
+                  };
+                  createCloudUser(uProfile);
+                  setToast({ message: "Active Supabase account synced to users directory!", type: "success" });
+                }}
+                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-[#E0FF33]" />
+                <span className="hidden sm:inline">Sync Account</span>
+              </button>
             </div>
           )}
 
@@ -1166,44 +1333,44 @@ export default function DeveloperView({ setCurrentTab }) {
               <>
                 {/* 5-Metric Role Stats Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all">
+                  <div className="col-span-2 sm:col-span-1 p-3 bg-[#1E1B1C] rounded-2xl border border-white/10 hover:border-white/20 transition-all">
                     <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Total Users</p>
-                      <Users className="w-3.5 h-3.5 text-neutral-500" />
+                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Total Users</p>
+                      <Users className="w-3.5 h-3.5 text-neutral-400" />
                     </div>
-                    <p className="text-xl font-black text-white mt-1 font-['Outfit']">{effectiveList.length}</p>
+                    <p className="text-xl sm:text-2xl font-black text-white mt-1 font-['Outfit']">{effectiveList.length}</p>
                   </div>
 
-                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/25 hover:border-[#E0FF33]/40 transition-all">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold text-[#E0FF33] uppercase tracking-wider">Developers</p>
                       <Terminal className="w-3.5 h-3.5 text-[#E0FF33]" />
                     </div>
-                    <p className="text-xl font-black text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
+                    <p className="text-xl sm:text-2xl font-black text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
                   </div>
 
-                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-purple-400/20 hover:border-purple-400/35 transition-all">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Store Owners</p>
                       <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
                     </div>
-                    <p className="text-xl font-black text-purple-300 mt-1 font-['Outfit']">{ownerCount}</p>
+                    <p className="text-xl sm:text-2xl font-black text-purple-300 mt-1 font-['Outfit']">{ownerCount}</p>
                   </div>
 
-                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-amber-400/20 hover:border-amber-400/35 transition-all">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Kitchen Chefs</p>
                       <ChefHat className="w-3.5 h-3.5 text-amber-400" />
                     </div>
-                    <p className="text-xl font-black text-amber-300 mt-1 font-['Outfit']">{kitchenCount}</p>
+                    <p className="text-xl sm:text-2xl font-black text-amber-300 mt-1 font-['Outfit']">{kitchenCount}</p>
                   </div>
 
-                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-cyan-400/20 hover:border-cyan-400/35 transition-all">
+                  <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Riders (Sarathi)</p>
                       <Truck className="w-3.5 h-3.5 text-cyan-400" />
                     </div>
-                    <p className="text-xl font-black text-cyan-300 mt-1 font-['Outfit']">{deliveryCount}</p>
+                    <p className="text-xl sm:text-2xl font-black text-cyan-300 mt-1 font-['Outfit']">{deliveryCount}</p>
                   </div>
                 </div>
 
@@ -1358,168 +1525,172 @@ export default function DeveloperView({ setCurrentTab }) {
                       return (
                         <div
                           key={u.id}
-                          className={`p-3.5 bg-[#1E1B1C] hover:bg-[#232021] rounded-2xl border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-sm ${
+                          className={`p-3.5 sm:p-4 bg-[#1E1B1C] hover:bg-[#232021] rounded-2xl border transition-all space-y-3 shadow-sm ${
                             isCurrentSessionUser 
-                              ? 'border-[#E0FF33]/30 bg-[#1E1B1C]/90' 
+                              ? 'border-[#E0FF33]/30 bg-[#1E1B1C]/95' 
                               : 'border-white/5 hover:border-white/15'
                           }`}
                         >
-                          {/* Left: User Identity & Contact */}
-                          <div 
-                            onClick={() => setSelectedUserDetail(u)}
-                            className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group/user"
-                            title="Click to view detailed user profile"
-                          >
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 ${
-                              role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.15)]' :
-                              role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 shadow-[0_0_12px_rgba(224,255,51,0.15)]' :
-                              role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                              role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                              role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                              'bg-white/10 text-neutral-300 border border-white/10'
-                            }`}>
-                              {role === 'grand_admin' ? <Crown className="w-4 h-4" /> :
-                               role === 'developer' ? <Terminal className="w-4 h-4" /> :
-                               role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
-                               role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
-                               role === 'delivery' ? <Truck className="w-4 h-4" /> :
-                               <Sparkles className="w-4 h-4" />}
+                          {/* Top Row: User Identity & Action Icons */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div 
+                              onClick={() => setSelectedUserDetail(u)}
+                              className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group/user"
+                              title="Click to view detailed user profile"
+                            >
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${
+                                role === 'grand_admin' ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' :
+                                role === 'developer' ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30' :
+                                role === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
+                                role === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
+                                role === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
+                                'bg-white/10 text-neutral-300 border border-white/10'
+                              }`}>
+                                {role === 'grand_admin' ? <Crown className="w-4 h-4" /> :
+                                 role === 'developer' ? <Terminal className="w-4 h-4" /> :
+                                 role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
+                                 role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
+                                 role === 'delivery' ? <Truck className="w-4 h-4" /> :
+                                 <Sparkles className="w-4 h-4" />}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-bold text-xs sm:text-sm text-white group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
+                                    {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
+                                  </p>
+                                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${
+                                    role === 'grand_admin' ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30' :
+                                    role === 'developer' ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30' :
+                                    role === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
+                                    role === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
+                                    role === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
+                                    'bg-white/5 text-neutral-400 border border-white/10'
+                                  }`}>
+                                    {role === 'grand_admin' ? 'Grand Admin' :
+                                     role === 'developer' ? 'Developer' :
+                                     role === 'owner' ? 'Owner' :
+                                     role === 'kitchen' ? 'Cook' :
+                                     role === 'delivery' ? 'Sarathi' :
+                                     'Customer'}
+                                  </span>
+                                  {isCurrentSessionUser && (
+                                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 shrink-0">
+                                      You
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-neutral-400 truncate mt-0.5">
+                                  {u.email && (
+                                    <span className="truncate flex items-center gap-1 text-neutral-300">
+                                      <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
+                                      {u.email}
+                                    </span>
+                                  )}
+                                  {u.phone && !u.email && (
+                                    <span className="font-mono text-neutral-300 flex items-center gap-1 shrink-0">
+                                      <Phone className="w-3 h-3 text-neutral-500" />
+                                      +91 {u.phone}
+                                    </span>
+                                  )}
+                                  <span className="font-mono text-neutral-500 text-[10px] shrink-0">
+                                    ({u.id.slice(0, 8)})
+                                  </span>
+                                </div>
+                              </div>
                             </div>
 
-                            <div className="min-w-0 flex-1 space-y-0.5">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="font-bold text-sm text-white group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
-                                  {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
-                                </p>
-                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${
-                                  role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/30' :
-                                  role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                  role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                                  role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                                  role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                                  'bg-white/5 text-neutral-400 border border-white/10'
-                                }`}>
-                                  {role === 'grand_admin' ? <><Crown size={11} className="stroke-[2.5]" /> Grand Admin</> :
-                                   role === 'developer' ? <><Terminal size={11} className="stroke-[2.5]" /> Developer</> :
-                                   role === 'owner' ? <><ShieldCheck size={11} className="stroke-[2.5]" /> Owner</> :
-                                   role === 'kitchen' ? <><ChefHat size={11} className="stroke-[2.5]" /> Cook</> :
-                                   role === 'delivery' ? <><Bike size={11} className="stroke-[2.5]" /> Sarathi</> :
-                                   'Customer'}
-                                </span>
-                                {isCurrentSessionUser && (
-                                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse" />
-                                    You
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-neutral-400 truncate">
-                                {u.phone && (
-                                  <span className="font-mono text-neutral-300 flex items-center gap-1 shrink-0">
-                                    <Phone className="w-3 h-3 text-neutral-500" />
-                                    +91 {u.phone}
-                                  </span>
-                                )}
-                                {u.email && (
-                                  <span className="truncate flex items-center gap-1 text-neutral-300">
-                                    <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
-                                    {u.email}
-                                  </span>
-                                )}
-                                <span className="font-mono text-neutral-500 text-[10px] shrink-0">
-                                  ({u.id.slice(0, 8)})
-                                </span>
-                              </div>
+                            {/* Secondary Action Icons (Info + Delete) */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedUserDetail(u)}
+                                title="View account metadata & permissions"
+                                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                              >
+                                <Info className="w-3.5 h-3.5" />
+                              </button>
+
+                              {role === 'grand_admin' ? (
+                                <div 
+                                  className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400/60 cursor-not-allowed"
+                                  title="Permanent protected account"
+                                >
+                                  <Lock className="w-3.5 h-3.5" />
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
+                                  title="Delete user account"
+                                  className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           </div>
 
-                          {/* Right: Controls & Interactive Actions */}
-                          <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5">
-                            {/* Role Dropdown */}
-                            {role === 'grand_admin' ? (
-                              <div 
-                                className="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 select-none cursor-not-allowed shrink-0"
-                                title="Grand Admin role is permanent across the platform"
-                              >
-                                <Lock className="w-3 h-3 shrink-0 text-amber-400" />
-                                <span>Grand Admin</span>
-                              </div>
-                            ) : (
-                              <select
-                                value={role}
-                                onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                                className="bg-[#151314] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0"
-                              >
-                                <option value="customer">Customer</option>
-                                <option value="kitchen">Kitchen Staff</option>
-                                <option value="delivery">Delivery Sarathi</option>
-                                <option value="owner">Store Owner</option>
-                                <option value="developer">Developer</option>
-                              </select>
-                            )}
+                          {/* Bottom Row: Controls Toolbar (Role, Scope, Test Login) */}
+                          <div className="pt-2.5 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 min-w-0 flex-1">
+                              {/* Role Selector / Fixed Badge */}
+                              {role === 'grand_admin' ? (
+                                <div 
+                                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center justify-center sm:justify-start gap-1.5 select-none shrink-0"
+                                  title="Grand Admin role is permanent across the platform"
+                                >
+                                  <Lock className="w-3 h-3 shrink-0 text-amber-400" />
+                                  <span className="truncate">Grand Admin</span>
+                                </div>
+                              ) : (
+                                <select
+                                  value={role}
+                                  onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                                  className="w-full sm:w-auto bg-[#151314] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0"
+                                >
+                                  <option value="customer">Customer</option>
+                                  <option value="kitchen">Kitchen Staff</option>
+                                  <option value="delivery">Delivery Sarathi</option>
+                                  <option value="owner">Store Owner</option>
+                                  <option value="developer">Developer</option>
+                                </select>
+                              )}
 
-                            {/* Scope / Branch Assignment */}
-                            {(role === 'kitchen' || role === 'delivery' || role === 'owner') ? (
-                              <select
-                                value={u.shopId || (allShops[0]?.id || '')}
-                                onChange={(e) => handleUpdateUserShop(u.id, e.target.value)}
-                                className="bg-[#151314] text-xs font-bold text-neutral-300 border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0 max-w-[150px] truncate"
-                              >
-                                {allShops.map(s => (
-                                  <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                              </select>
-                            ) : (role === 'grand_admin' || role === 'developer') ? (
-                              <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-300 flex items-center gap-1.5 shrink-0">
-                                <Globe className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
-                                <span>Global Access</span>
-                              </div>
-                            ) : (
-                              <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-400 flex items-center gap-1.5 shrink-0">
-                                <Users className="w-3.5 h-3.5 shrink-0" />
-                                <span>Public User</span>
-                              </div>
-                            )}
+                              {/* Scope / Branch Assignment */}
+                              {(role === 'kitchen' || role === 'delivery' || role === 'owner') ? (
+                                <select
+                                  value={u.shopId || (allShops[0]?.id || '')}
+                                  onChange={(e) => handleUpdateUserShop(u.id, e.target.value)}
+                                  className="w-full sm:w-auto bg-[#151314] text-xs font-bold text-neutral-300 border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0 max-w-full sm:max-w-[150px] truncate"
+                                >
+                                  {allShops.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                  ))}
+                                </select>
+                              ) : (role === 'grand_admin' || role === 'developer') ? (
+                                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                  <Globe className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                                  <span className="truncate">Global Access</span>
+                                </div>
+                              ) : (
+                                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                  <Users className="w-3.5 h-3.5 shrink-0" />
+                                  <span className="truncate">Public User</span>
+                                </div>
+                              )}
+                            </div>
 
                             {/* Impersonate / Launch Button */}
                             <button
                               type="button"
                               onClick={() => handleQuickImpersonateUser(u)}
                               title={`Sign in as ${u.displayName || u.email || 'user'}`}
-                              className="px-3 py-1.5 rounded-xl bg-[#E0FF33]/15 hover:bg-[#E0FF33] text-[#E0FF33] hover:text-black font-black text-xs border border-[#E0FF33]/30 flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-[#E0FF33]/15 hover:bg-[#E0FF33] text-[#E0FF33] hover:text-black font-black text-xs border border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
                             >
                               <Play className="w-3 h-3 fill-current shrink-0" />
                               <span>Test Login</span>
                             </button>
-
-                            {/* View Profile Info Button */}
-                            <button
-                              type="button"
-                              onClick={() => setSelectedUserDetail(u)}
-                              title="View account metadata & permissions"
-                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-all active:scale-95 cursor-pointer shrink-0"
-                            >
-                              <Info className="w-3.5 h-3.5" />
-                            </button>
-
-                            {/* Delete or Protected Lock */}
-                            {role === 'grand_admin' ? (
-                              <div 
-                                className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400/60 shrink-0 cursor-not-allowed"
-                                title="Permanent protected account"
-                              >
-                                <Lock className="w-3.5 h-3.5" />
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
-                                title="Delete user account"
-                                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer shrink-0"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
                           </div>
                         </div>
                       );
@@ -1529,122 +1700,151 @@ export default function DeveloperView({ setCurrentTab }) {
               </>
             );
           })()}
+            </div>
+          )}
         </div>
 
-        {/* Audio System Telemetry & Role Synthesizer */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 md:col-span-2 space-y-4 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
-            <div className="flex items-center gap-2">
-              <Volume2 className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit']">Multi-Role Audio Synthesizer & Telemetry</h3>
+        {/* 5. Audio System Telemetry & Role Synthesizer */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <button
+            type="button"
+            onClick={() => toggleSection('alarm')}
+            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                <Volume2 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  Audio Synthesizer & Telemetry
+                </h3>
+                <p className="text-[11px] text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1.5 border ${audioUnlocked
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border hidden sm:inline-flex items-center gap-1 ${
+                audioUnlocked
                   ? 'bg-emerald-400/20 text-emerald-300 border-emerald-400/30'
                   : 'bg-amber-400/20 text-amber-300 border-amber-400/30'
-                }`}>
+              }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                <span>Audio Engine: {audioUnlocked ? 'Running (Active)' : 'Suspended'}</span>
+                <span>{audioUnlocked ? 'Active' : 'Standby'}</span>
+              </span>
+              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.alarm ? '' : 'rotate-180'}`}>
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </button>
+
+          {!collapsedSections.alarm && (
+            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-400">Synthesizer engine control & background triggers</span>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {!audioUnlocked && (
+                    <button
+                      onClick={warmUpAudio}
+                      className="px-3 py-1 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] active:scale-95 cursor-pointer"
+                    >
+                      Unlock Audio
+                    </button>
+                  )}
+
+                  {isPlaying && (
+                    <button
+                      onClick={stopAlarm}
+                      className="px-3.5 py-1 rounded-xl bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                      <VolumeX className="w-3.5 h-3.5" />
+                      <span>Silence</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {!audioUnlocked && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 items-center">
+                <div>
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase">Volume Level: {Math.round(volume * 100)}%</p>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="w-full accent-[#E0FF33] cursor-pointer mt-1"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase">Browser Push Alerts</p>
+                  <p className="text-xs font-bold text-white mt-0.5">
+                    Status: <span className={notificationPermission === 'granted' ? 'text-emerald-400' : 'text-amber-400'}>
+                      {notificationPermission.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex justify-start sm:justify-end">
+                  {notificationPermission !== 'granted' ? (
+                    <button
+                      onClick={requestNotificationPermission}
+                      className="px-3 py-1.5 rounded-xl bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 hover:bg-cyan-400/30 text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Enable Push
+                    </button>
+                  ) : (
+                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" /> Push Active
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
                 <button
-                  onClick={warmUpAudio}
-                  className="px-3 py-1 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] active:scale-95 cursor-pointer"
+                  onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'ord-test-kitch' }, true)}
+                  className="py-3 px-3 rounded-2xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
                 >
-                  Unlock Audio
+                  <ChefHat className="w-4 h-4 text-amber-400" />
+                  <span>Kitchen Buzzer</span>
+                  <span className="text-[9px] text-amber-400/70">880/1174Hz Urgent Loop</span>
                 </button>
-              )}
 
-              {isPlaying && (
                 <button
-                  onClick={stopAlarm}
-                  className="px-3.5 py-1 rounded-xl bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
+                  className="py-3 px-3 rounded-2xl bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-300 border border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
                 >
-                  <VolumeX className="w-3.5 h-3.5" />
-                  <span>Silence</span>
+                  <Truck className="w-4 h-4 text-cyan-400" />
+                  <span>Sarathi Chime</span>
+                  <span className="text-[9px] text-cyan-400/70">3-Tone Ascending Ping</span>
                 </button>
-              )}
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 items-center">
-            <div>
-              <p className="text-[10px] font-bold text-neutral-400 uppercase">Volume Level: {Math.round(volume * 100)}%</p>
-              <input
-                type="range"
-                min="0.1"
-                max="1"
-                step="0.05"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-full accent-[#E0FF33] cursor-pointer mt-1"
-              />
-            </div>
-
-            <div>
-              <p className="text-[10px] font-bold text-neutral-400 uppercase">Browser Push Alerts</p>
-              <p className="text-xs font-bold text-white mt-0.5">
-                Status: <span className={notificationPermission === 'granted' ? 'text-emerald-400' : 'text-amber-400'}>
-                  {notificationPermission.toUpperCase()}
-                </span>
-              </p>
-            </div>
-
-            <div className="flex justify-start sm:justify-end">
-              {notificationPermission !== 'granted' ? (
                 <button
-                  onClick={requestNotificationPermission}
-                  className="px-3 py-1.5 rounded-xl bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 hover:bg-cyan-400/30 text-xs font-bold transition-all cursor-pointer"
+                  onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
+                  className="py-3 px-3 rounded-2xl bg-[#E0FF33]/20 hover:bg-[#E0FF33]/30 text-[#E0FF33] border border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
                 >
-                  Enable Background Push
+                  <ShieldCheck className="w-4 h-4 text-[#E0FF33]" />
+                  <span>Admin Bell</span>
+                  <span className="text-[9px] text-[#E0FF33]/70">Resonant Executive Ping</span>
                 </button>
-              ) : (
-                <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Push Notifications Active
-                </span>
-              )}
+
+                <button
+                  onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
+                  className="py-3 px-3 rounded-2xl bg-emerald-400/20 hover:bg-emerald-400/30 text-emerald-300 border border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span>Prasad Blessing</span>
+                  <span className="text-[9px] text-emerald-400/70">528Hz Solfeggio Chime</span>
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-            <button
-              onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'ord-test-kitch' }, true)}
-              className="py-3 px-3 rounded-2xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <ChefHat className="w-4 h-4 text-amber-400" />
-              <span>Kitchen Buzzer</span>
-              <span className="text-[9px] text-amber-400/70">880/1174Hz Urgent Loop</span>
-            </button>
-
-            <button
-              onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
-              className="py-3 px-3 rounded-2xl bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-300 border border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <Truck className="w-4 h-4 text-cyan-400" />
-              <span>Sarathi Chime</span>
-              <span className="text-[9px] text-cyan-400/70">3-Tone Ascending Ping</span>
-            </button>
-
-            <button
-              onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
-              className="py-3 px-3 rounded-2xl bg-[#E0FF33]/20 hover:bg-[#E0FF33]/30 text-[#E0FF33] border border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#E0FF33]" />
-              <span>Admin Bell</span>
-              <span className="text-[9px] text-[#E0FF33]/70">Resonant Executive Ping</span>
-            </button>
-
-            <button
-              onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
-              className="py-3 px-3 rounded-2xl bg-emerald-400/20 hover:bg-emerald-400/30 text-emerald-300 border border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>Prasad Blessing</span>
-              <span className="text-[9px] text-emerald-400/70">528Hz Solfeggio Chime</span>
-            </button>
-          </div>
+          )}
         </div>
 
       </div>

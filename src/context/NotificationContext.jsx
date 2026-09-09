@@ -1,11 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { 
   subscribeCloudNotifications, 
   markCloudNotificationRead, 
   createCloudNotification, 
-  subscribeCloudOrders 
+  subscribeCloudOrders,
+  getOrderItemSummary,
+  getOrderCustomerName
 } from '../supabase';
 
 const NotificationContext = createContext(null);
@@ -197,6 +199,78 @@ export function NotificationProvider({ children }) {
     return false;
   }, [user, userData, userRole, currentUserShopId, currentUserShopIds, isAuthorizedAdmin, isAuthorizedDeveloper]);
 
+  const [systemNotificationPermission, setSystemNotificationPermission] = useState(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'unsupported';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setSystemNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Direct dispatch of native OS notifications to desktop/mobile notification center
+  const sendOSNotification = useCallback((title, options = {}) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    const notifOptions = {
+      icon: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png',
+      badge: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png',
+      vibrate: [200, 100, 200],
+      renotify: true,
+      tag: options.tag || `foody-notif-${Date.now()}`,
+      silent: false,
+      ...options
+    };
+
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, notifOptions);
+        }).catch(() => {
+          const fallbackNotif = new Notification(title, notifOptions);
+          fallbackNotif.onclick = () => {
+            window.focus();
+            fallbackNotif.close();
+          };
+        });
+      } else {
+        const nativeNotif = new Notification(title, notifOptions);
+        nativeNotif.onclick = () => {
+          window.focus();
+          nativeNotif.close();
+        };
+      }
+    } catch (e) {
+      console.warn("Direct OS Notification error:", e);
+    }
+  }, []);
+
+  // Request browser/OS system notification permission
+  const requestSystemNotificationPermission = useCallback(async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return 'unsupported';
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setSystemNotificationPermission(permission);
+      if (permission === 'granted') {
+        sendOSNotification('Foody Vrinda Notifications Enabled', {
+          body: 'Real-time Prasad preparation & dispatch updates will be delivered directly to your device.',
+          tag: 'foody-os-enabled'
+        });
+      }
+      return permission;
+    } catch (err) {
+      console.warn('System Notification permission request note:', err);
+      return 'denied';
+    }
+  }, [sendOSNotification]);
+
   // Add a new notification
   const addNotification = useCallback((notif) => {
     const newEntry = {
@@ -211,29 +285,33 @@ export function NotificationProvider({ children }) {
 
     setNotifications(prev => [newEntry, ...prev.filter(n => n.id !== newEntry.id)]);
 
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(newEntry.title, {
-          body: newEntry.message,
-          icon: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png',
-          tag: newEntry.id
-        });
-      } catch {
-        // ignore
-      }
-    }
-  }, []);
+    // Directly push to OS Notification Center / Lock Screen
+    sendOSNotification(newEntry.title, {
+      body: newEntry.message,
+      tag: newEntry.id
+    });
+  }, [sendOSNotification]);
+
+  const userRef = useRef(user);
+  const userRoleRef = useRef(userRole);
+  const addNotificationRef = useRef(addNotification);
+  const isOrderRelatedToUserRef = useRef(isOrderRelatedToUser);
+
+  useEffect(() => {
+    userRef.current = user;
+    userRoleRef.current = userRole;
+    addNotificationRef.current = addNotification;
+    isOrderRelatedToUserRef.current = isOrderRelatedToUser;
+  }, [user, userRole, addNotification, isOrderRelatedToUser]);
 
   // Subscribe to Cloud Notifications targeted specifically to this authenticated user
   useEffect(() => {
-    if (!user || user.isAnonymous) return;
-
-    const targetUserId = user.id || user.uid;
-    if (!targetUserId) return;
+    const targetUserId = user?.id || user?.uid;
+    if (!targetUserId || user?.isAnonymous) return;
 
     const unsubSupabase = subscribeCloudNotifications(targetUserId, (newNotif) => {
-      if (newNotif) {
-        addNotification({
+      if (newNotif && addNotificationRef.current) {
+        addNotificationRef.current({
           id: newNotif.id,
           title: newNotif.title || 'Dispatch Update',
           message: newNotif.message,
@@ -248,63 +326,79 @@ export function NotificationProvider({ children }) {
     return () => {
       if (unsubSupabase) unsubSupabase();
     };
-  }, [user, addNotification]);
+  }, [user?.id, user?.uid]);
 
-  // Listen to Realtime Order Events, but STRICTLY notify only the user/staff involved with that order
+  // Listen to Realtime Order Events, but STRICTLY notify only the user/staff involved with that order (Single stable subscription)
   useEffect(() => {
     const unsubOrders = subscribeCloudOrders('all', (orderData, eventType) => {
       if (!orderData || !orderData.id) return;
 
       // STRICT CHECK: Ensure this order belongs to the user or their authorized role
-      if (!isOrderRelatedToUser(orderData)) {
+      if (isOrderRelatedToUserRef.current && !isOrderRelatedToUserRef.current(orderData)) {
         return;
       }
 
-      const orderShort = orderData.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase();
-      let title = `Order #${orderShort}`;
+      const activeRole = userRoleRef.current;
+      const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
+      const customerName = getOrderCustomerName(orderData);
+      const riderName = orderData.rider_name || orderData.riderName || 'Sarathi Rider';
+      const shopName = orderData.shopName || orderData.shop_name || 'Kitchen';
+      let title = itemSummary;
       let msg = '';
       let statusTag = '';
 
       if (eventType === 'INSERT' || orderData.status === 'new') {
-        if (userRole === 'kitchen') {
-          title = `New Order #${orderShort}`;
-          msg = `Queued in kitchen • Tap to start prep`;
+        if (activeRole === 'kitchen') {
+          title = `New Order: ${customerName}`;
+          msg = `${itemSummary} queued for cooking`;
           statusTag = 'New';
         } else {
-          title = `Order #${orderShort} Placed`;
-          msg = `Queued at ${orderData.shopName || 'Sacred Kitchen'}`;
+          title = `Confirmed: ${itemSummary}`;
+          msg = `Accepted by ${shopName}`;
           statusTag = 'Placed';
         }
       } else if (orderData.status === 'preparing') {
-        title = `Order #${orderShort} Cooking`;
-        msg = `Cooking in pure Desi Ghee`;
+        title = `Cooking: ${itemSummary}`;
+        msg = activeRole === 'kitchen' ? `In preparation for ${customerName}` : `Fresh preparation in progress`;
         statusTag = 'Cooking';
       } else if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
-        if (userRole === 'delivery') {
-          title = `Order #${orderShort} Ready`;
-          msg = `Packed & ready for pickup`;
+        if (activeRole === 'delivery') {
+          title = `Pickup Ready: ${itemSummary}`;
+          msg = `Ready at ${shopName} for ${customerName}`;
           statusTag = 'Ready';
         } else {
-          title = `Order #${orderShort} Ready`;
-          msg = `Packed warm & awaiting pickup`;
+          title = `Packed & Ready: ${itemSummary}`;
+          msg = `Packed & awaiting courier dispatch`;
           statusTag = 'Ready';
         }
       } else if (orderData.status === 'out_for_delivery') {
-        title = `Order #${orderShort} On The Way`;
-        msg = `Sarathi ${orderData.rider_name || 'Rider'} heading to destination`;
-        statusTag = 'On Way';
+        if (activeRole === 'delivery') {
+          title = `Delivering: ${itemSummary}`;
+          msg = `On the way to ${customerName}`;
+          statusTag = 'On Way';
+        } else {
+          title = `On The Way: ${itemSummary}`;
+          msg = `${riderName} is heading to your address`;
+          statusTag = 'On Way';
+        }
       } else if (orderData.status === 'completed') {
-        title = `Order #${orderShort} Delivered`;
-        msg = `Delivered safely • Radhe Radhe`;
-        statusTag = 'Delivered';
+        if (activeRole === 'kitchen' || activeRole === 'owner') {
+          title = `Delivered: ${customerName}`;
+          msg = `${itemSummary} completed successfully`;
+          statusTag = 'Delivered';
+        } else {
+          title = `Delivered: ${itemSummary}`;
+          msg = `Delivered safely at your doorstep`;
+          statusTag = 'Delivered';
+        }
       } else if (orderData.status === 'cancelled') {
-        title = `Order #${orderShort} Cancelled`;
-        msg = `Order cancelled`;
+        title = `Cancelled: ${itemSummary}`;
+        msg = `Order has been cancelled`;
         statusTag = 'Cancelled';
       }
 
-      if (msg) {
-        addNotification({
+      if (msg && addNotificationRef.current) {
+        addNotificationRef.current({
           id: `order-status-${orderData.id}-${orderData.status}`,
           title,
           message: msg,
@@ -320,7 +414,7 @@ export function NotificationProvider({ children }) {
     return () => {
       if (unsubOrders) unsubOrders();
     };
-  }, [isOrderRelatedToUser, addNotification, userRole]);
+  }, []);
 
   const toggleNotificationRead = async (id, isRead) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: isRead } : n));
@@ -365,6 +459,9 @@ export function NotificationProvider({ children }) {
     <NotificationContext.Provider value={{
       notifications,
       unreadCount,
+      systemNotificationPermission,
+      requestSystemNotificationPermission,
+      sendOSNotification,
       addNotification,
       toggleNotificationRead,
       markAllRead,

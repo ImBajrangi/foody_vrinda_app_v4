@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   supabase, 
   getCloudShops, 
@@ -214,14 +214,33 @@ export function AuthProvider({ children }) {
     return shop ? shop.name : null;
   }, [allShops]);
 
-  // Listen for real-time user database / role updates from Supabase Realtime & Local Events
+  const userRef = useRef(user);
+  const userDataRef = useRef(userData);
+  const userRoleRef = useRef(userRole);
+  const currentUserShopIdRef = useRef(currentUserShopId);
+  const resolveShopNameRef = useRef(resolveShopName);
+
+  useEffect(() => {
+    userRef.current = user;
+    userDataRef.current = userData;
+    userRoleRef.current = userRole;
+    currentUserShopIdRef.current = currentUserShopId;
+    resolveShopNameRef.current = resolveShopName;
+  }, [user, userData, userRole, currentUserShopId, resolveShopName]);
+
+  // Listen for real-time user database / role updates from Supabase Realtime & Local Events (Stable single subscription)
   useEffect(() => {
     const handleUsersUpdate = (users) => {
       if (!users || !Array.isArray(users)) return;
 
-      const currentId = user?.id ? String(user.id).trim() : '';
-      const currentEmail = (user?.email || userData?.email || '').toLowerCase().trim();
-      const currentPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
+      const activeUser = userRef.current;
+      const activeUserData = userDataRef.current;
+      const activeRole = userRoleRef.current;
+      const activeShopId = currentUserShopIdRef.current;
+
+      const currentId = activeUser?.id ? String(activeUser.id).trim() : '';
+      const currentEmail = (activeUser?.email || activeUserData?.email || '').toLowerCase().trim();
+      const currentPhone = (activeUser?.phone || activeUserData?.phone || '').replace(/\D/g, '');
       if (!currentId && !currentEmail && !currentPhone) return;
 
       const match = users.find(u => {
@@ -231,17 +250,23 @@ export function AuthProvider({ children }) {
         return (
           (currentId && uId === currentId) || 
           (currentEmail && uEmail && uEmail === currentEmail) ||
-          (currentPhone && currentPhone.length >= 10 && uPhone && uPhone.endsWith(currentPhone.slice(-10)))
+          (currentPhone && cleanPhone(currentPhone) && uPhone && uPhone.endsWith(currentPhone.slice(-10)))
         );
       });
 
+      function cleanPhone(p) {
+        return p && p.length >= 10;
+      }
+
       if (match && match.role) {
-        if (match.role !== userRole || (match.shopId && match.shopId !== currentUserShopId)) {
+        if (match.role !== activeRole || (match.shopId && match.shopId !== activeShopId)) {
           setUserRole(match.role);
           if (match.shopId) {
             setCurrentUserShopId(match.shopId);
             setCurrentUserShopIds(match.shopIds || [match.shopId]);
-            setCurrentShopName(resolveShopName(match.shopId));
+            if (resolveShopNameRef.current) {
+              setCurrentShopName(resolveShopNameRef.current(match.shopId));
+            }
           }
           setUserData(prev => {
             const updated = {
@@ -271,7 +296,7 @@ export function AuthProvider({ children }) {
       if (unsubscribe) unsubscribe();
       window.removeEventListener('storage', handleStorage);
     };
-  }, [user, userData, userRole, currentUserShopId, resolveShopName]);
+  }, []);
 
   const syncUserToCloudList = useCallback((userProfile) => {
     if (!userProfile || !userProfile.id) return;
@@ -291,7 +316,16 @@ export function AuthProvider({ children }) {
         ? userProfile.role
         : (exists?.role && exists.role !== 'customer' ? exists.role : (userProfile.role || 'customer'));
 
-      // Record to both public.foody_logged_users and public.foody_users in Supabase
+      // If already recorded with identical data, skip the cloud call completely
+      if (
+        exists && 
+        exists.role === resolvedRole && 
+        exists.displayName === (userProfile.displayName || exists.displayName) &&
+        (!userProfile.shopId || exists.shopId === userProfile.shopId)
+      ) {
+        return;
+      }
+
       recordLoggedInUser({
         ...userProfile,
         role: resolvedRole

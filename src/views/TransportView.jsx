@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification } from '../supabase';
+import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification, getOrderItemSummary, getOrderCustomerName } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import { 
@@ -258,43 +258,46 @@ export default function TransportView() {
     });
     group.addLayer(homeMarker);
 
-    // 3. Live Scooter Rider Vehicle Pin (Animated GPS Pulse)
-    const riderIcon = L.divIcon({
-      className: 'custom-rider-pin',
-      html: `
-        <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-          <div style="
-            width: 36px;
-            height: 36px;
-            background: #181617;
-            border: 2.5px solid #E0FF33;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 0 16px rgba(224,255,51,0.4);
-            cursor: pointer;
-          ">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="18.5" cy="17.5" r="2.5"></circle>
-              <circle cx="5.5" cy="17.5" r="2.5"></circle>
-              <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
-              <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
-              <path d="M9 18h6"></path>
-            </svg>
+    // 3. Live Scooter Rider Vehicle Pin (Animated GPS Pulse) - only in active transit
+    const isOutForDelivery = activeOrder?.status === 'out_for_delivery';
+    if (isOutForDelivery) {
+      const riderIcon = L.divIcon({
+        className: 'custom-rider-pin',
+        html: `
+          <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+            <div style="
+              width: 36px;
+              height: 36px;
+              background: #181617;
+              border: 2.5px solid #E0FF33;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 0 16px rgba(224,255,51,0.4);
+              cursor: pointer;
+            ">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18.5" cy="17.5" r="2.5"></circle>
+                <circle cx="5.5" cy="17.5" r="2.5"></circle>
+                <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
+                <path d="M6 10h12l-1.5 5.5H8.5L6 10z"></path>
+                <path d="M9 18h6"></path>
+              </svg>
+            </div>
           </div>
-        </div>
-      `,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
-    });
-    const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
-    riderMarker.bindTooltip('Sarathi Rider (Live GPS)', { permanent: false, direction: 'top', offset: [0, -22] });
-    riderMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      riderMarker.toggleTooltip();
-    });
-    group.addLayer(riderMarker);
+        `,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
+      });
+      const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
+      riderMarker.bindTooltip('Sarathi Rider (Live GPS)', { permanent: false, direction: 'top', offset: [0, -22] });
+      riderMarker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        riderMarker.toggleTooltip();
+      });
+      group.addLayer(riderMarker);
+    }
 
     // 4. Luxury Laser Polyline (Outer Casing + Animated Glowing Neon Route)
     const routeCasing = L.polyline([
@@ -379,16 +382,20 @@ export default function TransportView() {
         rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
       } : o));
 
+      const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
+      const customerName = getOrderCustomerName(orderData);
+
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
-          message: `Your order is out for delivery with Sarathi Rider (Govind Das)!`,
+          title: `On The Way: ${itemSummary}`,
+          message: `${itemSummary} is on the way with ${orderData?.rider_name || 'Govind Das'}.`,
           orderId
         });
       }
 
       setToast({
-        message: `Order #${orderId.slice(-6).toUpperCase()} is Out for Delivery`,
+        message: `Dispatched: ${itemSummary} (${customerName})`,
         type: 'success'
       });
     } catch (e) {
@@ -410,16 +417,20 @@ export default function TransportView() {
       });
       setOrders(prev => prev.filter(o => o.id !== orderId));
 
+      const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
+      const customerName = getOrderCustomerName(orderData);
+
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
-          message: `Your order has been delivered with blessings!`,
+          title: `Delivered: ${itemSummary}`,
+          message: `${itemSummary} delivered successfully.`,
           orderId
         });
       }
 
       setToast({
-        message: `Order #${orderId.slice(-6).toUpperCase()} Completed & Delivered!`,
+        message: `Delivered: ${itemSummary} (${customerName})`,
         type: 'success'
       });
     } catch (e) {

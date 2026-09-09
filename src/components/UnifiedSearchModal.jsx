@@ -2,12 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { getCloudMenus, supabase, resolveDishCutout } from '../supabase';
+import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary } from '../supabase';
 import { Sparkles, Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, Flame, Clock, MapPin, Plus, Minus, Tag } from 'lucide-react';
 import { HitSoochiService } from '../services/hitSoochiService';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
-  const { user, userRole, currentUserShopId, allShops } = useAuth();
+  const { user, userData, userRole, currentUserShopId, allShops } = useAuth();
   const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState({ shops: [], menuItems: [], orders: [] });
@@ -100,27 +100,61 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       // Semantic ranking with Vedic ontology weights
       matchedMenuItems = HitSoochiService.rankItems(matchedMenuItems, term);
 
-      // 3. Search Orders (Supabase query based on role)
+      // 3. Search Orders (Role-based & strictly user-isolated)
       let matchedOrders = [];
       try {
-        let queryBuilder = supabase.from('foody_orders').select('*').limit(20);
+        const cleanPhone = (userData?.phone || user?.phone || user?.user_metadata?.phone)
+          ? String(userData?.phone || user?.phone || user?.user_metadata?.phone).replace(/\D/g, '')
+          : '';
+        const currentUserId = user?.id || user?.uid || userData?.id;
+        const sessionOrderIds = (() => {
+          try {
+            return JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+          } catch {
+            return [];
+          }
+        })();
+
+        let queryBuilder = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(25);
+
         if (['kitchen', 'owner', 'delivery'].includes(userRole) && currentUserShopId) {
+          // Kitchen/Delivery/Shop owner: search only orders from their shop
           queryBuilder = queryBuilder.eq('shop_id', currentUserShopId);
-        } else if (user?.uid) {
-          queryBuilder = queryBuilder.eq('user_id', user.uid);
+        } else if (['admin', 'master_admin', 'developer'].includes(userRole)) {
+          // Admins can search across orders
+          // Keep base queryBuilder
+        } else {
+          // Customers / Guests: STRICTLY isolate to their own placed orders only!
+          if (currentUserId && cleanPhone && cleanPhone.length >= 10) {
+            queryBuilder = queryBuilder.or(`user_id.eq.${currentUserId},customer_phone.eq.${cleanPhone}`);
+          } else if (currentUserId) {
+            queryBuilder = queryBuilder.eq('user_id', currentUserId);
+          } else if (cleanPhone && cleanPhone.length >= 10) {
+            queryBuilder = queryBuilder.eq('customer_phone', cleanPhone);
+          } else if (sessionOrderIds.length > 0) {
+            queryBuilder = queryBuilder.in('id', sessionOrderIds);
+          } else {
+            // Guest or customer with zero known orders -> strictly show 0 orders (do not leak foreign orders!)
+            queryBuilder = null;
+          }
         }
 
-        const { data: ordersData } = await queryBuilder;
-        if (ordersData) {
-          matchedOrders = ordersData.filter(order => {
-            const itemsString = order.items?.map(i => i.name.toLowerCase()).join(' ') || '';
-            return (
-              order.id.toLowerCase().includes(term) ||
-              order.customer_name?.toLowerCase().includes(term) ||
-              order.customer_phone?.includes(term) ||
-              itemsString.includes(term)
-            );
-          });
+        if (queryBuilder) {
+          const { data: ordersData } = await queryBuilder;
+          if (ordersData) {
+            matchedOrders = ordersData.filter(order => {
+              const itemsString = order.items?.map(i => (i.name || '').toLowerCase()).join(' ') || '';
+              const orderId = (order.id || '').toLowerCase();
+              const custName = (order.customer_name || order.customerName || '').toLowerCase();
+              const custPhone = (order.customer_phone || order.customerPhone || '');
+              return (
+                orderId.includes(term) ||
+                custName.includes(term) ||
+                custPhone.includes(term) ||
+                itemsString.includes(term)
+              );
+            });
+          }
         }
       } catch (err) {
         console.warn("Orders search fallback:", err);
@@ -136,7 +170,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     } finally {
       setLoading(false);
     }
-  }, [allShops, currentUserShopId, user, userRole]);
+  }, [allShops, currentUserShopId, user, userData, userRole]);
 
   // Handle live search matching
   useEffect(() => {
@@ -544,13 +578,17 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         onClick={() => handleExpandOrder(order)}
                         className="p-3 flex justify-between items-center cursor-pointer hover:bg-white/[0.03] transition-colors apple-tap-target"
                       >
-                        <div className="min-w-0">
-                          <p className="font-bold text-white text-xs sm:text-sm">
-                            Order #{order.id.slice(-6).toUpperCase()}
+                        <div className="min-w-0 flex-1 mr-2">
+                          <p className="font-bold text-white text-xs sm:text-sm truncate">
+                            {getOrderItemSummary(order) || `Order #${order.id.slice(-6).toUpperCase()}`}
                           </p>
-                          <p className="text-[10px] sm:text-[11px] text-zinc-500 flex items-center gap-1.5">
-                            <Clock size={10} className="shrink-0" />
-                            {order.items?.length || 0} items · ₹{order.total_amount || order.totalAmount || 0}
+                          <p className="text-[10px] sm:text-[11px] text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                            <Clock size={10} className="shrink-0 text-zinc-500" />
+                            <span>{order.items?.length || 0} items</span>
+                            <span className="text-zinc-600">·</span>
+                            <span className="font-bold text-[#E0FF33]">₹{order.total_amount || order.totalAmount || 0}</span>
+                            <span className="text-zinc-600">·</span>
+                            <span className="text-zinc-500 font-mono">#{order.id.slice(-5).toUpperCase()}</span>
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">

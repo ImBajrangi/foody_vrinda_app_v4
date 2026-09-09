@@ -399,14 +399,14 @@ export default function AuthModal({ isOpen, onClose }) {
   const modalTitle = (!isAuthenticated || showLoginView)
     ? (showStaffSignIn 
         ? (activeDeskTheme.title || 'Staff Portal') 
-        : (isSignup ? getSignupTitle() : 'Welcome to Foody Vrinda'))
-    : (isAuthorizedDeveloper ? 'Developer Console' : isAuthorizedAdmin ? 'Administrator Account' : 'My Account');
+        : (isSignup ? getSignupTitle() : (showLoginView ? 'Switch Account' : 'Welcome to Foody Vrinda')))
+    : 'Account & Profile';
 
   const modalSubtitle = (!isAuthenticated || showLoginView)
     ? (showStaffSignIn 
         ? (activeDeskTheme.subtitle || 'Authorized personnel login') 
-        : (isSignup ? getSignupSubtitle() : 'Sign in to track live orders & manage address'))
-    : 'Verified Satvik Member • Foody Vrinda';
+        : (isSignup ? getSignupSubtitle() : (showLoginView ? 'Sign in with another mobile or email' : 'Sign in to track live orders & manage address')))
+    : `${user?.email || user?.phone || userData?.phone || 'Verified Satvik Member'}`;
 
   const rawAvatar = user?.photoURL || 
     userData?.photoURL || 
@@ -455,35 +455,34 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* Top Header Row */}
         <div className="flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-3">
-            {(!isAuthenticated || showLoginView) && (
-              <div 
-                className="w-9 h-9 rounded-xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
-                style={{ 
-                  background: activeDeskTheme.accentBg, 
-                  borderColor: activeDeskTheme.border, 
-                  color: activeDeskTheme.color 
-                }}
-              >
-                <ActiveDeskIcon className="w-4.5 h-4.5" />
-              </div>
-            )}
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight">
+          <div className="flex items-center gap-3 min-w-0">
+            <div 
+              className="w-9 h-9 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
+              style={{ 
+                background: (!isAuthenticated || showLoginView) ? activeDeskTheme.accentBg : 'rgba(224, 255, 51, 0.12)', 
+                borderColor: (!isAuthenticated || showLoginView) ? activeDeskTheme.border : 'rgba(224, 255, 51, 0.25)', 
+                color: (!isAuthenticated || showLoginView) ? activeDeskTheme.color : '#E0FF33' 
+              }}
+            >
+              {(!isAuthenticated || showLoginView) ? <ActiveDeskIcon className="w-4.5 h-4.5" /> : <User className="w-4.5 h-4.5" />}
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight truncate">
                 {modalTitle}
               </h3>
-              {(!isAuthenticated || showLoginView) && (
-                <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5">
-                  {modalSubtitle}
-                </p>
-              )}
+              <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate flex items-center gap-1.5">
+                {isAuthenticated && !showLoginView && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                )}
+                <span>{modalSubtitle}</span>
+              </p>
             </div>
           </div>
 
           <button 
             type="button"
             onClick={handleAnimatedClose} 
-            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-all border border-white/5 active:scale-95 cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-all border border-white/5 active:scale-95 cursor-pointer shrink-0 ml-2"
             aria-label="Close modal"
           >
             <X size={15} />
@@ -755,15 +754,19 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    {isAuthorizedDeveloper ? 'Operational Switcher' : 'Admin Workspaces'}
-                  </span>
-                  <span className="text-[10px] font-black text-[#E0FF33] px-2 py-0.5 rounded-full bg-[#E0FF33]/10 border border-[#E0FF33]/20">
-                    {isAuthorizedDeveloper ? 'DEVELOPER' : 'ADMIN'}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#181617] to-[#121011] border border-white/10 space-y-2.5 animate-fade-in shadow-md">
+                <div className="flex items-center justify-between px-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <Terminal className="w-3.5 h-3.5 text-[#E0FF33]" />
+                    <span className="text-[11px] font-black text-zinc-300 uppercase tracking-wider font-['Outfit']">
+                      Operational Switcher
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-black tracking-wider text-[#E0FF33] px-2.5 py-0.5 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 shadow-[0_0_10px_rgba(224,255,51,0.2)]">
+                    {isAuthorizedDeveloper ? 'DEVELOPER ROOT' : 'ADMIN CONTROL'}
                   </span>
                 </div>
+
                 <div className="grid grid-cols-2 gap-2">
                   {getAuthorizedWorkspaces(userRole).map((d) => {
                     const Icon = d.icon;
@@ -776,16 +779,25 @@ export default function AuthModal({ isOpen, onClose }) {
                           impersonate(demoShopId || allShops[0]?.id || 'shop-1', d.role);
                           handleAnimatedClose();
                         }}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          d.fullWidth ? 'col-span-2 justify-center' : ''
+                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
+                          d.fullWidth 
+                            ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-[#E0FF33]/15 via-[#E0FF33]/5 to-transparent border-[#E0FF33]/40 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.1)] hover:border-[#E0FF33]' 
+                            : ''
                         } ${
                           isCurrent 
-                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] shadow-sm font-extrabold' 
-                            : 'bg-[#1E1B1C] text-zinc-300 border-white/5 hover:border-white/15'
+                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] shadow-[0_2px_12px_rgba(224,255,51,0.3)] font-black' 
+                            : 'bg-[#1E1B1C] text-zinc-300 border-white/5 hover:border-white/20 hover:text-white hover:bg-white/5'
                         }`}
                       >
-                        <Icon className="w-3.5 h-3.5" />
-                        <span>{d.label}</span>
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                          isCurrent ? 'bg-black/15 text-black' : 'bg-white/5 text-zinc-400'
+                        }`}>
+                          <Icon className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="truncate">{d.label}</span>
+                        {isCurrent && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0 ml-auto mr-1 animate-pulse" />
+                        )}
                       </button>
                     );
                   })}
@@ -793,24 +805,34 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 6. Clean, Minimalist Footer Actions */}
-            <div className="flex items-center justify-between pt-1 px-1">
+            {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out */}
+            <div className="p-1.5 rounded-2xl bg-gradient-to-r from-[#181617] via-[#141213] to-[#181617] border border-white/10 grid grid-cols-2 gap-2 shadow-lg mt-1">
               <button 
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="text-xs text-zinc-400 hover:text-white font-medium flex items-center gap-1.5 transition-colors cursor-pointer py-1"
+                className="group p-2.5 rounded-xl bg-white/[0.03] hover:bg-[#E0FF33]/15 border border-white/5 hover:border-[#E0FF33]/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98]"
               >
-                <LogIn className="w-3.5 h-3.5 text-[#E0FF33]" />
-                <span>Switch Account</span>
+                <div className="w-8 h-8 rounded-xl bg-white/5 group-hover:bg-[#E0FF33] text-[#E0FF33] group-hover:text-black flex items-center justify-center shrink-0 transition-all shadow-sm">
+                  <LogIn className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black text-zinc-200 group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
+                  <div className="text-[10px] text-zinc-500 group-hover:text-[#E0FF33] font-medium truncate">Change profile</div>
+                </div>
               </button>
 
               <button 
                 type="button"
                 onClick={handleLogout}
-                className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer py-1"
+                className="group p-2.5 rounded-xl bg-rose-500/[0.04] hover:bg-rose-500/20 border border-rose-500/15 hover:border-rose-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98]"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
+                <div className="w-8 h-8 rounded-xl bg-rose-500/10 group-hover:bg-rose-500 text-rose-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-sm">
+                  <LogOut className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-black text-rose-300 group-hover:text-rose-100 font-['Outfit'] truncate">Sign Out</div>
+                  <div className="text-[10px] text-rose-400/60 group-hover:text-rose-200 font-medium truncate">End session</div>
+                </div>
               </button>
             </div>
           </div>

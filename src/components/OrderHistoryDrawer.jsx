@@ -15,7 +15,16 @@ import { supabase, subscribeCloudOrders } from '../supabase';
 import { useCart } from '../context/CartContext';
 import ReviewModal from './ReviewModal';
 
-export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone, allShops = [], onTrackOrder, onToast }) {
+export default function OrderHistoryDrawer({ 
+  isOpen, 
+  onClose, 
+  userId, 
+  userPhone, 
+  allShops = [], 
+  onTrackOrder, 
+  onToast, 
+  onRateOrder 
+}) {
   const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -208,9 +217,26 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
                     {/* Items Breakdown */}
                     <div className="space-y-1.5 py-1 border-y border-white/5 text-xs text-neutral-300 font-['Plus_Jakarta_Sans']">
                       {(order.items || []).map((it, idx) => (
-                        <div key={idx} className="flex justify-between items-center">
-                          <span className="truncate pr-2">{it.quantity || 1}x {it.name}</span>
-                          <span className="font-bold text-white font-mono">₹{(it.price || 0) * (it.quantity || 1)}</span>
+                        <div key={idx} className="space-y-0.5">
+                          <div className="flex justify-between items-center">
+                            <span className="truncate pr-2 flex items-center gap-1.5 font-medium">
+                              <span className="text-[#E0FF33] font-black">{it.quantity || 1}x</span>
+                              <span>{it.name}</span>
+                              {(it.isCombo || it.comboItems) && (
+                                <span className="text-[9px] font-black uppercase bg-[#E0FF33]/20 text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                  Combo
+                                </span>
+                              )}
+                            </span>
+                            <span className="font-bold text-white font-mono shrink-0">₹{(it.price || 0) * (it.quantity || 1)}</span>
+                          </div>
+                          {it.comboItems && Array.isArray(it.comboItems) && (
+                            <div className="text-[10px] text-zinc-400 pl-4 space-y-0.2">
+                              {it.comboItems.map((ci, cidx) => (
+                                <p key={cidx} className="truncate">• {ci}</p>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -252,7 +278,13 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
                         {/* Rate & Review Button for Delivered Orders */}
                         {(order.status === 'completed' || order.status === 'delivered') && (
                           <button
-                            onClick={() => setSelectedReviewOrder(order)}
+                            onClick={() => {
+                              if (onRateOrder) {
+                                onRateOrder(order);
+                              } else {
+                                setSelectedReviewOrder(order);
+                              }
+                            }}
                             className="h-8 px-2.5 sm:px-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
                           >
                             <Star size={12} className="text-[#E0FF33] fill-[#E0FF33]" />

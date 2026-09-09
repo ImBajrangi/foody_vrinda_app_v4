@@ -8,7 +8,9 @@ import {
   createCloudOrder, 
   subscribeCloudOrders, 
   getCloudMenus, 
-  createCloudNotification 
+  createCloudNotification,
+  getOrderItemSummary,
+  getOrderCustomerName
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -222,11 +224,15 @@ export default function KitchenView() {
       await updateCloudOrderStatus(orderId, 'ready_for_pickup');
       setOrders(prev => prev.filter(o => o.id !== orderId));
       
+      const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
+      const customerName = getOrderCustomerName(orderData);
+
       // Notify customer & rider
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
-          message: "Your Satvik meal is ready for pickup/delivery!",
+          title: `Packed & Ready: ${itemSummary}`,
+          message: `${itemSummary} is packed & ready for courier dispatch.`,
           orderId
         });
       }
@@ -234,11 +240,12 @@ export default function KitchenView() {
       await createCloudNotification({
         role: 'delivery',
         shopId: currentUserShopId,
-        message: `Order #${orderId.slice(-6).toUpperCase()} is ready for rider dispatch.`,
+        title: `Pickup Ready: ${itemSummary}`,
+        message: `${itemSummary} (${customerName}) is ready for pickup.`,
         orderId
       });
 
-      showToast("Order marked ready for dispatch!", "success");
+      showToast(`Ready: ${itemSummary} (${customerName})`, "success");
     } catch (e) {
       console.error("Order ready update error:", e);
       showToast("Failed to update status.", "error");
@@ -465,14 +472,30 @@ export default function KitchenView() {
 
                     <div className="divide-y divide-white/5 max-h-48 overflow-y-auto pr-1 no-scrollbar space-y-1">
                       {order.items?.map((item, i) => (
-                        <div key={item.id || i} className="py-2 text-xs flex justify-between items-center gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-[#1E1B1C] border border-white/10 text-[#E0FF33] font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                        <div key={item.id || i} className="py-2 text-xs flex justify-between items-start gap-2">
+                          <div className="flex items-start gap-2 min-w-0 flex-1">
+                            <span className="w-5 h-5 rounded-full bg-[#1E1B1C] border border-white/10 text-[#E0FF33] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                               {item.quantity}x
                             </span>
-                            <span className={`font-bold truncate ${item.ready ? 'line-through text-zinc-500' : 'text-white'}`}>
-                              {item.name}
-                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`font-bold truncate ${item.ready ? 'line-through text-zinc-500' : 'text-white'}`}>
+                                  {item.name}
+                                </span>
+                                {(item.isCombo || item.comboItems) && (
+                                  <span className="text-[8.5px] font-black uppercase bg-[#E0FF33]/20 text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                    Combo
+                                  </span>
+                                )}
+                              </div>
+                              {item.comboItems && (
+                                <div className="text-[10px] text-zinc-400 mt-0.5 space-y-0.5 pl-1 border-l border-[#E0FF33]/30">
+                                  {item.comboItems.map((ci, cidx) => (
+                                    <p key={cidx}>• {ci}</p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           
                           {order.status === 'preparing' && (

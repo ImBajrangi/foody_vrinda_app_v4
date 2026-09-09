@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { 
   Bell, 
+  BellRing,
   X, 
   Check, 
   Trash2, 
@@ -14,13 +15,17 @@ import {
   Bike, 
   ShoppingBag,
   Gift,
-  Info
+  Info,
+  Smartphone
 } from 'lucide-react';
 
 export default function NotificationPanel({ isOpen, onClose, onNotificationClick }) {
   const { 
     notifications, 
     unreadCount, 
+    systemNotificationPermission,
+    requestSystemNotificationPermission,
+    sendOSNotification,
     toggleNotificationRead, 
     markAllRead, 
     clearAllNotifications,
@@ -202,6 +207,28 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
             );
           })}
         </div>
+
+        {/* Global OS / System Notification Permission Banner */}
+        {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
+          <div className="mx-2.5 mt-2.5 p-3 rounded-2xl bg-gradient-to-r from-[#E0FF33]/15 to-transparent border border-[#E0FF33]/30 flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-inner">
+                <BellRing size={16} />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-xs font-black text-white font-['Outfit']">Enable OS Notifications</p>
+                <p className="text-[10px] text-neutral-300">Get order cooking & delivery alerts directly on your device screen</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={requestSystemNotificationPermission}
+              className="px-3 py-1.5 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-[11px] uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0 cursor-pointer"
+            >
+              Allow
+            </button>
+          </div>
+        )}
 
         {/* Notification Cards Feed */}
         <div className="max-h-[26rem] overflow-y-auto p-2.5 space-y-1.5 no-scrollbar">
