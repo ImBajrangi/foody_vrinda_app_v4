@@ -6,20 +6,20 @@ import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification, getOrderItemSummary, getOrderCustomerName } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
-import { 
-  Truck, 
-  Navigation, 
-  MapPin, 
-  Phone, 
-  Clock, 
-  CheckCircle2, 
-  ShieldCheck, 
-  Volume2, 
-  VolumeX, 
-  AlertCircle, 
-  Banknote, 
-  Map, 
-  List, 
+import {
+  Truck,
+  Navigation,
+  MapPin,
+  Phone,
+  Clock,
+  CheckCircle2,
+  ShieldCheck,
+  Volume2,
+  VolumeX,
+  AlertCircle,
+  Banknote,
+  Map,
+  List,
   Layers,
   ArrowRight,
   ArrowLeft,
@@ -63,7 +63,7 @@ export default function TransportView() {
   };
 
   const targetShopIds = (currentUserShopIds && currentUserShopIds.length > 0)
-    ? currentUserShopIds 
+    ? currentUserShopIds
     : [currentUserShopId].filter(Boolean);
 
   // Fast notification listener with role-tailored delivery chime
@@ -412,7 +412,7 @@ export default function TransportView() {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     group.addTo(map);
     routeGroupRef.current = group;
@@ -448,8 +448,8 @@ export default function TransportView() {
         rider_rating: '4.95',
         rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
       });
-      setOrders(prev => prev.map(o => o.id === orderId ? { 
-        ...o, 
+      setOrders(prev => prev.map(o => o.id === orderId ? {
+        ...o,
         status: 'out_for_delivery',
         rider_name: 'Govind Das (Sarathi)',
         rider_phone: '+91 98765 43210',
@@ -541,10 +541,10 @@ export default function TransportView() {
   return (
     <div className="space-y-4 pb-20 max-w-5xl mx-auto">
       {/* Dynamic Tactile Alarm Banner (Apple Dynamic Island Style) */}
-      <ActiveAlarmBanner 
-        isPlaying={isPlaying} 
-        activeAlert={activeAlert} 
-        onSilence={stopAlarm} 
+      <ActiveAlarmBanner
+        isPlaying={isPlaying}
+        activeAlert={activeAlert}
+        onSilence={stopAlarm}
         onActionClick={(alert) => {
           const target = orders.find(o => o.id === alert.orderId) || alert.order;
           if (target) {
@@ -556,10 +556,10 @@ export default function TransportView() {
 
       {/* Toast Notification */}
       {toast && (
-        <DynamicToast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
+        <DynamicToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
 
@@ -587,22 +587,20 @@ export default function TransportView() {
         <div className="flex items-center gap-1.5 bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/8 shadow-inner shrink-0 self-stretch sm:self-auto justify-center">
           <button
             onClick={() => setViewMode('list')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'list'
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
                 ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
-            }`}
+              }`}
           >
             <List className="w-3.5 h-3.5 shrink-0" />
             <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Orders ({orders.length})</span>
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'map'
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
                 ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
-            }`}
+              }`}
           >
             <Map className="w-3.5 h-3.5 shrink-0" />
             <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Carto HUD</span>
@@ -620,11 +618,10 @@ export default function TransportView() {
               <button
                 key={s.id}
                 onClick={() => impersonate(s.id, userRole)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-                  isActive
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
                     ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
                     : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
-                }`}
+                  }`}
               >
                 <Store className="w-3 h-3" />
                 <span>{s.name}</span>
@@ -637,14 +634,14 @@ export default function TransportView() {
       {/* VIEW MODE 1: PROFESSIONAL RESPONSIVE DISPATCH & CARTO MAP HUD */}
       {viewMode === 'map' && activeOrder && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
-          
+
           {/* Main Map Viewport (Left / Top) */}
           <div className="lg:col-span-7 xl:col-span-8 w-full h-[400px] sm:h-[500px] lg:h-[680px] bg-[#1E1B1C] rounded-3xl overflow-hidden relative border border-white/10 shadow-2xl flex flex-col">
             <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
 
             {/* TOP FLOATING CONTROLS */}
             <div className="absolute top-4 inset-x-4 flex items-center justify-between z-[500] pointer-events-none">
-              <button 
+              <button
                 onClick={() => setViewMode('list')}
                 className="px-3.5 py-2 rounded-xl bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center gap-2 border border-white/15 active:scale-95 transition-all cursor-pointer pointer-events-auto text-xs font-bold"
                 title="View all dispatch orders"
@@ -695,23 +692,25 @@ export default function TransportView() {
             {/* Primary Active Dispatch Card */}
             <div className="bg-[#282526] border border-white/10 rounded-3xl p-5 shadow-2xl space-y-4">
               {/* Customer Profile & Direct Contact Actions */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
+              <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-white/5">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-11 h-11 rounded-2xl bg-[#1E1B1C] border border-white/10 text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
-                    <User size={20} className="stroke-[2.2]" />
+                  <div className="w-10 h-10 rounded-2xl bg-[#1E1B1C] border border-white/10 text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
+                    <User size={18} className="stroke-[2.2]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-bold text-base tracking-tight font-['Outfit'] text-white truncate">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-sm tracking-tight font-['Outfit'] text-white truncate">
                         {activeOrder.customerName || 'Customer'}
                       </h4>
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 shrink-0">
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-white/5 text-neutral-300 border border-white/10 shrink-0 font-mono">
                         #{activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      <span className="text-white text-[11px] font-black ml-0.5">5.0</span>
+                    <div className="flex items-center gap-1.5 text-amber-400 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-current" />
+                        <span className="text-white text-[11px] font-black">5.0</span>
+                      </div>
                       <span className="text-neutral-600 text-[10px]">•</span>
                       <span className="text-neutral-400 text-[11px] font-medium truncate">
                         {activeOrder.items?.length || 1} {(activeOrder.items?.length || 1) === 1 ? 'item' : 'items'}
@@ -720,22 +719,22 @@ export default function TransportView() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {activeOrder.customerPhone && (
-                    <a 
+                    <a
                       href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-9 h-9 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="WhatsApp Customer"
                     >
                       <MessageCircle className="w-4 h-4 stroke-[2]" />
                     </a>
                   )}
                   {activeOrder.customerPhone && (
-                    <a 
+                    <a
                       href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
-                      className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
                       <Phone className="w-4 h-4 text-[#E0FF33] stroke-[2]" />
@@ -745,34 +744,35 @@ export default function TransportView() {
               </div>
 
               {/* ETA & Drop-off Target */}
-              <div className="flex items-start justify-between gap-2 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-xl bg-white/5 text-white flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4 text-[#E0FF33]" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
-                    <h5 className="font-bold text-sm text-white font-['Outfit']">
+                    <h5 className="font-bold text-sm text-white font-['Outfit'] truncate">
                       Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </h5>
                   </div>
                 </div>
-                <span className="text-[10px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30">
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse"></span>
                   Live Active
                 </span>
               </div>
 
               {/* Destination Address */}
               <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
-                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="w-4 h-4 text-[#E0FF33]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
                     <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Destination</p>
-                    <span className="text-[10px] font-bold text-neutral-400">ETA: ~8–10 Min</span>
+                    <span className="text-[10px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 shrink-0 whitespace-nowrap">ETA: ~8–10 Min</span>
                   </div>
-                  <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 line-clamp-2 leading-relaxed">
+                  <p className="text-xs font-bold text-white font-['Outfit'] line-clamp-2 leading-relaxed">
                     {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Raman Reti, Parikrama Marg, Vrindavan'}
                   </p>
                 </div>
@@ -785,60 +785,75 @@ export default function TransportView() {
                 const isCollected = activeOrder.cash_status === 'collected' || activeOrder.cashStatus === 'collected' || activeOrder.cash_collected || activeOrder.cashCollected;
                 if (!isCash) {
                   return (
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300">
-                      <span className="font-bold flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Prepaid Online:</span>
-                      <span className="font-black text-xs px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300">NO CASH TO COLLECT</span>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-2 text-xs text-emerald-300">
+                      <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                        <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                        Prepaid Online:
+                      </span>
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                        NO CASH TO COLLECT
+                      </span>
                     </div>
                   );
                 }
                 if (isCollected) {
                   return (
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300">
-                      <span className="font-bold flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Cash Received in Advance:</span>
-                      <span className="font-black text-xs px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300">ALREADY COLLECTED</span>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-2 text-xs text-emerald-300">
+                      <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        Cash Received:
+                      </span>
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                        ALREADY COLLECTED
+                      </span>
                     </div>
                   );
                 }
                 return (
-                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-300">
-                    <span className="font-bold flex items-center gap-1.5"><Banknote className="w-3.5 h-3.5" /> Cash on Delivery (Collect at Door):</span>
-                    <span className="font-black text-sm text-amber-400 font-['Outfit']">₹{activeOrder.totalAmount || activeOrder.total_amount || 0}</span>
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-xs text-amber-300">
+                    <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                      <Banknote className="w-3.5 h-3.5 text-amber-400" />
+                      Cash on Delivery:
+                    </span>
+                    <span className="font-black text-sm text-amber-400 font-['Outfit'] shrink-0 whitespace-nowrap">
+                      ₹{activeOrder.totalAmount || activeOrder.total_amount || 0}
+                    </span>
                   </div>
                 );
               })()}
 
-                {/* Action Buttons */}
-                <div className="space-y-2.5 pt-1 font-['Plus_Jakarta_Sans']">
-                  {activeOrder.deliveryCoordinates?.lat && (
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-full py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                    >
-                      <Compass className="w-4 h-4 text-[#E0FF33]" />
-                      <span>Open Live GPS in Google Maps</span>
-                    </a>
-                  )}
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-1 font-['Plus_Jakarta_Sans']">
+                {activeOrder.deliveryCoordinates?.lat && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <Compass className="w-4 h-4 text-[#E0FF33]" />
+                    <span>Open Live On Google Maps</span>
+                  </a>
+                )}
 
-                  {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
-                    <button 
-                      onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
-                    >
-                      <span>Pick Up & Start Delivery</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                      className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                      <span>Mark Delivered & Reconcile Cash</span>
-                    </button>
-                  )}
-                </div>
+                {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
+                  <button
+                    onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
+                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
+                  >
+                    <span>Pick Up & Start Delivery</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
+                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>Mark Delivered & Reconcile Cash</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Other Active Deliveries Queue (Directly in Sidebar) */}
@@ -855,14 +870,13 @@ export default function TransportView() {
                     const isCur = o.id === activeOrder.id;
                     const isReadyOrder = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status);
                     return (
-                      <div 
+                      <div
                         key={o.id}
                         onClick={() => setSelectedOrder(o)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
-                          isCur 
-                            ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]' 
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${isCur
+                            ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]'
                             : 'bg-[#1E1B1C]/60 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C]'
-                        }`}
+                          }`}
                       >
                         <div className="min-w-0 pr-2">
                           <p className="font-bold text-white text-xs truncate">
@@ -872,9 +886,8 @@ export default function TransportView() {
                             {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
                           </p>
                         </div>
-                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${
-                          isReadyOrder ? 'bg-amber-400/15 text-amber-300 border border-amber-400/25' : 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/25'
-                        }`}>
+                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/15 text-amber-300 border border-amber-400/25' : 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/25'
+                          }`}>
                           {isReadyOrder ? 'Ready' : 'In Transit'}
                         </span>
                       </div>
@@ -892,9 +905,9 @@ export default function TransportView() {
         <div className="space-y-4">
           <div className="relative">
             <Search className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Search by order ID, customer name, or dish..." 
+            <input
+              type="text"
+              placeholder="Search by order ID, customer name, or dish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#282526] border border-white/5 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
@@ -918,7 +931,7 @@ export default function TransportView() {
                 const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);
 
                 return (
-                  <div 
+                  <div
                     key={order.id}
                     className="bg-[#282526] border border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
@@ -938,11 +951,10 @@ export default function TransportView() {
                           </p>
                         </div>
 
-                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
-                          isReady 
-                            ? 'bg-amber-400/10 text-amber-300 border-amber-400/20' 
+                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
+                            ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
                             : 'bg-cyan-400/10 text-cyan-300 border-cyan-400/20'
-                        }`}>
+                          }`}>
                           <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-400' : 'bg-cyan-400'}`} />
                           <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
                         </span>
@@ -953,8 +965,8 @@ export default function TransportView() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-bold text-white text-sm">{order.customerName || 'Customer'}</span>
                           {order.customerPhone && (
-                            <a 
-                              href={`tel:${order.customerPhone}`} 
+                            <a
+                              href={`tel:${order.customerPhone}`}
                               className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
                             >
                               <Phone className="w-3 h-3 text-[#E0FF33]" />
@@ -1003,7 +1015,7 @@ export default function TransportView() {
 
                     {/* Action Buttons: Unified Platform UI/UX */}
                     <div className="pt-2 flex gap-2.5 font-['Plus_Jakarta_Sans']">
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedOrder(order);
                           setViewMode('map');
@@ -1015,7 +1027,7 @@ export default function TransportView() {
                       </button>
 
                       {isReady ? (
-                        <button 
+                        <button
                           onClick={() => handleStartDelivery(order.id, order)}
                           className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
                         >
@@ -1023,7 +1035,7 @@ export default function TransportView() {
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => handleCompleteDelivery(order.id, order)}
                           className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
                         >
