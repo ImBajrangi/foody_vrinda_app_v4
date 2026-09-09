@@ -463,26 +463,44 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* Top Header Row */}
         <div className="flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="w-9 h-9 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
-              style={{
-                background: (!isAuthenticated || showLoginView) ? activeDeskTheme.accentBg : 'rgba(224, 255, 51, 0.12)',
-                borderColor: (!isAuthenticated || showLoginView) ? activeDeskTheme.border : 'rgba(224, 255, 51, 0.25)',
-                color: (!isAuthenticated || showLoginView) ? activeDeskTheme.color : '#E0FF33'
-              }}
-            >
-              {(!isAuthenticated || showLoginView) ? <ActiveDeskIcon className="w-4.5 h-4.5" /> : <User className="w-4.5 h-4.5" />}
-            </div>
+          <div className="flex items-center gap-3.5 min-w-0">
+            {isAuthenticated && !showLoginView ? (
+              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-white/20 to-[#E0FF33]/80 shrink-0 shadow-[0_2px_12px_rgba(224,255,51,0.2)]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-[#1E1B1C] border border-[#1E1B1C] flex items-center justify-center">
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={userData?.displayName || user?.displayName || 'User'}
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      className="w-full h-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit']">
+                      {(userData?.displayName || user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
+                style={{
+                  background: activeDeskTheme.accentBg,
+                  borderColor: activeDeskTheme.border,
+                  color: activeDeskTheme.color
+                }}
+              >
+                <ActiveDeskIcon className="w-5 h-5" />
+              </div>
+            )}
             <div className="min-w-0">
               <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight truncate">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate flex items-center gap-1.5">
-                {isAuthenticated && !showLoginView && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
-                )}
-                <span>{modalSubtitle}</span>
+              <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate">
+                {modalSubtitle}
               </p>
             </div>
           </div>
@@ -519,30 +537,8 @@ export default function AuthModal({ isOpen, onClose }) {
               {/* Ambient Glow */}
               <div className="absolute top-0 right-0 w-36 h-36 bg-[#E0FF33]/5 rounded-full blur-2xl pointer-events-none" />
 
-              {/* Top: Avatar, Name, Role & Email */}
-              <div className="flex items-start gap-3.5 relative z-10">
-                <div className="relative shrink-0 mt-0.5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#221F20] border border-[#E0FF33]/30 flex items-center justify-center text-white text-lg font-black overflow-hidden shadow-md ring-2 ring-[#E0FF33]/15">
-                    {userAvatar ? (
-                      <img
-                        src={userAvatar}
-                        alt="Profile"
-                        referrerPolicy="no-referrer"
-                        crossOrigin="anonymous"
-                        className="w-full h-full object-cover"
-                        onError={() => setAvatarLoadError(true)}
-                      />
-                    ) : (
-                      <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
-                        {(userData?.displayName ? userData.displayName.charAt(0) : user?.email?.charAt(0) || user?.phone?.slice(-1) || 'U').toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#151314] flex items-center justify-center shadow-sm">
-                    <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
-                  </div>
-                </div>
-
+              {/* Top: Devotee Name, Role Badge & Email (Avatar is featured in top modal header) */}
+              <div className="flex items-start justify-between gap-3 relative z-10">
                 <div className="space-y-1 min-w-0 flex-1">
                   {/* Name + Inline Edit */}
                   {isEditingName ? (
@@ -572,21 +568,10 @@ export default function AuthModal({ isOpen, onClose }) {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-black text-white text-base font-['Outfit'] tracking-tight">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] tracking-tight">
                         {userData?.displayName || user.displayName || 'Customer'}
                       </h4>
-                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${userRole === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                          userRole === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                            userRole === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                              userRole === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
-                        }`}>
-                        {userRole === 'kitchen' ? 'Kitchen Chef' :
-                          userRole === 'delivery' ? 'Rider Sarathi' :
-                            userRole === 'owner' ? 'Store Owner' :
-                              userRole === 'developer' ? 'Developer' : 'Satvik Devotee'}
-                      </span>
                       <button
                         type="button"
                         onClick={() => {
@@ -607,6 +592,22 @@ export default function AuthModal({ isOpen, onClose }) {
                       {user.email}
                     </p>
                   )}
+                </div>
+
+                {/* Role Badge */}
+                <div className="shrink-0">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${
+                    userRole === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
+                      userRole === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
+                        userRole === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
+                          userRole === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
+                            'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
+                  }`}>
+                    {userRole === 'kitchen' ? 'Kitchen Chef' :
+                      userRole === 'delivery' ? 'Rider Sarathi' :
+                        userRole === 'owner' ? 'Store Owner' :
+                          userRole === 'developer' ? 'Developer' : 'Satvik Devotee'}
+                  </span>
                 </div>
               </div>
 
