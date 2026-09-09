@@ -17,6 +17,8 @@ import {
   Sparkles, 
   CheckCircle2, 
   ArrowRight,
+  ArrowLeft,
+  Check,
   KeyRound,
   Compass,
   Zap,
@@ -94,6 +96,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [selectedDesk, setSelectedDesk] = useState('customer');
   const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email'
   const [isSignup, setIsSignup] = useState(false);
+  const [signupStep, setSignupStep] = useState(1); // 1: Identity | 2: Credentials | 3: Delivery
   const [showStaffSignIn, setShowStaffSignIn] = useState(false);
   
   // Form fields
@@ -112,7 +115,6 @@ export default function AuthModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
   const [showLoginView, setShowLoginView] = useState(false);
-
 
   // Helper to get allowed workspaces by verified role
   const getAuthorizedWorkspaces = (role) => {
@@ -192,7 +194,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const currentTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
   const DeskIcon = currentTheme.icon;
 
-  // Phone Lookup Sign In (Like Vrinda Tours Standard)
+  // Phone Lookup Sign In
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -211,16 +213,58 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
+  // Step validation and transition for multi-step signup
+  const handleNextStep = (e) => {
+    if (e) e.preventDefault();
+    setError('');
+    
+    if (signupStep === 1) {
+      if (!displayName.trim()) {
+        setError('Please enter your full name.');
+        return;
+      }
+      const cleanPhone = signupPhone.replace(/\D/g, '');
+      if (!cleanPhone || cleanPhone.length < 10) {
+        setError('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+      setSignupStep(2);
+    } else if (signupStep === 2) {
+      if (!email.trim() || !email.includes('@')) {
+        setError('Please enter a valid email address.');
+        return;
+      }
+      if (!password || password.length < 6) {
+        setError('Password must be at least 6 characters.');
+        return;
+      }
+      setSignupStep(3);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setError('');
+    if (signupStep > 1) {
+      setSignupStep(prev => prev - 1);
+    }
+  };
+
   // Email / Password Submit
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMsg('');
+
+    if (isSignup && signupStep < 3) {
+      handleNextStep();
+      return;
+    }
+
     setLoading(true);
     try {
       if (isSignup) {
         await signupWithEmail(email, password, displayName, signupPhone, signupAddress);
-        setSuccessMsg('Account created successfully!');
+        setSuccessMsg('Account created successfully! Welcome to Foody Vrinda.');
       } else {
         await loginWithEmail(email, password);
         setSuccessMsg('Signed in successfully!');
@@ -254,25 +298,6 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
-  const handleDemoAccess = (role) => {
-    if (['owner', 'developer'].includes(role) && !isAuthorizedAdmin && !isAuthorizedDeveloper) {
-      setError(`Access Restricted: ${role === 'developer' ? 'Developer' : 'Administrator'} account credentials required.`);
-      setLoginMethod('email');
-      return;
-    }
-    setSelectedDesk(role);
-    const targetShop = demoShopId || (allShops[0]?.id || 'shop-1');
-    const ok = impersonate(targetShop, role);
-    if (!ok) {
-      setError(`Access Denied: Only authorized users can access the ${role.toUpperCase()} panel.`);
-      return;
-    }
-    setSuccessMsg(`Switched to ${role.toUpperCase()} workspace!`);
-    setTimeout(() => {
-      handleAnimatedClose();
-    }, 350);
-  };
-
   const handleLogout = async () => {
     await logout();
     clearCart();
@@ -292,12 +317,28 @@ export default function AuthModal({ isOpen, onClose }) {
   const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
   const ActiveDeskIcon = activeDeskTheme.icon;
 
+  const getSignupTitle = () => {
+    if (signupStep === 1) return 'Step 1: Your Identity';
+    if (signupStep === 2) return 'Step 2: Login Credentials';
+    return 'Step 3: Delivery Location';
+  };
+
+  const getSignupSubtitle = () => {
+    if (signupStep === 1) return 'Tell us your name and mobile number';
+    if (signupStep === 2) return 'Set up your email and secure password';
+    return 'Set default delivery address in Vrindavan';
+  };
+
   const modalTitle = (!isAuthenticated || showLoginView)
-    ? (showStaffSignIn ? (activeDeskTheme.title || 'Staff Portal') : (isSignup ? 'Create Account' : 'Welcome to Foody Vrinda'))
+    ? (showStaffSignIn 
+        ? (activeDeskTheme.title || 'Staff Portal') 
+        : (isSignup ? getSignupTitle() : 'Welcome to Foody Vrinda'))
     : currentTheme.title;
 
   const modalSubtitle = (!isAuthenticated || showLoginView)
-    ? (showStaffSignIn ? (activeDeskTheme.subtitle || 'Authorized personnel login') : (isSignup ? 'Sign up for Satvik food deliveries & Prasad Coins' : 'Sign in to track live orders & manage address'))
+    ? (showStaffSignIn 
+        ? (activeDeskTheme.subtitle || 'Authorized personnel login') 
+        : (isSignup ? getSignupSubtitle() : 'Sign in to track live orders & manage address'))
     : currentTheme.subtitle;
 
   return (
@@ -464,7 +505,7 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 4. Authorized Workspaces Switcher: ONLY for verified Admin or Developer accounts */}
+            {/* 4. Authorized Workspaces Switcher */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
               <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between px-1">
@@ -526,7 +567,7 @@ export default function AuthModal({ isOpen, onClose }) {
             </div>
           </div>
         ) : (
-          /* CLEAN SIGN-IN PORTAL */
+          /* CLEAN SIGN-IN & STEP-BY-STEP SIGNUP PORTAL */
           <div className="space-y-3.5 relative z-10">
             {isAuthenticated && showLoginView && (
               <div className="flex items-center justify-between pb-1 border-b border-white/5">
@@ -542,7 +583,7 @@ export default function AuthModal({ isOpen, onClose }) {
             )}
 
             {/* Multi-Role Segmented Switcher Strip (Only shown when staff access is active) */}
-            {showStaffSignIn && (
+            {showStaffSignIn && !isSignup && (
               <div className="grid grid-cols-3 bg-[#151314] p-1 rounded-2xl border border-white/5 gap-1 animate-fade-in">
                 {[
                   { id: 'kitchen', label: 'Kitchen Chef', icon: ChefHat },
@@ -574,37 +615,83 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Sub-Navigation Method Switcher: Mobile vs Email */}
-            <div className="grid grid-cols-2 bg-[#151314]/80 p-1 rounded-2xl border border-white/5 gap-1">
-              <button 
-                type="button"
-                onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
-                className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
-                  loginMethod === 'phone' 
-                    ? 'bg-[#282526] text-white shadow-sm border border-white/10' 
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                <Phone className="w-3 h-3 text-[#E0FF33] shrink-0" />
-                <span className="truncate">Mobile Number</span>
-              </button>
+            {/* Sub-Navigation Method Switcher: Mobile vs Email (Hidden during multi-step signup) */}
+            {!isSignup && (
+              <div className="grid grid-cols-2 bg-[#151314]/80 p-1 rounded-2xl border border-white/5 gap-1">
+                <button 
+                  type="button"
+                  onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
+                  className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
+                    loginMethod === 'phone' 
+                      ? 'bg-[#282526] text-white shadow-sm border border-white/10' 
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Phone className="w-3 h-3 text-[#E0FF33] shrink-0" />
+                  <span className="truncate">Mobile Number</span>
+                </button>
 
-              <button 
-                type="button"
-                onClick={() => { setLoginMethod('email'); setError(''); setSuccessMsg(''); }}
-                className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
-                  loginMethod === 'email' 
-                    ? 'bg-[#282526] text-white shadow-sm border border-white/10' 
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                <Mail className="w-3 h-3 text-cyan-400 shrink-0" />
-                <span className="truncate">Email & Password</span>
-              </button>
-            </div>
+                <button 
+                  type="button"
+                  onClick={() => { setLoginMethod('email'); setError(''); setSuccessMsg(''); }}
+                  className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
+                    loginMethod === 'email' 
+                      ? 'bg-[#282526] text-white shadow-sm border border-white/10' 
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <Mail className="w-3 h-3 text-cyan-400 shrink-0" />
+                  <span className="truncate">Email & Password</span>
+                </button>
+              </div>
+            )}
 
-            {/* METHOD 1: QUICK PHONE LOOKUP */}
-            {loginMethod === 'phone' && (
+            {/* STEP PROGRESS INDICATOR FOR REGISTRATION */}
+            {isSignup && (
+              <div className="flex items-center justify-between px-3 py-2 bg-[#151314] rounded-2xl border border-white/5 animate-fade-in">
+                <div className="flex items-center gap-2">
+                  {[
+                    { step: 1, label: 'Identity' },
+                    { step: 2, label: 'Security' },
+                    { step: 3, label: 'Delivery' }
+                  ].map((s, idx) => (
+                    <div key={s.step} className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (s.step < signupStep) setSignupStep(s.step);
+                        }}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-['Outfit'] transition-all ${
+                          signupStep === s.step
+                            ? 'bg-[#E0FF33] text-black shadow-md scale-105'
+                            : signupStep > s.step
+                              ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 cursor-pointer'
+                              : 'bg-white/5 text-zinc-500 border border-white/5'
+                        }`}
+                      >
+                        {signupStep > s.step ? '✓' : s.step}
+                      </button>
+                      <span className={`text-[11px] font-bold ${
+                        signupStep === s.step ? 'text-white' : 'text-zinc-500'
+                      }`}>
+                        {s.label}
+                      </span>
+                      {idx < 2 && (
+                        <div className={`w-3 sm:w-5 h-0.5 rounded-full ${
+                          signupStep > s.step ? 'bg-[#E0FF33]/60' : 'bg-white/10'
+                        }`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-[10px] font-black text-[#E0FF33] font-mono">
+                  {signupStep}/3
+                </span>
+              </div>
+            )}
+
+            {/* METHOD 1: QUICK PHONE LOOKUP (LOGIN ONLY) */}
+            {!isSignup && loginMethod === 'phone' && (
               <form onSubmit={handlePhoneSubmit} className="space-y-3 pt-0.5">
                 <div className="space-y-1.5">
                   <div className="flex items-center bg-[#151314] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
@@ -637,154 +724,279 @@ export default function AuthModal({ isOpen, onClose }) {
               </form>
             )}
 
-            {/* METHOD 2: EMAIL & PASSWORD */}
-            {loginMethod === 'email' && (
+            {/* METHOD 2: EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */}
+            {(isSignup || loginMethod === 'email') && (
               <form onSubmit={handleEmailSubmit} className="space-y-3 pt-0.5">
 
-                {/* ── SIGNUP: Identity Section ── */}
-                {isSignup && (
-                  <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2.5">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block px-0.5">
-                      Your Identity
-                    </span>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input 
-                        type="text" 
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="Full Name"
-                        required
-                        className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
-                      />
+                {/* ── STEP 1: IDENTITY ── */}
+                {isSignup && signupStep === 1 && (
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                        Personal Details
+                      </span>
+                      <span className="text-[10px] text-[#E0FF33] font-bold">Step 1 of 3</span>
                     </div>
-                    <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-0.5">
-                      <Phone className="w-4 h-4 text-zinc-500 shrink-0 mr-2" />
-                      <span className="text-[11px] font-black text-[#E0FF33] pr-2 border-r border-white/10 select-none font-['Outfit']">+91</span>
-                      <input 
-                        type="tel" 
-                        value={signupPhone}
-                        onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, ''))}
-                        placeholder="10-digit mobile"
-                        maxLength={10}
-                        className="flex-1 bg-transparent pl-2 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none font-['Plus_Jakarta_Sans']"
-                      />
-                    </div>
-                  </div>
-                )}
 
-                {/* ── Credentials Section ── */}
-                <div className={`${isSignup ? 'p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2.5' : 'space-y-2.5'}`}>
-                  {isSignup && (
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block px-0.5">
-                      Login Credentials
-                    </span>
-                  )}
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={isSignup ? "Email Address" : "Email Address (e.g. user@example.com)"}
-                      required
-                      className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={isSignup ? "Create Password (min 6 chars)" : "Password"}
-                      required
-                      className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
-                    />
-                  </div>
-                </div>
+                    <div className="space-y-2.5">
+                      <div className="relative">
+                        <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input 
+                          type="text" 
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          placeholder="Full Name (e.g. Radhe Shyam)"
+                          required
+                          autoFocus
+                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                        />
+                      </div>
 
-                {/* ── SIGNUP: Delivery Section ── */}
-                {isSignup && (
-                  <div className="p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2.5">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block px-0.5">
-                      Default Delivery
-                    </span>
-                    <div className="relative">
-                      <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input 
-                        type="text" 
-                        value={signupAddress}
-                        onChange={(e) => setSignupAddress(e.target.value)}
-                        placeholder="Address (e.g. Near ISKCON Temple, Raman Reti)"
-                        className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
-                      />
+                      <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
+                        <Phone className="w-4 h-4 text-zinc-500 shrink-0 mr-2" />
+                        <span className="text-xs font-black text-[#E0FF33] pr-2.5 border-r border-white/10 select-none font-['Outfit']">+91</span>
+                        <input 
+                          type="tel" 
+                          value={signupPhone}
+                          onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, ''))}
+                          placeholder="10-digit mobile number"
+                          maxLength={10}
+                          required
+                          className="flex-1 bg-transparent pl-2 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none font-['Plus_Jakarta_Sans'] font-medium"
+                        />
+                      </div>
                     </div>
-                    <p className="text-[10px] text-zinc-500 px-1 font-medium leading-relaxed">
-                      We'll also use your GPS for precise delivery. You can change this later.
+
+                    <p className="text-[11px] text-zinc-500 leading-relaxed px-0.5">
+                      Used for live delivery notifications and SMS order updates.
                     </p>
                   </div>
                 )}
 
-                {/* ── CTA ── */}
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target"
-                >
-                  <span>{loading ? 'Authenticating...' : (isSignup ? 'Create Account' : 'Sign In')}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                {/* ── STEP 2: CREDENTIALS ── */}
+                {isSignup && signupStep === 2 && (
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                        Account Security
+                      </span>
+                      <span className="text-[10px] text-[#E0FF33] font-bold">Step 2 of 3</span>
+                    </div>
 
+                    <div className="space-y-2.5">
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input 
+                          type="email" 
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Email Address (e.g. user@example.com)"
+                          required
+                          autoFocus
+                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input 
+                          type="password" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Create Password (min 6 chars)"
+                          required
+                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-medium flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Secured with 256-bit Supabase Cloud encryption.</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 3: DELIVERY LOCATION ── */}
+                {isSignup && signupStep === 3 && (
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                        Default Delivery
+                      </span>
+                      <span className="text-[10px] text-[#E0FF33] font-bold">Step 3 of 3</span>
+                    </div>
+
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-[#E0FF33] absolute left-3.5 top-3.5" />
+                      <textarea 
+                        rows={2}
+                        value={signupAddress}
+                        onChange={(e) => setSignupAddress(e.target.value)}
+                        placeholder="Delivery Address (e.g. Flat 204, Near ISKCON Temple, Raman Reti)"
+                        className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
+                      />
+                    </div>
+
+                    {/* Quick Vrinda Landmark Chips */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">
+                        Quick Vrindavan Landmarks
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          'Near ISKCON Temple, Raman Reti',
+                          'Prem Mandir Road',
+                          'Bankey Bihari Parikrama Marg',
+                          'Chhatikara Road, Vrindavan'
+                        ].map((loc) => (
+                          <button
+                            key={loc}
+                            type="button"
+                            onClick={() => setSignupAddress(loc)}
+                            className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-[#E0FF33]/15 hover:text-[#E0FF33] border border-white/5 hover:border-[#E0FF33]/30 text-[10px] font-semibold text-zinc-300 transition-all cursor-pointer"
+                          >
+                            + {loc}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Registration Summary Card */}
+                    <div className="p-3 rounded-2xl bg-[#1E1B1C] border border-white/10 space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-400">Name:</span>
+                        <span className="font-bold text-white font-['Outfit']">{displayName}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-400">Mobile:</span>
+                        <span className="font-bold text-[#E0FF33] font-['Outfit']">+91 {signupPhone}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-400">Email:</span>
+                        <span className="font-medium text-zinc-300 truncate max-w-[200px]">{email}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STANDARD LOGIN FORM (WHEN NOT SIGNING UP) ── */}
+                {!isSignup && (
+                  <div className="space-y-2.5">
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email Address (e.g. user@example.com)"
+                        required
+                        className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input 
+                        type="password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        required
+                        className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── NAVIGATION & CTA BUTTONS ── */}
+                <div className="flex items-center gap-2 pt-1">
+                  {isSignup && signupStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className="py-3.5 px-4 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
+                    </button>
+                  )}
+
+                  <button 
+                    type={isSignup && signupStep < 3 ? "button" : "submit"}
+                    onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
+                    disabled={loading}
+                    className="flex-1 py-3.5 px-6 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target"
+                  >
+                    <span>
+                      {loading 
+                        ? 'Creating Account...' 
+                        : isSignup 
+                          ? (signupStep === 3 ? 'Complete Registration' : `Continue to Step ${signupStep + 1}`) 
+                          : 'Sign In'}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Switch between Log In and Sign Up */}
                 <div className="text-center pt-0.5">
                   <button 
                     type="button"
-                    onClick={() => { setIsSignup(!isSignup); setError(''); }}
+                    onClick={() => { 
+                      setIsSignup(!isSignup); 
+                      setSignupStep(1); 
+                      setError(''); 
+                      setSuccessMsg(''); 
+                    }}
                     className="text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    {isSignup ? 'Already have an account? ' : "Don't have an account? "}
-                    <span className="text-[#E0FF33] font-bold underline ml-1">{isSignup ? 'Log In' : 'Sign Up Free'}</span>
+                    {isSignup ? 'Already registered? ' : "Don't have an account? "}
+                    <span className="text-[#E0FF33] font-bold underline ml-1">
+                      {isSignup ? 'Log In Instead' : 'Register in 3 Steps'}
+                    </span>
                   </button>
                 </div>
               </form>
             )}
 
-            {/* Google Sign-In Option */}
-            <div className="pt-2 border-t border-white/5 space-y-2">
-              <button 
-                type="button" 
-                onClick={handleGoogleSignIn}
-                className="w-full py-3 px-4 rounded-full bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white border border-white/10 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.98] cursor-pointer apple-tap-target"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 48 48">
-                  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
-                  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
-                  <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
-                  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.49 44 30.65 44 24c0-1.341-.138-2.65-.389-3.917z" />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-
-              {/* Staff / Operations Login Toggle */}
-              <div className="text-center pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowStaffSignIn(!showStaffSignIn);
-                    if (!showStaffSignIn) {
-                      setSelectedDesk('kitchen');
-                    } else {
-                      setSelectedDesk('customer');
-                      setLoginMethod('phone');
-                    }
-                  }}
-                  className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            {/* Google Sign-In Option (When logging in) */}
+            {!isSignup && (
+              <div className="pt-2 border-t border-white/5 space-y-2">
+                <button 
+                  type="button" 
+                  onClick={handleGoogleSignIn}
+                  className="w-full py-3 px-4 rounded-full bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white border border-white/10 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-[0.98] cursor-pointer apple-tap-target"
                 >
-                  <ShieldCheck className="w-3 h-3 text-zinc-500" />
-                  <span>{showStaffSignIn ? 'Switch to Customer Sign In' : 'Kitchen, Rider & Staff Portal Access'}</span>
+                  <svg className="w-4 h-4" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+                    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
+                    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+                    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.49 44 30.65 44 24c0-1.341-.138-2.65-.389-3.917z" />
+                  </svg>
+                  <span>Continue with Google</span>
                 </button>
+
+                {/* Staff / Operations Login Toggle */}
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowStaffSignIn(!showStaffSignIn);
+                      if (!showStaffSignIn) {
+                        setSelectedDesk('kitchen');
+                      } else {
+                        setSelectedDesk('customer');
+                        setLoginMethod('phone');
+                      }
+                    }}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3 h-3 text-zinc-500" />
+                    <span>{showStaffSignIn ? 'Switch to Customer Sign In' : 'Kitchen, Rider & Staff Portal Access'}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
