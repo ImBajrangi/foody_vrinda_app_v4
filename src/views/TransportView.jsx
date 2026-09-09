@@ -43,7 +43,19 @@ export default function TransportView() {
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' (default) | 'map'
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('foody_transport_view_mode') || 'list';
+    } catch (e) {
+      return 'list';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('foody_transport_view_mode', viewMode);
+    } catch (e) {}
+  }, [viewMode]);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
 

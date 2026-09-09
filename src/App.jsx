@@ -20,9 +20,13 @@ export default function App() {
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
 
-  // Navigation tab (instantly hydrated to user's authorized role view)
+  // Navigation tab (instantly hydrated to user's saved tab or authorized role view)
   const [currentTab, setCurrentTab] = useState(() => {
     try {
+      const savedTab = localStorage.getItem('foody_active_tab');
+      if (savedTab && ['customer', 'kitchen', 'delivery', 'owner', 'developer'].includes(savedTab)) {
+        return savedTab;
+      }
       const saved = localStorage.getItem('foody_user_data');
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -35,6 +39,15 @@ export default function App() {
     return 'customer';
   });
 
+  // Persist active tab across browser reloads
+  useEffect(() => {
+    if (currentTab) {
+      try {
+        localStorage.setItem('foody_active_tab', currentTab);
+      } catch (e) {}
+    }
+  }, [currentTab]);
+
   // Modals Visibility
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -42,25 +55,33 @@ export default function App() {
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [isEmergencyDevOpen, setIsEmergencyDevOpen] = useState(false);
 
-  // Active Customer Tracking Order ID
-  const [trackingOrderId, setTrackingOrderId] = useState(null);
+  // Active Customer Tracking Order ID (persisted across reloads)
+  const [trackingOrderId, setTrackingOrderId] = useState(() => {
+    try {
+      return localStorage.getItem('foody_active_tracking_id') || null;
+    } catch (e) {
+      return null;
+    }
+  });
 
-  // Sync tab with user's role on load or role change
   useEffect(() => {
-    if (userRole === 'grand_admin' || userRole === 'developer') {
-      setCurrentTab('developer');
-    } else if (['kitchen', 'owner'].includes(userRole)) {
-      if (userRole === 'owner' && !isAuthorizedAdmin) {
-        setCurrentTab('customer');
+    try {
+      if (trackingOrderId) {
+        localStorage.setItem('foody_active_tracking_id', trackingOrderId);
       } else {
-        setCurrentTab(userRole);
+        localStorage.removeItem('foody_active_tracking_id');
       }
-    } else if (userRole === 'delivery') {
-      setCurrentTab('delivery');
-    } else {
+    } catch (e) {}
+  }, [trackingOrderId]);
+
+  // Sanitize privileged views if user loses permissions, without disrupting active storefront browsing
+  useEffect(() => {
+    if (currentTab === 'owner' && !isAuthorizedAdmin) {
+      setCurrentTab('customer');
+    } else if (currentTab === 'developer' && !isAuthorizedDeveloper) {
       setCurrentTab('customer');
     }
-  }, [userRole, isAuthorizedAdmin, isAuthorizedDeveloper]);
+  }, [currentTab, isAuthorizedAdmin, isAuthorizedDeveloper]);
 
   // Global Ctrl+K (search) & Ctrl+Shift+D (Emergency Dev Console) hotkeys
   useEffect(() => {

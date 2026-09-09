@@ -4,8 +4,35 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([]);
-  const [selectedShopId, setSelectedShopId] = useState(null);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [selectedShopId, setSelectedShopId] = useState(() => {
+    try {
+      return localStorage.getItem('foody_cart_shop_id') || null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Sync cart & shop ID to localStorage to prevent refresh wipe
+  useEffect(() => {
+    try {
+      localStorage.setItem('foody_user_cart', JSON.stringify(cart));
+      if (selectedShopId) {
+        localStorage.setItem('foody_cart_shop_id', selectedShopId);
+      } else {
+        localStorage.removeItem('foody_cart_shop_id');
+      }
+    } catch (e) {}
+  }, [cart, selectedShopId]);
+
   const [paymentSettings, setPaymentSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_payment_config');
