@@ -142,75 +142,104 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     const group = L.featureGroup();
 
-    // 1. Origin Kitchen Pin (Clean Iconic Token - Zero Permanent Overlay Collisions)
+    // 2. Origin Kitchen Pin (Uber-style Kitchen Hub)
     const shortShopName = (shop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const originIcon = L.divIcon({
       className: 'custom-kitchen-pin',
       html: `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; width: 34px; height: 42px;">
           <div style="
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             background: #181617;
             border: 2.5px solid #E0FF33;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(224,255,51,0.25);
             cursor: pointer;
           ">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
               <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
               <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
               <path d="M2 7h20"/>
             </svg>
           </div>
-          <div style="width: 2px; height: 6px; background: #181617;"></div>
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid #181617;
+            margin-top: -1px;
+          "></div>
+          <div style="
+            width: 5px;
+            height: 5px;
+            background: #E0FF33;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #E0FF33;
+            margin-top: 1px;
+          "></div>
         </div>
       `,
-      iconSize: [32, 38],
-      iconAnchor: [16, 38]
+      iconSize: [34, 42],
+      iconAnchor: [17, 42]
     });
-    const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 200 });
-    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -32] });
+    const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 300 });
+    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -36] });
     storeMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       storeMarker.toggleTooltip();
     });
     group.addLayer(storeMarker);
 
-    // 3. Destination Pin (Clean Iconic Home Token - Zero Permanent Overlay Collisions)
+    // 3. Destination Pin (Uber-style Seamless Drop-off Hub)
     const destIcon = L.divIcon({
       className: 'custom-home-pin',
       html: `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 38px;">
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; width: 34px; height: 42px;">
           <div style="
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             background: #FFFFFF;
             border: 2.5px solid #181617;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.15);
             cursor: pointer;
           ">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </div>
-          <div style="width: 2px; height: 6px; background: #181617;"></div>
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid #181617;
+            margin-top: -1px;
+          "></div>
+          <div style="
+            width: 5px;
+            height: 5px;
+            background: #181617;
+            border-radius: 50%;
+            margin-top: 1px;
+          "></div>
         </div>
       `,
-      iconSize: [32, 38],
-      iconAnchor: [16, 38]
+      iconSize: [34, 42],
+      iconAnchor: [17, 42]
     });
-    const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 200 });
-    destMarker.bindTooltip('Drop-off (You)', { permanent: false, direction: 'top', offset: [0, -32] });
+    const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 400 });
+    destMarker.bindTooltip('Drop-off (Your Location)', { permanent: false, direction: 'top', offset: [0, -36] });
     destMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       destMarker.toggleTooltip();
@@ -218,7 +247,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     group.addLayer(destMarker);
 
     // 4. Live Rider Pin (Modern Navigational Vehicle Puck)
-    // ONLY display when order is actively in transit AND system/software has assigned rider info
     const assignedRiderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.rider?.name;
     const hasLiveRiderInfo = (status === 'out_for_delivery') && Boolean(assignedRiderName || currentOrder?.rider_phone || currentOrder?.riderPhone || currentOrder?.rider_id);
 
@@ -227,20 +255,20 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       const riderIcon = L.divIcon({
         className: 'custom-rider-pin',
         html: `
-          <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
             <div style="
-              width: 34px;
-              height: 34px;
+              width: 36px;
+              height: 36px;
               background: #181617;
               border: 2px solid #E0FF33;
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
-              box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 14px rgba(224,255,51,0.3);
+              box-shadow: 0 6px 20px rgba(0,0,0,0.65), 0 0 16px rgba(224,255,51,0.4);
               cursor: pointer;
             ">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="18.5" cy="17.5" r="2.5"></circle>
                 <circle cx="5.5" cy="17.5" r="2.5"></circle>
                 <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
@@ -250,8 +278,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             </div>
           </div>
         `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
       });
 
       const initialRiderPos = [midLat, midLng];
@@ -264,7 +292,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Route lines (Animated Flowing Moving Laser Dots)
+    // 5. Continuous Route Polyline (Zero Gap Delivery Corridor)
     let currentRouteCoords = [
       [shopLat, shopLng],
       [midLat, midLng],
@@ -281,7 +309,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     group.addLayer(roadCasing);
 
     const baseSolidLine = L.polyline(currentRouteCoords, {
-      color: '#0F172A',
+      color: '#181617',
       weight: 4,
       opacity: 0.95,
       lineCap: 'round',
@@ -302,7 +330,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     let animInterval = null;
 
-    // Fetch OSRM route
+    // Fetch OSRM route and guarantee full connection into shopLat/shopLng and destLat/destLng
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
@@ -310,7 +338,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           const routeObj = data.routes[0];
           const rawLatLngs = routeObj.geometry.coordinates.map(c => [c[1], c[0]]);
 
-          if (rawLatLngs.length > 1) {
+          if (rawLatLngs.length > 0) {
             const distM = routeObj.distance;
             const durS = routeObj.duration;
             setRealDistance(distM < 1000 ? `${Math.round(distM)}m` : `${(distM / 1000).toFixed(1)}km`);
@@ -319,6 +347,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               setRoadSummary(routeObj.legs[0].summary);
             }
 
+            // Ensure route starts at origin pin and strictly terminates directly under destination pin
             const latLngs = [
               [shopLat, shopLng],
               ...rawLatLngs,
