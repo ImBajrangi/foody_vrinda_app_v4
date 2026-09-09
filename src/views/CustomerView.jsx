@@ -569,7 +569,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             sessionOrders.push(cloudOrder.id);
             localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
           }
-        } catch (e) {}
+        } catch (e) { }
 
         showToast("Order Placed!", 'success', 'Cash on Delivery');
         clearCart();
@@ -607,7 +607,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 sessionOrders.push(cloudOrder.id);
                 localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
               }
-            } catch (e) {}
+            } catch (e) { }
 
             showToast("Order Placed!", 'success', 'Payment confirmed');
             clearCart();
@@ -646,7 +646,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             sessionOrders.push(cloudOrder.id);
             localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
           }
-        } catch (e) {}
+        } catch (e) { }
 
         showToast("Order Placed!", 'success', 'Online Pay Confirmed');
         clearCart();
@@ -836,9 +836,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {/* Dynamic Shops Popover (Overlay Standard with Backdrop & Apple Spring Animation) */}
         {showShopSwitcher && allShops.length > 1 && (
           <>
-            <div 
-              className="fixed inset-0 z-40 bg-black/40 transition-opacity" 
-              onClick={handleCloseShopSwitcher} 
+            <div
+              className="fixed inset-0 z-40 bg-black/40 transition-opacity"
+              onClick={handleCloseShopSwitcher}
             />
             <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
               <div className="flex justify-between items-center mb-3.5">
@@ -883,11 +883,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       {/* 1 & 2. HERO HEADLINE & INTEGRATED SEARCH BAR (Responsive Desktop & Mobile) */}
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20 font-['Outfit']">
+              vrindopnishad · Satvik Kitchen
+            </span>
+          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-['Outfit']">
-            Your <span className="text-[#E0FF33]">Foody</span>Smile
+            vrindopnishad <span className="text-[#E0FF33]">Foody Vrinda</span>
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-medium tracking-wide">
-            100% Satvik · Pure Desi Ghee · Divine Vedic Flavors
+            100% Satvik · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
           </p>
         </div>
 
@@ -1118,8 +1123,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       {/* Brand Footer with Privacy Policy, Terms, and Contact Links */}
       <footer className="w-full mt-16 mb-24 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
         <div className="flex items-center gap-2">
-          <img src="/app-icon.png" alt="FoodyVrinda" className="w-5 h-5 rounded-full object-cover" />
-          <span className="font-black text-white text-sm font-['Outfit'] tracking-tight">Foody Vrinda (FoodyVrinda)</span>
+          <img src="/app-icon.png" alt="vrindopnishad" className="w-5 h-5 rounded-full object-cover" />
+          <span className="font-black text-white text-sm font-['Outfit'] tracking-tight">vrindopnishad (Foody Vrinda)</span>
         </div>
         <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[320px]">
           100% Satvik Cloud Kitchen & Divine Prasad Delivery in Vrindavan Dham.
@@ -1133,12 +1138,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             Terms of Service
           </a>
           <span>•</span>
-          <a href="https://wa.me/919870152058?text=Hello%20Foody%20Vrinda" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors">
+          <a href="https://wa.me/919870152058?text=Hello%20vrindopnishad" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors">
             Support
           </a>
         </div>
         <div className="text-[10px] text-zinc-600 pt-1">
-          © 2026 FoodyVrinda. All rights reserved.
+          © 2026 vrindopnishad (Foody Vrinda). All rights reserved.
         </div>
       </footer>
 
@@ -1739,10 +1744,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     disabled={!onlineAvailable}
                     onClick={() => setPaymentMethod('online')}
                     className={`p-3 rounded-2xl border text-xs font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all apple-tap-target ${!onlineAvailable
-                        ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
-                        : paymentMethod === 'online'
-                          ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
-                          : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
+                      ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
+                      : paymentMethod === 'online'
+                        ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
+                        : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
                       }`}
                   >
                     <div className="flex items-center gap-1.5">
@@ -1761,10 +1766,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     disabled={!codAvailable}
                     onClick={() => setPaymentMethod('cash')}
                     className={`p-3 rounded-2xl border text-xs font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all apple-tap-target ${!codAvailable
-                        ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
-                        : paymentMethod === 'cash'
-                          ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
-                          : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
+                      ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
+                      : paymentMethod === 'cash'
+                        ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
+                        : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
                       }`}
                   >
                     <div className="flex items-center gap-1.5">

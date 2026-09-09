@@ -1,7 +1,7 @@
 {
-  "name": "Foody Vrinda (FoodyVrinda)",
-  "short_name": "FoodyVrinda",
-  "description": "Authentic Satvik Cloud Kitchen delivering pure vegetarian meals prepared with devotion.",
+  "name": "vrindopnishad (Foody Vrinda)",
+  "short_name": "vrindopnishad",
+  "description": "vrindopnishad - Authentic Satvik Cloud Kitchen delivering pure vegetarian meals prepared with devotion in Vrindavan Dham.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1E1B1C",

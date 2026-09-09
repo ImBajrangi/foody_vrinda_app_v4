@@ -57,10 +57,15 @@ export default function Header({
           </button>
           
           <div className="min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#E0FF33] font-['Outfit']">
+                vrindopnishad
+              </span>
+            </div>
             <h2 className="text-white font-black text-base sm:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
               Hi, {getDisplayName()}
             </h2>
-            <p className="text-xs text-zinc-400 font-medium truncate">Welcome Back!</p>
+            <p className="text-xs text-zinc-400 font-medium truncate">Welcome to Foody Vrinda</p>
           </div>
         </div>
 
