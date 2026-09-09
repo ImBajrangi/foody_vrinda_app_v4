@@ -800,38 +800,38 @@ export default function TransportView() {
                 );
               })()}
 
-              {/* Action Buttons */}
-              <div className="space-y-2 pt-1">
-                {activeOrder.deliveryCoordinates?.lat && (
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full py-3 px-4 rounded-2xl bg-[#1E1B1C] hover:bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
-                  >
-                    <Compass className="w-4 h-4 text-[#E0FF33]" />
-                    <span>Open Live GPS in Google Maps</span>
-                  </a>
-                )}
+                {/* Action Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  {activeOrder.deliveryCoordinates?.lat && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full py-3.5 px-4 rounded-2xl bg-[#1E1B1C] hover:bg-[#252122] border border-white/20 hover:border-[#E0FF33]/70 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_14px_rgba(0,0,0,0.4)] hover:shadow-[0_0_16px_rgba(224,255,51,0.25)] active:scale-[0.98]"
+                    >
+                      <Compass className="w-4 h-4 text-[#E0FF33]" />
+                      <span>Open Live GPS in Google Maps</span>
+                    </a>
+                  )}
 
-                {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
-                  <button 
-                    onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
-                  >
-                    <span>Pick Up & Start Delivery</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.3)] active:scale-[0.98] cursor-pointer font-['Outfit']"
-                  >
-                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>Mark Delivered & Reconcile Cash</span>
-                  </button>
-                )}
-              </div>
+                  {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
+                    <button 
+                      onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
+                      className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[#E0FF33] to-[#CCFF00] hover:from-[#EAFF66] hover:to-[#CCFF00] text-[#151314] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_24px_rgba(224,255,51,0.45)] hover:shadow-[0_6px_30px_rgba(224,255,51,0.65)] active:scale-[0.98] cursor-pointer font-['Outfit']"
+                    >
+                      <span>Pick Up & Start Delivery</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
+                      className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[#10B981] via-[#059669] to-[#047857] hover:from-[#34D399] hover:to-[#059669] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_24px_rgba(16,185,129,0.5)] hover:shadow-[0_6px_30px_rgba(16,185,129,0.7)] active:scale-[0.98] cursor-pointer font-['Outfit']"
+                    >
+                      <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+                      <span>Mark Delivered & Reconcile Cash</span>
+                    </button>
+                  )}
+                </div>
             </div>
 
             {/* Other Active Deliveries Queue (Directly in Sidebar) */}
@@ -915,67 +915,67 @@ export default function TransportView() {
                     key={order.id}
                     className="bg-[#282526] border border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isReady ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 ${isReady ? 'bg-gradient-to-r from-amber-400 to-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.6)]' : 'bg-gradient-to-r from-cyan-400 to-blue-400 shadow-[0_0_12px_rgba(34,211,238,0.6)]'}`} />
 
                     <div>
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
-                          <span className="text-sm font-black text-white font-['Outfit']">
+                          <span className="text-base font-black text-white font-['Outfit'] tracking-wide">
                             #{order.id.slice(-6).toUpperCase()}
                           </span>
-                          <p className="text-xs font-semibold text-neutral-400 flex items-center gap-1 mt-0.5">
-                            <Store className="w-3 h-3 text-neutral-500" />
+                          <p className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5 mt-0.5">
+                            <Store className="w-3.5 h-3.5 text-[#E0FF33]" />
                             <span>{shopName}</span>
                           </p>
                         </div>
 
-                        <span className={`px-2.5 py-1 text-[10px] font-black rounded-full uppercase tracking-wider ${
+                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider ${
                           isReady 
-                            ? 'bg-amber-400/10 text-amber-300 border border-amber-400/20' 
-                            : 'bg-cyan-400/10 text-cyan-300 border border-cyan-400/20'
+                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40 shadow-[0_0_12px_rgba(251,191,36,0.2)]' 
+                            : 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(34,211,238,0.2)]'
                         }`}>
                           {isReady ? 'Ready for Pickup' : 'In Transit'}
                         </span>
                       </div>
 
-                      <div className="bg-[#1E1B1C] border border-white/5 rounded-2xl p-3.5 space-y-2 text-xs text-neutral-300 font-['Plus_Jakarta_Sans']">
+                      <div className="bg-[#1E1B1C] border border-white/10 rounded-2xl p-3.5 space-y-2.5 text-xs text-neutral-200 font-['Plus_Jakarta_Sans'] shadow-inner">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-white">{order.customerName || 'Customer'}</span>
+                          <span className="font-bold text-white text-sm">{order.customerName || 'Customer'}</span>
                           {order.customerPhone && (
-                            <a href={`tel:${order.customerPhone}`} className="text-[#E0FF33] font-bold text-xs hover:underline flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
+                            <a href={`tel:${order.customerPhone}`} className="text-[#E0FF33] bg-[#E0FF33]/15 hover:bg-[#E0FF33]/25 px-2.5 py-1 rounded-xl border border-[#E0FF33]/30 font-black text-xs hover:underline flex items-center gap-1.5 shadow-[0_0_8px_rgba(224,255,51,0.15)] transition-all">
+                              <Phone className="w-3.5 h-3.5" />
                               <span>{order.customerPhone}</span>
                             </a>
                           )}
                         </div>
 
-                        <div className="flex items-start gap-1.5 text-neutral-400">
-                          <MapPin className="w-3.5 h-3.5 text-neutral-500 shrink-0 mt-0.5" />
-                          <p className="text-xs text-neutral-300 line-clamp-2">{order.customerAddress || order.deliveryAddress || 'No address provided'}</p>
+                        <div className="flex items-start gap-2 text-neutral-300">
+                          <MapPin className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
+                          <p className="text-xs text-neutral-200 font-medium line-clamp-2 leading-relaxed">{order.customerAddress || order.deliveryAddress || 'No address provided'}</p>
                         </div>
 
-                        <div className="pt-1 flex items-center justify-between border-t border-white/5">
-                          <span className="text-[11px] text-neutral-400">Payment:</span>
+                        <div className="pt-2 flex items-center justify-between border-t border-white/10">
+                          <span className="text-xs font-semibold text-neutral-400">Payment:</span>
                           {(() => {
                             const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
                             const isCash = rawMethod === 'cash' || rawMethod === 'cod';
                             const isCollected = order.cash_status === 'collected' || order.cashStatus === 'collected' || order.cash_collected || order.cashCollected;
                             if (!isCash) {
                               return (
-                                <span className="px-2 py-0.5 rounded-lg bg-emerald-400/20 text-emerald-300 font-bold text-[10px]">
+                                <span className="px-2.5 py-1 rounded-lg bg-emerald-400/25 text-emerald-300 border border-emerald-400/40 font-extrabold text-[10px] shadow-[0_0_10px_rgba(52,211,153,0.2)] tracking-wide">
                                   PAID ONLINE
                                 </span>
                               );
                             }
                             if (isCollected) {
                               return (
-                                <span className="px-2 py-0.5 rounded-lg bg-emerald-400/20 text-emerald-300 font-bold text-[10px]">
+                                <span className="px-2.5 py-1 rounded-lg bg-emerald-400/25 text-emerald-300 border border-emerald-400/40 font-extrabold text-[10px] shadow-[0_0_10px_rgba(52,211,153,0.2)] tracking-wide">
                                   CASH COLLECTED
                                 </span>
                               );
                             }
                             return (
-                              <span className="px-2 py-0.5 rounded-lg bg-amber-400/20 text-amber-300 font-extrabold text-[10px]">
+                              <span className="px-2.5 py-1 rounded-lg bg-amber-400/25 text-amber-300 border border-amber-400/40 font-black text-[10px] shadow-[0_0_10px_rgba(251,191,36,0.2)] tracking-wide">
                                 CASH DUE: ₹{order.totalAmount || order.total_amount || 0}
                               </span>
                             );
@@ -984,13 +984,13 @@ export default function TransportView() {
                       </div>
                     </div>
 
-                    <div className="pt-2 flex gap-2">
+                    <div className="pt-2 flex gap-2.5">
                       <button 
                         onClick={() => {
                           setSelectedOrder(order);
                           setViewMode('map');
                         }}
-                        className="flex-1 py-3 px-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all border border-white/10"
+                        className="flex-1 py-3.5 px-3 rounded-2xl bg-[#1E1B1C] hover:bg-[#252122] active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-white/20 hover:border-[#E0FF33]/70 shadow-[0_4px_14px_rgba(0,0,0,0.4)] hover:shadow-[0_0_16px_rgba(224,255,51,0.25)]"
                       >
                         <Map className="w-4 h-4 text-[#E0FF33]" />
                         <span>Map View</span>
@@ -999,7 +999,7 @@ export default function TransportView() {
                       {isReady ? (
                         <button 
                           onClick={() => handleStartDelivery(order.id, order)}
-                          className="flex-1 py-3 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
+                          className="flex-1 py-3.5 px-3 rounded-2xl bg-gradient-to-r from-[#E0FF33] to-[#CCFF00] hover:from-[#EAFF66] hover:to-[#CCFF00] active:scale-95 text-[#151314] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.45)] hover:shadow-[0_6px_26px_rgba(224,255,51,0.65)]"
                         >
                           <span>Start Ride</span>
                           <ArrowRight className="w-4 h-4" />
@@ -1007,9 +1007,9 @@ export default function TransportView() {
                       ) : (
                         <button 
                           onClick={() => handleCompleteDelivery(order.id, order)}
-                          className="flex-1 py-3 px-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95"
+                          className="flex-1 py-3.5 px-3 rounded-2xl bg-gradient-to-r from-[#10B981] via-[#059669] to-[#047857] hover:from-[#34D399] hover:to-[#059669] active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.45)] hover:shadow-[0_6px_26px_rgba(16,185,129,0.65)]"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-4 h-4 stroke-[3]" />
                           <span>Delivered</span>
                         </button>
                       )}
