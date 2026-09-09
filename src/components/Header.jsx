@@ -33,7 +33,9 @@ export default function Header({
     return 'Guest';
   };
 
-  const userAvatar = user?.photoURL || 
+  const [headerAvatarError, setHeaderAvatarError] = useState(false);
+
+  const rawUserAvatar = user?.photoURL || 
     userData?.photoURL || 
     userData?.avatar_url || 
     userData?.picture || 
@@ -42,6 +44,10 @@ export default function Header({
     user?.user_metadata?.photoURL || 
     user?.identities?.[0]?.identity_data?.avatar_url || 
     user?.identities?.[0]?.identity_data?.picture || null;
+
+  const userAvatar = (!headerAvatarError && rawUserAvatar && typeof rawUserAvatar === 'string' && rawUserAvatar.trim().length > 5)
+    ? rawUserAvatar.trim()
+    : null;
 
   const hasStaffOrSpecialRole = isStaff || isAuthorizedAdmin || isAuthorizedDeveloper;
 
@@ -59,24 +65,25 @@ export default function Header({
               <img 
                 src={userAvatar} 
                 alt={getDisplayName()} 
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
                 className="w-full h-full object-cover" 
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
+                onError={() => setHeaderAvatarError(true)}
               />
             ) : (
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80" 
-                alt="Avatar" 
-                className="w-full h-full object-cover" 
-              />
+              <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit']">
+                {getDisplayName().charAt(0).toUpperCase()}
+              </div>
             )}
           </button>
           
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#E0FF33] font-['Outfit']">
-                vrindopnishad
+              <span className="text-[13px] font-bold text-[#E0FF33] font-laila tracking-wide">
+                वृन्दोपनिषद्
+              </span>
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 font-['Outfit']">
+                (vrindopnishad)
               </span>
             </div>
             <h2 className="text-white font-black text-base sm:text-lg tracking-tight leading-tight font-['Outfit'] truncate">

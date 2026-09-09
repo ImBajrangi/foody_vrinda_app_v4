@@ -884,12 +884,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20 font-['Outfit']">
-              vrindopnishad · Satvik Kitchen
+            <span className="text-[11px] sm:text-xs font-bold text-[#E0FF33] bg-[#E0FF33]/10 px-3 py-1 rounded-full border border-[#E0FF33]/20 font-laila flex items-center gap-1.5">
+              <span>वृन्दोपनिषद्</span>
+              <span className="text-[10px] font-bold text-zinc-300 font-['Outfit']">· vrindopnishad</span>
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-['Outfit']">
-            vrindopnishad <span className="text-[#E0FF33]">Foody Vrinda</span>
+            <span className="font-laila font-bold text-white">वृन्दोपनिषद्</span> <span className="text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-medium tracking-wide">
             100% Satvik · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
@@ -1124,7 +1125,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <footer className="w-full mt-16 mb-24 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
         <div className="flex items-center gap-2">
           <img src="/app-icon.png" alt="vrindopnishad" className="w-5 h-5 rounded-full object-cover" />
-          <span className="font-black text-white text-sm font-['Outfit'] tracking-tight">vrindopnishad (Foody Vrinda)</span>
+          <span className="text-white text-base font-laila font-bold tracking-tight">वृन्दोपनिषद्</span>
+          <span className="font-black text-zinc-400 text-xs font-['Outfit']">(vrindopnishad · Foody Vrinda)</span>
         </div>
         <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[320px]">
           100% Satvik Cloud Kitchen & Divine Prasad Delivery in Vrindavan Dham.

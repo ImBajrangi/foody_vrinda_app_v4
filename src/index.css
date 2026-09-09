@@ -40,6 +40,10 @@
     font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
   }
 
+  .font-laila {
+    font-family: 'Laila', serif, 'Outfit', sans-serif !important;
+  }
+
   /* Dark modern input styling */
   input[type="text"], input[type="tel"], input[type="email"], input[type="password"], input[type="search"], select, textarea {
     background: #1C1C20;

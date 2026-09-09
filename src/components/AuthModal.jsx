@@ -127,6 +127,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
   const [showLoginView, setShowLoginView] = useState(false);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   // Sync profile editing inputs when userData changes
   useEffect(() => {
@@ -400,7 +401,7 @@ export default function AuthModal({ isOpen, onClose }) {
         : (isSignup ? getSignupSubtitle() : 'Sign in to track live orders & manage address'))
     : 'Verified Satvik Member • Foody Vrinda';
 
-  const userAvatar = user?.photoURL || 
+  const rawAvatar = user?.photoURL || 
     userData?.photoURL || 
     userData?.avatar_url || 
     userData?.picture || 
@@ -409,6 +410,10 @@ export default function AuthModal({ isOpen, onClose }) {
     user?.user_metadata?.photoURL || 
     user?.identities?.[0]?.identity_data?.avatar_url || 
     user?.identities?.[0]?.identity_data?.picture || null;
+
+  const userAvatar = (!avatarLoadError && rawAvatar && typeof rawAvatar === 'string' && rawAvatar.trim().length > 5) 
+    ? rawAvatar.trim() 
+    : null;
 
   return (
     <div 
@@ -507,10 +512,10 @@ export default function AuthModal({ isOpen, onClose }) {
                       <img 
                         src={userAvatar} 
                         alt="Profile" 
+                        referrerPolicy="no-referrer"
+                        crossOrigin="anonymous"
                         className="w-full h-full object-cover" 
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
+                        onError={() => setAvatarLoadError(true)}
                       />
                     ) : (
                       <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
