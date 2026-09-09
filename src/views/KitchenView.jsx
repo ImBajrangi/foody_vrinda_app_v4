@@ -33,11 +33,12 @@ import {
   Banknote,
   Search,
   Minus,
+  Trash2,
   Store
 } from 'lucide-react';
 
 export default function KitchenView() {
-  const { currentUserShopId, allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { user, currentUserShopId, allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   
   const [orders, setOrders] = useState([]);
@@ -54,7 +55,7 @@ export default function KitchenView() {
   const [itemSearch, setItemSearch] = useState('');
 
   // Audio Alarm hook
-  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm, warmUpAudio, audioUnlocked } = useAudioAlarm();
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -329,13 +330,37 @@ export default function KitchenView() {
           </div>
         </div>
 
-        <button 
-          onClick={handleOpenCreateModal}
-          className="bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm px-5 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target flex-shrink-0"
-        >
-          <Plus size={16} strokeWidth={3} />
-          <span>Create Manual Order</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => {
+              if (isPlaying) {
+                stopAlarm();
+              } else {
+                warmUpAudio();
+                playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'test-kitch-tone' }, true);
+                showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
+              }
+            }}
+            className={`px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+              isPlaying
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                : 'bg-[#1E1B1C] text-neutral-300 border-white/10 hover:text-white hover:border-white/20'
+            }`}
+            title="Test or silence Kitchen Sound Alarm"
+          >
+            {isPlaying ? <VolumeX size={15} className="text-rose-400" /> : <Volume2 size={15} className="text-[#E0FF33]" />}
+            <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
+          </button>
+
+          <button 
+            onClick={handleOpenCreateModal}
+            className="bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm px-5 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target flex-shrink-0"
+          >
+            <Plus size={16} strokeWidth={3} />
+            <span>Create Manual Order</span>
+          </button>
+        </div>
       </div>
 
       {/* BRANCH SELECTOR — Global roles can switch kitchen branches inline */}

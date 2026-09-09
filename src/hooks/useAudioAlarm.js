@@ -130,7 +130,7 @@ export function useAudioAlarm() {
 
   // 1. Synthesize Kitchen Buzzer (Urgent Dual-Tone Pulsing Alarm)
   const synthesizeKitchenTone = useCallback(() => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (!ctx) return;
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -178,7 +178,7 @@ export function useAudioAlarm() {
 
   // 2. Synthesize Delivery Rider Chime (Bright Ascending 3-Tone Pickup Ping)
   const synthesizeDeliveryTone = useCallback(() => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (!ctx) return;
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -216,7 +216,7 @@ export function useAudioAlarm() {
 
   // 3. Synthesize Owner/Admin Luxury Resonant Bell
   const synthesizeOwnerTone = useCallback(() => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (!ctx) return;
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -244,7 +244,7 @@ export function useAudioAlarm() {
 
   // 4. Synthesize Customer Blessing Prasad Bell
   const synthesizeCustomerTone = useCallback(() => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (!ctx) return;
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -285,7 +285,7 @@ export function useAudioAlarm() {
 
   // Trigger Role-Tailored Alarm
   const playRoleAlarm = useCallback((role = 'kitchen', alertInfo = null, loop = true) => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (ctx && ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
     }

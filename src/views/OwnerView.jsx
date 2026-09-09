@@ -91,6 +91,8 @@ import {
   Bike,
   Shield,
   RotateCcw,
+  Volume2,
+  VolumeX,
   ChevronDown,
   ChevronUp,
   Maximize2,
@@ -148,7 +150,7 @@ export default function OwnerView() {
   };
 
   // Audio & Realtime Alert Hook for Owner Management
-  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm, warmUpAudio } = useAudioAlarm();
 
   useFastNotify(currentUserShopId, 'owner', (alertData) => {
     playRoleAlarm('owner', alertData, true);
@@ -782,34 +784,61 @@ export default function OwnerView() {
       <div className="bg-[#282526] border border-white/5 p-6 sm:p-7 rounded-3xl relative overflow-hidden shadow-2xl space-y-4">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+        {/* Top Minimal Bar */}
+        <div className="flex items-center justify-between gap-3 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#E0FF33]">
             <Store className="w-3.5 h-3.5" />
             <span>Store Owner Console</span>
           </div>
 
-          {/* Live Kitchen Status Pill */}
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-xs font-bold text-emerald-400">
+          {/* Sound Alarm Quick Trigger */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isPlaying) {
+                stopAlarm();
+              } else {
+                warmUpAudio();
+                playRoleAlarm('owner', { title: 'TEST ADMIN BELL', orderId: 'test-admin-tone' }, false);
+                setToast({ message: 'Store Owner Bell triggered! Tap again to silence.', type: 'info' });
+              }
+            }}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+              isPlaying
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 animate-pulse'
+                : 'bg-white/5 text-neutral-300 border-white/10 hover:text-white hover:border-[#E0FF33]/30 hover:bg-white/10'
+            }`}
+            title="Test or silence Store Owner Alarm"
+          >
+            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#E0FF33]" />}
+            <span>{isPlaying ? 'Silence Sound' : 'Test Alarm'}</span>
+          </button>
+        </div>
+
+        {/* Title & Live Status Group */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 relative z-10 pt-1">
+          <div className="space-y-1">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-['Outfit']">
+              {currentShop ? currentShop.name : 'Kitchen Management'}
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-xl">
+              Manage live dishes, audit revenue, configure payment gateways, and edit branch profile.
+            </p>
+          </div>
+
+          {/* Live Kitchen Status Indicators */}
+          <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-xs font-bold text-emerald-400 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Kitchen Online
             </span>
             {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-xs font-black text-[#E0FF33]">
-                <ShoppingBag className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-xs font-black text-[#E0FF33] shadow-sm">
+                <ShoppingBag className="w-3.5 h-3.5" />
                 {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length} Active Orders
               </span>
             )}
           </div>
-        </div>
-
-        <div className="space-y-1 relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-['Outfit']">
-            {currentShop ? currentShop.name : 'Kitchen Management'}
-          </h2>
-          <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-2xl">
-            Manage live dishes, audit revenue, configure payment gateways, and edit branch profile.
-          </p>
         </div>
 
         {/* BRANCH SELECTOR — Integrated inside Hero for easy switching */}

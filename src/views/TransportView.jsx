@@ -60,7 +60,7 @@ export default function TransportView() {
   const [toast, setToast] = useState(null);
 
   // Audio Alarm hook
-  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm, warmUpAudio } = useAudioAlarm();
 
   // Leaflet Map Refs
   const mapContainerRef = useRef(null);
@@ -535,27 +535,51 @@ export default function TransportView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/8 shadow-inner shrink-0 self-stretch sm:self-auto justify-center">
+        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0 self-stretch sm:self-auto justify-end">
           <button
-            onClick={() => setViewMode('list')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
-              ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-              : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
+            type="button"
+            onClick={() => {
+              if (isPlaying) {
+                stopAlarm();
+              } else {
+                warmUpAudio();
+                playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'test-deliv-tone' }, true);
+                showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
+              }
+            }}
+            className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+              isPlaying
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                : 'bg-[#1E1B1C] text-neutral-300 border-white/8 hover:text-white hover:border-white/15'
+            }`}
+            title="Test or silence Sarathi Rider Chime"
           >
-            <List className="w-3.5 h-3.5 shrink-0" />
-            <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Orders ({orders.length})</span>
+            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
+            <span className="hidden sm:inline">{isPlaying ? 'Silence' : 'Test Sound'}</span>
           </button>
-          <button
-            onClick={() => setViewMode('map')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
-              ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-              : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-          >
-            <Map className="w-3.5 h-3.5 shrink-0" />
-            <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Carto HUD</span>
-          </button>
+
+          <div className="flex items-center gap-1.5 bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/8 shadow-inner shrink-0 flex-1 sm:flex-none justify-center">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
+                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <List className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Orders ({orders.length})</span>
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
+                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <Map className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Carto HUD</span>
+            </button>
+          </div>
         </div>
       </div>
 

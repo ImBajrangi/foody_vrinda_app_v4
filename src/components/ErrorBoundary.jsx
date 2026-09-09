@@ -41,9 +41,9 @@ export class ErrorBoundary extends React.Component {
 
             <button
               onClick={this.handleReset}
-              className="px-6 py-2.5 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-[#E0FF33]/25 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+              className="w-full max-w-xs py-3.5 px-8 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(224,255,51,0.35)] active:scale-95 transition-all cursor-pointer font-['Outfit']"
             >
-              <RefreshCw size={14} className="stroke-[2.5]" />
+              <RefreshCw size={16} className="stroke-[2.5]" />
               <span>Reload View</span>
             </button>
           </div>
