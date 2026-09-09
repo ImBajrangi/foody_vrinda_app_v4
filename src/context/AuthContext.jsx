@@ -266,20 +266,25 @@ export function AuthProvider({ children }) {
           setCurrentUserShopIds(userProfile.shopIds);
           setCurrentShopName(resolveShopName(userProfile.shopId));
           syncUserToCloudList(userProfile);
-        } else if (parsedSaved) {
-          setUser({ id: parsedSaved.id || 'local-user', email: parsedSaved.email || 'Local User' });
+        } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
+          // Real persisted user session (e.g. from phone lookup login)
+          setUser({ 
+            id: parsedSaved.id, 
+            email: parsedSaved.email || '', 
+            phone: parsedSaved.phone || '', 
+            displayName: parsedSaved.displayName || 'User',
+            isLoggedInUser: true 
+          });
           setUserData(parsedSaved);
           setUserRole(parsedSaved.role || 'customer');
           setCurrentUserShopId(parsedSaved.shopId || null);
           setCurrentUserShopIds(parsedSaved.shopIds || (parsedSaved.shopId ? [parsedSaved.shopId] : []));
           setCurrentShopName(resolveShopName(parsedSaved.shopId) || null);
-          syncUserToCloudList(parsedSaved);
         } else {
-          // Local Guest Session
+          // Clean unauthenticated guest session
           const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
-          const guestProfile = { role: 'customer', email: 'Guest', displayName: 'Guest' };
           setUser(guestUser);
-          setUserData(guestProfile);
+          setUserData({ role: 'customer', isAnonymous: true, displayName: 'Guest' });
           setUserRole('customer');
           setCurrentUserShopId(null);
           setCurrentUserShopIds([]);
@@ -364,7 +369,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  // Quick Mobile / Phone Lookup Login (Instant Staff & Customer identification)
+  // Quick Mobile / Phone Lookup Login
   const loginWithPhoneLookup = async (phoneInput) => {
     const clean = phoneInput.replace(/\D/g, '');
     if (!clean || clean.length < 10) {
@@ -377,9 +382,10 @@ export function AuthProvider({ children }) {
     if (existing) {
       const userProfile = {
         ...existing,
+        isLoggedInUser: true,
         shopIds: existing.shopIds || (existing.shopId ? [existing.shopId] : ['shop-vrinda-main'])
       };
-      setUser({ id: existing.id, phone: clean, displayName: existing.displayName });
+      setUser({ id: existing.id, phone: clean, displayName: existing.displayName, isLoggedInUser: true });
       setUserData(userProfile);
       setUserRole(userProfile.role || 'customer');
       setCurrentUserShopId(userProfile.shopId || null);
@@ -396,14 +402,19 @@ export function AuthProvider({ children }) {
       role: 'customer'
     });
 
-    setUser({ id: newCustomer.id, phone: clean, displayName: newCustomer.displayName });
-    setUserData(newCustomer);
+    const userProfile = {
+      ...newCustomer,
+      isLoggedInUser: true
+    };
+
+    setUser({ id: newCustomer.id, phone: clean, displayName: newCustomer.displayName, isLoggedInUser: true });
+    setUserData(userProfile);
     setUserRole('customer');
     setCurrentUserShopId(null);
     setCurrentUserShopIds([]);
     setCurrentShopName(null);
-    localStorage.setItem('foody_user_data', JSON.stringify(newCustomer));
-    return newCustomer;
+    localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
+    return userProfile;
   };
 
   const logout = async () => {
@@ -416,7 +427,9 @@ export function AuthProvider({ children }) {
     setImpersonatedRole(null);
     setEmergencyMasterActive(false);
     setUserRole('customer');
-    setUserData({ role: 'customer', email: 'Guest', displayName: 'Guest' });
+    const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
+    setUser(guestUser);
+    setUserData({ role: 'customer', isAnonymous: true, displayName: 'Guest' });
     setCurrentUserShopId(null);
     setCurrentUserShopIds([]);
     setCurrentShopName(null);
@@ -425,9 +438,20 @@ export function AuthProvider({ children }) {
   // Developer & Admin authorization flags
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
-  const isAuthorizedDeveloper = Boolean(emergencyMasterActive || (user && isDevUser) || (userData?.role === 'developer'));
-  const isAuthorizedAdmin = Boolean(emergencyMasterActive || (user && (isAdminUserMatch || isDevUser)) || ['developer', 'owner'].includes(userData?.role));
-  const isStaff = Boolean(emergencyMasterActive || ['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole));
+  const isAuthorizedDeveloper = Boolean(
+    emergencyMasterActive || 
+    (user && !user.isAnonymous && isDevUser) || 
+    (userData?.role === 'developer' && userData?.isLoggedInUser && !user?.isAnonymous)
+  );
+  const isAuthorizedAdmin = Boolean(
+    emergencyMasterActive || 
+    (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) || 
+    (['developer', 'owner'].includes(userData?.role) && userData?.isLoggedInUser && !user?.isAnonymous)
+  );
+  const isStaff = Boolean(
+    emergencyMasterActive || 
+    (['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole) && userData?.isLoggedInUser && !user?.isAnonymous)
+  );
 
   // Developer impersonation control helper
   const impersonate = (shopId, role) => {

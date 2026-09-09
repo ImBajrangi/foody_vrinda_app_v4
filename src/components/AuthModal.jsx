@@ -92,9 +92,8 @@ export default function AuthModal({ isOpen, onClose }) {
   const { clearCart } = useCart();
   
   const [selectedDesk, setSelectedDesk] = useState('customer');
-  const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email' | 'demo'
+  const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email'
   const [isSignup, setIsSignup] = useState(false);
-  const [showStaffWorkspaces, setShowStaffWorkspaces] = useState(false);
   const [showStaffSignIn, setShowStaffSignIn] = useState(false);
   
   // Form fields
@@ -280,7 +279,26 @@ export default function AuthModal({ isOpen, onClose }) {
     handleAnimatedClose();
   };
 
-  const isAuthenticated = user && !user.isAnonymous;
+  const isAuthenticated = Boolean(
+    user && 
+    !user.isAnonymous && 
+    (user.email || user.phone || user.phoneNumber) && 
+    user.email !== 'Guest' && 
+    user.email !== 'Local User' &&
+    user.displayName !== 'Guest' &&
+    userData?.isLoggedInUser
+  );
+
+  const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
+  const ActiveDeskIcon = activeDeskTheme.icon;
+
+  const modalTitle = (!isAuthenticated || showLoginView)
+    ? (showStaffSignIn ? (activeDeskTheme.title || 'Staff Portal') : (isSignup ? 'Create Account' : 'Welcome to Foody Vrinda'))
+    : currentTheme.title;
+
+  const modalSubtitle = (!isAuthenticated || showLoginView)
+    ? (showStaffSignIn ? (activeDeskTheme.subtitle || 'Authorized personnel login') : (isSignup ? 'Sign up for Satvik food deliveries & Prasad Coins' : 'Sign in to track live orders & manage address'))
+    : currentTheme.subtitle;
 
   return (
     <div 
@@ -298,10 +316,10 @@ export default function AuthModal({ isOpen, onClose }) {
         style={{ transform: dragY > 0 ? `translateY(${dragY}px)` : 'none' }}
         className={`relative w-full max-w-[440px] bg-[#1E1B1C] border border-white/10 text-white rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-4.5 max-h-[92vh] overflow-y-auto no-scrollbar transition-transform duration-100 relative overflow-hidden ${closing ? 'translate-y-12' : 'translate-y-0'}`}
       >
-        {/* Subtle Ambient Header Accent (Zero Muddy Bleed) */}
+        {/* Subtle Ambient Header Accent */}
         <div 
           className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] pointer-events-none opacity-20 transition-all duration-500"
-          style={{ background: currentTheme.color }}
+          style={{ background: activeDeskTheme.color }}
         />
 
         {/* Drag Handle Bar (Mobile Only) */}
@@ -319,19 +337,19 @@ export default function AuthModal({ isOpen, onClose }) {
             <div 
               className="w-10 h-10 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
               style={{ 
-                background: currentTheme.accentBg, 
-                borderColor: currentTheme.border, 
-                color: currentTheme.color 
+                background: activeDeskTheme.accentBg, 
+                borderColor: activeDeskTheme.border, 
+                color: activeDeskTheme.color 
               }}
             >
-              <DeskIcon className="w-5 h-5" />
+              <ActiveDeskIcon className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight">
-                {currentTheme.title}
+                {modalTitle}
               </h3>
               <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5">
-                {currentTheme.subtitle}
+                {modalSubtitle}
               </p>
             </div>
           </div>
@@ -372,7 +390,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <span className="font-['Outfit'] font-black text-xl text-[#E0FF33]">
-                    {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || 'U').toUpperCase()}
+                    {(userData?.displayName ? userData.displayName.charAt(0) : user.email?.charAt(0) || user.phone?.slice(-1) || 'U').toUpperCase()}
                   </span>
                 )}
               </div>
@@ -391,7 +409,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     {isAuthorizedDeveloper ? 'Developer' : isAuthorizedAdmin ? 'Admin' : 'Verified Member'}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 truncate">{user.email || user.phoneNumber || userData?.phone || 'Mobile Session'}</p>
+                <p className="text-xs text-zinc-400 truncate">{user.email || user.phoneNumber || userData?.phone || user.phone || 'Member Account'}</p>
                 {currentShopName && (
                   <p className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
                     <Store className="w-3 h-3 shrink-0" />
@@ -419,7 +437,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Account Tier</span>
-                  <span className="text-xs font-black text-white font-['Outfit']">Vedic Devotee</span>
+                  <span className="text-xs font-black text-white font-['Outfit']">Satvik Devotee</span>
                 </div>
               </div>
             </div>
@@ -508,7 +526,7 @@ export default function AuthModal({ isOpen, onClose }) {
             </div>
           </div>
         ) : (
-          /* GUEST / SIGN-IN PORTAL DESK */
+          /* CLEAN SIGN-IN PORTAL */
           <div className="space-y-3.5 relative z-10">
             {isAuthenticated && showLoginView && (
               <div className="flex items-center justify-between pb-1 border-b border-white/5">
@@ -519,19 +537,17 @@ export default function AuthModal({ isOpen, onClose }) {
                 >
                   <span>← Back to Active Profile</span>
                 </button>
-                <span className="text-[10px] text-zinc-500">Currently: {user?.email || 'Logged In'}</span>
+                <span className="text-[10px] text-zinc-500">Active: {user?.email || user?.phone || 'Logged In'}</span>
               </div>
             )}
 
             {/* Multi-Role Segmented Switcher Strip (Only shown when staff access is active) */}
             {showStaffSignIn && (
-              <div className="grid grid-cols-5 bg-[#151314] p-1 rounded-2xl border border-white/5 gap-1 animate-fade-in">
+              <div className="grid grid-cols-3 bg-[#151314] p-1 rounded-2xl border border-white/5 gap-1 animate-fade-in">
                 {[
-                  { id: 'customer', label: 'Store', icon: Sparkles },
-                  { id: 'kitchen', label: 'Kitchen', icon: ChefHat },
-                  { id: 'delivery', label: 'Sarathi', icon: Truck },
-                  { id: 'owner', label: 'Admin', icon: ShieldCheck },
-                  { id: 'developer', label: 'Dev', icon: Terminal }
+                  { id: 'kitchen', label: 'Kitchen Chef', icon: ChefHat },
+                  { id: 'delivery', label: 'Sarathi Rider', icon: Truck },
+                  { id: 'owner', label: 'Admin Desk', icon: ShieldCheck }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   const isActive = selectedDesk === tab.id;
@@ -544,7 +560,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         setError('');
                         setSuccessMsg('');
                       }}
-                      className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all text-center select-none cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all text-center select-none cursor-pointer ${
                         isActive
                           ? 'bg-[#282526] text-white shadow-sm border border-white/10 font-extrabold'
                           : 'text-zinc-400 hover:text-zinc-200'
@@ -558,8 +574,8 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Sub-Navigation Method Switcher */}
-            <div className={`grid ${showStaffSignIn ? 'grid-cols-3' : 'grid-cols-2'} bg-[#151314]/80 p-1 rounded-2xl border border-white/5 gap-1`}>
+            {/* Sub-Navigation Method Switcher: Mobile vs Email */}
+            <div className="grid grid-cols-2 bg-[#151314]/80 p-1 rounded-2xl border border-white/5 gap-1">
               <button 
                 type="button"
                 onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
@@ -570,7 +586,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 }`}
               >
                 <Phone className="w-3 h-3 text-[#E0FF33] shrink-0" />
-                <span className="truncate">Mobile</span>
+                <span className="truncate">Mobile Number</span>
               </button>
 
               <button 
@@ -583,23 +599,8 @@ export default function AuthModal({ isOpen, onClose }) {
                 }`}
               >
                 <Mail className="w-3 h-3 text-cyan-400 shrink-0" />
-                <span className="truncate">Email</span>
+                <span className="truncate">Email & Password</span>
               </button>
-
-              {showStaffSignIn && (
-                <button 
-                  type="button"
-                  onClick={() => { setLoginMethod('demo'); setError(''); setSuccessMsg(''); }}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${
-                    loginMethod === 'demo' 
-                      ? 'bg-[#282526] text-white shadow-sm border border-white/10' 
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  <Zap className="w-3 h-3 text-purple-400 shrink-0" />
-                  <span className="truncate">Demo Desk</span>
-                </button>
-              )}
             </div>
 
             {/* METHOD 1: QUICK PHONE LOOKUP */}
@@ -621,7 +622,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     />
                   </div>
                   <p className="text-[11px] text-zinc-500 px-1 font-medium">
-                    Instant lookup for registered customers, kitchen staff, and delivery riders.
+                    Instant access for customers, kitchen staff, and delivery riders.
                   </p>
                 </div>
 
@@ -672,7 +673,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* ── Credentials Section (Always visible) ── */}
+                {/* ── Credentials Section ── */}
                 <div className={`${isSignup ? 'p-3.5 rounded-3xl bg-[#151314] border border-white/5 space-y-2.5' : 'space-y-2.5'}`}>
                   {isSignup && (
                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block px-0.5">
@@ -720,7 +721,7 @@ export default function AuthModal({ isOpen, onClose }) {
                       />
                     </div>
                     <p className="text-[10px] text-zinc-500 px-1 font-medium leading-relaxed">
-                      We'll also use your GPS for precise delivery. You can always change this later.
+                      We'll also use your GPS for precise delivery. You can change this later.
                     </p>
                   </div>
                 )}
@@ -748,75 +749,6 @@ export default function AuthModal({ isOpen, onClose }) {
               </form>
             )}
 
-            {/* METHOD 3: QUICK DEMO ACCESS */}
-            {loginMethod === 'demo' && (
-              <div className="space-y-2.5 pt-0.5">
-                <div className="p-3 rounded-2xl bg-[#151314] border border-white/5 space-y-2">
-                  <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    Target Kitchen Location
-                  </label>
-                  <div className="grid grid-cols-1 gap-1.5 max-h-36 overflow-y-auto pr-1 no-scrollbar">
-                    {allShops.map(s => {
-                      const isSelected = (demoShopId || allShops[0]?.id) === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setDemoShopId(s.id)}
-                          className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-between text-left cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/40 shadow-sm'
-                              : 'bg-[#1E1B1C] text-zinc-400 border-white/5 hover:text-white hover:border-white/15'
-                          }`}
-                        >
-                          <span className="truncate">{s.name}</span>
-                          {isSelected && <span className="text-[10px] bg-[#E0FF33] text-black px-1.5 py-0.2 rounded font-black">ACTIVE</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    type="button" 
-                    onClick={() => handleDemoAccess('kitchen')}
-                    className="p-3 rounded-2xl bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 border border-amber-400/20 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <ChefHat className="w-4 h-4" />
-                    <span>Kitchen Staff</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={() => handleDemoAccess('delivery')}
-                    className="p-3 rounded-2xl bg-cyan-400/10 hover:bg-cyan-400/20 text-cyan-300 border border-cyan-400/20 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <Truck className="w-4 h-4" />
-                    <span>Sarathi Rider</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={() => handleDemoAccess('owner')}
-                    className="p-3 rounded-2xl bg-purple-400/10 hover:bg-purple-400/20 text-purple-300 border border-purple-400/20 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Admin Owner</span>
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={() => handleDemoAccess('developer')}
-                    className="p-3 rounded-2xl bg-emerald-400/10 hover:bg-emerald-400/20 text-emerald-300 border border-emerald-400/20 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <Terminal className="w-4 h-4" />
-                    <span>Developer Root</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Google Sign-In Option */}
             <div className="pt-2 border-t border-white/5 space-y-2">
               <button 
@@ -833,7 +765,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <span>Continue with Google</span>
               </button>
 
-              {/* Discrete Staff / Operations Login Toggle */}
+              {/* Staff / Operations Login Toggle */}
               <div className="text-center pt-1">
                 <button
                   type="button"
@@ -846,7 +778,7 @@ export default function AuthModal({ isOpen, onClose }) {
                       setLoginMethod('phone');
                     }
                   }}
-                  className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5"
+                  className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <ShieldCheck className="w-3 h-3 text-zinc-500" />
                   <span>{showStaffSignIn ? 'Switch to Customer Sign In' : 'Kitchen, Rider & Staff Portal Access'}</span>
