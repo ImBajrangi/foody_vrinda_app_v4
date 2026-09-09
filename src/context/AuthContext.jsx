@@ -310,6 +310,9 @@ export function AuthProvider({ children }) {
           setCurrentUserShopIds([]);
           setCurrentShopName(null);
         }
+        if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+        }
       } catch (e) {
         console.warn("Supabase initAuth note:", e);
       } finally {
@@ -405,10 +408,18 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = async () => {
+    const isLive = typeof window !== 'undefined' && (
+      window.location.hostname === 'eat.vrindopnishad.in' || 
+      window.location.hostname.includes('vrindopnishad.in')
+    );
+    const redirectUrl = isLive 
+      ? 'https://eat.vrindopnishad.in/' 
+      : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/');
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: redirectUrl
       }
     });
     if (error) throw error;

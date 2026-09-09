@@ -1122,24 +1122,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       )}
 
       {/* Brand Footer with Privacy Policy, Terms, and Contact Links */}
-      <footer className="w-full mt-16 mb-24 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
-        <div className="flex items-center gap-2">
-          <img src="/app-icon.png" alt="vrindopnishad" className="w-5 h-5 rounded-full object-cover" />
-          <span className="text-white text-base font-laila font-bold tracking-tight">वृन्दोपनिषद्</span>
-          <span className="font-black text-zinc-400 text-xs font-['Outfit']">(vrindopnishad · Foody Vrinda)</span>
+      <footer className="w-full max-w-2xl mx-auto mt-20 mb-28 pt-8 pb-4 border-t border-white/5 flex flex-col items-center justify-center text-center gap-3 text-zinc-500 text-xs select-none">
+        <div className="flex items-center gap-2 bg-[#282526] px-3.5 py-1.5 rounded-full border border-white/10 shadow-sm">
+          <img src="/app-icon.png" alt="vrindopnishad" className="w-4 h-4 rounded-full object-cover" />
+          <span className="text-white text-sm font-laila font-bold tracking-tight">वृन्दोपनिषद्</span>
+          <span className="font-extrabold text-zinc-400 text-[10px] font-['Outfit']">(vrindopnishad · Foody Vrinda)</span>
         </div>
-        <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[320px]">
+        <p className="text-[11px] text-zinc-400 font-['Plus_Jakarta_Sans'] max-w-[340px] leading-relaxed">
           100% Satvik Cloud Kitchen & Divine Prasad Delivery in Vrindavan Dham.
         </p>
-        <div className="flex items-center gap-4 text-xs font-semibold text-zinc-400 pt-1">
+        <div className="flex items-center gap-3.5 text-xs font-semibold text-zinc-400 pt-0.5">
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
             Privacy Policy
           </a>
-          <span>•</span>
+          <span className="text-zinc-600">•</span>
           <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors underline underline-offset-4">
             Terms of Service
           </a>
-          <span>•</span>
+          <span className="text-zinc-600">•</span>
           <a href="https://wa.me/919870152058?text=Hello%20vrindopnishad" target="_blank" rel="noopener noreferrer" className="hover:text-[#E0FF33] transition-colors">
             Support
           </a>
