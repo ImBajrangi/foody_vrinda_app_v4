@@ -147,49 +147,31 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     const originIcon = L.divIcon({
       className: 'custom-kitchen-pin',
       html: `
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; width: 34px; height: 42px;">
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: #181617;
-            border: 2.5px solid #E0FF33;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(224,255,51,0.25);
-            cursor: pointer;
-          ">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-              <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
-              <path d="M2 7h20"/>
-            </svg>
-          </div>
-          <div style="
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid #181617;
-            margin-top: -1px;
-          "></div>
-          <div style="
-            width: 5px;
-            height: 5px;
-            background: #E0FF33;
-            border-radius: 50%;
-            box-shadow: 0 0 6px #E0FF33;
-            margin-top: 1px;
-          "></div>
+        <div style="
+          width: 36px;
+          height: 36px;
+          background: #181617;
+          border: 2.5px solid #E0FF33;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(224,255,51,0.25);
+          cursor: pointer;
+        ">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+            <path d="M2 7h20"/>
+          </svg>
         </div>
       `,
-      iconSize: [34, 42],
-      iconAnchor: [17, 42]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 300 });
-    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -36] });
+    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -20] });
     storeMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       storeMarker.toggleTooltip();
@@ -200,46 +182,29 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     const destIcon = L.divIcon({
       className: 'custom-home-pin',
       html: `
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; width: 34px; height: 42px;">
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: #FFFFFF;
-            border: 2.5px solid #181617;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.15);
-            cursor: pointer;
-          ">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-          </div>
-          <div style="
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid #181617;
-            margin-top: -1px;
-          "></div>
-          <div style="
-            width: 5px;
-            height: 5px;
-            background: #181617;
-            border-radius: 50%;
-            margin-top: 1px;
-          "></div>
+        <div style="
+          width: 36px;
+          height: 36px;
+          background: #FFFFFF;
+          border: 2.5px solid #181617;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+          cursor: pointer;
+        ">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#181617" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
         </div>
       `,
-      iconSize: [34, 42],
-      iconAnchor: [17, 42]
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
     });
     const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 400 });
-    destMarker.bindTooltip('Drop-off (Your Location)', { permanent: false, direction: 'top', offset: [0, -36] });
+    destMarker.bindTooltip('Drop-off (Your Location)', { permanent: false, direction: 'top', offset: [0, -20] });
     destMarker.on('click', (e) => {
       L.DomEvent.stopPropagation(e);
       destMarker.toggleTooltip();
@@ -292,7 +257,34 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Continuous Route Polyline (Zero Gap Delivery Corridor)
+    // 5. Continuous Route Polyline & Dynamic Parabolic Walking Arc (Uber/Google Maps Style)
+    const generateParabolicArc = (start, end, numPoints = 30, bendFactor = 0.22) => {
+      const [lat0, lng0] = start;
+      const [lat1, lng1] = end;
+      const dLat = lat1 - lat0;
+      const dLng = lng1 - lng0;
+      const dist = Math.hypot(dLat, dLng);
+      if (dist < 0.00001) return [start, end];
+
+      const midLat = (lat0 + lat1) / 2;
+      const midLng = (lng0 + lng1) / 2;
+      const normLat = -dLng / dist;
+      const normLng = dLat / dist;
+
+      const controlLat = midLat + normLat * dist * bendFactor;
+      const controlLng = midLng + normLng * dist * bendFactor;
+
+      const points = [];
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const invT = 1 - t;
+        const lat = invT * invT * lat0 + 2 * invT * t * controlLat + t * t * lat1;
+        const lng = invT * invT * lng0 + 2 * invT * t * controlLng + t * t * lng1;
+        points.push([lat, lng]);
+      }
+      return points;
+    };
+
     let currentRouteCoords = [
       [shopLat, shopLng],
       [midLat, midLng],
@@ -328,9 +320,30 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(dashedActiveLine);
 
+    // Dynamic Parabolic Arc with Flowing Circle Dots reaching destination
+    const walkingConnector = L.polyline([], {
+      color: '#6366F1',
+      weight: 5,
+      dashArray: '0, 12',
+      className: 'animated-parabolic-dots',
+      lineCap: 'round',
+      lineJoin: 'round',
+      opacity: 0.95
+    });
+    group.addLayer(walkingConnector);
+
+    // Road Drop-off Terminus Dot (where vehicle stops and walking begins)
+    const dropOffStopDot = L.circleMarker([destLat, destLng], {
+      radius: 4,
+      color: '#181617',
+      fillColor: '#6366F1',
+      fillOpacity: 1,
+      weight: 2
+    });
+
     let animInterval = null;
 
-    // Fetch OSRM route and guarantee full connection into shopLat/shopLng and destLat/destLng
+    // Fetch OSRM route and establish road driving path + dynamic parabolic arc to doorstep
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
@@ -347,31 +360,45 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               setRoadSummary(routeObj.legs[0].summary);
             }
 
-            // Ensure route starts at origin pin and strictly terminates directly under destination pin
-            const latLngs = [
+            // Road driving segment
+            const roadLatLngs = [
               [shopLat, shopLng],
-              ...rawLatLngs,
-              [destLat, destLng]
+              ...rawLatLngs
             ];
 
-            currentRouteCoords = latLngs;
-            roadCasing.setLatLngs(latLngs);
-            baseSolidLine.setLatLngs(latLngs);
-            dashedActiveLine.setLatLngs(latLngs);
+            const roadEnd = rawLatLngs[rawLatLngs.length - 1];
+
+            currentRouteCoords = roadLatLngs;
+            roadCasing.setLatLngs(roadLatLngs);
+            baseSolidLine.setLatLngs(roadLatLngs);
+            dashedActiveLine.setLatLngs(roadLatLngs);
+
+            // Connect road terminus directly to destination pin with dynamic parabolic circle dots arc
+            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 30, 0.22);
+            walkingConnector.setLatLngs(walkingArc);
+
+            // Show drop-off stop dot at road terminus if destination is offset
+            const isOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
+            if (isOffset) {
+              dropOffStopDot.setLatLng(roadEnd);
+              if (!group.hasLayer(dropOffStopDot)) {
+                group.addLayer(dropOffStopDot);
+              }
+            }
 
             if (riderMarker) {
-              const riderIndex = Math.min(Math.floor(latLngs.length * 0.45), latLngs.length - 1);
-              if (latLngs[riderIndex]) {
-                riderMarker.setLatLng(latLngs[riderIndex]);
+              const riderIndex = Math.min(Math.floor(roadLatLngs.length * 0.45), roadLatLngs.length - 1);
+              if (roadLatLngs[riderIndex]) {
+                riderMarker.setLatLng(roadLatLngs[riderIndex]);
               }
 
               if (status === 'out_for_delivery') {
                 let stepPercent = 0.35;
                 animInterval = setInterval(() => {
                   stepPercent = (stepPercent + 0.015) % 0.95;
-                  const idx = Math.min(Math.floor(stepPercent * latLngs.length), latLngs.length - 1);
-                  if (latLngs[idx] && riderMarker) {
-                    riderMarker.setLatLng(latLngs[idx]);
+                  const idx = Math.min(Math.floor(stepPercent * roadLatLngs.length), roadLatLngs.length - 1);
+                  if (roadLatLngs[idx] && riderMarker) {
+                    riderMarker.setLatLng(roadLatLngs[idx]);
                   }
                 }, 1000);
               }

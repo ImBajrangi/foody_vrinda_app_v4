@@ -299,6 +299,34 @@ export default function TransportView() {
       group.addLayer(riderMarker);
     }
 
+    // Dynamic Parabolic Arc Generator for off-road doorstep connection
+    const generateParabolicArc = (start, end, numPoints = 30, bendFactor = 0.22) => {
+      const [lat0, lng0] = start;
+      const [lat1, lng1] = end;
+      const dLat = lat1 - lat0;
+      const dLng = lng1 - lng0;
+      const dist = Math.hypot(dLat, dLng);
+      if (dist < 0.00001) return [start, end];
+
+      const midLat = (lat0 + lat1) / 2;
+      const midLng = (lng0 + lng1) / 2;
+      const normLat = -dLng / dist;
+      const normLng = dLat / dist;
+
+      const controlLat = midLat + normLat * dist * bendFactor;
+      const controlLng = midLng + normLng * dist * bendFactor;
+
+      const points = [];
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const invT = 1 - t;
+        const lat = invT * invT * lat0 + 2 * invT * t * controlLat + t * t * lat1;
+        const lng = invT * invT * lng0 + 2 * invT * t * controlLng + t * t * lng1;
+        points.push([lat, lng]);
+      }
+      return points;
+    };
+
     // 4. Luxury Laser Polyline (Outer Casing + Animated Glowing Neon Route)
     const routeCasing = L.polyline([
       [shopLat, shopLng],
@@ -326,14 +354,61 @@ export default function TransportView() {
     });
     group.addLayer(routeLine);
 
+    // Dynamic Parabolic Arc with Flowing Circle Dots reaching destination
+    const walkingConnector = L.polyline([], {
+      color: '#6366F1',
+      weight: 5,
+      dashArray: '0, 12',
+      className: 'animated-parabolic-dots',
+      lineCap: 'round',
+      lineJoin: 'round',
+      opacity: 0.95
+    });
+    group.addLayer(walkingConnector);
+
+    // Road Drop-off Terminus Dot (Vehicle stop location)
+    const dropOffStopDot = L.circleMarker([destLat, destLng], {
+      radius: 4,
+      color: '#181617',
+      fillColor: '#6366F1',
+      fillOpacity: 1,
+      weight: 2
+    });
+
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
         if (data?.routes?.[0]?.geometry?.coordinates) {
-          const latLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-          if (latLngs.length > 1) {
-            routeCasing.setLatLngs(latLngs);
-            routeLine.setLatLngs(latLngs);
+          const rawLatLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          if (rawLatLngs.length > 0) {
+            const roadLatLngs = [
+              [shopLat, shopLng],
+              ...rawLatLngs
+            ];
+            const roadEnd = rawLatLngs[rawLatLngs.length - 1];
+
+            routeCasing.setLatLngs(roadLatLngs);
+            routeLine.setLatLngs(roadLatLngs);
+
+            // Connect road terminus directly to destination pin with dynamic parabolic circle dots arc
+            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 30, 0.22);
+            walkingConnector.setLatLngs(walkingArc);
+
+            const isOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
+            if (isOffset) {
+              dropOffStopDot.setLatLng(roadEnd);
+              if (!group.hasLayer(dropOffStopDot)) {
+                group.addLayer(dropOffStopDot);
+              }
+            }
+
+            if (mapInstanceRef.current && routeGroupRef.current) {
+              mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
+                paddingTopLeft: [50, 50],
+                paddingBottomRight: [50, 60],
+                maxZoom: 16
+              });
+            }
           }
         }
       })
