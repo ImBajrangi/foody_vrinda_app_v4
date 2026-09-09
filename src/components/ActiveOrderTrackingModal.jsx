@@ -21,7 +21,7 @@ import {
   Minimize2,
   BellRing
 } from 'lucide-react';
-import { subscribeSingleCloudOrder } from '../supabase';
+import { subscribeSingleCloudOrder, resolveDishCutout } from '../supabase';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -472,22 +472,24 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     isDragging: isModalDragging, 
     sheetStyle: modalSheetStyle, 
     handleProps: modalHandleProps, 
-    triggerClose: triggerModalClose 
-  } = useBottomSheetDrag(handleAnimatedClose, 65);
+    triggerClose: triggerModalClose,
+    hasMoved: modalHasMoved
+  } = useBottomSheetDrag(handleAnimatedClose, 35);
 
   // Bottom drawer gesture hook for smooth collapse to peek mode
   const {
     dragY: drawerDragY,
     isDragging: isDrawerDragging,
     sheetStyle: drawerSheetStyle,
-    handleProps: drawerHandleProps
+    handleProps: drawerHandleProps,
+    hasMoved: drawerHasMoved
   } = useBottomSheetDrag(() => {
     if (isExpanded) {
       setIsExpanded(false);
     } else {
       handleAnimatedClose();
     }
-  }, 45);
+  }, 25);
 
   const isStep4 = status === 'completed';
 
@@ -568,7 +570,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         {/* Top Header Grab Bar (Drag down anywhere on top to shrink to floating capsule) */}
         <div 
           {...modalHandleProps}
-          className="absolute top-0 inset-x-0 h-9 z-[600] flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto select-none"
+          className="absolute top-0 inset-x-0 h-9 z-[600] flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto select-none touch-none"
           title="Drag down to shrink to floating capsule"
         >
           <div className="w-12 h-1.5 bg-white/40 hover:bg-white/70 rounded-full shadow-sm transition-colors" />
@@ -625,10 +627,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
         {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
         <div
-          style={{
-            transform: isDrawerDragging ? `translateY(${Math.max(0, drawerDragY)}px)` : undefined,
-            transition: isDrawerDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
+          style={drawerSheetStyle}
           className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'max-h-[92px]'
             } no-scrollbar`}
         >
@@ -636,8 +635,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           {/* Interactive Drag Handle Header */}
           <div
             {...drawerHandleProps}
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors"
+            onClick={() => {
+              if (drawerHasMoved && drawerHasMoved()) return;
+              setIsExpanded(!isExpanded);
+            }}
+            className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none"
+            title="Tap to toggle • Swipe down to collapse"
           >
             <div className="w-10 h-1 bg-white/30 hover:bg-white/60 rounded-full mb-1 transition-colors" />
             <div className="w-full flex items-center justify-between text-neutral-400 text-[11px] font-bold">
@@ -657,8 +660,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           {/* Collapsed Peek Mode Summary Bar */}
           {!isExpanded && (
             <div
-              onClick={() => setIsExpanded(true)}
-              className="px-4 pb-3 flex items-center justify-between cursor-pointer"
+              {...drawerHandleProps}
+              onClick={() => {
+                if (drawerHasMoved && drawerHasMoved()) return;
+                setIsExpanded(true);
+              }}
+              className="px-4 pb-3 flex items-center justify-between cursor-pointer select-none touch-none"
+              title="Tap to expand details • Swipe down to minimize"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-xl bg-[#221F20] border border-white/10 flex items-center justify-center text-[#E0FF33]">
@@ -863,13 +871,27 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </button>
 
                 {showItems && (
-                  <div className="mt-2.5 space-y-1.5 pt-2 border-t border-white/5 text-neutral-400">
-                    {currentOrder?.items?.map((it, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-[11px]">
-                        <span className="text-white font-medium">{it.name} × {it.quantity}</span>
-                        <span className="font-bold text-[#E0FF33]">₹{it.price * it.quantity}</span>
-                      </div>
-                    ))}
+                  <div className="mt-2.5 space-y-2 pt-2 border-t border-white/5 text-neutral-400">
+                    {currentOrder?.items?.map((it, idx) => {
+                      const itemImg = resolveDishCutout(it.image || it.imageUrl, it.name, it.category);
+                      return (
+                        <div key={idx} className="flex justify-between items-center text-[11px] gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <img
+                              src={itemImg}
+                              alt={it.name || 'Dish'}
+                              className="w-7 h-7 rounded-lg object-cover bg-neutral-900 border border-white/10 shrink-0"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
+                              }}
+                            />
+                            <span className="text-white font-medium truncate">{it.name} × {it.quantity}</span>
+                          </div>
+                          <span className="font-bold text-[#E0FF33] shrink-0">₹{it.price * it.quantity}</span>
+                        </div>
+                      );
+                    })}
                     <div className="pt-2 border-t border-white/5 flex justify-between items-center font-black text-white text-xs">
                       <span>Total Amount Paid</span>
                       <span className="text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || '140'}</span>

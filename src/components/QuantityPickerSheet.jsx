@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Minus, Plus, Trash2, Check, X } from 'lucide-react';
+import { resolveDishCutout } from '../supabase';
 
 const QUANTITIES = Array.from({ length: 10 }, (_, i) => i + 1); // [1..10]
 const ITEM_HEIGHT = 44; // px
@@ -114,7 +115,7 @@ export default function QuantityPickerSheet({
     }
   };
 
-  // Sheet Drag-down to dismiss handler
+  // Sheet Drag-down to dismiss handler with instant response
   const handleSheetPointerDown = (e) => {
     isDraggingSheet.current = true;
     sheetStartY.current = e.clientY || e.touches?.[0]?.clientY || 0;
@@ -132,12 +133,14 @@ export default function QuantityPickerSheet({
   const handleSheetPointerUp = () => {
     if (!isDraggingSheet.current) return;
     isDraggingSheet.current = false;
-    if (dragOffsetY > 90) {
+    if (dragOffsetY > 45) {
       handleClose();
     } else {
       setDragOffsetY(0);
     }
   };
+
+  const itemImgSrc = resolveDishCutout(item?.image || item?.imageUrl, item?.name, item?.category);
 
   return (
     <div 
@@ -153,9 +156,9 @@ export default function QuantityPickerSheet({
       <div 
         style={{
           transform: dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
-          transition: dragOffsetY > 0 ? 'none' : undefined
+          transition: dragOffsetY > 0 ? 'none' : 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        className={`w-full sm:max-w-[380px] bg-[#1E1B1C] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-200 select-none ${
+        className={`w-full sm:max-w-[400px] bg-[#1E1B1C] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-200 select-none ${
           isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0' : 'translate-y-0 sm:scale-100 sm:opacity-100'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -164,20 +167,35 @@ export default function QuantityPickerSheet({
         <div 
           onPointerDown={handleSheetPointerDown}
           onTouchStart={handleSheetPointerDown}
-          className="w-full py-2 flex items-center justify-center cursor-grab active:cursor-grabbing"
+          className="w-full py-2 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
         >
           <div className="w-10 h-1.5 rounded-full bg-zinc-600/80 transition-colors hover:bg-zinc-500" />
         </div>
 
-        {/* Dish Summary Info with discreet Actions */}
+        {/* Dish Summary Info with Image and discreet Actions */}
         <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-white/10">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base font-black text-white font-['Outfit'] truncate">
-              {item?.name || 'Dish'}
-            </h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              ₹{item?.price} each · Total: <span className="text-[#E0FF33] font-bold">₹{(item?.price || 0) * selectedQty}</span>
-            </p>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Dish Image Thumbnail */}
+            <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">
+              <img
+                src={itemImgSrc}
+                alt={item?.name || 'Dish'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
+                }}
+              />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-black text-white font-['Outfit'] truncate">
+                {item?.name || 'Dish'}
+              </h3>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                ₹{item?.price} each · Total: <span className="text-[#E0FF33] font-bold">₹{(item?.price || 0) * selectedQty}</span>
+              </p>
+            </div>
           </div>
           
           <div className="flex items-center gap-1.5 flex-shrink-0">
