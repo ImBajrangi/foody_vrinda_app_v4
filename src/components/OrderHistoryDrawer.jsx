@@ -28,15 +28,31 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
 
     const fetchOrders = async () => {
       try {
-        let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
         const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
-        
+        const sessionOrderIds = (() => {
+          try {
+            return JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+          } catch {
+            return [];
+          }
+        })();
+
+        let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
+
         if (userId && cleanPhone && cleanPhone.length >= 10) {
           query = query.or(`user_id.eq.${userId},customer_phone.eq.${cleanPhone}`);
         } else if (userId) {
           query = query.eq('user_id', userId);
         } else if (cleanPhone && cleanPhone.length >= 10) {
           query = query.eq('customer_phone', cleanPhone);
+        } else if (sessionOrderIds.length > 0) {
+          query = query.in('id', sessionOrderIds);
+        } else {
+          // Guest with no user ID, no phone, and no session orders -> Zero orders
+          setOrders([]);
+          localStorage.removeItem('foody_customer_orders_cache');
+          setLoading(false);
+          return;
         }
 
         const { data, error } = await query;
@@ -44,14 +60,12 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
           setOrders(data);
           localStorage.setItem('foody_customer_orders_cache', JSON.stringify(data));
         } else {
-          // Fallback to local cache
-          const cached = localStorage.getItem('foody_customer_orders_cache');
-          if (cached) setOrders(JSON.parse(cached));
+          setOrders([]);
+          localStorage.removeItem('foody_customer_orders_cache');
         }
       } catch (e) {
         console.warn("Notice fetching order history:", e);
-        const cached = localStorage.getItem('foody_customer_orders_cache');
-        if (cached) setOrders(JSON.parse(cached));
+        setOrders([]);
       } finally {
         setLoading(false);
       }

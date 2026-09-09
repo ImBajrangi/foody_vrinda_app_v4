@@ -34,14 +34,14 @@ export function NotificationProvider({ children }) {
     isAuthorizedDeveloper 
   } = useAuth();
   
-  // Initial state with cleanup of any legacy mock order seeds
+  // Initial state with cleanup of any legacy mock order seeds & stale foreign notifications
   const [notifications, setNotifications] = useState(() => {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Filter out legacy mock seed order W399A
+          // Filter out legacy mock seed order W399A and any invalid seeds
           const sanitized = parsed.filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A');
           if (sanitized.length > 0) return sanitized;
         }
@@ -51,6 +51,27 @@ export function NotificationProvider({ children }) {
     }
     return DEFAULT_SEEDS;
   });
+
+  // When user is a guest with no placed orders, sanitize away any leaked foreign order notifications
+  useEffect(() => {
+    const isGuest = !user || user.isAnonymous || !userData?.isLoggedInUser;
+    if (isGuest) {
+      try {
+        const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+        setNotifications(prev => {
+          const filtered = prev.filter(n => {
+            if (n.type === 'order' && n.orderId) {
+              return sessionOrders.includes(n.orderId);
+            }
+            return true;
+          });
+          return filtered;
+        });
+      } catch {
+        // ignore
+      }
+    }
+  }, [user, userData]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter(n => !n.read).length;
@@ -67,12 +88,14 @@ export function NotificationProvider({ children }) {
 
   /**
    * Checks if an order event is strictly related to the current user or their operational role.
-   * Prevents customer A from seeing order alerts for customer B.
+   * For guest users: ONLY allows orders explicitly placed by this browser session.
+   * Prevents any guest user from receiving notifications for other people's orders.
    */
   const isOrderRelatedToUser = useCallback((orderData) => {
     if (!orderData || !orderData.id) return false;
 
-    const currentUserId = user?.id || user?.uid || userData?.id;
+    const isGuest = !user || user.isAnonymous || !userData?.isLoggedInUser;
+    const currentUserId = !isGuest ? (user?.id || user?.uid || userData?.id) : null;
     const userCleanPhone = (user?.phone || user?.phoneNumber || userData?.phone || '').replace(/\D/g, '');
     const userEmail = (user?.email || userData?.email || '').toLowerCase().trim();
 
@@ -83,29 +106,40 @@ export function NotificationProvider({ children }) {
     const orderRiderPhone = (orderData.rider_phone || orderData.riderPhone || '').replace(/\D/g, '');
     const orderShopId = orderData.shop_id || orderData.shopId;
 
-    // 1. Customer Verification: Match against placed customer ID, Phone, or Email
+    // 1. Guest User: STRICT CHECK - Only allow if order ID was created on this device in session
+    if (isGuest) {
+      try {
+        const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+        if (Array.isArray(sessionOrders) && sessionOrders.includes(orderData.id)) {
+          return true;
+        }
+      } catch {
+        // ignore
+      }
+      // Guest with no matching placed session order -> NEVER notify!
+      return false;
+    }
+
+    // 2. Authenticated Customer Verification: Match against placed customer ID, Phone, or Email
     const isOwnerCustomer = Boolean(
       (currentUserId && orderUserId && String(currentUserId) === String(orderUserId)) ||
       (userCleanPhone && userCleanPhone.length >= 10 && orderPhone && orderPhone.length >= 10 && userCleanPhone.slice(-10) === orderPhone.slice(-10)) ||
-      (userEmail && orderEmail && userEmail === orderEmail)
+      (userEmail && userEmail !== 'guest' && orderEmail && userEmail === orderEmail)
     );
 
     if (isOwnerCustomer) return true;
 
-    // Also check local cache of customer's active / historical orders (for guest checkout before sign-in)
+    // Also check session placed orders
     try {
-      const cachedOrders = localStorage.getItem('foody_customer_orders_cache');
-      if (cachedOrders) {
-        const parsed = JSON.parse(cachedOrders);
-        if (Array.isArray(parsed) && parsed.some(o => o.id === orderData.id)) {
-          return true;
-        }
+      const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+      if (Array.isArray(sessionOrders) && sessionOrders.includes(orderData.id)) {
+        return true;
       }
     } catch {
       // ignore
     }
 
-    // 2. Kitchen Staff Role: Orders belonging to their active kitchen / assigned shop
+    // 3. Kitchen Staff Role: Orders belonging to their active kitchen / assigned shop
     if (userRole === 'kitchen') {
       if (!currentUserShopId || currentUserShopId === 'all' || orderShopId === currentUserShopId) {
         return true;
@@ -116,7 +150,7 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 3. Delivery Rider Role: Assigned directly to rider OR ready for pickup in their operating hub
+    // 4. Delivery Rider Role: Assigned directly to rider OR ready for pickup in their operating hub
     if (userRole === 'delivery') {
       const isAssignedRider = Boolean(
         (currentUserId && orderRiderId && String(currentUserId) === String(orderRiderId)) ||
@@ -133,7 +167,7 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 4. Store Owner / Admin: Store management for their registered shop(s)
+    // 5. Store Owner / Admin: Store management for their registered shop(s)
     if (userRole === 'owner' || isAuthorizedAdmin) {
       if (!currentUserShopId || currentUserShopId === 'all' || orderShopId === currentUserShopId) {
         return true;
@@ -144,12 +178,12 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 5. Developer Master Console: Full telemetry overview
+    // 6. Developer Master Console: Full telemetry overview
     if (userRole === 'developer' || isAuthorizedDeveloper) {
       return true;
     }
 
-    // Regular customer / guest viewing app: Never show strangers' orders
+    // Default: Never show strangers' orders
     return false;
   }, [user, userData, userRole, currentUserShopId, currentUserShopIds, isAuthorizedAdmin, isAuthorizedDeveloper]);
 

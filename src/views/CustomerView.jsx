@@ -563,6 +563,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       try {
         const cloudOrder = await createCloudOrder(orderPayload);
+        try {
+          const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+          if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
+            sessionOrders.push(cloudOrder.id);
+            localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
+          }
+        } catch (e) {}
+
         showToast("Order Placed!", 'success', 'Cash on Delivery');
         clearCart();
         setShowCartDrawer(false);
@@ -593,6 +601,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
           try {
             const cloudOrder = await createCloudOrder(orderPayload);
+            try {
+              const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+              if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
+                sessionOrders.push(cloudOrder.id);
+                localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
+              }
+            } catch (e) {}
+
             showToast("Order Placed!", 'success', 'Payment confirmed');
             clearCart();
             setShowCartDrawer(false);
@@ -624,6 +640,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         orderPayload.paymentId = `sim_online_${Date.now()}`;
         orderPayload.cashStatus = 'collected';
         const cloudOrder = await createCloudOrder(orderPayload);
+        try {
+          const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+          if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
+            sessionOrders.push(cloudOrder.id);
+            localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
+          }
+        } catch (e) {}
+
         showToast("Order Placed!", 'success', 'Online Pay Confirmed');
         clearCart();
         setShowCartDrawer(false);
