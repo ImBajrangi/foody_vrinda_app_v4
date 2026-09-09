@@ -1314,7 +1314,8 @@ export const DEFAULT_ROLES = [
   { id: 'delivery', name: 'Delivery Sarathi', description: 'Fleet rider partners fulfilling and delivering dispatched orders across Vrindavan', icon: 'Truck', hierarchy_level: 2 },
   { id: 'kitchen', name: 'Kitchen Staff / Chef', description: 'Kitchen staff managing live KDS tickets, preparation states, and dish availability', icon: 'ChefHat', hierarchy_level: 3 },
   { id: 'owner', name: 'Store Owner / Admin', description: 'Kitchen and store administrators overseeing menus, orders, pricing & shop analytics', icon: 'ShieldCheck', hierarchy_level: 4 },
-  { id: 'developer', name: 'Master Developer', description: 'System administrator with root debug access, database management, and system overrides', icon: 'Terminal', hierarchy_level: 5 }
+  { id: 'developer', name: 'Master Developer', description: 'System administrator with root debug access, database management, and system overrides', icon: 'Terminal', hierarchy_level: 5 },
+  { id: 'grand_admin', name: 'Grand Admin', description: 'Supreme platform custodian and immutable root administrator with permanent permissions', icon: 'Crown', hierarchy_level: 6 }
 ];
 
 export async function getCloudRoles() {
@@ -1646,6 +1647,12 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
     (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
   );
+
+  // Grand Admin is immutable: once assigned grand_admin, no one can update or downgrade that role
+  if (userExists?.role === 'grand_admin' && updates.role && updates.role !== 'grand_admin') {
+    console.warn("Permission Denied: Grand Admin role is permanent and cannot be modified or downgraded.");
+    delete updates.role;
+  }
 
   const targetId = userExists?.id || cleanId || `user_${Date.now()}`;
   const resolvedEmail = (updates.email || userExists?.email || cleanEmail || '').toLowerCase().trim();

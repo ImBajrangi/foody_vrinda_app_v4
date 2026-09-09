@@ -660,6 +660,17 @@ export function AuthProvider({ children }) {
   const updateUserRole = useCallback(async (targetUserId, newRole, targetShopId = null) => {
     if (!targetUserId || !newRole) return { success: false, message: 'Invalid arguments' };
 
+    // Guard: Grand Admin is strictly immutable and permanent
+    const cachedUsers = getCachedUsers();
+    const existingTarget = cachedUsers.find(u => 
+      u.id === targetUserId || 
+      (u.email && u.email.toLowerCase() === String(targetUserId).toLowerCase()) ||
+      (u.phone && u.phone === String(targetUserId))
+    );
+    if (existingTarget?.role === 'grand_admin' && newRole !== 'grand_admin') {
+      return { success: false, message: 'Grand Admin role is permanent and cannot be modified.' };
+    }
+
     const cleanTargetId = String(targetUserId).trim();
     const currentId = user?.id ? String(user.id).trim() : '';
     const currentEmail = (user?.email || userData?.email || '').toLowerCase().trim();
@@ -707,24 +718,31 @@ export function AuthProvider({ children }) {
   }, [user, userData, resolveShopName]);
 
   // Developer & Admin authorization flags
+  const isGrandAdmin = Boolean(
+    (userData?.role === 'grand_admin') || 
+    (userRole === 'grand_admin')
+  );
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAuthorizedDeveloper = Boolean(
     emergencyMasterActive || 
+    isGrandAdmin ||
     (user && !user.isAnonymous && isDevUser) || 
-    (userData?.role === 'developer' && !user?.isAnonymous) ||
-    (userRole === 'developer')
+    (['developer', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
+    (['developer', 'grand_admin'].includes(userRole))
   );
   const isAuthorizedAdmin = Boolean(
     emergencyMasterActive || 
+    isGrandAdmin ||
     (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) || 
-    (['developer', 'owner'].includes(userData?.role) && !user?.isAnonymous) ||
-    (['developer', 'owner'].includes(userRole))
+    (['developer', 'owner', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
+    (['developer', 'owner', 'grand_admin'].includes(userRole))
   );
   const isStaff = Boolean(
     emergencyMasterActive || 
-    (['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole) && !user?.isAnonymous) ||
-    (['kitchen', 'delivery', 'owner', 'developer'].includes(userRole))
+    isGrandAdmin ||
+    (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userData?.role || userRole) && !user?.isAnonymous) ||
+    (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userRole))
   );
 
   // Developer impersonation control helper
@@ -760,6 +778,7 @@ export function AuthProvider({ children }) {
     userData,
     userRole: effectiveRole,
     actualRole: userRole,
+    isGrandAdmin,
     isAuthorizedDeveloper,
     isAuthorizedAdmin,
     isStaff,

@@ -233,6 +233,11 @@ export default function OwnerView() {
   }, []);
 
   const handleUpdateStaffRole = async (userId, newRole) => {
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin') {
+      setToast({ message: 'Grand Admin role is permanent and cannot be modified.', type: 'warning' });
+      return;
+    }
     const targetShopId = currentShop?.id || currentUserShopId;
     setUsersList(prev => {
       const updated = prev.map(u => u.id === userId ? { ...u, role: newRole, shopId: targetShopId } : u);
@@ -2036,17 +2041,23 @@ export default function OwnerView() {
                     </div>
 
                     <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                      <label className="text-[10px] font-bold text-neutral-400 uppercase">Change Role:</label>
-                      <select
-                        value={role}
-                        onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
-                        className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
-                      >
-                        <option value="kitchen">Kitchen Cook</option>
-                        <option value="delivery">Delivery Sarathi</option>
-                        <option value="owner">Store Manager</option>
-                        <option value="customer">Remove / Demote</option>
-                      </select>
+                      <label className="text-[10px] font-bold text-neutral-400 uppercase">Role:</label>
+                      {role === 'grand_admin' ? (
+                        <span className="text-xs font-black text-amber-300 flex items-center gap-1">
+                          👑 Grand Admin (Permanent)
+                        </span>
+                      ) : (
+                        <select
+                          value={role}
+                          onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
+                          className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                        >
+                          <option value="kitchen">Kitchen Cook</option>
+                          <option value="delivery">Delivery Sarathi</option>
+                          <option value="owner">Store Manager</option>
+                          <option value="customer">Remove / Demote</option>
+                        </select>
+                      )}
                     </div>
                   </div>
                 );

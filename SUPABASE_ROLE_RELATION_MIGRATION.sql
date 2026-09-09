@@ -44,7 +44,8 @@ VALUES
     ('delivery', 'Delivery Sarathi', 'Fleet rider partners fulfilling and delivering dispatched orders across Vrindavan', 'Truck', 2),
     ('kitchen', 'Kitchen Staff / Chef', 'Kitchen staff managing live KDS tickets, preparation states, and dish availability', 'ChefHat', 3),
     ('owner', 'Store Owner / Admin', 'Kitchen and store administrators overseeing menus, orders, pricing & shop analytics', 'ShieldCheck', 4),
-    ('developer', 'Master Developer', 'System administrator with root debug access, database management, and system overrides', 'Terminal', 5)
+    ('developer', 'Master Developer', 'System administrator with root debug access, database management, and system overrides', 'Terminal', 5),
+    ('grand_admin', 'Grand Admin', 'Supreme platform custodian and immutable root administrator with permanent permissions', 'Crown', 6)
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
@@ -165,5 +166,47 @@ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
 END $$;
 
--- STEP 10: Refresh Supabase Studio / PostgREST Schema Cache
+-- STEP 10: Grand Admin Immutability Safeguards
+-- Ensures no one can update or downgrade any user once assigned 'grand_admin'
+CREATE OR REPLACE FUNCTION public.protect_grand_admin_role()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.role = 'grand_admin' AND NEW.role <> 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin role is permanent and immutable. It cannot be altered or downgraded.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_protect_logged_grand_admin ON public.foody_logged_users;
+CREATE TRIGGER trg_protect_logged_grand_admin
+    BEFORE UPDATE ON public.foody_logged_users
+    FOR EACH ROW EXECUTE FUNCTION public.protect_grand_admin_role();
+
+DROP TRIGGER IF EXISTS trg_protect_users_grand_admin ON public.foody_users;
+CREATE TRIGGER trg_protect_users_grand_admin
+    BEFORE UPDATE ON public.foody_users
+    FOR EACH ROW EXECUTE FUNCTION public.protect_grand_admin_role();
+
+CREATE OR REPLACE FUNCTION public.prevent_grand_admin_deletion()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.role = 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin account is permanent and cannot be deleted.';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_delete_logged_grand_admin ON public.foody_logged_users;
+CREATE TRIGGER trg_prevent_delete_logged_grand_admin
+    BEFORE DELETE ON public.foody_logged_users
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_grand_admin_deletion();
+
+DROP TRIGGER IF EXISTS trg_prevent_delete_users_grand_admin ON public.foody_users;
+CREATE TRIGGER trg_prevent_delete_users_grand_admin
+    BEFORE DELETE ON public.foody_users
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_grand_admin_deletion();
+
+-- STEP 11: Refresh Supabase Studio / PostgREST Schema Cache
 NOTIFY pgrst, 'reload schema';

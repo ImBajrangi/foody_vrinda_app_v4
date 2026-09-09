@@ -150,7 +150,8 @@ VALUES
     ('delivery', 'Delivery Sarathi', 'Fleet rider partners fulfilling and delivering dispatched orders across Vrindavan', 'Truck', 2),
     ('kitchen', 'Kitchen Staff / Chef', 'Kitchen staff managing live KDS tickets, preparation states, and dish availability', 'ChefHat', 3),
     ('owner', 'Store Owner / Admin', 'Kitchen and store administrators overseeing menus, orders, pricing & shop analytics', 'ShieldCheck', 4),
-    ('developer', 'Master Developer', 'System administrator with root debug access, database management, and system overrides', 'Terminal', 5)
+    ('developer', 'Master Developer', 'System administrator with root debug access, database management, and system overrides', 'Terminal', 5),
+    ('grand_admin', 'Grand Admin', 'Supreme platform custodian and immutable root administrator with permanent permissions', 'Crown', 6)
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
@@ -511,7 +512,51 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- ------------------------------------------------------------------------
--- 12. ATOMIC ROLE ASSIGNMENT STORED PROCEDURE (RPC)
+-- ------------------------------------------------------------------------
+-- 12. IMMUTABILITY SAFEGUARDS: GRAND ADMIN PROTECTION
+-- ------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.protect_grand_admin_role()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.role = 'grand_admin' AND NEW.role <> 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin role is permanent and immutable. It cannot be altered or downgraded.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_protect_logged_grand_admin ON public.foody_logged_users;
+CREATE TRIGGER trg_protect_logged_grand_admin
+    BEFORE UPDATE ON public.foody_logged_users
+    FOR EACH ROW EXECUTE FUNCTION public.protect_grand_admin_role();
+
+DROP TRIGGER IF EXISTS trg_protect_users_grand_admin ON public.foody_users;
+CREATE TRIGGER trg_protect_users_grand_admin
+    BEFORE UPDATE ON public.foody_users
+    FOR EACH ROW EXECUTE FUNCTION public.protect_grand_admin_role();
+
+CREATE OR REPLACE FUNCTION public.prevent_grand_admin_deletion()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.role = 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin account is permanent and cannot be deleted.';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_delete_logged_grand_admin ON public.foody_logged_users;
+CREATE TRIGGER trg_prevent_delete_logged_grand_admin
+    BEFORE DELETE ON public.foody_logged_users
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_grand_admin_deletion();
+
+DROP TRIGGER IF EXISTS trg_prevent_delete_users_grand_admin ON public.foody_users;
+CREATE TRIGGER trg_prevent_delete_users_grand_admin
+    BEFORE DELETE ON public.foody_users
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_grand_admin_deletion();
+
+-- ------------------------------------------------------------------------
+-- 13. ATOMIC ROLE ASSIGNMENT STORED PROCEDURE (RPC)
 -- ------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.set_user_role(
     target_id TEXT,
@@ -525,6 +570,23 @@ AS $$
 DECLARE
     updated_record JSONB;
 BEGIN
+    -- Guard: Grand Admin is strictly immutable and cannot be changed
+    IF EXISTS (
+        SELECT 1 FROM public.foody_logged_users 
+        WHERE (id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id)
+        AND role = 'grand_admin'
+    ) AND new_role <> 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin role is permanent and cannot be modified.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM public.foody_users 
+        WHERE (id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id)
+        AND role = 'grand_admin'
+    ) AND new_role <> 'grand_admin' THEN
+        RAISE EXCEPTION 'PERMISSION DENIED: Grand Admin role is permanent and cannot be modified.';
+    END IF;
+
     -- 1. Update in public.foody_logged_users
     UPDATE public.foody_logged_users
     SET 

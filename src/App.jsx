@@ -26,8 +26,9 @@ export default function App() {
       const saved = localStorage.getItem('foody_user_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.role && ['kitchen', 'delivery', 'owner', 'developer'].includes(parsed.role)) {
-          return parsed.role;
+        if (parsed?.role) {
+          if (parsed.role === 'grand_admin') return 'developer';
+          if (['kitchen', 'delivery', 'owner', 'developer'].includes(parsed.role)) return parsed.role;
         }
       }
     } catch (e) {}
@@ -46,10 +47,10 @@ export default function App() {
 
   // Sync tab with user's role on load or role change
   useEffect(() => {
-    if (['kitchen', 'owner', 'developer'].includes(userRole)) {
+    if (userRole === 'grand_admin' || userRole === 'developer') {
+      setCurrentTab('developer');
+    } else if (['kitchen', 'owner'].includes(userRole)) {
       if (userRole === 'owner' && !isAuthorizedAdmin) {
-        setCurrentTab('customer');
-      } else if (userRole === 'developer' && !isAuthorizedDeveloper) {
         setCurrentTab('customer');
       } else {
         setCurrentTab(userRole);

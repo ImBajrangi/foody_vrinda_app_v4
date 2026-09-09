@@ -30,6 +30,8 @@ import {
   KeyRound,
   Sliders,
   RefreshCw,
+  Crown,
+  Lock,
   X
 } from 'lucide-react';
 import { 
@@ -224,13 +226,23 @@ export default function DeveloperView({ setCurrentTab }) {
   };
 
   const handleUpdateUserRole = async (userId, newRole) => {
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin') {
+      setToast({ message: 'Grand Admin role is permanent and cannot be modified or downgraded.', type: 'warning' });
+      return;
+    }
+
     setUsersList(prev => {
       const updated = prev.map(u => u.id === userId ? { ...u, role: newRole } : u);
       saveCachedUsers(updated);
       return updated;
     });
     if (updateUserRole) {
-      await updateUserRole(userId, newRole);
+      const res = await updateUserRole(userId, newRole);
+      if (res && !res.success && res.message) {
+        setToast({ message: res.message, type: 'error' });
+        return;
+      }
     } else {
       await updateCloudUser(userId, { role: newRole });
     }
@@ -331,8 +343,9 @@ export default function DeveloperView({ setCurrentTab }) {
   };
 
   const handleDeleteUser = (userId, userName, userEmail) => {
-    if (isDeveloperUser(userEmail)) {
-      setToast({ message: 'Protected Master Developer accounts cannot be deleted', type: 'warning' });
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin' || isDeveloperUser(userEmail)) {
+      setToast({ message: 'Protected Grand Admin / Master Developer accounts cannot be deleted', type: 'warning' });
       return;
     }
     setUserToDelete({ id: userId, name: userName || userId });
@@ -1055,6 +1068,7 @@ export default function DeveloperView({ setCurrentTab }) {
             <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
               {[
                 { id: 'all', label: 'All' },
+                { id: 'grand_admin', label: '👑 Grand Admin' },
                 { id: 'kitchen', label: 'Kitchen' },
                 { id: 'delivery', label: 'Delivery' },
                 { id: 'owner', label: 'Owner' },
@@ -1137,17 +1151,20 @@ export default function DeveloperView({ setCurrentTab }) {
                   >
                     {/* User Identity Details */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                          role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                            role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                              role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                'bg-white/10 text-neutral-300 border border-white/10'
-                        }`}>
-                        {role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
-                          role === 'delivery' ? <Truck className="w-4 h-4" /> :
-                            role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
-                              role === 'developer' ? <Terminal className="w-4 h-4" /> :
-                                <Sparkles className="w-4 h-4" />}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                        role === 'grand_admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]' :
+                        role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                        role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                        role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                        role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
+                        'bg-white/10 text-neutral-300 border border-white/10'
+                      }`}>
+                        {role === 'grand_admin' ? <Crown className="w-4 h-4 text-amber-300" /> :
+                         role === 'kitchen' ? <ChefHat className="w-4 h-4" /> :
+                         role === 'delivery' ? <Truck className="w-4 h-4" /> :
+                         role === 'owner' ? <ShieldCheck className="w-4 h-4" /> :
+                         role === 'developer' ? <Terminal className="w-4 h-4" /> :
+                         <Sparkles className="w-4 h-4" />}
                       </div>
 
                       <div className="min-w-0">
@@ -1155,13 +1172,15 @@ export default function DeveloperView({ setCurrentTab }) {
                           <p className="font-bold text-xs text-white truncate font-['Outfit']">
                             {u.displayName || u.email || `User (${(u.phone || '').slice(-4)})`}
                           </p>
-                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                              role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                                role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
-                                  role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                    'bg-white/5 text-neutral-400 border border-white/10'
-                            }`}>
-                            {role}
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            role === 'grand_admin' ? 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-amber-300 border border-amber-400/50 flex items-center gap-1 font-black' :
+                            role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                            role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                            role === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                            role === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
+                            'bg-white/5 text-neutral-400 border border-white/10'
+                          }`}>
+                            {role === 'grand_admin' ? '👑 Grand Admin' : role}
                           </span>
                           {isCurrentSessionUser && (
                             <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/40 flex items-center gap-1">
@@ -1179,18 +1198,29 @@ export default function DeveloperView({ setCurrentTab }) {
 
                     {/* Interactive Role & Shop Selectors + Actions */}
                     <div className="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-auto">
-                      {/* Role Selector */}
-                      <select
-                        value={role}
-                        onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                        className="bg-[#282526] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
-                      >
-                        <option value="customer">Customer</option>
-                        <option value="kitchen">Kitchen Staff</option>
-                        <option value="delivery">Delivery Sarathi</option>
-                        <option value="owner">Store Owner</option>
-                        <option value="developer">Developer</option>
-                      </select>
+                      {/* Role Selector: Immutable Lock for Grand Admin */}
+                      {role === 'grand_admin' ? (
+                        <div 
+                          className="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 select-none cursor-not-allowed shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                          title="Grand Admin role is permanent and cannot be modified or downgraded."
+                        >
+                          <Lock className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Permanent Grand Admin</span>
+                        </div>
+                      ) : (
+                        <select
+                          value={role}
+                          onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                          className="bg-[#282526] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
+                        >
+                          <option value="customer">Customer</option>
+                          <option value="kitchen">Kitchen Staff</option>
+                          <option value="delivery">Delivery Sarathi</option>
+                          <option value="owner">Store Owner</option>
+                          <option value="developer">Developer</option>
+                          <option value="grand_admin">👑 Grand Admin (Permanent)</option>
+                        </select>
+                      )}
 
                       {/* Kitchen Assignment Selector */}
                       {(role === 'kitchen' || role === 'delivery' || role === 'owner') && (
@@ -1215,14 +1245,16 @@ export default function DeveloperView({ setCurrentTab }) {
                         <span>Test View</span>
                       </button>
 
-                      {/* Delete User */}
-                      <button
-                        onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
-                        title="Delete user"
-                        className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Delete User (Disabled / Hidden for Grand Admin) */}
+                      {role !== 'grand_admin' && (
+                        <button
+                          onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
+                          title="Delete user"
+                          className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
