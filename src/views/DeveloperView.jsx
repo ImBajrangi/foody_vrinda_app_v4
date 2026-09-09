@@ -57,7 +57,8 @@ export default function DeveloperView({ setCurrentTab }) {
     emergencyMasterActive, 
     emergencyRevokeDev,
     user,
-    userData
+    userData,
+    updateUserRole
   } = useAuth();
 
 
@@ -215,7 +216,11 @@ export default function DeveloperView({ setCurrentTab }) {
       saveCachedUsers(updated);
       return updated;
     });
-    await updateCloudUser(userId, { role: newRole });
+    if (updateUserRole) {
+      await updateUserRole(userId, newRole);
+    } else {
+      await updateCloudUser(userId, { role: newRole });
+    }
     setToast({ message: `User role updated to ${newRole.toUpperCase()}`, type: 'success' });
   };
 
@@ -225,7 +230,12 @@ export default function DeveloperView({ setCurrentTab }) {
       saveCachedUsers(updated);
       return updated;
     });
-    await updateCloudUser(userId, { shopId: newShopId, shopIds: [newShopId] });
+    if (updateUserRole) {
+      const targetUser = usersList.find(u => u.id === userId);
+      await updateUserRole(userId, targetUser?.role || 'customer', newShopId);
+    } else {
+      await updateCloudUser(userId, { shopId: newShopId, shopIds: [newShopId] });
+    }
     setToast({ message: 'Kitchen assignment updated', type: 'success' });
   };
 

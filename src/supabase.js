@@ -1140,41 +1140,77 @@ export async function createCloudUser(userData) {
   return newUser;
 }
 
-export async function updateCloudUser(userId, updates) {
+export async function updateCloudUser(userIdOrData, updatesObj = {}) {
+  let userId;
+  let updates;
+  if (typeof userIdOrData === 'object' && userIdOrData !== null) {
+    userId = userIdOrData.id;
+    updates = { ...userIdOrData, ...updatesObj };
+    delete updates.id;
+  } else {
+    userId = userIdOrData;
+    updates = updatesObj;
+  }
+
   const currentUsers = getCachedUsers();
-  const updatedList = currentUsers.map(u => {
-    if (u.id === userId) {
-      return { ...u, ...updates, updatedAt: new Date().toISOString() };
-    }
-    return u;
-  });
+  const cleanId = String(userId || '').trim();
+  const cleanEmail = (updates.email || '').toLowerCase().trim();
+
+  const userExists = currentUsers.some(u => 
+    (cleanId && String(u.id).trim() === cleanId) || 
+    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+  );
+
+  let updatedList;
+  if (userExists) {
+    updatedList = currentUsers.map(u => {
+      if ((cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
+        return { ...u, ...updates, updatedAt: new Date().toISOString() };
+      }
+      return u;
+    });
+  } else {
+    const newUser = {
+      id: cleanId || `user_${Date.now()}`,
+      displayName: updates.displayName || 'User',
+      email: updates.email || '',
+      phone: updates.phone || '',
+      role: updates.role || 'customer',
+      shopId: updates.shopId || 'shop-vrinda-main',
+      shopIds: updates.shopIds || [updates.shopId || 'shop-vrinda-main'],
+      ...updates,
+      createdAt: new Date().toISOString()
+    };
+    updatedList = [newUser, ...currentUsers];
+  }
 
   saveCachedUsers(updatedList);
   window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList } }));
 
-  if (usersTableAvailable !== false) {
+  if (usersTableAvailable !== false && cleanId) {
     try {
-      const payload = {};
+      const payload = {
+        id: cleanId,
+        updated_at: new Date().toISOString()
+      };
       if (updates.role !== undefined) payload.role = updates.role;
       if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
       if (updates.shopIds !== undefined) payload.shop_ids = updates.shopIds;
       if (updates.displayName !== undefined) payload.display_name = updates.displayName;
       if (updates.phone !== undefined) payload.phone = updates.phone;
+      if (updates.email !== undefined) payload.email = updates.email;
 
-      if (Object.keys(payload).length > 0) {
-        const { error } = await supabase
-          .from('foody_users')
-          .update(payload)
-          .eq('id', userId);
-        if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
-          usersTableAvailable = false;
-        }
+      const { error } = await supabase
+        .from('foody_users')
+        .upsert(payload);
+      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
+        usersTableAvailable = false;
       }
     } catch (e) {
       usersTableAvailable = false;
     }
   }
-  return updatedList.find(u => u.id === userId);
+  return updatedList.find(u => (cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail));
 }
 
 export async function deleteCloudUser(userId) {

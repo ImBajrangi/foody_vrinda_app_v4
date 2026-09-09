@@ -85,7 +85,7 @@ ChartJS.register(
 );
 
 export default function OwnerView() {
-  const { allShops = [], currentUserShopId, refreshShops } = useAuth();
+  const { allShops = [], currentUserShopId, refreshShops, updateUserRole } = useAuth();
   
   // Resolved Active Kitchen
   const currentShop = (allShops && allShops.length > 0)
@@ -229,7 +229,11 @@ export default function OwnerView() {
       return updated;
     });
     setToast({ message: `Role updated to ${newRole.toUpperCase()}`, type: 'success' });
-    await updateCloudUser(userId, { role: newRole, shopId: targetShopId });
+    if (updateUserRole) {
+      await updateUserRole(userId, newRole, targetShopId);
+    } else {
+      await updateCloudUser(userId, { role: newRole, shopId: targetShopId });
+    }
   };
 
   const handleAddStaffMember = async (e) => {

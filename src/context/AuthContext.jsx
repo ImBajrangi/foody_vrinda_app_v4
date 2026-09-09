@@ -183,13 +183,15 @@ export function AuthProvider({ children }) {
       const users = e?.detail?.users || getCachedUsers();
       if (!users || !Array.isArray(users)) return;
 
-      const currentId = user?.id;
-      const currentEmail = (user?.email || '').toLowerCase().trim();
-      if (!currentId && !currentEmail) return;
+      const currentId = user?.id ? String(user.id).trim() : '';
+      const currentEmail = (user?.email || userData?.email || '').toLowerCase().trim();
+      const currentPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
+      if (!currentId && !currentEmail && !currentPhone) return;
 
       const match = users.find(u => 
-        (currentId && String(u.id).trim() === String(currentId).trim()) || 
-        (currentEmail && u.email && u.email.toLowerCase().trim() === currentEmail)
+        (currentId && String(u.id).trim() === currentId) || 
+        (currentEmail && u.email && u.email.toLowerCase().trim() === currentEmail) ||
+        (currentPhone && u.phone && u.phone.replace(/\D/g, '').endsWith(currentPhone.slice(-10)))
       );
 
       if (match && match.role) {
@@ -223,7 +225,7 @@ export function AuthProvider({ children }) {
       window.removeEventListener('foody_users_changed', handleUsersChanged);
       window.removeEventListener('storage', handleUsersChanged);
     };
-  }, [user, userRole, currentUserShopId, resolveShopName]);
+  }, [user, userData, userRole, currentUserShopId, resolveShopName]);
 
   const syncUserToCloudList = useCallback((userProfile) => {
     if (!userProfile || !userProfile.id) return;
@@ -231,10 +233,12 @@ export function AuthProvider({ children }) {
       const currentCached = getCachedUsers();
       const cleanEmail = (userProfile.email || '').toLowerCase().trim();
       const cleanId = String(userProfile.id).trim();
+      const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
 
       const exists = currentCached.find(u => 
-        String(u.id).trim() === cleanId || 
-        (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+        (cleanId && String(u.id).trim() === cleanId) || 
+        (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+        (cleanPhone && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       );
 
       let nextList;
@@ -254,16 +258,16 @@ export function AuthProvider({ children }) {
         createCloudUser(newUser).catch(() => {});
       } else {
         nextList = currentCached.map(u => {
-          if (String(u.id).trim() === cleanId || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
+          if ((cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
             return {
               ...u,
               id: cleanId,
               displayName: userProfile.displayName || u.displayName,
               email: userProfile.email || u.email,
               phone: userProfile.phone || u.phone,
-              role: u.role || userProfile.role, // Preserve assigned role
-              shopId: u.shopId || userProfile.shopId,
-              shopIds: u.shopIds || userProfile.shopIds,
+              role: userProfile.role || u.role, // Allow incoming profile role to update
+              shopId: userProfile.shopId || u.shopId,
+              shopIds: userProfile.shopIds || u.shopIds,
               isLoggedInUser: true
             };
           }
@@ -286,7 +290,6 @@ export function AuthProvider({ children }) {
         const { data, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          // If refresh token is expired or invalid (HTTP 400), safely clean up stale session
           try {
             await supabase.auth.signOut();
           } catch (e) {}
@@ -324,21 +327,22 @@ export function AuthProvider({ children }) {
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
           );
 
-          let role = existingRecord?.role || parsedSaved?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
+          // Priority: existingRecord in cached/cloud user table > parsedSaved > email whitelist > default customer
+          let role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : (parsedSaved?.role || 'customer')));
           let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
           let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || [activeShopId];
 
           const userProfile = {
+            ...(parsedSaved || {}),
             id: currentSbUser.id,
             email,
-            displayName: currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || currentSbUser.user_metadata?.full_name || email.split('@')[0],
+            displayName: currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || currentSbUser.user_metadata?.full_name || parsedSaved?.displayName || email.split('@')[0],
             photoURL: avatarUrl,
             avatar_url: avatarUrl,
             role,
             shopId: activeShopId,
             shopIds: activeShopIds,
-            isLoggedInUser: true,
-            ...(parsedSaved || {})
+            isLoggedInUser: true
           };
 
           setUserData(userProfile);
@@ -346,9 +350,9 @@ export function AuthProvider({ children }) {
           setCurrentUserShopId(userProfile.shopId);
           setCurrentUserShopIds(userProfile.shopIds);
           setCurrentShopName(resolveShopName(userProfile.shopId));
+          localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
           syncUserToCloudList(userProfile);
         } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
-          // Real persisted user session (e.g. from phone lookup login)
           setUser({ 
             id: parsedSaved.id, 
             email: parsedSaved.email || '', 
@@ -362,7 +366,6 @@ export function AuthProvider({ children }) {
           setCurrentUserShopIds(parsedSaved.shopIds || (parsedSaved.shopId ? [parsedSaved.shopId] : []));
           setCurrentShopName(resolveShopName(parsedSaved.shopId) || null);
         } else {
-          // Clean unauthenticated guest session
           const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
           setUser(guestUser);
           setUserData({ role: 'customer', isAnonymous: true, displayName: 'Guest' });
@@ -565,22 +568,75 @@ export function AuthProvider({ children }) {
     setCurrentShopName(null);
   };
 
+  // Dedicated role update function accessible to all components & views
+  const updateUserRole = useCallback(async (targetUserId, newRole, targetShopId = null) => {
+    if (!targetUserId || !newRole) return { success: false, message: 'Invalid arguments' };
+
+    const cleanTargetId = String(targetUserId).trim();
+    const currentId = user?.id ? String(user.id).trim() : '';
+    const currentEmail = (user?.email || userData?.email || '').toLowerCase().trim();
+    const currentPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
+
+    const isCurrentActiveUser = (
+      (currentId && currentId === cleanTargetId) ||
+      (userData?.id && String(userData.id).trim() === cleanTargetId) ||
+      (currentEmail && targetUserId.includes('@') && currentEmail === cleanTargetId.toLowerCase()) ||
+      (currentPhone && currentPhone.endsWith(cleanTargetId.replace(/\D/g, '').slice(-10)))
+    );
+
+    const updates = { role: newRole };
+    if (targetShopId) {
+      updates.shopId = targetShopId;
+      updates.shopIds = [targetShopId];
+    }
+
+    // 1. Update in local cache & Supabase cloud
+    await updateCloudUser(targetUserId, updates);
+
+    // 2. If it affects the currently active user, instantly update AuthContext states & localStorage
+    if (isCurrentActiveUser) {
+      setUserRole(newRole);
+      setImpersonatedRole(null);
+      if (targetShopId) {
+        setCurrentUserShopId(targetShopId);
+        setCurrentUserShopIds([targetShopId]);
+        setCurrentShopName(resolveShopName(targetShopId));
+      }
+      setUserData(prev => {
+        const updated = {
+          ...(prev || {}),
+          role: newRole,
+          ...(targetShopId ? { shopId: targetShopId, shopIds: [targetShopId] } : {})
+        };
+        try {
+          localStorage.setItem('foody_user_data', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+    }
+
+    return { success: true, newRole };
+  }, [user, userData, resolveShopName]);
+
   // Developer & Admin authorization flags
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAuthorizedDeveloper = Boolean(
     emergencyMasterActive || 
     (user && !user.isAnonymous && isDevUser) || 
-    (userData?.role === 'developer' && userData?.isLoggedInUser && !user?.isAnonymous)
+    (userData?.role === 'developer' && !user?.isAnonymous) ||
+    (userRole === 'developer')
   );
   const isAuthorizedAdmin = Boolean(
     emergencyMasterActive || 
     (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) || 
-    (['developer', 'owner'].includes(userData?.role) && userData?.isLoggedInUser && !user?.isAnonymous)
+    (['developer', 'owner'].includes(userData?.role) && !user?.isAnonymous) ||
+    (['developer', 'owner'].includes(userRole))
   );
   const isStaff = Boolean(
     emergencyMasterActive || 
-    (['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole) && userData?.isLoggedInUser && !user?.isAnonymous)
+    (['kitchen', 'delivery', 'owner', 'developer'].includes(userData?.role || userRole) && !user?.isAnonymous) ||
+    (['kitchen', 'delivery', 'owner', 'developer'].includes(userRole))
   );
 
   // Developer impersonation control helper
@@ -634,6 +690,8 @@ export function AuthProvider({ children }) {
     loginWithPhoneLookup,
     logout,
     impersonate,
+    updateUserRole,
+    setUserRole,
     refreshShops: loadShops
   };
 

@@ -94,6 +94,7 @@ export default function AuthModal({ isOpen, onClose }) {
     loginWithGoogle, 
     loginWithPhoneLookup,
     impersonate,
+    updateUserRole,
     logout 
   } = useAuth();
   
@@ -347,7 +348,10 @@ export default function AuthModal({ isOpen, onClose }) {
         address: addressInput.trim()
       };
       localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      updateCloudUser({ id: user.id || userData?.id, address: addressInput.trim() }).catch(() => {});
+      const targetId = user?.id || userData?.id;
+      if (targetId) {
+        updateCloudUser(targetId, { address: addressInput.trim() }).catch(() => {});
+      }
       setIsEditingAddress(false);
       setSuccessMsg('Delivery address updated!');
     } catch (e) {
@@ -363,7 +367,10 @@ export default function AuthModal({ isOpen, onClose }) {
         displayName: nameInput.trim()
       };
       localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      updateCloudUser({ id: user.id || userData?.id, displayName: nameInput.trim() }).catch(() => {});
+      const targetId = user?.id || userData?.id;
+      if (targetId) {
+        updateCloudUser(targetId, { displayName: nameInput.trim() }).catch(() => {});
+      }
       setIsEditingName(false);
       setSuccessMsg('Name updated!');
     } catch (e) {
@@ -558,10 +565,22 @@ export default function AuthModal({ isOpen, onClose }) {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <h4 className="font-black text-white text-base font-['Outfit'] tracking-tight">
                         {userData?.displayName || user.displayName || 'Customer'}
                       </h4>
+                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                        userRole === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
+                        userRole === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
+                        userRole === 'owner' ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30' :
+                        userRole === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
+                        'bg-white/5 text-zinc-400 border border-white/10'
+                      }`}>
+                        {userRole === 'kitchen' ? 'Kitchen Chef' :
+                         userRole === 'delivery' ? 'Rider Sarathi' :
+                         userRole === 'owner' ? 'Store Owner' :
+                         userRole === 'developer' ? 'Developer' : 'Customer'}
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
