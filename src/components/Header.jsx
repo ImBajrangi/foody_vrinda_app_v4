@@ -58,23 +58,25 @@ export default function Header({
         <div className="flex items-center gap-3 min-w-0">
           <button 
             onClick={handleProfileClick}
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-[#282526] border border-white/10 hover:border-[#E0FF33]/50 flex items-center justify-center text-white font-black text-sm shadow-md transition-all flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 ring-1 ring-white/5"
-            title="Profile & Settings"
+            className="group relative w-11 h-11 sm:w-12 sm:h-12 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/40 via-white/20 to-[#E0FF33]/60 hover:from-[#E0FF33] hover:to-[#CCFF00] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-[0_2px_14px_rgba(224,255,51,0.18)] hover:shadow-[0_0_20px_rgba(224,255,51,0.35)]"
+            title="Profile & Settings (Tap to open)"
           >
-            {userAvatar ? (
-              <img 
-                src={userAvatar} 
-                alt={getDisplayName()} 
-                referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
-                className="w-full h-full object-cover" 
-                onError={() => setHeaderAvatarError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit']">
-                {getDisplayName().charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-full h-full rounded-full overflow-hidden bg-[#1E1B1C] border border-[#1E1B1C] flex items-center justify-center relative">
+              {userAvatar ? (
+                <img 
+                  src={userAvatar} 
+                  alt={getDisplayName()} 
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  onError={() => setHeaderAvatarError(true)}
+                />
+              ) : (
+                <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit'] group-hover:scale-110 transition-transform duration-300">
+                  {getDisplayName().charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
           </button>
           
           <div className="min-w-0">
