@@ -170,13 +170,15 @@ export function resolveDishCutout(image, name = '', category = '') {
 const CACHE_TTL_MS = {
   SHOPS: 30 * 60 * 1000,    // 30 minutes
   MENUS: 15 * 60 * 1000,    // 15 minutes
-  ORDERS: 2 * 60 * 1000     // 2 minutes
+  ORDERS: 2 * 60 * 1000,    // 2 minutes
+  USERS: 30 * 1000          // 30 seconds for fast role propagation
 };
 
 const memoryCache = {
   shops: { data: null, timestamp: 0 },
   menus: {}, // [shopId]: { data, timestamp }
   orders: {}, // [shopId]: { data, timestamp }
+  users: { data: null, timestamp: 0 }
 };
 
 // In-flight request deduplication map
@@ -213,6 +215,11 @@ function getCachedItem(type, key = 'default') {
         }
       } catch (e) {}
     }
+  } else if (type === 'users') {
+    if (memoryCache.users.data && (now - memoryCache.users.timestamp < CACHE_TTL_MS.USERS)) {
+      return memoryCache.users.data;
+    }
+    return null;
   }
   return null;
 }
@@ -303,6 +310,11 @@ function setCachedItem(type, key, data) {
     try {
       localStorage.setItem(`foody_cache_menu_${key}`, JSON.stringify({ data, timestamp: now }));
     } catch (e) {}
+  } else if (type === 'users') {
+    memoryCache.users = { data, timestamp: now };
+    try {
+      localStorage.setItem('foody_cached_users', JSON.stringify(data));
+    } catch (e) {}
   }
 }
 
@@ -318,6 +330,9 @@ export function invalidateCache(type, key) {
     } else {
       memoryCache.menus = {};
     }
+  } else if (type === 'users') {
+    memoryCache.users = { data: null, timestamp: 0 };
+    localStorage.removeItem('foody_cached_users');
   }
 }
 
@@ -590,6 +605,7 @@ class RealtimeMultiplexer {
     this.orderListeners = new Set();
     this.singleOrderListeners = new Map(); // [orderId]: Set of callbacks
     this.notificationListeners = new Set();
+    this.userListeners = new Set();
     this.isSubscribed = false;
   }
 
@@ -668,11 +684,82 @@ class RealtimeMultiplexer {
           });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'foody_logged_users' },
+        (payload) => this.handleUserChangePayload(payload)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'foody_users' },
+        (payload) => this.handleUserChangePayload(payload)
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           this.isSubscribed = true;
         }
       });
+  }
+
+  handleUserChangePayload(payload) {
+    const raw = payload.new || payload.old;
+    if (!raw) return;
+
+    const normalized = {
+      id: raw.id,
+      displayName: raw.display_name || raw.displayName || 'User',
+      email: raw.email || '',
+      phone: raw.phone || '',
+      avatarUrl: raw.avatar_url || '',
+      role: raw.role || 'customer',
+      shopId: raw.shop_id || raw.shopId || 'shop-vrinda-main',
+      shopIds: raw.shop_ids || raw.shopIds || (raw.shop_id ? [raw.shop_id] : ['shop-vrinda-main']),
+      devPermissions: raw.dev_permissions || [],
+      lastLoginAt: raw.last_login_at || raw.created_at,
+      createdAt: raw.created_at,
+      updatedAt: raw.updated_at
+    };
+
+    // 1. In-memory & local cache sync with zero egress
+    const current = getCachedUsers();
+    let next;
+    if (payload.eventType === 'DELETE') {
+      next = current.filter(u => u.id !== raw.id);
+    } else {
+      const cleanId = String(raw.id || '').trim();
+      const cleanEmail = (raw.email || '').toLowerCase().trim();
+      const cleanPhone = (raw.phone || '').replace(/\D/g, '');
+
+      const idx = current.findIndex(u => 
+        (cleanId && String(u.id).trim() === cleanId) || 
+        (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+        (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+      );
+
+      if (idx >= 0) {
+        next = [...current];
+        next[idx] = { ...next[idx], ...normalized };
+      } else {
+        next = [normalized, ...current];
+      }
+    }
+
+    saveCachedUsers(next);
+    setCachedItem('users', 'all', next);
+
+    // 2. Dispatch cross-component event
+    window.dispatchEvent(new CustomEvent('foody_users_changed', { 
+      detail: { users: next, updatedUser: normalized, eventType: payload.eventType } 
+    }));
+
+    // 3. Notify user listeners directly
+    this.userListeners.forEach(listener => {
+      try {
+        listener(next, normalized, payload.eventType);
+      } catch (e) {
+        console.error('User listener error:', e);
+      }
+    });
   }
 
   subscribeOrders(shopId, callback) {
@@ -716,11 +803,22 @@ class RealtimeMultiplexer {
     };
   }
 
+  subscribeUsers(callback) {
+    this.ensureSubscribed();
+    this.userListeners.add(callback);
+
+    return () => {
+      this.userListeners.delete(callback);
+      this.checkCleanup();
+    };
+  }
+
   checkCleanup() {
     if (
       this.orderListeners.size === 0 &&
       this.singleOrderListeners.size === 0 &&
       this.notificationListeners.size === 0 &&
+      this.userListeners.size === 0 &&
       this.channel
     ) {
       // Keep channel alive with a 15-second debounce before closing to prevent connect/disconnect flapping
@@ -729,6 +827,7 @@ class RealtimeMultiplexer {
           this.orderListeners.size === 0 &&
           this.singleOrderListeners.size === 0 &&
           this.notificationListeners.size === 0 &&
+          this.userListeners.size === 0 &&
           this.channel
         ) {
           supabase.removeChannel(this.channel);
@@ -1033,70 +1132,381 @@ export function checkUsersTableStatus() {
   return usersTableAvailable;
 }
 
-export const USERS_TABLE_SQL_SCHEMA = `-- Run this in your Supabase Project SQL Editor to enable cloud persistence for users:
+export const USERS_TABLE_SQL_SCHEMA = `-- ========================================================================
+-- FOODY VRINDA ENTERPRISE USER & ROLE MANAGEMENT SYSTEM (SUPABASE POSTGRES)
+-- ========================================================================
+
+-- 1. All Logged-in Users & Profiles Table
+CREATE TABLE IF NOT EXISTS public.foody_logged_users (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    avatar_url TEXT,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
+    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
+    shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
+    dev_permissions JSONB DEFAULT '[]'::jsonb,
+    login_method TEXT DEFAULT 'email',
+    is_active BOOLEAN DEFAULT true,
+    last_login_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Backward-compatibility: public.foody_users table
 CREATE TABLE IF NOT EXISTS public.foody_users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
     email TEXT,
     phone TEXT,
-    role TEXT NOT NULL DEFAULT 'customer',
+    avatar_url TEXT,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
     shop_id TEXT DEFAULT 'shop-vrinda-main',
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
     dev_permissions JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 2. Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_logged_users_role ON public.foody_logged_users (role);
+CREATE INDEX IF NOT EXISTS idx_logged_users_email ON public.foody_logged_users (LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_logged_users_phone ON public.foody_logged_users (phone);
+CREATE INDEX IF NOT EXISTS idx_logged_users_shop_id ON public.foody_logged_users (shop_id);
+
+CREATE INDEX IF NOT EXISTS idx_foody_users_email ON public.foody_users (LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_foody_users_phone ON public.foody_users (phone);
+CREATE INDEX IF NOT EXISTS idx_foody_users_role ON public.foody_users (role);
+CREATE INDEX IF NOT EXISTS idx_foody_users_shop_id ON public.foody_users (shop_id);
+
+-- 3. Row Level Security & Access Policies
+ALTER TABLE public.foody_logged_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access logged users" ON public.foody_logged_users;
+CREATE POLICY "Public access logged users" ON public.foody_logged_users FOR ALL USING (true) WITH CHECK (true);
+
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public read users" ON public.foody_users;
 CREATE POLICY "Public read users" ON public.foody_users FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Public write users" ON public.foody_users;
 CREATE POLICY "Public write users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
+
+-- 4. Realtime Streaming Replication
+ALTER TABLE public.foody_logged_users REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_users REPLICA IDENTITY FULL;
+
 DO $$ BEGIN
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_logged_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
 END $$;
+
+-- 5. Atomic Role Assignment RPC Function
+CREATE OR REPLACE FUNCTION public.set_user_role(
+    target_id TEXT,
+    new_role TEXT,
+    target_shop TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    updated_record JSONB;
+BEGIN
+    -- 1. Update in public.foody_logged_users
+    UPDATE public.foody_logged_users
+    SET 
+        role = new_role,
+        shop_id = COALESCE(target_shop, shop_id),
+        shop_ids = CASE 
+            WHEN target_shop IS NOT NULL THEN jsonb_build_array(target_shop)
+            ELSE shop_ids
+        END,
+        updated_at = NOW()
+    WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id
+    RETURNING to_jsonb(foody_logged_users.*) INTO updated_record;
+
+    -- 2. Also mirror update into public.foody_users
+    UPDATE public.foody_users
+    SET 
+        role = new_role,
+        shop_id = COALESCE(target_shop, shop_id),
+        shop_ids = CASE 
+            WHEN target_shop IS NOT NULL THEN jsonb_build_array(target_shop)
+            ELSE shop_ids
+        END,
+        updated_at = NOW()
+    WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id;
+
+    IF updated_record IS NULL THEN
+        SELECT to_jsonb(foody_users.*) INTO updated_record FROM public.foody_users WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id LIMIT 1;
+    END IF;
+
+    -- 3. Synchronize Supabase Auth metadata
+    BEGIN
+        UPDATE auth.users
+        SET 
+            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role)),
+            raw_app_meta_data = jsonb_set(COALESCE(raw_app_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role))
+        WHERE id::text = target_id OR LOWER(email) = LOWER(target_id);
+    EXCEPTION WHEN OTHERS THEN
+        NULL;
+    END;
+
+    RETURN updated_record;
+END;
+$$;
 `;
 
-export async function getCloudUsers() {
+export async function getCloudUsers(forceRefresh = false) {
   const cached = getCachedUsers();
-  if (usersTableAvailable === false) {
-    return cached;
+
+  if (!forceRefresh) {
+    const memCached = getCachedItem('users', 'all');
+    if (memCached && Array.isArray(memCached) && memCached.length > 0) {
+      return memCached;
+    }
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('foody_users')
-      .select('*')
-      .order('created_at', { ascending: false });
+  // Deduplicate concurrent in-flight requests to save egress
+  if (pendingRequests.has('getCloudUsers')) {
+    return pendingRequests.get('getCloudUsers');
+  }
 
-    if (error) {
-      // If table doesn't exist (HTTP 404 or PostgREST code PGRST205)
-      if (error.code === 'PGRST205' || error.message?.includes('does not exist') || error.code === '42P01') {
-        usersTableAvailable = false;
+  const promise = (async () => {
+    try {
+      // 1. Fetch from foody_logged_users first
+      let loggedUsers = [];
+      try {
+        const { data, error } = await supabase
+          .from('foody_logged_users')
+          .select('*')
+          .order('last_login_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          loggedUsers = data;
+        }
+      } catch (e) {}
+
+      // 2. Also fetch from foody_users to merge any staff or historical users
+      let legacyUsers = [];
+      try {
+        const { data, error } = await supabase
+          .from('foody_users')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          legacyUsers = data;
+        }
+      } catch (e) {}
+
+      const combinedMap = new Map();
+      loggedUsers.forEach(u => combinedMap.set(u.id, u));
+      legacyUsers.forEach(u => {
+        if (!combinedMap.has(u.id)) {
+          combinedMap.set(u.id, u);
+        } else {
+          const existing = combinedMap.get(u.id);
+          // Preserve promoted roles if present
+          if (existing.role === 'customer' && u.role !== 'customer') {
+            combinedMap.set(u.id, { ...existing, role: u.role });
+          }
+        }
+      });
+
+      const mergedRows = Array.from(combinedMap.values());
+
+      if (mergedRows.length > 0) {
+        const mapped = mergedRows.map(u => ({
+          id: u.id,
+          displayName: u.display_name || u.displayName || u.email?.split('@')[0] || 'User',
+          email: u.email || '',
+          phone: u.phone || '',
+          avatarUrl: u.avatar_url || '',
+          role: u.role || 'customer',
+          shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
+          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
+          devPermissions: u.dev_permissions || [],
+          lastLoginAt: u.last_login_at || u.created_at,
+          createdAt: u.created_at,
+          updatedAt: u.updated_at
+        }));
+        saveCachedUsers(mapped);
+        setCachedItem('users', 'all', mapped);
+        return mapped;
       }
       return cached;
+    } catch (e) {
+      return cached;
+    } finally {
+      pendingRequests.delete('getCloudUsers');
     }
+  })();
 
-    usersTableAvailable = true;
-    if (data && data.length > 0) {
-      const mapped = data.map(u => ({
-        id: u.id,
-        displayName: u.display_name || u.displayName || u.email?.split('@')[0] || 'User',
-        email: u.email || '',
-        phone: u.phone || '',
-        role: u.role || 'customer',
-        shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
-        shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
-        devPermissions: u.dev_permissions || [],
-        createdAt: u.created_at
-      }));
-      saveCachedUsers(mapped);
-      return mapped;
+  pendingRequests.set('getCloudUsers', promise);
+  return promise;
+}
+
+// Fetch single user live role & profile directly from Supabase with zero egress overhead
+export async function getLiveUserRoleAndProfile(userId, email, phone) {
+  const cleanId = String(userId || '').trim();
+  const cleanEmail = (email || '').toLowerCase().trim();
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+
+  if (!cleanId && !cleanEmail && !cleanPhone) return null;
+
+  // 1. Try foody_logged_users first
+  try {
+    let query = supabase.from('foody_logged_users').select('*');
+    if (cleanId) {
+      query = query.eq('id', cleanId);
+    } else if (cleanEmail) {
+      query = query.eq('email', cleanEmail);
+    } else if (cleanPhone && cleanPhone.length >= 10) {
+      query = query.eq('phone', cleanPhone);
     }
-    return cached;
-  } catch (e) {
-    usersTableAvailable = false;
-    return cached;
+    const { data, error } = await query.maybeSingle();
+    if (!error && data) {
+      return {
+        id: data.id,
+        displayName: data.display_name || data.email?.split('@')[0] || 'User',
+        email: data.email || '',
+        phone: data.phone || '',
+        avatarUrl: data.avatar_url || '',
+        role: data.role || 'customer',
+        shopId: data.shop_id || 'shop-vrinda-main',
+        shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : ['shop-vrinda-main']),
+        devPermissions: data.dev_permissions || [],
+        isLoggedInUser: true
+      };
+    }
+  } catch (e) {}
+
+  // 2. Try foody_users fallback
+  try {
+    let query = supabase.from('foody_users').select('*');
+    if (cleanId) {
+      query = query.eq('id', cleanId);
+    } else if (cleanEmail) {
+      query = query.eq('email', cleanEmail);
+    } else if (cleanPhone && cleanPhone.length >= 10) {
+      query = query.eq('phone', cleanPhone);
+    }
+    const { data, error } = await query.maybeSingle();
+    if (!error && data) {
+      return {
+        id: data.id,
+        displayName: data.display_name || data.email?.split('@')[0] || 'User',
+        email: data.email || '',
+        phone: data.phone || '',
+        avatarUrl: data.avatar_url || '',
+        role: data.role || 'customer',
+        shopId: data.shop_id || 'shop-vrinda-main',
+        shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : ['shop-vrinda-main']),
+        devPermissions: data.dev_permissions || [],
+        isLoggedInUser: true
+      };
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+// Dedicated function to record every login in the database without ever downgrading elevated roles
+export async function recordLoggedInUser(userProfile) {
+  if (!userProfile || !userProfile.id) return null;
+  const cleanId = String(userProfile.id).trim();
+  const cleanEmail = (userProfile.email || '').toLowerCase().trim();
+  const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
+  const cleanName = userProfile.displayName || userProfile.name || cleanEmail.split('@')[0] || `User (${cleanId.slice(0, 6)})`;
+  const cleanAvatar = userProfile.avatar_url || userProfile.photoURL || userProfile.avatarUrl || '';
+  const cleanShop = userProfile.shopId || 'shop-vrinda-main';
+  const cleanShops = userProfile.shopIds || [cleanShop];
+  const loginMethod = userProfile.loginMethod || (cleanEmail ? 'email' : (cleanPhone ? 'phone' : 'google'));
+
+  // 1. Check live database role first so a client session can NEVER overwrite an admin-assigned role!
+  let dbRole = null;
+  let dbShop = null;
+  let dbShops = null;
+  try {
+    const liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail, cleanPhone);
+    if (liveProfile && liveProfile.role && liveProfile.role !== 'customer') {
+      dbRole = liveProfile.role;
+      dbShop = liveProfile.shopId;
+      dbShops = liveProfile.shopIds;
+    }
+  } catch (e) {}
+
+  // Determine current preserved role from live DB, cache, or profile so we never downgrade
+  const current = getCachedUsers();
+  const existingUser = current.find(u => 
+    (cleanId && String(u.id).trim() === cleanId) || 
+    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+    (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+  );
+
+  const finalRole = dbRole 
+    || (existingUser?.role && existingUser.role !== 'customer' ? existingUser.role : null)
+    || (userProfile.role && userProfile.role !== 'customer' ? userProfile.role : null)
+    || 'customer';
+
+  const finalShop = dbShop || userProfile.shopId || existingUser?.shopId || cleanShop;
+  const finalShops = dbShops || userProfile.shopIds || existingUser?.shopIds || cleanShops;
+
+  const payload = {
+    id: cleanId,
+    display_name: cleanName,
+    email: cleanEmail,
+    phone: cleanPhone,
+    avatar_url: cleanAvatar,
+    role: finalRole,
+    shop_id: finalShop,
+    shop_ids: finalShops,
+    login_method: loginMethod,
+    is_active: true,
+    last_login_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  // 1. Update in-memory & local storage cache
+  const idx = current.findIndex(u => 
+    (cleanId && String(u.id).trim() === cleanId) || 
+    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+    (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+  );
+  let next;
+  if (idx >= 0) {
+    next = [...current];
+    next[idx] = { ...next[idx], ...payload, displayName: cleanName };
+  } else {
+    next = [{ ...payload, displayName: cleanName, createdAt: new Date().toISOString() }, ...current];
   }
+  saveCachedUsers(next);
+  setCachedItem('users', 'all', next);
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: next, updatedUser: payload } }));
+
+  // 2. Persist directly to Supabase foody_logged_users
+  try {
+    await supabase.from('foody_logged_users').upsert(payload);
+  } catch (e) {}
+
+  // 3. Mirror to foody_users for backward compatibility
+  try {
+    const legacy = {
+      id: cleanId,
+      display_name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone,
+      avatar_url: cleanAvatar,
+      role: finalRole,
+      shop_id: finalShop,
+      shop_ids: finalShops,
+      last_seen_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    await supabase.from('foody_users').upsert(legacy);
+  } catch (e) {}
+
+  return payload;
 }
 
 export async function createCloudUser(userData) {
@@ -1107,36 +1517,38 @@ export async function createCloudUser(userData) {
     displayName: userData.displayName || userData.name || `User (${(userData.phone || '').slice(-4)})`,
     email: userData.email || `${userData.phone || userId}@foodyvrinda.com`,
     phone: userData.phone || '',
+    avatarUrl: userData.avatarUrl || userData.avatar_url || '',
     role: userData.role || 'customer',
     shopId: userData.shopId || 'shop-vrinda-main',
     shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : ['shop-vrinda-main']),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
   const nextList = [newUser, ...currentUsers.filter(u => u.id !== userId)];
   saveCachedUsers(nextList);
-  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: nextList } }));
+  setCachedItem('users', 'all', nextList);
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: nextList, updatedUser: newUser } }));
 
-  if (usersTableAvailable !== false) {
-    try {
-      const { error } = await supabase
-        .from('foody_users')
-        .upsert({
-          id: newUser.id,
-          display_name: newUser.displayName,
-          email: newUser.email,
-          phone: newUser.phone,
-          role: newUser.role,
-          shop_id: newUser.shopId,
-          shop_ids: newUser.shopIds
-        });
-      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
-        usersTableAvailable = false;
-      }
-    } catch (e) {
-      usersTableAvailable = false;
-    }
-  }
+  const dbPayload = {
+    id: newUser.id,
+    display_name: newUser.displayName,
+    email: newUser.email,
+    phone: newUser.phone,
+    avatar_url: newUser.avatarUrl,
+    role: newUser.role,
+    shop_id: newUser.shopId,
+    shop_ids: newUser.shopIds,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    await supabase.from('foody_logged_users').upsert(dbPayload);
+  } catch (e) {}
+  try {
+    await supabase.from('foody_users').upsert(dbPayload);
+  } catch (e) {}
+
   return newUser;
 }
 
@@ -1155,119 +1567,160 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const currentUsers = getCachedUsers();
   const cleanId = String(userId || '').trim();
   const cleanEmail = (updates.email || '').toLowerCase().trim();
+  const cleanPhone = (updates.phone || '').replace(/\D/g, '');
 
-  const userExists = currentUsers.some(u => 
+  const userExists = currentUsers.find(u => 
     (cleanId && String(u.id).trim() === cleanId) || 
-    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
+    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+    (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
   );
+
+  const targetId = userExists?.id || cleanId || `user_${Date.now()}`;
+  const resolvedEmail = (updates.email || userExists?.email || cleanEmail || '').toLowerCase().trim();
+  const resolvedPhone = (updates.phone || userExists?.phone || cleanPhone || '').replace(/\D/g, '');
 
   let updatedList;
   if (userExists) {
     updatedList = currentUsers.map(u => {
-      if ((cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
-        return { ...u, ...updates, updatedAt: new Date().toISOString() };
+      if (
+        (cleanId && String(u.id).trim() === cleanId) || 
+        (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+        (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+      ) {
+        return { ...u, ...updates, id: targetId, updatedAt: new Date().toISOString() };
       }
       return u;
     });
   } else {
     const newUser = {
-      id: cleanId || `user_${Date.now()}`,
-      displayName: updates.displayName || 'User',
-      email: updates.email || '',
-      phone: updates.phone || '',
+      id: targetId,
+      displayName: updates.displayName || updates.display_name || 'User',
+      email: resolvedEmail,
+      phone: resolvedPhone,
       role: updates.role || 'customer',
-      shopId: updates.shopId || 'shop-vrinda-main',
-      shopIds: updates.shopIds || [updates.shopId || 'shop-vrinda-main'],
+      shopId: updates.shopId || updates.shop_id || 'shop-vrinda-main',
+      shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || 'shop-vrinda-main'],
       ...updates,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     updatedList = [newUser, ...currentUsers];
   }
 
   saveCachedUsers(updatedList);
-  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList } }));
+  setCachedItem('users', 'all', updatedList);
+  const updatedUserObj = updatedList.find(u => (targetId && String(u.id).trim() === targetId) || (resolvedEmail && u.email && u.email.toLowerCase().trim() === resolvedEmail));
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList, updatedUser: updatedUserObj } }));
 
-  if (usersTableAvailable !== false && cleanId) {
+  // 1. Try atomic RPC set_user_role if role is being changed
+  if (updates.role) {
     try {
-      const payload = {
-        id: cleanId,
+      await supabase.rpc('set_user_role', {
+        target_id: targetId,
+        new_role: updates.role,
+        target_shop: updates.shopId || updates.shop_id || null
+      });
+    } catch (e) {}
+  }
+
+  // 2. Direct Update to BOTH tables: foody_logged_users & foody_users
+  const patchPayload = {
+    updated_at: new Date().toISOString()
+  };
+  if (updates.role !== undefined) patchPayload.role = updates.role;
+  if (updates.shopId !== undefined || updates.shop_id !== undefined) patchPayload.shop_id = updates.shopId || updates.shop_id;
+  if (updates.shopIds !== undefined || updates.shop_ids !== undefined) patchPayload.shop_ids = updates.shopIds || updates.shop_ids;
+  if (updates.displayName !== undefined || updates.display_name !== undefined) patchPayload.display_name = updates.displayName || updates.display_name;
+  if (updates.phone !== undefined) patchPayload.phone = updates.phone;
+  if (updates.email !== undefined) patchPayload.email = updates.email;
+  if (updates.avatarUrl !== undefined || updates.avatar_url !== undefined) patchPayload.avatar_url = updates.avatarUrl || updates.avatar_url;
+
+  // Update in foody_logged_users
+  try {
+    let r1 = await supabase.from('foody_logged_users').update(patchPayload).eq('id', targetId).select();
+    if ((!r1.data || r1.data.length === 0) && resolvedEmail) {
+      r1 = await supabase.from('foody_logged_users').update(patchPayload).eq('email', resolvedEmail).select();
+    }
+    if ((!r1.data || r1.data.length === 0) && resolvedPhone && resolvedPhone.length >= 10) {
+      r1 = await supabase.from('foody_logged_users').update(patchPayload).eq('phone', resolvedPhone).select();
+    }
+    if (!r1.data || r1.data.length === 0) {
+      const full = {
+        id: targetId,
+        display_name: updates.displayName || updates.display_name || userExists?.displayName || resolvedEmail?.split('@')[0] || `User (${targetId.slice(0, 6)})`,
+        email: resolvedEmail,
+        phone: resolvedPhone,
+        avatar_url: patchPayload.avatar_url || userExists?.avatarUrl || '',
+        role: updates.role || userExists?.role || 'customer',
+        shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
+        shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
+        last_login_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
-      if (updates.role !== undefined) payload.role = updates.role;
-      if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
-      if (updates.shopIds !== undefined) payload.shop_ids = updates.shopIds;
-      if (updates.displayName !== undefined) payload.display_name = updates.displayName;
-      if (updates.phone !== undefined) payload.phone = updates.phone;
-      if (updates.email !== undefined) payload.email = updates.email;
-
-      const { error } = await supabase
-        .from('foody_users')
-        .upsert(payload);
-      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
-        usersTableAvailable = false;
-      }
-    } catch (e) {
-      usersTableAvailable = false;
+      await supabase.from('foody_logged_users').upsert(full);
     }
-  }
-  return updatedList.find(u => (cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail));
+  } catch (e) {}
+
+  // Update in foody_users
+  try {
+    let r2 = await supabase.from('foody_users').update(patchPayload).eq('id', targetId).select();
+    if ((!r2.data || r2.data.length === 0) && resolvedEmail) {
+      r2 = await supabase.from('foody_users').update(patchPayload).eq('email', resolvedEmail).select();
+    }
+    if ((!r2.data || r2.data.length === 0) && resolvedPhone && resolvedPhone.length >= 10) {
+      r2 = await supabase.from('foody_users').update(patchPayload).eq('phone', resolvedPhone).select();
+    }
+    if (!r2.data || r2.data.length === 0) {
+      const full = {
+        id: targetId,
+        display_name: updates.displayName || updates.display_name || userExists?.displayName || resolvedEmail?.split('@')[0] || `User (${targetId.slice(0, 6)})`,
+        email: resolvedEmail,
+        phone: resolvedPhone,
+        avatar_url: patchPayload.avatar_url || userExists?.avatarUrl || '',
+        role: updates.role || userExists?.role || 'customer',
+        shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
+        shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
+        updated_at: new Date().toISOString()
+      };
+      await supabase.from('foody_users').upsert(full);
+    }
+  } catch (e) {}
+
+  return updatedUserObj;
 }
 
 export async function deleteCloudUser(userId) {
   const currentUsers = getCachedUsers();
   const updatedList = currentUsers.filter(u => u.id !== userId);
   saveCachedUsers(updatedList);
+  setCachedItem('users', 'all', updatedList);
   window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList } }));
 
-  if (usersTableAvailable !== false) {
-    try {
-      const { error } = await supabase
-        .from('foody_users')
-        .delete()
-        .eq('id', userId);
-      if (error && (error.code === 'PGRST205' || error.message?.includes('does not exist'))) {
-        usersTableAvailable = false;
-      }
-    } catch (e) {
-      usersTableAvailable = false;
-    }
-  }
+  try {
+    await supabase.from('foody_logged_users').delete().eq('id', userId);
+  } catch (e) {}
+  try {
+    await supabase.from('foody_users').delete().eq('id', userId);
+  } catch (e) {}
+
   return true;
 }
 
 export function subscribeCloudUsers(onUsersUpdate) {
-  let channel = null;
-  if (usersTableAvailable !== false) {
-    try {
-      channel = supabase
-        .channel('public:foody_users')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'foody_users' }, async () => {
-          const users = await getCloudUsers();
-          if (onUsersUpdate) onUsersUpdate(users);
-        })
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            usersTableAvailable = false;
-          }
-        });
-    } catch (e) {
-      usersTableAvailable = false;
-    }
-  }
+  // Use the single multiplexed Realtime channel for zero egress
+  const unsubscribeMultiplexer = multiplexer.subscribeUsers((users, updatedUser, eventType) => {
+    if (onUsersUpdate) onUsersUpdate(users, updatedUser, eventType);
+  });
 
   const handleLocalChange = (e) => {
     if (e?.detail?.users && onUsersUpdate) {
-      onUsersUpdate(e.detail.users);
+      onUsersUpdate(e.detail.users, e?.detail?.updatedUser, e?.detail?.eventType);
     }
   };
   window.addEventListener('foody_users_changed', handleLocalChange);
 
   return () => {
-    if (channel) {
-      try {
-        supabase.removeChannel(channel);
-      } catch (e) {}
-    }
+    if (unsubscribeMultiplexer) unsubscribeMultiplexer();
     window.removeEventListener('foody_users_changed', handleLocalChange);
   };
 }
@@ -1336,80 +1789,163 @@ export async function getCloudReviews(shopId = 'all') {
   }
 }
 
-export const COMPLETE_FOODY_DATABASE_SCHEMA_SQL = `-- Run this in your Supabase SQL Editor to ensure all tables, indexes, and real-time publications are active:
+export const COMPLETE_FOODY_DATABASE_SCHEMA_SQL = `-- ========================================================================
+-- FOODY VRINDA - ENTERPRISE POSTGRESQL & SUPABASE CLOUD SCHEMA
+-- Run this in your Supabase SQL Editor to set up all tables, triggers, indexes, and publications.
+-- ========================================================================
+
+-- Enable UUID extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Helper Function: Auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 1. FOODY SHOPS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_shops (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    address TEXT,
+    address TEXT NOT NULL,
     phone TEXT,
     coordinates JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
     is_open BOOLEAN DEFAULT true,
     minimum_order_amount NUMERIC DEFAULT 0,
     delivery_charge NUMERIC DEFAULT 0,
     gst_percentage NUMERIC DEFAULT 5,
+    payment_settings JSONB DEFAULT '{"onlinePaymentsEnabled": true, "codEnabled": true}'::jsonb,
     alarm_settings JSONB DEFAULT '{"kitchenNew": true, "kitchenReady": false, "deliveryReady": true}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS payment_settings JSONB DEFAULT '{"onlinePaymentsEnabled": true, "codEnabled": true}'::jsonb;
+ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS alarm_settings JSONB DEFAULT '{"kitchenNew": true, "kitchenReady": false, "deliveryReady": true}'::jsonb;
+
+DROP TRIGGER IF EXISTS trg_foody_shops_updated_at ON public.foody_shops;
+CREATE TRIGGER trg_foody_shops_updated_at
+    BEFORE UPDATE ON public.foody_shops
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
 -- 2. FOODY MENUS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_menus (
     id TEXT PRIMARY KEY,
-    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id) ON DELETE CASCADE,
+    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
     name TEXT NOT NULL,
     subtitle TEXT,
     description TEXT,
-    category TEXT DEFAULT 'Meals',
+    category TEXT NOT NULL DEFAULT 'Meals',
     price NUMERIC NOT NULL DEFAULT 0,
     image TEXT,
     tag TEXT,
-    kcal TEXT,
-    nutrition JSONB DEFAULT '{"carbs": "30g", "fat": "10g", "protein": "12g", "kcal": "250 kcal"}'::jsonb,
+    kcal TEXT DEFAULT '250 kcal',
+    nutrition JSONB DEFAULT '{"carbs": "35g", "fat": "12g", "protein": "16g", "kcal": "250 kcal"}'::jsonb,
     is_available BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS trg_foody_menus_updated_at ON public.foody_menus;
+CREATE TRIGGER trg_foody_menus_updated_at
+    BEFORE UPDATE ON public.foody_menus
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
 -- 3. FOODY ORDERS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_orders (
     id TEXT PRIMARY KEY,
-    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id),
+    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
     user_id TEXT,
     customer_name TEXT NOT NULL,
     customer_phone TEXT NOT NULL,
-    customer_address TEXT,
+    customer_address TEXT NOT NULL,
     delivery_address TEXT,
     delivery_coordinates JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
     items JSONB NOT NULL DEFAULT '[]'::jsonb,
     subtotal NUMERIC NOT NULL DEFAULT 0,
-    delivery_charge NUMERIC DEFAULT 0,
-    gst_amount NUMERIC DEFAULT 0,
+    delivery_charge NUMERIC NOT NULL DEFAULT 0,
+    gst_amount NUMERIC NOT NULL DEFAULT 0,
     total_amount NUMERIC NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'pending',
-    payment_method TEXT DEFAULT 'cash',
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled')),
+    payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'online')),
     payment_id TEXT,
-    cash_status TEXT DEFAULT 'pending',
+    cash_status TEXT DEFAULT 'pending' CHECK (cash_status IN ('pending', 'collected')),
     cooking_notes TEXT,
+    rider_id TEXT,
+    rider_name TEXT,
+    rider_phone TEXT,
+    rider_rating TEXT,
+    rider_avatar TEXT,
     created_by TEXT DEFAULT 'customer',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. FOODY USERS TABLE
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_id TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_name TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_phone TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_rating TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_avatar TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cooking_notes TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cash_status TEXT DEFAULT 'pending';
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;
+
+DROP TRIGGER IF EXISTS trg_foody_orders_updated_at ON public.foody_orders;
+CREATE TRIGGER trg_foody_orders_updated_at
+    BEFORE UPDATE ON public.foody_orders
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- 4. ALL LOGGED-IN USERS & ROLE MANAGEMENT TABLE (foody_logged_users)
+CREATE TABLE IF NOT EXISTS public.foody_logged_users (
+    id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    avatar_url TEXT,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
+    shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
+    shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
+    dev_permissions JSONB DEFAULT '[]'::jsonb,
+    login_method TEXT DEFAULT 'email',
+    is_active BOOLEAN DEFAULT true,
+    last_login_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS trg_foody_logged_users_updated_at ON public.foody_logged_users;
+CREATE TRIGGER trg_foody_logged_users_updated_at
+    BEFORE UPDATE ON public.foody_logged_users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- Backward-compatibility: public.foody_users table
 CREATE TABLE IF NOT EXISTS public.foody_users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
     email TEXT,
     phone TEXT,
-    role TEXT NOT NULL DEFAULT 'customer',
+    avatar_url TEXT,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'kitchen', 'delivery', 'owner', 'developer')),
     shop_id TEXT DEFAULT 'shop-vrinda-main',
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
     dev_permissions JSONB DEFAULT '[]'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    last_seen_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW();
+
+DROP TRIGGER IF EXISTS trg_foody_users_updated_at ON public.foody_users;
+CREATE TRIGGER trg_foody_users_updated_at
+    BEFORE UPDATE ON public.foody_users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- 5. FOODY REVIEWS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_reviews (
@@ -1417,7 +1953,7 @@ CREATE TABLE IF NOT EXISTS public.foody_reviews (
     order_id TEXT,
     shop_id TEXT DEFAULT 'shop-vrinda-main',
     customer_name TEXT,
-    rating INT NOT NULL DEFAULT 5,
+    rating INT NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
     tags JSONB DEFAULT '[]'::jsonb,
     comment TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
@@ -1426,17 +1962,51 @@ CREATE TABLE IF NOT EXISTS public.foody_reviews (
 -- 6. FOODY NOTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_notifications (
     id TEXT PRIMARY KEY,
-    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    user_id TEXT,
     role TEXT DEFAULT 'all',
-    type TEXT DEFAULT 'order_update',
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
     order_id TEXT,
+    type TEXT DEFAULT 'order_update',
+    title TEXT,
+    message TEXT NOT NULL,
+    read BOOLEAN DEFAULT false,
     is_read BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
+-- 7. PERFORMANCE INDEXES
+CREATE INDEX IF NOT EXISTS idx_orders_shop_status ON public.foody_orders (shop_id, status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.foody_orders (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.foody_orders (user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_phone ON public.foody_orders (customer_phone);
+
+CREATE INDEX IF NOT EXISTS idx_menus_shop ON public.foody_menus (shop_id);
+CREATE INDEX IF NOT EXISTS idx_menus_category ON public.foody_menus (category);
+CREATE INDEX IF NOT EXISTS idx_menus_is_available ON public.foody_menus (is_available);
+
+CREATE INDEX IF NOT EXISTS idx_logged_users_role ON public.foody_logged_users (role);
+CREATE INDEX IF NOT EXISTS idx_logged_users_email ON public.foody_logged_users (LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_logged_users_phone ON public.foody_logged_users (phone);
+CREATE INDEX IF NOT EXISTS idx_logged_users_shop_id ON public.foody_logged_users (shop_id);
+
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.foody_users (role);
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.foody_users (LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_users_phone ON public.foody_users (phone);
+CREATE INDEX IF NOT EXISTS idx_users_shop_id ON public.foody_users (shop_id);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.foody_notifications (user_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_shop_role ON public.foody_notifications (shop_id, role);
+CREATE INDEX IF NOT EXISTS idx_reviews_shop ON public.foody_reviews (shop_id);
+
+-- 8. REPLICA IDENTITY (Allows 0-Egress Full-Row Realtime Streaming)
+ALTER TABLE public.foody_shops REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_menus REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_orders REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_logged_users REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_users REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_notifications REPLICA IDENTITY FULL;
+
+-- 9. ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
 ALTER TABLE public.foody_shops ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access shops" ON public.foody_shops;
 CREATE POLICY "Public access shops" ON public.foody_shops FOR ALL USING (true) WITH CHECK (true);
@@ -1448,6 +2018,10 @@ CREATE POLICY "Public access menus" ON public.foody_menus FOR ALL USING (true) W
 ALTER TABLE public.foody_orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access orders" ON public.foody_orders;
 CREATE POLICY "Public access orders" ON public.foody_orders FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_logged_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access logged users" ON public.foody_logged_users;
+CREATE POLICY "Public access logged users" ON public.foody_logged_users FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access users" ON public.foody_users;
@@ -1461,14 +2035,150 @@ ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access notifications" ON public.foody_notifications;
 CREATE POLICY "Public access notifications" ON public.foody_notifications FOR ALL USING (true) WITH CHECK (true);
 
--- ENABLE REALTIME REPLICATION FOR INSTANT DISPATCH
+-- 10. REALTIME STREAMING PUBLICATION (Idempotent)
 DO $$ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_logged_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_reviews; EXCEPTION WHEN duplicate_object THEN NULL; END;
 END $$;
+
+-- 11. AUTOMATIC AUTH.USERS -> LOGGED USERS & FOODY USERS SYNC TRIGGER
+CREATE OR REPLACE FUNCTION public.handle_auth_user_sync()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    extracted_name TEXT;
+    extracted_role TEXT;
+    extracted_phone TEXT;
+    extracted_avatar TEXT;
+BEGIN
+    extracted_name := COALESCE(
+        NEW.raw_user_meta_data->>'display_name',
+        NEW.raw_user_meta_data->>'full_name',
+        NEW.raw_user_meta_data->>'name',
+        split_part(NEW.email, '@', 1),
+        'Foody Devotee'
+    );
+    
+    extracted_role := COALESCE(
+        NEW.raw_app_meta_data->>'role',
+        NEW.raw_user_meta_data->>'role',
+        'customer'
+    );
+
+    extracted_phone := COALESCE(
+        NEW.phone,
+        NEW.raw_user_meta_data->>'phone',
+        ''
+    );
+
+    extracted_avatar := COALESCE(
+        NEW.raw_user_meta_data->>'avatar_url',
+        NEW.raw_user_meta_data->>'picture',
+        ''
+    );
+
+    INSERT INTO public.foody_logged_users (
+        id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, last_login_at, created_at, updated_at
+    )
+    VALUES (
+        NEW.id::text, extracted_name, NEW.email, extracted_phone, extracted_avatar, extracted_role, 'shop-vrinda-main', '["shop-vrinda-main"]'::jsonb, NOW(), COALESCE(NEW.created_at, NOW()), NOW()
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        display_name = EXCLUDED.display_name,
+        email = COALESCE(EXCLUDED.email, foody_logged_users.email),
+        phone = CASE WHEN EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE foody_logged_users.phone END,
+        avatar_url = CASE WHEN EXCLUDED.avatar_url <> '' THEN EXCLUDED.avatar_url ELSE foody_logged_users.avatar_url END,
+        last_login_at = NOW(),
+        updated_at = NOW();
+
+    INSERT INTO public.foody_users (
+        id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, last_seen_at, created_at, updated_at
+    )
+    VALUES (
+        NEW.id::text, extracted_name, NEW.email, extracted_phone, extracted_avatar, extracted_role, 'shop-vrinda-main', '["shop-vrinda-main"]'::jsonb, NOW(), COALESCE(NEW.created_at, NOW()), NOW()
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        display_name = EXCLUDED.display_name,
+        email = COALESCE(EXCLUDED.email, foody_users.email),
+        phone = CASE WHEN EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE foody_users.phone END,
+        avatar_url = CASE WHEN EXCLUDED.avatar_url <> '' THEN EXCLUDED.avatar_url ELSE foody_users.avatar_url END,
+        last_seen_at = NOW(),
+        updated_at = NOW();
+
+    RETURN NEW;
+END;
+$$;
+
+DO $$ BEGIN
+    DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+    CREATE TRIGGER on_auth_user_created
+        AFTER INSERT OR UPDATE ON auth.users
+        FOR EACH ROW EXECUTE FUNCTION public.handle_auth_user_sync();
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
+-- 12. ATOMIC ROLE ASSIGNMENT STORED PROCEDURE (RPC)
+CREATE OR REPLACE FUNCTION public.set_user_role(
+    target_id TEXT,
+    new_role TEXT,
+    target_shop TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    updated_record JSONB;
+BEGIN
+    UPDATE public.foody_logged_users
+    SET 
+        role = new_role,
+        shop_id = COALESCE(target_shop, shop_id),
+        shop_ids = CASE 
+            WHEN target_shop IS NOT NULL THEN jsonb_build_array(target_shop)
+            ELSE shop_ids
+        END,
+        updated_at = NOW()
+    WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id
+    RETURNING to_jsonb(foody_logged_users.*) INTO updated_record;
+
+    UPDATE public.foody_users
+    SET 
+        role = new_role,
+        shop_id = COALESCE(target_shop, shop_id),
+        shop_ids = CASE 
+            WHEN target_shop IS NOT NULL THEN jsonb_build_array(target_shop)
+            ELSE shop_ids
+        END,
+        updated_at = NOW()
+    WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id;
+
+    IF updated_record IS NULL THEN
+        SELECT to_jsonb(foody_users.*) INTO updated_record FROM public.foody_users WHERE id = target_id OR LOWER(email) = LOWER(target_id) OR phone = target_id LIMIT 1;
+    END IF;
+
+    BEGIN
+        UPDATE auth.users
+        SET 
+            raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role)),
+            raw_app_meta_data = jsonb_set(COALESCE(raw_app_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role))
+        WHERE id::text = target_id OR LOWER(email) = LOWER(target_id);
+    EXCEPTION WHEN OTHERS THEN
+        NULL;
+    END;
+
+    RETURN updated_record;
+END;
+$$;
 `;
+
 
 

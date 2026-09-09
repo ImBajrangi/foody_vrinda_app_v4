@@ -11,20 +11,18 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { supabase } from '../supabase';
+import { supabase, subscribeCloudOrders } from '../supabase';
 import { useCart } from '../context/CartContext';
 import ReviewModal from './ReviewModal';
 
 export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone, allShops = [], onTrackOrder, onToast }) {
   const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedReviewOrder, setSelectedReviewOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [reviewOrder, setReviewOrder] = useState(null);
 
-  // Load customer orders from Supabase with realtime subscription & local fallback
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
 
     const fetchOrders = async () => {
       try {
@@ -73,16 +71,29 @@ export default function OrderHistoryDrawer({ isOpen, onClose, userId, userPhone,
 
     fetchOrders();
 
-    // Realtime changes on customer orders
-    const channel = supabase
-      .channel('customer_orders_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'foody_orders' }, () => {
-        fetchOrders();
-      })
-      .subscribe();
+    // Realtime changes on customer orders using multiplexer
+    const unsubscribe = subscribeCloudOrders('all', (updatedOrder) => {
+      if (!updatedOrder) return;
+      const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
+      const orderPhone = (updatedOrder.customerPhone || updatedOrder.customer_phone || '').replace(/\D/g, '');
+      const orderUserId = updatedOrder.userId || updatedOrder.user_id;
+
+      const isForMe = (userId && orderUserId === userId) || (cleanPhone.length >= 10 && orderPhone.endsWith(cleanPhone.slice(-10)));
+      if (isForMe) {
+        setOrders(prev => {
+          const idx = prev.findIndex(o => o.id === updatedOrder.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...updatedOrder };
+            return next;
+          }
+          return [updatedOrder, ...prev];
+        });
+      }
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (unsubscribe) unsubscribe();
     };
   }, [isOpen, userId, userPhone]);
 

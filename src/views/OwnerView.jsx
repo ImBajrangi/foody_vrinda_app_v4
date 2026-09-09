@@ -11,6 +11,7 @@ import {
   DEFAULT_PRASAD_ITEMS,
   resolveDishCutout,
   subscribeCloudUsers,
+  getCloudUsers,
   createCloudUser,
   updateCloudUser,
   getCachedUsers,
@@ -213,6 +214,16 @@ export default function OwnerView() {
 
   // Real-time Supabase users listener
   useEffect(() => {
+    const refreshUsers = async () => {
+      try {
+        const users = await getCloudUsers();
+        if (users && users.length > 0) {
+          setUsersList(users);
+        }
+      } catch (e) {}
+    };
+    refreshUsers();
+
     const unsubscribe = subscribeCloudUsers((users) => {
       if (users && users.length > 0) {
         setUsersList(users);

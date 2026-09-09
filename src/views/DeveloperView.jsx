@@ -111,7 +111,17 @@ export default function DeveloperView({ setCurrentTab }) {
 
   const [usersList, setUsersList] = useState(() => getCachedUsers());
 
+  const refreshUsersList = async () => {
+    try {
+      const cloudUsers = await getCloudUsers();
+      if (cloudUsers && cloudUsers.length > 0) {
+        setUsersList(cloudUsers);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
+    refreshUsersList();
     const unsubscribe = subscribeCloudUsers((list) => {
       if (list && list.length > 0) {
         setUsersList(list);
@@ -129,6 +139,9 @@ export default function DeveloperView({ setCurrentTab }) {
           getCloudOrders(),
           getCloudUsers()
         ]);
+        if (users && users.length > 0) {
+          setUsersList(users);
+        }
         setStats({
           shops: shops.length,
           items: menus.length,

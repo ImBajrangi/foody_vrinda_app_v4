@@ -7,8 +7,11 @@ import {
   getCloudUsers, 
   createCloudUser, 
   updateCloudUser, 
+  recordLoggedInUser,
+  getLiveUserRoleAndProfile,
   getCachedUsers,
-  saveCachedUsers 
+  saveCachedUsers,
+  subscribeCloudUsers
 } from '../supabase';
 
 const AuthContext = createContext(null);
@@ -42,11 +45,45 @@ export const isAdminUser = (email = '', role = '') => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [userRole, setUserRole] = useState('customer');
+  const [userData, setUserData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
+  const [userRole, setUserRole] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.role) return parsed.role;
+      }
+    } catch (e) {}
+    return 'customer';
+  });
   const [userDevPermissions, setUserDevPermissions] = useState([]);
-  const [currentUserShopId, setCurrentUserShopId] = useState(null);
-  const [currentUserShopIds, setCurrentUserShopIds] = useState([]);
+  const [currentUserShopId, setCurrentUserShopId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.shopId) return parsed.shopId;
+      }
+    } catch (e) {}
+    return null;
+  });
+  const [currentUserShopIds, setCurrentUserShopIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.shopIds) return parsed.shopIds;
+        if (parsed?.shopId) return [parsed.shopId];
+      }
+    } catch (e) {}
+    return [];
+  });
   const [currentShopName, setCurrentShopName] = useState(null);
   const [allShops, setAllShops] = useState(() => getCachedShops());
   const [loading, setLoading] = useState(true);
@@ -177,10 +214,9 @@ export function AuthProvider({ children }) {
     return shop ? shop.name : null;
   }, [allShops]);
 
-  // Listen for real-time user database / role updates
+  // Listen for real-time user database / role updates from Supabase Realtime & Local Events
   useEffect(() => {
-    const handleUsersChanged = (e) => {
-      const users = e?.detail?.users || getCachedUsers();
+    const handleUsersUpdate = (users) => {
       if (!users || !Array.isArray(users)) return;
 
       const currentId = user?.id ? String(user.id).trim() : '';
@@ -188,14 +224,19 @@ export function AuthProvider({ children }) {
       const currentPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
       if (!currentId && !currentEmail && !currentPhone) return;
 
-      const match = users.find(u => 
-        (currentId && String(u.id).trim() === currentId) || 
-        (currentEmail && u.email && u.email.toLowerCase().trim() === currentEmail) ||
-        (currentPhone && u.phone && u.phone.replace(/\D/g, '').endsWith(currentPhone.slice(-10)))
-      );
+      const match = users.find(u => {
+        const uId = u.id ? String(u.id).trim() : '';
+        const uEmail = (u.email || '').toLowerCase().trim();
+        const uPhone = (u.phone || '').replace(/\D/g, '');
+        return (
+          (currentId && uId === currentId) || 
+          (currentEmail && uEmail && uEmail === currentEmail) ||
+          (currentPhone && currentPhone.length >= 10 && uPhone && uPhone.endsWith(currentPhone.slice(-10)))
+        );
+      });
 
       if (match && match.role) {
-        if (match.role !== userRole || match.shopId !== currentUserShopId) {
+        if (match.role !== userRole || (match.shopId && match.shopId !== currentUserShopId)) {
           setUserRole(match.role);
           if (match.shopId) {
             setCurrentUserShopId(match.shopId);
@@ -219,11 +260,16 @@ export function AuthProvider({ children }) {
       }
     };
 
-    window.addEventListener('foody_users_changed', handleUsersChanged);
-    window.addEventListener('storage', handleUsersChanged);
+    const unsubscribe = subscribeCloudUsers(handleUsersUpdate);
+    const handleStorage = () => {
+      const cached = getCachedUsers();
+      handleUsersUpdate(cached);
+    };
+    window.addEventListener('storage', handleStorage);
+
     return () => {
-      window.removeEventListener('foody_users_changed', handleUsersChanged);
-      window.removeEventListener('storage', handleUsersChanged);
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('storage', handleStorage);
     };
   }, [user, userData, userRole, currentUserShopId, resolveShopName]);
 
@@ -238,8 +284,18 @@ export function AuthProvider({ children }) {
       const exists = currentCached.find(u => 
         (cleanId && String(u.id).trim() === cleanId) || 
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
-        (cleanPhone && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+        (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       );
+
+      const resolvedRole = (userProfile.role && userProfile.role !== 'customer')
+        ? userProfile.role
+        : (exists?.role && exists.role !== 'customer' ? exists.role : (userProfile.role || 'customer'));
+
+      // Record to both public.foody_logged_users and public.foody_users in Supabase
+      recordLoggedInUser({
+        ...userProfile,
+        role: resolvedRole
+      }).catch(() => {});
 
       let nextList;
       if (!exists) {
@@ -248,24 +304,27 @@ export function AuthProvider({ children }) {
           displayName: userProfile.displayName || userProfile.email?.split('@')[0] || `User (${cleanId.slice(0, 6)})`,
           email: userProfile.email || '',
           phone: userProfile.phone || '',
-          role: userProfile.role || (isDeveloperUser(cleanEmail) ? 'developer' : (isAdminUser(cleanEmail) ? 'owner' : 'customer')),
+          role: resolvedRole,
           shopId: userProfile.shopId || allShops[0]?.id || 'shop-vrinda-main',
           shopIds: userProfile.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
           isLoggedInUser: true,
           createdAt: new Date().toISOString()
         };
         nextList = [newUser, ...currentCached];
-        createCloudUser(newUser).catch(() => {});
       } else {
         nextList = currentCached.map(u => {
-          if ((cleanId && String(u.id).trim() === cleanId) || (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)) {
+          if (
+            (cleanId && String(u.id).trim() === cleanId) || 
+            (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+            (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+          ) {
             return {
               ...u,
               id: cleanId,
               displayName: userProfile.displayName || u.displayName,
               email: userProfile.email || u.email,
               phone: userProfile.phone || u.phone,
-              role: userProfile.role || u.role,
+              role: resolvedRole,
               shopId: userProfile.shopId || u.shopId,
               shopIds: userProfile.shopIds || u.shopIds,
               isLoggedInUser: true
@@ -273,18 +332,9 @@ export function AuthProvider({ children }) {
           }
           return u;
         });
-        updateCloudUser(cleanId, {
-          displayName: userProfile.displayName,
-          email: userProfile.email,
-          phone: userProfile.phone,
-          role: userProfile.role || exists.role,
-          shopId: userProfile.shopId || exists.shopId,
-          shopIds: userProfile.shopIds || exists.shopIds
-        }).catch(() => {});
       }
 
       saveCachedUsers(nextList);
-      window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: nextList } }));
     } catch (e) {
       console.warn("syncUserToCloudList warning:", e);
     }
@@ -329,13 +379,28 @@ export function AuthProvider({ children }) {
           currentSbUser.photoURL = avatarUrl;
           setUser(currentSbUser);
           
-          const cachedUsersList = getCachedUsers();
-          const existingRecord = cachedUsersList.find(u => 
-            String(u.id).trim() === cleanId || 
+          // Check live database role first for instant synchronization
+          let liveProfile = null;
+          try {
+            liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
+          } catch (e) {}
+
+          let cachedUsersList = getCachedUsers();
+          if (!liveProfile) {
+            try {
+              const cloudUsers = await getCloudUsers();
+              if (cloudUsers && cloudUsers.length > 0) {
+                cachedUsersList = cloudUsers;
+              }
+            } catch (e) {}
+          }
+
+          const existingRecord = liveProfile || cachedUsersList.find(u => 
+            (cleanId && String(u.id).trim() === cleanId) || 
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
           );
 
-          // Priority: existingRecord in cached/cloud user table > parsedSaved > email whitelist > default customer
+          // Priority: live database record > existingRecord > developer/admin whitelist > parsedSaved > customer
           let role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : (parsedSaved?.role || 'customer')));
           let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
           let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || [activeShopId];
@@ -410,9 +475,24 @@ export function AuthProvider({ children }) {
         u.photoURL = avatarUrl;
         setUser(u);
         
-        const cachedUsersList = getCachedUsers();
-        const existingRecord = cachedUsersList.find(usr => 
-          String(usr.id).trim() === cleanId || 
+        // Check live database role directly
+        let liveProfile = null;
+        try {
+          liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
+        } catch (e) {}
+
+        let cachedUsersList = getCachedUsers();
+        if (!liveProfile) {
+          try {
+            const cloudUsers = await getCloudUsers();
+            if (cloudUsers && cloudUsers.length > 0) {
+              cachedUsersList = cloudUsers;
+            }
+          } catch (e) {}
+        }
+
+        const existingRecord = liveProfile || cachedUsersList.find(usr => 
+          (cleanId && String(usr.id).trim() === cleanId) || 
           (cleanEmail && usr.email && usr.email.toLowerCase().trim() === cleanEmail)
         );
 

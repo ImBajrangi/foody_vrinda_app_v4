@@ -3,11 +3,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 // Global Singleton Web Audio Context to avoid context proliferation
 let globalAudioCtx = null;
 
-function getAudioContext() {
-  if (!globalAudioCtx && typeof window !== 'undefined') {
+function getAudioContext(createIfMissing = false) {
+  if (!globalAudioCtx && createIfMissing && typeof window !== 'undefined') {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
-      globalAudioCtx = new AudioContextClass();
+      try {
+        globalAudioCtx = new AudioContextClass();
+      } catch (e) {}
     }
   }
   return globalAudioCtx;
@@ -43,9 +45,9 @@ export function useAudioAlarm() {
     } catch (e) {}
   }, []);
 
-  // Check state of AudioContext periodically & on visibility change
+  // Check state of AudioContext without triggering eager creation
   const syncAudioState = useCallback(() => {
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(false);
     if (ctx) {
       setAudioState(ctx.state);
       setAudioUnlocked(ctx.state === 'running');
@@ -72,7 +74,7 @@ export function useAudioAlarm() {
   // Auto-unlock AudioContext on user interaction in the viewport
   const unlockAudio = useCallback(async () => {
     try {
-      const ctx = getAudioContext();
+      const ctx = getAudioContext(true);
       if (ctx) {
         if (ctx.state === 'suspended') {
           await ctx.resume();
@@ -88,7 +90,7 @@ export function useAudioAlarm() {
   // Explicit warm-up with subtle micro-click
   const warmUpAudio = useCallback(async () => {
     await unlockAudio();
-    const ctx = getAudioContext();
+    const ctx = getAudioContext(true);
     if (ctx && ctx.state === 'running') {
       try {
         const now = ctx.currentTime;

@@ -20,8 +20,19 @@ export default function App() {
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
 
-  // Navigation tab
-  const [currentTab, setCurrentTab] = useState('customer');
+  // Navigation tab (instantly hydrated to user's authorized role view)
+  const [currentTab, setCurrentTab] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_user_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.role && ['kitchen', 'delivery', 'owner', 'developer'].includes(parsed.role)) {
+          return parsed.role;
+        }
+      }
+    } catch (e) {}
+    return 'customer';
+  });
 
   // Modals Visibility
   const [isAuthOpen, setIsAuthOpen] = useState(false);
