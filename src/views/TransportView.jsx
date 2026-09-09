@@ -43,7 +43,7 @@ export default function TransportView() {
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
+  const [viewMode, setViewMode] = useState('list'); // 'list' (default) | 'map'
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
 
@@ -563,42 +563,49 @@ export default function TransportView() {
         />
       )}
 
-      {/* Top Controls: Switcher between Map View and List View */}
-      <div className="flex items-center justify-between gap-3 bg-[#282526] border border-white/5 p-3 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
-            <Truck className="w-4 h-4" />
+      {/* Top Controls: Responsive Switcher between Map View and List View */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 bg-[#282526] border border-white/8 p-3.5 sm:p-4 rounded-3xl shadow-xl">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-[#1E1B1C] border border-white/10 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-md">
+            <Truck className="w-5 h-5" />
           </div>
-          <div>
-            <h3 className="text-sm font-black text-white font-['Outfit']">Sarathi Delivery Fleet</h3>
-            <p className="text-[10px] text-neutral-400">
-              {orders.length} Active {orders.length === 1 ? 'Dispatch' : 'Dispatches'} (CARTO Map View)
-            </p>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight truncate">
+              Sarathi Delivery Fleet
+            </h3>
+            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans']">
+              <span className="flex items-center gap-1.5 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse shrink-0" />
+                <strong className="text-white font-bold">{orders.length}</strong> {orders.length === 1 ? 'Active Order' : 'Active Orders'}
+              </span>
+              <span className="text-neutral-600">•</span>
+              <span className="truncate">{viewMode === 'map' ? 'CARTO HUD View' : 'Queue View'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-[#1E1B1C] p-1 rounded-xl border border-white/5">
-          <button
-            onClick={() => setViewMode('map')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              viewMode === 'map'
-                ? 'bg-[#E0FF33] text-black shadow-md'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            <Map className="w-3.5 h-3.5" />
-            <span>Carto HUD</span>
-          </button>
+        <div className="flex items-center gap-1.5 bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/8 shadow-inner shrink-0 self-stretch sm:self-auto justify-center">
           <button
             onClick={() => setViewMode('list')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'list'
-                ? 'bg-[#E0FF33] text-black shadow-md'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <List className="w-3.5 h-3.5" />
-            <span>Orders ({orders.length})</span>
+            <List className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Orders ({orders.length})</span>
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              viewMode === 'map'
+                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Map className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Carto HUD</span>
           </button>
         </div>
       </div>
@@ -690,19 +697,19 @@ export default function TransportView() {
               {/* Customer Profile & Direct Contact Actions */}
               <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-12 h-12 rounded-2xl bg-[#1E1B1C] border-2 border-amber-400 overflow-hidden shrink-0 shadow-md flex items-center justify-center">
-                    <User size={22} className="text-amber-400 stroke-[2.2]" />
+                  <div className="w-11 h-11 rounded-2xl bg-[#1E1B1C] border border-white/10 text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
+                    <User size={20} className="stroke-[2.2]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <h4 className="font-bold text-base tracking-tight font-['Outfit'] text-white truncate">
                         {activeOrder.customerName || 'Customer'}
                       </h4>
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-neutral-300 shrink-0">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 shrink-0">
                         #{activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5">
+                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
                       <Star className="w-3.5 h-3.5 fill-current" />
                       <span className="text-white text-[11px] font-black ml-0.5">5.0</span>
                       <span className="text-neutral-600 text-[10px]">•</span>
@@ -719,19 +726,19 @@ export default function TransportView() {
                       href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-10 h-10 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="WhatsApp Customer"
                     >
-                      <MessageCircle className="w-4.5 h-4.5 stroke-[2]" />
+                      <MessageCircle className="w-4 h-4 stroke-[2]" />
                     </a>
                   )}
                   {activeOrder.customerPhone && (
                     <a 
                       href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
-                      className="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
-                      <Phone className="w-4.5 h-4.5 stroke-[2]" />
+                      <Phone className="w-4 h-4 text-[#E0FF33] stroke-[2]" />
                     </a>
                   )}
                 </div>
