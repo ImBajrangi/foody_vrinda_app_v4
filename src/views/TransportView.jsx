@@ -778,43 +778,43 @@ export default function TransportView() {
                 </div>
               </div>
 
-              {/* COD Cash Collection Callout Banner */}
+              {/* Payment Status Callout Banner */}
               {(() => {
                 const rawMethod = String(activeOrder.payment_method || activeOrder.paymentMethod || '').toLowerCase().trim();
                 const isCash = rawMethod === 'cash' || rawMethod === 'cod';
                 const isCollected = activeOrder.cash_status === 'collected' || activeOrder.cashStatus === 'collected' || activeOrder.cash_collected || activeOrder.cashCollected;
                 if (!isCash) {
                   return (
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-2 text-xs text-emerald-300">
-                      <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
-                        <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-                        Prepaid Online:
-                      </span>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-2 overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="text-xs font-bold text-emerald-300 truncate">Prepaid Online</span>
+                      </div>
                       <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
-                        NO CASH TO COLLECT
+                        NO CASH DUE
                       </span>
                     </div>
                   );
                 }
                 if (isCollected) {
                   return (
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-2 text-xs text-emerald-300">
-                      <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        Cash Received:
-                      </span>
+                    <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-2 overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="text-xs font-bold text-emerald-300 truncate">Cash Paid</span>
+                      </div>
                       <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
-                        ALREADY COLLECTED
+                        COLLECTED
                       </span>
                     </div>
                   );
                 }
                 return (
-                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-xs text-amber-300">
-                    <span className="font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
-                      <Banknote className="w-3.5 h-3.5 text-amber-400" />
-                      Cash on Delivery:
-                    </span>
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Banknote className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="text-xs font-bold text-amber-300 truncate">Cash on Delivery</span>
+                    </div>
                     <span className="font-black text-sm text-amber-400 font-['Outfit'] shrink-0 whitespace-nowrap">
                       ₹{activeOrder.totalAmount || activeOrder.total_amount || 0}
                     </span>
@@ -839,18 +839,18 @@ export default function TransportView() {
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
                     onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
+                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <span>Pick Up & Start Delivery</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </button>
                 ) : (
                   <button
                     onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer"
+                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
-                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>Mark Delivered & Reconcile Cash</span>
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5] shrink-0" />
+                    <span>Mark as Delivered</span>
                   </button>
                 )}
               </div>
