@@ -326,6 +326,18 @@ export default function TransportView() {
     });
     group.addLayer(routeCasing);
 
+    // Parabolic Dots Road Overlay (Animated Dot Markers Along Route)
+    const routeDots = L.polyline(currentRouteCoords, {
+      color: '#121011',
+      weight: 8,
+      opacity: 0.98,
+      dashArray: '1, 16',
+      lineCap: 'round',
+      lineJoin: 'round',
+      className: 'casing-parabolic-dots'
+    });
+    group.addLayer(routeDots);
+
     // Glowing Neon Driving Road Line
     const routeLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
@@ -351,6 +363,7 @@ export default function TransportView() {
             ];
 
             routeCasing.setLatLngs(fullRoute);
+            routeDots.setLatLngs(fullRoute);
             routeLine.setLatLngs(fullRoute);
 
             if (mapInstanceRef.current && routeGroupRef.current) {
@@ -547,11 +560,10 @@ export default function TransportView() {
                 showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
               }
             }}
-            className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
-              isPlaying
+            className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${isPlaying
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
                 : 'bg-[#1E1B1C] text-neutral-300 border-white/8 hover:text-white hover:border-white/15'
-            }`}
+              }`}
             title="Test or silence Sarathi Rider Chime"
           >
             {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
@@ -900,11 +912,10 @@ export default function TransportView() {
               </p>
             </div>
           ) : (
-            <div className={`grid gap-5 ${
-              filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
-              filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            }`}>
+            <div className={`grid gap-5 ${filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
+                filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+                  'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              }`}>
               {filteredOrders.map(order => {
                 const shopName = allShops.find(s => s.id === order.shopId)?.name || 'Kitchen';
                 const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);

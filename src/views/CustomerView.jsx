@@ -1181,7 +1181,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <div
                 key={item.id}
                 onClick={() => handleOpenDishDetail(item)}
-                className={`${cardBg} text-[#1E1B1C] rounded-[32px] sm:rounded-[38px] p-5 sm:p-6 lg:p-7 shadow-xl relative overflow-hidden cursor-pointer min-h-[195px] sm:min-h-[225px] flex flex-col justify-between apple-card-interactive transition-all duration-300 ${quantityInCart > 0 ? 'ring-2 ring-[#1E1B1C]/25 shadow-2xl' : ''}`}
+                style={{ animationDelay: `${idx * 50}ms` }}
+                className={`${cardBg} text-[#1E1B1C] rounded-[32px] sm:rounded-[38px] p-5 sm:p-6 lg:p-7 shadow-xl relative overflow-hidden cursor-pointer min-h-[195px] sm:min-h-[225px] flex flex-col justify-between apple-card-interactive transition-all duration-300 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-[#1E1B1C]/25 shadow-2xl' : ''}`}
               >
                 {/* Top Row: Dish Name + Optional Selection Pill + Outline Heart Button */}
                 <div className="flex justify-between items-start z-10 gap-2">
