@@ -398,14 +398,15 @@ export default function KitchenView() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {orders.map(order => {
+          {orders.map((order, idx) => {
             const isNew = order.status === 'new';
 
             return (
               <div 
                 key={order.id} 
                 id={`kitchen-order-${order.id}`}
-                className={`bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
+                style={{ animationDelay: `${idx * 60}ms` }}
+                className={`customer-card-pop bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
                   isNew ? 'border-[#E0FF33]/40 ring-1 ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-white/10'
                 }`}
               >
