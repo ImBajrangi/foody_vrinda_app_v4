@@ -900,7 +900,11 @@ export default function TransportView() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className={`grid gap-5 ${
+              filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
+              filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}>
               {filteredOrders.map(order => {
                 const shopName = allShops.find(s => s.id === order.shopId)?.name || 'Kitchen';
                 const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);
