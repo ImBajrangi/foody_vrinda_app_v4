@@ -461,6 +461,10 @@ export async function getCloudMenus(shopId = 'all') {
         description: d.description,
         category: d.category,
         price: Number(d.price),
+        originalPrice: Number(d.original_price || d.originalPrice || d.price || 0),
+        discountPercent: Number(d.discount_percent || d.discountPercent || 0),
+        isCombo: Boolean(d.is_combo || d.isCombo || d.category === 'Combo Offers'),
+        comboItems: d.combo_items || d.comboItems || [],
         image: resolveDishCutout(d.image, d.name, d.category),
         tag: d.tag,
         kcal: d.kcal || '250 kcal',
@@ -802,6 +806,11 @@ class RealtimeMultiplexer {
         { event: '*', schema: 'public', table: 'foody_logged_users' },
         (payload) => this.handleUserChangePayload(payload)
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'foody_users' },
+        (payload) => this.handleUserChangePayload(payload)
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           this.isSubscribed = true;
@@ -977,23 +986,260 @@ export async function markCloudNotificationRead(notifId, isRead = true) {
 // ========================================================================
 // 7. MENU & SHOP CRUD (WITH AUTOMATIC CACHE INVALIDATION)
 // ========================================================================
+// ========================================================================
+// 7. MENU, SHOP, COMBO & OFFER CRUD (WITH AUTOMATIC CACHE INVALIDATION)
+// ========================================================================
+
+export const DEFAULT_OFFERS = [
+  {
+    id: 'offer-radhe-108',
+    code: 'RADHE108',
+    title: 'Divine First Order Blessings',
+    subtitle: 'Flat ₹108 off on pure satvik orders above ₹499',
+    discountType: 'flat',
+    discountValue: 108,
+    minOrderAmount: 499,
+    maxDiscount: 108,
+    shopId: 'all',
+    isActive: true,
+    tag: 'Popular Devotee Offer',
+    validUntil: '2028-12-31T23:59:59.000Z',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'offer-vrinda-20',
+    code: 'VRINDA20',
+    title: 'Vedic Feast 20% Discount',
+    subtitle: 'Get 20% off up to ₹150 on sacred prasad meals',
+    discountType: 'percentage',
+    discountValue: 20,
+    minOrderAmount: 299,
+    maxDiscount: 150,
+    shopId: 'all',
+    isActive: true,
+    tag: 'Best Value',
+    validUntil: '2028-12-31T23:59:59.000Z',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'offer-freeship',
+    code: 'FREESHIP',
+    title: 'Zero Delivery Sarathi Fee',
+    subtitle: 'Free doorstep delivery anywhere across Vrindavan Dham',
+    discountType: 'flat',
+    discountValue: 50,
+    minOrderAmount: 199,
+    maxDiscount: 50,
+    shopId: 'all',
+    isActive: true,
+    tag: 'Free Delivery',
+    validUntil: '2028-12-31T23:59:59.000Z',
+    createdAt: new Date().toISOString()
+  }
+];
+
+export function getCachedOffers() {
+  try {
+    const raw = localStorage.getItem('foody_cached_offers');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) { }
+  return DEFAULT_OFFERS;
+}
+
+export function saveCachedOffers(offersList) {
+  try {
+    localStorage.setItem('foody_cached_offers', JSON.stringify(offersList));
+  } catch (e) { }
+  return offersList;
+}
+
+export async function getCloudOffers(forceRefresh = false) {
+  const cached = getCachedOffers();
+  if (!forceRefresh) return cached;
+
+  try {
+    const { data, error } = await supabase
+      .from('foody_offers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      const mapped = data.map(d => ({
+        id: d.id,
+        code: d.code || '',
+        title: d.title || '',
+        subtitle: d.subtitle || '',
+        discountType: d.discount_type || d.discountType || 'flat',
+        discountValue: Number(d.discount_value || d.discountValue || 0),
+        minOrderAmount: Number(d.min_order_amount || d.minOrderAmount || 0),
+        maxDiscount: Number(d.max_discount || d.maxDiscount || 0),
+        shopId: d.shop_id || d.shopId || 'all',
+        isActive: d.is_active ?? d.isActive ?? true,
+        tag: d.tag || '',
+        validUntil: d.valid_until || d.validUntil || '2028-12-31T23:59:59.000Z',
+        createdAt: d.created_at || new Date().toISOString()
+      }));
+      saveCachedOffers(mapped);
+      return mapped;
+    }
+  } catch (err) {
+    console.warn('getCloudOffers notice:', err);
+  }
+  return cached;
+}
+
+export async function createCloudOffer(offerData) {
+  const nowIso = new Date().toISOString();
+  const offerId = offerData.id || `offer-${(offerData.code || Date.now()).toString().toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+  const newOffer = {
+    id: offerId,
+    code: (offerData.code || '').trim().toUpperCase(),
+    title: offerData.title || 'Special Promotion',
+    subtitle: offerData.subtitle || '',
+    discountType: offerData.discountType || 'flat',
+    discountValue: Number(offerData.discountValue || 0),
+    minOrderAmount: Number(offerData.minOrderAmount || 0),
+    maxDiscount: Number(offerData.maxDiscount || offerData.discountValue || 0),
+    shopId: offerData.shopId || 'all',
+    isActive: offerData.isActive ?? true,
+    tag: offerData.tag || 'Special Offer',
+    validUntil: offerData.validUntil || '2028-12-31T23:59:59.000Z',
+    createdAt: nowIso
+  };
+
+  const current = getCachedOffers();
+  const nextList = [newOffer, ...current.filter(o => o.id !== offerId)];
+  saveCachedOffers(nextList);
+  window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList, createdOffer: newOffer } }));
+
+  try {
+    await supabase.from('foody_offers').upsert({
+      id: newOffer.id,
+      code: newOffer.code,
+      title: newOffer.title,
+      subtitle: newOffer.subtitle,
+      discount_type: newOffer.discountType,
+      discount_value: newOffer.discountValue,
+      min_order_amount: newOffer.minOrderAmount,
+      max_discount: newOffer.maxDiscount,
+      shop_id: newOffer.shopId,
+      is_active: newOffer.isActive,
+      tag: newOffer.tag,
+      valid_until: newOffer.validUntil,
+      created_at: nowIso
+    });
+  } catch (e) {
+    console.warn("createCloudOffer cloud insert note:", e);
+  }
+
+  return newOffer;
+}
+
+export async function updateCloudOffer(offerId, updates) {
+  const current = getCachedOffers();
+  let updatedOffer = null;
+  const nextList = current.map(o => {
+    if (o.id === offerId) {
+      updatedOffer = { ...o, ...updates };
+      return updatedOffer;
+    }
+    return o;
+  });
+
+  if (!updatedOffer) return null;
+  saveCachedOffers(nextList);
+  window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList, updatedOffer } }));
+
+  try {
+    const payload = {};
+    if (updates.code !== undefined) payload.code = updates.code.toUpperCase();
+    if (updates.title !== undefined) payload.title = updates.title;
+    if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
+    if (updates.discountType !== undefined) payload.discount_type = updates.discountType;
+    if (updates.discountValue !== undefined) payload.discount_value = Number(updates.discountValue);
+    if (updates.minOrderAmount !== undefined) payload.min_order_amount = Number(updates.minOrderAmount);
+    if (updates.maxDiscount !== undefined) payload.max_discount = Number(updates.maxDiscount);
+    if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
+    if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+    if (updates.tag !== undefined) payload.tag = updates.tag;
+    if (updates.validUntil !== undefined) payload.valid_until = updates.validUntil;
+
+    await supabase.from('foody_offers').update(payload).eq('id', offerId);
+  } catch (e) {
+    console.warn("updateCloudOffer notice:", e);
+  }
+
+  return updatedOffer;
+}
+
+export async function deleteCloudOffer(offerId) {
+  const current = getCachedOffers();
+  const nextList = current.filter(o => o.id !== offerId);
+  saveCachedOffers(nextList);
+  window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList } }));
+
+  try {
+    await supabase.from('foody_offers').delete().eq('id', offerId);
+  } catch (e) { }
+
+  return true;
+}
+
+// -------------------------------------------------------------
+// MENUS & COMBOS CRUD
+// -------------------------------------------------------------
+
 export async function createCloudMenuItem(itemData) {
   try {
     const itemId = itemData.id || `menu-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const isCombo = Boolean(itemData.isCombo || itemData.category === 'Combo Offers');
     const payload = {
       id: itemId,
-      shop_id: itemData.shopId || 'shop-vrinda-main',
+      shop_id: itemData.shopId || itemData.shop_id || 'shop-vrinda-main',
       name: itemData.name,
       subtitle: itemData.subtitle || itemData.category || '',
       description: itemData.description || '',
-      category: itemData.category || 'Main',
+      category: itemData.category || (isCombo ? 'Combo Offers' : 'Main'),
       price: Number(itemData.price || 0),
-      image: itemData.imageUrl || itemData.image || DEFAULT_PRASAD_ITEMS[0].image,
-      tag: itemData.isDailySpecial ? 'Special' : (itemData.tag || 'Popular'),
-      kcal: itemData.nutrition?.kcal || itemData.nutrition || '250 kcal',
-      nutrition: typeof itemData.nutrition === 'object' ? itemData.nutrition : { kcal: itemData.nutrition || '250 kcal' },
-      is_available: itemData.isAvailable ?? true
+      original_price: Number(itemData.originalPrice || itemData.original_price || itemData.price || 0),
+      discount_percent: Number(itemData.discountPercent || itemData.discount_percent || 0),
+      is_combo: isCombo,
+      combo_items: itemData.comboItems || itemData.combo_items || [],
+      image: resolveDishCutout(itemData.imageUrl || itemData.image, itemData.name, itemData.category),
+      tag: itemData.tag || (isCombo ? 'Combo Savings' : 'Popular Choice'),
+      kcal: itemData.kcal || itemData.nutrition?.kcal || '250 kcal',
+      nutrition: typeof itemData.nutrition === 'object' ? itemData.nutrition : { kcal: itemData.kcal || '250 kcal' },
+      is_available: itemData.isAvailable ?? itemData.is_available ?? true
     };
+
+    // Update in-memory & local caches immediately
+    const shopKey = payload.shop_id;
+    const currentShopMenus = getCachedItem('menus', shopKey) || [];
+    const normalizedItem = {
+      id: itemId,
+      shopId: payload.shop_id,
+      name: payload.name,
+      subtitle: payload.subtitle,
+      description: payload.description,
+      category: payload.category,
+      price: payload.price,
+      originalPrice: payload.original_price,
+      discountPercent: payload.discount_percent,
+      isCombo: payload.is_combo,
+      comboItems: payload.combo_items,
+      image: payload.image,
+      tag: payload.tag,
+      kcal: payload.kcal,
+      nutrition: payload.nutrition,
+      isAvailable: payload.is_available
+    };
+
+    setCachedItem('menus', shopKey, [normalizedItem, ...currentShopMenus.filter(m => m.id !== itemId)]);
+    invalidateCache('menus');
+    window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { shopId: shopKey, item: normalizedItem } }));
 
     const { data, error } = await supabase
       .from('foody_menus')
@@ -1001,13 +1247,11 @@ export async function createCloudMenuItem(itemData) {
       .select()
       .single();
 
-    invalidateCache('menus', itemData.shopId);
-
     if (error) {
       console.warn('createCloudMenuItem warning:', error.message);
-      return { id: itemId, ...itemData };
+      return normalizedItem;
     }
-    return { id: data.id, ...data };
+    return { ...normalizedItem, ...data };
   } catch (err) {
     console.warn('createCloudMenuItem exception:', err.message);
     return { id: itemData.id || `menu-${Date.now()}`, ...itemData };
@@ -1022,11 +1266,17 @@ export async function updateCloudMenuItem(itemId, itemData) {
     if (itemData.description !== undefined) payload.description = itemData.description;
     if (itemData.category !== undefined) payload.category = itemData.category;
     if (itemData.price !== undefined) payload.price = Number(itemData.price);
-    if (itemData.imageUrl !== undefined || itemData.image !== undefined) payload.image = itemData.imageUrl || itemData.image;
+    if (itemData.originalPrice !== undefined || itemData.original_price !== undefined) payload.original_price = Number(itemData.originalPrice ?? itemData.original_price);
+    if (itemData.discountPercent !== undefined || itemData.discount_percent !== undefined) payload.discount_percent = Number(itemData.discountPercent ?? itemData.discount_percent);
+    if (itemData.isCombo !== undefined || itemData.is_combo !== undefined) payload.is_combo = Boolean(itemData.isCombo ?? itemData.is_combo);
+    if (itemData.comboItems !== undefined || itemData.combo_items !== undefined) payload.combo_items = itemData.comboItems ?? itemData.combo_items;
+    if (itemData.imageUrl !== undefined || itemData.image !== undefined) payload.image = resolveDishCutout(itemData.imageUrl || itemData.image, itemData.name, itemData.category);
     if (itemData.tag !== undefined) payload.tag = itemData.tag;
-    if (itemData.isDailySpecial !== undefined) payload.tag = itemData.isDailySpecial ? 'Special' : 'Popular';
     if (itemData.nutrition !== undefined) payload.nutrition = typeof itemData.nutrition === 'object' ? itemData.nutrition : { kcal: itemData.nutrition };
-    if (itemData.isAvailable !== undefined) payload.is_available = itemData.isAvailable;
+    if (itemData.isAvailable !== undefined || itemData.is_available !== undefined) payload.is_available = itemData.isAvailable ?? itemData.is_available;
+
+    invalidateCache('menus');
+    window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { itemId, updates: payload } }));
 
     const { data, error } = await supabase
       .from('foody_menus')
@@ -1034,7 +1284,6 @@ export async function updateCloudMenuItem(itemId, itemData) {
       .eq('id', itemId)
       .select();
 
-    invalidateCache('menus');
     if (error) {
       console.warn('updateCloudMenuItem warning:', error.message);
     }
@@ -1045,14 +1294,16 @@ export async function updateCloudMenuItem(itemId, itemData) {
   }
 }
 
-export async function deleteCloudMenuItem(itemId) {
+export async function deleteCloudMenuItem(itemId, shopId = null) {
   try {
+    invalidateCache('menus', shopId);
+    window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { itemId, deleted: true } }));
+
     const { error } = await supabase
       .from('foody_menus')
       .delete()
       .eq('id', itemId);
 
-    invalidateCache('menus');
     if (error) {
       console.warn('deleteCloudMenuItem warning:', error.message);
     }
@@ -1063,10 +1314,61 @@ export async function deleteCloudMenuItem(itemId) {
   }
 }
 
+// -------------------------------------------------------------
+// SHOPS & KITCHENS CRUD
+// -------------------------------------------------------------
+
+export async function createCloudShop(shopData) {
+  const shopId = shopData.id || `shop-vrinda-${Date.now().toString(36)}`;
+  const normalized = normalizeShop({
+    id: shopId,
+    name: shopData.name || 'New Vrinda Kitchen',
+    address: shopData.address || 'Vrindavan Dham',
+    phone: shopData.phone || '+91 9876543210',
+    coordinates: shopData.coordinates || { lat: 27.5706, lng: 77.6593 },
+    isOpen: shopData.isOpen ?? true,
+    minimumOrderAmount: Number(shopData.minimumOrderAmount || 0),
+    deliveryCharge: Number(shopData.deliveryCharge || 0),
+    gstPercentage: Number(shopData.gstPercentage || 5),
+    onlinePaymentsEnabled: shopData.onlinePaymentsEnabled ?? true,
+    codEnabled: shopData.codEnabled ?? true,
+    alarmSettings: shopData.alarmSettings || { kitchenNew: true, kitchenReady: false, deliveryReady: true }
+  });
+
+  const current = getCachedShops();
+  const nextList = [normalized, ...current.filter(s => s.id !== shopId)];
+  saveCachedShops(nextList);
+  memoryCache.shops = { data: nextList, timestamp: Date.now() };
+
+  window.dispatchEvent(new CustomEvent('foody_shops_changed', {
+    detail: { shopId, shopData: normalized, shops: nextList }
+  }));
+
+  try {
+    await supabase.from('foody_shops').upsert({
+      id: normalized.id,
+      name: normalized.name,
+      address: normalized.address,
+      phone: normalized.phone,
+      coordinates: normalized.coordinates,
+      is_open: normalized.isOpen,
+      minimum_order_amount: normalized.minimumOrderAmount,
+      delivery_charge: normalized.deliveryCharge,
+      gst_percentage: normalized.gstPercentage,
+      online_payments_enabled: normalized.onlinePaymentsEnabled,
+      cod_enabled: normalized.codEnabled,
+      alarm_settings: normalized.alarmSettings
+    });
+  } catch (e) {
+    console.warn("createCloudShop cloud notice:", e);
+  }
+
+  return normalized;
+}
+
 export async function updateCloudShop(shopId, shopData) {
   if (!shopId) return null;
   try {
-    // 1. Get current list and merge update cleanly
     const currentList = getCachedShops();
     let updatedShop = null;
     let found = false;
@@ -1076,7 +1378,6 @@ export async function updateCloudShop(shopId, shopData) {
         found = true;
         const merged = { ...s, ...shopData };
 
-        // Ensure nested paymentSettings and root payment flags stay synced
         if (shopData.paymentSettings) {
           merged.paymentSettings = {
             onlinePaymentsEnabled: shopData.paymentSettings.onlinePaymentsEnabled !== undefined ? shopData.paymentSettings.onlinePaymentsEnabled : (s.paymentSettings?.onlinePaymentsEnabled ?? true),
@@ -1104,16 +1405,13 @@ export async function updateCloudShop(shopId, shopData) {
       nextList.push(updatedShop);
     }
 
-    // 2. Immediately persist to cache & memory
     const saved = saveCachedShops(nextList);
     memoryCache.shops = { data: saved, timestamp: Date.now() };
 
-    // 3. Broadcast instant update event across all windows & components
     window.dispatchEvent(new CustomEvent('foody_shops_changed', {
       detail: { shopId, shopData: updatedShop, shops: saved }
     }));
 
-    // 4. Update Supabase foody_shops table safely
     try {
       const payload = {};
       if (shopData.name !== undefined) payload.name = shopData.name;
@@ -1124,6 +1422,8 @@ export async function updateCloudShop(shopId, shopData) {
       if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
       if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
       if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+      if (shopData.onlinePaymentsEnabled !== undefined) payload.online_payments_enabled = shopData.onlinePaymentsEnabled;
+      if (shopData.codEnabled !== undefined) payload.cod_enabled = shopData.codEnabled;
 
       if (Object.keys(payload).length > 0) {
         await supabase
@@ -1140,6 +1440,25 @@ export async function updateCloudShop(shopId, shopData) {
     console.warn('updateCloudShop exception:', err.message);
     return null;
   }
+}
+
+export async function deleteCloudShop(shopId) {
+  const current = getCachedShops();
+  const nextList = current.filter(s => s.id !== shopId);
+  saveCachedShops(nextList);
+  memoryCache.shops = { data: nextList, timestamp: Date.now() };
+
+  window.dispatchEvent(new CustomEvent('foody_shops_changed', {
+    detail: { shopId, deleted: true, shops: nextList }
+  }));
+
+  try {
+    await supabase.from('foody_shops').delete().eq('id', shopId);
+  } catch (e) {
+    console.warn("deleteCloudShop error:", e);
+  }
+
+  return true;
 }
 
 export async function markCloudOrderCashCollected(orderId) {
@@ -1429,15 +1748,49 @@ export async function getCloudUsers(forceRefresh = false) {
 
   const promise = (async () => {
     try {
-      const { data, error } = await supabase
-        .from('foody_logged_users')
-        .select('*')
-        .order('last_login_at', { ascending: false });
+      // 1. Fetch from foody_logged_users (with safe order fallback)
+      let loggedData = [];
+      try {
+        const { data, error } = await supabase
+          .from('foody_logged_users')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          loggedData = data;
+        }
+      } catch (e) {
+        console.warn("getCloudUsers logged_users notice:", e);
+      }
 
-      if (!error && data && data.length > 0) {
-        const mapped = data.map(u => ({
-          id: u.id,
-          displayName: u.display_name || u.displayName || u.email?.split('@')[0] || 'User',
+      // 2. Fetch from foody_users as well to ensure total multi-app sync
+      let usersData = [];
+      try {
+        const { data, error } = await supabase
+          .from('foody_users')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          usersData = data;
+        }
+      } catch (e) {
+        console.warn("getCloudUsers foody_users notice:", e);
+      }
+
+      // 3. Merge & deduplicate across cache, foody_users, and foody_logged_users
+      const userMap = new Map();
+
+      // Start with cached users as base
+      (cached || []).forEach(u => {
+        if (u && u.id) userMap.set(String(u.id).trim(), u);
+      });
+
+      // Overlay foody_users
+      usersData.forEach(u => {
+        if (!u || !u.id) return;
+        const cleanId = String(u.id).trim();
+        const mapped = {
+          id: cleanId,
+          displayName: u.display_name || u.displayName || u.email?.split('@')[0] || `User (${cleanId.slice(0, 6)})`,
           email: u.email || '',
           phone: u.phone || '',
           avatarUrl: u.avatar_url || '',
@@ -1445,16 +1798,43 @@ export async function getCloudUsers(forceRefresh = false) {
           shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
           devPermissions: u.dev_permissions || [],
-          lastLoginAt: u.last_login_at || u.created_at,
+          lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
-        }));
-        saveCachedUsers(mapped);
-        setCachedItem('users', 'all', mapped);
-        return mapped;
+        };
+        userMap.set(cleanId, mapped);
+      });
+
+      // Overlay foody_logged_users (active login table takes highest priority)
+      loggedData.forEach(u => {
+        if (!u || !u.id) return;
+        const cleanId = String(u.id).trim();
+        const mapped = {
+          id: cleanId,
+          displayName: u.display_name || u.displayName || u.email?.split('@')[0] || `User (${cleanId.slice(0, 6)})`,
+          email: u.email || '',
+          phone: u.phone || '',
+          avatarUrl: u.avatar_url || '',
+          role: u.role || 'customer',
+          shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
+          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
+          devPermissions: u.dev_permissions || [],
+          lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
+          createdAt: u.created_at,
+          updatedAt: u.updated_at
+        };
+        userMap.set(cleanId, mapped);
+      });
+
+      const merged = Array.from(userMap.values());
+      if (merged.length > 0) {
+        saveCachedUsers(merged);
+        setCachedItem('users', 'all', merged);
+        return merged;
       }
       return cached;
     } catch (e) {
+      console.warn("getCloudUsers exception:", e);
       return cached;
     } finally {
       pendingRequests.delete('getCloudUsers');
@@ -1499,10 +1879,37 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     }
   } catch (e) { }
 
+  // Fallback check on public.foody_users
+  try {
+    let uQuery = supabase.from('foody_users').select('*');
+    if (cleanId) {
+      uQuery = uQuery.eq('id', cleanId);
+    } else if (cleanEmail) {
+      uQuery = uQuery.eq('email', cleanEmail);
+    } else if (cleanPhone && cleanPhone.length >= 10) {
+      uQuery = uQuery.eq('phone', cleanPhone);
+    }
+    const { data: uData, error: uErr } = await uQuery.maybeSingle();
+    if (!uErr && uData) {
+      return {
+        id: uData.id,
+        displayName: uData.display_name || uData.email?.split('@')[0] || 'User',
+        email: uData.email || '',
+        phone: uData.phone || '',
+        avatarUrl: uData.avatar_url || '',
+        role: uData.role || 'customer',
+        shopId: uData.shop_id || 'shop-vrinda-main',
+        shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : ['shop-vrinda-main']),
+        devPermissions: uData.dev_permissions || [],
+        isLoggedInUser: true
+      };
+    }
+  } catch (e) { }
+
   return null;
 }
 
-// Dedicated function to record every login in the database without redundant queries or role downgrades
+// Dedicated function to record every login/registration in the database without redundant queries or role downgrades
 export async function recordLoggedInUser(userProfile) {
   if (!userProfile || !userProfile.id) return null;
   const cleanId = String(userProfile.id).trim();
@@ -1514,7 +1921,6 @@ export async function recordLoggedInUser(userProfile) {
   const cleanShops = userProfile.shopIds || [cleanShop];
   const loginMethod = userProfile.loginMethod || (cleanEmail ? 'email' : (cleanPhone ? 'phone' : 'google'));
 
-  // Check cached user to prevent duplicate cloud writes
   const current = getCachedUsers();
   const existingUser = current.find(u =>
     (cleanId && String(u.id).trim() === cleanId) ||
@@ -1528,8 +1934,9 @@ export async function recordLoggedInUser(userProfile) {
 
   const finalShop = userProfile.shopId || existingUser?.shopId || cleanShop;
   const finalShops = userProfile.shopIds || existingUser?.shopIds || cleanShops;
+  const nowIso = new Date().toISOString();
 
-  const payload = {
+  const loggedUsersPayload = {
     id: cleanId,
     display_name: cleanName,
     email: cleanEmail,
@@ -1540,11 +1947,25 @@ export async function recordLoggedInUser(userProfile) {
     shop_ids: finalShops,
     login_method: loginMethod,
     is_active: true,
-    last_login_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    last_login_at: nowIso,
+    updated_at: nowIso
   };
 
-  // 1. Update in-memory & local storage cache
+  const standardUsersPayload = {
+    id: cleanId,
+    display_name: cleanName,
+    email: cleanEmail,
+    phone: cleanPhone,
+    avatar_url: cleanAvatar,
+    role: finalRole,
+    shop_id: finalShop,
+    shop_ids: finalShops,
+    is_active: true,
+    last_seen_at: nowIso,
+    updated_at: nowIso
+  };
+
+  // 1. Update in-memory & local storage cache instantly
   const idx = current.findIndex(u =>
     (cleanId && String(u.id).trim() === cleanId) ||
     (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
@@ -1553,35 +1974,34 @@ export async function recordLoggedInUser(userProfile) {
   let next;
   if (idx >= 0) {
     next = [...current];
-    next[idx] = { ...next[idx], ...payload, displayName: cleanName };
+    next[idx] = { ...next[idx], ...loggedUsersPayload, displayName: cleanName };
   } else {
-    next = [{ ...payload, displayName: cleanName, createdAt: new Date().toISOString() }, ...current];
+    next = [{ ...loggedUsersPayload, displayName: cleanName, createdAt: nowIso }, ...current];
   }
   saveCachedUsers(next);
   setCachedItem('users', 'all', next);
-  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: next, updatedUser: payload } }));
+  window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: next, updatedUser: loggedUsersPayload } }));
 
-  // 2. If existing user in local cache already has matching role and shop, avoid writing to cloud
-  if (
-    existingUser &&
-    existingUser.role === finalRole &&
-    existingUser.shopId === finalShop &&
-    existingUser.displayName === cleanName
-  ) {
-    return payload;
+  // 2. Persist dual writes to Supabase foody_logged_users & foody_users
+  try {
+    await supabase.from('foody_logged_users').upsert(loggedUsersPayload);
+  } catch (e) {
+    console.warn('recordLoggedInUser logged_users notice:', e);
   }
 
-  // 3. Persist single write directly to Supabase foody_logged_users
   try {
-    await supabase.from('foody_logged_users').upsert(payload);
-  } catch (e) { }
+    await supabase.from('foody_users').upsert(standardUsersPayload);
+  } catch (e) {
+    console.warn('recordLoggedInUser foody_users notice:', e);
+  }
 
-  return payload;
+  return loggedUsersPayload;
 }
 
 export async function createCloudUser(userData) {
   const currentUsers = getCachedUsers();
   const userId = userData.id || `user_${(userData.phone || Date.now()).toString().replace(/\D/g, '')}`;
+  const nowIso = new Date().toISOString();
   const newUser = {
     id: userId,
     displayName: userData.displayName || userData.name || `User (${(userData.phone || '').slice(-4)})`,
@@ -1591,8 +2011,9 @@ export async function createCloudUser(userData) {
     role: userData.role || 'customer',
     shopId: userData.shopId || 'shop-vrinda-main',
     shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : ['shop-vrinda-main']),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    lastLoginAt: nowIso,
+    createdAt: nowIso,
+    updatedAt: nowIso
   };
 
   const nextList = [newUser, ...currentUsers.filter(u => u.id !== userId)];
@@ -1600,7 +2021,7 @@ export async function createCloudUser(userData) {
   setCachedItem('users', 'all', nextList);
   window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: nextList, updatedUser: newUser } }));
 
-  const dbPayload = {
+  const loggedDbPayload = {
     id: newUser.id,
     display_name: newUser.displayName,
     email: newUser.email,
@@ -1609,12 +2030,34 @@ export async function createCloudUser(userData) {
     role: newUser.role,
     shop_id: newUser.shopId,
     shop_ids: newUser.shopIds,
-    updated_at: new Date().toISOString()
+    last_login_at: nowIso,
+    updated_at: nowIso
+  };
+
+  const standardDbPayload = {
+    id: newUser.id,
+    display_name: newUser.displayName,
+    email: newUser.email,
+    phone: newUser.phone,
+    avatar_url: newUser.avatarUrl,
+    role: newUser.role,
+    shop_id: newUser.shopId,
+    shop_ids: newUser.shopIds,
+    last_seen_at: nowIso,
+    updated_at: nowIso
   };
 
   try {
-    await supabase.from('foody_logged_users').upsert(dbPayload);
-  } catch (e) { }
+    await supabase.from('foody_logged_users').upsert(loggedDbPayload);
+  } catch (e) {
+    console.warn('createCloudUser logged_users notice:', e);
+  }
+
+  try {
+    await supabase.from('foody_users').upsert(standardDbPayload);
+  } catch (e) {
+    console.warn('createCloudUser foody_users notice:', e);
+  }
 
   return newUser;
 }
@@ -1650,6 +2093,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const targetId = userExists?.id || cleanId || `user_${Date.now()}`;
   const resolvedEmail = (updates.email || userExists?.email || cleanEmail || '').toLowerCase().trim();
   const resolvedPhone = (updates.phone || userExists?.phone || cleanPhone || '').replace(/\D/g, '');
+  const nowIso = new Date().toISOString();
 
   let updatedList;
   if (userExists) {
@@ -1659,7 +2103,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
         (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       ) {
-        return { ...u, ...updates, id: targetId, updatedAt: new Date().toISOString() };
+        return { ...u, ...updates, id: targetId, updatedAt: nowIso };
       }
       return u;
     });
@@ -1673,8 +2117,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       shopId: updates.shopId || updates.shop_id || 'shop-vrinda-main',
       shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || 'shop-vrinda-main'],
       ...updates,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
     updatedList = [newUser, ...currentUsers];
   }
@@ -1684,8 +2128,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const updatedUserObj = updatedList.find(u => (targetId && String(u.id).trim() === targetId) || (resolvedEmail && u.email && u.email.toLowerCase().trim() === resolvedEmail));
   window.dispatchEvent(new CustomEvent('foody_users_changed', { detail: { users: updatedList, updatedUser: updatedUserObj } }));
 
-  // Single atomic upsert to foody_logged_users
-  const fullPayload = {
+  // Synchronize update to both foody_logged_users and foody_users
+  const fullLoggedPayload = {
     id: targetId,
     display_name: updates.displayName || updates.display_name || userExists?.displayName || resolvedEmail?.split('@')[0] || `User (${targetId.slice(0, 6)})`,
     email: resolvedEmail,
@@ -1694,13 +2138,32 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     role: updates.role || userExists?.role || 'customer',
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
-    updated_at: new Date().toISOString()
+    updated_at: nowIso
+  };
+
+  const fullStandardPayload = {
+    id: targetId,
+    display_name: fullLoggedPayload.display_name,
+    email: resolvedEmail,
+    phone: resolvedPhone,
+    avatar_url: fullLoggedPayload.avatar_url,
+    role: fullLoggedPayload.role,
+    shop_id: fullLoggedPayload.shop_id,
+    shop_ids: fullLoggedPayload.shop_ids,
+    last_seen_at: nowIso,
+    updated_at: nowIso
   };
 
   try {
-    await supabase.from('foody_logged_users').upsert(fullPayload);
+    await supabase.from('foody_logged_users').upsert(fullLoggedPayload);
   } catch (e) {
-    console.warn('updateCloudUser note:', e);
+    console.warn('updateCloudUser logged_users note:', e);
+  }
+
+  try {
+    await supabase.from('foody_users').upsert(fullStandardPayload);
+  } catch (e) {
+    console.warn('updateCloudUser foody_users note:', e);
   }
 
   return updatedUserObj;
@@ -1715,6 +2178,10 @@ export async function deleteCloudUser(userId) {
 
   try {
     await supabase.from('foody_logged_users').delete().eq('id', userId);
+  } catch (e) { }
+
+  try {
+    await supabase.from('foody_users').delete().eq('id', userId);
   } catch (e) { }
 
   return true;

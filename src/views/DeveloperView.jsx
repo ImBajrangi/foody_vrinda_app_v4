@@ -45,13 +45,35 @@ import {
   ChevronDown,
   ChevronUp,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Tag,
+  Percent,
+  Gift,
+  MapPin,
+  Clock,
+  Layers,
+  Edit3,
+  AlertCircle,
+  Check
 } from 'lucide-react';
 import { 
   updateCloudShop, 
   getCloudShops, 
   getCachedShops,
+  saveCachedShops,
+  createCloudShop,
+  deleteCloudShop,
   getCloudMenus, 
+  createCloudMenuItem,
+  updateCloudMenuItem,
+  deleteCloudMenuItem,
+  getCachedOffers,
+  saveCachedOffers,
+  getCloudOffers,
+  createCloudOffer,
+  updateCloudOffer,
+  deleteCloudOffer,
+  DEFAULT_OFFERS,
   getCloudOrders, 
   createCloudOrder, 
   getCloudUsers, 
@@ -78,7 +100,7 @@ export default function DeveloperView({ setCurrentTab }) {
   } = useAuth();
 
 
-  const [stats, setStats] = useState({ shops: 0, items: 0, orders: 0, notifications: 0 });
+  const [stats, setStats] = useState({ shops: 0, items: 0, orders: 0, notifications: 0, offers: 0 });
   const [paymentsConfig, setPaymentsConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_payment_config');
@@ -94,12 +116,70 @@ export default function DeveloperView({ setCurrentTab }) {
   const [selectedOwnerShopId, setSelectedOwnerShopId] = useState(() => allShops[0]?.id || '');
   const [selectedPaymentShopId, setSelectedPaymentShopId] = useState(() => allShops[0]?.id || '');
 
+  // --- SHOPS / KITCHENS STATE ---
+  const [shopsList, setShopsList] = useState(() => getCachedShops());
+  const [shopSearch, setShopSearch] = useState('');
+  const [isCreatingShop, setIsCreatingShop] = useState(false);
+  const [editingShop, setEditingShop] = useState(null);
+  const [newShopName, setNewShopName] = useState('');
+  const [newShopAddress, setNewShopAddress] = useState('');
+  const [newShopPhone, setNewShopPhone] = useState('');
+  const [newShopPrepTime, setNewShopPrepTime] = useState('15-20 mins');
+  const [newShopRadius, setNewShopRadius] = useState('10 km');
+  const [newShopImage, setNewShopImage] = useState('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop');
+  const [newShopPureVeg, setNewShopPureVeg] = useState(true);
+  const [newShopIsOpen, setNewShopIsOpen] = useState(true);
+
+  // --- DISHES / MENU STATE ---
+  const [menusList, setMenusList] = useState([]);
+  const [dishSearch, setDishSearch] = useState('');
+  const [dishCategoryFilter, setDishCategoryFilter] = useState('all');
+  const [dishShopFilter, setDishShopFilter] = useState('all');
+  const [isCreatingDish, setIsCreatingDish] = useState(false);
+  const [editingDish, setEditingDish] = useState(null);
+  const [newDishName, setNewDishName] = useState('');
+  const [newDishCategory, setNewDishCategory] = useState('Satvik Thali');
+  const [newDishPrice, setNewDishPrice] = useState('');
+  const [newDishOriginalPrice, setNewDishOriginalPrice] = useState('');
+  const [newDishDescription, setNewDishDescription] = useState('');
+  const [newDishImage, setNewDishImage] = useState('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop');
+  const [newDishShopId, setNewDishShopId] = useState('all');
+  const [newDishIsAvailable, setNewDishIsAvailable] = useState(true);
+
+  // --- COMBOS STATE ---
+  const [isCreatingCombo, setIsCreatingCombo] = useState(false);
+  const [editingCombo, setEditingCombo] = useState(null);
+  const [newComboName, setNewComboName] = useState('');
+  const [newComboItems, setNewComboItems] = useState('1x Rajbhog Thali\n1x Kesar Badam Lassi\n2x Malpua Rabdi');
+  const [newComboPrice, setNewComboPrice] = useState('');
+  const [newComboOriginalPrice, setNewComboOriginalPrice] = useState('');
+  const [newComboDescription, setNewComboDescription] = useState('');
+  const [newComboImage, setNewComboImage] = useState('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop');
+  const [newComboShopId, setNewComboShopId] = useState('all');
+
+  // --- OFFERS / PROMOTIONS STATE ---
+  const [offersList, setOffersList] = useState(() => getCachedOffers());
+  const [offerSearch, setOfferSearch] = useState('');
+  const [isCreatingOffer, setIsCreatingOffer] = useState(false);
+  const [editingOffer, setEditingOffer] = useState(null);
+  const [newOfferCode, setNewOfferCode] = useState('');
+  const [newOfferTitle, setNewOfferTitle] = useState('');
+  const [newOfferSubtitle, setNewOfferSubtitle] = useState('');
+  const [newOfferDiscountType, setNewOfferDiscountType] = useState('percentage');
+  const [newOfferDiscountValue, setNewOfferDiscountValue] = useState('');
+  const [newOfferMinOrder, setNewOfferMinOrder] = useState('199');
+  const [newOfferMaxDiscount, setNewOfferMaxDiscount] = useState('100');
+  const [newOfferValidUntil, setNewOfferValidUntil] = useState('2026-12-31');
+  const [newOfferShopId, setNewOfferShopId] = useState('all');
+  const [newOfferIsActive, setNewOfferIsActive] = useState(true);
+
   useEffect(() => {
     if (allShops && allShops.length > 0) {
       if (!selectedShopId) setSelectedShopId(allShops[0].id);
       if (!selectedDeliveryShopId) setSelectedDeliveryShopId(allShops[0].id);
       if (!selectedOwnerShopId) setSelectedOwnerShopId(allShops[0].id);
       if (!selectedPaymentShopId) setSelectedPaymentShopId(allShops[0].id);
+      setShopsList(allShops);
     }
   }, [allShops]);
 
@@ -126,6 +206,10 @@ export default function DeveloperView({ setCurrentTab }) {
   // Mobile / Desktop Collapsible Section state (default: all collapsed)
   const [collapsedSections, setCollapsedSections] = useState({
     impersonation: true,
+    shops: true,
+    dishes: true,
+    combos: true,
+    offers: true,
     payments: true,
     simulator: true,
     users: true,
@@ -142,6 +226,10 @@ export default function DeveloperView({ setCurrentTab }) {
   const collapseAll = () => {
     setCollapsedSections({
       impersonation: true,
+      shops: true,
+      dishes: true,
+      combos: true,
+      offers: true,
       payments: true,
       simulator: true,
       users: true,
@@ -152,6 +240,10 @@ export default function DeveloperView({ setCurrentTab }) {
   const expandAll = () => {
     setCollapsedSections({
       impersonation: false,
+      shops: false,
+      dishes: false,
+      combos: false,
+      offers: false,
       payments: false,
       simulator: false,
       users: false,
@@ -179,14 +271,20 @@ export default function DeveloperView({ setCurrentTab }) {
     // 1. Initial synchronous hydration for stats from cache with zero cloud requests
     const cachedShops = getCachedShops();
     const cachedUsers = getCachedUsers();
+    const cachedOffers = getCachedOffers();
+    setShopsList(cachedShops);
+    setUsersList(cachedUsers);
+    setOffersList(cachedOffers);
+
     setStats({
       shops: cachedShops.length || 3,
       items: 6,
       orders: 0,
-      notifications: cachedUsers.length
+      notifications: cachedUsers.length,
+      offers: cachedOffers.length
     });
 
-    // 2. Realtime listener updates user state dynamically without polling
+    // 2. Realtime listener updates user state dynamically
     const unsubscribe = subscribeCloudUsers((list) => {
       if (list && list.length > 0) {
         setUsersList(list);
@@ -194,30 +292,72 @@ export default function DeveloperView({ setCurrentTab }) {
       }
     });
 
-    // 3. SWR background revalidation (deduplicated & cached)
+    const handleLocalUsersChanged = (e) => {
+      if (e?.detail?.users && Array.isArray(e.detail.users) && e.detail.users.length > 0) {
+        setUsersList(e.detail.users);
+        setStats(prev => ({ ...prev, notifications: e.detail.users.length }));
+      }
+    };
+    window.addEventListener('foody_users_changed', handleLocalUsersChanged);
+
+    const handleLocalShopsChanged = (e) => {
+      if (e?.detail?.shops && Array.isArray(e.detail.shops)) {
+        setShopsList(e.detail.shops);
+        setStats(prev => ({ ...prev, shops: e.detail.shops.length }));
+      }
+    };
+    window.addEventListener('foody_shops_changed', handleLocalShopsChanged);
+
+    const handleLocalMenusChanged = (e) => {
+      if (e?.detail?.menus && Array.isArray(e.detail.menus)) {
+        setMenusList(e.detail.menus);
+        setStats(prev => ({ ...prev, items: e.detail.menus.length }));
+      }
+    };
+    window.addEventListener('foody_menus_changed', handleLocalMenusChanged);
+
+    const handleLocalOffersChanged = (e) => {
+      if (e?.detail?.offers && Array.isArray(e.detail.offers)) {
+        setOffersList(e.detail.offers);
+        setStats(prev => ({ ...prev, offers: e.detail.offers.length }));
+      }
+    };
+    window.addEventListener('foody_offers_changed', handleLocalOffersChanged);
+
+    // 3. SWR background revalidation (fetch fresh data from Supabase)
     (async () => {
       try {
-        const [shops, menus, orders, users] = await Promise.all([
+        const [shops, menus, orders, users, offers] = await Promise.all([
           getCloudShops(),
-          getCloudMenus(),
+          getCloudMenus('all'),
           getCloudOrders(),
-          getCloudUsers()
+          getCloudUsers(true),
+          getCloudOffers(true)
         ]);
-        if (users && users.length > 0) {
-          setUsersList(users);
-        }
+        if (shops && shops.length > 0) setShopsList(shops);
+        if (menus && menus.length > 0) setMenusList(menus);
+        if (users && users.length > 0) setUsersList(users);
+        if (offers && offers.length > 0) setOffersList(offers);
+
         setStats({
           shops: (shops || []).length,
           items: (menus || []).length,
           orders: (orders || []).length,
-          notifications: (users || []).length
+          notifications: (users || []).length,
+          offers: (offers || []).length
         });
       } catch (e) {
         console.warn("fetchStats note:", e);
       }
     })();
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('foody_users_changed', handleLocalUsersChanged);
+      window.removeEventListener('foody_shops_changed', handleLocalShopsChanged);
+      window.removeEventListener('foody_menus_changed', handleLocalMenusChanged);
+      window.removeEventListener('foody_offers_changed', handleLocalOffersChanged);
+    };
   }, []);
 
   useEffect(() => {
@@ -287,6 +427,257 @@ export default function DeveloperView({ setCurrentTab }) {
       type: 'success'
     });
   };
+
+  // ==========================================
+  // 1. SHOPS / KITCHENS MANAGEMENT HANDLERS
+  // ==========================================
+  const handleCreateShop = async (e) => {
+    e.preventDefault();
+    if (!newShopName.trim()) {
+      return setToast({ message: 'Please enter a kitchen/shop name', type: 'warning' });
+    }
+    const shopId = `shop-${newShopName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}-${Date.now().toString(36).slice(-4)}`;
+    const newShop = {
+      id: shopId,
+      name: newShopName.trim(),
+      address: newShopAddress.trim() || 'Raman Reti, Vrindavan, UP',
+      phone: newShopPhone.trim() || '9876543210',
+      preparationTime: newShopPrepTime || '15-20 mins',
+      deliveryRadius: newShopRadius || '10 km',
+      image: newShopImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+      pureVeg: newShopPureVeg,
+      isOpen: newShopIsOpen,
+      paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true }
+    };
+
+    setShopsList(prev => {
+      const updated = [newShop, ...prev];
+      saveCachedShops(updated);
+      return updated;
+    });
+
+    setToast({ message: `Kitchen "${newShop.name}" created and synced!`, type: 'success' });
+    setIsCreatingShop(false);
+    setNewShopName('');
+    setNewShopAddress('');
+    setNewShopPhone('');
+
+    await createCloudShop(newShop);
+    if (refreshShops) await refreshShops();
+  };
+
+  const handleToggleShopOpen = async (shopId, currentIsOpen) => {
+    const nextState = !currentIsOpen;
+    setShopsList(prev => {
+      const updated = prev.map(s => s.id === shopId ? { ...s, isOpen: nextState } : s);
+      saveCachedShops(updated);
+      return updated;
+    });
+    setToast({ message: `Kitchen status set to ${nextState ? 'OPEN' : 'CLOSED'}`, type: 'info' });
+    await updateCloudShop(shopId, { isOpen: nextState });
+    if (refreshShops) await refreshShops();
+  };
+
+  const handleDeleteShop = async (shopId, shopName) => {
+    if (shopsList.length <= 1) {
+      return setToast({ message: 'Cannot delete the only remaining kitchen', type: 'warning' });
+    }
+    setShopsList(prev => {
+      const updated = prev.filter(s => s.id !== shopId);
+      saveCachedShops(updated);
+      return updated;
+    });
+    setToast({ message: `Kitchen "${shopName}" removed`, type: 'info' });
+    await deleteCloudShop(shopId);
+    if (refreshShops) await refreshShops();
+  };
+
+  // ==========================================
+  // 2. DISHES / MENU CATALOG HANDLERS
+  // ==========================================
+  const handleCreateDish = async (e) => {
+    e.preventDefault();
+    if (!newDishName.trim()) {
+      return setToast({ message: 'Please enter a dish name', type: 'warning' });
+    }
+    const priceNum = Number(newDishPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      return setToast({ message: 'Please enter a valid price greater than 0', type: 'warning' });
+    }
+
+    const dishId = `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(-3)}`;
+    const originalPriceNum = Number(newDishOriginalPrice) || priceNum;
+    const targetShop = newDishShopId === 'all' ? (allShops[0]?.id || 'shop-vrinda-main') : newDishShopId;
+
+    const newDish = {
+      id: dishId,
+      name: newDishName.trim(),
+      category: newDishCategory || 'Satvik Thali',
+      price: priceNum,
+      originalPrice: originalPriceNum,
+      description: newDishDescription.trim() || 'Traditional Satvik Preparation cooked with desi ghee.',
+      image: newDishImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+      isAvailable: newDishIsAvailable,
+      isVeg: true,
+      shopId: targetShop,
+      rating: 4.9,
+      tags: ['Satvik', 'Pure Ghee']
+    };
+
+    setMenusList(prev => [newDish, ...prev]);
+    setToast({ message: `Dish "${newDish.name}" added to catalog!`, type: 'success' });
+    setIsCreatingDish(false);
+    setNewDishName('');
+    setNewDishPrice('');
+    setNewDishOriginalPrice('');
+    setNewDishDescription('');
+
+    await createCloudMenuItem(newDish);
+  };
+
+  const handleToggleDishAvailability = async (dishId, currentAvailability) => {
+    const nextAvailability = !currentAvailability;
+    setMenusList(prev => prev.map(d => d.id === dishId ? { ...d, isAvailable: nextAvailability } : d));
+    setToast({ message: `Dish availability: ${nextAvailability ? 'AVAILABLE (IN-STOCK)' : 'SOLD OUT (OUT OF STOCK)'}`, type: 'info' });
+    await updateCloudMenuItem(dishId, { isAvailable: nextAvailability, is_available: nextAvailability });
+  };
+
+  const handleDeleteDish = async (dishId, dishName) => {
+    setMenusList(prev => prev.filter(d => d.id !== dishId));
+    setToast({ message: `Dish "${dishName}" removed from catalog`, type: 'info' });
+    await deleteCloudMenuItem(dishId);
+  };
+
+  // ==========================================
+  // 3. COMBO PACKS HANDLERS
+  // ==========================================
+  const handleCreateCombo = async (e) => {
+    e.preventDefault();
+    if (!newComboName.trim()) {
+      return setToast({ message: 'Please enter a combo name', type: 'warning' });
+    }
+    const priceNum = Number(newComboPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      return setToast({ message: 'Please enter a valid combo price', type: 'warning' });
+    }
+    const origPriceNum = Number(newComboOriginalPrice) || priceNum;
+    const discountPct = origPriceNum > priceNum ? Math.round(((origPriceNum - priceNum) / origPriceNum) * 100) : 0;
+    const itemsList = newComboItems
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const comboId = `combo-${Date.now().toString(36)}`;
+    const targetShop = newComboShopId === 'all' ? (allShops[0]?.id || 'shop-vrinda-main') : newComboShopId;
+
+    const newCombo = {
+      id: comboId,
+      name: newComboName.trim(),
+      category: 'Combo Offers',
+      price: priceNum,
+      originalPrice: origPriceNum,
+      discountPercent: discountPct,
+      isCombo: true,
+      is_combo: true,
+      comboItems: itemsList,
+      combo_items: itemsList,
+      description: newComboDescription.trim() || `Special combo box: ${itemsList.join(' + ')}`,
+      image: newComboImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+      isAvailable: true,
+      isVeg: true,
+      shopId: targetShop,
+      rating: 5.0
+    };
+
+    setMenusList(prev => [newCombo, ...prev]);
+    setToast({ message: `Combo Pack "${newCombo.name}" created (Save ${discountPct}%)!`, type: 'success' });
+    setIsCreatingCombo(false);
+    setNewComboName('');
+    setNewComboPrice('');
+    setNewComboOriginalPrice('');
+    setNewComboDescription('');
+
+    await createCloudMenuItem(newCombo);
+  };
+
+  // ==========================================
+  // 4. OFFERS & PROMO CODES HANDLERS
+  // ==========================================
+  const handleCreateOffer = async (e) => {
+    e.preventDefault();
+    const cleanCode = newOfferCode.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+    if (!cleanCode || cleanCode.length < 3) {
+      return setToast({ message: 'Promo code must be at least 3 uppercase characters', type: 'warning' });
+    }
+    const discVal = Number(newOfferDiscountValue);
+    if (isNaN(discVal) || discVal <= 0) {
+      return setToast({ message: 'Please enter a valid discount amount or percentage', type: 'warning' });
+    }
+
+    const offerId = `offer-${cleanCode.toLowerCase()}-${Date.now().toString(36).slice(-3)}`;
+    const newOffer = {
+      id: offerId,
+      code: cleanCode,
+      title: newOfferTitle.trim() || `${cleanCode} Special Offer`,
+      subtitle: newOfferSubtitle.trim() || (newOfferDiscountType === 'percentage' ? `${discVal}% OFF on satvik meals` : `Flat ₹${discVal} OFF on all orders`),
+      discountType: newOfferDiscountType,
+      discount_type: newOfferDiscountType,
+      discountValue: discVal,
+      discount_value: discVal,
+      minOrderAmount: Number(newOfferMinOrder) || 0,
+      min_order_amount: Number(newOfferMinOrder) || 0,
+      maxDiscount: Number(newOfferMaxDiscount) || 0,
+      max_discount: Number(newOfferMaxDiscount) || 0,
+      validUntil: newOfferValidUntil || '2026-12-31',
+      valid_until: newOfferValidUntil || '2026-12-31',
+      shopId: newOfferShopId,
+      shop_id: newOfferShopId,
+      isActive: newOfferIsActive,
+      is_active: newOfferIsActive
+    };
+
+    setOffersList(prev => {
+      const updated = [newOffer, ...prev];
+      saveCachedOffers(updated);
+      return updated;
+    });
+
+    setToast({ message: `Coupon Code "${cleanCode}" created and active!`, type: 'success' });
+    setIsCreatingOffer(false);
+    setNewOfferCode('');
+    setNewOfferTitle('');
+    setNewOfferSubtitle('');
+    setNewOfferDiscountValue('');
+
+    await createCloudOffer(newOffer);
+  };
+
+  const handleToggleOfferActive = async (offerId, currentActive) => {
+    const nextActive = !currentActive;
+    setOffersList(prev => {
+      const updated = prev.map(o => o.id === offerId ? { ...o, isActive: nextActive, is_active: nextActive } : o);
+      saveCachedOffers(updated);
+      return updated;
+    });
+    setToast({ message: `Coupon ${nextActive ? 'ACTIVATED' : 'DEACTIVATED'}`, type: 'info' });
+    await updateCloudOffer(offerId, { isActive: nextActive, is_active: nextActive });
+  };
+
+  const handleDeleteOffer = async (offerId, offerCode) => {
+    setOffersList(prev => {
+      const updated = prev.filter(o => o.id !== offerId);
+      saveCachedOffers(updated);
+      return updated;
+    });
+    setToast({ message: `Promo Code "${offerCode}" removed`, type: 'info' });
+    await deleteCloudOffer(offerId);
+  };
+
+  const handleCopyOfferCode = (code) => {
+    navigator.clipboard.writeText(code);
+    setToast({ message: `Coupon Code "${code}" copied to clipboard!`, type: 'success' });
+  };
+
 
   const handleUpdateUserRole = async (userId, newRole) => {
     const target = usersList.find(u => u.id === userId);
@@ -555,8 +946,8 @@ export default function DeveloperView({ setCurrentTab }) {
 
 
       {/* System Statistics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 text-center shadow-xl">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
           <div className="w-10 h-10 rounded-2xl bg-white/5 text-[#E0FF33] flex items-center justify-center mx-auto mb-2">
             <Store className="w-5 h-5" />
           </div>
@@ -564,7 +955,7 @@ export default function DeveloperView({ setCurrentTab }) {
           <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Kitchens</p>
         </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 text-center shadow-xl">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
           <div className="w-10 h-10 rounded-2xl bg-white/5 text-cyan-400 flex items-center justify-center mx-auto mb-2">
             <UtensilsCrossed className="w-5 h-5" />
           </div>
@@ -572,7 +963,15 @@ export default function DeveloperView({ setCurrentTab }) {
           <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Dishes Catalog</p>
         </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 text-center shadow-xl">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
+          <div className="w-10 h-10 rounded-2xl bg-white/5 text-emerald-400 flex items-center justify-center mx-auto mb-2">
+            <Tag className="w-5 h-5" />
+          </div>
+          <p className="text-2xl font-black text-white font-['Outfit']">{stats.offers}</p>
+          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Active Offers</p>
+        </div>
+
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
           <div className="w-10 h-10 rounded-2xl bg-white/5 text-amber-400 flex items-center justify-center mx-auto mb-2">
             <Receipt className="w-5 h-5" />
           </div>
@@ -580,12 +979,12 @@ export default function DeveloperView({ setCurrentTab }) {
           <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Total Orders</p>
         </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 text-center shadow-xl">
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl col-span-2 sm:col-span-1">
           <div className="w-10 h-10 rounded-2xl bg-white/5 text-purple-400 flex items-center justify-center mx-auto mb-2">
-            <Bell className="w-5 h-5" />
+            <Users className="w-5 h-5" />
           </div>
           <p className="text-2xl font-black text-white font-['Outfit']">{stats.notifications}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Notification Logs</p>
+          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Users & Staff</p>
         </div>
       </div>
 
@@ -594,6 +993,10 @@ export default function DeveloperView({ setCurrentTab }) {
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           {[
             { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
+            { id: 'shops', label: 'Kitchens', icon: Store },
+            { id: 'dishes', label: 'Dishes', icon: UtensilsCrossed },
+            { id: 'combos', label: 'Combos', icon: Gift },
+            { id: 'offers', label: 'Offers', icon: Tag },
             { id: 'users', label: 'Users & Roles', icon: Users },
             { id: 'payments', label: 'Payments', icon: CreditCard },
             { id: 'simulator', label: 'Simulator', icon: Flame },
@@ -641,6 +1044,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </button>
         </div>
       </div>
+
 
       {/* Main Dev Tools Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -787,8 +1191,953 @@ export default function DeveloperView({ setCurrentTab }) {
           )}
         </div>
 
-        {/* 2. Global & Per-Kitchen Payment Configuration */}
+        {/* 2. Kitchens & Locations Master */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <button
+              type="button"
+              onClick={() => toggleSection('shops')}
+              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+            >
+              <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0">
+                <Store className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                    Kitchens & Store Locations
+                  </h3>
+                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.shops ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">Add new branches, toggle open/closed state, and manage cloud kitchens.</p>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
+                  setIsCreatingShop(!isCreatingShop);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>{isCreatingShop ? 'Close Form' : 'Add Kitchen'}</span>
+              </button>
+            </div>
+          </div>
+
+          {!collapsedSections.shops && (
+            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+              {/* Create Shop Form Drawer */}
+              {isCreatingShop && (
+                <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
+                      <Store className="w-4 h-4" /> Add New Cloud Kitchen Branch
+                    </h4>
+                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
+                      <input
+                        type="text"
+                        value={newShopName}
+                        onChange={e => setNewShopName(e.target.value)}
+                        placeholder="e.g. Govind Dham Annakoot"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
+                      <input
+                        type="text"
+                        value={newShopPhone}
+                        onChange={e => setNewShopPhone(e.target.value)}
+                        placeholder="e.g. 9876543210"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
+                      <input
+                        type="text"
+                        value={newShopPrepTime}
+                        onChange={e => setNewShopPrepTime(e.target.value)}
+                        placeholder="15-20 mins"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
+                      <input
+                        type="text"
+                        value={newShopRadius}
+                        onChange={e => setNewShopRadius(e.target.value)}
+                        placeholder="12 km"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Address / Landmark</label>
+                      <input
+                        type="text"
+                        value={newShopAddress}
+                        onChange={e => setNewShopAddress(e.target.value)}
+                        placeholder="Near ISKCON Temple, Raman Reti, Vrindavan"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Cover Image URL</label>
+                      <input
+                        type="text"
+                        value={newShopImage}
+                        onChange={e => setNewShopImage(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                        <input
+                          type="checkbox"
+                          checked={newShopPureVeg}
+                          onChange={e => setNewShopPureVeg(e.target.checked)}
+                          className="rounded text-[#E0FF33] focus:ring-0"
+                        />
+                        <span className="font-bold text-emerald-400">100% Pure Satvik Veg</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                        <input
+                          type="checkbox"
+                          checked={newShopIsOpen}
+                          onChange={e => setNewShopIsOpen(e.target.checked)}
+                          className="rounded text-[#E0FF33] focus:ring-0"
+                        />
+                        <span className="font-bold text-white">Open for Orders</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingShop(false)}
+                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                      >
+                        Create Kitchen
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Search & Filter Bar */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search kitchen by name or address..."
+                    value={shopSearch}
+                    onChange={e => setShopSearch(e.target.value)}
+                    className="w-full bg-[#1E1B1C] text-xs text-white placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#E0FF33]/50"
+                  />
+                </div>
+                <span className="text-[11px] font-bold text-neutral-400 px-3 py-2 bg-[#1E1B1C] rounded-xl border border-white/5 shrink-0">
+                  {shopsList.length} Kitchens
+                </span>
+              </div>
+
+              {/* Kitchen Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {shopsList
+                  .filter(s => !shopSearch || s.name?.toLowerCase().includes(shopSearch.toLowerCase()) || s.address?.toLowerCase().includes(shopSearch.toLowerCase()))
+                  .map(s => {
+                    const isOpen = s.isOpen ?? true;
+                    return (
+                      <div key={s.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                        <div className="space-y-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-sm text-white truncate font-['Outfit']">{s.name}</h4>
+                              <p className="text-[11px] text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                                <span>{s.address || 'Vrindavan, UP'}</span>
+                              </p>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                              isOpen ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            }`}>
+                              {isOpen ? 'Open' : 'Closed'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[10px] text-neutral-400">
+                            <div className="p-2 rounded-lg bg-white/5 flex items-center gap-1.5">
+                              <Clock className="w-3 h-3 text-amber-400" />
+                              <span>{s.preparationTime || '15-20 mins'}</span>
+                            </div>
+                            <div className="p-2 rounded-lg bg-white/5 flex items-center gap-1.5">
+                              <Truck className="w-3 h-3 text-cyan-400" />
+                              <span>{s.deliveryRadius || '10 km'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleShopOpen(s.id, isOpen)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            }`}
+                          >
+                            {isOpen ? 'Mark Closed' : 'Mark Open'}
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleImpersonateShop(s.id)}
+                              title="Launch Staff View"
+                              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-amber-400 border border-white/5 cursor-pointer"
+                            >
+                              <ChefHat className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteShop(s.id, s.name)}
+                              title="Delete Kitchen"
+                              className="p-1.5 rounded-xl bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Dishes & Menu Catalog Master */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <button
+              type="button"
+              onClick={() => toggleSection('dishes')}
+              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+            >
+              <div className="w-9 h-9 rounded-xl bg-cyan-400/15 text-cyan-400 flex items-center justify-center shrink-0">
+                <UtensilsCrossed className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-400 transition-colors">
+                    Dishes & Food Menu Catalog
+                  </h3>
+                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.dishes ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">Create new items, set prices, update descriptions, and toggle instant in-stock availability.</p>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
+                  setIsCreatingDish(!isCreatingDish);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>{isCreatingDish ? 'Close Form' : 'Add Dish'}</span>
+              </button>
+            </div>
+          </div>
+
+          {!collapsedSections.dishes && (
+            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+              {/* Create Dish Form */}
+              {isCreatingDish && (
+                <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-cyan-400/30 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                      <UtensilsCrossed className="w-4 h-4" /> Add Dish to Menu Catalog
+                    </h4>
+                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Dish Name</label>
+                      <input
+                        type="text"
+                        value={newDishName}
+                        onChange={e => setNewDishName(e.target.value)}
+                        placeholder="e.g. Shahi Mathura Peda (4 pcs)"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Category</label>
+                      <select
+                        value={newDishCategory}
+                        onChange={e => setNewDishCategory(e.target.value)}
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      >
+                        <option value="Satvik Thali">Satvik Thali</option>
+                        <option value="Sweets & Desserts">Sweets & Desserts</option>
+                        <option value="Snacks & Chaat">Snacks & Chaat</option>
+                        <option value="Lassi & Beverages">Lassi & Beverages</option>
+                        <option value="Special Bhog">Special Bhog</option>
+                        <option value="Breads & Rice">Breads & Rice</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newDishPrice}
+                        onChange={e => setNewDishPrice(e.target.value)}
+                        placeholder="e.g. 160"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Original / MRP Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newDishOriginalPrice}
+                        onChange={e => setNewDishOriginalPrice(e.target.value)}
+                        placeholder="e.g. 200 (optional)"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Assign to Kitchen</label>
+                      <select
+                        value={newDishShopId}
+                        onChange={e => setNewDishShopId(e.target.value)}
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      >
+                        <option value="all">All Kitchens (Universal)</option>
+                        {shopsList.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Dish Image URL</label>
+                      <input
+                        type="text"
+                        value={newDishImage}
+                        onChange={e => setNewDishImage(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Description / Ingredients</label>
+                      <textarea
+                        rows={2}
+                        value={newDishDescription}
+                        onChange={e => setNewDishDescription(e.target.value)}
+                        placeholder="Prepared with pure desi ghee, fresh milk and authentic Vrindavan spices..."
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                      <input
+                        type="checkbox"
+                        checked={newDishIsAvailable}
+                        onChange={e => setNewDishIsAvailable(e.target.checked)}
+                        className="rounded text-cyan-400 focus:ring-0"
+                      />
+                      <span className="font-bold text-emerald-400">Available In-Stock Now</span>
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingDish(false)}
+                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                      >
+                        Add Dish
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Filters & Search */}
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search dishes by name or category..."
+                    value={dishSearch}
+                    onChange={e => setDishSearch(e.target.value)}
+                    className="w-full bg-[#1E1B1C] text-xs text-white placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-cyan-400/50"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
+                  {['all', 'Satvik Thali', 'Sweets & Desserts', 'Snacks & Chaat', 'Lassi & Beverages', 'Combo Offers'].map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setDishCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        dishCategoryFilter === cat
+                          ? 'bg-cyan-400 text-black font-black shadow-sm'
+                          : 'bg-[#1E1B1C] text-neutral-400 hover:text-white border border-white/5'
+                      }`}
+                    >
+                      {cat === 'all' ? 'All Items' : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dishes Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                {menusList
+                  .filter(d => {
+                    const matchSearch = !dishSearch || d.name?.toLowerCase().includes(dishSearch.toLowerCase()) || d.category?.toLowerCase().includes(dishSearch.toLowerCase());
+                    const matchCategory = dishCategoryFilter === 'all' || d.category === dishCategoryFilter;
+                    return matchSearch && matchCategory;
+                  })
+                  .map(d => {
+                    const isAvailable = d.isAvailable ?? d.is_available ?? true;
+                    return (
+                      <div key={d.id} className="p-3.5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-xs sm:text-sm text-white truncate font-['Outfit']">{d.name}</h4>
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-neutral-400 font-medium inline-block mt-0.5">
+                                {d.category || 'General'}
+                              </span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs sm:text-sm font-black text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
+                              {d.originalPrice && d.originalPrice > d.price && (
+                                <p className="text-[10px] text-neutral-500 line-through">₹{d.originalPrice}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">{d.description || 'Traditional satvik culinary preparation.'}</p>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDishAvailability(d.id, isAvailable)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              isAvailable
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            }`}
+                          >
+                            {isAvailable ? 'In-Stock' : 'Out of Stock'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDish(d.id, d.name)}
+                            title="Delete dish"
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Combo Packs Builder Master */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <button
+              type="button"
+              onClick={() => toggleSection('combos')}
+              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center shrink-0">
+                <Gift className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-400 transition-colors">
+                    Combo Packs & Festival Boxes
+                  </h3>
+                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.combos ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">Bundle bestsellers into high-converting combo boxes with auto % discount badges.</p>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsedSections.combos) setCollapsedSections(prev => ({ ...prev, combos: false }));
+                  setIsCreatingCombo(!isCreatingCombo);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>{isCreatingCombo ? 'Close Form' : 'Build Combo'}</span>
+              </button>
+            </div>
+          </div>
+
+          {!collapsedSections.combos && (
+            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+              {/* Build Combo Form */}
+              {isCreatingCombo && (
+                <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-amber-400/30 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                      <Gift className="w-4 h-4" /> Build New Satvik Combo Pack
+                    </h4>
+                    <span className="text-[10px] text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
+                      <input
+                        type="text"
+                        value={newComboName}
+                        onChange={e => setNewComboName(e.target.value)}
+                        placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newComboPrice}
+                        onChange={e => setNewComboPrice(e.target.value)}
+                        placeholder="e.g. 299"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
+                      <input
+                        type="number"
+                        value={newComboOriginalPrice}
+                        onChange={e => setNewComboOriginalPrice(e.target.value)}
+                        placeholder="e.g. 399"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
+                      <textarea
+                        rows={3}
+                        value={newComboItems}
+                        onChange={e => setNewComboItems(e.target.value)}
+                        placeholder="1x Royal Rajbhog Thali&#10;1x Kesar Badam Lassi&#10;2x Malpua Rabdi"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
+                      <select
+                        value={newComboShopId}
+                        onChange={e => setNewComboShopId(e.target.value)}
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                      >
+                        <option value="all">All Kitchens</option>
+                        {shopsList.map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                    <span className="text-xs text-neutral-400 font-medium">
+                      Auto-Calculated Savings: <strong className="text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingCombo(false)}
+                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                      >
+                        Publish Combo Pack
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Combos Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {menusList
+                  .filter(m => m.isCombo || m.is_combo || m.category === 'Combo Offers')
+                  .map(combo => {
+                    const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
+                    const items = Array.isArray(combo.comboItems) ? combo.comboItems : Array.isArray(combo.combo_items) ? combo.combo_items : [];
+                    return (
+                      <div key={combo.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                        <div className="space-y-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-sm text-white font-['Outfit'] truncate">{combo.name}</h4>
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                                Save {combo.discountPercent || (combo.originalPrice > combo.price ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100) : 15)}%
+                              </span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-base font-black text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
+                              {combo.originalPrice && combo.originalPrice > combo.price && (
+                                <p className="text-[10px] text-neutral-500 line-through">₹{combo.originalPrice}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {items.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-[10px] uppercase font-bold text-neutral-500">Box Contents</p>
+                              <div className="flex flex-wrap gap-1">
+                                {items.map((itemStr, idx) => (
+                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-neutral-300 border border-white/5">
+                                    {itemStr}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              isAvailable
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            }`}
+                          >
+                            {isAvailable ? 'In-Stock' : 'Sold Out'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDish(combo.id, combo.name)}
+                            title="Delete Combo"
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 5. Promotions & Offers Master */}
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <button
+              type="button"
+              onClick={() => toggleSection('offers')}
+              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-400/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <Tag className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-emerald-400 transition-colors">
+                    Promo Codes & Offers Master
+                  </h3>
+                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.offers ? '' : 'rotate-180'}`}>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5 truncate">Create coupon codes, flat/percentage discounts, min order limits and active toggles.</p>
+              </div>
+            </button>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  if (collapsedSections.offers) setCollapsedSections(prev => ({ ...prev, offers: false }));
+                  setIsCreatingOffer(!isCreatingOffer);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>{isCreatingOffer ? 'Close Form' : 'New Promo Code'}</span>
+              </button>
+            </div>
+          </div>
+
+          {!collapsedSections.offers && (
+            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+              {/* Create Offer Form */}
+              {isCreatingOffer && (
+                <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-emerald-400/30 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                      <Tag className="w-4 h-4" /> Create New Promo Code
+                    </h4>
+                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to `foody_offers`</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Coupon Code (Uppercase)</label>
+                      <input
+                        type="text"
+                        value={newOfferCode}
+                        onChange={e => setNewOfferCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. RADHE108"
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400 uppercase font-mono font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Discount Type</label>
+                      <select
+                        value={newOfferDiscountType}
+                        onChange={e => setNewOfferDiscountType(e.target.value)}
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                      >
+                        <option value="percentage">Percentage Discount (%)</option>
+                        <option value="flat">Flat Amount (₹)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Discount Value</label>
+                      <input
+                        type="number"
+                        value={newOfferDiscountValue}
+                        onChange={e => setNewOfferDiscountValue(e.target.value)}
+                        placeholder={newOfferDiscountType === 'percentage' ? "e.g. 20 (%)" : "e.g. 50 (₹)"}
+                        required
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400 font-bold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Min Order Amount (₹)</label>
+                      <input
+                        type="number"
+                        value={newOfferMinOrder}
+                        onChange={e => setNewOfferMinOrder(e.target.value)}
+                        placeholder="e.g. 199"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Offer Title</label>
+                      <input
+                        type="text"
+                        value={newOfferTitle}
+                        onChange={e => setNewOfferTitle(e.target.value)}
+                        placeholder="e.g. Festival Prasad Special Discount"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Subtitle / Marketing Note</label>
+                      <input
+                        type="text"
+                        value={newOfferSubtitle}
+                        onChange={e => setNewOfferSubtitle(e.target.value)}
+                        placeholder="e.g. Get 20% OFF up to ₹100 on your satvik order"
+                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                      <input
+                        type="checkbox"
+                        checked={newOfferIsActive}
+                        onChange={e => setNewOfferIsActive(e.target.checked)}
+                        className="rounded text-emerald-400 focus:ring-0"
+                      />
+                      <span className="font-bold text-emerald-400">Coupon Code Active</span>
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingOffer(false)}
+                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                      >
+                        Create Promo Code
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* Promo Codes Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {offersList.map(offer => {
+                  const isActive = offer.isActive ?? offer.is_active ?? true;
+                  const isPct = (offer.discountType || offer.discount_type) === 'percentage';
+                  const val = offer.discountValue ?? offer.discount_value ?? 20;
+                  return (
+                    <div key={offer.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-emerald-400/20 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-sm text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-400/10 border border-emerald-400/30">
+                              {offer.code}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyOfferCode(offer.code)}
+                              title="Copy code"
+                              className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                            isActive ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-800 text-neutral-500'
+                          }`}>
+                            {isActive ? 'Active' : 'Disabled'}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-xs sm:text-sm text-white font-['Outfit']">{offer.title}</h4>
+                          <p className="text-[11px] text-neutral-400 mt-0.5">{offer.subtitle || (isPct ? `${val}% OFF on satvik meals` : `Flat ₹${val} OFF`)}</p>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-[10px] text-neutral-400 pt-1">
+                          <span>Min: ₹{offer.minOrderAmount ?? offer.min_order_amount ?? 0}</span>
+                          {offer.maxDiscount && <span>Max: ₹{offer.maxDiscount}</span>}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleOfferActive(offer.id, isActive)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-neutral-800 text-neutral-400 hover:text-white'
+                          }`}
+                        >
+                          {isActive ? 'Active' : 'Enable'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOffer(offer.id, offer.code)}
+                          title="Delete offer"
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 6. Global & Per-Kitchen Payment Configuration */}
         <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
+
           <button
             type="button"
             onClick={() => toggleSection('payments')}

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     email TEXT,
     phone TEXT,
     avatar_url TEXT,
+    address TEXT,
     role TEXT NOT NULL DEFAULT 'customer',
     shop_id TEXT NOT NULL DEFAULT 'shop-vrinda-main',
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
@@ -76,12 +77,15 @@ CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS address TEXT;
+
 CREATE TABLE IF NOT EXISTS public.foody_users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
     email TEXT,
     phone TEXT,
     avatar_url TEXT,
+    address TEXT,
     role TEXT NOT NULL DEFAULT 'customer',
     shop_id TEXT DEFAULT 'shop-vrinda-main',
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
@@ -91,6 +95,8 @@ CREATE TABLE IF NOT EXISTS public.foody_users (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS address TEXT;
 
 -- STEP 5: Pre-normalize Data (Guarantees zero FK violations on existing rows)
 UPDATE public.foody_users 

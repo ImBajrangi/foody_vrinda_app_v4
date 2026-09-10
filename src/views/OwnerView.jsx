@@ -269,7 +269,7 @@ export default function OwnerView() {
   useEffect(() => {
     const refreshUsers = async () => {
       try {
-        const users = await getCloudUsers();
+        const users = await getCloudUsers(true);
         if (users && users.length > 0) {
           setUsersList(users);
         }
@@ -282,7 +282,18 @@ export default function OwnerView() {
         setUsersList(users);
       }
     });
-    return () => unsubscribe();
+
+    const handleLocalUsers = (e) => {
+      if (e?.detail?.users && Array.isArray(e.detail.users) && e.detail.users.length > 0) {
+        setUsersList(e.detail.users);
+      }
+    };
+    window.addEventListener('foody_users_changed', handleLocalUsers);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      window.removeEventListener('foody_users_changed', handleLocalUsers);
+    };
   }, []);
 
   const handleUpdateStaffRole = async (userId, newRole) => {

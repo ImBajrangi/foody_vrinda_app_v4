@@ -623,11 +623,13 @@ export function AuthProvider({ children }) {
 
   const signupWithEmail = async (email, password, displayName = '', phone = '', address = '') => {
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
+    const cleanName = displayName.trim() || cleanEmail.split('@')[0];
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
-        data: { displayName, phone, address }
+        data: { displayName: cleanName, phone: cleanPhone, address }
       }
     });
     if (error) {
@@ -638,14 +640,20 @@ export function AuthProvider({ children }) {
     }
 
     if (data?.user) {
-      await createCloudUser({
+      const userProfile = {
         id: data.user.id,
         email: cleanEmail,
-        displayName: displayName || cleanEmail.split('@')[0],
-        phone,
+        displayName: cleanName,
+        phone: cleanPhone,
         address,
-        role: 'customer'
-      }).catch(() => {});
+        customerAddress: address,
+        role: 'customer',
+        shopId: allShops[0]?.id || 'shop-vrinda-main',
+        shopIds: [allShops[0]?.id || 'shop-vrinda-main'],
+        isLoggedInUser: true
+      };
+      await createCloudUser(userProfile).catch(() => {});
+      await recordLoggedInUser(userProfile).catch(() => {});
     }
     return data;
   };
@@ -676,7 +684,7 @@ export function AuthProvider({ children }) {
       throw new Error("Please enter a valid 10-digit mobile number.");
     }
 
-    const allUsers = await getCloudUsers();
+    const allUsers = await getCloudUsers(true);
     const existing = allUsers.find(u => (u.phone || '').replace(/\D/g, '').endsWith(clean.slice(-10)));
 
     if (existing) {
@@ -692,6 +700,7 @@ export function AuthProvider({ children }) {
       setCurrentUserShopIds(userProfile.shopIds);
       setCurrentShopName(resolveShopName(userProfile.shopId) || null);
       localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
+      await recordLoggedInUser(userProfile).catch(() => {});
       return userProfile;
     }
 
@@ -699,7 +708,9 @@ export function AuthProvider({ children }) {
     const newCustomer = await createCloudUser({
       phone: clean,
       displayName: `Customer (${clean.slice(-4)})`,
-      role: 'customer'
+      role: 'customer',
+      shopId: allShops[0]?.id || 'shop-vrinda-main',
+      shopIds: [allShops[0]?.id || 'shop-vrinda-main']
     });
 
     const userProfile = {
@@ -714,6 +725,7 @@ export function AuthProvider({ children }) {
     setCurrentUserShopIds([]);
     setCurrentShopName(null);
     localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
+    await recordLoggedInUser(userProfile).catch(() => {});
     return userProfile;
   };
 
