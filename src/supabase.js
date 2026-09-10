@@ -17,6 +17,22 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
+// Track tables confirmed as missing in Supabase to avoid repeated 404 network errors
+const _missingTables = new Set();
+function isTableMissing(tableName) { return _missingTables.has(tableName); }
+function markTableMissing(tableName) { _missingTables.add(tableName); }
+function isTableError(error) {
+  if (!error) return false;
+  const code = error.code || '';
+  const msg = (error.message || '').toLowerCase();
+  const hint = (error.hint || '').toLowerCase();
+  return code === '42P01' || code === 'PGRST200' || code === 'PGRST204' ||
+    msg.includes('relation') && msg.includes('does not exist') ||
+    msg.includes('not find') || msg.includes('not found') ||
+    hint.includes('does not exist') ||
+    (error.details || '').includes('404');
+}
+
 // Seed data constants for zero-latency local fallback & instant hydration
 export const SEED_SHOPS = [
   {
@@ -437,6 +453,7 @@ export async function getCloudShops() {
 export async function getCloudMenus(shopId = 'all') {
   const cached = getCachedItem('menus', shopId);
   if (cached) return cached;
+  if (isTableMissing('foody_menus')) return DEFAULT_PRASAD_ITEMS;
 
   const reqKey = `getCloudMenus_${shopId}`;
   if (pendingRequests.has(reqKey)) {
@@ -450,7 +467,11 @@ export async function getCloudMenus(shopId = 'all') {
         query = query.eq('shop_id', shopId);
       }
       const { data, error } = await query;
-      if (error || !data || data.length === 0) {
+      if (error) {
+        if (isTableError(error)) markTableMissing('foody_menus');
+        return DEFAULT_PRASAD_ITEMS;
+      }
+      if (!data || data.length === 0) {
         return DEFAULT_PRASAD_ITEMS;
       }
       const mapped = data.map(d => ({
@@ -475,7 +496,6 @@ export async function getCloudMenus(shopId = 'all') {
       setCachedItem('menus', shopId, mapped);
       return mapped;
     } catch (err) {
-      console.warn('Supabase getCloudMenus warning:', err.message);
       return DEFAULT_PRASAD_ITEMS;
     } finally {
       pendingRequests.delete(reqKey);
@@ -1058,7 +1078,7 @@ export function saveCachedOffers(offersList) {
 
 export async function getCloudOffers(forceRefresh = false) {
   const cached = getCachedOffers();
-  if (!forceRefresh) return cached;
+  if (!forceRefresh || isTableMissing('foody_offers')) return cached;
 
   try {
     const { data, error } = await supabase
@@ -1066,7 +1086,14 @@ export async function getCloudOffers(forceRefresh = false) {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error && data && data.length > 0) {
+    if (error) {
+      if (isTableError(error)) {
+        markTableMissing('foody_offers');
+      }
+      return cached;
+    }
+
+    if (data && data.length > 0) {
       const mapped = data.map(d => ({
         id: d.id,
         code: d.code || '',
@@ -1085,23 +1112,11 @@ export async function getCloudOffers(forceRefresh = false) {
       saveCachedOffers(mapped);
       return mapped;
     }
-
-    // Try fallback table name 'offers' if foody_offers is not yet migrated
-    if (error && (error.code === 'PGRST200' || error.code === '42P01' || error.message?.includes('not find'))) {
-      try {
-        const fallbackRes = await supabase.from('offers').select('*');
-        if (!fallbackRes.error && fallbackRes.data && fallbackRes.data.length > 0) {
-          saveCachedOffers(fallbackRes.data);
-          return fallbackRes.data;
-        }
-      } catch (_) { }
-    }
   } catch (err) {
     // SWR fallback safely returns instant local cache
   }
   return cached;
 }
-
 
 export async function createCloudOffer(offerData) {
   const nowIso = new Date().toISOString();
@@ -1127,24 +1142,24 @@ export async function createCloudOffer(offerData) {
   saveCachedOffers(nextList);
   window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList, createdOffer: newOffer } }));
 
-  try {
-    await supabase.from('foody_offers').upsert({
-      id: newOffer.id,
-      code: newOffer.code,
-      title: newOffer.title,
-      subtitle: newOffer.subtitle,
-      discount_type: newOffer.discountType,
-      discount_value: newOffer.discountValue,
-      min_order_amount: newOffer.minOrderAmount,
-      max_discount: newOffer.maxDiscount,
-      shop_id: newOffer.shopId,
-      is_active: newOffer.isActive,
-      tag: newOffer.tag,
-      valid_until: newOffer.validUntil,
-      created_at: nowIso
-    });
-  } catch (e) {
-    console.warn("createCloudOffer cloud insert note:", e);
+  if (!isTableMissing('foody_offers')) {
+    try {
+      await supabase.from('foody_offers').upsert({
+        id: newOffer.id,
+        code: newOffer.code,
+        title: newOffer.title,
+        subtitle: newOffer.subtitle,
+        discount_type: newOffer.discountType,
+        discount_value: newOffer.discountValue,
+        min_order_amount: newOffer.minOrderAmount,
+        max_discount: newOffer.maxDiscount,
+        shop_id: newOffer.shopId,
+        is_active: newOffer.isActive,
+        tag: newOffer.tag,
+        valid_until: newOffer.validUntil,
+        created_at: nowIso
+      });
+    } catch (e) { }
   }
 
   return newOffer;
@@ -1165,23 +1180,23 @@ export async function updateCloudOffer(offerId, updates) {
   saveCachedOffers(nextList);
   window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList, updatedOffer } }));
 
-  try {
-    const payload = {};
-    if (updates.code !== undefined) payload.code = updates.code.toUpperCase();
-    if (updates.title !== undefined) payload.title = updates.title;
-    if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
-    if (updates.discountType !== undefined) payload.discount_type = updates.discountType;
-    if (updates.discountValue !== undefined) payload.discount_value = Number(updates.discountValue);
-    if (updates.minOrderAmount !== undefined) payload.min_order_amount = Number(updates.minOrderAmount);
-    if (updates.maxDiscount !== undefined) payload.max_discount = Number(updates.maxDiscount);
-    if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
-    if (updates.isActive !== undefined) payload.is_active = updates.isActive;
-    if (updates.tag !== undefined) payload.tag = updates.tag;
-    if (updates.validUntil !== undefined) payload.valid_until = updates.validUntil;
+  if (!isTableMissing('foody_offers')) {
+    try {
+      const payload = {};
+      if (updates.code !== undefined) payload.code = updates.code.toUpperCase();
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
+      if (updates.discountType !== undefined) payload.discount_type = updates.discountType;
+      if (updates.discountValue !== undefined) payload.discount_value = Number(updates.discountValue);
+      if (updates.minOrderAmount !== undefined) payload.min_order_amount = Number(updates.minOrderAmount);
+      if (updates.maxDiscount !== undefined) payload.max_discount = Number(updates.maxDiscount);
+      if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
+      if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+      if (updates.tag !== undefined) payload.tag = updates.tag;
+      if (updates.validUntil !== undefined) payload.valid_until = updates.validUntil;
 
-    await supabase.from('foody_offers').update(payload).eq('id', offerId);
-  } catch (e) {
-    console.warn("updateCloudOffer notice:", e);
+      await supabase.from('foody_offers').update(payload).eq('id', offerId);
+    } catch (e) { }
   }
 
   return updatedOffer;
@@ -1193,9 +1208,11 @@ export async function deleteCloudOffer(offerId) {
   saveCachedOffers(nextList);
   window.dispatchEvent(new CustomEvent('foody_offers_changed', { detail: { offers: nextList } }));
 
-  try {
-    await supabase.from('foody_offers').delete().eq('id', offerId);
-  } catch (e) { }
+  if (!isTableMissing('foody_offers')) {
+    try {
+      await supabase.from('foody_offers').delete().eq('id', offerId);
+    } catch (e) { }
+  }
 
   return true;
 }
@@ -1253,19 +1270,21 @@ export async function createCloudMenuItem(itemData) {
     invalidateCache('menus');
     window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { shopId: shopKey, item: normalizedItem } }));
 
-    const { data, error } = await supabase
-      .from('foody_menus')
-      .upsert([payload])
-      .select()
-      .single();
+    if (!isTableMissing('foody_menus')) {
+      const { data, error } = await supabase
+        .from('foody_menus')
+        .upsert([payload])
+        .select()
+        .single();
 
-    if (error) {
-      console.warn('createCloudMenuItem warning:', error.message);
-      return normalizedItem;
+      if (error) {
+        if (isTableError(error)) markTableMissing('foody_menus');
+        return normalizedItem;
+      }
+      return { ...normalizedItem, ...data };
     }
-    return { ...normalizedItem, ...data };
+    return normalizedItem;
   } catch (err) {
-    console.warn('createCloudMenuItem exception:', err.message);
     return { id: itemData.id || `menu-${Date.now()}`, ...itemData };
   }
 }
@@ -1290,18 +1309,18 @@ export async function updateCloudMenuItem(itemId, itemData) {
     invalidateCache('menus');
     window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { itemId, updates: payload } }));
 
-    const { data, error } = await supabase
-      .from('foody_menus')
-      .update(payload)
-      .eq('id', itemId)
-      .select();
+    if (!isTableMissing('foody_menus')) {
+      const { data, error } = await supabase
+        .from('foody_menus')
+        .update(payload)
+        .eq('id', itemId)
+        .select();
 
-    if (error) {
-      console.warn('updateCloudMenuItem warning:', error.message);
+      if (error && isTableError(error)) markTableMissing('foody_menus');
+      return data;
     }
-    return data;
+    return null;
   } catch (err) {
-    console.warn('updateCloudMenuItem exception:', err.message);
     return null;
   }
 }
@@ -1311,17 +1330,17 @@ export async function deleteCloudMenuItem(itemId, shopId = null) {
     invalidateCache('menus', shopId);
     window.dispatchEvent(new CustomEvent('foody_menus_changed', { detail: { itemId, deleted: true } }));
 
-    const { error } = await supabase
-      .from('foody_menus')
-      .delete()
-      .eq('id', itemId);
+    if (!isTableMissing('foody_menus')) {
+      const { error } = await supabase
+        .from('foody_menus')
+        .delete()
+        .eq('id', itemId);
 
-    if (error) {
-      console.warn('deleteCloudMenuItem warning:', error.message);
+      if (error && isTableError(error)) markTableMissing('foody_menus');
+      return !error;
     }
-    return !error;
+    return true;
   } catch (err) {
-    console.warn('deleteCloudMenuItem exception:', err.message);
     return false;
   }
 }
