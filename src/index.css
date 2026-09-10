@@ -1872,3 +1872,87 @@ path.casing-parabolic-dots,
 .animate-shake {
   animation: shakeHorizontal 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
+
+/* ===== DEVELOPER DASHBOARD PREMIUM ANIMATIONS ===== */
+
+@keyframes devStatPop {
+  0% { opacity: 0; transform: translateY(16px) scale(0.92); }
+  60% { opacity: 1; transform: translateY(-3px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes devGlowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 255, 51, 0); }
+  50% { box-shadow: 0 0 16px 4px rgba(224, 255, 51, 0.15); }
+}
+
+@keyframes devBorderShimmer {
+  0% { border-color: rgba(255,255,255,0.05); }
+  50% { border-color: rgba(224,255,51,0.2); }
+  100% { border-color: rgba(255,255,255,0.05); }
+}
+
+@keyframes devSlideExpand {
+  from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+  to { opacity: 1; max-height: 3000px; transform: translateY(0); }
+}
+
+@keyframes devLiveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+@keyframes devCountUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes devHeroGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.dev-stat-card {
+  animation: devStatPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.dev-stat-card:nth-child(1) { animation-delay: 0ms; }
+.dev-stat-card:nth-child(2) { animation-delay: 60ms; }
+.dev-stat-card:nth-child(3) { animation-delay: 120ms; }
+.dev-stat-card:nth-child(4) { animation-delay: 180ms; }
+.dev-stat-card:nth-child(5) { animation-delay: 240ms; }
+
+.dev-stat-card:hover {
+  animation: devGlowPulse 2s ease-in-out infinite;
+  border-color: rgba(224, 255, 51, 0.15) !important;
+}
+
+.dev-section-expand {
+  animation: devSlideExpand 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  overflow: hidden;
+}
+
+.dev-live-dot {
+  animation: devLiveDot 1.5s ease-in-out infinite;
+}
+
+.dev-count-value {
+  animation: devCountUp 0.4s ease-out both;
+}
+
+.dev-hero-gradient {
+  background: linear-gradient(135deg, #1E1B1C 0%, #282526 30%, #1E1B1C 60%, #282526 100%);
+  background-size: 300% 300%;
+  animation: devHeroGradient 8s ease infinite;
+}
+
+.dev-activity-row {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+.dev-activity-row:nth-child(1) { animation-delay: 0ms; }
+.dev-activity-row:nth-child(2) { animation-delay: 40ms; }
+.dev-activity-row:nth-child(3) { animation-delay: 80ms; }
+.dev-activity-row:nth-child(4) { animation-delay: 120ms; }
+.dev-activity-row:nth-child(5) { animation-delay: 160ms; }

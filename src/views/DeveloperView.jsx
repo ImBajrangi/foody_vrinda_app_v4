@@ -54,7 +54,11 @@ import {
   Layers,
   Edit3,
   AlertCircle,
-  Check
+  Check,
+  Activity,
+  Zap,
+  Shield,
+  Database
 } from 'lucide-react';
 import { 
   updateCloudShop, 
@@ -101,6 +105,13 @@ export default function DeveloperView({ setCurrentTab }) {
 
 
   const [stats, setStats] = useState({ shops: 0, items: 0, orders: 0, notifications: 0, offers: 0 });
+  const [activityLog, setActivityLog] = useState([]);
+  const logActivity = (message, type = 'info') => {
+    setActivityLog(prev => [
+      { id: Date.now(), message, type, time: new Date() },
+      ...prev
+    ].slice(0, 20));
+  };
   const [paymentsConfig, setPaymentsConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_payment_config');
@@ -346,8 +357,10 @@ export default function DeveloperView({ setCurrentTab }) {
           notifications: (users || []).length,
           offers: (offers || []).length
         });
+        logActivity(`Supabase synced: ${(shops||[]).length} kitchens, ${(menus||[]).length} dishes, ${(users||[]).length} users`, 'success');
       } catch (e) {
         console.warn("fetchStats note:", e);
+        logActivity('Cloud sync notice — using cached data', 'warning');
       }
     })();
 
@@ -457,6 +470,7 @@ export default function DeveloperView({ setCurrentTab }) {
     });
 
     setToast({ message: `Kitchen "${newShop.name}" created and synced!`, type: 'success' });
+    logActivity(`Kitchen "${newShop.name}" created`, 'success');
     setIsCreatingShop(false);
     setNewShopName('');
     setNewShopAddress('');
@@ -488,6 +502,7 @@ export default function DeveloperView({ setCurrentTab }) {
       return updated;
     });
     setToast({ message: `Kitchen "${shopName}" removed`, type: 'info' });
+    logActivity(`Kitchen "${shopName}" deleted`, 'warning');
     await deleteCloudShop(shopId);
     if (refreshShops) await refreshShops();
   };
@@ -526,6 +541,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
     setMenusList(prev => [newDish, ...prev]);
     setToast({ message: `Dish "${newDish.name}" added to catalog!`, type: 'success' });
+    logActivity(`Dish "${newDish.name}" added (₹${priceNum})`, 'success');
     setIsCreatingDish(false);
     setNewDishName('');
     setNewDishPrice('');
@@ -591,6 +607,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
     setMenusList(prev => [newCombo, ...prev]);
     setToast({ message: `Combo Pack "${newCombo.name}" created (Save ${discountPct}%)!`, type: 'success' });
+    logActivity(`Combo "${newCombo.name}" created (${discountPct}% off)`, 'success');
     setIsCreatingCombo(false);
     setNewComboName('');
     setNewComboPrice('');
@@ -643,6 +660,7 @@ export default function DeveloperView({ setCurrentTab }) {
     });
 
     setToast({ message: `Coupon Code "${cleanCode}" created and active!`, type: 'success' });
+    logActivity(`Promo "${cleanCode}" activated`, 'success');
     setIsCreatingOffer(false);
     setNewOfferCode('');
     setNewOfferTitle('');
@@ -742,6 +760,7 @@ export default function DeveloperView({ setCurrentTab }) {
       return updated;
     });
     setToast({ message: `Created user ${newUserName || cleanPhone} as ${newUserRole.toUpperCase()}`, type: 'success' });
+    logActivity(`User ${newUserName || cleanPhone} added as ${newUserRole}`, 'success');
     setIsCreatingUser(false);
     setNewUserName('');
     setNewUserPhone('');
@@ -945,48 +964,112 @@ export default function DeveloperView({ setCurrentTab }) {
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
 
-      {/* System Statistics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
-          <div className="w-10 h-10 rounded-2xl bg-white/5 text-[#E0FF33] flex items-center justify-center mx-auto mb-2">
-            <Store className="w-5 h-5" />
+      {/* ═══ PREMIUM DASHBOARD HERO HEADER ═══ */}
+      <div className="dev-hero-gradient rounded-3xl border border-white/5 p-5 sm:p-7 relative overflow-hidden shadow-2xl">
+        {/* Decorative accent orbs */}
+        <div className="absolute top-0 right-0 w-56 h-56 bg-[#E0FF33]/[0.04] rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-cyan-400/[0.03] rounded-full blur-[60px] pointer-events-none" />
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/25 flex items-center justify-center shadow-[0_0_20px_rgba(224,255,51,0.15)]">
+                <Terminal className="w-5 h-5 text-[#E0FF33]" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl font-black text-white font-['Outfit'] tracking-tight">
+                  Developer Control Center
+                </h1>
+                <p className="text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans']">
+                  Foody Vrinda — Admin Dashboard & Cloud Sync Manager
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-2xl font-black text-white font-['Outfit']">{stats.shops}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Kitchens</p>
-        </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
-          <div className="w-10 h-10 rounded-2xl bg-white/5 text-cyan-400 flex items-center justify-center mx-auto mb-2">
-            <UtensilsCrossed className="w-5 h-5" />
-          </div>
-          <p className="text-2xl font-black text-white font-['Outfit']">{stats.items}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Dishes Catalog</p>
-        </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Live sync status */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 dev-live-dot" />
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live Sync</span>
+            </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
-          <div className="w-10 h-10 rounded-2xl bg-white/5 text-emerald-400 flex items-center justify-center mx-auto mb-2">
-            <Tag className="w-5 h-5" />
-          </div>
-          <p className="text-2xl font-black text-white font-['Outfit']">{stats.offers}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Active Offers</p>
-        </div>
+            {/* Database status */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <Database className="w-3 h-3 text-[#E0FF33]" />
+              <span className="text-[10px] font-bold text-neutral-300 uppercase tracking-wider font-mono">Supabase</span>
+            </div>
 
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl">
-          <div className="w-10 h-10 rounded-2xl bg-white/5 text-amber-400 flex items-center justify-center mx-auto mb-2">
-            <Receipt className="w-5 h-5" />
+            {/* Auth badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E0FF33]/10 border border-[#E0FF33]/25">
+              <Shield className="w-3 h-3 text-[#E0FF33]" />
+              <span className="text-[10px] font-bold text-[#E0FF33] uppercase tracking-wider">
+                {userData?.role === 'grand_admin' ? 'Grand Admin' : 'Developer'}
+              </span>
+            </div>
           </div>
-          <p className="text-2xl font-black text-white font-['Outfit']">{stats.orders}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Total Orders</p>
-        </div>
-
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 text-center shadow-xl col-span-2 sm:col-span-1">
-          <div className="w-10 h-10 rounded-2xl bg-white/5 text-purple-400 flex items-center justify-center mx-auto mb-2">
-            <Users className="w-5 h-5" />
-          </div>
-          <p className="text-2xl font-black text-white font-['Outfit']">{stats.notifications}</p>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">Users & Staff</p>
         </div>
       </div>
+
+      {/* ═══ ANIMATED SYSTEM STATISTICS ═══ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        {[
+          { icon: Store, value: stats.shops, label: 'Kitchens', color: 'text-[#E0FF33]', bgColor: 'bg-[#E0FF33]/10', borderHover: 'hover:border-[#E0FF33]/20' },
+          { icon: UtensilsCrossed, value: stats.items, label: 'Dishes Catalog', color: 'text-cyan-400', bgColor: 'bg-cyan-400/10', borderHover: 'hover:border-cyan-400/20' },
+          { icon: Tag, value: stats.offers, label: 'Active Offers', color: 'text-emerald-400', bgColor: 'bg-emerald-400/10', borderHover: 'hover:border-emerald-400/20' },
+          { icon: Receipt, value: stats.orders, label: 'Total Orders', color: 'text-amber-400', bgColor: 'bg-amber-400/10', borderHover: 'hover:border-amber-400/20' },
+          { icon: Users, value: stats.notifications, label: 'Users & Staff', color: 'text-purple-400', bgColor: 'bg-purple-400/10', borderHover: 'hover:border-purple-400/20', colSpan: 'col-span-2 sm:col-span-1' }
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className={`dev-stat-card bg-[#282526] border border-white/5 ${stat.borderHover} rounded-3xl p-4 sm:p-5 text-center shadow-xl transition-all duration-300 cursor-default group ${stat.colSpan || ''}`}>
+              <div className={`w-10 h-10 rounded-2xl ${stat.bgColor} ${stat.color} flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-200`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <p className="text-2xl font-black text-white font-['Outfit'] dev-count-value">{stat.value}</p>
+              <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ═══ LIVE ACTIVITY FEED ═══ */}
+      {activityLog.length > 0 && (
+        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center">
+                <Activity className="w-3.5 h-3.5" />
+              </div>
+              <h3 className="text-xs font-black text-white uppercase tracking-wider font-['Outfit']">Recent Activity</h3>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 dev-live-dot" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setActivityLog([])}
+              className="text-[10px] text-neutral-500 hover:text-neutral-300 font-bold uppercase tracking-wider cursor-pointer transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+          <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
+            {activityLog.slice(0, 8).map((entry) => (
+              <div key={entry.id} className="dev-activity-row flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.03] hover:bg-white/[0.06] transition-all">
+                <Zap className={`w-3 h-3 shrink-0 ${
+                  entry.type === 'success' ? 'text-emerald-400' :
+                  entry.type === 'warning' ? 'text-amber-400' :
+                  entry.type === 'error' ? 'text-rose-400' :
+                  'text-cyan-400'
+                }`} />
+                <span className="text-[11px] text-neutral-300 font-medium truncate flex-1">{entry.message}</span>
+                <span className="text-[9px] text-neutral-500 font-mono shrink-0">
+                  {entry.time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Mobile / Desktop Section Quick Toolbar & Minimizer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-[#282526] border border-white/5 shadow-xl">
@@ -1024,26 +1107,34 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
-          <button
-            type="button"
-            onClick={expandAll}
-            title="Expand All Sections"
-            className="px-2.5 py-1.5 rounded-xl bg-[#1E1B1C] hover:bg-white/10 text-neutral-300 text-[11px] font-bold border border-white/5 flex items-center gap-1 transition-all cursor-pointer"
-          >
-            <Maximize2 className="w-3 h-3" />
-            <span>Expand All</span>
-          </button>
-          <button
-            type="button"
-            onClick={collapseAll}
-            title="Collapse All Sections"
-            className="px-2.5 py-1.5 rounded-xl bg-[#1E1B1C] hover:bg-white/10 text-neutral-300 text-[11px] font-bold border border-white/5 flex items-center gap-1 transition-all cursor-pointer"
-          >
-            <Minimize2 className="w-3 h-3" />
-            <span>Collapse All</span>
-          </button>
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#181617]/80 backdrop-blur-md border border-white/10 shadow-inner">
+            <button
+              type="button"
+              onClick={expandAll}
+              title="Expand All Sections"
+              className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-[#E0FF33]/20 hover:to-[#E0FF33]/5 text-neutral-300 hover:text-white text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+            >
+              <div className="w-4 h-4 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_8px_rgba(224,255,51,0.2)]">
+                <Maximize2 className="w-2.5 h-2.5" />
+              </div>
+              <span className="tracking-wide">Expand All</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={collapseAll}
+              title="Collapse All Sections"
+              className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-white/15 hover:to-white/5 text-neutral-400 hover:text-neutral-200 text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+            >
+              <div className="w-4 h-4 rounded-lg bg-white/10 text-neutral-400 group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Minimize2 className="w-2.5 h-2.5" />
+              </div>
+              <span className="tracking-wide">Collapse All</span>
+            </button>
+          </div>
         </div>
       </div>
+
 
 
       {/* Main Dev Tools Container */}
@@ -1079,7 +1170,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </button>
 
           {!collapsedSections.impersonation && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-white/5 dev-section-expand">
               {/* Kitchen Staff Impersonation */}
               <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
@@ -1231,7 +1322,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.shops && (
-            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
               {/* Create Shop Form Drawer */}
               {isCreatingShop && (
                 <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-4 animate-fadeIn">
@@ -1484,7 +1575,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.dishes && (
-            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
               {/* Create Dish Form */}
               {isCreatingDish && (
                 <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-cyan-400/30 space-y-4 animate-fadeIn">
@@ -1746,7 +1837,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.combos && (
-            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
               {/* Build Combo Form */}
               {isCreatingCombo && (
                 <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-amber-400/30 space-y-4 animate-fadeIn">
@@ -1952,7 +2043,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.offers && (
-            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
               {/* Create Offer Form */}
               {isCreatingOffer && (
                 <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-emerald-400/30 space-y-4 animate-fadeIn">
@@ -2166,7 +2257,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </button>
 
           {!collapsedSections.payments && (
-            <div className="space-y-6 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-6 pt-3 border-t border-white/5 dev-section-expand">
 
           {/* 1. Global Master Switches */}
           <div className="space-y-3">
@@ -2387,7 +2478,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </button>
 
           {!collapsedSections.simulator && (
-            <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-white/5 animate-fadeIn">
+            <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-white/5 dev-section-expand">
             <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -2583,7 +2674,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.users && (
-            <div className="space-y-5 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-5 pt-3 border-t border-white/5 dev-section-expand">
 
           {/* Active Supabase Logged-In User Banner */}
           {user && (user.email || user.phone || user.id) && (
@@ -3071,7 +3162,7 @@ export default function DeveloperView({ setCurrentTab }) {
           </button>
 
           {!collapsedSections.alarm && (
-            <div className="space-y-4 pt-3 border-t border-white/5 animate-fadeIn">
+            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-neutral-400">Synthesizer engine control & background triggers</span>

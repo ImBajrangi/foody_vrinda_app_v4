@@ -1325,22 +1325,26 @@ export default function OwnerView() {
               <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit']">Kitchen Operational Settings</h3>
               <p className="text-xs text-neutral-400 mt-0.5">Configure store address, delivery fees, minimum order thresholds & operating hours</p>
             </div>
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={collapseAllShopSections}
-                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white text-xs font-bold transition-all border border-white/5 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-                <span>Minimize All</span>
-              </button>
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#181617]/80 backdrop-blur-md border border-white/10 shadow-inner self-start sm:self-auto">
               <button
                 type="button"
                 onClick={expandAllShopSections}
-                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white text-xs font-bold transition-all border border-white/5 flex items-center gap-1.5 cursor-pointer"
+                className="group px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-[#E0FF33]/20 hover:to-[#E0FF33]/5 text-neutral-300 hover:text-white text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
               >
-                <Maximize2 className="w-3.5 h-3.5" />
+                <div className="w-4 h-4 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_8px_rgba(224,255,51,0.2)]">
+                  <Maximize2 className="w-2.5 h-2.5" />
+                </div>
                 <span>Expand All</span>
+              </button>
+              <button
+                type="button"
+                onClick={collapseAllShopSections}
+                className="group px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-white/15 hover:to-white/5 text-neutral-400 hover:text-neutral-200 text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+              >
+                <div className="w-4 h-4 rounded-lg bg-white/10 text-neutral-400 group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Minimize2 className="w-2.5 h-2.5" />
+                </div>
+                <span>Collapse All</span>
               </button>
             </div>
           </div>

@@ -1085,11 +1085,23 @@ export async function getCloudOffers(forceRefresh = false) {
       saveCachedOffers(mapped);
       return mapped;
     }
+
+    // Try fallback table name 'offers' if foody_offers is not yet migrated
+    if (error && (error.code === 'PGRST200' || error.code === '42P01' || error.message?.includes('not find'))) {
+      try {
+        const fallbackRes = await supabase.from('offers').select('*');
+        if (!fallbackRes.error && fallbackRes.data && fallbackRes.data.length > 0) {
+          saveCachedOffers(fallbackRes.data);
+          return fallbackRes.data;
+        }
+      } catch (_) { }
+    }
   } catch (err) {
-    console.warn('getCloudOffers notice:', err);
+    // SWR fallback safely returns instant local cache
   }
   return cached;
 }
+
 
 export async function createCloudOffer(offerData) {
   const nowIso = new Date().toISOString();
