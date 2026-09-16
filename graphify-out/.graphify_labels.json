@@ -1,0 +1,21 @@
+{
+  "0": "AuthContext.jsx",
+  "2": "supabase.js",
+  "3": "App.jsx",
+  "4": "CustomerView.jsx",
+  "5": "KitchenView.jsx",
+  "6": "React + Vite",
+  "7": "eslint.config.js",
+  "8": "vite.config.js",
+  "9": "RealtimeMultiplexer",
+  "10": "Loader.jsx",
+  "11": "AMPMToggle.jsx",
+  "12": "DayNightSwitch.jsx",
+  "13": "HamburgerToggle.jsx",
+  "14": "NeumorphicToggle.jsx",
+  "15": "ProductCard.jsx",
+  "16": "RealismButton.jsx",
+  "17": "RewardButton.jsx",
+  "18": "SciFiLoader.jsx",
+  "19": "StarRating.jsx"
+}
