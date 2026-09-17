@@ -281,23 +281,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   }, [checkoutAddress]);
 
   const handleCloseDishDetail = (e) => {
+    if (e === true) {
+      setSelectedDishDetails(null);
+      setIsDetailClosing(false);
+      return;
+    }
     if (e && e.stopPropagation) e.stopPropagation();
     if (isDetailClosing) return;
     setIsDetailClosing(true);
     setTimeout(() => {
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
-    }, 220);
+    }, 200);
   };
 
   const handleCloseCartDrawer = (e) => {
+    if (e === true) {
+      setShowCartDrawer(false);
+      setIsCartClosing(false);
+      return;
+    }
     if (e && e.stopPropagation) e.stopPropagation();
     if (isCartClosing) return;
     setIsCartClosing(true);
     setTimeout(() => {
       setShowCartDrawer(false);
       setIsCartClosing(false);
-    }, 220);
+    }, 200);
   };
 
   // 120fps ultra-fluid gesture hooks (Vrinda Map Modal Standard)
@@ -989,7 +999,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               className="fixed inset-0 z-40 bg-black/40 transition-opacity"
               onClick={handleCloseShopSwitcher}
             />
-            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
+            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
               <div className="flex justify-between items-center mb-3.5">
                 <h4 className="text-xs font-black uppercase text-stone-500 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
                 <button
@@ -1075,8 +1085,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={`h-10 sm:h-11 px-4 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
-              ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-lg shadow-black/10 dark:shadow-white/10'
-              : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:text-zinc-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
+              ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
+              : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
               }`}
           >
             {cat}
@@ -1255,33 +1265,39 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center bg-[#1E1B1C] text-white rounded-full p-1 shadow-xl border border-white/10 select-none animate-scale-up"
+                      className="inline-flex items-center bg-[#1E1B1C] text-white rounded-full p-1 shadow-lg border border-white/10 select-none animate-scale-up"
                     >
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           updateQuantity(item.id, quantityInCart - 1);
                         }}
-                        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all active:scale-90"
-                        title="Decrease quantity"
+                        className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center transition-all cursor-pointer"
+                        title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
                       >
-                        {quantityInCart === 1 ? <Trash2 size={13} className="text-red-400" /> : <Minus size={13} />}
+                        {quantityInCart === 1 ? (
+                          <Trash2 size={14} strokeWidth={2.5} className="text-red-400" />
+                        ) : (
+                          <Minus size={14} strokeWidth={2.5} className="text-white" />
+                        )}
                       </button>
 
-                      <span className="px-2.5 sm:px-3 text-xs font-black text-[#E0FF33] font-['Outfit'] min-w-[24px] text-center">
+                      <span className="px-3 text-xs sm:text-sm font-black text-[#E0FF33] font-['Outfit'] min-w-[24px] text-center select-none">
                         {quantityInCart}
                       </span>
 
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(item);
                           showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                         }}
-                        className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#d8fa26] text-black flex items-center justify-center transition-all active:scale-90"
+                        className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center transition-all cursor-pointer text-[#1E1B1C]"
                         title="Add another"
                       >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={15} strokeWidth={3} className="text-[#1E1B1C]" />
                       </button>
                     </div>
                   )}
@@ -1388,29 +1404,29 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="pointer-events-auto w-full animate-slide-up">
               <div
                 onClick={() => setShowCartDrawer(true)}
-                className="bg-[#1E1B1C]/95 border border-[#E0FF33]/40 hover:border-[#E0FF33] rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(224,255,51,0.15)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
+                className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
               >
                 {/* Left: Icon + Quantity Badge + Price */}
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-[#282526] border border-white/10 flex items-center justify-center text-[#E0FF33] shadow-md group-hover:bg-[#322E30] transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
                       <ShoppingBag size={18} />
                     </div>
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#E0FF33] text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-[#1E1B1C] shadow-sm leading-none">
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
                       {cart.reduce((s, i) => s + i.quantity, 0)}
                     </span>
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-                      <span className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight">
+                      <span className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                         ₹{totalAmount}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 dark:text-zinc-400">
                         · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
-                    <p className="text-[10px] text-[#E0FF33] font-semibold truncate tracking-wide">
+                    <p className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold truncate tracking-wide">
                       Satvik Prasad Basket
                     </p>
                   </div>
@@ -1423,7 +1439,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     setShowCartDrawer(true);
                   }}
-                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-lg flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <span>View Basket</span>
                   <ChevronRight size={14} strokeWidth={3} />
@@ -1749,24 +1765,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors pointer-events-none" />
               </div>
 
-              {/* Header Title & Close Button - Draggable header bar */}
-              <div
-                {...cartHandleProps}
-                className="flex justify-between items-center pb-3 border-b border-white/10 select-none cursor-grab active:cursor-grabbing touch-none"
-              >
-                <div className="flex items-center gap-2 pointer-events-none">
+              {/* Header Title & Close Button */}
+              <div className="flex justify-between items-center pb-3 border-b border-white/10 select-none">
+                <div className="flex items-center gap-2">
                   <ShoppingBag size={20} className="text-[#E0FF33]" />
                   <h3 className="text-xl sm:text-2xl font-black text-white font-['Outfit']">Your Basket</h3>
                 </div>
                 <button
                   type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleCloseCartDrawer(e);
+                    handleCloseCartDrawer();
                   }}
-                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30 pointer-events-auto"
+                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30 shadow-md"
                   title="Close Basket"
                 >
                   <X size={16} />
@@ -1955,29 +1966,29 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 font-['Outfit']">
                     {fulfillmentType === 'pickup' ? 'Contact Details for Pickup' : 'Delivery Details'}
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-medium">
+                  <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
                     {fulfillmentType === 'pickup' ? 'Counter Pickup' : 'Vedic Express'}
                   </span>
                 </div>
 
                 {/* Name Input */}
-                <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
                   shakeField === 'name'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
                 }`}>
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
-                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
+                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
-                    <User size={15} />
+                    <User size={16} />
                   </div>
-                  <div className="flex-1 min-w-0 py-1.5">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                         Recipient Name
                       </label>
                       {shakeField === 'name' && (
-                        <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">Name Required</span>
+                        <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">Name Required</span>
                       )}
                     </div>
                     <input
@@ -1991,40 +2002,40 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       }}
                       maxLength={40}
                       placeholder="e.g. Rahul"
-                      className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                      className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                     />
                   </div>
-                  <div className="flex items-center shrink-0">
+                  <div className="flex items-center shrink-0 ml-2">
                     {checkoutName.trim().length >= 2 && /^[a-zA-Z\s'.]+$/.test(checkoutName.trim()) && (
-                      <span className="w-5 h-5 rounded-full bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Name">
-                        <Check size={11} strokeWidth={3} />
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/15 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Name">
+                        <Check size={12} strokeWidth={3} />
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Phone Input */}
-                <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
                   shakeField === 'phone'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
                 }`}>
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
-                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
+                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
-                    <Phone size={14} />
+                    <Phone size={15} />
                   </div>
-                  <div className="flex-1 min-w-0 py-1.5">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                         Contact Phone
                       </label>
                       {shakeField === 'phone' && (
-                        <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">10 Digits Required</span>
+                        <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">10 Digits Required</span>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-zinc-400 select-none">+91</span>
+                      <span className="text-sm sm:text-base font-bold text-stone-500 dark:text-zinc-400 select-none">+91</span>
                       <input
                         ref={phoneInputRef}
                         type="tel"
@@ -2038,14 +2049,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           if (shakeField === 'phone') setShakeField(null);
                         }}
                         placeholder="9876543210"
-                        className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                        className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                       />
                     </div>
                   </div>
-                  <div className="flex items-center shrink-0">
+                  <div className="flex items-center shrink-0 ml-2">
                     {checkoutPhone.length === 10 && (
-                      <span className="w-5 h-5 rounded-full bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Mobile">
-                        <Check size={11} strokeWidth={3} />
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/15 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Mobile">
+                        <Check size={12} strokeWidth={3} />
                       </span>
                     )}
                   </div>
@@ -2054,23 +2065,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Conditional: Address Input for Delivery vs Counter Pickup Card */}
                 {fulfillmentType === 'delivery' ? (
                   <div className="relative">
-                    <div className={`relative flex items-center rounded-2xl px-3.5 py-1 transition-all shadow-inner ${
+                    <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
                       shakeField === 'address'
                         ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                        : 'bg-[#181617] border border-white/10 hover:border-white/20 focus-within:border-[#E0FF33]/70 focus-within:ring-1 focus-within:ring-[#E0FF33]/20'
+                        : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
                     }`}>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mr-2.5 transition-colors ${
-                        shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
+                        shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                       }`}>
-                        <MapPin size={15} />
+                        <MapPin size={16} />
                       </div>
-                      <div className="flex-1 min-w-0 py-1.5">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                             Delivery Address
                           </label>
                           {shakeField === 'address' && (
-                            <span className="text-[9px] font-bold text-red-400 leading-none mb-1 animate-fade-in">Address Required</span>
+                            <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">Address Required</span>
                           )}
                         </div>
                         <input
@@ -2082,7 +2093,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             if (shakeField === 'address') setShakeField(null);
                           }}
                           placeholder="Street, Ashram, or Landmark..."
-                          className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                          className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                         />
                       </div>
                       <button
@@ -2092,11 +2103,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           e.stopPropagation();
                           handleAutoFillLocation();
                         }}
-                        className="h-8 px-2.5 rounded-xl bg-[#E0FF33]/15 hover:bg-[#E0FF33]/25 border border-[#E0FF33]/30 text-[#E0FF33] text-[10px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shrink-0 ml-1.5 active:scale-95 z-10 apple-tap-target"
+                        className="h-8 sm:h-9 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ml-2 active:scale-95 z-10 shadow-xs apple-tap-target font-['Outfit']"
                         title="Auto-fill GPS address or pin on map"
                       >
-                        <Compass size={13} />
-                        <span className="hidden sm:inline">Auto-Fill</span>
+                        <Compass size={13} strokeWidth={2.5} />
+                        <span className="inline">Auto-Fill</span>
                       </button>
                     </div>
 

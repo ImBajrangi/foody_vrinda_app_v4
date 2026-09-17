@@ -210,14 +210,14 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
         </div>
 
         {/* Effortless Form */}
-        <form onSubmit={handleSave} className="space-y-2.5">
+        <form onSubmit={handleSave} className="space-y-3">
           {/* Recipient Name (Compact & Clean) */}
-          <div className="bg-[#1D1B1C] border border-white/8 hover:border-white/15 focus-within:border-[#E0FF33]/50 rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all">
-            <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-[#E0FF33] shrink-0">
-              <User size={14} />
+          <div className="bg-stone-50 dark:bg-[#1D1B1C] border border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-200/70 dark:bg-white/5 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+              <User size={15} />
             </div>
             <div className="flex-1 min-w-0">
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                 Your Name
               </label>
               <input
@@ -225,33 +225,33 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
               />
             </div>
           </div>
 
           {/* Contact Phone */}
-          <div className={`border rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all ${
+          <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all ${
             shakeField === 'phone'
               ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-950/20'
-              : 'bg-[#1D1B1C] border-white/8 hover:border-white/15 focus-within:border-[#E0FF33]/50'
+              : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
           }`}>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-              shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+              shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
             }`}>
-              <Phone size={14} />
+              <Phone size={15} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                   Mobile Number
                 </label>
                 {shakeField === 'phone' && (
-                  <span className="text-[9px] font-bold text-red-400 leading-none mb-1">10 digits required</span>
+                  <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1">10 digits required</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-zinc-400 select-none">+91</span>
+                <span className="text-sm sm:text-base font-bold text-stone-500 dark:text-zinc-400 select-none">+91</span>
                 <input
                   ref={phoneRef}
                   type="tel"
@@ -264,36 +264,36 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                     if (shakeField === 'phone') setShakeField(null);
                   }}
                   placeholder="9876543210"
-                  className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                 />
               </div>
             </div>
             {phone.length === 10 && (
-              <span className="w-4.5 h-4.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] flex items-center justify-center animate-scale-up shrink-0">
-                <Check size={11} strokeWidth={3} />
+              <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/20 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shrink-0">
+                <Check size={12} strokeWidth={3} />
               </span>
             )}
           </div>
 
           {/* Delivery Address with 1-Tap GPS */}
           <div className="relative">
-            <div className={`border rounded-2xl px-3.5 py-2 flex items-center gap-2.5 transition-all ${
+            <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all ${
               shakeField === 'address'
                 ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-950/20'
-                : 'bg-[#1D1B1C] border-white/8 hover:border-white/15 focus-within:border-[#E0FF33]/50'
+                : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
             }`}>
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-[#E0FF33]'
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
               }`}>
-                <MapPin size={14} />
+                <MapPin size={15} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 leading-none mb-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
                     Delivery Address
                   </label>
                   {shakeField === 'address' && (
-                    <span className="text-[9px] font-bold text-red-400 leading-none mb-1">Address required</span>
+                    <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1">Address required</span>
                   )}
                 </div>
                 <input
@@ -305,7 +305,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                     if (shakeField === 'address') setShakeField(null);
                   }}
                   placeholder="Ashram, Street, or Landmark..."
-                  className="w-full text-xs font-bold text-white bg-transparent border-none outline-none focus:ring-0 p-0 placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
                 />
               </div>
               <button

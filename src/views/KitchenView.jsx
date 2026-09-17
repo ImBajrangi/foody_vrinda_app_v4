@@ -454,39 +454,39 @@ export default function KitchenView() {
                   <div className="flex justify-between items-start gap-2 mb-3">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <ShoppingBag size={15} className="text-[#E0FF33]" />
-                        <h3 className="font-black text-white text-sm sm:text-base font-['Outfit']">
+                        <ShoppingBag size={15} className="text-amber-600 dark:text-[#E0FF33]" />
+                        <h3 className="font-black text-stone-900 dark:text-white text-sm sm:text-base font-['Outfit']">
                           Order #{order.id.slice(-6).toUpperCase()}
                         </h3>
                       </div>
-                      <p className="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
-                        <Clock size={12} className="text-zinc-500" />
+                      <p className="text-[11px] text-stone-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
+                        <Clock size={12} className="text-stone-400 dark:text-zinc-500" />
                         <span>{order.createdAt?.toMillis ? new Date(order.createdAt.toMillis()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}</span>
                       </p>
                     </div>
 
                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${
                       isNew 
-                        ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-sm' 
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs' 
+                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                     }`}>
-                      {isNew ? <Flame size={11} className="fill-[#1E1B1C]" /> : <Clock size={11} />}
+                      {isNew ? <Flame size={11} className="fill-current" /> : <Clock size={11} />}
                       <span>{order.status}</span>
                     </span>
                   </div>
 
                   {/* Customer & Address Details Card */}
-                  <div className="text-xs text-zinc-300 mb-3.5 bg-[#1E1B1C] p-3.5 rounded-2xl border border-white/5 space-y-1.5">
+                  <div className="text-xs text-stone-700 dark:text-zinc-300 mb-3.5 bg-stone-100 dark:bg-[#1E1B1C] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/5 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <p className="font-bold text-white flex items-center gap-1.5 truncate">
-                        <User size={13} className="text-zinc-500 flex-shrink-0" />
+                      <p className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5 truncate">
+                        <User size={13} className="text-stone-500 dark:text-zinc-500 flex-shrink-0" />
                         <span className="truncate">{order.customerName || 'Customer'}</span>
                       </p>
                       {order.customerPhone && (
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <a 
                             href={`tel:${order.customerPhone}`}
-                            className="text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                            className="text-amber-700 dark:text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px]"
                             title="Call Customer"
                           >
                             <Phone size={11} />
@@ -496,7 +496,7 @@ export default function KitchenView() {
                             href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${order.customerName || 'Ji'}! Regarding your Foody Vrinda order #${order.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}:`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-5 h-5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 flex items-center justify-center transition-all"
+                            className="w-5 h-5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-all"
                             title="Chat on WhatsApp"
                           >
                             <MessageCircle size={11} />
@@ -505,56 +505,56 @@ export default function KitchenView() {
                       )}
                     </div>
 
-                    <p className="text-[11px] text-zinc-400 flex items-start gap-1.5 leading-snug">
-                      <MapPin size={13} className="text-zinc-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-stone-600 dark:text-zinc-400 flex items-start gap-1.5 leading-snug">
+                      <MapPin size={13} className="text-stone-400 dark:text-zinc-500 flex-shrink-0 mt-0.5" />
                       <span className="line-clamp-2">{order.customerAddress || 'Vrindavan Dham'}</span>
                     </p>
 
                     {order.cookingNotes && (
-                      <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl text-[11px] text-amber-200 mt-1.5 flex items-start gap-1.5">
-                        <FileText size={13} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                        <span className="leading-snug"><strong className="text-amber-400">Notes:</strong> {order.cookingNotes}</span>
+                      <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl text-[11px] text-amber-800 dark:text-amber-200 mt-1.5 flex items-start gap-1.5">
+                        <FileText size={13} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                        <span className="leading-snug"><strong className="text-amber-700 dark:text-amber-400">Notes:</strong> {order.cookingNotes}</span>
                       </div>
                     )}
 
                     {order.paymentMethod === 'cash' && (
-                      <div className="pt-1 flex items-center justify-between border-t border-white/5 mt-1">
-                        <span className="text-[10px] text-amber-400 font-black uppercase flex items-center gap-1">
+                      <div className="pt-1 flex items-center justify-between border-t border-stone-200/80 dark:border-white/5 mt-1">
+                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-black uppercase flex items-center gap-1">
                           <Banknote size={12} />
                           <span>Cash on Delivery</span>
                         </span>
-                        <span className="text-xs font-black text-white">₹{order.totalAmount}</span>
+                        <span className="text-xs font-black text-stone-900 dark:text-white">₹{order.totalAmount}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Dishes Checklist Section */}
                   <div className="space-y-2">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-wider font-['Outfit'] flex items-center justify-between">
+                    <p className="text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] flex items-center justify-between">
                       <span>Dish Checklist</span>
-                      <span className="text-zinc-500">{order.items?.length || 0} items</span>
+                      <span className="text-stone-400 dark:text-zinc-500">{order.items?.length || 0} items</span>
                     </p>
 
-                    <div className="divide-y divide-white/5 max-h-48 overflow-y-auto pr-1 no-scrollbar space-y-1">
+                    <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-48 overflow-y-auto pr-1 no-scrollbar space-y-1">
                       {order.items?.map((item, i) => (
                         <div key={item.id || i} className="py-2 text-xs flex justify-between items-start gap-2">
                           <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <span className="w-5 h-5 rounded-full bg-[#1E1B1C] border border-white/10 text-[#E0FF33] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded-full bg-stone-200 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-[#E0FF33] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                               {item.quantity}x
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className={`font-bold truncate ${item.ready ? 'line-through text-zinc-500' : 'text-white'}`}>
+                                <span className={`font-bold truncate ${item.ready ? 'line-through text-stone-400 dark:text-zinc-500' : 'text-stone-900 dark:text-white'}`}>
                                   {item.name}
                                 </span>
                                 {(item.isCombo || item.comboItems) && (
-                                  <span className="text-[8.5px] font-black uppercase bg-[#E0FF33]/20 text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                  <span className="text-[8.5px] font-black uppercase bg-amber-500/15 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-1.5 py-0.2 rounded font-bold">
                                     Combo
                                   </span>
                                 )}
                               </div>
                               {item.comboItems && (
-                                <div className="text-[10px] text-zinc-400 mt-0.5 space-y-0.5 pl-1 border-l border-[#E0FF33]/30">
+                                <div className="text-[10px] text-stone-600 dark:text-zinc-400 mt-0.5 space-y-0.5 pl-1 border-l border-amber-500/40 dark:border-[#E0FF33]/30">
                                   {item.comboItems.map((ci, cidx) => (
                                     <p key={cidx}>• {ci}</p>
                                   ))}
@@ -568,11 +568,11 @@ export default function KitchenView() {
                               onClick={() => toggleItemReady(order.id, item.id)}
                               className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer apple-tap-target flex-shrink-0 ${
                                 item.ready 
-                                  ? 'bg-[#E0FF33] text-[#1E1B1C]' 
-                                  : 'bg-[#1E1B1C] text-zinc-400 hover:text-white border border-white/10'
+                                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-300'
                               }`}
                             >
-                              <Check size={11} strokeWidth={3} />
+                              <Check size={11} strokeWidth={item.ready ? 3 : 2} />
                               <span>{item.ready ? 'Ready' : 'Mark'}</span>
                             </button>
                           )}

@@ -192,13 +192,18 @@ export default function AuthModal({ isOpen, onClose }) {
     return [];
   };
 
-  const handleAnimatedClose = useCallback(() => {
+  const handleAnimatedClose = useCallback((isImmediate = false) => {
+    if (isImmediate === true) {
+      setClosing(false);
+      onClose();
+      return;
+    }
     if (closing) return;
     setClosing(true);
     setTimeout(() => {
       setClosing(false);
       onClose();
-    }, 220);
+    }, 200);
   }, [closing, onClose]);
 
   const {
@@ -450,7 +455,7 @@ export default function AuthModal({ isOpen, onClose }) {
       <div
         ref={authSheetRef}
         style={authSheetStyle}
-        className={`relative w-full max-w-[440px] bg-[#1E1B1C] border border-white/10 text-white rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-4.5 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden ${closing ? 'translate-y-12' : 'translate-y-0'}`}
+        className={`relative w-full max-w-[440px] bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-4 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden transition-colors ${closing ? 'translate-y-12' : 'translate-y-0'}`}
       >
         {/* Subtle Ambient Header Accent */}
         <div
@@ -463,15 +468,15 @@ export default function AuthModal({ isOpen, onClose }) {
           {...authHandleProps}
           className="w-full py-1 -mt-2 flex justify-center cursor-grab active:cursor-grabbing sm:hidden touch-none"
         >
-          <div className="w-10 h-1 rounded-full bg-white/20" />
+          <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-white/20" />
         </div>
 
         {/* Top Header Row */}
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3.5 min-w-0">
             {isAuthenticated && !showLoginView ? (
-              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-white/20 to-[#E0FF33]/80 shrink-0 shadow-[0_2px_12px_rgba(224,255,51,0.2)]">
-                <div className="w-full h-full rounded-full overflow-hidden bg-[#1E1B1C] border border-[#1E1B1C] flex items-center justify-center">
+              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#E0FF33]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#E0FF33]/80 shrink-0 shadow-[0_2px_12px_rgba(224,255,51,0.2)]">
+                <div className="w-full h-full rounded-full overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-[#1E1B1C] flex items-center justify-center">
                   {userAvatar ? (
                     <img
                       src={userAvatar}
@@ -491,8 +496,8 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
               </div>
             ) : (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-white/20 to-[#E0FF33]/80 shrink-0 shadow-[0_2px_14px_rgba(224,255,51,0.25)] flex items-center justify-center">
-                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#E0FF33]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#E0FF33]/80 shrink-0 shadow-[0_2px_14px_rgba(224,255,51,0.25)] flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] flex items-center justify-center">
                   <img
                     src="/foody-vrinda-logo.webp"
                     alt="Foody Vrinda Logo"
@@ -502,10 +507,10 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
             <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-tight truncate">
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight truncate">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate">
+              <p className="text-[11px] sm:text-xs text-stone-500 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate">
                 {modalSubtitle}
               </p>
             </div>
@@ -514,7 +519,7 @@ export default function AuthModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={handleAnimatedClose}
-            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-all border border-white/5 active:scale-95 cursor-pointer shrink-0 ml-2"
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer shrink-0 ml-2"
             aria-label="Close modal"
           >
             <X size={15} />
@@ -523,27 +528,29 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* ALERTS & STATUS */}
         {error && (
-          <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-bold flex items-center gap-2 relative z-10 animate-fade-in">
+          <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2 relative z-10 animate-fade-in">
             <X className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold flex items-center gap-2 relative z-10 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 relative z-10 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span>{successMsg}</span>
           </div>
-        )}        {/* AUTHENTICATED PROFILE VIEW (Unified Obsidian Devotee Card) */}
+        )}
+
+        {/* AUTHENTICATED PROFILE VIEW (Unified Theme-Adaptive Devotee Card) */}
         {(isAuthenticated && !showLoginView) ? (
           <div className="space-y-3 relative z-10">
 
             {/* 1. MASTER DEVOTEE IDENTITY CARD */}
-            <div className="p-4 rounded-2xl bg-[#151314] border border-white/10 shadow-sm relative overflow-hidden space-y-3.5">
+            <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/10 shadow-sm relative overflow-hidden space-y-3.5">
               {/* Ambient Glow */}
-              <div className="absolute top-0 right-0 w-36 h-36 bg-[#E0FF33]/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 dark:bg-[#E0FF33]/5 rounded-full blur-2xl pointer-events-none" />
 
-              {/* Top: Devotee Name, Role Badge & Email (Avatar is featured in top modal header) */}
+              {/* Top: Devotee Name, Role Badge & Email */}
               <div className="flex items-start justify-between gap-3 relative z-10">
                 <div className="space-y-1 min-w-0 flex-1">
                   {/* Name + Inline Edit */}
@@ -553,13 +560,13 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="text"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
-                        className="bg-[#221F20] text-white text-xs px-2.5 py-1 rounded-xl border border-white/20 focus:outline-none focus:border-[#E0FF33] w-full font-['Plus_Jakarta_Sans'] font-semibold"
+                        className="bg-white dark:bg-[#221F20] text-stone-900 dark:text-white text-xs px-2.5 py-1 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] w-full font-['Plus_Jakarta_Sans'] font-semibold"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={handleSaveName}
-                        className="p-1 rounded-lg bg-[#E0FF33] text-black hover:bg-[#d4f820] cursor-pointer shrink-0"
+                        className="p-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black hover:opacity-90 cursor-pointer shrink-0"
                         title="Save Name"
                       >
                         <Check className="w-3.5 h-3.5" />
@@ -567,7 +574,7 @@ export default function AuthModal({ isOpen, onClose }) {
                       <button
                         type="button"
                         onClick={() => setIsEditingName(false)}
-                        className="p-1 rounded-lg bg-white/10 text-zinc-400 hover:text-white cursor-pointer shrink-0"
+                        className="p-1 rounded-lg bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white cursor-pointer shrink-0"
                         title="Cancel"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -575,7 +582,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-black text-white text-base sm:text-lg font-['Outfit'] tracking-tight">
+                      <h4 className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit'] tracking-tight">
                         {userData?.displayName || user.displayName || 'Customer'}
                       </h4>
                       <button
@@ -584,7 +591,7 @@ export default function AuthModal({ isOpen, onClose }) {
                           setNameInput(userData?.displayName || user.displayName || '');
                           setIsEditingName(true);
                         }}
-                        className="text-zinc-500 hover:text-[#E0FF33] transition-colors p-0.5 cursor-pointer"
+                        className="text-stone-400 hover:text-amber-600 dark:text-zinc-500 dark:hover:text-[#E0FF33] transition-colors p-0.5 cursor-pointer"
                         title="Edit Name"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -594,7 +601,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
                   {/* Email */}
                   {user.email && (
-                    <p className="text-xs text-zinc-400 font-mono truncate">
+                    <p className="text-xs text-stone-600 dark:text-zinc-400 font-mono truncate font-medium">
                       {user.email}
                     </p>
                   )}
@@ -603,11 +610,11 @@ export default function AuthModal({ isOpen, onClose }) {
                 {/* Role Badge */}
                 <div className="shrink-0">
                   <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${
-                    userRole === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
-                      userRole === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
-                        userRole === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
-                          userRole === 'developer' ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30' :
-                            'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30'
+                    userRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                      userRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
+                        userRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
+                          userRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                            'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
                   }`}>
                     {userRole === 'kitchen' ? 'Kitchen Chef' :
                       userRole === 'delivery' ? 'Rider Sarathi' :
@@ -618,9 +625,9 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               {/* Mid: Contact & Address Quick Pills */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-white/5 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-stone-200 dark:border-white/5 relative z-10">
                 {/* Phone Pill / Editor */}
-                <div className="p-2.5 rounded-xl bg-[#1C1A1B] border border-white/5 flex flex-col justify-center min-h-[52px]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/5 flex flex-col justify-center min-h-[52px] shadow-sm">
                   {isEditingPhone ? (
                     <div className="flex items-center gap-1.5">
                       <input
@@ -629,13 +636,13 @@ export default function AuthModal({ isOpen, onClose }) {
                         value={phoneEditInput}
                         onChange={(e) => setPhoneEditInput(e.target.value.replace(/\D/g, ''))}
                         placeholder="10-digit mobile"
-                        className="bg-[#282526] text-white text-xs px-2 py-1 rounded-lg border border-white/20 focus:outline-none focus:border-[#E0FF33] w-full font-mono font-semibold"
+                        className="bg-stone-50 dark:bg-[#282526] text-stone-900 dark:text-white text-xs px-2 py-1 rounded-lg border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] w-full font-mono font-semibold"
                         autoFocus
                       />
                       <button
                         type="button"
                         onClick={handleSavePhone}
-                        className="p-1 rounded-md bg-[#E0FF33] text-black hover:bg-[#d4f820] cursor-pointer shrink-0"
+                        className="p-1 rounded-md bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black hover:opacity-90 cursor-pointer shrink-0"
                         title="Save Phone"
                       >
                         <Check className="w-3 h-3" />
@@ -643,7 +650,7 @@ export default function AuthModal({ isOpen, onClose }) {
                       <button
                         type="button"
                         onClick={() => setIsEditingPhone(false)}
-                        className="p-1 rounded-md bg-white/10 text-zinc-400 hover:text-white cursor-pointer shrink-0"
+                        className="p-1 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white cursor-pointer shrink-0"
                         title="Cancel"
                       >
                         <X className="w-3 h-3" />
@@ -652,10 +659,10 @@ export default function AuthModal({ isOpen, onClose }) {
                   ) : (
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <Phone className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                        <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                         <div className="min-w-0">
-                          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Phone</span>
-                          <span className="text-xs text-zinc-200 font-mono font-medium truncate block">
+                          <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider block">Phone</span>
+                          <span className={`text-xs font-mono font-semibold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-200' : 'text-stone-400 dark:text-zinc-500 italic'}`}>
                             {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : 'Not added'}
                           </span>
                         </div>
@@ -666,7 +673,7 @@ export default function AuthModal({ isOpen, onClose }) {
                           setPhoneEditInput(cleanMob.slice(-10));
                           setIsEditingPhone(true);
                         }}
-                        className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
+                        className="text-[10px] font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] dark:hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
                       >
                         {hasValidPhone ? 'Edit' : '+ Add'}
                       </button>
@@ -675,13 +682,13 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Address Pill / Editor Toggle */}
-                <div className="p-2.5 rounded-xl bg-[#1C1A1B] border border-white/5 flex flex-col justify-center min-h-[52px]">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/5 flex flex-col justify-center min-h-[52px] shadow-sm">
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <MapPin className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Address</span>
-                        <span className="text-xs text-zinc-200 font-medium truncate block">
+                        <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider block">Address</span>
+                        <span className={`text-xs font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-200 font-semibold' : 'text-stone-400 dark:text-zinc-500 italic'}`}>
                           {hasValidAddress ? userAddress : 'Not saved'}
                         </span>
                       </div>
@@ -692,7 +699,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         setAddressInput(userData?.address || userData?.customerAddress || '');
                         setIsEditingAddress(prev => !prev);
                       }}
-                      className="text-[10px] font-bold text-[#E0FF33] hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
+                      className="text-[10px] font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] dark:hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
                     >
                       {hasValidAddress ? (isEditingAddress ? 'Close' : 'Edit') : (isEditingAddress ? 'Close' : '+ Add')}
                     </button>
@@ -700,15 +707,15 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Inline Address Form (Expands cleanly when triggered) */}
+              {/* Inline Address Form */}
               {isEditingAddress && (
-                <div className="p-3 rounded-xl bg-[#1C1A1B] border border-white/10 space-y-2 relative z-10 animate-fade-in">
+                <div className="p-3 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 space-y-2 relative z-10 animate-fade-in shadow-sm">
                   <textarea
                     rows={2}
                     value={addressInput}
                     onChange={(e) => setAddressInput(e.target.value)}
                     placeholder="Enter delivery address in Vrindavan..."
-                    className="w-full bg-[#141213] text-xs text-white p-2.5 rounded-lg border border-white/10 focus:outline-none focus:border-[#E0FF33]/60 resize-none font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-stone-50 dark:bg-[#141213] text-xs text-stone-900 dark:text-white p-2.5 rounded-lg border border-stone-200 dark:border-white/10 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/60 resize-none font-['Plus_Jakarta_Sans']"
                     autoFocus
                   />
 
@@ -724,7 +731,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         key={loc}
                         type="button"
                         onClick={() => setAddressInput(loc)}
-                        className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-[#E0FF33]/10 hover:text-[#E0FF33] border border-white/5 text-[9px] font-medium text-zinc-400 cursor-pointer transition-all"
+                        className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-[#E0FF33]/10 text-stone-700 dark:text-zinc-400 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/5 text-[9px] font-medium cursor-pointer transition-all"
                       >
                         + {loc}
                       </button>
@@ -735,14 +742,14 @@ export default function AuthModal({ isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="px-2.5 py-1 rounded-lg bg-white/5 text-zinc-400 hover:text-white text-xs font-bold cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-stone-150 hover:bg-stone-200 dark:bg-white/5 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white text-xs font-bold cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveAddress}
-                      className="px-3 py-1 rounded-lg bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] cursor-pointer"
+                      className="px-3 py-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider hover:opacity-90 cursor-pointer"
                     >
                       Save Address
                     </button>
@@ -751,33 +758,33 @@ export default function AuthModal({ isOpen, onClose }) {
               )}
 
               {/* Bottom: Integrated Prasad Rewards Strip */}
-              <div className="pt-3 border-t border-white/5 grid grid-cols-2 divide-x divide-white/5 relative z-10">
+              <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
                 <div className="flex items-center gap-2 pr-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#E0FF33]/10 border border-[#E0FF33]/20 flex items-center justify-center text-[#E0FF33] shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-black text-white font-['Outfit']">150 Coins</div>
-                    <div className="text-[10px] text-emerald-400 font-medium">₹15 savings</div>
+                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">150 Coins</div>
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">₹15 savings</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 pl-3">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-300 shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-black text-white font-['Outfit']">Dham Express</div>
-                    <div className="text-[10px] text-cyan-400 font-medium">Priority Prep</div>
+                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">Dham Express</div>
+                    <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold">Priority Prep</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 4. Grouped Navigation & Preference Links */}
-            <div className="p-1 rounded-2xl bg-[#151314] border border-white/5 divide-y divide-white/5">
+            <div className="p-1 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5">
               {/* Theme Preference Row */}
-              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300">
+              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300">
                 <div className="flex items-center gap-2.5">
                   {isLight ? (
                     <Sun className="w-4 h-4 text-amber-500 shrink-0" />
@@ -786,14 +793,14 @@ export default function AuthModal({ isOpen, onClose }) {
                   )}
                   <span>App Theme</span>
                 </div>
-                <div className="flex items-center gap-1 bg-[#282526] p-0.5 rounded-full border border-white/10">
+                <div className="flex items-center gap-1 bg-stone-200/70 dark:bg-[#282526] p-0.5 rounded-full border border-stone-300/80 dark:border-white/10">
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isLight 
-                        ? 'bg-amber-500 text-black shadow-sm' 
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'bg-amber-500 text-white shadow-sm' 
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
                     Divine Light
@@ -804,7 +811,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     className={`px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isDark 
                         ? 'bg-[#E0FF33] text-black shadow-sm' 
-                        : 'text-zinc-400 hover:text-white'
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
                     Dark Obsidian
@@ -818,13 +825,13 @@ export default function AuthModal({ isOpen, onClose }) {
                   handleAnimatedClose();
                   window.dispatchEvent(new CustomEvent('foody-open-orders'));
                 }}
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <ShoppingBag className="w-4 h-4 text-[#E0FF33]" />
+                  <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
                   <span>My Orders & Live Tracking</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
               </button>
 
               <button
@@ -833,23 +840,23 @@ export default function AuthModal({ isOpen, onClose }) {
                   handleAnimatedClose();
                   window.dispatchEvent(new CustomEvent('foody_open_rewards'));
                 }}
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Gift className="w-4 h-4 text-purple-400" />
+                  <Gift className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   <span>Prasad Rewards & Perks</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
               </button>
 
               <a
                 href={SOCIAL_LINKS.whatsappChannel}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
+                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-4 h-4 text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.055-1.928-.485-1.528-.636-2.505-2.203-2.582-2.305-.077-.102-.624-.827-.624-1.577 0-.75.385-1.12.522-1.272.137-.154.298-.192.399-.192.1 0 .201.002.289.006.092.004.215-.035.335.253.127.304.433 1.053.471 1.13.038.077.064.167.013.268-.051.102-.077.167-.154.256-.077.09-.161.2-.23.268-.077.077-.157.161-.067.315.09.154.398.657.854 1.063.587.522 1.082.684 1.236.76.154.077.244.064.334-.038.09-.102.385-.448.487-.601.103-.154.205-.128.346-.077.141.051.897.423 1.051.5.154.077.256.115.295.179.039.064.039.372-.105.777z"/>
                       <path d="M12 2C6.477 2 2 6.477 2 12c0 1.891.527 3.66 1.443 5.176L2 22l4.985-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.05c-1.637 0-3.153-.487-4.432-1.328l-.317-.209-2.962.83.83-2.887-.229-.335A8.006 8.006 0 014 12c0-4.411 3.589-8.05 8-8.05s8 3.639 8 8.05-3.589 8.05-8 8.05z"/>
@@ -857,21 +864,21 @@ export default function AuthModal({ isOpen, onClose }) {
                   </div>
                   <span>Official WhatsApp Channel</span>
                 </div>
-                <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Join</span>
+                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">Join</span>
               </a>
             </div>
 
             {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#181617] to-[#121011] border border-white/10 space-y-2.5 animate-fade-in shadow-md">
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-gradient-to-b dark:from-[#181617] dark:to-[#121011] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-sm">
                 <div className="flex items-center justify-between px-0.5">
                   <div className="flex items-center gap-1.5">
-                    <Terminal className="w-3.5 h-3.5 text-[#E0FF33]" />
-                    <span className="text-[11px] font-black text-zinc-300 uppercase tracking-wider font-['Outfit']">
+                    <Terminal className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                    <span className="text-[11px] font-black text-stone-700 dark:text-zinc-300 uppercase tracking-wider font-['Outfit']">
                       Operational Switcher
                     </span>
                   </div>
-                  <span className="text-[9px] font-black tracking-wider text-[#E0FF33] px-2.5 py-0.5 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 shadow-[0_0_10px_rgba(224,255,51,0.2)]">
+                  <span className="text-[9px] font-black tracking-wider text-amber-800 dark:text-[#E0FF33] px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30">
                     {isAuthorizedDeveloper ? 'DEVELOPER ROOT' : 'ADMIN CONTROL'}
                   </span>
                 </div>
@@ -889,20 +896,20 @@ export default function AuthModal({ isOpen, onClose }) {
                           handleAnimatedClose();
                         }}
                         className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${d.fullWidth
-                            ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-[#E0FF33]/15 via-[#E0FF33]/5 to-transparent border-[#E0FF33]/40 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.1)] hover:border-[#E0FF33]'
+                            ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-amber-500/15 dark:from-[#E0FF33]/15 via-amber-500/5 dark:via-[#E0FF33]/5 to-transparent border-amber-500/40 dark:border-[#E0FF33]/40 text-amber-900 dark:text-[#E0FF33] hover:border-amber-500 dark:hover:border-[#E0FF33]'
                             : ''
                           } ${isCurrent
-                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] shadow-[0_2px_12px_rgba(224,255,51,0.3)] font-black'
-                            : 'bg-[#1E1B1C] text-zinc-300 border-white/5 hover:border-white/20 hover:text-white hover:bg-white/5'
+                            ? 'bg-amber-500 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-[0_2px_12px_rgba(224,255,51,0.3)] font-black'
+                            : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-zinc-300 border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/20 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5'
                           }`}
                       >
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${isCurrent ? 'bg-black/15 text-black' : 'bg-white/5 text-zinc-400'
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${isCurrent ? 'bg-black/15 text-black' : 'bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-zinc-400'
                           }`}>
                           <Icon className="w-3.5 h-3.5" />
                         </div>
                         <span className="truncate">{d.label}</span>
                         {isCurrent && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0 ml-auto mr-1 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-auto mr-1 animate-pulse" />
                         )}
                       </button>
                     );
@@ -912,32 +919,32 @@ export default function AuthModal({ isOpen, onClose }) {
             )}
 
             {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out */}
-            <div className="p-1.5 rounded-2xl bg-gradient-to-r from-[#181617] via-[#141213] to-[#181617] border border-white/10 grid grid-cols-2 gap-2 shadow-lg mt-1">
+            <div className="p-1.5 rounded-2xl bg-stone-100 dark:bg-gradient-to-r dark:from-[#181617] dark:via-[#141213] dark:to-[#181617] border border-stone-200 dark:border-white/10 grid grid-cols-2 gap-2 shadow-sm mt-1">
               <button
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="group p-2.5 rounded-xl bg-white/[0.03] hover:bg-[#E0FF33]/15 border border-white/5 hover:border-[#E0FF33]/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98]"
+                className="group p-2.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-amber-50 dark:hover:bg-[#E0FF33]/15 border border-stone-200/80 dark:border-white/5 hover:border-amber-400/40 dark:hover:border-[#E0FF33]/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-white/5 group-hover:bg-[#E0FF33] text-[#E0FF33] group-hover:text-black flex items-center justify-center shrink-0 transition-all shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-amber-500 dark:group-hover:bg-[#E0FF33] text-amber-600 dark:text-[#E0FF33] group-hover:text-white dark:group-hover:text-black flex items-center justify-center shrink-0 transition-all shadow-sm">
                   <LogIn className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-black text-zinc-200 group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
-                  <div className="text-[10px] text-zinc-500 group-hover:text-[#E0FF33] font-medium truncate">Change profile</div>
+                  <div className="text-xs font-black text-stone-800 dark:text-zinc-200 group-hover:text-stone-950 dark:group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
+                  <div className="text-[10px] text-stone-500 dark:text-zinc-500 group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] font-medium truncate">Change profile</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="group p-2.5 rounded-xl bg-rose-500/[0.04] hover:bg-rose-500/20 border border-rose-500/15 hover:border-rose-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98]"
+                className="group p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/[0.04] hover:bg-rose-100/90 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/15 hover:border-rose-300 dark:hover:border-rose-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 group-hover:bg-rose-500 text-rose-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-500/10 group-hover:bg-rose-500 text-rose-600 dark:text-rose-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-sm">
                   <LogOut className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-black text-rose-300 group-hover:text-rose-100 font-['Outfit'] truncate">Sign Out</div>
-                  <div className="text-[10px] text-rose-400/60 group-hover:text-rose-200 font-medium truncate">End session</div>
+                  <div className="text-xs font-black text-rose-800 dark:text-rose-300 group-hover:text-rose-950 dark:group-hover:text-rose-100 font-['Outfit'] truncate">Sign Out</div>
+                  <div className="text-[10px] text-rose-600/80 dark:text-rose-400/60 group-hover:text-rose-800 dark:group-hover:text-rose-200 font-medium truncate">End session</div>
                 </div>
               </button>
             </div>
@@ -960,7 +967,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* Multi-Role Segmented Switcher Strip (Only shown when staff access is active) */}
             {showStaffSignIn && !isSignup && (
-              <div className="grid grid-cols-3 bg-[#151314] p-1 rounded-2xl border border-white/5 gap-1 animate-fade-in">
+              <div className="grid grid-cols-3 bg-stone-100 dark:bg-[#151314] p-1 rounded-2xl border border-stone-200 dark:border-white/5 gap-1 animate-fade-in">
                 {[
                   { id: 'kitchen', label: 'Kitchen Chef', icon: ChefHat },
                   { id: 'delivery', label: 'Sarathi Rider', icon: Truck },
@@ -978,11 +985,11 @@ export default function AuthModal({ isOpen, onClose }) {
                         setSuccessMsg('');
                       }}
                       className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all text-center select-none cursor-pointer ${isActive
-                          ? 'bg-[#282526] text-white shadow-sm border border-white/10 font-extrabold'
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-extrabold'
+                          : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                         }`}
                     >
-                      <Icon className="w-3.5 h-3.5 shrink-0 text-[#E0FF33]" />
+                      <Icon className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#E0FF33]" />
                       <span className="truncate">{tab.label}</span>
                     </button>
                   );
@@ -990,18 +997,18 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Sub-Navigation Method Switcher: Mobile vs Email (Hidden during multi-step signup) */}
+            {/* Sub-Navigation Method Switcher: Mobile vs Email */}
             {!isSignup && (
-              <div className="grid grid-cols-2 bg-[#151314]/80 p-1 rounded-2xl border border-white/5 gap-1">
+              <div className="grid grid-cols-2 bg-stone-100 dark:bg-[#151314]/80 p-1 rounded-2xl border border-stone-200 dark:border-white/5 gap-1">
                 <button
                   type="button"
                   onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'phone'
-                      ? 'bg-[#282526] text-white shadow-sm border border-white/10'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
+                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                 >
-                  <Phone className="w-3 h-3 text-[#E0FF33] shrink-0" />
+                  <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                   <span className="truncate">Mobile Number</span>
                 </button>
 
@@ -1009,11 +1016,11 @@ export default function AuthModal({ isOpen, onClose }) {
                   type="button"
                   onClick={() => { setLoginMethod('email'); setError(''); setSuccessMsg(''); }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'email'
-                      ? 'bg-[#282526] text-white shadow-sm border border-white/10'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
+                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                 >
-                  <Mail className="w-3 h-3 text-cyan-400 shrink-0" />
+                  <Mail className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
                   <span className="truncate">Email & Password</span>
                 </button>
               </div>
@@ -1021,7 +1028,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* STEP PROGRESS INDICATOR FOR REGISTRATION */}
             {isSignup && (
-              <div className="flex items-center justify-between px-3 py-2 bg-[#151314] rounded-2xl border border-white/5 animate-fade-in">
+              <div className="flex items-center justify-between px-3 py-2 bg-stone-100 dark:bg-[#151314] rounded-2xl border border-stone-200 dark:border-white/5 animate-fade-in">
                 <div className="flex items-center gap-2">
                   {[
                     { step: 1, label: 'Identity' },
@@ -1035,26 +1042,26 @@ export default function AuthModal({ isOpen, onClose }) {
                           if (s.step < signupStep) setSignupStep(s.step);
                         }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-['Outfit'] transition-all ${signupStep === s.step
-                            ? 'bg-[#E0FF33] text-black shadow-md scale-105'
+                            ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-md scale-105'
                             : signupStep > s.step
-                              ? 'bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 cursor-pointer'
-                              : 'bg-white/5 text-zinc-500 border border-white/5'
+                              ? 'bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 cursor-pointer'
+                              : 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-zinc-500 border border-stone-300 dark:border-white/5'
                           }`}
                       >
                         {signupStep > s.step ? '✓' : s.step}
                       </button>
-                      <span className={`text-[11px] font-bold ${signupStep === s.step ? 'text-white' : 'text-zinc-500'
+                      <span className={`text-[11px] font-bold ${signupStep === s.step ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-zinc-500'
                         }`}>
                         {s.label}
                       </span>
                       {idx < 2 && (
-                        <div className={`w-3 sm:w-5 h-0.5 rounded-full ${signupStep > s.step ? 'bg-[#E0FF33]/60' : 'bg-white/10'
+                        <div className={`w-3 sm:w-5 h-0.5 rounded-full ${signupStep > s.step ? 'bg-amber-500/60 dark:bg-[#E0FF33]/60' : 'bg-stone-300 dark:bg-white/10'
                           }`} />
                       )}
                     </div>
                   ))}
                 </div>
-                <span className="text-[10px] font-black text-[#E0FF33] font-mono">
+                <span className="text-[10px] font-black text-amber-600 dark:text-[#E0FF33] font-mono">
                   {signupStep}/3
                 </span>
               </div>
@@ -1062,10 +1069,10 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* METHOD 1: QUICK PHONE LOOKUP (LOGIN ONLY) */}
             {!isSignup && loginMethod === 'phone' && (
-              <form onSubmit={handlePhoneSubmit} className="space-y-3 pt-0.5">
-                <div className="space-y-1.5">
-                  <div className="flex items-center bg-[#151314] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
-                    <span className="text-xs font-black text-[#E0FF33] font-['Outfit'] pr-2.5 border-r border-white/10 select-none">
+              <form onSubmit={handlePhoneSubmit} className="space-y-4 pt-1">
+                <div className="space-y-2">
+                  <div className="flex items-center min-h-[52px] sm:min-h-[56px] bg-[#151314] border border-white/15 rounded-2xl sm:rounded-[20px] focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-[#E0FF33]/20 transition-all px-4 py-1.5 shadow-inner">
+                    <span className="text-sm sm:text-base font-black text-[#E0FF33] font-['Outfit'] pr-3 mr-2 border-r border-white/15 select-none tracking-wide flex items-center gap-1.5">
                       +91
                     </span>
                     <input
@@ -1075,10 +1082,11 @@ export default function AuthModal({ isOpen, onClose }) {
                       placeholder="Enter 10-digit mobile number"
                       maxLength={10}
                       required
-                      className="w-full bg-transparent pl-3 pr-1 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none font-['Plus_Jakarta_Sans'] font-medium"
+                      autoFocus
+                      className="w-full bg-transparent py-2 text-sm sm:text-base text-white placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
                     />
                   </div>
-                  <p className="text-[11px] text-zinc-500 px-1 font-medium">
+                  <p className="text-[11px] text-zinc-400 px-1 font-medium">
                     Instant access for customers, kitchen staff, and delivery riders.
                   </p>
                 </div>
@@ -1086,7 +1094,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={loading || phoneInput.length < 10}
-                  className="w-full py-3.5 px-6 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
                 >
                   <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1096,11 +1104,11 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* METHOD 2: EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */}
             {(isSignup || loginMethod === 'email') && (
-              <form onSubmit={handleEmailSubmit} className="space-y-3 pt-0.5">
+              <form onSubmit={handleEmailSubmit} className="space-y-4 pt-1">
 
                 {/* ── STEP 1: IDENTITY ── */}
                 {isSignup && signupStep === 1 && (
-                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3.5 animate-fade-in">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                         Personal Details
@@ -1108,9 +1116,9 @@ export default function AuthModal({ isOpen, onClose }) {
                       <span className="text-[10px] text-[#E0FF33] font-bold">Step 1 of 3</span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       <div className="relative">
-                        <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <User className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={displayName}
@@ -1118,13 +1126,13 @@ export default function AuthModal({ isOpen, onClose }) {
                           placeholder="Full Name (e.g. Radhe Shyam)"
                           required
                           autoFocus
-                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-[#1E1B1C] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
 
-                      <div className="relative flex items-center bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-3 py-1">
-                        <Phone className="w-4 h-4 text-zinc-500 shrink-0 mr-2" />
-                        <span className="text-xs font-black text-[#E0FF33] pr-2.5 border-r border-white/10 select-none font-['Outfit']">+91</span>
+                      <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-[#1E1B1C] border border-white/10 rounded-2xl focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-[#E0FF33]/10 transition-all px-4 py-1.5">
+                        <Phone className="w-4 h-4 text-zinc-500 shrink-0 mr-2.5" />
+                        <span className="text-xs sm:text-sm font-black text-[#E0FF33] pr-2.5 border-r border-white/10 select-none font-['Outfit']">+91</span>
                         <input
                           type="tel"
                           value={signupPhone}
@@ -1132,7 +1140,7 @@ export default function AuthModal({ isOpen, onClose }) {
                           placeholder="10-digit mobile number"
                           maxLength={10}
                           required
-                          className="flex-1 bg-transparent pl-2 py-2 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none font-['Plus_Jakarta_Sans'] font-medium"
+                          className="flex-1 bg-transparent pl-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
                         />
                       </div>
                     </div>
@@ -1145,7 +1153,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
                 {/* ── STEP 2: CREDENTIALS ── */}
                 {isSignup && signupStep === 2 && (
-                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3.5 animate-fade-in">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                         Account Security
@@ -1153,9 +1161,9 @@ export default function AuthModal({ isOpen, onClose }) {
                       <span className="text-[10px] text-[#E0FF33] font-bold">Step 2 of 3</span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       <div className="relative">
-                        <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <Mail className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                         <input
                           type="email"
                           value={email}
@@ -1163,19 +1171,19 @@ export default function AuthModal({ isOpen, onClose }) {
                           placeholder="Email Address (e.g. user@example.com)"
                           required
                           autoFocus
-                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-[#1E1B1C] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
 
                       <div className="relative">
-                        <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <Lock className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                         <input
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Create Password (min 6 chars)"
                           required
-                          className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-[#1E1B1C] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -1189,7 +1197,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
                 {/* ── STEP 3: DELIVERY LOCATION ── */}
                 {isSignup && signupStep === 3 && (
-                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3 animate-fade-in">
+                  <div className="p-4 rounded-3xl bg-[#151314] border border-white/5 space-y-3.5 animate-fade-in">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
                         Default Delivery
@@ -1204,7 +1212,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         value={signupAddress}
                         onChange={(e) => setSignupAddress(e.target.value)}
                         placeholder="Delivery Address (e.g. Flat 204, Near ISKCON Temple, Raman Reti)"
-                        className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
+                        className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
                       />
                     </div>
 
@@ -1252,27 +1260,27 @@ export default function AuthModal({ isOpen, onClose }) {
 
                 {/* ── STANDARD LOGIN FORM (WHEN NOT SIGNING UP) ── */}
                 {!isSignup && (
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Email Address (e.g. user@example.com)"
                         required
-                        className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-[#151314] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                         required
-                        className="w-full bg-[#151314] border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all"
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-[#151314] border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                       />
                     </div>
                   </div>

@@ -115,14 +115,14 @@
     font-family: 'Laila', serif, 'Outfit', sans-serif !important;
   }
 
-  /* Input styling with seamless theme reactivity */
-  input[type="text"],
-  input[type="tel"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  select,
-  textarea {
+  /* Input styling with seamless theme reactivity (excluding embedded transparent inputs) */
+  input[type="text"]:not(.bg-transparent),
+  input[type="tel"]:not(.bg-transparent),
+  input[type="email"]:not(.bg-transparent),
+  input[type="password"]:not(.bg-transparent),
+  input[type="search"]:not(.bg-transparent),
+  select:not(.bg-transparent),
+  textarea:not(.bg-transparent) {
     background: var(--bg-input, #1C1C20);
     border: 1px solid var(--border-app, rgba(255, 255, 255, 0.08));
     border-radius: 16px;
@@ -132,13 +132,13 @@
     color: var(--text-primary, #FFFFFF);
   }
 
-  .light input[type="text"],
-  .light input[type="tel"],
-  .light input[type="email"],
-  .light input[type="password"],
-  .light input[type="search"],
-  .light select,
-  .light textarea {
+  .light input[type="text"]:not(.bg-transparent),
+  .light input[type="tel"]:not(.bg-transparent),
+  .light input[type="email"]:not(.bg-transparent),
+  .light input[type="password"]:not(.bg-transparent),
+  .light input[type="search"]:not(.bg-transparent),
+  .light select:not(.bg-transparent),
+  .light textarea:not(.bg-transparent) {
     background: #FFFFFF !important;
     border: 1px solid rgba(0, 0, 0, 0.12) !important;
     color: #1C1917 !important;
@@ -150,29 +150,68 @@
     color: #78716C !important;
   }
 
-  input[type="text"]:focus,
-  input[type="tel"]:focus,
-  input[type="email"]:focus,
-  input[type="password"]:focus,
-  input[type="search"]:focus,
-  select:focus,
-  textarea:focus {
+  input[type="text"]:not(.bg-transparent):focus,
+  input[type="tel"]:not(.bg-transparent):focus,
+  input[type="email"]:not(.bg-transparent):focus,
+  input[type="password"]:not(.bg-transparent):focus,
+  input[type="search"]:not(.bg-transparent):focus,
+  select:not(.bg-transparent):focus,
+  textarea:not(.bg-transparent):focus {
     outline: none;
     background: #232328;
     border-color: #D2F832;
     box-shadow: 0 0 0 3px rgba(210, 248, 50, 0.2);
   }
 
-  .light input[type="text"]:focus,
-  .light input[type="tel"]:focus,
-  .light input[type="email"]:focus,
-  .light input[type="password"]:focus,
-  .light input[type="search"]:focus,
-  .light select:focus,
-  .light textarea:focus {
+  .light input[type="text"]:not(.bg-transparent):focus,
+  .light input[type="tel"]:not(.bg-transparent):focus,
+  .light input[type="email"]:not(.bg-transparent):focus,
+  .light input[type="password"]:not(.bg-transparent):focus,
+  .light input[type="search"]:not(.bg-transparent):focus,
+  .light select:not(.bg-transparent):focus,
+  .light textarea:not(.bg-transparent):focus {
     background: #FFFFFF !important;
     border-color: #D97706 !important;
     box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18) !important;
+  }
+
+  /* Embedded / Transparent Input Reset Guarantee */
+  input.bg-transparent,
+  input[type="text"].bg-transparent,
+  input[type="tel"].bg-transparent,
+  input[type="email"].bg-transparent,
+  input[type="password"].bg-transparent,
+  input[type="search"].bg-transparent,
+  .light input.bg-transparent,
+  .light input[type="text"].bg-transparent,
+  .light input[type="tel"].bg-transparent,
+  .light input[type="email"].bg-transparent,
+  .light input[type="password"].bg-transparent,
+  .light input[type="search"].bg-transparent {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+
+  input.bg-transparent:focus,
+  input[type="text"].bg-transparent:focus,
+  input[type="tel"].bg-transparent:focus,
+  input[type="email"].bg-transparent:focus,
+  input[type="password"].bg-transparent:focus,
+  input[type="search"].bg-transparent:focus,
+  .light input.bg-transparent:focus,
+  .light input[type="text"].bg-transparent:focus,
+  .light input[type="tel"].bg-transparent:focus,
+  .light input[type="email"].bg-transparent:focus,
+  .light input[type="password"].bg-transparent:focus,
+  .light input[type="search"].bg-transparent:focus {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   /* Remove native browser number input spinners */
@@ -2433,6 +2472,13 @@ path.casing-parabolic-dots,
   box-shadow: none !important;
 }
 
+/* Prevent light hover background from firing in Dark Mode */
+.dark [class*="hover:bg-stone-"]:hover,
+[data-theme="dark"] [class*="hover:bg-stone-"]:hover {
+  background-color: #322E30 !important;
+  color: #FFFFFF !important;
+}
+
 /* Universal Light Mode Hover Rules (Prevent White-on-White or Low-Contrast on Hover) */
 .light button:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover,
 .light a:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover,
@@ -2478,7 +2524,35 @@ path.casing-parabolic-dots,
   color: #1C1917 !important;
 }
 
-/* Active Store / Tab pill */
+/* Active Store / Tab / Category pill */
+.dark .category-pill-active,
+[data-theme="dark"] .category-pill-active {
+  background-color: #E0FF33 !important;
+  color: #121011 !important;
+  font-weight: 900 !important;
+  border-color: #E0FF33 !important;
+  box-shadow: none !important;
+}
+
+.dark .category-pill-active *,
+[data-theme="dark"] .category-pill-active * {
+  color: #121011 !important;
+}
+
+.light .category-pill-active,
+[data-theme="light"] .category-pill-active {
+  background-color: #1C1917 !important;
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+  border-color: #1C1917 !important;
+  box-shadow: none !important;
+}
+
+.light .category-pill-active *,
+[data-theme="light"] .category-pill-active * {
+  color: #FFFFFF !important;
+}
+
 .light .bg-white.text-\[\#1E1B1C\] {
   background-color: #1C1917 !important;
   color: #FFFFFF !important;

@@ -70,14 +70,14 @@ export default function Header({
                   alt={getDisplayName()} 
                   referrerPolicy="no-referrer"
                   crossOrigin="anonymous"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  className="w-full h-full object-cover" 
                   onError={() => setHeaderAvatarError(true)}
                 />
               ) : (
                 <img 
                   src="/foody-vrinda-logo.webp" 
                   alt="Foody Vrinda" 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  className="w-full h-full object-cover" 
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}
@@ -109,7 +109,7 @@ export default function Header({
               onClick={() => setCurrentTab('customer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'customer' 
-                  ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >

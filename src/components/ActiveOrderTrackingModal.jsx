@@ -73,7 +73,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     ? (allShops.find(s => s.id === (currentOrder?.shopId || currentOrder?.shop_id)) || allShops[0])
     : { name: 'Foody Vrinda Kitchen', coordinates: { lat: 27.5706, lng: 77.6593 } };
 
-  const handleAnimatedClose = useCallback(() => {
+  const handleAnimatedClose = useCallback((isImmediate = false) => {
+    if (isImmediate === true) {
+      setClosing(false);
+      onClose();
+      return;
+    }
     if (closing) return;
     setClosing(true);
     setTimeout(() => {
