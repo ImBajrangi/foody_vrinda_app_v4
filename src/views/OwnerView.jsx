@@ -904,13 +904,14 @@ export default function OwnerView() {
                 <button
                   key={s.id}
                   onClick={() => impersonate(s.id, userRole)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
-                    : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
+                    ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black'
+                    : 'bg-stone-200/90 text-stone-700 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300 dark:hover:bg-white/5'
                     }`}
                 >
                   <Store className="w-3.5 h-3.5" />
                   <span>{s.name}</span>
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-0.5" />}
                 </button>
               );
             })}

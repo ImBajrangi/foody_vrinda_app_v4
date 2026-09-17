@@ -2391,7 +2391,8 @@ path.casing-parabolic-dots,
   background-color: #D97706 !important; /* Rich Royal Amber */
   color: #FFFFFF !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.28) !important;
+  border-color: #D97706 !important;
+  box-shadow: none !important;
 }
 
 .light button:not(:disabled)[class*="bg-[#E0FF33]"]:not(.customer-card-pop *) *,
@@ -2406,11 +2407,71 @@ path.casing-parabolic-dots,
   color: #FFFFFF !important;
 }
 
+/* Clean border colors and remove glowing shadows in Light Mode */
+.light [class*="border-[#E0FF33]"],
+.light [class*="border-[#CCFF00]"] {
+  border-color: #D97706 !important;
+}
+
+.light [class*="ring-[#E0FF33]"],
+.light [class*="ring-[#CCFF00]"] {
+  --tw-ring-color: #D97706 !important;
+}
+
+/* Eliminate unnecessary heavy/dirty dark shadows in Light Mode */
+.light .shadow-2xl,
+.light .shadow-xl,
+.light .shadow-lg,
+.light .shadow-md,
+.light .shadow-sm,
+.light .shadow {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.light button,
+.light [role="button"] {
+  box-shadow: none !important;
+}
+
+/* Universal Light Mode Hover Rules (Prevent White-on-White or Low-Contrast on Hover) */
+.light button:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover,
+.light a:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover,
+.light div[class*="hover:text-white"]:hover,
+.light span[class*="hover:text-white"]:hover {
+  color: #1C1917 !important;
+}
+
+.light [class*="hover:text-zinc-100"]:hover,
+.light [class*="hover:text-zinc-200"]:hover,
+.light [class*="hover:text-zinc-300"]:hover,
+.light [class*="hover:text-neutral-100"]:hover,
+.light [class*="hover:text-neutral-200"]:hover,
+.light [class*="hover:text-neutral-300"]:hover {
+  color: #1C1917 !important;
+}
+
+.light [class*="hover:bg-white/5"]:hover,
+.light [class*="hover:bg-white/10"]:hover,
+.light [class*="hover:bg-white/15"]:hover,
+.light [class*="hover:bg-white/20"]:hover {
+  background-color: #E2DBD0 !important;
+  color: #1C1917 !important;
+}
+
+.light [class*="hover:bg-[#322E30]"]:hover,
+.light [class*="hover:bg-[#282526]"]:hover,
+.light [class*="hover:bg-[#332E30]"]:hover,
+.light [class*="hover:bg-[#1E1B1C]"]:hover {
+  background-color: #EDE7DD !important;
+  color: #1C1917 !important;
+}
+
 /* 6. Tabs & Operational Switchers */
 .light button[class*="bg-[#282526]"] {
   background-color: #EDE7DD !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
+  box-shadow: none !important;
 }
 
 .light button[class*="bg-[#282526]"] * {
@@ -2421,7 +2482,7 @@ path.casing-parabolic-dots,
 .light .bg-white.text-\[\#1E1B1C\] {
   background-color: #1C1917 !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: none !important;
 }
 
 /* 7. Modal & Drawer Containers in Light Mode */
@@ -2431,7 +2492,7 @@ path.casing-parabolic-dots,
 .light .apple-modal-content {
   background-color: #FFFFFF !important;
   color: #1C1917 !important;
-  box-shadow: 0 25px 50px -12px rgba(28, 25, 23, 0.18) !important;
+  box-shadow: 0 12px 32px -4px rgba(28, 25, 23, 0.08) !important;
 }
 
 /* 8. Specific Organic Dish Cards (Keep pastel tint with deep obsidian text) */

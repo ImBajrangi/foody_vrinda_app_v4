@@ -1844,64 +1844,68 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               {/* FULFILLMENT SELECTOR: DOORSTEP DELIVERY VS SELF-PICKUP */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400 font-['Outfit']">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit']">
                     Order Fulfillment
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-medium">
+                  <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
                     {onlineRidersCount > 0 ? `${onlineRidersCount} Sarathi Riders Active` : 'No Riders Active'}
                   </span>
                 </div>
 
                 {isRetailShop ? (
                   /* Retail Shop: Strictly Doorstep Delivery (Self-Pickup disabled to prevent uncollected fake orders) */
-                  <div className="p-3 rounded-2xl bg-[#151314] border border-white/10 space-y-2">
+                  <div className="p-3 rounded-2xl bg-stone-100 dark:bg-[#151314] border border-stone-200 dark:border-white/10 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-base">🛵</span>
                         <div>
-                          <p className="text-xs font-bold text-white">Doorstep Delivery Only</p>
-                          <p className="text-[10px] text-zinc-400">Direct courier with live Sarathi tracking</p>
+                          <p className="text-xs font-bold text-stone-900 dark:text-white">Doorstep Delivery Only</p>
+                          <p className="text-[10px] text-stone-500 dark:text-zinc-400">Direct courier with live Sarathi tracking</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30">
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30">
                         {onlineRidersCount > 0 ? 'Active' : 'Busy'}
                       </span>
                     </div>
-                    <div className="text-[10px] text-zinc-500 bg-white/5 p-2 rounded-xl border border-white/5 flex items-center gap-1.5">
-                      <ShieldCheck size={12} className="text-[#E0FF33] shrink-0" />
+                    <div className="text-[10px] text-stone-600 dark:text-zinc-500 bg-stone-200/60 dark:bg-white/5 p-2 rounded-xl border border-stone-200 dark:border-white/5 flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
                       <span>Retail Shop: Counter pickup is disabled to protect against uncollected inventory.</span>
                     </div>
                   </div>
                 ) : (
                   /* Hotel / Restaurant: Support both Doorstep Delivery and Counter Pickup */
-                  <div className="p-1 rounded-2xl bg-[#151314] border border-white/10 grid grid-cols-2 gap-1 shadow-inner">
+                  <div className="p-1 rounded-2xl bg-stone-200/80 dark:bg-[#151314] border border-stone-300 dark:border-white/10 grid grid-cols-2 gap-1">
                     <button
                       type="button"
                       onClick={() => {
                         if (onlineRidersCount > 0) setFulfillmentType('delivery');
                         else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         fulfillmentType === 'delivery'
-                          ? 'bg-white text-[#1E1B1C] shadow-sm font-black'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-xs'
+                          : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
                     >
                       <span>🛵 Delivery</span>
-                      {onlineRidersCount === 0 && <span className="text-[9px] text-amber-400 font-black">(Offline)</span>}
+                      {onlineRidersCount === 0 && <span className="text-[9px] text-amber-600 dark:text-amber-400 font-black">(Offline)</span>}
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setFulfillmentType('pickup')}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         fulfillmentType === 'pickup'
-                          ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-sm font-black'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
+                          : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
                       <span>🛍️ Self-Pickup</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/15 text-[#1E1B1C] font-black">Free</span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                        fulfillmentType === 'pickup'
+                          ? 'bg-white/20 text-white dark:bg-black/15 dark:text-[#1E1B1C]'
+                          : 'bg-stone-300/80 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
+                      }`}>Free</span>
                     </button>
                   </div>
                 )}
