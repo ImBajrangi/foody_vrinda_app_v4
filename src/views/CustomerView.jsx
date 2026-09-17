@@ -106,6 +106,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const [editingQuantityItem, setEditingQuantityItem] = useState(null);
   const [selectedDishDetails, setSelectedDishDetails] = useState(null);
+  const [detailQuantity, setDetailQuantity] = useState(1);
   const [menuItems, setMenuItems] = useState(() => {
     return getLocalCustomerMenus(selectedShopId) || [];
   });
@@ -724,7 +725,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         currency: "INR",
         name: "Foody Vrinda",
         description: `Satvik Prasad Order - ${currentCartShop?.name || 'Kitchen'}`,
-        image: "https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png",
+        image: typeof window !== 'undefined' ? `${window.location.origin}/foody-vrinda-logo.webp` : "/foody-vrinda-logo.webp",
         handler: async (response) => {
           orderPayload.paymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
           orderPayload.paymentIds = [response.razorpay_payment_id || `pay_${Date.now()}`];
@@ -930,27 +931,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         <div className="flex items-center gap-2 sm:gap-3 justify-between w-full">
           <button
             onClick={() => allShops.length > 1 && (showShopSwitcher ? handleCloseShopSwitcher() : setShowShopSwitcher(true))}
-            className={`flex-1 min-w-0 h-11 sm:h-12 flex items-center gap-2.5 bg-[#282526] hover:bg-[#322E30] border border-white/10 hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs shadow-md transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`flex-1 min-w-0 h-11 sm:h-12 flex items-center gap-2.5 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs shadow-md transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
             title={allShops.length > 1 ? "Switch Kitchen Branch" : "Current Branch"}
           >
-            <MapPin size={15} className="text-[#E0FF33] flex-shrink-0" />
-            <span className="font-bold text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
+            <MapPin size={15} className="text-amber-600 dark:text-[#E0FF33] flex-shrink-0" />
+            <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
               {activeShop?.name || 'Vrinda Cloud Kitchen'}
             </span>
             {activeShop?.discountTag && (
-              <span className="hidden lg:inline-flex items-center gap-1 bg-[#E0FF33]/20 text-[#E0FF33] text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="hidden lg:inline-flex items-center gap-1 bg-amber-500/20 text-amber-700 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                 <TagIcon size={10} /> {activeShop.discountTag}
               </span>
             )}
             {allShops.length > 1 && (
-              <ChevronDown size={14} className={`text-zinc-400 flex-shrink-0 ml-1 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-stone-500 dark:text-zinc-400 flex-shrink-0 ml-1 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
             )}
           </button>
 
           {/* Live Wait Time Capsule - only shown when space is available (hidden on mobile, visible on sm/md+) */}
-          <div className="hidden sm:flex h-11 sm:h-12 flex-shrink-0 whitespace-nowrap items-center gap-2 bg-[#282526] px-3.5 sm:px-4 rounded-full border border-white/10 shadow-md">
-            <span className="w-2 h-2 rounded-full bg-[#E0FF33] flex-shrink-0 shadow-[0_0_8px_#E0FF33]"></span>
-            <span className="text-xs font-bold text-zinc-200 whitespace-nowrap">
+          <div className="hidden sm:flex h-11 sm:h-12 flex-shrink-0 whitespace-nowrap items-center gap-2 bg-stone-200/90 dark:bg-[#282526] px-3.5 sm:px-4 rounded-full border border-stone-300 dark:border-white/10 shadow-md">
+            <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] flex-shrink-0 shadow-[0_0_8px_rgba(217,119,6,0.6)] dark:shadow-[0_0_8px_#E0FF33]"></span>
+            <span className="text-xs font-bold text-stone-800 dark:text-zinc-200 whitespace-nowrap">
               {activeShop?.estimatedWaitTime ? `${activeShop.estimatedWaitTime} min` : '20–30 min'}
             </span>
           </div>
@@ -958,13 +959,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           {/* My Orders History Button */}
           <button
             onClick={() => setIsOrderHistoryOpen(true)}
-            className="h-11 sm:h-12 flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-[#282526] hover:bg-[#322E30] active:scale-95 text-white border border-white/10 hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs font-bold shadow-md transition-all cursor-pointer apple-tap-target"
+            className="h-11 sm:h-12 flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs font-bold shadow-md transition-all cursor-pointer apple-tap-target"
             title="View Past Orders & Tracking"
           >
-            <History size={15} className="text-[#E0FF33]" />
+            <History size={15} className="text-amber-600 dark:text-[#E0FF33]" />
             <span className="hidden sm:inline">My Orders</span>
           </button>
         </div>
+
+        {/* Global Shop Offline / Closed Warning Indicator */}
+        {!isShopOpen && (
+          <div className="mt-3 p-3.5 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-3 text-red-700 dark:text-red-300 text-xs shadow-lg animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444] shrink-0" />
+              <span className="font-bold">
+                {activeShop?.name || 'This Kitchen'} is currently Offline / Closed
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2.5 py-1 rounded-full border border-red-500/25 shrink-0">
+              Hours: {activeShop?.openingTime || '08:00'} – {activeShop?.closingTime || '22:30'}
+            </span>
+          </div>
+        )}
 
         {/* Dynamic Shops Popover (Overlay Standard with Backdrop & Apple Spring Animation) */}
         {showShopSwitcher && allShops.length > 1 && (
@@ -973,12 +989,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               className="fixed inset-0 z-40 bg-black/40 transition-opacity"
               onClick={handleCloseShopSwitcher}
             />
-            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
+            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
               <div className="flex justify-between items-center mb-3.5">
-                <h4 className="text-xs font-black uppercase text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
+                <h4 className="text-xs font-black uppercase text-stone-500 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
                 <button
                   onClick={handleCloseShopSwitcher}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer transition-all border border-white/5 shadow-sm apple-tap-target"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 dark:text-zinc-300 hover:text-stone-900 dark:hover:text-white cursor-pointer transition-all border border-stone-300 dark:border-white/5 shadow-sm apple-tap-target"
                   title="Close"
                 >
                   <X size={16} strokeWidth={2.5} />
@@ -993,14 +1009,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       handleCloseShopSwitcher();
                       showToast(s.name, 'info');
                     }}
-                    className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-lg ring-1 ring-[#E0FF33]/50' : 'bg-[#1E1B1C] text-white hover:bg-white/5 border border-white/5'}`}
+                    className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-lg ring-1 ring-amber-600/50 dark:ring-[#E0FF33]/50' : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-200 dark:hover:bg-white/5 border border-stone-200 dark:border-white/5'}`}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-black truncate">{s.name}</p>
-                      <p className={`text-[11px] truncate mt-0.5 ${s.id === selectedShopId ? 'text-[#1E1B1C]/80 font-semibold' : 'text-zinc-400'}`}>{s.address || 'Vrindavan Dham'}</p>
+                      <p className={`text-[11px] truncate mt-0.5 ${s.id === selectedShopId ? 'text-white/90 dark:text-[#1E1B1C]/80 font-semibold' : 'text-stone-500 dark:text-zinc-400'}`}>{s.address || 'Vrindavan Dham'}</p>
                     </div>
                     {s.id === selectedShopId && (
-                      <span className="text-[11px] font-black bg-[#1E1B1C] text-[#E0FF33] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 whitespace-nowrap shadow-sm">
+                      <span className="text-[11px] font-black bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 whitespace-nowrap shadow-sm">
                         <Check size={12} strokeWidth={3} />
                         <span>Active</span>
                       </span>
@@ -1017,33 +1033,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] sm:text-xs font-bold text-[#E0FF33] bg-[#E0FF33]/10 px-3 py-1 rounded-full border border-[#E0FF33]/20 font-laila flex items-center gap-1.5">
+            <span className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-[#E0FF33] bg-amber-500/10 dark:bg-[#E0FF33]/10 px-3 py-1 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20 font-laila flex items-center gap-1.5">
               <span>वृन्दोपनिषद्</span>
-              <span className="text-[10px] font-bold text-zinc-300 font-['Outfit']">· vrindopnishad</span>
+              <span className="text-[10px] font-bold text-stone-600 dark:text-zinc-300 font-['Outfit']">· vrindopnishad</span>
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight font-['Outfit']">
-            <span className="font-laila font-bold text-white">वृन्दोपनिषद्</span> <span className="text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight font-['Outfit']">
+            <span className="font-laila font-bold text-stone-900 dark:text-white">वृन्दोपनिषद्</span> <span className="text-amber-600 dark:text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-medium tracking-wide">
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-400 mt-1.5 font-medium tracking-wide">
             100% Satvik · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative w-full md:w-80 lg:w-96 flex-shrink-0">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search pure delicacies..."
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
-            className="w-full h-11 sm:h-12 !bg-[#282526] border border-white/10 hover:border-white/20 focus:!border-[#E0FF33]/60 !rounded-full pl-11 pr-10 text-xs sm:text-sm text-white placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#E0FF33]/20 transition-all"
+            className="w-full h-11 sm:h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/60 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all"
           />
           {menuSearch && (
             <button
               onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[10px] text-zinc-300 hover:text-white cursor-pointer transition-all"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-300 dark:bg-white/10 hover:bg-stone-400 dark:hover:bg-white/20 flex items-center justify-center text-[10px] text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white cursor-pointer transition-all"
               title="Clear search"
             >
               ✕
@@ -1059,8 +1075,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={`h-10 sm:h-11 px-4 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
-              ? 'bg-white text-[#1E1B1C] font-black shadow-lg shadow-white/10'
-              : 'bg-[#282526] text-zinc-400 hover:text-white border border-white/10 hover:border-white/20'
+              ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-lg shadow-black/10 dark:shadow-white/10'
+              : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:text-zinc-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
               }`}
           >
             {cat}
@@ -1832,46 +1848,77 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     Order Fulfillment
                   </span>
                   <span className="text-[10px] text-zinc-500 font-medium">
-                    {onlineRidersCount > 0 ? `${onlineRidersCount} Sarathi Riders Active` : 'No Riders Nearby'}
+                    {onlineRidersCount > 0 ? `${onlineRidersCount} Sarathi Riders Active` : 'No Riders Active'}
                   </span>
                 </div>
 
-                <div className="p-1 rounded-2xl bg-[#151314] border border-white/10 grid grid-cols-2 gap-1 shadow-inner">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onlineRidersCount > 0) setFulfillmentType('delivery');
-                      else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
-                    }}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                      fulfillmentType === 'delivery'
-                        ? 'bg-white text-[#1E1B1C] shadow-sm font-black'
-                        : 'text-zinc-400 hover:text-white'
-                    } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  >
-                    <span>🛵 Delivery</span>
-                    {onlineRidersCount === 0 && <span className="text-[9px] text-amber-400 font-black">(Offline)</span>}
-                  </button>
+                {isRetailShop ? (
+                  /* Retail Shop: Strictly Doorstep Delivery (Self-Pickup disabled to prevent uncollected fake orders) */
+                  <div className="p-3 rounded-2xl bg-[#151314] border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🛵</span>
+                        <div>
+                          <p className="text-xs font-bold text-white">Doorstep Delivery Only</p>
+                          <p className="text-[10px] text-zinc-400">Direct courier with live Sarathi tracking</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30">
+                        {onlineRidersCount > 0 ? 'Active' : 'Busy'}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 bg-white/5 p-2 rounded-xl border border-white/5 flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-[#E0FF33] shrink-0" />
+                      <span>Retail Shop: Counter pickup is disabled to protect against uncollected inventory.</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* Hotel / Restaurant: Support both Doorstep Delivery and Counter Pickup */
+                  <div className="p-1 rounded-2xl bg-[#151314] border border-white/10 grid grid-cols-2 gap-1 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onlineRidersCount > 0) setFulfillmentType('delivery');
+                        else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        fulfillmentType === 'delivery'
+                          ? 'bg-white text-[#1E1B1C] shadow-sm font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    >
+                      <span>🛵 Delivery</span>
+                      {onlineRidersCount === 0 && <span className="text-[9px] text-amber-400 font-black">(Offline)</span>}
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setFulfillmentType('pickup')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                      fulfillmentType === 'pickup'
-                        ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-sm font-black'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <span>🛍️ Self-Pickup</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/15 text-[#1E1B1C] font-black">Free</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setFulfillmentType('pickup')}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        fulfillmentType === 'pickup'
+                          ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-sm font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <span>🛍️ Self-Pickup</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/15 text-[#1E1B1C] font-black">Free</span>
+                    </button>
+                  </div>
+                )}
 
-                {/* Rider Busy Notice */}
-                {onlineRidersCount === 0 && (
+                {/* Rider Busy Notice for Hotel */}
+                {!isRetailShop && onlineRidersCount === 0 && (
                   <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-medium flex items-center gap-2 animate-fade-in">
                     <Clock className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                    <span>All Sarathi Riders are currently busy. Self-Pickup is available at the kitchen counter.</span>
+                    <span>Sarathi Riders are currently offline. Self-Pickup is available at the kitchen counter.</span>
+                  </div>
+                )}
+
+                {/* Rider Busy Notice for Shop */}
+                {isRetailShop && onlineRidersCount === 0 && (
+                  <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] font-medium flex items-center gap-2 animate-fade-in">
+                    <Clock className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                    <span>Delivery partners are temporarily offline. Orders will resume shortly.</span>
                   </div>
                 )}
               </div>
@@ -2168,11 +2215,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               <button
                 onClick={handlePlaceOrder}
-                disabled={!onlineAvailable && !codAvailable}
+                disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (isRetailShop && onlineRidersCount === 0)}
                 className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
               >
                 <span className="font-black">
-                  {!onlineAvailable && !codAvailable ? 'Kitchen Payments Disabled' : 'Proceed to Place Order'}
+                  {!isShopOpen 
+                    ? 'Kitchen Offline (Closed)' 
+                    : (isRetailShop && onlineRidersCount === 0 
+                        ? 'Delivery Partners Busy' 
+                        : (!onlineAvailable && !codAvailable 
+                            ? 'Kitchen Payments Disabled' 
+                            : 'Proceed to Place Order'))}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
                   ₹{totalAmount}

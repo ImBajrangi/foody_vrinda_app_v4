@@ -217,9 +217,9 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
             if (e.target === e.currentTarget) setShowDetailModal(false);
           }}
         >
-          <div className="w-full max-w-lg bg-[#1A1718] border border-white/10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-lg bg-[#1E1B1C] border border-white/10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#221F20] shrink-0">
+            <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#282526] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
                   <Receipt className="w-5 h-5" />
@@ -261,9 +261,9 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
             </div>
 
             {/* Modal Scrollable Content */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans']">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans'] bg-[#1E1B1C]">
               {/* Payment Status Card */}
-              <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-2">
+              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2">
                 <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">
                   Payment Details
                 </span>
@@ -286,7 +286,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
               </div>
 
               {/* Customer & Location Details */}
-              <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2.5">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Customer</span>
@@ -331,7 +331,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
               </div>
 
               {/* Items Breakdown */}
-              <div className="p-4 rounded-2xl bg-[#221F20] border border-white/10 space-y-2">
+              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2">
                 <div className="flex justify-between items-center pb-2 border-b border-white/10 text-xs font-bold text-neutral-400 uppercase tracking-wider">
                   <span>Ordered Dishes ({itemCount})</span>
                   <span>Amount</span>
@@ -367,7 +367,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 sm:p-5 border-t border-white/10 bg-[#221F20] flex items-center justify-end gap-2 shrink-0">
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-[#282526] flex items-center justify-end gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => {

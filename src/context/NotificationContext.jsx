@@ -218,8 +218,8 @@ export function NotificationProvider({ children }) {
     if (Notification.permission !== 'granted') return;
 
     const notifOptions = {
-      icon: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png',
-      badge: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png',
+      icon: '/foody-vrinda-logo.webp',
+      badge: '/pwa-192x192.webp',
       vibrate: [200, 100, 200],
       renotify: true,
       tag: options.tag || `foody-notif-${Date.now()}`,

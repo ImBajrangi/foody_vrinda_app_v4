@@ -1756,9 +1756,16 @@ export async function createCloudShop(shopData) {
       phone: normalized.phone,
       coordinates: normalized.coordinates,
       is_open: normalized.isOpen,
+      is_online: normalized.isOnline,
+      shop_type: normalized.shopType,
       minimum_order_amount: normalized.minimumOrderAmount,
       delivery_charge: normalized.deliveryCharge,
       gst_percentage: normalized.gstPercentage,
+      operating_hours: {
+        openTime: normalized.openingTime,
+        closeTime: normalized.closingTime,
+        autoSchedule: true
+      },
       payment_settings: {
         ...normalized.paymentSettings,
         shopType: normalized.shopType,
@@ -1834,6 +1841,19 @@ export async function updateCloudShop(shopId, shopData) {
       if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
       if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
       if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
+      if (shopData.isOnline !== undefined || shopData.is_online !== undefined) {
+        payload.is_online = shopData.isOnline ?? shopData.is_online;
+      }
+      if (shopData.shopType !== undefined || shopData.shop_type !== undefined) {
+        payload.shop_type = shopData.shopType || shopData.shop_type;
+      }
+      if (shopData.openingTime !== undefined || shopData.closingTime !== undefined) {
+        payload.operating_hours = {
+          openTime: shopData.openingTime || updatedShop?.openingTime || '08:00',
+          closeTime: shopData.closingTime || updatedShop?.closingTime || '22:30',
+          autoSchedule: true
+        };
+      }
 
       if (shopData.paymentSettings !== undefined) {
         payload.payment_settings = {
@@ -2620,6 +2640,23 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   }
 
   return updatedUserObj;
+}
+
+/**
+ * Updates online/duty status and optional location coordinates for staff / delivery riders
+ */
+export async function updateUserOnlineStatus(userId, isOnline = true, coordinates = null) {
+  if (!userId) return null;
+  const updates = {
+    isOnline: !!isOnline,
+    is_online: !!isOnline,
+    is_active: !!isOnline,
+    last_seen_at: new Date().toISOString()
+  };
+  if (coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number') {
+    updates.coordinates = coordinates;
+  }
+  return updateCloudUser(userId, updates);
 }
 
 export async function deleteCloudUser(userId) {

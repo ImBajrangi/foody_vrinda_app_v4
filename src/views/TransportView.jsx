@@ -3,7 +3,16 @@ import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { supabase, updateCloudOrderStatus, subscribeCloudOrders, createCloudNotification, getOrderItemSummary, getOrderCustomerName, updateCloudUser } from '../supabase';
+import { 
+  supabase, 
+  updateCloudOrderStatus, 
+  subscribeCloudOrders, 
+  createCloudNotification, 
+  getOrderItemSummary, 
+  getOrderCustomerName, 
+  updateCloudUser,
+  updateUserOnlineStatus
+} from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import {
@@ -64,6 +73,31 @@ export default function TransportView() {
     }
   });
 
+  const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
+
+  // Live Realtime GPS Broadcaster for Delivery Sarathis
+  useEffect(() => {
+    if (!isRiderOnDuty || typeof window === 'undefined' || !navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setRiderCoords(coords);
+        if (currentUser?.id || currentUser?.email) {
+          updateUserOnlineStatus(currentUser.id || currentUser.email, true, coords).catch(() => {});
+        }
+      },
+      (err) => {
+        console.warn("GPS broadcast note:", err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [isRiderOnDuty, currentUser]);
+
   const toggleRiderDuty = async () => {
     const nextState = !isRiderOnDuty;
     setIsRiderOnDuty(nextState);
@@ -72,13 +106,10 @@ export default function TransportView() {
     } catch (e) { }
     if (currentUser?.id || currentUser?.email) {
       try {
-        await updateCloudUser(currentUser.id || currentUser.email, {
-          isOnline: nextState,
-          dutyStatus: nextState ? 'on_duty' : 'off_duty'
-        });
+        await updateUserOnlineStatus(currentUser.id || currentUser.email, nextState, riderCoords);
       } catch (e) { }
     }
-    showToast(nextState ? "You are ON DUTY (Receiving delivery tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
+    showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -553,21 +584,21 @@ export default function TransportView() {
       )}
 
       {/* Top Controls: Responsive Switcher between Map View and List View */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 bg-[#282526] border border-white/8 p-3.5 sm:p-4 rounded-3xl shadow-xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/8 p-3.5 sm:p-4 rounded-3xl shadow-xl">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-[#1E1B1C] border border-white/10 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-md">
+          <div className="w-10 h-10 rounded-2xl bg-stone-300/60 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-md">
             <Truck className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm sm:text-base font-black text-white font-['Outfit'] tracking-tight truncate">
+            <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
               Sarathi Delivery Fleet
             </h3>
-            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans']">
+            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
               <span className="flex items-center gap-1.5 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse shrink-0" />
-                <strong className="text-white font-bold">{orders.length}</strong> {orders.length === 1 ? 'Active Order' : 'Active Orders'}
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33] animate-pulse shrink-0" />
+                <strong className="text-stone-900 dark:text-white font-bold">{orders.length}</strong> {orders.length === 1 ? 'Active Order' : 'Active Orders'}
               </span>
-              <span className="text-neutral-600">•</span>
+              <span className="text-stone-400 dark:text-neutral-600">•</span>
               <span className="truncate">{viewMode === 'map' ? 'CARTO HUD View' : 'Queue View'}</span>
             </div>
           </div>
@@ -580,12 +611,12 @@ export default function TransportView() {
             onClick={toggleRiderDuty}
             className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
               isRiderOnDuty
-                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
             }`}
             title="Toggle Rider Duty Availability"
           >
-            <span className={`w-2 h-2 rounded-full ${isRiderOnDuty ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+            <span className={`w-2 h-2 rounded-full ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
             <span>{isRiderOnDuty ? 'On Duty' : 'Off Duty'}</span>
           </button>
 
@@ -601,21 +632,21 @@ export default function TransportView() {
               }
             }}
             className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${isPlaying
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-[#1E1B1C] text-neutral-300 border-white/8 hover:text-white hover:border-white/15'
+                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/8 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/15'
               }`}
             title="Test or silence Sarathi Rider Chime"
           >
-            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
+            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-cyan-400" />}
             <span className="hidden sm:inline">{isPlaying ? 'Silence' : 'Test Sound'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 bg-[#1E1B1C] p-1.5 rounded-2xl border border-white/8 shadow-inner shrink-0 flex-1 sm:flex-none justify-center">
+          <div className="flex items-center gap-1.5 bg-stone-300/70 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-300 dark:border-white/8 shadow-inner shrink-0 flex-1 sm:flex-none justify-center">
             <button
               onClick={() => setViewMode('list')}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
-                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121214] font-black shadow-md'
+                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
                 }`}
             >
               <List className="w-3.5 h-3.5 shrink-0" />
@@ -624,8 +655,8 @@ export default function TransportView() {
             <button
               onClick={() => setViewMode('map')}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
-                ? 'bg-[#E0FF33] text-[#121214] font-black shadow-[0_2px_10px_rgba(224,255,51,0.3)]'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121214] font-black shadow-md'
+                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
                 }`}
             >
               <Map className="w-3.5 h-3.5 shrink-0" />
@@ -638,7 +669,7 @@ export default function TransportView() {
       {/* BRANCH SELECTOR — Global roles can switch delivery branches inline */}
       {isGlobalRole && allShops.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
+          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
           {allShops.map(s => {
             const isActive = currentUserShopId === s.id;
             return (
@@ -646,8 +677,8 @@ export default function TransportView() {
                 key={s.id}
                 onClick={() => impersonate(s.id, userRole)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                  ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
-                  : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] font-black'
+                  : 'bg-stone-200/90 dark:bg-[#282526] text-stone-700 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
                   }`}
               >
                 <Store className="w-3 h-3" />
@@ -931,23 +962,23 @@ export default function TransportView() {
       {(viewMode === 'list' || !activeOrder) && (
         <div className="space-y-4">
           <div className="relative">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-neutral-500" />
             <input
               type="text"
               placeholder="Search by order ID, customer name, or dish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#282526] border border-white/5 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+              className="w-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-stone-900 dark:text-white placeholder:text-stone-500 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
             />
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div className="bg-[#282526] border border-white/5 rounded-3xl p-16 text-center space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-white/5 flex items-center justify-center text-neutral-400">
-                <PackageCheck className="w-7 h-7" />
+            <div className="bg-stone-200/80 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-16 text-center space-y-3">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-stone-300/60 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-neutral-400">
+                <PackageCheck className="w-7 h-7 text-amber-600 dark:text-[#E0FF33]" />
               </div>
-              <h3 className="text-base font-bold text-white font-['Outfit']">All deliveries caught up!</h3>
-              <p className="text-xs text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto">
+              <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">All deliveries caught up!</h3>
+              <p className="text-xs text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto">
                 No active delivery orders currently pending. New pickup requests will chime the live alarm.
               </p>
             </div>
@@ -963,50 +994,50 @@ export default function TransportView() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-[#282526] border border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
+                    className="bg-white dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/40 dark:hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
                     {/* Status Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isReady ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
 
                     <div className="space-y-3.5">
                       {/* Header: Order ID & Status Pill */}
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <span className="text-base font-black text-white font-['Outfit'] tracking-wide">
+                          <span className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-wide">
                             #{order.id.slice(-6).toUpperCase()}
                           </span>
-                          <p className="text-xs font-semibold text-neutral-400 flex items-center gap-1.5 mt-0.5 font-['Plus_Jakarta_Sans']">
-                            <Store className="w-3.5 h-3.5 text-[#E0FF33]" />
+                          <p className="text-xs font-semibold text-stone-600 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5 font-['Plus_Jakarta_Sans']">
+                            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
                             <span>{shopName}</span>
                           </p>
                         </div>
 
                         <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
-                          ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
-                          : 'bg-cyan-400/10 text-cyan-300 border-cyan-400/20'
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                          : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
                           }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
                           <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
                         </span>
                       </div>
 
                       {/* Customer Info Panel */}
-                      <div className="bg-[#1E1B1C] border border-white/5 rounded-2xl p-4 space-y-3 text-xs text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
+                      <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-2xl p-4 space-y-3 text-xs text-stone-800 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold text-white text-sm">{order.customerName || 'Customer'}</span>
+                          <span className="font-bold text-stone-900 dark:text-white text-sm">{order.customerName || 'Customer'}</span>
                           {order.customerPhone && (
                             <a
                               href={`tel:${order.customerPhone}`}
-                              className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                              className="px-3 py-1 rounded-full bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
                             >
-                              <Phone className="w-3 h-3 text-[#E0FF33]" />
+                              <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
                               <span>{order.customerPhone}</span>
                             </a>
                           )}
                         </div>
 
-                        <div className="flex items-start gap-2 text-xs text-neutral-300">
-                          <MapPin className="w-3.5 h-3.5 text-[#E0FF33] shrink-0 mt-0.5" />
+                        <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
+                          <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
                           <p className="line-clamp-2 leading-relaxed">{order.customerAddress || order.deliveryAddress || 'Vrindavan Delivery Location'}</p>
                         </div>
 

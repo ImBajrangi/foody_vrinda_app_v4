@@ -954,7 +954,7 @@ export default function DeveloperView({ setCurrentTab }) {
     if (Notification && Notification.permission === 'granted') {
       new Notification('Foody Vrinda Audio Test', {
         body: 'Sound alarm pipeline triggered successfully!',
-        icon: 'https://imbajrangi.github.io/Company/Vrindopnishad%20Web/class/logo/foodyVrinda-logo.png'
+        icon: '/foody-vrinda-logo.webp'
       });
     } else if (Notification) {
       Notification.requestPermission();
@@ -967,22 +967,22 @@ export default function DeveloperView({ setCurrentTab }) {
 
 
       {/* ═══ PREMIUM DASHBOARD HERO HEADER ═══ */}
-      <div className="dev-hero-gradient rounded-3xl border border-white/5 p-5 sm:p-7 relative overflow-hidden shadow-2xl">
+      <div className="dev-hero-gradient rounded-3xl border border-stone-300 dark:border-white/5 p-5 sm:p-7 relative overflow-hidden shadow-2xl">
         {/* Decorative accent orbs */}
-        <div className="absolute top-0 right-0 w-56 h-56 bg-[#E0FF33]/[0.04] rounded-full blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-40 h-40 bg-cyan-400/[0.03] rounded-full blur-[60px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/[0.05] dark:bg-[#E0FF33]/[0.04] rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-cyan-500/[0.04] dark:bg-cyan-400/[0.03] rounded-full blur-[60px] pointer-events-none" />
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/25 flex items-center justify-center shadow-[0_0_20px_rgba(224,255,51,0.15)]">
-                <Terminal className="w-5 h-5 text-[#E0FF33]" />
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/25 flex items-center justify-center shadow-[0_0_20px_rgba(217,119,6,0.15)] dark:shadow-[0_0_20px_rgba(224,255,51,0.15)]">
+                <Terminal className="w-5 h-5 text-amber-600 dark:text-[#E0FF33]" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-black text-white font-['Outfit'] tracking-tight">
+                <h1 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                   Developer Control Center
                 </h1>
-                <p className="text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans']">
+                <p className="text-[11px] text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
                   Foody Vrinda — Admin Dashboard & Cloud Sync Manager
                 </p>
               </div>
@@ -992,20 +992,20 @@ export default function DeveloperView({ setCurrentTab }) {
           <div className="flex items-center gap-3 shrink-0">
             {/* Live sync status */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 dev-live-dot" />
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live Sync</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 dev-live-dot" />
+              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Live Sync</span>
             </div>
 
             {/* Database status */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-              <Database className="w-3 h-3 text-[#E0FF33]" />
-              <span className="text-[10px] font-bold text-neutral-300 uppercase tracking-wider font-mono">Supabase</span>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-200 dark:bg-white/5 border border-stone-300 dark:border-white/10">
+              <Database className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
+              <span className="text-[10px] font-bold text-stone-700 dark:text-neutral-300 uppercase tracking-wider font-mono">Supabase</span>
             </div>
 
             {/* Auth badge */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E0FF33]/10 border border-[#E0FF33]/25">
-              <Shield className="w-3 h-3 text-[#E0FF33]" />
-              <span className="text-[10px] font-bold text-[#E0FF33] uppercase tracking-wider">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/25 dark:border-[#E0FF33]/25">
+              <Shield className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
+              <span className="text-[10px] font-bold text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
                 {userData?.role === 'grand_admin' ? 'Grand Admin' : 'Developer'}
               </span>
             </div>
@@ -1016,20 +1016,20 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* ═══ ANIMATED SYSTEM STATISTICS ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
-          { icon: Store, value: stats.shops, label: 'Kitchens', color: 'text-[#E0FF33]', bgColor: 'bg-[#E0FF33]/10', borderHover: 'hover:border-[#E0FF33]/20' },
-          { icon: UtensilsCrossed, value: stats.items, label: 'Dishes Catalog', color: 'text-cyan-400', bgColor: 'bg-cyan-400/10', borderHover: 'hover:border-cyan-400/20' },
-          { icon: Tag, value: stats.offers, label: 'Active Offers', color: 'text-emerald-400', bgColor: 'bg-emerald-400/10', borderHover: 'hover:border-emerald-400/20' },
-          { icon: Receipt, value: stats.orders, label: 'Total Orders', color: 'text-amber-400', bgColor: 'bg-amber-400/10', borderHover: 'hover:border-amber-400/20' },
-          { icon: Users, value: stats.notifications, label: 'Users & Staff', color: 'text-purple-400', bgColor: 'bg-purple-400/10', borderHover: 'hover:border-purple-400/20', colSpan: 'col-span-2 sm:col-span-1' }
+          { icon: Store, value: stats.shops, label: 'Kitchens', color: 'text-amber-600 dark:text-[#E0FF33]', bgColor: 'bg-amber-500/10 dark:bg-[#E0FF33]/10', borderHover: 'hover:border-amber-500/30 dark:hover:border-[#E0FF33]/20' },
+          { icon: UtensilsCrossed, value: stats.items, label: 'Dishes Catalog', color: 'text-cyan-600 dark:text-cyan-400', bgColor: 'bg-cyan-500/10 dark:bg-cyan-400/10', borderHover: 'hover:border-cyan-500/30 dark:hover:border-cyan-400/20' },
+          { icon: Tag, value: stats.offers, label: 'Active Offers', color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-500/10 dark:bg-emerald-400/10', borderHover: 'hover:border-emerald-500/30 dark:hover:border-emerald-400/20' },
+          { icon: Receipt, value: stats.orders, label: 'Total Orders', color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-500/10 dark:bg-amber-400/10', borderHover: 'hover:border-amber-500/30 dark:hover:border-amber-400/20' },
+          { icon: Users, value: stats.notifications, label: 'Users & Staff', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-500/10 dark:bg-purple-400/10', borderHover: 'hover:border-purple-500/30 dark:hover:border-purple-400/20', colSpan: 'col-span-2 sm:col-span-1' }
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className={`dev-stat-card bg-[#282526] border border-white/5 ${stat.borderHover} rounded-3xl p-4 sm:p-5 text-center shadow-xl transition-all duration-300 cursor-default group ${stat.colSpan || ''}`}>
+            <div key={stat.label} className={`dev-stat-card bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 ${stat.borderHover} rounded-3xl p-4 sm:p-5 text-center shadow-xl transition-all duration-300 cursor-default group ${stat.colSpan || ''}`}>
               <div className={`w-10 h-10 rounded-2xl ${stat.bgColor} ${stat.color} flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-200`}>
                 <Icon className="w-5 h-5" />
               </div>
-              <p className="text-2xl font-black text-white font-['Outfit'] dev-count-value">{stat.value}</p>
-              <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
+              <p className="text-2xl font-black text-stone-900 dark:text-white font-['Outfit'] dev-count-value">{stat.value}</p>
+              <p className="text-[10px] text-stone-600 dark:text-neutral-400 font-bold uppercase tracking-wider mt-0.5">{stat.label}</p>
             </div>
           );
         })}
@@ -1037,34 +1037,34 @@ export default function DeveloperView({ setCurrentTab }) {
 
       {/* ═══ LIVE ACTIVITY FEED ═══ */}
       {activityLog.length > 0 && (
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-5 shadow-xl">
+        <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-4 sm:p-5 shadow-xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center">
                 <Activity className="w-3.5 h-3.5" />
               </div>
-              <h3 className="text-xs font-black text-white uppercase tracking-wider font-['Outfit']">Recent Activity</h3>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 dev-live-dot" />
+              <h3 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">Recent Activity</h3>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 dev-live-dot" />
             </div>
             <button
               type="button"
               onClick={() => setActivityLog([])}
-              className="text-[10px] text-neutral-500 hover:text-neutral-300 font-bold uppercase tracking-wider cursor-pointer transition-colors"
+              className="text-[10px] text-stone-500 hover:text-stone-800 dark:text-neutral-500 dark:hover:text-neutral-300 font-bold uppercase tracking-wider cursor-pointer transition-colors"
             >
               Clear
             </button>
           </div>
           <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
             {activityLog.slice(0, 8).map((entry) => (
-              <div key={entry.id} className="dev-activity-row flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.03] hover:bg-white/[0.06] transition-all">
+              <div key={entry.id} className="dev-activity-row flex items-center gap-2.5 px-3 py-2 rounded-xl bg-stone-100 dark:bg-white/[0.03] border border-stone-300/60 dark:border-white/[0.03] hover:bg-stone-200 dark:hover:bg-white/[0.06] transition-all">
                 <Zap className={`w-3 h-3 shrink-0 ${
-                  entry.type === 'success' ? 'text-emerald-400' :
-                  entry.type === 'warning' ? 'text-amber-400' :
-                  entry.type === 'error' ? 'text-rose-400' :
-                  'text-cyan-400'
+                  entry.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' :
+                  entry.type === 'warning' ? 'text-amber-600 dark:text-amber-400' :
+                  entry.type === 'error' ? 'text-rose-600 dark:text-rose-400' :
+                  'text-cyan-600 dark:text-cyan-400'
                 }`} />
-                <span className="text-[11px] text-neutral-300 font-medium truncate flex-1">{entry.message}</span>
-                <span className="text-[9px] text-neutral-500 font-mono shrink-0">
+                <span className="text-[11px] text-stone-800 dark:text-neutral-300 font-medium truncate flex-1">{entry.message}</span>
+                <span className="text-[9px] text-stone-500 dark:text-neutral-500 font-mono shrink-0">
                   {entry.time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
@@ -1074,7 +1074,7 @@ export default function DeveloperView({ setCurrentTab }) {
       )}
 
       {/* Mobile / Desktop Section Quick Toolbar & Minimizer */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-[#282526] border border-white/5 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 shadow-xl">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           {[
             { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
@@ -1096,13 +1096,12 @@ export default function DeveloperView({ setCurrentTab }) {
                 onClick={() => toggleSection(sec.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                   isExpanded
-                    ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 shadow-sm'
-                    : 'bg-[#1E1B1C] text-neutral-400 border border-white/5 hover:text-white'
+                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-600 dark:border-[#E0FF33]/30 shadow-sm font-black'
+                    : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/5 hover:text-stone-950 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{sec.label}</span>
-                <span className={`w-1.5 h-1.5 rounded-full ${isExpanded ? 'bg-[#E0FF33]' : 'bg-neutral-600'}`} />
               </button>
             );
           })}

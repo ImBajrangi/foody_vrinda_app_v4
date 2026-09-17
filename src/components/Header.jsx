@@ -74,38 +74,43 @@ export default function Header({
                   onError={() => setHeaderAvatarError(true)}
                 />
               ) : (
-                <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit'] group-hover:scale-110 transition-transform duration-300">
-                  {getDisplayName().charAt(0).toUpperCase()}
-                </div>
+                <img 
+                  src="/foody-vrinda-logo.webp" 
+                  alt="Foody Vrinda" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
               )}
             </div>
           </button>
           
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[13px] font-bold text-[#E0FF33] font-laila tracking-wide">
+              <span className="text-[13px] font-bold text-amber-600 dark:text-[#E0FF33] font-laila tracking-wide">
                 वृन्दोपनिषद्
               </span>
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 font-['Outfit']">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit']">
                 (vrindopnishad)
               </span>
             </div>
-            <h2 className="text-white font-black text-base sm:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
+            <h2 className="text-stone-900 dark:text-white font-black text-base sm:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
               Hi, {getDisplayName()}
             </h2>
-            <p className="text-xs text-zinc-400 font-medium truncate">Welcome to Foody Vrinda</p>
+            <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium truncate">Welcome to Foody Vrinda</p>
           </div>
         </div>
 
         {/* Operational View Switcher (Desktop md+ Pill Strip) */}
         {hasStaffOrSpecialRole && (
-          <div className="hidden md:flex bg-[#282526] p-1 rounded-full border border-white/10 gap-1 shadow-sm">
+          <div className="hidden md:flex bg-stone-200/90 dark:bg-[#282526] p-1 rounded-full border border-stone-300 dark:border-white/10 gap-1 shadow-sm">
             <button 
               onClick={() => setCurrentTab('customer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'customer' 
-                  ? 'bg-white text-[#1E1B1C] font-black shadow-sm' 
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Store
@@ -116,8 +121,8 @@ export default function Header({
                 onClick={() => setCurrentTab('kitchen')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'kitchen' 
-                    ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-sm' 
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Kitchen
@@ -129,8 +134,8 @@ export default function Header({
                 onClick={() => setCurrentTab('delivery')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'delivery' 
-                    ? 'bg-[#06B6D4] text-[#1E1B1C] font-black shadow-sm' 
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-cyan-600 dark:bg-[#06B6D4] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Rider
@@ -142,8 +147,8 @@ export default function Header({
                 onClick={() => setCurrentTab('owner')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'owner' 
-                    ? 'bg-[#A855F7] text-white font-black shadow-sm' 
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-purple-600 dark:bg-[#A855F7] text-white font-black shadow-sm' 
+                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Owner
@@ -155,8 +160,8 @@ export default function Header({
                 onClick={() => setCurrentTab('developer')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'developer' 
-                    ? 'bg-emerald-500 text-white font-black shadow-sm' 
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-black shadow-sm' 
+                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Dev
@@ -169,12 +174,12 @@ export default function Header({
         <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
           <button
             onClick={onToggleSearch}
-            className="w-10 h-10 sm:w-11 sm:h-11 md:w-auto md:px-4 rounded-full bg-[#282526] border border-white/10 hover:border-white/20 hover:bg-[#322E30] flex items-center justify-center md:justify-start gap-2 text-zinc-300 hover:text-white transition-all shadow-md cursor-pointer apple-tap-target shrink-0 active:scale-95"
+            className="w-10 h-10 sm:w-11 sm:h-11 md:w-auto md:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center md:justify-start gap-2 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-md cursor-pointer apple-tap-target shrink-0 active:scale-95"
             title="Search (Ctrl + K)"
           >
-            <Search size={17} className="text-[#E0FF33]" />
-            <span className="hidden md:inline text-xs font-bold text-zinc-300">Search</span>
-            <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[10px] font-bold text-zinc-400 bg-[#1E1B1C] px-1.5 py-0.5 rounded border border-white/10 ml-1">
+            <Search size={17} className="text-amber-600 dark:text-[#E0FF33]" />
+            <span className="hidden md:inline text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
+            <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-[#1E1B1C] px-1.5 py-0.5 rounded border border-stone-300 dark:border-white/10 ml-1">
               ⌘K
             </kbd>
           </button>
@@ -184,11 +189,11 @@ export default function Header({
           {totalQty > 0 && onOpenCart && (
             <button
               onClick={onOpenCart}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#282526] border border-white/10 hover:border-[#E0FF33]/40 hover:bg-[#322E30] flex items-center justify-center text-zinc-200 hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
               title="Open Basket"
             >
-              <ShoppingBag size={18} className="text-[#E0FF33]" />
-              <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-[#E0FF33] text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-lg font-['Outfit'] border-2 border-[#1E1B1C] leading-none">
+              <ShoppingBag size={18} className="text-amber-600 dark:text-[#E0FF33]" />
+              <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-lg font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] leading-none">
                 {totalQty}
               </span>
             </button>
@@ -197,12 +202,12 @@ export default function Header({
           {/* Theme Toggle Button (Light / Dark Mode) */}
           <button
             onClick={toggleTheme}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#282526] border border-white/10 hover:border-white/20 hover:bg-[#322E30] flex items-center justify-center text-zinc-200 hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
             title={isLight ? "Switch to Obsidian Dark Mode" : "Switch to Divine Light Mode"}
             aria-label="Toggle Theme"
           >
             {isLight ? (
-              <Moon size={18} className="text-amber-500 group-hover:rotate-12 transition-transform duration-300" />
+              <Moon size={18} className="text-amber-600 group-hover:rotate-12 transition-transform duration-300" />
             ) : (
               <Sun size={18} className="text-[#E0FF33] group-hover:rotate-45 transition-transform duration-300" />
             )}
@@ -210,7 +215,7 @@ export default function Header({
 
           <button 
             onClick={onToggleNotifications}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#282526] border border-white/10 hover:border-white/20 hover:bg-[#322E30] flex items-center justify-center text-zinc-200 hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
             title="Notifications"
           >
             <Bell size={18} />
@@ -224,13 +229,13 @@ export default function Header({
 
       {/* Mobile Dedicated Operational View Switcher (Horizontal Smooth Touch Strip) */}
       {hasStaffOrSpecialRole && (
-        <div className="flex md:hidden items-center justify-start overflow-x-auto no-scrollbar gap-1.5 bg-[#282526] p-1 rounded-2xl border border-white/10 shadow-sm mt-1 mb-2 w-full">
+        <div className="flex md:hidden items-center justify-start overflow-x-auto no-scrollbar gap-1.5 bg-stone-200/90 dark:bg-[#282526] p-1 rounded-2xl border border-stone-300 dark:border-white/10 shadow-sm mt-1 mb-2 w-full">
           <button 
             onClick={() => setCurrentTab('customer')}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               currentTab === 'customer' 
-                ? 'bg-white text-[#1E1B1C] font-black shadow-sm' 
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
             }`}
           >
             Store
@@ -241,8 +246,8 @@ export default function Header({
               onClick={() => setCurrentTab('kitchen')}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 currentTab === 'kitchen' 
-                  ? 'bg-[#E0FF33] text-[#1E1B1C] font-black shadow-sm' 
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-sm' 
+                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Kitchen
@@ -254,8 +259,8 @@ export default function Header({
               onClick={() => setCurrentTab('delivery')}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 currentTab === 'delivery' 
-                  ? 'bg-[#06B6D4] text-[#1E1B1C] font-black shadow-sm' 
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black shadow-sm' 
+                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Rider
@@ -267,8 +272,8 @@ export default function Header({
               onClick={() => setCurrentTab('owner')}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 currentTab === 'owner' 
-                  ? 'bg-[#A855F7] text-white font-black shadow-sm' 
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-purple-600 text-white font-black shadow-sm' 
+                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Owner
@@ -280,8 +285,8 @@ export default function Header({
               onClick={() => setCurrentTab('developer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 currentTab === 'developer' 
-                  ? 'bg-emerald-500 text-white font-black shadow-sm' 
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-emerald-600 text-white font-black shadow-sm' 
+                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Dev

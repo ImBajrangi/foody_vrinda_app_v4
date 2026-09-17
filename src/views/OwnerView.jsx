@@ -668,7 +668,12 @@ export default function OwnerView() {
     if (!targetShop?.id) return;
     const nextOnline = !isShopOnline;
     try {
-      await updateCloudShop(targetShop.id, { isOnline: nextOnline });
+      await updateCloudShop(targetShop.id, { 
+        isOnline: nextOnline, 
+        is_online: nextOnline,
+        isOpen: nextOnline,
+        is_open: nextOnline
+      });
       setToast({
         message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
         type: nextOnline ? "success" : "warning"
@@ -820,12 +825,12 @@ export default function OwnerView() {
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
       {/* Top Hero Card */}
-      <div className="bg-[#282526] border border-white/5 p-6 sm:p-7 rounded-3xl relative overflow-hidden shadow-2xl space-y-4">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative overflow-hidden shadow-2xl space-y-4">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/10 dark:from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Minimal Bar */}
         <div className="flex items-center justify-between gap-3 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#E0FF33]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-300/60 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-semibold text-amber-700 dark:text-[#E0FF33]">
             <Store className="w-3.5 h-3.5" />
             <span>Store Owner Console</span>
           </div>
@@ -844,12 +849,12 @@ export default function OwnerView() {
             }}
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
               isPlaying
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 animate-pulse'
-                : 'bg-white/5 text-neutral-300 border-white/10 hover:text-white hover:border-[#E0FF33]/30 hover:bg-white/10'
+                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/50 animate-pulse'
+                : 'bg-stone-100 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-[#E0FF33]/30 hover:bg-stone-200 dark:hover:bg-white/10'
             }`}
             title="Test or silence Store Owner Alarm"
           >
-            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-[#E0FF33]" />}
+            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />}
             <span>{isPlaying ? 'Silence Sound' : 'Test Alarm'}</span>
           </button>
         </div>
@@ -857,10 +862,10 @@ export default function OwnerView() {
         {/* Title & Live Status Group */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 relative z-10 pt-1">
           <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white font-['Outfit']">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-stone-900 dark:text-white font-['Outfit']">
               {currentShop ? currentShop.name : 'Kitchen Management'}
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-xl">
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-xl">
               Manage live dishes, audit revenue, configure payment gateways, and edit branch profile.
             </p>
           </div>
@@ -872,16 +877,16 @@ export default function OwnerView() {
               onClick={handleToggleShopOnline}
               className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${
                 isShopOnline
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25'
-                  : 'bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/25'
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25'
+                  : 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/25'
               }`}
               title="Click to toggle shop Online/Offline status in realtime"
             >
-              <span className={`w-2 h-2 rounded-full ${isShopOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
               <span>{isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
             </button>
             {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-xs font-black text-[#E0FF33] shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 text-xs font-black text-amber-700 dark:text-[#E0FF33] shadow-sm">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {orders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length} Active Orders
               </span>
@@ -891,8 +896,8 @@ export default function OwnerView() {
 
         {/* BRANCH SELECTOR — Integrated inside Hero for easy switching */}
         {isGlobalRole && allShops.length > 1 && (
-          <div className="pt-3 border-t border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar relative z-10">
-            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Switch Branch:</span>
+          <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar relative z-10">
+            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0">Switch Branch:</span>
             {allShops.map(s => {
               const isActive = currentUserShopId === s.id;
               return (
@@ -900,8 +905,8 @@ export default function OwnerView() {
                   key={s.id}
                   onClick={() => impersonate(s.id, userRole)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-md'
-                    : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
+                    : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
                     }`}
                 >
                   <Store className="w-3.5 h-3.5" />
@@ -914,7 +919,7 @@ export default function OwnerView() {
       </div>
 
       {/* Dedicated Full-Width Segmented Tab Navigation */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#282526] border border-white/5 overflow-x-auto no-scrollbar shadow-xl">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-xl">
         {[
           {
             id: 'orders',
@@ -940,14 +945,14 @@ export default function OwnerView() {
                 }
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${isActive
-                ? 'bg-[#E0FF33] text-black shadow-lg font-black'
-                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-lg font-black'
+                : 'text-stone-700 hover:text-stone-950 hover:bg-stone-300/60 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
                 }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
               {Boolean(tab.badge) && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-[#E0FF33]' : 'bg-[#E0FF33] text-black'
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-amber-300 dark:bg-black dark:text-[#E0FF33]' : 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black'
                   }`}>
                   {tab.badge}
                 </span>
@@ -3393,39 +3398,77 @@ export default function OwnerView() {
                         )}
                       </div>
 
-                      {topRider ? (
-                        <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/30 flex items-center justify-center font-black text-xs shrink-0">
-                              {topRider.name?.slice(0, 2).toUpperCase() || 'RD'}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-white truncate">{topRider.name || 'Delivery Sarathi'}</p>
-                              <p className="text-[10px] text-neutral-400">
-                                📍 ~{topRider.distanceKm} km away • {topRider.activeOrders} ongoing orders • ~{topRider.etaMinutes} min ETA
-                              </p>
-                            </div>
-                          </div>
+                      {recommendedRiders.length > 0 ? (
+                        <div className="space-y-2">
+                          {recommendedRiders.map((rider, rIdx) => {
+                            const isTop = rIdx === 0;
+                            const isOnlyOne = recommendedRiders.length === 1;
+                            const activeCount = rider.activeOrdersCount ?? rider.activeOrders ?? 0;
+                            const eta = rider.etaMins ?? rider.etaMinutes ?? Math.max(4, Math.round(rider.distanceKm * 4 + 3));
 
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              await updateCloudOrderStatus(o.id, 'out_for_delivery', {
-                                rider_id: topRider.id,
-                                rider_name: topRider.name
-                              });
-                              setSelectedAuditOrder(prev => ({
-                                ...prev,
-                                status: 'out_for_delivery',
-                                rider_id: topRider.id,
-                                rider_name: topRider.name
-                              }));
-                              setToast({ message: `Assigned to ${topRider.name} & Dispatched!`, type: 'success' });
-                            }}
-                            className="px-3.5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-[#121214] font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95"
-                          >
-                            Assign & Dispatch
-                          </button>
+                            return (
+                              <div 
+                                key={rider.id || rIdx} 
+                                className={`flex items-center justify-between gap-3 p-3 rounded-xl transition-all ${
+                                  isTop 
+                                    ? 'bg-[#E0FF33]/10 border border-[#E0FF33]/40 shadow-sm' 
+                                    : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs shrink-0 ${
+                                    isTop 
+                                      ? 'bg-[#E0FF33] text-black border-[#E0FF33]' 
+                                      : 'bg-cyan-400/10 text-cyan-300 border-cyan-400/30'
+                                  }`}>
+                                    {(rider.name || rider.displayName)?.slice(0, 2).toUpperCase() || 'RD'}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-bold text-white truncate">{rider.name || rider.displayName || 'Delivery Sarathi'}</p>
+                                      {isOnlyOne ? (
+                                        <span className="text-[9px] font-black bg-[#E0FF33]/20 text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                          Only Option (Auto)
+                                        </span>
+                                      ) : isTop && (
+                                        <span className="text-[9px] font-black bg-[#E0FF33]/20 text-[#E0FF33] px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                          ★ Recommended
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-neutral-400">
+                                      📍 ~{rider.distanceKm || 0.5} km away • {activeCount} active orders • ~{eta} min ETA
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const riderName = rider.name || rider.displayName || 'Sarathi Rider';
+                                    await updateCloudOrderStatus(o.id, 'out_for_delivery', {
+                                      rider_id: rider.id,
+                                      rider_name: riderName
+                                    });
+                                    setSelectedAuditOrder(prev => ({
+                                      ...prev,
+                                      status: 'out_for_delivery',
+                                      rider_id: rider.id,
+                                      rider_name: riderName
+                                    }));
+                                    setToast({ message: `Assigned to ${riderName} & Dispatched!`, type: 'success' });
+                                  }}
+                                  className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 ${
+                                    isTop 
+                                      ? 'bg-[#E0FF33] hover:bg-[#CCFF00] text-black' 
+                                      : 'bg-white/10 hover:bg-white/20 text-white'
+                                  }`}
+                                >
+                                  {isTop ? 'Assign (Best Match)' : 'Assign Rider'}
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-xs text-amber-300 bg-amber-400/10 p-2.5 rounded-xl border border-amber-400/20">

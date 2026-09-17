@@ -17,15 +17,23 @@ export function ThemeProvider({ children }) {
     return 'light'; // Default to pristine Divine Light theme to address dark-theme complaints
   });
 
-  // Apply theme to HTML root element and localStorage
+  // Apply theme to HTML root element, body, and localStorage
   useEffect(() => {
     try {
       const root = document.documentElement;
+      const body = document.body;
       if (theme === 'light') {
         root.classList.remove('dark');
         root.classList.add('light');
         root.setAttribute('data-theme', 'light');
         root.style.colorScheme = 'light';
+        if (body) {
+          body.classList.remove('dark');
+          body.classList.add('light');
+          body.setAttribute('data-theme', 'light');
+          body.style.backgroundColor = '#FAF7F2';
+          body.style.color = '#1C1917';
+        }
         // Update browser theme color bar
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', '#FAF7F2');
@@ -34,6 +42,13 @@ export function ThemeProvider({ children }) {
         root.classList.add('dark');
         root.setAttribute('data-theme', 'dark');
         root.style.colorScheme = 'dark';
+        if (body) {
+          body.classList.remove('light');
+          body.classList.add('dark');
+          body.setAttribute('data-theme', 'dark');
+          body.style.backgroundColor = '#1E1B1C';
+          body.style.color = '#FFFFFF';
+        }
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', '#1E1B1C');
       }

@@ -6,6 +6,7 @@ import {
   supabase, 
   updateCloudOrderStatus, 
   updateCloudShop,
+  updateUserOnlineStatus,
   createCloudOrder, 
   subscribeCloudOrders, 
   getCloudMenus, 
@@ -281,7 +282,7 @@ export default function KitchenView() {
   );
 
   return (
-    <div className="space-y-6 text-white pb-20">
+    <div className="space-y-6 pb-20">
       {/* ACTIVE TACTILE ALARM BANNER (DYNAMIC ISLAND STYLE) */}
       <ActiveAlarmBanner 
         isPlaying={isPlaying} 
@@ -312,21 +313,21 @@ export default function KitchenView() {
       )}
 
       {/* HEADER OPERATIONS BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#282526] p-5 sm:p-6 rounded-[32px] border border-white/10 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-5 sm:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] flex-shrink-0 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] flex-shrink-0 shadow-sm">
             <ChefHat size={24} strokeWidth={2.5} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight font-['Outfit']">
+              <h1 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit']">
                 Kitchen Operations
               </h1>
-              <span className="bg-[#E0FF33] text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
                 {orders.length} Active
               </span>
             </div>
-            <p className="text-xs text-zinc-400 font-medium mt-0.5">
+            <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5">
               Live Satvik preparation board & instant kitchen dispatch
             </p>
           </div>
@@ -341,7 +342,15 @@ export default function KitchenView() {
               const isCurrentlyOnline = currentShop.isOnline !== false && currentShop.isOpen !== false;
               const nextOnline = !isCurrentlyOnline;
               try {
-                await updateCloudShop(currentShop.id, { isOnline: nextOnline });
+                await updateCloudShop(currentShop.id, { 
+                  isOnline: nextOnline, 
+                  is_online: nextOnline, 
+                  isOpen: nextOnline, 
+                  is_open: nextOnline 
+                });
+                if (user?.id) {
+                  await updateUserOnlineStatus(user.id, nextOnline);
+                }
                 showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
                 if (refreshShops) await refreshShops();
               } catch (e) {
@@ -351,12 +360,12 @@ export default function KitchenView() {
             }}
             className={`px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
               (currentShop?.isOnline !== false && currentShop?.isOpen !== false)
-                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
             }`}
             title="Toggle Live Kitchen Availability"
           >
-            <span className={`w-2 h-2 rounded-full ${currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+            <span className={`w-2 h-2 rounded-full ${currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
             <span>{currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'Kitchen Online' : 'Kitchen Offline'}</span>
           </button>
 
@@ -373,18 +382,18 @@ export default function KitchenView() {
             }}
             className={`px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
               isPlaying
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-[#1E1B1C] text-neutral-300 border-white/10 hover:text-white hover:border-white/20'
+                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
             }`}
             title="Test or silence Kitchen Sound Alarm"
           >
-            {isPlaying ? <VolumeX size={15} className="text-rose-400" /> : <Volume2 size={15} className="text-[#E0FF33]" />}
+            {isPlaying ? <VolumeX size={15} className="text-rose-500" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33]" />}
             <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
           </button>
 
           <button 
             onClick={handleOpenCreateModal}
-            className="bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm px-5 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target flex-shrink-0"
+            className="bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-5 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target flex-shrink-0"
           >
             <Plus size={16} strokeWidth={3} />
             <span>Create Manual Order</span>
@@ -395,7 +404,7 @@ export default function KitchenView() {
       {/* BRANCH SELECTOR — Global roles can switch kitchen branches inline */}
       {isGlobalRole && allShops.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
+          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
           {allShops.map(s => {
             const isActive = currentUserShopId === s.id;
             return (
@@ -404,8 +413,8 @@ export default function KitchenView() {
                 onClick={() => impersonate(s.id, userRole)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                   isActive
-                    ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black'
-                    : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] font-black'
+                    : 'bg-stone-200/90 dark:bg-[#282526] text-stone-700 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
                 }`}
               >
                 <Store className="w-3 h-3" />
@@ -418,12 +427,12 @@ export default function KitchenView() {
 
       {/* ORDERS GRID */}
       {orders.length === 0 ? (
-        <div className="bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-zinc-400 border border-white/5 flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center mb-3.5 border border-white/5">
-            <CheckCircle2 size={32} className="text-[#E0FF33]" />
+        <div className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-stone-300/60 dark:bg-white/5 flex items-center justify-center mb-3.5 border border-stone-300 dark:border-white/5">
+            <CheckCircle2 size={32} className="text-amber-600 dark:text-[#E0FF33]" />
           </div>
-          <p className="font-black text-white text-base sm:text-lg font-['Outfit']">All Orders Prepared</p>
-          <p className="text-xs text-zinc-500 mt-1">Kitchen queue is clear. Radhe Radhe!</p>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">All Orders Prepared</p>
+          <p className="text-xs text-stone-600 dark:text-zinc-500 mt-1">Kitchen queue is clear. Radhe Radhe!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
@@ -435,8 +444,8 @@ export default function KitchenView() {
                 key={order.id} 
                 id={`kitchen-order-${order.id}`}
                 style={{ animationDelay: `${idx * 60}ms` }}
-                className={`customer-card-pop bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
-                  isNew ? 'border-[#E0FF33]/40 ring-1 ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-white/10'
+                className={`customer-card-pop bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
+                  isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(217,119,6,0.08)] dark:shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-stone-300 dark:border-white/10'
                 }`}
               >
                 <div>

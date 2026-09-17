@@ -482,22 +482,23 @@ export default function AuthModal({ isOpen, onClose }) {
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#282526] flex items-center justify-center font-black text-sm text-[#E0FF33] font-['Outfit']">
-                      {(userData?.displayName || user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
-                    </div>
+                    <img
+                      src="/foody-vrinda-logo.webp"
+                      alt="Foody Vrinda"
+                      className="w-full h-full object-cover"
+                    />
                   )}
                 </div>
               </div>
             ) : (
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center border transition-all shrink-0 shadow-sm"
-                style={{
-                  background: activeDeskTheme.accentBg,
-                  borderColor: activeDeskTheme.border,
-                  color: activeDeskTheme.color
-                }}
-              >
-                <ActiveDeskIcon className="w-5 h-5" />
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-white/20 to-[#E0FF33]/80 shrink-0 shadow-[0_2px_14px_rgba(224,255,51,0.25)] flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] flex items-center justify-center">
+                  <img
+                    src="/foody-vrinda-logo.webp"
+                    alt="Foody Vrinda Logo"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             )}
             <div className="min-w-0">

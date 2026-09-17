@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+@variant light (&:where([data-theme="light"], [data-theme="light"] *, .light, .light *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *, .light, .light *));
+
 @theme {
   --color-obsidian-950: #151314;
   --color-obsidian-900: #1E1B1C;
@@ -17,19 +22,22 @@
   --color-ivory-sheet: #FAF6EE;
 }
 
-@layer base {
-  * {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: transparent;
-  }
+:root {
+  --bg-app: #FAF7F2;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #F5EFEB;
+  --text-primary: #1C1917;
+  --text-secondary: #44403C;
+  --text-muted: #66605B;
+  --border-app: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --accent-primary: #D97706;
+  --accent-text: #FFFFFF;
+  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.07);
+}
 
-  ::selection {
-    background: #E0FF33;
-    color: #1E1B1C;
-  }
-
-:root, [data-theme="dark"], .dark {
+[data-theme="dark"], .dark {
   --bg-app: #1E1B1C;
   --bg-surface: #282526;
   --bg-card: #242021;
@@ -188,7 +196,6 @@
   .light .fixed.inset-0.z-50 {
     background-color: rgba(28, 25, 23, 0.6) !important;
   }
-}
 }
 
 @keyframes premium-fadeIn {
@@ -2098,74 +2105,95 @@ path.casing-parabolic-dots,
   color: #1C1917 !important;
 }
 
-/* Dark Obsidian Containers -> Crisp Divine White Surfaces */
-.light [class*="bg-[#1E1B1C]"],
-.light [class*="bg-[#151314]"],
-.light [class*="bg-[#181617]"],
-.light [class*="bg-[#141213]"],
-.light [class*="bg-[#1B191A]"],
-.light [class*="bg-[#221F20]"],
-.light [class*="bg-[#1C1A1B]"],
-.light [class*="bg-[#121011]"],
-.light [class*="bg-[#1F1C1D]"],
-.light [class*="bg-[#161415]"],
-.light [class*="bg-[#171516]"],
-.light [class*="bg-[#242021]"] {
+/* Dark Obsidian Containers -> Crisp Divine White Surfaces (except buttons & steppers) */
+.light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.customer-card-pop *):not(.stepper-capsule),
+.light [class*="bg-[#151314]"]:not(button):not([role="button"]),
+.light [class*="bg-[#181617]"]:not(button):not([role="button"]):not(.brand-medallion),
+.light [class*="bg-[#141213]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1B191A]"]:not(button):not([role="button"]),
+.light [class*="bg-[#221F20]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1C1A1B]"]:not(button):not([role="button"]),
+.light [class*="bg-[#121011]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1F1C1D]"]:not(button):not([role="button"]),
+.light [class*="bg-[#161415]"]:not(button):not([role="button"]),
+.light [class*="bg-[#171516]"]:not(button):not([role="button"]),
+.light [class*="bg-[#242021]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1A1718]"]:not(button):not([role="button"]),
+.light [class*="bg-[#131112]"]:not(button):not([role="button"]),
+.light [class*="bg-[#201D1E]"]:not(button):not([role="button"]),
+.light [class*="bg-[#232021]"]:not(button):not([role="button"]),
+.light [class*="bg-[#262324]"]:not(button):not([role="button"]),
+.light [class*="bg-[#191718]"]:not(button):not([role="button"]),
+.light [class*="bg-[#110F10]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1D1B1C]"]:not(button):not([role="button"]) {
   background-color: #FFFFFF !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.08) !important;
 }
 
 /* Secondary Elevated Cards & Panels -> Warm Soft Cream / Ivory */
-.light [class*="bg-[#282526]"],
-.light [class*="bg-[#2A2627]"],
-.light [class*="bg-[#332E30]"],
-.light [class*="bg-[#322E30]"],
-.light [class*="bg-[#232328]"],
-.light [class*="bg-[#1C1C20]"] {
-  background-color: #FFFFFF !important;
+.light [class*="bg-[#282526]"]:not(button):not([role="button"]),
+.light [class*="bg-[#2A2627]"]:not(button):not([role="button"]),
+.light [class*="bg-[#332E30]"]:not(button):not([role="button"]),
+.light [class*="bg-[#322E30]"]:not(button):not([role="button"]),
+.light [class*="bg-[#232328]"]:not(button):not([role="button"]),
+.light [class*="bg-[#1C1C20]"]:not(button):not([role="button"]),
+.light [class*="bg-[#2B2728]"]:not(button):not([role="button"]),
+.light [class*="bg-[#2D292A]"]:not(button):not([role="button"]) {
+  background-color: #F8F4EC !important;
   color: #1C1917 !important;
-  border-color: rgba(28, 25, 23, 0.09) !important;
-  box-shadow: 0 2px 12px -2px rgba(28, 25, 23, 0.04);
-}
-
-/* Gradient Cards in Light Mode */
-.light .bg-gradient-to-br,
-.light .bg-gradient-to-tr,
-.light .bg-gradient-to-r {
   border-color: rgba(28, 25, 23, 0.08) !important;
+  box-shadow: 0 2px 10px -2px rgba(28, 25, 23, 0.04);
 }
 
-.light [class*="from-[#282526]"] {
-  --tw-gradient-from: #FFFFFF !important;
-}
-.light [class*="to-[#1E1B1C]"] {
-  --tw-gradient-to: #F9F5EE !important;
+/* Dev Stat Metric Cards in Light Mode */
+.light .dev-stat-card {
+  background-color: #FFFFFF !important;
+  border-color: rgba(28, 25, 23, 0.09) !important;
+  box-shadow: 0 4px 16px rgba(28, 25, 23, 0.04) !important;
 }
 
-/* 2. Text Colors & Extreme Readability in Light Mode */
-.light [class*="text-white"],
-.light [class*="text-zinc-100"],
-.light [class*="text-neutral-100"],
-.light [class*="text-slate-100"],
-.light [class*="text-gray-100"] {
+.light .dev-stat-card .dev-count-value {
   color: #1C1917 !important;
 }
 
-.light [class*="text-zinc-300"],
-.light [class*="text-neutral-300"],
-.light [class*="text-zinc-400"],
-.light [class*="text-neutral-400"],
-.light [class*="text-slate-400"],
-.light [class*="text-gray-400"] {
-  color: #44403C !important;
+/* Dev Hero Gradient in Light Mode */
+.light .dev-hero-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FAF6EE 35%, #F5EDE0 100%) !important;
+  border-color: rgba(28, 25, 23, 0.09) !important;
+  box-shadow: 0 10px 32px -4px rgba(28, 25, 23, 0.07) !important;
 }
 
-.light [class*="text-zinc-500"],
-.light [class*="text-neutral-500"],
-.light [class*="text-zinc-600"],
-.light [class*="text-neutral-600"] {
+.light .dev-hero-gradient h1 {
+  color: #1C1917 !important;
+}
+
+.light .dev-hero-gradient p {
   color: #66605B !important;
+}
+
+/* 2. Universal Light Mode Typography & Extreme Contrast */
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6 {
+  color: #1C1917 !important;
+}
+
+.light p {
+  color: #44403C;
+}
+
+/* Sanskrit & Brand Titles */
+.light .font-laila {
+  color: #B45309 !important; /* Divine Deep Saffron */
+}
+
+.light h1 span.font-laila,
+.light .font-laila span {
+  color: #B45309 !important;
 }
 
 /* Saffron / Gold Devotional Accent in Light Mode */
@@ -2174,9 +2202,57 @@ path.casing-parabolic-dots,
   color: #B45309 !important; /* Divine Deep Saffron Amber */
 }
 
-/* Sanskrit vrindopnishad & Brand Titles */
-.light .font-laila {
+/* Status & Alert Text Colors in Light Mode */
+.light [class*="text-red-200"],
+.light [class*="text-red-300"],
+.light [class*="text-red-400"],
+.light [class*="text-rose-200"],
+.light [class*="text-rose-300"],
+.light [class*="text-rose-400"] {
+  color: #B91C1C !important;
+}
+
+.light [class*="text-amber-200"],
+.light [class*="text-amber-300"],
+.light [class*="text-amber-400"],
+.light [class*="text-yellow-200"],
+.light [class*="text-yellow-300"],
+.light [class*="text-yellow-400"] {
   color: #B45309 !important;
+}
+
+.light [class*="text-emerald-200"],
+.light [class*="text-emerald-300"],
+.light [class*="text-emerald-400"],
+.light [class*="text-green-200"],
+.light [class*="text-green-300"],
+.light [class*="text-green-400"] {
+  color: #15803D !important;
+}
+
+.light [class*="text-cyan-200"],
+.light [class*="text-cyan-300"],
+.light [class*="text-cyan-400"],
+.light [class*="text-blue-200"],
+.light [class*="text-blue-300"],
+.light [class*="text-blue-400"] {
+  color: #0369A1 !important;
+}
+
+/* Alert Dark Container Overrides in Light Mode */
+.light [class*="bg-red-950/"],
+.light [class*="bg-red-900/"] {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+}
+
+.light [class*="bg-amber-950/"],
+.light [class*="bg-amber-900/"] {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+
+.light [class*="bg-emerald-950/"],
+.light [class*="bg-emerald-900/"] {
+  background-color: rgba(16, 185, 129, 0.14) !important;
 }
 
 /* 3. Borders & Dividers in Light Mode */
@@ -2189,42 +2265,156 @@ path.casing-parabolic-dots,
   border-color: rgba(28, 25, 23, 0.08) !important;
 }
 
-/* 4. Hover & Interaction States */
-.light [class*="hover:bg-[#322E30]"]:hover,
-.light [class*="hover:bg-[#282526]"]:hover,
-.light [class*="hover:bg-[#332E30]"]:hover {
-  background-color: #F5EFEB !important;
+/* 4. Translucent Containers & Secondary Buttons in Light Mode */
+.light [class*="bg-white/5"]:not(button):not(a),
+.light [class*="bg-white/10"]:not(button):not(a),
+.light [class*="bg-white/15"]:not(button):not(a),
+.light [class*="bg-white/20"]:not(button):not(a) {
+  background-color: #EDE7DD !important;
+  border-color: rgba(28, 25, 23, 0.1) !important;
   color: #1C1917 !important;
 }
 
-.light [class*="hover:bg-white/5"]:hover,
-.light [class*="hover:bg-white/10"]:hover {
-  background-color: rgba(28, 25, 23, 0.04) !important;
+.light [class*="bg-white/5"]:not(button):not(a) *,
+.light [class*="bg-white/10"]:not(button):not(a) *,
+.light [class*="bg-white/15"]:not(button):not(a) *,
+.light [class*="bg-white/20"]:not(button):not(a) * {
+  color: #1C1917;
 }
 
-.light [class*="hover:text-white"]:hover {
+.light button[class*="bg-white/5"],
+.light button[class*="bg-white/10"],
+.light a[class*="bg-white/5"],
+.light a[class*="bg-white/10"] {
+  background-color: #EDE7DD !important;
   color: #1C1917 !important;
+  border-color: rgba(28, 25, 23, 0.12) !important;
+  font-weight: 700 !important;
+}
+
+.light button[class*="bg-white/5"]:hover,
+.light button[class*="bg-white/10"]:hover {
+  background-color: #E2DBD0 !important;
+  color: #000000 !important;
+}
+
+/* Status Badges & Indicators in Light Mode */
+.light [class*="bg-emerald-"]:not(button):not(.bg-emerald-500):not(.bg-emerald-600),
+.light [class*="bg-green-"]:not(button):not(.bg-green-500):not(.bg-green-600) {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #047857 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+.light [class*="bg-emerald-"]:not(button):not(.bg-emerald-500):not(.bg-emerald-600) *,
+.light [class*="bg-green-"]:not(button):not(.bg-green-500):not(.bg-green-600) * {
+  color: #047857 !important;
+}
+
+.light [class*="bg-cyan-"]:not(button):not(.bg-cyan-500):not(.bg-cyan-600),
+.light [class*="bg-blue-"]:not(button):not(.bg-blue-500):not(.bg-blue-600) {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+  color: #0E7490 !important;
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+.light [class*="bg-cyan-"]:not(button):not(.bg-cyan-500):not(.bg-cyan-600) *,
+.light [class*="bg-blue-"]:not(button):not(.bg-blue-500):not(.bg-blue-600) * {
+  color: #0E7490 !important;
+}
+
+.light [class*="bg-amber-"]:not(button):not(.bg-amber-500):not(.bg-amber-600),
+.light [class*="bg-yellow-"]:not(button):not(.bg-yellow-500):not(.bg-yellow-600) {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #B45309 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+.light [class*="bg-amber-"]:not(button):not(.bg-amber-500):not(.bg-amber-600) *,
+.light [class*="bg-yellow-"]:not(button):not(.bg-yellow-500):not(.bg-yellow-600) * {
+  color: #B45309 !important;
+}
+
+.light [class*="bg-rose-"]:not(button):not(.bg-rose-500):not(.bg-rose-600),
+.light [class*="bg-red-"]:not(button):not(.bg-red-500):not(.bg-red-600) {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+  color: #BE123C !important;
+  border-color: rgba(244, 63, 94, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+.light [class*="bg-rose-"]:not(button):not(.bg-rose-500):not(.bg-rose-600) *,
+.light [class*="bg-red-"]:not(button):not(.bg-red-500):not(.bg-red-600) * {
+  color: #BE123C !important;
+}
+
+.light [class*="bg-purple-"]:not(button):not(.bg-purple-500):not(.bg-purple-600) {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  color: #7E22CE !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+.light [class*="bg-purple-"]:not(button):not(.bg-purple-500):not(.bg-purple-600) * {
+  color: #7E22CE !important;
 }
 
 /* 5. Primary Action Buttons & Capsules */
-.light [class*="bg-[#E0FF33]"],
-.light [class*="bg-[#CCFF00]"] {
-  background-color: #EAB308 !important; /* Warm Golden Amber Button */
-  color: #1C1917 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.3) !important;
+/* Light Mode Disabled State */
+.light button:disabled,
+.light button[disabled],
+.light button:disabled[class*="bg-[#E0FF33]"],
+.light button:disabled[class*="bg-[#CCFF00]"],
+.light button[disabled][class*="bg-[#E0FF33]"],
+.light button[disabled][class*="bg-[#CCFF00]"] {
+  background-color: #E6DFD5 !important;
+  color: #78716C !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  border: 1px solid rgba(28, 25, 23, 0.08) !important;
 }
 
-.light [class*="hover:bg-[#CCFF00]"]:hover,
-.light [class*="hover:bg-[#E0FF33]"]:hover {
-  background-color: #CA8A04 !important;
+.light button:disabled *,
+.light button[disabled] * {
+  color: #78716C !important;
+}
+
+/* Light Mode Active Neon/Amber Buttons */
+.light button:not(:disabled)[class*="bg-[#E0FF33]"]:not(.customer-card-pop *),
+.light button:not(:disabled)[class*="bg-[#CCFF00]"]:not(.customer-card-pop *),
+.light a:not(.disabled)[class*="bg-[#E0FF33]"],
+.light a:not(.disabled)[class*="bg-[#CCFF00]"] {
+  background-color: #D97706 !important; /* Rich Royal Amber */
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.28) !important;
+}
+
+.light button:not(:disabled)[class*="bg-[#E0FF33]"]:not(.customer-card-pop *) *,
+.light button:not(:disabled)[class*="bg-[#CCFF00]"]:not(.customer-card-pop *) *,
+.light a:not(.disabled)[class*="bg-[#E0FF33]"] * {
+  color: #FFFFFF !important;
+}
+
+.light [class*="hover:bg-[#CCFF00]"]:not(:disabled):hover,
+.light [class*="hover:bg-[#E0FF33]"]:not(:disabled):hover {
+  background-color: #B45309 !important;
   color: #FFFFFF !important;
 }
 
 /* 6. Tabs & Operational Switchers */
-.light .bg-\[\#282526\] {
+.light button[class*="bg-[#282526]"] {
   background-color: #EDE7DD !important;
+  color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
+}
+
+.light button[class*="bg-[#282526]"] * {
+  color: #1C1917 !important;
 }
 
 /* Active Store / Tab pill */
@@ -2238,14 +2428,55 @@ path.casing-parabolic-dots,
 .light .modal-content,
 .light .drawer-content,
 .light [role="dialog"],
-.light .rounded-\[32px\],
-.light .rounded-t-\[32px\] {
+.light .apple-modal-content {
   background-color: #FFFFFF !important;
   color: #1C1917 !important;
   box-shadow: 0 25px 50px -12px rgba(28, 25, 23, 0.18) !important;
 }
 
-/* 8. Table Rows & Administrative Cards */
+/* 8. Specific Organic Dish Cards (Keep pastel tint with deep obsidian text) */
+.light [class*="bg-[#CEF3E7]"],
+[data-theme="light"] [class*="bg-[#CEF3E7]"],
+.light [class*="bg-[#FFF2E6]"],
+[data-theme="light"] [class*="bg-[#FFF2E6]"] {
+  color: #1E1B1C !important;
+}
+
+.light [class*="bg-[#CEF3E7]"] h1,
+.light [class*="bg-[#CEF3E7]"] h2,
+.light [class*="bg-[#CEF3E7]"] h3,
+.light [class*="bg-[#CEF3E7]"] h4,
+.light [class*="bg-[#CEF3E7]"] span,
+.light [class*="bg-[#FFF2E6]"] h1,
+.light [class*="bg-[#FFF2E6]"] h2,
+.light [class*="bg-[#FFF2E6]"] h3,
+.light [class*="bg-[#FFF2E6]"] h4,
+.light [class*="bg-[#FFF2E6]"] span {
+  color: #1E1B1C !important;
+}
+
+.light [class*="bg-[#CEF3E7]"] p,
+.light [class*="bg-[#FFF2E6]"] p {
+  color: #44403C !important;
+}
+
+/* Order Now CTA button inside dish cards must stay obsidian with crisp white text */
+.light [class*="bg-[#CEF3E7]"] button[class*="bg-[#1E1B1C]"],
+.light [class*="bg-[#FFF2E6]"] button[class*="bg-[#1E1B1C]"],
+.light [class*="bg-[#CEF3E7]"] div[class*="bg-[#1E1B1C]"],
+.light [class*="bg-[#FFF2E6]"] div[class*="bg-[#1E1B1C]"] {
+  background-color: #1E1B1C !important;
+  color: #FFFFFF !important;
+}
+
+.light [class*="bg-[#CEF3E7]"] button[class*="bg-[#1E1B1C]"] *,
+.light [class*="bg-[#FFF2E6]"] button[class*="bg-[#1E1B1C]"] *,
+.light [class*="bg-[#CEF3E7]"] div[class*="bg-[#1E1B1C]"] *,
+.light [class*="bg-[#FFF2E6]"] div[class*="bg-[#1E1B1C]"] * {
+  color: #FFFFFF !important;
+}
+
+/* 9. Table Rows & Administrative Cards */
 .light table,
 .light tbody tr {
   color: #1C1917 !important;
@@ -2263,7 +2494,7 @@ path.casing-parabolic-dots,
   background-color: #FAF6EF !important;
 }
 
-/* 9. Badges & Chips */
+/* 10. Badges & Chips */
 .light .bg-zinc-800,
 .light .bg-neutral-800,
 .light .bg-stone-800 {
@@ -2277,7 +2508,7 @@ path.casing-parabolic-dots,
   color: #1C1917 !important;
 }
 
-/* 10. Smooth Transition Animations */
+/* 11. Smooth Transition Animations */
 *, *::before, *::after {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 150ms;

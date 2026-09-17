@@ -32,11 +32,14 @@ CREATE TABLE IF NOT EXISTS public.foody_shops (
     name TEXT NOT NULL,
     address TEXT NOT NULL,
     phone TEXT,
+    shop_type TEXT NOT NULL DEFAULT 'hotel' CHECK (shop_type IN ('hotel', 'shop')),
     coordinates JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
     is_open BOOLEAN DEFAULT true,
+    is_online BOOLEAN DEFAULT true,
     minimum_order_amount NUMERIC DEFAULT 0,
     delivery_charge NUMERIC DEFAULT 0,
     gst_percentage NUMERIC DEFAULT 5,
+    operating_hours JSONB DEFAULT '{"openTime": "08:00", "closeTime": "22:00", "autoSchedule": true}'::jsonb,
     payment_settings JSONB DEFAULT '{"onlinePaymentsEnabled": true, "codEnabled": true}'::jsonb,
     alarm_settings JSONB DEFAULT '{"kitchenNew": true, "kitchenReady": false, "deliveryReady": true}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -44,6 +47,9 @@ CREATE TABLE IF NOT EXISTS public.foody_shops (
 );
 
 -- Ensure columns exist if migrating from previous versions
+ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS shop_type TEXT NOT NULL DEFAULT 'hotel' CHECK (shop_type IN ('hotel', 'shop'));
+ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT true;
+ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS operating_hours JSONB DEFAULT '{"openTime": "08:00", "closeTime": "22:00", "autoSchedule": true}'::jsonb;
 ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS payment_settings JSONB DEFAULT '{"onlinePaymentsEnabled": true, "codEnabled": true}'::jsonb;
 ALTER TABLE public.foody_shops ADD COLUMN IF NOT EXISTS alarm_settings JSONB DEFAULT '{"kitchenNew": true, "kitchenReady": false, "deliveryReady": true}'::jsonb;
 
@@ -96,6 +102,7 @@ CREATE TABLE IF NOT EXISTS public.foody_orders (
     total_amount NUMERIC NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled')),
     payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'online')),
+    fulfillment_type TEXT DEFAULT 'delivery' CHECK (fulfillment_type IN ('delivery', 'pickup')),
     payment_id TEXT,
     cash_status TEXT DEFAULT 'pending' CHECK (cash_status IN ('pending', 'collected')),
     cooking_notes TEXT,
@@ -110,6 +117,7 @@ CREATE TABLE IF NOT EXISTS public.foody_orders (
 );
 
 -- Ensure migration compatibility for order table columns
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'delivery';
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_id TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_name TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_phone TEXT;
