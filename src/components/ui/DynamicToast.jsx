@@ -107,38 +107,33 @@ export default function DynamicToast({
 
   const getIcon = () => {
     if (isFavAdd) {
-      return <Heart size={12} strokeWidth={2.5} className="text-[#fb7185] fill-[#f43f5e]" />;
+      return <Heart size={13} strokeWidth={2.6} className="text-rose-400 fill-rose-500 drop-shadow-[0_0_4px_rgba(244,63,94,0.6)]" />;
     }
     if (isFavRemove) {
-      return <HeartOff size={12} strokeWidth={2.5} className="text-[#fca5a5]" />;
+      return <HeartOff size={13} strokeWidth={2.6} className="text-zinc-300" />;
     }
     if (isShopAction) {
-      return <Store size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <Store size={13} strokeWidth={2.6} className="text-amber-300 drop-shadow-[0_0_4px_rgba(245,158,11,0.5)]" />;
     }
     if (isBasketAction && effectiveTypeRaw === 'success') {
-      return <ShoppingBag size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
+      return <ShoppingBag size={13} strokeWidth={2.6} className="text-emerald-300 drop-shadow-[0_0_4px_rgba(52,211,153,0.6)]" />;
     }
     switch (effectiveTypeRaw) {
       case 'success':
-        return <Check size={12} strokeWidth={3} className="text-[#E0FF33]" />;
+        return <Check size={13} strokeWidth={3} className="text-emerald-300 drop-shadow-[0_0_4px_rgba(52,211,153,0.6)]" />;
       case 'error':
-        return <AlertCircle size={12} strokeWidth={2.5} className="text-red-400" />;
+        return <AlertCircle size={13} strokeWidth={2.6} className="text-red-400 drop-shadow-[0_0_4px_rgba(239,68,68,0.6)]" />;
       case 'warning':
-        return <AlertTriangle size={12} strokeWidth={2.5} className="text-amber-400" />;
+        return <AlertTriangle size={13} strokeWidth={2.6} className="text-amber-300 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]" />;
       case 'info':
       default:
-        return <Sparkles size={12} strokeWidth={2.5} className="text-[#E0FF33]" />;
+        return <Sparkles size={13} strokeWidth={2.6} className="text-sky-300 drop-shadow-[0_0_4px_rgba(56,189,248,0.6)]" />;
     }
   };
 
   const toastElement = (
     <div 
-      className="fixed z-[99999999] pointer-events-none flex justify-center w-full"
-      style={{
-        top: 'max(14px, calc(env(safe-area-inset-top, 0px) + 12px))',
-        left: 0,
-        right: 0
-      }}
+      className="fixed z-[99999999] pointer-events-none flex justify-center w-full top-0 left-0 right-0"
     >
       <aside
         className={`dynamic-island-toast toast type-${effectiveType} stage-${stage} select-none cursor-pointer active:scale-95 transition-all pointer-events-auto`}
@@ -154,11 +149,11 @@ export default function DynamicToast({
           {getIcon()}
         </div>
 
-        <div className="dynamic-island-content max-w-[260px] sm:max-w-[420px] overflow-hidden">
+        <div className="dynamic-island-content max-w-[270px] sm:max-w-[420px] overflow-hidden">
           <span className="dynamic-island-title truncate">{cleanTitle}</span>
           {cleanDesc && (
             <>
-              <span className="text-zinc-500 text-xs shrink-0">•</span>
+              <span className="text-white/40 text-xs shrink-0">•</span>
               <span className="dynamic-island-desc truncate">{cleanDesc}</span>
             </>
           )}

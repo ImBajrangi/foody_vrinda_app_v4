@@ -22,7 +22,7 @@ import {
   BellRing
 } from 'lucide-react';
 import { subscribeSingleCloudOrder, resolveDishCutout } from '../supabase';
-import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
 
 export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
@@ -74,7 +74,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     : { name: 'Foody Vrinda Kitchen', coordinates: { lat: 27.5706, lng: 77.6593 } };
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -87,7 +86,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     if (closing) return;
     setClosing(true);
     closeTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setClosing(false);
       onClose();
       closeTimeoutRef.current = null;

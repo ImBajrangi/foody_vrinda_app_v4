@@ -5,8 +5,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
  * - Real-time 120fps hardware-accelerated translation
  * - Natural momentum & velocity tracking (flick to dismiss)
  * - Low-latency instant dismiss on downward swipe
- * - Touch & Pointer unified gesture handling
  */
+// Safe no-op helper for backwards compatibility
+export const registerGhostClickBlocker = () => {};
+
 export function useBottomSheetDrag(onClose, threshold = 50) {
   const [isDragging, setIsDragging] = useState(false);
   const sheetRef = useRef(null);

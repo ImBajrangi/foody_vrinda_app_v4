@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
-import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { 
   Bell, 
   BellRing,
@@ -37,7 +37,6 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
   const closeTimeoutRef = useRef(null);
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -50,7 +49,6 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
     if (closing) return;
     setClosing(true);
     closeTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setClosing(false);
       onClose();
       closeTimeoutRef.current = null;

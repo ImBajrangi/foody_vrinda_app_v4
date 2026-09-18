@@ -14,7 +14,7 @@ import {
 import { supabase, subscribeCloudOrders } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
-import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import ReviewModal from './ReviewModal';
 
 export default function OrderHistoryDrawer({ 
@@ -36,7 +36,6 @@ export default function OrderHistoryDrawer({
   const closeTimeoutRef = useRef(null);
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -49,7 +48,6 @@ export default function OrderHistoryDrawer({
     if (closing) return;
     setClosing(true);
     closeTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setClosing(false);
       onClose();
       closeTimeoutRef.current = null;

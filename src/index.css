@@ -1454,50 +1454,60 @@
 .dynamic-island-toast,
 .toast {
   position: fixed !important;
-  top: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
+  top: max(50px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 99999999 !important;
-  background: rgba(30, 27, 28, 0.95) !important;
-  /* Foody Vrinda Obsidian luxury */
+  background: rgba(18, 16, 17, 0.96) !important;
   color: #ffffff !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  max-height: 34px !important;
-  padding: 0 12px 0 6px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 0 14px 0 6px !important;
   border-radius: 9999px !important;
   box-shadow:
-    0 12px 28px -4px rgba(0, 0, 0, 0.65),
-    0 4px 12px rgba(0, 0, 0, 0.35),
-    0 0 14px rgba(224, 255, 51, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-  border: 1px solid rgba(224, 255, 51, 0.25) !important;
+    0 16px 36px -4px rgba(0, 0, 0, 0.70),
+    0 6px 16px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   max-width: min(440px, calc(100vw - 28px)) !important;
   width: max-content !important;
   display: flex !important;
   align-items: center !important;
-  gap: 7px !important;
+  gap: 8px !important;
   cursor: pointer !important;
   user-select: none !important;
   -webkit-user-select: none !important;
-  backdrop-filter: blur(24px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  animation: appleDynamicIslandEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: appleDynamicIslandEnter 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   transform-origin: 50% 0% !important;
   will-change: transform, opacity !important;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
   font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
 }
 
+/* Light / Bright Mode Specific refinement */
+.light .dynamic-island-toast,
+.light .toast,
+[data-theme="light"] .dynamic-island-toast,
+[data-theme="light"] .toast {
+  background: rgba(20, 18, 19, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow:
+    0 18px 40px -4px rgba(0, 0, 0, 0.55),
+    0 8px 20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
 .dynamic-island-toast:hover,
 .toast:hover {
-  border-color: rgba(224, 255, 51, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
   box-shadow:
-    0 16px 36px -4px rgba(0, 0, 0, 0.65),
-    0 6px 14px rgba(0, 0, 0, 0.35),
-    0 0 20px rgba(224, 255, 51, 0.20) !important;
+    0 20px 42px -4px rgba(0, 0, 0, 0.75),
+    0 8px 18px rgba(0, 0, 0, 0.45) !important;
 }
 
 .dynamic-island-toast:active,
@@ -1548,55 +1558,72 @@
 
 .dynamic-island-icon-wrap {
   position: relative !important;
-  width: 22px !important;
-  height: 22px !important;
+  width: 24px !important;
+  height: 24px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
   color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
 .dynamic-island-icon-wrap.type-success,
-.dynamic-island-icon-wrap.type-basket-add,
-.dynamic-island-icon-wrap.type-shop-switch,
+.dynamic-island-icon-wrap.type-basket-add {
+  background: rgba(16, 185, 129, 0.24) !important;
+  border-color: rgba(52, 211, 153, 0.70) !important;
+  color: #34d399 !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35) !important;
+}
+
 .dynamic-island-icon-wrap.type-info {
-  background: rgba(224, 255, 51, 0.15) !important;
-  border-color: rgba(224, 255, 51, 0.45) !important;
-  color: #E0FF33 !important;
+  background: rgba(14, 165, 233, 0.24) !important;
+  border-color: rgba(56, 189, 248, 0.70) !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.35) !important;
+}
+
+.dynamic-island-icon-wrap.type-shop-switch {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border-color: rgba(251, 191, 36, 0.70) !important;
+  color: #fcd34d !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35) !important;
 }
 
 .dynamic-island-icon-wrap.type-error {
-  background: rgba(239, 68, 68, 0.25) !important;
-  border-color: rgba(239, 68, 68, 0.55) !important;
+  background: rgba(239, 68, 68, 0.28) !important;
+  border-color: rgba(248, 113, 113, 0.75) !important;
   color: #f87171 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.40) !important;
 }
 
 .dynamic-island-icon-wrap.type-warning {
-  background: rgba(245, 158, 11, 0.25) !important;
-  border-color: rgba(245, 158, 11, 0.55) !important;
+  background: rgba(245, 158, 11, 0.28) !important;
+  border-color: rgba(251, 191, 36, 0.75) !important;
   color: #fbbf24 !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.40) !important;
 }
 
 .dynamic-island-icon-wrap.type-fav-add {
-  background: rgba(244, 63, 94, 0.28) !important;
-  border-color: rgba(244, 63, 94, 0.65) !important;
+  background: rgba(244, 63, 94, 0.30) !important;
+  border-color: rgba(251, 113, 133, 0.80) !important;
   color: #fb7185 !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.45) !important;
 }
 
 .dynamic-island-icon-wrap.type-fav-remove {
-  background: rgba(244, 63, 94, 0.18) !important;
-  border-color: rgba(244, 63, 94, 0.50) !important;
-  color: #fca5a5 !important;
+  background: rgba(113, 113, 122, 0.32) !important;
+  border-color: rgba(161, 161, 170, 0.60) !important;
+  color: #d4d4d8 !important;
 }
 
 .dynamic-island-content {
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 7px !important;
   white-space: nowrap !important;
 }
 
@@ -1611,7 +1638,7 @@
 .dynamic-island-desc {
   font-size: 0.7rem !important;
   font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.70) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
@@ -1621,17 +1648,17 @@
 
   .dynamic-island-toast,
   .toast {
-    top: max(12px, calc(6px + env(safe-area-inset-top, 6px))) !important;
+    top: max(52px, calc(10px + env(safe-area-inset-top, 0px))) !important;
     max-width: calc(100vw - 24px) !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 0 10px 0 5px !important;
-    gap: 6px !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    padding: 0 12px 0 5px !important;
+    gap: 7px !important;
   }
 
   .dynamic-island-icon-wrap {
-    width: 20px !important;
-    height: 20px !important;
+    width: 22px !important;
+    height: 22px !important;
   }
 
   .dynamic-island-title {
@@ -1640,6 +1667,13 @@
 
   .dynamic-island-desc {
     font-size: 0.6875rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .dynamic-island-toast,
+  .toast {
+    top: 24px !important;
   }
 }
 

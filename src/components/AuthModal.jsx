@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { updateCloudUser } from '../supabase';
-import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import {
   X,
   LogIn,
@@ -195,7 +195,6 @@ export default function AuthModal({ isOpen, onClose }) {
   const closeTimeoutRef = useRef(null);
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -208,7 +207,6 @@ export default function AuthModal({ isOpen, onClose }) {
     if (closing) return;
     setClosing(true);
     closeTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setClosing(false);
       onClose();
       closeTimeoutRef.current = null;

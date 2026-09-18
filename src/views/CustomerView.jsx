@@ -45,15 +45,15 @@ import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
 import SocialLinksBar from '../components/ui/SocialLinksBar';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
-import { 
-  supabase, 
-  createCloudOrder, 
-  getCloudMenus, 
+import {
+  supabase,
+  createCloudOrder,
+  getCloudMenus,
   subscribeCloudMenus,
-  subscribeSingleCloudOrder, 
-  resolveDishCutout, 
-  invalidateCache, 
-  isShopCurrentlyOpen, 
+  subscribeSingleCloudOrder,
+  resolveDishCutout,
+  invalidateCache,
+  isShopCurrentlyOpen,
   getCachedUsers,
   getCachedItem,
   setCachedItem
@@ -74,7 +74,7 @@ function getLocalCustomerMenus(shopId = 'all') {
 function setLocalCustomerMenus(shopId = 'all', items = []) {
   try {
     localStorage.setItem(`${CUSTOMER_MENU_CACHE_PREFIX}_${shopId}`, JSON.stringify(items));
-  } catch {}
+  } catch { }
 }
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
@@ -578,7 +578,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         if (riders.length === 0) {
           setFulfillmentType('pickup');
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     checkRiders();
     const interval = setInterval(checkRiders, 15000);
@@ -646,7 +646,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       return showToast("Invalid Phone", 'error', 'Enter valid 10-digit mobile number');
     }
 
-    const cleanAddress = fulfillmentType === 'pickup' 
+    const cleanAddress = fulfillmentType === 'pickup'
       ? `[Self-Pickup] Counter: ${activeShop?.name || 'Kitchen'}`
       : (checkoutAddress || '').trim();
 
@@ -694,14 +694,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       customerAddress: cleanAddress,
       deliveryAddress: cleanAddress,
       customerPhone: cleanPhone,
-      items: cart.map(item => ({ 
-        id: item.id, 
-        name: item.name, 
-        price: item.price, 
-        quantity: item.quantity, 
+      items: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
         isCombo: Boolean(item.isCombo),
         comboItems: item.comboItems || null,
-        ready: false 
+        ready: false
       })),
       subtotal,
       deliveryCharge,
@@ -753,7 +753,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         amount: Math.round(totalAmount * 100),
         currency: "INR",
         name: "Foody Vrinda",
-        description: `Satvik Prasad Order - ${currentCartShop?.name || 'Kitchen'}`,
+        description: `Vrinda Prasad Order - ${currentCartShop?.name || 'Kitchen'}`,
         image: typeof window !== 'undefined' ? `${window.location.origin}/foody-vrinda-logo.webp` : "/foody-vrinda-logo.webp",
         handler: async (response) => {
           orderPayload.paymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
@@ -1080,7 +1080,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <span className="font-laila font-bold text-stone-900 dark:text-white">वृन्दोपनिषद्</span> <span className="text-amber-600 dark:text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-400 mt-1.5 font-medium tracking-wide">
-            100% Satvik · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
+            100% Vrinda · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
           </p>
         </div>
 
@@ -1247,7 +1247,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       {item.name}
                     </h3>
                     <p className="text-xs sm:text-sm font-semibold text-zinc-700 mt-1 leading-snug">
-                      {item.subtitle || 'Cheesy satvik, special price'}
+                      {item.subtitle || 'Cheesy Vrinda, special price'}
                     </p>
                     {item.comboItems && item.comboItems.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1306,7 +1306,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          updateQuantity(item.id, quantityInCart - 1);
+                          updateQuantity(item.id, -1);
+                          if (quantityInCart === 1) {
+                            showToast(`Removed ${item.name}`, 'info', 'From basket');
+                          } else {
+                            showToast(`${item.name} (${quantityInCart - 1})`, 'info', `₹${item.price * (quantityInCart - 1)}`);
+                          }
                         }}
                         className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center transition-all cursor-pointer"
                         title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
@@ -1327,7 +1332,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(item);
-                          showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
+                          showToast(`+1 ${item.name}`, 'success', `₹${item.price * (quantityInCart + 1)}`);
                         }}
                         className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-md !text-[#121011]"
                         title="Add another"
@@ -1358,7 +1363,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* Streamlined Satvik Devotee Footer */}
+      {/* Streamlined Vrinda Devotee Footer */}
       <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-zinc-400 text-xs font-['Plus_Jakarta_Sans']">
         {/* Sacred Brand & Mission */}
         <div className="space-y-0.5">
@@ -1372,7 +1377,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            100% Satvik Cloud Kitchen & Prasad Delivery • Vrindavan Dham
+            100% Vrinda Cloud Kitchen & Prasad Delivery • Vrindavan Dham
           </p>
         </div>
 
@@ -1462,7 +1467,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </span>
                     </div>
                     <p className="text-xs text-amber-700 dark:text-[#E0FF33] font-bold truncate tracking-wide">
-                      Satvik Prasad Basket
+                      Vrinda Prasad Basket
                     </p>
                   </div>
                 </div>
@@ -1514,7 +1519,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </button>
 
             {/* LEFT / TOP CONTAINER (Ivory Cream `#FAF5EB` - Showcase Card) */}
-            <div 
+            <div
               className="w-full md:w-[46%] lg:w-[44%] bg-[#FAF5EB] md:rounded-[30px] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 select-none md:select-auto"
             >
               {/* Drag Handle Bar (Interactive Drag Down Indicator - Mobile Only) */}
@@ -1527,60 +1532,68 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Top Navigation Bar: Back (Mobile), Share, Favorite */}
-              <div 
+              <div
                 className="flex justify-between items-center z-30 mb-1.5 sm:mb-3 relative pointer-events-auto touch-auto"
               >
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCloseDishDetail();
                   }}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden relative z-30 pointer-events-auto"
+                  className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden relative z-50 pointer-events-auto select-none"
                   title="Go Back"
                 >
-                  <ChevronLeft size={20} strokeWidth={2.5} />
+                  <ChevronLeft size={22} strokeWidth={2.5} />
                 </button>
 
-                <div className="flex items-center gap-2 ml-auto relative z-30 pointer-events-auto">
+                <div className="flex items-center gap-2 ml-auto relative z-50 pointer-events-auto">
                   <button
                     type="button"
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (navigator.share) {
-                        navigator.share({ 
-                          title: selectedDishDetails.name, 
-                          text: `Check out this pure satvik meal from Foody Vrinda: ${selectedDishDetails.name}!`,
-                          url: window.location.href 
+                        navigator.share({
+                          title: selectedDishDetails.name,
+                          text: `Check out ${selectedDishDetails.name} on Foody Vrinda!`,
+                          url: window.location.href
                         }).catch(err => {
                           if (err.name !== 'AbortError') {
-                            showToast("Link Copied to Clipboard", "success");
+                            try {
+                              navigator.clipboard?.writeText?.(window.location.href);
+                              showToast("Link Copied to Clipboard", "success");
+                            } catch {
+                              showToast("Vrinda Dish Shared", "success");
+                            }
                           }
                         });
                       } else {
                         try {
-                          navigator.clipboard.writeText(window.location.href);
+                          navigator.clipboard?.writeText?.(window.location.href);
                           showToast("Link Copied to Clipboard", "success");
                         } catch {
-                          showToast("Satvik Dish Shared", "success");
+                          showToast("Vrinda Dish Shared", "success");
                         }
                       }
                     }}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer relative z-30 pointer-events-auto"
+                    className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer relative z-50 pointer-events-auto select-none"
                     title="Share"
                   >
-                    <Share2 size={16} />
+                    <Share2 size={17} />
                   </button>
 
                   <button
                     type="button"
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleFavorite(selectedDishDetails.id, e);
                       const isNowFav = !favorites.includes(selectedDishDetails.id);
+                      toggleFavorite(selectedDishDetails.id);
                       showToast(isNowFav ? "Added to Favorites" : "Removed from Favorites", "info");
                     }}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-30 pointer-events-auto"
+                    className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50 pointer-events-auto select-none"
                     title="Favorite"
                   >
                     <Heart
@@ -1598,7 +1611,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </h2>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <p className="text-[#8B5E3C] text-[11px] sm:text-xs font-bold uppercase tracking-wider">
-                    {selectedDishDetails.category || "Satvik Meal"}
+                    {selectedDishDetails.category || "Vrinda Meal"}
                   </p>
                   <span className="text-[#8B5E3C]/40 text-xs">•</span>
                   <p className="text-[#854D0E] text-[11px] sm:text-xs font-bold flex items-center gap-1">
@@ -1609,7 +1622,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Hero Cutout Image & Secondary Swipe Drag Area */}
-              <div 
+              <div
                 {...detailHandleProps}
                 className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px] cursor-grab active:cursor-grabbing touch-none select-none"
               >
@@ -1645,7 +1658,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="hidden md:block pr-8">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-[#E0FF33] text-xs font-bold uppercase tracking-wider bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full">
-                      {selectedDishDetails.category || "Satvik Meal"}
+                      {selectedDishDetails.category || "Vrinda Meal"}
                     </span>
                     <span className="text-zinc-500 text-xs">•</span>
                     <span className="text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
@@ -1732,10 +1745,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </p>
                 </div>
 
-                {/* Satvik Assurance Badge */}
+                {/* Vrinda Assurance Badge */}
                 <div className="flex items-center gap-1.5 bg-[#282526] px-3 py-2 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
                   <span className="text-[#E0FF33] font-bold">✓</span>
-                  <span className="truncate">100% Satvik · No Onion, No Garlic</span>
+                  <span className="truncate">100% Vrinda · No Onion, No Garlic</span>
                 </div>
               </div>
 
@@ -1948,11 +1961,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         if (onlineRidersCount > 0) setFulfillmentType('delivery');
                         else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
                       }}
-                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${
-                        fulfillmentType === 'delivery'
+                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'delivery'
                           ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-xs'
                           : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
                     >
                       <span className="text-sm">🛵</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Delivery</span>
@@ -1962,19 +1974,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <button
                       type="button"
                       onClick={() => setFulfillmentType('pickup')}
-                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${
-                        fulfillmentType === 'pickup'
+                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'pickup'
                           ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
                           : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       <span className="text-sm">🛍️</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
-                      <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${
-                        fulfillmentType === 'pickup'
+                      <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${fulfillmentType === 'pickup'
                           ? 'bg-white !text-amber-950 dark:bg-black/30 dark:!text-[#1E1B1C] shadow-xs'
                           : 'bg-emerald-500/20 !text-emerald-800 dark:bg-emerald-400/20 dark:!text-emerald-300 border border-emerald-500/30'
-                      }`}>Free</span>
+                        }`}>Free</span>
                     </button>
                   </div>
                 )}
@@ -2030,14 +2040,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Name Input */}
-                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${
-                  shakeField === 'name'
+                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'name'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
                     : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
-                }`}>
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${
-                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                    }`}>
                     <User size={19} className="stroke-[2.5]" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2073,14 +2081,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Phone Input */}
-                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${
-                  shakeField === 'phone'
+                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'phone'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
                     : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
-                }`}>
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${
-                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                    }`}>
                     <Phone size={19} className="stroke-[2.5]" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2123,17 +2129,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Conditional: Address Input for Delivery vs Counter Pickup Card */}
                 {fulfillmentType === 'delivery' ? (
                   <div className="relative">
-                    <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${
-                      shakeField === 'address'
+                    <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${shakeField === 'address'
                         ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
                         : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
-                    }`}>
+                      }`}>
                       {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
                       <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${
-                            shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33]'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33]'
+                            }`}>
                             <MapPin size={17} className="stroke-[2.5]" />
                           </div>
                           <div className="min-w-0">
@@ -2265,20 +2269,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       type="button"
                       disabled={!onlineAvailable}
                       onClick={() => setPaymentMethod('online')}
-                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${
-                        !onlineAvailable
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!onlineAvailable
                           ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
                           : paymentMethod === 'online'
                             ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
                             : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
-                          paymentMethod === 'online'
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'online'
                             ? 'bg-amber-600 text-white dark:bg-black/20 dark:text-[#121011]'
                             : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]'
-                        }`}>
+                          }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
                         {paymentMethod === 'online' && (
@@ -2292,11 +2294,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <div className="text-sm font-black font-['Outfit'] tracking-tight">
                           Online Pay
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 ${
-                          paymentMethod === 'online'
+                        <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'online'
                             ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
                             : 'text-stone-600 dark:text-zinc-400'
-                        }`}>
+                          }`}>
                           {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
                         </p>
                       </div>
@@ -2307,20 +2308,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       type="button"
                       disabled={!isCodAvailableForOrder}
                       onClick={() => setPaymentMethod('cash')}
-                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${
-                        !isCodAvailableForOrder
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!isCodAvailableForOrder
                           ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
                           : paymentMethod === 'cash'
                             ? 'bg-[#F0FDF4] text-stone-950 border-2 border-emerald-600 shadow-md ring-2 ring-emerald-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
                             : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-emerald-500/50 dark:hover:border-white/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
-                          paymentMethod === 'cash'
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'cash'
                             ? 'bg-emerald-600 text-white dark:bg-black/20 dark:text-[#121011]'
                             : 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-400'
-                        }`}>
+                          }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
                         {paymentMethod === 'cash' && (
@@ -2334,11 +2333,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <div className="text-sm font-black font-['Outfit'] tracking-tight">
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 ${
-                          paymentMethod === 'cash'
+                        <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'cash'
                             ? 'text-emerald-850 dark:text-[#121011]/85 font-semibold'
                             : 'text-stone-600 dark:text-zinc-400'
-                        }`}>
+                          }`}>
                           {!isCodAvailableForOrder ? 'COD Disabled' : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
                         </p>
                       </div>
@@ -2356,7 +2354,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <Zap size={13} className="text-[#E0FF33]" />
                   <span className="font-bold text-neutral-300">Live GPS tracking included</span>
                 </div>
-                <span className="text-[10px] text-neutral-500 font-medium">Satvik Cloud Kitchen</span>
+                <span className="text-[10px] text-neutral-500 font-medium">Vrinda Cloud Kitchen</span>
               </div>
 
               <button
@@ -2365,13 +2363,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
               >
                 <span className="font-black">
-                  {!isShopOpen 
-                    ? 'Kitchen Offline (Closed)' 
-                    : (isRetailShop && onlineRidersCount === 0 
-                        ? 'Delivery Partners Busy' 
-                        : (!onlineAvailable && !codAvailable 
-                            ? 'Kitchen Payments Disabled' 
-                            : 'Proceed to Place Order'))}
+                  {!isShopOpen
+                    ? 'Kitchen Offline (Closed)'
+                    : (isRetailShop && onlineRidersCount === 0
+                      ? 'Delivery Partners Busy'
+                      : (!onlineAvailable && !codAvailable
+                        ? 'Kitchen Payments Disabled'
+                        : 'Proceed to Place Order'))}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
                   ₹{totalAmount}
