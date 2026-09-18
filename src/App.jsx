@@ -16,11 +16,48 @@ import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import EmergencyDevModal from './components/EmergencyDevModal';
 import CompleteProfileModal from './components/CompleteProfileModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useTheme } from './context/ThemeContext';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 export default function App() {
+
   const { userRole, isAuthorizedAdmin, isAuthorizedDeveloper } = useAuth();
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
+  const { isLight, theme } = useTheme();
+
+  // Native Android & iOS Status Bar + Splash Screen Lifecycle Management
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const setupNativeUI = async () => {
+      try {
+        // Prevent WebView from sliding behind the Android system status bar / camera notch
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        
+        // Sync status bar theme with application light / dark palette
+        if (isLight) {
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setBackgroundColor({ color: '#FAF7F2' });
+        } else {
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#1E1B1C' });
+        }
+      } catch (err) {
+        console.warn('Native status bar sync error:', err);
+      }
+
+      try {
+        // Smoothly dismiss native splash screen once React UI has fully mounted
+        await SplashScreen.hide();
+      } catch (_) {}
+    };
+
+    setupNativeUI();
+  }, [isLight, theme]);
 
   // Navigation tab (instantly hydrated to user's saved tab or authorized role view)
   const [currentTab, setCurrentTab] = useState(() => {
@@ -130,7 +167,47 @@ export default function App() {
     };
   }, []);
 
+  // Android Native Hardware Back Button Handling
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+      if (isAuthOpen) {
+        setIsAuthOpen(false);
+      } else if (isSearchOpen) {
+        setIsSearchOpen(false);
+      } else if (isNotificationsOpen) {
+        setIsNotificationsOpen(false);
+      } else if (isRewardsOpen) {
+        setIsRewardsOpen(false);
+      } else if (isCompleteProfileOpen) {
+        setIsCompleteProfileOpen(false);
+      } else if (isEmergencyDevOpen) {
+        setIsEmergencyDevOpen(false);
+      } else if (currentTab !== 'customer') {
+        setCurrentTab('customer');
+      } else if (canGoBack) {
+        window.history.back();
+      } else {
+        CapApp.exitApp();
+      }
+    });
+
+    return () => {
+      backListener.then(l => l.remove()).catch(() => {});
+    };
+  }, [
+    isAuthOpen,
+    isSearchOpen,
+    isNotificationsOpen,
+    isRewardsOpen,
+    isCompleteProfileOpen,
+    isEmergencyDevOpen,
+    currentTab
+  ]);
+
   // Dynamic Tab Meta Updates for Search Engines
+
   useEffect(() => {
     const titleMap = {
       customer: "Foody Vrinda | 100% Pure Satvik Desi Ghee Prasad Delivery",
@@ -176,6 +253,20 @@ export default function App() {
     setIsNotificationsOpen(false);
   };
 
+  useEffect(() => {
+    const handleSystemOrderOpen = (event) => {
+      const orderId = event?.detail?.orderId;
+      if (orderId) {
+        handleNotificationOrderClick(orderId);
+      }
+    };
+
+    window.addEventListener('foody:open-notification-order', handleSystemOrderOpen);
+    return () => {
+      window.removeEventListener('foody:open-notification-order', handleSystemOrderOpen);
+    };
+  }, []);
+
   const handleSearchOrderSelect = (orderId) => {
     setTrackingOrderId(orderId);
     setCurrentTab('customer');
@@ -183,7 +274,7 @@ export default function App() {
   };
 
   return (
-    <div className={`mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 relative overflow-x-hidden w-full ${currentTab === 'customer' ? 'max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl' : 'max-w-7xl'}`}>
+    <div className={`mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full ${currentTab === 'customer' ? 'max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl' : 'max-w-7xl'}`}>
       <Header 
         audioUnlocked={audioUnlocked}
         enableAudio={enableAudio}

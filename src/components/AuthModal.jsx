@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { updateCloudUser } from '../supabase';
-import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
 import {
   X,
   LogIn,
@@ -192,7 +192,14 @@ export default function AuthModal({ isOpen, onClose }) {
     return [];
   };
 
+  const closeTimeoutRef = useRef(null);
+
   const handleAnimatedClose = useCallback((isImmediate = false) => {
+    registerGhostClickBlocker(500);
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
     if (isImmediate === true) {
       setClosing(false);
       onClose();
@@ -200,9 +207,11 @@ export default function AuthModal({ isOpen, onClose }) {
     }
     if (closing) return;
     setClosing(true);
-    setTimeout(() => {
+    closeTimeoutRef.current = setTimeout(() => {
+      registerGhostClickBlocker(400);
       setClosing(false);
       onClose();
+      closeTimeoutRef.current = null;
     }, 200);
   }, [closing, onClose]);
 
@@ -466,9 +475,9 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* Drag Handle Bar (Mobile Only) */}
         <div
           {...authHandleProps}
-          className="w-full py-1 -mt-2 flex justify-center cursor-grab active:cursor-grabbing sm:hidden touch-none"
+          className="w-full pt-1 pb-2 -mt-2 flex justify-center cursor-grab active:cursor-grabbing sm:hidden touch-none select-none"
         >
-          <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-white/20" />
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/25 transition-colors" />
         </div>
 
         {/* Top Header Row */}

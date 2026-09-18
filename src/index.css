@@ -100,6 +100,18 @@
     max-width: 100vw;
     overflow-x: hidden;
     background: transparent;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .safe-area-top {
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   }
 
   h1,
@@ -1670,33 +1682,24 @@
 
 /* 2. Apple Modal Pop (Desktop / Tablet Centered Dialogs) */
 .apple-modal-spring {
-  animation: appleModalSpringIn 0.38s cubic-bezier(0.34, 1.4, 0.64, 1) forwards !important;
-  transform-origin: center center !important;
-  will-change: transform, opacity !important;
+  animation: appleModalSpringIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
 .apple-modal-spring.closing {
-  animation: appleModalSpringOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
-  pointer-events: none !important;
+  animation: appleModalSpringOut 0.20s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  pointer-events: none;
 }
 
 @keyframes appleModalSpringIn {
   0% {
     opacity: 0;
-    transform: scale(0.88) translateY(20px);
-    filter: blur(6px);
+    transform: scale(0.92) translateY(16px);
   }
-
-  65% {
-    opacity: 1;
-    transform: scale(1.018) translateY(-2px);
-    filter: blur(0px);
-  }
-
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
-    filter: blur(0px);
   }
 }
 
@@ -1705,23 +1708,21 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-
   100% {
     opacity: 0;
-    transform: scale(0.92) translateY(18px);
-    filter: blur(4px);
+    transform: scale(0.94) translateY(14px);
   }
 }
 
 /* 3. Apple Bottom Sheet (Mobile Ergonomics) */
 .apple-sheet-spring {
-  animation: appleSheetSpringIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: appleSheetSpringIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
 .apple-sheet-spring.closing {
-  animation: appleSheetSpringOut 0.24s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
-  pointer-events: none !important;
+  animation: appleSheetSpringOut 0.20s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  pointer-events: none;
 }
 
 .sheet-dragging {
@@ -1729,6 +1730,7 @@
   touch-action: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+  transition: none !important;
 }
 
 @keyframes appleSheetSpringIn {
@@ -2318,7 +2320,7 @@ path.casing-parabolic-dots,
 .light [class*="bg-white/10"]:not(button):not(a) *,
 .light [class*="bg-white/15"]:not(button):not(a) *,
 .light [class*="bg-white/20"]:not(button):not(a) * {
-  color: #1C1917;
+  color: #1C1917 !important;
 }
 
 .light button[class*="bg-white/5"],
@@ -2648,4 +2650,13 @@ path.casing-parabolic-dots,
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 12. High-Contrast Theme Guard for Neon Chartreuse (#E0FF33) Buttons */
+button[class*="bg-[#E0FF33]"],
+button[class*="bg-[#E0FF33]"] svg,
+[class*="bg-[#E0FF33]"] > svg,
+.btn-neon-yellow svg {
+  stroke: #121011 !important;
+  color: #121011 !important;
 }

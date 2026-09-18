@@ -9,8 +9,10 @@ import {
   getOrderItemSummary,
   getOrderCustomerName
 } from '../supabase';
+import { nativeNotify } from '../services/nativeNotificationService';
 
 const NotificationContext = createContext(null);
+
 const STORAGE_KEY = 'foody_vrinda_notifications_v3';
 
 // Clean, welcoming initial notification seeds (NO fake order IDs)
@@ -279,11 +281,20 @@ export function NotificationProvider({ children }) {
       message: notif.message || '',
       type: notif.type || 'order',
       orderId: notif.orderId || null,
+      statusTag: notif.statusTag || null,
       read: notif.read || false,
       createdAt: notif.createdAt || new Date().toISOString()
     };
 
     setNotifications(prev => [newEntry, ...prev.filter(n => n.id !== newEntry.id)]);
+
+    // Trigger pleasant synthesized acoustic chime
+    try {
+      const chimeType = newEntry.type === 'kitchen' ? 'kitchen' : newEntry.type === 'delivery' ? 'delivery' : 'customer';
+      nativeNotify.playChime(chimeType);
+    } catch {
+      // ignore
+    }
 
     // Directly push to OS Notification Center / Lock Screen
     sendOSNotification(newEntry.title, {
@@ -328,6 +339,11 @@ export function NotificationProvider({ children }) {
     };
   }, [user?.id, user?.uid]);
 
+  // Initialize native hardware notifications (Android channels & permissions)
+  useEffect(() => {
+    nativeNotify.init();
+  }, []);
+
   // Listen to Realtime Order Events, but STRICTLY notify only the user/staff involved with that order (Single stable subscription)
   useEffect(() => {
     const unsubOrders = subscribeCloudOrders('all', (orderData, eventType) => {
@@ -352,24 +368,31 @@ export function NotificationProvider({ children }) {
           title = `New Order: ${customerName}`;
           msg = `${itemSummary} queued for cooking`;
           statusTag = 'New';
+          nativeNotify.notifyKitchenNewOrder(orderData);
         } else {
           title = `Confirmed: ${itemSummary}`;
           msg = `Accepted by ${shopName}`;
           statusTag = 'Placed';
+          nativeNotify.notifyCustomerOrderUpdate(orderData, 'Confirmed');
         }
       } else if (orderData.status === 'preparing') {
         title = `Cooking: ${itemSummary}`;
         msg = activeRole === 'kitchen' ? `In preparation for ${customerName}` : `Fresh preparation in progress`;
         statusTag = 'Cooking';
+        if (activeRole !== 'kitchen') {
+          nativeNotify.notifyCustomerOrderUpdate(orderData, 'Cooking');
+        }
       } else if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
         if (activeRole === 'delivery') {
           title = `Pickup Ready: ${itemSummary}`;
           msg = `Ready at ${shopName} for ${customerName}`;
           statusTag = 'Ready';
+          nativeNotify.notifyDriverOrderReady(orderData);
         } else {
           title = `Packed & Ready: ${itemSummary}`;
           msg = `Packed & awaiting courier dispatch`;
           statusTag = 'Ready';
+          nativeNotify.notifyCustomerOrderUpdate(orderData, 'Ready');
         }
       } else if (orderData.status === 'out_for_delivery') {
         if (activeRole === 'delivery') {
@@ -380,6 +403,7 @@ export function NotificationProvider({ children }) {
           title = `On The Way: ${itemSummary}`;
           msg = `${riderName} is heading to your address`;
           statusTag = 'On Way';
+          nativeNotify.notifyCustomerOrderUpdate(orderData, 'On The Way');
         }
       } else if (orderData.status === 'completed') {
         if (activeRole === 'kitchen' || activeRole === 'owner') {
@@ -390,6 +414,7 @@ export function NotificationProvider({ children }) {
           title = `Delivered: ${itemSummary}`;
           msg = `Delivered safely at your doorstep`;
           statusTag = 'Delivered';
+          nativeNotify.notifyCustomerOrderUpdate(orderData, 'Delivered');
         }
       } else if (orderData.status === 'cancelled') {
         title = `Cancelled: ${itemSummary}`;
@@ -415,6 +440,7 @@ export function NotificationProvider({ children }) {
       if (unsubOrders) unsubOrders();
     };
   }, []);
+
 
   const toggleNotificationRead = async (id, isRead) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: isRead } : n));

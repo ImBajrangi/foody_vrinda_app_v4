@@ -57,10 +57,10 @@ export default function Header({
     <div className="mb-4 sm:mb-7">
       <header className="py-2.5 flex items-center justify-between gap-3">
         {/* Left: Avatar with Profile Image + Greeting */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <button 
             onClick={handleProfileClick}
-            className="group relative w-11 h-11 sm:w-12 sm:h-12 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/40 via-white/20 to-[#E0FF33]/60 hover:from-[#E0FF33] hover:to-[#CCFF00] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-[0_2px_14px_rgba(224,255,51,0.18)] hover:shadow-[0_0_20px_rgba(224,255,51,0.35)]"
+            className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/50 via-amber-400/30 to-[#E0FF33]/70 hover:from-[#E0FF33] hover:to-[#CCFF00] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-[0_2px_12px_rgba(224,255,51,0.15)] hover:shadow-[0_0_18px_rgba(224,255,51,0.35)]"
             title="Profile & Settings (Tap to open)"
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-[#1E1B1C] border border-[#1E1B1C] flex items-center justify-center relative">
@@ -86,19 +86,21 @@ export default function Header({
             </div>
           </button>
           
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[13px] font-bold text-amber-600 dark:text-[#E0FF33] font-laila tracking-wide">
+              <span className="text-[12px] sm:text-[13px] font-bold text-amber-600 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
                 वृन्दोपनिषद्
               </span>
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit']">
+              <span className="text-[8.5px] sm:text-[9px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit'] shrink-0">
                 (vrindopnishad)
               </span>
             </div>
-            <h2 className="text-stone-900 dark:text-white font-black text-base sm:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
+            <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base md:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
               Hi, {getDisplayName()}
             </h2>
-            <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium truncate">Welcome to Foody Vrinda</p>
+            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+              Welcome to Foody Vrinda
+            </p>
           </div>
         </div>
 
@@ -170,30 +172,30 @@ export default function Header({
           </div>
         )}
 
-        {/* Right: Search + Cart + Notification Actions (Uniform Circular Layout) */}
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+        {/* Right: Actions Cluster (Responsive & Ergonomic) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Desktop Search Button */}
           <button
             onClick={onToggleSearch}
-            className="w-10 h-10 sm:w-11 sm:h-11 md:w-auto md:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center md:justify-start gap-2 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-md cursor-pointer apple-tap-target shrink-0 active:scale-95"
+            className="hidden md:flex h-10 px-3.5 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center gap-2 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95"
             title="Search (Ctrl + K)"
           >
-            <Search size={17} className="text-amber-600 dark:text-[#E0FF33]" />
-            <span className="hidden md:inline text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
-            <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-[#1E1B1C] px-1.5 py-0.5 rounded border border-stone-300 dark:border-white/10 ml-1">
+            <Search size={16} className="text-amber-600 dark:text-[#E0FF33]" />
+            <span className="text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
+            <kbd className="inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-[#1E1B1C] px-1.5 py-0.5 rounded border border-stone-300 dark:border-white/10 ml-1">
               ⌘K
             </kbd>
           </button>
-
 
           {/* Quick Cart Trigger (Uniform Circular Button with floating badge) */}
           {totalQty > 0 && onOpenCart && (
             <button
               onClick={onOpenCart}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
               title="Open Basket"
             >
-              <ShoppingBag size={18} className="text-amber-600 dark:text-[#E0FF33]" />
-              <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-lg font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] leading-none">
+              <ShoppingBag size={17} className="text-amber-600 dark:text-[#E0FF33]" />
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-['Outfit'] border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
                 {totalQty}
               </span>
             </button>
@@ -202,26 +204,27 @@ export default function Header({
           {/* Theme Toggle Button (Light / Dark Mode) */}
           <button
             onClick={toggleTheme}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
             title={isLight ? "Switch to Obsidian Dark Mode" : "Switch to Divine Light Mode"}
             aria-label="Toggle Theme"
           >
             {isLight ? (
-              <Moon size={18} className="text-amber-600 group-hover:rotate-12 transition-transform duration-300" />
+              <Moon size={17} className="text-amber-600 group-hover:rotate-12 transition-transform duration-300" />
             ) : (
-              <Sun size={18} className="text-[#E0FF33] group-hover:rotate-45 transition-transform duration-300" />
+              <Sun size={17} className="text-[#E0FF33] group-hover:rotate-45 transition-transform duration-300" />
             )}
           </button>
 
+          {/* Notifications Trigger */}
           <button 
             onClick={onToggleNotifications}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-md relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
             title="Notifications"
           >
-            <Bell size={18} />
+            <Bell size={17} />
             
             {unreadCount > 0 && (
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-[#E0FF33] rounded-full ring-2 ring-[#1E1B1C] shadow-sm"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 dark:bg-[#E0FF33] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm animate-pulse"></span>
             )}
           </button>
         </div>

@@ -1,13 +1,39 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
+ * Registers a high-priority capture-phase event suppressor on window
+ * to swallow any delayed synthetic click or touch-up events generated
+ * by the mobile browser when a bottom sheet is swiped down or dismissed.
+ */
+export function registerGhostClickBlocker(duration = 500) {
+  window.__foody_last_sheet_dismiss = Date.now();
+  const blockHandler = (e) => {
+    if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < duration) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    }
+  };
+
+  window.addEventListener('click', blockHandler, { capture: true, passive: false });
+  window.addEventListener('pointerup', blockHandler, { capture: true, passive: false });
+  window.addEventListener('touchend', blockHandler, { capture: true, passive: false });
+
+  setTimeout(() => {
+    window.removeEventListener('click', blockHandler, { capture: true });
+    window.removeEventListener('pointerup', blockHandler, { capture: true });
+    window.removeEventListener('touchend', blockHandler, { capture: true });
+  }, duration + 100);
+}
+
+/**
  * Ultra-responsive native-grade Bottom Sheet gesture hook (iOS / Android standard).
  * - Real-time 120fps hardware-accelerated translation
  * - Natural momentum & velocity tracking (flick to dismiss)
- * - Intelligent threshold detection (no premature/accidental closing)
- * - Clean single-pass dismissal animation with zero double-closing/flicker
+ * - Low-latency instant dismiss on downward swipe
+ * - Touch & Pointer unified gesture handling
  */
-export function useBottomSheetDrag(onClose, threshold = 80) {
+export function useBottomSheetDrag(onClose, threshold = 50) {
   const [isDragging, setIsDragging] = useState(false);
   const sheetRef = useRef(null);
   const startYRef = useRef(0);
@@ -36,7 +62,7 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
   };
 
   const startDrag = useCallback((clientY) => {
-    if (isDismissingRef.current) return;
+    if (isDismissingRef.current || isDraggingRef.current) return;
 
     startYRef.current = clientY;
     lastYRef.current = clientY;
@@ -60,13 +86,13 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
       const deltaY = currentY - startYRef.current;
 
       const dt = timeNow - lastTimeRef.current;
-      if (dt > 10) {
+      if (dt > 8) {
         velocityYRef.current = (currentY - lastYRef.current) / dt;
         lastYRef.current = currentY;
         lastTimeRef.current = timeNow;
       }
 
-      if (Math.abs(deltaY) > 6) {
+      if (Math.abs(deltaY) > 3) {
         hasMovedRef.current = true;
       }
 
@@ -78,7 +104,7 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
           clampedDelta = deltaY;
         } else {
           // Upward rubber-band resistance
-          clampedDelta = deltaY * 0.18;
+          clampedDelta = deltaY * 0.12;
         }
         currentDiffRef.current = clampedDelta;
         updateSheetTransform(clampedDelta, 'none');
@@ -105,25 +131,30 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
       currentDiffRef.current = 0;
 
       // Dismiss criteria:
-      // 1. Fast downward flick (velocity > 0.5 px/ms) with at least 25px displacement
-      // 2. Dragged past explicit threshold (default 80px or ~25% of typical mobile drawer)
-      const shouldDismiss = (velocity > 0.5 && finalDiff > 25) || finalDiff > threshold;
+      // 1. Fast downward flick (velocity > 0.3 px/ms) with at least 15px displacement
+      // 2. Dragged past explicit threshold (default 50px or ~15% of mobile sheet)
+      const shouldDismiss = (velocity > 0.3 && finalDiff > 15) || finalDiff > threshold;
 
       if (shouldDismiss && !isDismissingRef.current) {
         isDismissingRef.current = true;
+        registerGhostClickBlocker(550);
         if (sheetRef.current) {
-          sheetRef.current.style.transition = 'transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease-out';
-          sheetRef.current.style.transform = 'translate3d(0, 105%, 0)';
-          sheetRef.current.style.opacity = '0.5';
+          sheetRef.current.style.transition = 'transform 0.18s cubic-bezier(0.2, 0.9, 0.4, 1.0), opacity 0.15s ease-out';
+          sheetRef.current.style.transform = 'translate3d(0, 102%, 0)';
+          sheetRef.current.style.opacity = '0.3';
         }
         setTimeout(() => {
+          registerGhostClickBlocker(500);
           onCloseRef.current?.(true);
           isDismissingRef.current = false;
-        }, 210);
+        }, 170);
       } else {
-        // Natural spring-back to resting position
+        if (hasMovedRef.current) {
+          registerGhostClickBlocker(350);
+        }
+        // Snappy spring-back to resting position
         if (sheetRef.current) {
-          sheetRef.current.style.transition = 'transform 0.26s cubic-bezier(0.175, 0.885, 0.32, 1.12)';
+          sheetRef.current.style.transition = 'transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
           sheetRef.current.style.transform = 'translate3d(0, 0, 0)';
           setTimeout(() => {
             if (sheetRef.current && !isDraggingRef.current && !isDismissingRef.current) {
@@ -131,7 +162,7 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
               sheetRef.current.style.transition = '';
               sheetRef.current.style.willChange = '';
             }
-          }, 280);
+          }, 240);
         }
       }
     };
@@ -142,11 +173,10 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd, { passive: true });
     window.addEventListener('touchcancel', onEnd, { passive: true });
-    window.addEventListener('mousemove', onMove, { passive: true });
-    window.addEventListener('mouseup', onEnd, { passive: true });
   }, [threshold]);
 
   const handlePointerDown = useCallback((e) => {
+    if (isDismissingRef.current || isDraggingRef.current) return;
     if (e.button !== undefined && e.button !== 0) return;
     const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0]?.clientY) || 0;
     startDrag(clientY);
@@ -159,7 +189,6 @@ export function useBottomSheetDrag(onClose, threshold = 80) {
 
   const handleProps = {
     onPointerDown: handlePointerDown,
-    onTouchStart: handlePointerDown,
     onClickCapture: (e) => {
       if (hasMovedRef.current) {
         e.preventDefault();

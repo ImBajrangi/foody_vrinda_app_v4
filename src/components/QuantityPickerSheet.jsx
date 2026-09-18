@@ -279,10 +279,10 @@ export default function QuantityPickerSheet({
               type="button"
               onClick={() => scrollToQty(Math.min(10, selectedQty + 1))}
               disabled={selectedQty >= 10}
-              className="w-10 h-10 rounded-xl bg-[#E0FF33] hover:bg-[#ccff00] text-[#1E1B1C] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-xl bg-[#E0FF33] hover:bg-[#ccff00] text-[#121011] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
               title="Increase"
             >
-              <Plus size={16} strokeWidth={3} />
+              <Plus size={16} strokeWidth={3.5} className="text-[#121011]" />
             </button>
           </div>
         </div>

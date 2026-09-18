@@ -44,7 +44,7 @@ import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
 import SocialLinksBar from '../components/ui/SocialLinksBar';
-import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
 import { 
   supabase, 
   createCloudOrder, 
@@ -270,8 +270,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         const results = await fetchAddressSuggestions(checkoutAddress);
         setAddressSuggestions(results || []);
         setShowAddressDropdown(results && results.length > 0);
-      } catch (err) {
-        console.warn("Address suggestions query error:", err);
       } finally {
         setIsFetchingAddress(false);
       }
@@ -280,34 +278,59 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearTimeout(timer);
   }, [checkoutAddress]);
 
-  const handleCloseDishDetail = (e) => {
-    if (e === true) {
+  const closeDishTimeoutRef = useRef(null);
+  const closeCartTimeoutRef = useRef(null);
+
+  const handleCloseDishDetail = (isImmediate = false) => {
+    registerGhostClickBlocker(500);
+    if (closeDishTimeoutRef.current) {
+      clearTimeout(closeDishTimeoutRef.current);
+      closeDishTimeoutRef.current = null;
+    }
+    if (isImmediate === true) {
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
       return;
     }
-    if (e && e.stopPropagation) e.stopPropagation();
     if (isDetailClosing) return;
     setIsDetailClosing(true);
-    setTimeout(() => {
+    if (detailSheetRef.current) {
+      detailSheetRef.current.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.18s ease-out';
+      detailSheetRef.current.style.transform = 'translate3d(0, 105%, 0)';
+      detailSheetRef.current.style.opacity = '0';
+    }
+    closeDishTimeoutRef.current = setTimeout(() => {
+      registerGhostClickBlocker(400);
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
-    }, 200);
+      closeDishTimeoutRef.current = null;
+    }, 190);
   };
 
-  const handleCloseCartDrawer = (e) => {
-    if (e === true) {
+  const handleCloseCartDrawer = (isImmediate = false) => {
+    registerGhostClickBlocker(500);
+    if (closeCartTimeoutRef.current) {
+      clearTimeout(closeCartTimeoutRef.current);
+      closeCartTimeoutRef.current = null;
+    }
+    if (isImmediate === true) {
       setShowCartDrawer(false);
       setIsCartClosing(false);
       return;
     }
-    if (e && e.stopPropagation) e.stopPropagation();
     if (isCartClosing) return;
     setIsCartClosing(true);
-    setTimeout(() => {
+    if (cartSheetRef.current) {
+      cartSheetRef.current.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.18s ease-out';
+      cartSheetRef.current.style.transform = 'translate3d(0, 105%, 0)';
+      cartSheetRef.current.style.opacity = '0';
+    }
+    closeCartTimeoutRef.current = setTimeout(() => {
+      registerGhostClickBlocker(400);
       setShowCartDrawer(false);
       setIsCartClosing(false);
-    }, 200);
+      closeCartTimeoutRef.current = null;
+    }, 190);
   };
 
   // 120fps ultra-fluid gesture hooks (Vrinda Map Modal Standard)
@@ -316,14 +339,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     sheetStyle: detailSheetStyle,
     handleProps: detailHandleProps,
     isDragging: isDraggingDetail
-  } = useBottomSheetDrag(handleCloseDishDetail, 35);
+  } = useBottomSheetDrag(handleCloseDishDetail, 45);
 
   const {
     sheetRef: cartSheetRef,
     sheetStyle: cartSheetStyle,
     handleProps: cartHandleProps,
     isDragging: isDraggingCart
-  } = useBottomSheetDrag(handleCloseCartDrawer, 35);
+  } = useBottomSheetDrag(handleCloseCartDrawer, 45);
 
   const handleCloseShopSwitcher = () => {
     if (isShopClosing) return;
@@ -858,6 +881,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   });
 
   const handleOpenDishDetail = (item) => {
+    if (!item) return;
+    // Strict ghost-click guard against delayed synthetic clicks after gesture dismiss
+    if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < 450) return;
+    if (isDetailClosing) return;
+    if (closeDishTimeoutRef.current) {
+      clearTimeout(closeDishTimeoutRef.current);
+      closeDishTimeoutRef.current = null;
+    }
+    setIsDetailClosing(false);
     setSelectedDishDetails(item);
     const existingInCart = cart.find(c => c.id === item.id);
     setDetailQuantity(existingInCart ? existingInCart.quantity : 1);
@@ -1043,9 +1075,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-[#E0FF33] bg-amber-500/10 dark:bg-[#E0FF33]/10 px-3 py-1 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20 font-laila flex items-center gap-1.5">
+            <span className="text-xs font-bold text-amber-700 dark:text-[#E0FF33] bg-amber-500/10 dark:bg-[#E0FF33]/10 px-3.5 py-1 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20 font-laila flex items-center gap-1.5 shadow-xs">
               <span>वृन्दोपनिषद्</span>
-              <span className="text-[10px] font-bold text-stone-600 dark:text-zinc-300 font-['Outfit']">· vrindopnishad</span>
+              <span className="text-xs font-bold text-stone-600 dark:text-zinc-300 font-['Outfit']">· vrindopnishad</span>
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight font-['Outfit']">
@@ -1058,18 +1090,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Search Bar */}
         <div className="relative w-full md:w-80 lg:w-96 flex-shrink-0">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-400 pointer-events-none" />
+          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search pure delicacies..."
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
-            className="w-full h-11 sm:h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/60 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all"
+            className="w-full h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/60 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all"
           />
           {menuSearch && (
             <button
               onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-300 dark:bg-white/10 hover:bg-stone-400 dark:hover:bg-white/20 flex items-center justify-center text-[10px] text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white cursor-pointer transition-all"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/10 hover:bg-stone-400 dark:hover:bg-white/20 flex items-center justify-center text-xs text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white cursor-pointer transition-all"
               title="Clear search"
             >
               ✕
@@ -1084,7 +1116,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`h-10 sm:h-11 px-4 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
+            className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
               ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
               : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
               }`}
@@ -1100,15 +1132,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             {/* Left: Icon & Status Text */}
             <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-inner">
+              <div className="w-11 h-11 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-inner">
                 <Navigation className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20">
+                  <span className="text-xs font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-3 py-0.5 rounded-full border border-[#E0FF33]/20">
                     Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                   </span>
-                  <span className="text-[11px] font-bold text-zinc-400 capitalize">
+                  <span className="text-xs font-bold text-zinc-400 capitalize">
                     • {trackingOrder.status?.replace(/_/g, ' ')}
                   </span>
                 </div>
@@ -1127,7 +1159,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   setTrackingOrderId(null);
                   setIsTrackingModalOpen(false);
                 }}
-                className="sm:hidden w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs shrink-0 cursor-pointer"
+                className="sm:hidden w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs shrink-0 cursor-pointer"
                 title="Dismiss banner"
               >
                 ✕
@@ -1184,7 +1216,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <p className="text-xs text-zinc-500 mt-1">Try searching for other pure delicacies.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
           {filteredMenuItems.map((item, idx) => {
             const isMint = idx % 2 === 0;
             const cardBg = isMint ? 'bg-[#CEF3E7]' : 'bg-[#FFF2E6]';
@@ -1195,7 +1227,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             return (
               <div
                 key={item.id}
-                onClick={() => handleOpenDishDetail(item)}
+                onClick={(e) => {
+                  if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < 450) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                  }
+                  handleOpenDishDetail(item);
+                }}
                 style={{ animationDelay: `${idx * 50}ms` }}
                 className={`${cardBg} text-[#1E1B1C] rounded-[32px] sm:rounded-[38px] p-5 sm:p-6 lg:p-7 shadow-xl relative overflow-hidden cursor-pointer min-h-[195px] sm:min-h-[225px] flex flex-col justify-between apple-card-interactive transition-all duration-300 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-[#1E1B1C]/25 shadow-2xl' : ''}`}
               >
@@ -1203,21 +1242,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="flex justify-between items-start z-10 gap-2">
                   <div className="max-w-[62%]">
                     {item.isCombo && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-[9px] font-black uppercase tracking-wider mb-1 shadow-xs">
-                        <Sparkles size={10} className="text-[#E0FF33]" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs font-black uppercase tracking-wider mb-1.5 shadow-xs">
+                        <Sparkles size={11} className="text-[#E0FF33]" />
                         {item.tag || 'Combo Offer'}
                       </span>
                     )}
                     <h3 className="text-xl sm:text-2xl font-black text-[#1E1B1C] leading-[1.1] tracking-tight">
                       {item.name}
                     </h3>
-                    <p className="text-[11px] sm:text-xs font-semibold text-zinc-600 mt-1 leading-snug">
+                    <p className="text-xs sm:text-sm font-semibold text-zinc-700 mt-1 leading-snug">
                       {item.subtitle || 'Cheesy satvik, special price'}
                     </p>
                     {item.comboItems && item.comboItems.length > 0 && (
-                      <div className="mt-1.5 flex flex-wrap gap-1">
+                      <div className="mt-2 flex flex-wrap gap-1.5">
                         {item.comboItems.map((ci, cidx) => (
-                          <span key={cidx} className="text-[9.5px] font-bold bg-black/5 text-zinc-700 px-1.5 py-0.5 rounded-md border border-black/5">
+                          <span key={cidx} className="text-xs font-bold bg-black/5 text-zinc-800 px-2 py-0.5 rounded-lg border border-black/5">
                             + {ci}
                           </span>
                         ))}
@@ -1227,11 +1266,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <button
                     onClick={(e) => toggleFavorite(item.id, e)}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white shadow-sm flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target hover:scale-105 active:scale-95"
+                    className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target hover:scale-105 active:scale-95"
                     title="Favorite"
                   >
                     <Heart
-                      size={18}
+                      size={19}
                       className={isFav ? 'text-red-500 fill-red-500' : 'text-zinc-800'}
                     />
                   </button>
@@ -1257,7 +1296,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         addToCart(item);
                         showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                       }}
-                      className="bg-[#1E1B1C] hover:bg-black text-white font-black text-xs px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target active:scale-95"
+                      className="bg-[#1E1B1C] hover:bg-black text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target active:scale-95"
                     >
                       <span>Order Now</span>
                       <ChevronRight size={14} strokeWidth={3} />
@@ -1294,10 +1333,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           addToCart(item);
                           showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                         }}
-                        className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center transition-all cursor-pointer text-[#1E1B1C]"
+                        className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-md !text-[#121011]"
                         title="Add another"
                       >
-                        <Plus size={15} strokeWidth={3} className="text-[#1E1B1C]" />
+                        <Plus size={16} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
                       </button>
                     </div>
                   )}
@@ -1324,7 +1363,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       )}
 
       {/* Streamlined Satvik Devotee Footer */}
-      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-zinc-500 text-[11px] font-['Plus_Jakarta_Sans']">
+      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-zinc-400 text-xs font-['Plus_Jakarta_Sans']">
         {/* Sacred Brand & Mission */}
         <div className="space-y-0.5">
           <div className="flex items-center justify-center gap-2">
@@ -1332,11 +1371,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               वृन्दोपनिषद्
             </span>
             <span className="text-zinc-600">•</span>
-            <span className="text-[11px] text-[#E0FF33] font-['Outfit'] font-black">
+            <span className="text-xs text-[#E0FF33] font-['Outfit'] font-black">
               Foody Vrinda
             </span>
           </div>
-          <p className="text-[10px] text-zinc-500">
+          <p className="text-xs text-zinc-400">
             100% Satvik Cloud Kitchen & Prasad Delivery • Vrindavan Dham
           </p>
         </div>
@@ -1347,12 +1386,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
 
         {/* Regulatory Links & Policy */}
-        <div className="flex items-center justify-center gap-3 pt-0.5 text-[11px] text-zinc-500">
+        <div className="flex items-center justify-center gap-3 pt-0.5 text-xs text-zinc-400">
           <a
             href="/privacy.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-300 transition-colors"
+            className="hover:text-zinc-200 transition-colors"
           >
             Privacy Policy
           </a>
@@ -1361,20 +1400,20 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             href="/terms.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-300 transition-colors"
+            className="hover:text-zinc-200 transition-colors"
           >
             Terms of Service
           </a>
           <span className="text-zinc-700">•</span>
           <a
             href="mailto:vrinda.connect.us@gmail.com"
-            className="hover:text-zinc-300 transition-colors"
+            className="hover:text-zinc-200 transition-colors"
           >
             Contact
           </a>
         </div>
 
-        <p className="text-[9px] text-zinc-600/70 pt-0.5 font-['Outfit']">
+        <p className="text-xs text-zinc-500 pt-0.5 font-['Outfit']">
           © 2026 vrindopnishad. All rights reserved.
         </p>
       </footer>
@@ -1412,7 +1451,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
                       <ShoppingBag size={18} />
                     </div>
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[10px] font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
                       {cart.reduce((s, i) => s + i.quantity, 0)}
                     </span>
                   </div>
@@ -1422,11 +1461,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <span className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                         ₹{totalAmount}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 dark:text-zinc-400">
+                      <span className="text-xs font-bold text-stone-500 dark:text-zinc-400">
                         · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
-                    <p className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold truncate tracking-wide">
+                    <p className="text-xs text-amber-700 dark:text-[#E0FF33] font-bold truncate tracking-wide">
                       Satvik Prasad Basket
                     </p>
                   </div>
@@ -1450,18 +1489,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* 6. PRODUCT DETAIL MODAL / SHEET (Flawlessly Responsive: Mobile Sheet & Desktop 2-Column with Apple Spring Physics & Drag-Down Dismiss) */}
+      {/* 6. PRODUCT DETAIL MODAL / SHEET (Flawlessly Responsive: Mobile Sheet & Desktop 2-Column with Pure Hardware Transforms) */}
       {selectedDishDetails && (
         <div
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseDishDetail();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 apple-overlay ${isDetailClosing ? 'closing' : ''}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-[2px] transition-opacity duration-200 ${isDetailClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={detailSheetRef}
             style={detailSheetStyle}
-            className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative apple-modal-spring max-md:apple-sheet-spring ${isDraggingDetail ? 'sheet-dragging' : ''} ${isDetailClosing ? 'closing' : ''}`}
+            className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative transition-transform duration-200 ${isDraggingDetail ? 'sheet-dragging' : ''}`}
           >
 
             {/* Close Button (Desktop Only) */}
@@ -1470,7 +1509,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
-                handleCloseDishDetail(e);
+                handleCloseDishDetail();
               }}
               className="hidden md:flex absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 text-zinc-400 hover:text-white items-center justify-center transition-all cursor-pointer border border-white/10 shadow-md"
               title="Close (Esc)"
@@ -1479,55 +1518,73 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </button>
 
             {/* LEFT / TOP CONTAINER (Ivory Cream `#FAF5EB` - Showcase Card) */}
-            <div className="w-full md:w-[46%] lg:w-[44%] bg-[#FAF5EB] md:rounded-[30px] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0">
-              {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
+            <div 
+              className="w-full md:w-[46%] lg:w-[44%] bg-[#FAF5EB] md:rounded-[30px] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 select-none md:select-auto"
+            >
+              {/* Drag Handle Bar (Interactive Drag Down Indicator - Mobile Only) */}
               <div
                 {...detailHandleProps}
-                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing md:hidden select-none touch-none"
+                className="w-full py-2.5 -mt-2 mb-1 flex items-center justify-center md:hidden cursor-grab active:cursor-grabbing touch-none select-none"
                 title="Drag down to close"
               >
-                <div className="w-12 h-1.5 bg-zinc-400/80 hover:bg-zinc-500 active:bg-zinc-600 rounded-full transition-colors pointer-events-none" />
+                <div className="w-12 h-1.5 bg-zinc-400/80 rounded-full pointer-events-none" />
               </div>
 
               {/* Top Navigation Bar: Back (Mobile), Share, Favorite */}
-              <div className="flex justify-between items-center z-10 mb-1.5 sm:mb-3 select-none">
+              <div 
+                className="flex justify-between items-center z-30 mb-1.5 sm:mb-3 relative pointer-events-auto touch-auto"
+              >
                 <button
                   type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleCloseDishDetail(e);
+                    handleCloseDishDetail();
                   }}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden relative z-30 pointer-events-auto"
                   title="Go Back"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
 
-                <div className="flex items-center gap-2 ml-auto">
+                <div className="flex items-center gap-2 ml-auto relative z-30 pointer-events-auto">
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (navigator.share) {
-                        navigator.share({ title: selectedDishDetails.name, text: 'Check out this Satvik meal from Foody Vrinda!' })
-                          .catch(err => {
-                            if (err.name !== 'AbortError') {
-                              console.warn('Share error:', err);
-                            }
-                          });
+                        navigator.share({ 
+                          title: selectedDishDetails.name, 
+                          text: `Check out this pure satvik meal from Foody Vrinda: ${selectedDishDetails.name}!`,
+                          url: window.location.href 
+                        }).catch(err => {
+                          if (err.name !== 'AbortError') {
+                            showToast("Link Copied to Clipboard", "success");
+                          }
+                        });
                       } else {
-                        showToast("Link Copied", "success");
+                        try {
+                          navigator.clipboard.writeText(window.location.href);
+                          showToast("Link Copied to Clipboard", "success");
+                        } catch {
+                          showToast("Satvik Dish Shared", "success");
+                        }
                       }
                     }}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer apple-tap-target"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer relative z-30 pointer-events-auto"
                     title="Share"
                   >
                     <Share2 size={16} />
                   </button>
 
                   <button
-                    onClick={(e) => toggleFavorite(selectedDishDetails.id, e)}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] shadow-sm flex items-center justify-center transition-all cursor-pointer apple-tap-target"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(selectedDishDetails.id, e);
+                      const isNowFav = !favorites.includes(selectedDishDetails.id);
+                      showToast(isNowFav ? "Added to Favorites" : "Removed from Favorites", "info");
+                    }}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-30 pointer-events-auto"
                     title="Favorite"
                   >
                     <Heart
@@ -1539,7 +1596,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Title & Micro-Info Pills (Mobile Only) */}
-              <div className="z-10 md:hidden mb-1">
+              <div className="z-10 md:hidden mb-1 pointer-events-none">
                 <h2 className="text-xl sm:text-2xl font-black text-[#1E1B1C] tracking-tight leading-tight line-clamp-2 font-['Outfit']">
                   {selectedDishDetails.name}
                 </h2>
@@ -1555,9 +1612,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
               </div>
 
-              {/* Hero Cutout Image */}
-              <div className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px]">
-                <div className="w-36 h-32 xs:w-44 xs:h-36 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center">
+              {/* Hero Cutout Image & Secondary Swipe Drag Area */}
+              <div 
+                {...detailHandleProps}
+                className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px] cursor-grab active:cursor-grabbing touch-none select-none"
+              >
+                <div className="w-36 h-32 xs:w-44 xs:h-36 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
                   <img
                     src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
                     alt={selectedDishDetails.name}
@@ -1572,7 +1632,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Floating Tag Pill */}
-                <div className="absolute bottom-0 left-0 sm:bottom-2 sm:left-2 z-10 flex items-center">
+                <div className="absolute bottom-0 left-0 sm:bottom-2 sm:left-2 z-10 flex items-center pointer-events-none">
                   <span className="bg-[#FDE7D4] text-[#B25010] text-[10px] sm:text-xs font-black px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-md border border-[#FDBA74]/40">
                     {selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : 'Full Protein')}
                   </span>
@@ -1708,11 +1768,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setDetailQuantity(detailQuantity + 1)}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center !text-[#121011] cursor-pointer transition-all shadow-md apple-tap-target"
                         aria-label="Increase quantity"
                         title="Increase quantity"
                       >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={15} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
                       </button>
                     </div>
 
@@ -1741,18 +1801,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* CART DRAWER OVERLAY (Apple Bottom Sheet Spring Standard & Drag-Down Dismiss) */}
+      {/* CART DRAWER OVERLAY (Pure Hardware Transforms & Drag-Down Dismiss) */}
       {showCartDrawer && (
         <div
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseCartDrawer();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 apple-overlay ${isCartClosing ? 'closing' : ''}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-[2px] transition-opacity duration-200 ${isCartClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={cartSheetRef}
             style={cartSheetStyle}
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden apple-sheet-spring sm:apple-modal-spring ${isDraggingCart ? 'sheet-dragging' : ''} ${isCartClosing ? 'closing' : ''}`}
+            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative transition-transform duration-200 ${isDraggingCart ? 'sheet-dragging' : ''}`}
           >
             {/* Top Fixed Header & Grab Bar */}
             <div className="shrink-0">
@@ -1827,11 +1887,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center !text-[#121011] cursor-pointer transition-all shadow-md apple-tap-target"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
-                          <Plus size={13} strokeWidth={3} />
+                          <Plus size={14} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
                         </button>
                       </div>
                     </div>
@@ -1885,37 +1945,39 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </div>
                 ) : (
                   /* Hotel / Restaurant: Support both Doorstep Delivery and Counter Pickup */
-                  <div className="p-1 rounded-2xl bg-stone-200/80 dark:bg-[#151314] border border-stone-300 dark:border-white/10 grid grid-cols-2 gap-1">
+                  <div className="p-1.5 rounded-2xl bg-stone-200/80 dark:bg-[#151314] border border-stone-300 dark:border-white/10 grid grid-cols-2 gap-1.5 w-full max-w-full box-border shadow-inner">
                     <button
                       type="button"
                       onClick={() => {
                         if (onlineRidersCount > 0) setFulfillmentType('delivery');
                         else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
                       }}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${
                         fulfillmentType === 'delivery'
                           ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-xs'
                           : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
                     >
-                      <span>🛵 Delivery</span>
-                      {onlineRidersCount === 0 && <span className="text-[9px] text-amber-600 dark:text-amber-400 font-black">(Offline)</span>}
+                      <span className="text-sm">🛵</span>
+                      <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Delivery</span>
+                      {onlineRidersCount === 0 && <span className="text-[9px] text-amber-600 dark:text-amber-400 font-black shrink-0">(Offline)</span>}
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setFulfillmentType('pickup')}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${
                         fulfillmentType === 'pickup'
                           ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
                           : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
-                      <span>🛍️ Self-Pickup</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                      <span className="text-sm">🛍️</span>
+                      <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
+                      <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${
                         fulfillmentType === 'pickup'
-                          ? 'bg-white/20 text-white dark:bg-black/15 dark:text-[#1E1B1C]'
-                          : 'bg-stone-300/80 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
+                          ? 'bg-white !text-amber-950 dark:bg-black/30 dark:!text-[#1E1B1C] shadow-xs'
+                          : 'bg-emerald-500/20 !text-emerald-800 dark:bg-emerald-400/20 dark:!text-emerald-300 border border-emerald-500/30'
                       }`}>Free</span>
                     </button>
                   </div>
@@ -1972,23 +2034,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Name Input */}
-                <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
+                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${
                   shakeField === 'name'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                 }`}>
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
-                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${
+                    shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
-                    <User size={16} />
+                    <User size={19} className="stroke-[2.5]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
+                      <label className="block text-[11px] sm:text-xs font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 leading-none mb-1 font-['Outfit']">
                         Recipient Name
                       </label>
                       {shakeField === 'name' && (
-                        <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">Name Required</span>
+                        <span className="text-[11px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">Name Required</span>
                       )}
                     </div>
                     <input
@@ -2002,40 +2064,40 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       }}
                       maxLength={40}
                       placeholder="e.g. Rahul"
-                      className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                      className="w-full text-base sm:text-lg font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-tight"
                     />
                   </div>
                   <div className="flex items-center shrink-0 ml-2">
                     {checkoutName.trim().length >= 2 && /^[a-zA-Z\s'.]+$/.test(checkoutName.trim()) && (
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/15 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Name">
-                        <Check size={12} strokeWidth={3} />
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#E0FF33]/20 text-emerald-700 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Name">
+                        <Check size={14} strokeWidth={3} />
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Phone Input */}
-                <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
+                <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${
                   shakeField === 'phone'
                     ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                 }`}>
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
-                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${
+                    shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                   }`}>
-                    <Phone size={15} />
+                    <Phone size={19} className="stroke-[2.5]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
+                      <label className="block text-[11px] sm:text-xs font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 leading-none mb-1 font-['Outfit']">
                         Contact Phone
                       </label>
                       {shakeField === 'phone' && (
-                        <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">10 Digits Required</span>
+                        <span className="text-[11px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">10 Digits Required</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm sm:text-base font-bold text-stone-500 dark:text-zinc-400 select-none">+91</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base sm:text-lg font-bold text-stone-500 dark:text-zinc-400 select-none">+91</span>
                       <input
                         ref={phoneInputRef}
                         type="tel"
@@ -2049,14 +2111,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           if (shakeField === 'phone') setShakeField(null);
                         }}
                         placeholder="9876543210"
-                        className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                        className="w-full text-base sm:text-lg font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-tight"
                       />
                     </div>
                   </div>
                   <div className="flex items-center shrink-0 ml-2">
                     {checkoutPhone.length === 10 && (
-                      <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/15 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up" title="Valid Mobile">
-                        <Check size={12} strokeWidth={3} />
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#E0FF33]/20 text-emerald-700 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Mobile">
+                        <Check size={14} strokeWidth={3} />
                       </span>
                     )}
                   </div>
@@ -2065,57 +2127,83 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Conditional: Address Input for Delivery vs Counter Pickup Card */}
                 {fulfillmentType === 'delivery' ? (
                   <div className="relative">
-                    <div className={`relative flex items-center rounded-2xl p-2.5 sm:p-3 transition-all ${
+                    <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${
                       shakeField === 'address'
                         ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                        : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+                        : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                     }`}>
-                      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 mr-3 transition-colors ${
-                        shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
-                      }`}>
-                        <MapPin size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
-                            Delivery Address
-                          </label>
-                          {shakeField === 'address' && (
-                            <span className="text-[10px] font-bold text-red-500 dark:text-red-400 leading-none mb-1 animate-fade-in">Address Required</span>
-                          )}
+                      {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
+                      <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${
+                            shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33]'
+                          }`}>
+                            <MapPin size={17} className="stroke-[2.5]" />
+                          </div>
+                          <div className="min-w-0">
+                            <label className="block text-xs font-black uppercase tracking-wider text-stone-700 dark:text-zinc-300 leading-none font-['Outfit']">
+                              Delivery Address
+                            </label>
+                            {shakeField === 'address' && (
+                              <span className="text-[11px] font-bold text-red-500 dark:text-red-400 leading-none mt-1 inline-block animate-fade-in">Address Required</span>
+                            )}
+                          </div>
                         </div>
-                        <input
+
+                        {/* Top-Right Quick Auto-Fill GPS Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAutoFillLocation();
+                          }}
+                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
+                          title="Auto-fill GPS address or pin on map"
+                        >
+                          <Compass size={14} strokeWidth={2.5} />
+                          <span>Auto-Fill GPS</span>
+                        </button>
+                      </div>
+
+                      {/* Full-Width Spacious Multi-Line Address Textarea */}
+                      <div className="pt-0.5">
+                        <textarea
                           ref={addressInputRef}
-                          type="text"
+                          rows={2}
                           value={checkoutAddress}
                           onChange={(e) => {
                             setCheckoutAddress(e.target.value);
                             if (shakeField === 'address') setShakeField(null);
                           }}
-                          placeholder="Street, Ashram, or Landmark..."
-                          className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                          placeholder="Enter street, ashram, apartment, flat no., or landmark in Vrindavan..."
+                          className="w-full min-h-[58px] sm:min-h-[64px] text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-relaxed resize-none"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleAutoFillLocation();
-                        }}
-                        className="h-8 sm:h-9 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ml-2 active:scale-95 z-10 shadow-xs apple-tap-target font-['Outfit']"
-                        title="Auto-fill GPS address or pin on map"
-                      >
-                        <Compass size={13} strokeWidth={2.5} />
-                        <span className="inline">Auto-Fill</span>
-                      </button>
+
+                      {/* Bottom Context Helper & Clear Button */}
+                      {checkoutAddress.trim().length > 0 && (
+                        <div className="flex items-center justify-between pt-1 border-t border-stone-200/60 dark:border-white/5 text-xs text-stone-500 dark:text-zinc-400">
+                          <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
+                            <Check size={13} strokeWidth={3} />
+                            <span>Address Recorded</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCheckoutAddress('')}
+                            className="text-stone-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* OpenStreetMap Nominatim / Vedic Landmark Autocomplete Dropdown */}
                     {showAddressDropdown && addressSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#201D1E] border border-[#E0FF33]/30 rounded-2xl p-2 shadow-2xl z-30 max-h-48 overflow-y-auto no-scrollbar space-y-1 backdrop-blur-xl">
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-stone-900 dark:bg-[#201D1E] border border-stone-700 dark:border-[#E0FF33]/30 rounded-2xl p-2 shadow-2xl z-30 max-h-48 overflow-y-auto no-scrollbar space-y-1 backdrop-blur-xl">
                         {isFetchingAddress && (
-                          <p className="text-[10px] text-zinc-500 px-3 py-1">Searching landmarks...</p>
+                          <p className="text-xs text-zinc-400 px-3 py-1 font-medium">Searching landmarks...</p>
                         )}
                         {addressSuggestions.map((item, idx) => (
                           <button
@@ -2132,12 +2220,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                               }
                               showToast("Address Selected", "success");
                             }}
-                            className="w-full text-left p-2.5 rounded-xl hover:bg-white/5 transition-all text-xs flex items-start gap-2 text-zinc-300 hover:text-white cursor-pointer"
+                            className="w-full text-left p-2.5 rounded-xl hover:bg-white/10 transition-all text-xs flex items-start gap-2 text-zinc-200 hover:text-white cursor-pointer"
                           >
-                            <MapPin size={14} className="text-[#E0FF33] mt-0.5 shrink-0" />
+                            <MapPin size={15} className="text-amber-500 dark:text-[#E0FF33] mt-0.5 shrink-0" />
                             <div className="min-w-0">
-                              <p className="font-bold text-white truncate text-xs">{item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}</p>
-                              <p className="text-[10px] text-zinc-400 truncate">{item.address || item.display_name || ''}</p>
+                              <p className="font-bold text-white truncate text-xs sm:text-sm">{item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}</p>
+                              <p className="text-xs text-zinc-400 truncate">{item.address || item.display_name || ''}</p>
                             </div>
                           </button>
                         ))}
@@ -2145,23 +2233,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     )}
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-2xl bg-[#151314] border border-white/10 space-y-2 animate-fade-in">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0">
-                        <Store size={16} />
+                  <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/10 space-y-2.5 shadow-2xs animate-fade-in">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 shadow-inner">
+                        <Store size={20} className="stroke-[2.5]" />
                       </div>
-                      <div>
-                        <h4 className="text-xs font-black text-white uppercase font-['Outfit']">Self-Pickup Counter</h4>
-                        <p className="text-[11px] font-bold text-[#E0FF33] truncate">{activeShop?.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
+                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#E0FF33] truncate">{activeShop?.name || 'Foody Vrinda Main Kitchen'}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-300 pl-10 leading-relaxed font-medium">
-                      {activeShop?.address || 'Vrindavan Dham'}
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
+                      {activeShop?.address || 'Near ISKCON Temple, Raman Reti, Vrindavan'}
                     </p>
 
                     {/* Anti-Fake Orders Notice for Shop Type */}
                     {isRetailShop && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-[11px] leading-relaxed font-medium">
+                      <div className="mt-2.5 p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-200 text-xs leading-relaxed font-medium">
                         🛡️ <strong>Prasad Freshness Policy</strong>: Counter pickup orders from Retail Shops require prepaid online confirmation to prevent uncollected fresh bhog wastage.
                       </div>
                     )}
@@ -2169,56 +2257,103 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 )}
 
                 {/* Payment Method Selector */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    disabled={!onlineAvailable}
-                    onClick={() => setPaymentMethod('online')}
-                    className={`p-3 rounded-2xl border text-xs font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all apple-tap-target ${!onlineAvailable
-                      ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
-                      : paymentMethod === 'online'
-                        ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
-                        : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
-                      }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Zap size={14} className={onlineAvailable && paymentMethod === 'online' ? 'text-[#1E1B1C]' : 'text-[#E0FF33]'} />
-                      <span>Online Pay</span>
-                    </div>
-                    {!onlineAvailable && (
-                      <span className="text-[9px] text-zinc-500 font-medium">
-                        {!globalOnline ? '(Platform Off)' : '(Kitchen Off)'}
-                      </span>
-                    )}
-                  </button>
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between text-xs font-black text-stone-600 dark:text-zinc-400 font-['Outfit'] uppercase tracking-wider px-1">
+                    <span>Payment Method</span>
+                    <span className="text-[11px] text-emerald-700 dark:text-[#E0FF33] font-bold">100% Secure</span>
+                  </div>
 
-                  <button
-                    type="button"
-                    disabled={!isCodAvailableForOrder}
-                    onClick={() => setPaymentMethod('cash')}
-                    className={`p-3 rounded-2xl border text-xs font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all apple-tap-target ${!isCodAvailableForOrder
-                      ? 'bg-[#151314]/50 text-zinc-600 border-white/5 cursor-not-allowed opacity-50'
-                      : paymentMethod === 'cash'
-                        ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] shadow-md cursor-pointer'
-                        : 'bg-[#151314] text-zinc-400 border-white/5 hover:border-white/10 cursor-pointer'
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {/* Online Pay Option */}
+                    <button
+                      type="button"
+                      disabled={!onlineAvailable}
+                      onClick={() => setPaymentMethod('online')}
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${
+                        !onlineAvailable
+                          ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
+                          : paymentMethod === 'online'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
+                            : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
                       }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Banknote size={14} className={isCodAvailableForOrder && paymentMethod === 'cash' ? 'text-[#1E1B1C]' : 'text-emerald-400'} />
-                      <span>Cash</span>
-                    </div>
-                    {!isCodAvailableForOrder && (
-                      <span className="text-[9px] text-zinc-500 font-medium">
-                        {isRetailShop && isPickupOrder ? '(Prepaid Only)' : (!globalCod ? '(Platform Off)' : '(Kitchen Off)')}
-                      </span>
-                    )}
-                  </button>
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                          paymentMethod === 'online'
+                            ? 'bg-amber-600 text-white dark:bg-black/20 dark:text-[#121011]'
+                            : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]'
+                        }`}>
+                          <Zap size={19} className="stroke-[2.5]" />
+                        </div>
+                        {paymentMethod === 'online' && (
+                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
+                            <Check size={14} strokeWidth={3.5} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-black font-['Outfit'] tracking-tight">
+                          Online Pay
+                        </div>
+                        <p className={`text-xs leading-tight font-medium mt-0.5 ${
+                          paymentMethod === 'online'
+                            ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                            : 'text-stone-600 dark:text-zinc-400'
+                        }`}>
+                          {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Cash on Delivery / Pay at Counter Option */}
+                    <button
+                      type="button"
+                      disabled={!isCodAvailableForOrder}
+                      onClick={() => setPaymentMethod('cash')}
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${
+                        !isCodAvailableForOrder
+                          ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
+                          : paymentMethod === 'cash'
+                            ? 'bg-[#F0FDF4] text-stone-950 border-2 border-emerald-600 shadow-md ring-2 ring-emerald-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
+                            : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-emerald-500/50 dark:hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                          paymentMethod === 'cash'
+                            ? 'bg-emerald-600 text-white dark:bg-black/20 dark:text-[#121011]'
+                            : 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-400'
+                        }`}>
+                          <Banknote size={19} className="stroke-[2.5]" />
+                        </div>
+                        {paymentMethod === 'cash' && (
+                          <div className="w-6 h-6 rounded-full bg-emerald-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
+                            <Check size={14} strokeWidth={3.5} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-black font-['Outfit'] tracking-tight">
+                          {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
+                        </div>
+                        <p className={`text-xs leading-tight font-medium mt-0.5 ${
+                          paymentMethod === 'cash'
+                            ? 'text-emerald-850 dark:text-[#121011]/85 font-semibold'
+                            : 'text-stone-600 dark:text-zinc-400'
+                        }`}>
+                          {!isCodAvailableForOrder ? 'COD Disabled' : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Bottom Fixed Action Footer */}
-            <div className="shrink-0 pt-2 border-t border-white/5 space-y-2">
+            <div className="shrink-0 pt-2 pb-6 sm:pb-2 border-t border-stone-200/80 dark:border-white/5 space-y-2 safe-area-bottom">
               {/* Seamless Trust & Live Tracking Micro-Indicator */}
               <div className="flex items-center justify-between text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
                 <div className="flex items-center gap-1.5 text-[#E0FF33]">
