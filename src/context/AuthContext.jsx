@@ -13,6 +13,9 @@ import {
   saveCachedUsers,
   subscribeCloudUsers
 } from '../supabase';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 const AuthContext = createContext(null);
 
@@ -573,6 +576,89 @@ export function AuthProvider({ children }) {
     };
   }, [allShops, resolveShopName, syncUserToCloudList]);
 
+  // Native Deep Link OAuth Callback Handler (handles seamless return from Google OAuth to native app)
+  useEffect(() => {
+    let appUrlListener = null;
+
+    const handleIncomingUrl = async (rawUrl) => {
+      if (!rawUrl) return;
+
+      if (
+        rawUrl.includes('auth/callback') || 
+        rawUrl.includes('access_token=') || 
+        rawUrl.includes('refresh_token=') || 
+        rawUrl.includes('code=')
+      ) {
+        try {
+          // Close in-app browser overlay if open
+          await Browser.close().catch(() => {});
+        } catch (_) {}
+
+        try {
+          // Handle PKCE Code exchange
+          if (rawUrl.includes('code=')) {
+            const queryIndex = rawUrl.indexOf('?');
+            if (queryIndex !== -1) {
+              const searchParams = new URLSearchParams(rawUrl.substring(queryIndex + 1));
+              const code = searchParams.get('code');
+              if (code) {
+                await supabase.auth.exchangeCodeForSession(code);
+                return;
+              }
+            }
+          }
+
+          // Handle Implicit Access Token (#access_token=...&refresh_token=...)
+          if (rawUrl.includes('access_token=') && rawUrl.includes('refresh_token=')) {
+            const hashIndex = rawUrl.indexOf('#');
+            const queryIndex = rawUrl.indexOf('?');
+            const paramsStr = hashIndex !== -1 
+              ? rawUrl.substring(hashIndex + 1) 
+              : (queryIndex !== -1 ? rawUrl.substring(queryIndex + 1) : '');
+            
+            const params = new URLSearchParams(paramsStr);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+
+            if (accessToken && refreshToken) {
+              await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Deep link auth error:", err);
+        }
+      }
+    };
+
+    const setupListener = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const launchUrl = await CapApp.getLaunchUrl();
+          if (launchUrl?.url) {
+            handleIncomingUrl(launchUrl.url);
+          }
+        } catch (_) {}
+
+        appUrlListener = await CapApp.addListener('appUrlOpen', (data) => {
+          if (data?.url) {
+            handleIncomingUrl(data.url);
+          }
+        });
+      }
+    };
+
+    setupListener();
+
+    return () => {
+      if (appUrlListener && typeof appUrlListener.remove === 'function') {
+        appUrlListener.remove();
+      }
+    };
+  }, []);
+
   // Update user profile fields (Name, Phone, Default Address) and sync to cache & Supabase
   const updateUserProfile = useCallback(async ({ displayName, phone, address, customerAddress }) => {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(0, 10);
@@ -659,21 +745,31 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = async () => {
-    const isLive = typeof window !== 'undefined' && (
-      window.location.hostname === 'eat.vrindopnishad.in' || 
-      window.location.hostname.includes('vrindopnishad.in')
-    );
-    const redirectUrl = isLive 
-      ? 'https://eat.vrindopnishad.in/' 
-      : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/');
+    const isNative = Capacitor.isNativePlatform();
+
+    // In native app, use custom scheme callback so Android routes callback right back into the app
+    const redirectUrl = isNative 
+      ? 'com.foodyvrinda.app://auth/callback'
+      : (typeof window !== 'undefined' && (
+          window.location.hostname === 'eat.vrindopnishad.in' || 
+          window.location.hostname.includes('vrindopnishad.in')
+        )
+          ? 'https://eat.vrindopnishad.in/' 
+          : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/'));
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl
+        redirectTo: redirectUrl,
+        skipBrowserRedirect: isNative
       }
     });
     if (error) throw error;
+
+    if (isNative && data?.url) {
+      await Browser.open({ url: data.url, windowName: '_self' });
+    }
+
     return data;
   };
 
