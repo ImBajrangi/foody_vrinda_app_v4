@@ -44,7 +44,7 @@ import QuantityPickerSheet from '../components/QuantityPickerSheet';
 import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
 import ReviewModal from '../components/ReviewModal';
 import SocialLinksBar from '../components/ui/SocialLinksBar';
-import { useBottomSheetDrag, registerGhostClickBlocker } from '../hooks/useBottomSheetDrag';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { 
   supabase, 
   createCloudOrder, 
@@ -282,7 +282,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const closeCartTimeoutRef = useRef(null);
 
   const handleCloseDishDetail = (isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeDishTimeoutRef.current) {
       clearTimeout(closeDishTimeoutRef.current);
       closeDishTimeoutRef.current = null;
@@ -300,7 +299,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       detailSheetRef.current.style.opacity = '0';
     }
     closeDishTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
       closeDishTimeoutRef.current = null;
@@ -308,7 +306,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   };
 
   const handleCloseCartDrawer = (isImmediate = false) => {
-    registerGhostClickBlocker(500);
     if (closeCartTimeoutRef.current) {
       clearTimeout(closeCartTimeoutRef.current);
       closeCartTimeoutRef.current = null;
@@ -326,7 +323,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       cartSheetRef.current.style.opacity = '0';
     }
     closeCartTimeoutRef.current = setTimeout(() => {
-      registerGhostClickBlocker(400);
       setShowCartDrawer(false);
       setIsCartClosing(false);
       closeCartTimeoutRef.current = null;

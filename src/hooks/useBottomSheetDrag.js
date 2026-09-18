@@ -1,32 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
- * Registers a high-priority capture-phase event suppressor on window
- * to swallow any delayed synthetic click or touch-up events generated
- * by the mobile browser when a bottom sheet is swiped down or dismissed.
- */
-export function registerGhostClickBlocker(duration = 500) {
-  window.__foody_last_sheet_dismiss = Date.now();
-  const blockHandler = (e) => {
-    if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < duration) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation?.();
-    }
-  };
-
-  window.addEventListener('click', blockHandler, { capture: true, passive: false });
-  window.addEventListener('pointerup', blockHandler, { capture: true, passive: false });
-  window.addEventListener('touchend', blockHandler, { capture: true, passive: false });
-
-  setTimeout(() => {
-    window.removeEventListener('click', blockHandler, { capture: true });
-    window.removeEventListener('pointerup', blockHandler, { capture: true });
-    window.removeEventListener('touchend', blockHandler, { capture: true });
-  }, duration + 100);
-}
-
-/**
  * Ultra-responsive native-grade Bottom Sheet gesture hook (iOS / Android standard).
  * - Real-time 120fps hardware-accelerated translation
  * - Natural momentum & velocity tracking (flick to dismiss)
@@ -92,7 +66,7 @@ export function useBottomSheetDrag(onClose, threshold = 50) {
         lastTimeRef.current = timeNow;
       }
 
-      if (Math.abs(deltaY) > 3) {
+      if (Math.abs(deltaY) > 5) {
         hasMovedRef.current = true;
       }
 
@@ -123,8 +97,6 @@ export function useBottomSheetDrag(onClose, threshold = 50) {
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
       window.removeEventListener('touchcancel', onEnd);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onEnd);
 
       const finalDiff = currentDiffRef.current;
       const velocity = velocityYRef.current;
@@ -137,21 +109,16 @@ export function useBottomSheetDrag(onClose, threshold = 50) {
 
       if (shouldDismiss && !isDismissingRef.current) {
         isDismissingRef.current = true;
-        registerGhostClickBlocker(550);
         if (sheetRef.current) {
           sheetRef.current.style.transition = 'transform 0.18s cubic-bezier(0.2, 0.9, 0.4, 1.0), opacity 0.15s ease-out';
           sheetRef.current.style.transform = 'translate3d(0, 102%, 0)';
           sheetRef.current.style.opacity = '0.3';
         }
         setTimeout(() => {
-          registerGhostClickBlocker(500);
           onCloseRef.current?.(true);
           isDismissingRef.current = false;
         }, 170);
       } else {
-        if (hasMovedRef.current) {
-          registerGhostClickBlocker(350);
-        }
         // Snappy spring-back to resting position
         if (sheetRef.current) {
           sheetRef.current.style.transition = 'transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
