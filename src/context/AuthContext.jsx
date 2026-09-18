@@ -590,42 +590,35 @@ export function AuthProvider({ children }) {
         rawUrl.includes('code=')
       ) {
         try {
-          // Close in-app browser overlay if open
+          // Close in-app browser Custom Tab overlay immediately
           await Browser.close().catch(() => {});
         } catch (_) {}
 
         try {
-          // Handle PKCE Code exchange
-          if (rawUrl.includes('code=')) {
-            const queryIndex = rawUrl.indexOf('?');
-            if (queryIndex !== -1) {
-              const searchParams = new URLSearchParams(rawUrl.substring(queryIndex + 1));
-              const code = searchParams.get('code');
-              if (code) {
-                await supabase.auth.exchangeCodeForSession(code);
-                return;
-              }
-            }
+          // Extract query params (?) and hash params (#)
+          const urlObj = new URL(rawUrl.startsWith('http') ? rawUrl : `https://dummy.local/${rawUrl.replace(/^[a-zA-Z0-9._-]+:\/\//, '')}`);
+          const searchParams = urlObj.searchParams;
+          
+          let hashParams = new URLSearchParams();
+          if (rawUrl.includes('#')) {
+            const hashPart = rawUrl.substring(rawUrl.indexOf('#') + 1);
+            hashParams = new URLSearchParams(hashPart);
           }
 
-          // Handle Implicit Access Token (#access_token=...&refresh_token=...)
-          if (rawUrl.includes('access_token=') && rawUrl.includes('refresh_token=')) {
-            const hashIndex = rawUrl.indexOf('#');
-            const queryIndex = rawUrl.indexOf('?');
-            const paramsStr = hashIndex !== -1 
-              ? rawUrl.substring(hashIndex + 1) 
-              : (queryIndex !== -1 ? rawUrl.substring(queryIndex + 1) : '');
-            
-            const params = new URLSearchParams(paramsStr);
-            const accessToken = params.get('access_token');
-            const refreshToken = params.get('refresh_token');
+          const code = searchParams.get('code') || hashParams.get('code');
+          if (code) {
+            await supabase.auth.exchangeCodeForSession(code);
+            return;
+          }
 
-            if (accessToken && refreshToken) {
-              await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken
-              });
-            }
+          const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+
+          if (accessToken && refreshToken) {
+            await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
           }
         } catch (err) {
           console.error("Deep link auth error:", err);

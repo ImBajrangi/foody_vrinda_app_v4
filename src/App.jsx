@@ -167,6 +167,35 @@ export default function App() {
     };
   }, []);
 
+  // Web-to-App Relay Bridge for Mobile OAuth Callbacks
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+
+    const hasAuthParams = 
+      hash.includes('access_token=') || 
+      search.includes('code=') || 
+      hash.includes('refresh_token=');
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+    if (hasAuthParams && isMobile) {
+      const appDeepLink = `com.foodyvrinda.app://auth/callback${search}${hash}`;
+      
+      // Auto-bounce back into the native Android app
+      const timer = setTimeout(() => {
+        try {
+          window.location.href = appDeepLink;
+        } catch (_) {}
+      }, 250);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // Android Native Hardware Back Button Handling
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
