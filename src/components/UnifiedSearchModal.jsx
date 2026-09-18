@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary } from '../supabase';
 import { Sparkles, Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, Flame, Clock, MapPin, Plus, Minus, Tag } from 'lucide-react';
 import { HitSoochiService } from '../services/hitSoochiService';
+import DynamicToast from './ui/DynamicToast';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
   const { user, userData, userRole, currentUserShopId, allShops } = useAuth();
@@ -660,27 +661,13 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         </div>
       </div>
 
-      {/* Dynamic Island Toast — portaled to body so it sits above everything */}
-      {toastMsg && createPortal(
-        <div
-          className="fixed z-[99999999] flex justify-center pointer-events-none"
-          style={{ top: 'max(18px, env(safe-area-inset-top, 18px))', left: 0, right: 0 }}
-        >
-          <aside
-            className="dynamic-island-toast toast type-basket-add stage-visible pointer-events-auto cursor-pointer"
-            onClick={() => setToastMsg(null)}
-            role="status"
-            aria-live="polite"
-          >
-            <div className="dynamic-island-icon-wrap type-basket-add">
-              <ShoppingBag size={16} strokeWidth={2.5} className="text-[#E0FF33]" />
-            </div>
-            <div className="dynamic-island-content">
-              <span className="dynamic-island-title">{toastMsg}</span>
-            </div>
-          </aside>
-        </div>,
-        document.body
+      {/* Dynamic Island Toast */}
+      {toastMsg && (
+        <DynamicToast
+          message={toastMsg}
+          type="success"
+          onDismiss={() => setToastMsg(null)}
+        />
       )}
     </>
   );

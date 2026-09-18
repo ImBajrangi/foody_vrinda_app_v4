@@ -30,7 +30,7 @@ export function CartProvider({ children }) {
       } else {
         localStorage.removeItem('foody_cart_shop_id');
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [cart, selectedShopId]);
 
   const [paymentSettings, setPaymentSettings] = useState(() => {
@@ -50,7 +50,7 @@ export function CartProvider({ children }) {
         if (saved) {
           setPaymentSettings(JSON.parse(saved));
         }
-      } catch (e) {}
+      } catch (e) { }
     };
 
     window.addEventListener('storage', handleConfigChange);
@@ -67,7 +67,7 @@ export function CartProvider({ children }) {
       try {
         localStorage.setItem('foody_payment_config', JSON.stringify(updated));
         window.dispatchEvent(new Event('foody_payment_config_changed'));
-      } catch (e) {}
+      } catch (e) { }
       return updated;
     });
   }, []);
