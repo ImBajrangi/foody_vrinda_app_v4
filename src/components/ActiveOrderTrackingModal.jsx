@@ -646,13 +646,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         className={`w-full max-w-[440px] bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
       >
 
-        {/* Top Header Grab Bar (Drag down anywhere on top to shrink to floating capsule) */}
-        <div
-          {...modalHandleProps}
-          className="absolute top-0 inset-x-0 h-9 z-[600] flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto select-none touch-none"
-          title="Drag down to shrink to floating capsule"
-        >
-          <div className="w-12 h-1.5 bg-white/40 hover:bg-white/70 rounded-full shadow-sm transition-colors" />
+        {/* Top Header Grab Bar (Drag down center top to shrink to floating capsule) */}
+        <div className="absolute top-0 inset-x-0 h-9 z-[500] flex items-center justify-center pointer-events-none select-none">
+          <div
+            {...modalHandleProps}
+            className="w-24 h-8 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
+            title="Drag down to shrink to floating capsule"
+          >
+            <div className="w-12 h-1.5 bg-white/40 hover:bg-white/70 rounded-full shadow-sm transition-colors" />
+          </div>
         </div>
 
         {/* Top Leaflet Map Section - Outer Click Collapses to Peek Mode */}
@@ -665,7 +667,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
 
           {/* Floating Back / Minimize Button (Top Left with Safe Area Inset) */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[500] flex items-center gap-2">
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[700] flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -680,7 +682,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           </div>
 
           {/* Floating Controls (Top Right with Safe Area Inset): Recenter & Shrink Capsule Button */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[500] flex items-center gap-2">
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[700] flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
