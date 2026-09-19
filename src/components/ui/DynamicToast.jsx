@@ -190,27 +190,27 @@ export default function DynamicToast({
 
   const getIcon = () => {
     if (isFavAdd) {
-      return <Heart size={13} strokeWidth={2.6} className="text-rose-400 fill-rose-500" />;
+      return <Heart size={16} strokeWidth={2.4} className="text-rose-400 fill-rose-500" />;
     }
     if (isFavRemove) {
-      return <HeartOff size={13} strokeWidth={2.6} className="text-zinc-300" />;
+      return <HeartOff size={16} strokeWidth={2.4} className="text-zinc-300" />;
     }
     if (isShopAction) {
-      return <Store size={13} strokeWidth={2.6} className="text-amber-300" />;
+      return <Store size={16} strokeWidth={2.4} className="text-amber-300" />;
     }
     if (isBasketAction && effectiveTypeRaw === 'success') {
-      return <ShoppingBag size={13} strokeWidth={2.6} className="text-emerald-300" />;
+      return <ShoppingBag size={16} strokeWidth={2.4} className="text-emerald-300" />;
     }
     switch (effectiveTypeRaw) {
       case 'success':
-        return <Check size={13} strokeWidth={3} className="text-emerald-300" />;
+        return <Check size={16} strokeWidth={2.8} className="text-emerald-300" />;
       case 'error':
-        return <AlertCircle size={13} strokeWidth={2.6} className="text-red-400" />;
+        return <AlertCircle size={16} strokeWidth={2.4} className="text-red-400" />;
       case 'warning':
-        return <AlertTriangle size={13} strokeWidth={2.6} className="text-amber-300" />;
+        return <AlertTriangle size={16} strokeWidth={2.4} className="text-amber-300" />;
       case 'info':
       default:
-        return <Sparkles size={13} strokeWidth={2.6} className="text-sky-300" />;
+        return <Sparkles size={16} strokeWidth={2.4} className="text-sky-300" />;
     }
   };
 
@@ -232,11 +232,11 @@ export default function DynamicToast({
           {getIcon()}
         </div>
 
-        <div className="dynamic-island-content max-w-[270px] sm:max-w-[420px] overflow-hidden">
+        <div className="dynamic-island-content max-w-[320px] sm:max-w-[480px] overflow-hidden">
           <span className="dynamic-island-title truncate">{cleanTitle}</span>
           {cleanDesc && (
             <>
-              <span className="text-white/40 text-xs shrink-0">•</span>
+              <span className="text-white/30 text-xs shrink-0">•</span>
               <span className="dynamic-island-desc truncate">{cleanDesc}</span>
             </>
           )}

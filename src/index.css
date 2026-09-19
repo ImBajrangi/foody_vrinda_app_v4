@@ -1454,27 +1454,27 @@
 .dynamic-island-toast,
 .toast {
   position: fixed !important;
-  top: max(50px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
+  top: max(56px, calc(env(safe-area-inset-top, 0px) + 16px)) !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 99999999 !important;
-  background: rgba(18, 16, 17, 0.96) !important;
+  background: rgba(22, 19, 20, 0.96) !important;
   color: #ffffff !important;
-  height: 36px !important;
-  min-height: 36px !important;
-  max-height: 36px !important;
-  padding: 0 14px 0 6px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  padding: 0 18px 0 8px !important;
   border-radius: 9999px !important;
   box-shadow:
-    0 4px 14px -2px rgba(0, 0, 0, 0.22),
-    0 2px 6px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  max-width: min(440px, calc(100vw - 28px)) !important;
+    0 10px 30px -4px rgba(0, 0, 0, 0.45),
+    0 4px 12px -2px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  max-width: min(500px, calc(100vw - 32px)) !important;
   width: max-content !important;
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 10px !important;
   cursor: pointer !important;
   user-select: none !important;
   -webkit-user-select: none !important;
@@ -1494,20 +1494,20 @@
 .light .toast,
 [data-theme="light"] .dynamic-island-toast,
 [data-theme="light"] .toast {
-  background: rgba(22, 20, 21, 0.96) !important;
-  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+  background: rgba(26, 23, 24, 0.97) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
   box-shadow:
-    0 4px 14px -2px rgba(0, 0, 0, 0.18),
-    0 2px 6px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    0 10px 30px -4px rgba(0, 0, 0, 0.35),
+    0 4px 12px -2px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
 .dynamic-island-toast:hover,
 .toast:hover {
   border-color: rgba(255, 255, 255, 0.28) !important;
   box-shadow:
-    0 6px 18px -2px rgba(0, 0, 0, 0.25),
-    0 2px 8px rgba(0, 0, 0, 0.12) !important;
+    0 12px 34px -4px rgba(0, 0, 0, 0.5),
+    0 4px 14px rgba(0, 0, 0, 0.2) !important;
 }
 
 .dynamic-island-toast:active,
@@ -1558,8 +1558,8 @@
 
 .dynamic-island-icon-wrap {
   position: relative !important;
-  width: 24px !important;
-  height: 24px !important;
+  width: 32px !important;
+  height: 32px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
@@ -1624,22 +1624,22 @@
 .dynamic-island-content {
   display: flex !important;
   align-items: center !important;
-  gap: 7px !important;
+  gap: 8px !important;
   white-space: nowrap !important;
 }
 
 .dynamic-island-title {
   color: #ffffff !important;
-  font-size: 0.75rem !important;
+  font-size: 0.875rem !important;
   font-weight: 700 !important;
   letter-spacing: -0.01em !important;
   white-space: nowrap !important;
 }
 
 .dynamic-island-desc {
-  font-size: 0.7rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.75) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
@@ -1649,32 +1649,32 @@
 
   .dynamic-island-toast,
   .toast {
-    top: max(52px, calc(10px + env(safe-area-inset-top, 0px))) !important;
-    max-width: calc(100vw - 24px) !important;
-    height: 35px !important;
-    min-height: 35px !important;
-    padding: 0 12px 0 5px !important;
-    gap: 7px !important;
+    top: max(54px, calc(12px + env(safe-area-inset-top, 0px))) !important;
+    max-width: calc(100vw - 28px) !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 15px 0 6px !important;
+    gap: 8px !important;
   }
 
   .dynamic-island-icon-wrap {
-    width: 22px !important;
-    height: 22px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .dynamic-island-title {
-    font-size: 0.71875rem !important;
+    font-size: 0.8125rem !important;
   }
 
   .dynamic-island-desc {
-    font-size: 0.6875rem !important;
+    font-size: 0.75rem !important;
   }
 }
 
 @media (min-width: 768px) {
   .dynamic-island-toast,
   .toast {
-    top: 24px !important;
+    top: 28px !important;
   }
 }
 
