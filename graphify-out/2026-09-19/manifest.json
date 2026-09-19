@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1789821238.6811779,
-    "ast_hash": "f49078bdcd6e98d561510e064fe67149",
+    "mtime": 1789821823.4650517,
+    "ast_hash": "ac23f0fb8d513f9f33c6387074ec2e90",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
@@ -180,13 +180,13 @@
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1789821321.9907296,
-    "ast_hash": "4f5a305a39ca21bf20046d4c5e2ff985",
+    "mtime": 1789821844.8573725,
+    "ast_hash": "63a32dfacd0411289d9b44d3f31ea551",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1789818792.477399,
-    "ast_hash": "72d084d268043ed3ffcd501656930913",
+    "mtime": 1789821866.0678499,
+    "ast_hash": "18321f66bb490ebbed0bb9ccb6100ec1",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {

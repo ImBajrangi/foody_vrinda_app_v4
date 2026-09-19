@@ -2593,9 +2593,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUser: updatedUserObj });
 
   // Synchronize update to both foody_logged_users and foody_users
-  const isOnlineVal = updates.isOnline !== undefined ? updates.isOnline : (updates.is_online !== undefined ? updates.is_online : userExists?.isOnline ?? true);
-  const dutyStatusVal = updates.dutyStatus || updates.duty_status || userExists?.dutyStatus || 'on_duty';
-  const locationVal = updates.currentLocation || updates.current_location || updates.coordinates || userExists?.currentLocation || { lat: 27.5706, lng: 77.6593 };
+  const isOnlineVal = updates.isOnline !== undefined ? !!updates.isOnline : (updates.is_online !== undefined ? !!updates.is_online : (updates.is_active !== undefined ? !!updates.is_active : userExists?.isOnline ?? userExists?.is_active ?? true));
 
   const fullLoggedPayload = {
     id: targetId,
@@ -2606,9 +2604,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     role: updates.role || userExists?.role || 'customer',
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
-    is_online: isOnlineVal,
-    duty_status: dutyStatusVal,
-    current_location: locationVal,
+    is_active: isOnlineVal,
     updated_at: nowIso
   };
 
@@ -2621,22 +2617,20 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     role: fullLoggedPayload.role,
     shop_id: fullLoggedPayload.shop_id,
     shop_ids: fullLoggedPayload.shop_ids,
-    is_online: isOnlineVal,
-    duty_status: dutyStatusVal,
-    current_location: locationVal,
+    is_active: isOnlineVal,
     last_seen_at: nowIso,
     updated_at: nowIso
   };
 
   try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(fullLoggedPayload);
+    const { error: err1 } = await supabase.from('foody_logged_users').upsert(fullLoggedPayload, { onConflict: 'id' });
     if (err1) console.warn('updateCloudUser logged_users note:', err1.message);
   } catch (e) {
     console.warn('updateCloudUser logged_users note:', e);
   }
 
   try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(fullStandardPayload);
+    const { error: err2 } = await supabase.from('foody_users').upsert(fullStandardPayload, { onConflict: 'id' });
     if (err2) console.warn('updateCloudUser foody_users note:', err2.message);
   } catch (e) {
     console.warn('updateCloudUser foody_users note:', e);
