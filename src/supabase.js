@@ -2205,18 +2205,17 @@ export async function getCloudUsers(forceRefresh = false) {
 
   const promise = (async () => {
     try {
-      // 1. Fetch from foody_logged_users (with safe order fallback)
+      // 1. Fetch from foody_logged_users safely
       let loggedData = [];
       try {
         const { data, error } = await supabase
           .from('foody_logged_users')
-          .select('*')
-          .order('updated_at', { ascending: false });
+          .select('*');
         if (!error && data && data.length > 0) {
           loggedData = data;
         }
       } catch (e) {
-        console.warn("getCloudUsers logged_users notice:", e);
+        // Silently fallback to cached users
       }
 
       // 2. Fetch from foody_users as well to ensure total multi-app sync
@@ -2224,13 +2223,12 @@ export async function getCloudUsers(forceRefresh = false) {
       try {
         const { data, error } = await supabase
           .from('foody_users')
-          .select('*')
-          .order('updated_at', { ascending: false });
+          .select('*');
         if (!error && data && data.length > 0) {
           usersData = data;
         }
       } catch (e) {
-        console.warn("getCloudUsers foody_users notice:", e);
+        // Silently fallback to cached users
       }
 
       // 3. Merge & deduplicate across cache, foody_users, and foody_logged_users
