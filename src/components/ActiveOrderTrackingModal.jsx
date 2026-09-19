@@ -21,7 +21,7 @@ import {
   Minimize2,
   BellRing
 } from 'lucide-react';
-import { subscribeSingleCloudOrder, resolveDishCutout } from '../supabase';
+import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP } from '../supabase';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
 import { useBackHandler } from '../hooks/useBackHandler';
@@ -844,7 +844,31 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 )}
               </div>
 
-              {/* 2. Delivery Sarathi Partner Card */}
+              {/* 2. Customer Delivery Security OTP Card */}
+              {currentOrder?.id && (
+                <div className="bg-gradient-to-r from-[#E0FF33]/15 via-emerald-500/10 to-[#E0FF33]/15 border border-[#E0FF33]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-black font-black flex items-center justify-center text-sm shadow-md shrink-0">
+                      OTP
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-neutral-300 uppercase tracking-wider">
+                        Delivery Verification Code
+                      </p>
+                      <p className="text-[10px] text-neutral-400 truncate">
+                        Share with Sarathi upon prasad handover
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-[#141213] border border-[#E0FF33]/50 px-3 py-1.5 rounded-xl text-center shrink-0 shadow-inner">
+                    <span className="text-base font-black text-[#E0FF33] tracking-[0.25em] font-mono">
+                      {getOrderOTP(currentOrder.id, 'delivery')}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Delivery Sarathi Partner Card & 24/7 Support */}
               <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   {/* Avatar */}

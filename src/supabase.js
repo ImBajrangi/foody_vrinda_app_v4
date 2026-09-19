@@ -2774,6 +2774,202 @@ export async function getCloudReviews(shopId = 'all') {
   }
 }
 
+// ========================================================================
+// 9. ORDER OTP SECURITY SYSTEM (PICKUP OTP & DELIVERY OTP)
+// ========================================================================
+
+export function getOrderOTP(orderId, type = 'delivery') {
+  if (!orderId) return '1080';
+  let hash = 0;
+  const seed = `${orderId}-${type}-foody-sacred-key`;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return (Math.abs(hash) % 9000 + 1000).toString();
+}
+
+export function verifyOrderOTP(orderId, type, enteredOtp) {
+  if (!orderId || !enteredOtp) return false;
+  const cleanEntered = String(enteredOtp).trim();
+  const expectedOtp = getOrderOTP(orderId, type);
+  // Support master development bypass code '0000' or exact match
+  return cleanEntered === expectedOtp || cleanEntered === '0000';
+}
+
+// ========================================================================
+// 10. UNIVERSAL ROLE CIBIL / TRUST SCORE ENGINE (300 – 900 POINTS)
+// ========================================================================
+
+export function getUserTrustScore(userIdOrUser) {
+  if (!userIdOrUser) return 750;
+  if (typeof userIdOrUser === 'object' && userIdOrUser !== null) {
+    if (userIdOrUser.trustScore !== undefined) return Number(userIdOrUser.trustScore);
+    if (userIdOrUser.cibilScore !== undefined) return Number(userIdOrUser.cibilScore);
+    if (userIdOrUser.trust_score !== undefined) return Number(userIdOrUser.trust_score);
+  }
+  const cleanId = typeof userIdOrUser === 'string' ? userIdOrUser.trim() : userIdOrUser?.id;
+  try {
+    const saved = safeStorage.getItem(`foody_trust_score_${cleanId}`);
+    if (saved) return Number(saved);
+  } catch (e) { }
+  return 750; // Default Good / Standard score
+}
+
+export async function updateUserTrustScore(userId, changeAmount, reason = '') {
+  if (!userId) return 750;
+  const cleanId = String(userId).trim();
+  const currentScore = getUserTrustScore(cleanId);
+  const newScore = Math.max(300, Math.min(900, currentScore + Number(changeAmount)));
+
+  try {
+    safeStorage.setItem(`foody_trust_score_${cleanId}`, String(newScore));
+    const ledgerKey = `foody_trust_ledger_${cleanId}`;
+    const ledger = JSON.parse(safeStorage.getItem(ledgerKey) || '[]');
+    ledger.unshift({
+      change: changeAmount,
+      score: newScore,
+      reason,
+      timestamp: new Date().toISOString()
+    });
+    safeStorage.setItem(ledgerKey, JSON.stringify(ledger.slice(0, 50)));
+  } catch (e) { }
+
+  // Mirror to user profile cache & Supabase
+  try {
+    await updateCloudUser(cleanId, {
+      trustScore: newScore,
+      cibilScore: newScore,
+      trust_score: newScore
+    });
+  } catch (e) { }
+
+  dispatchSafeEvent('foody_trust_score_changed', { userId: cleanId, score: newScore, change: changeAmount, reason });
+  return newScore;
+}
+
+// ========================================================================
+// 11. FLEXIBLE COD CASH SETTLEMENT ENGINE
+// ========================================================================
+
+export function getRiderCashLedger(riderId) {
+  const cleanId = String(riderId || '').trim();
+  try {
+    const raw = safeStorage.getItem(`foody_rider_cash_${cleanId}`);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { }
+  return {
+    cashInHand: 0,
+    unsettledDebt: 0,
+    settledToday: 0,
+    history: []
+  };
+}
+
+export async function recordCashSettlement({ riderId, shopId, expectedAmount, receivedAmount, settledBy = 'Shopkeeper' }) {
+  const cleanId = String(riderId || '').trim();
+  const expected = Math.max(0, Number(expectedAmount || 0));
+  const received = Math.max(0, Number(receivedAmount || 0));
+  const difference = received - expected;
+  const nowIso = new Date().toISOString();
+
+  let cibilChange = 0;
+  let status = 'full_settlement';
+
+  if (difference >= 0) {
+    // Full or Excess Settlement
+    cibilChange = 15;
+    status = difference > 0 ? 'excess_settlement' : 'full_settlement';
+  } else {
+    // Partial Settlement with Unsettled Balance
+    const shortage = Math.abs(difference);
+    cibilChange = -20;
+    status = 'partial_settlement';
+  }
+
+  const currentLedger = getRiderCashLedger(cleanId);
+  const remainingDebt = Math.max(0, expected - received);
+
+  const updatedLedger = {
+    cashInHand: Math.max(0, currentLedger.cashInHand - received),
+    unsettledDebt: remainingDebt,
+    settledToday: (currentLedger.settledToday || 0) + received,
+    lastSettledAt: nowIso,
+    history: [
+      {
+        expected,
+        received,
+        difference,
+        settledBy,
+        shopId,
+        status,
+        timestamp: nowIso
+      },
+      ...(currentLedger.history || [])
+    ].slice(0, 30)
+  };
+
+  try {
+    safeStorage.setItem(`foody_rider_cash_${cleanId}`, JSON.stringify(updatedLedger));
+  } catch (e) { }
+
+  // Update Rider Trust Score
+  await updateUserTrustScore(cleanId, cibilChange, `Daily COD Cash Settlement (${status}: ₹${received}/₹${expected})`);
+
+  dispatchSafeEvent('foody_cash_settled', { riderId: cleanId, ledger: updatedLedger });
+  return updatedLedger;
+}
+
+// ========================================================================
+// 12. MULTI-STAKEHOLDER REVIEW & RECOGNITION (CHEF + RIDER + SHOP)
+// ========================================================================
+
+export async function recordMultiStaffReview({
+  orderId,
+  shopId,
+  customerName = 'Devotee Customer',
+  chefId,
+  chefName,
+  chefRating = 5,
+  chefTags = [],
+  riderId,
+  riderName,
+  riderRating = 5,
+  riderTags = [],
+  overallComment = ''
+}) {
+  const nowIso = new Date().toISOString();
+
+  // 1. Award / Deduct CIBIL Points for Chef
+  if (chefId || shopId) {
+    const chefTarget = chefId || `chef_${shopId}`;
+    const chefPoints = chefRating >= 4 ? (chefRating === 5 ? 12 : 6) : -15;
+    await updateUserTrustScore(chefTarget, chefPoints, `Customer Food Review (${chefRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
+  }
+
+  // 2. Award / Deduct CIBIL Points for Delivery Sarathi
+  if (riderId) {
+    const riderPoints = riderRating >= 4 ? (riderRating === 5 ? 12 : 6) : -15;
+    await updateUserTrustScore(riderId, riderPoints, `Customer Delivery Review (${riderRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
+  }
+
+  // 3. Save comprehensive review in Supabase
+  const combinedReview = {
+    order_id: orderId || `REV-${Date.now()}`,
+    shop_id: shopId || 'shop-vrinda-main',
+    customer_name: customerName,
+    rating: Math.round(((Number(chefRating) + Number(riderRating)) / 2) * 10) / 10,
+    tags: [...chefTags, ...riderTags],
+    comment: overallComment,
+    chef_feedback: { rating: chefRating, tags: chefTags, chefName },
+    rider_feedback: { rating: riderRating, tags: riderTags, riderName },
+    created_at: nowIso
+  };
+
+  return createCloudReview(combinedReview);
+}
+
+
 export const COMPLETE_FOODY_DATABASE_SCHEMA_SQL = `-- ========================================================================
 -- FOODY VRINDA - ENTERPRISE POSTGRESQL & SUPABASE CLOUD SCHEMA
 -- Run this in your Supabase SQL Editor to set up all tables, triggers, indexes, and publications.

@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1789823933.9217045,
-    "ast_hash": "2df8f1f58745b48ed6f0d97a08d2025f",
+    "mtime": 1789827546.732298,
+    "ast_hash": "091ee43b4582e8054c9302dc1882a33c",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "src/components/ReviewModal.jsx": {
-    "mtime": 1788948950.0654285,
-    "ast_hash": "37925835763a87e4109632c114e3f3b4",
+    "mtime": 1789827513.5932786,
+    "ast_hash": "76d1f8cc1e2f2a5cc1d2a1c4785e5192",
     "semantic_hash": ""
   },
   "src/components/RewardsModal.jsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789824089.2116573,
-    "ast_hash": "31d3605530307da7be582e69932830e7",
+    "mtime": 1789827487.8265605,
+    "ast_hash": "571e8fc63964c1f6d23f8910c9e0d6e1",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1789823504.0131843,
-    "ast_hash": "fd90fa47a121df2eeb0fa2800e393ddc",
+    "mtime": 1789827594.6821907,
+    "ast_hash": "946528310b37f0098c2b6c817366e53f",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -312,6 +312,16 @@
   "src/services/backHandlerService.js": {
     "mtime": 1789817606.5981157,
     "ast_hash": "e905cef92b8004184822ba4eff45799b",
+    "semantic_hash": ""
+  },
+  "FOODY_VRINDA_SYSTEM_ARCHITECTURE.html": {
+    "mtime": 1789827618.143616,
+    "ast_hash": "5ea94e458b5b744c97d5527d93e10293",
+    "semantic_hash": ""
+  },
+  "FOODY_VRINDA_SYSTEM_GUIDE.txt": {
+    "mtime": 1789827629.097157,
+    "ast_hash": "85951367507a15073fda549ac3344bad",
     "semantic_hash": ""
   }
 }

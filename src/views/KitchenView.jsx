@@ -12,7 +12,8 @@ import {
   getCloudMenus,
   createCloudNotification,
   getOrderItemSummary,
-  getOrderCustomerName
+  getOrderCustomerName,
+  getOrderOTP
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -215,7 +216,19 @@ export default function KitchenView() {
     try {
       await updateCloudOrderStatus(orderId, 'preparing');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'preparing' } : o));
-      showToast("Order accepted into preparation!", "success");
+      
+      // Parallel Early Rider Dispatch: Notify nearest active riders immediately so food is never delivered cold!
+      try {
+        await createCloudNotification({
+          role: 'delivery',
+          shopId: currentUserShopId,
+          title: `⚡ Food in Preparation: Head to Kitchen`,
+          message: `Chef started cooking Order #${orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}. Head to kitchen for instant hot pickup!`,
+          orderId
+        });
+      } catch (err) { }
+
+      showToast("Order accepted! Riders alerted for hot pickup.", "success");
     } catch (e) {
       console.error(e);
       showToast("Failed to accept order.", "error");
@@ -521,6 +534,17 @@ export default function KitchenView() {
                         <span className="text-xs font-black text-stone-900 dark:text-white">₹{order.totalAmount}</span>
                       </div>
                     )}
+
+                    {/* Rider Handover Pickup OTP Badge */}
+                    <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
+                      <span className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 size={11} />
+                        <span>Rider Pickup OTP</span>
+                      </span>
+                      <span className="text-xs font-mono font-black tracking-widest bg-stone-900 text-[#E0FF33] px-2 py-0.5 rounded-md border border-[#E0FF33]/30">
+                        {getOrderOTP(order.id, 'pickup')}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Dishes Checklist Section */}

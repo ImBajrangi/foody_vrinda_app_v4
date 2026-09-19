@@ -1,0 +1,77 @@
+========================================================================
+FOODY VRINDA - COMPLETE SYSTEM WORKFLOW & BUSINESS GUIDE
+(Direct Executive Summary for Partners & Investors)
+========================================================================
+
+1. 🛒 CUSTOMER / DEVOTEE WORKFLOW
+------------------------------------------------------------------------
+• Mandatory Login: No guest orders allowed. User must login/register before placing an order.
+• One-Time Setup: First-time users save Phone & Delivery Address with GPS once. It is saved in the database and auto-prefilled forever.
+• Live Order Tracking: Real-time map tracking with live food status from kitchen to doorstep.
+• 4-Digit Delivery OTP: Shown on customer's tracking screen. Customer gives this OTP to the rider upon receiving the food to verify completion.
+• 24/7 Dedicated Support: Direct 1-tap WhatsApp and Call support button on tracking screen for delivery assistance.
+
+
+2. 🍳 KITCHEN STAFF / CHEF WORKFLOW
+------------------------------------------------------------------------
+• Distributed KDS: Kitchen staff only sees orders for their specific shop/branch.
+• Parallel Early Dispatch (Hot Food Guarantee): As soon as Chef clicks "Start Preparing", the nearest Delivery Rider is notified immediately. By the time food is ready (10-15 mins), the rider is already at the shop door. Food is delivered piping hot!
+• Auto Online/Offline: Kitchen is online only during Shop Operating Hours AND when at least 1 staff is On Duty. If staff is offline, new orders are blocked.
+• 15-Min & 30-Min SLA Escalation:
+  - 15 Mins: Unaccepted orders trigger high-priority alerts to Owner/Developer.
+  - 30 Mins: Unaccepted COD orders are auto-cancelled with an apology sent to customer.
+• Rider Pickup OTP: Kitchen staff verifies rider identity with a 4-digit Pickup OTP before handing over food.
+
+
+3. 🛵 DELIVERY SARATHI (RIDER) WORKFLOW
+------------------------------------------------------------------------
+• Nearest Rider Radar: The system alerts the nearest on-duty delivery rider using GPS.
+• Dual OTP Protection:
+  - Step 1: Rider gives Pickup OTP to Kitchen.
+  - Step 2: Rider collects Delivery OTP from Customer at doorstep.
+• Eliminates wrong food pickups and fake delivery disputes 100%.
+
+
+4. 💰 CASH ON DELIVERY (COD) DAILY SETTLEMENT ENGINE
+------------------------------------------------------------------------
+• End-of-Day Settlement: Rider deposits day's collected cash with the Shopkeeper.
+• Full Payment: 100% cash deposited -> Balance cleared to Rs. 0, Rider gets +15 CIBIL Trust Points.
+• Partial Payment: If rider pays less (e.g. Rs. 3,000 out of Rs. 3,500), the remaining Rs. 500 is logged as Unsettled Debt, penalty/interest starts after grace period, and -20 CIBIL points are deducted.
+• Excess Payment: Credited to Rider's advance wallet.
+
+
+5. 📊 UNIVERSAL CIBIL / TRUST SCORE SYSTEM (300 – 900 POINTS)
+------------------------------------------------------------------------
+Every user and staff member has a dynamic Trust Score:
+
+1. Delivery Sarathi (Rider):
+   • (+) On-time delivery, 5-star ratings, full daily cash settlement.
+   • (-) Unsettled cash shortage, order cancellations, late deliveries.
+   • Consequence: Score drop blocks rider from taking high-value COD orders.
+
+2. Kitchen Chef:
+   • (+) Fast acceptance (<5 mins), 5-star taste & hot food ratings.
+   • (-) 15-min delays, 30-min auto-cancels, quality complaints.
+   • Consequence: Loss of performance bonus, owner inspection flag.
+
+3. Customer:
+   • (+) Successful order acceptance, online prepaid payments.
+   • (-) Doorstep COD rejection, frequent cancellations.
+   • Consequence: Permanent removal of Cash on Delivery option (must pay online only).
+
+4. Shop Owner:
+   • (+) High uptime, timely staff cash settlement, 99% dish availability.
+   • (-) Unexpected closures in peak hours, high order rejection rate.
+   • Consequence: Store visibility and search ranking drops.
+
+
+6. ⭐ MULTI-STAKEHOLDER CUSTOMER FEEDBACK
+------------------------------------------------------------------------
+After delivery, customer rates both staff members independently:
+• Chef Rating (1–5 Stars) + Badges (Piping Hot, Divine Taste, Spill-Proof).
+• Rider Rating (1–5 Stars) + Badges (Super Fast, Polite & Humble, Safe Handover).
+• Directly rewards / updates CIBIL Trust Points for both individuals in real-time.
+
+========================================================================
+End of System Document.
+========================================================================

@@ -193,8 +193,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "activeordertrackingmodal.jsx"
     },
     {
@@ -205,8 +205,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal_activeordertrackingmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "activeordertrackingmodal()"
     },
     {
@@ -250,8 +250,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -262,8 +262,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -540,31 +540,42 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_reviewmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
-      "label": "REVIEW_TAGS",
+      "label": "CHEF_TAGS",
       "file_type": "code",
       "source_file": "src/components/ReviewModal.jsx",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "src_components_reviewmodal_review_tags",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
-      "norm_label": "review_tags"
+      "id": "src_components_reviewmodal_chef_tags",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
+      "norm_label": "chef_tags"
+    },
+    {
+      "label": "RIDER_TAGS",
+      "file_type": "code",
+      "source_file": "src/components/ReviewModal.jsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_components_reviewmodal_rider_tags",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
+      "norm_label": "rider_tags"
     },
     {
       "label": "ReviewModal()",
       "file_type": "code",
       "source_file": "src/components/ReviewModal.jsx",
-      "source_location": "L14",
+      "source_location": "L23",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -620,8 +631,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "unifiedsearchmodal.jsx"
     },
     {
@@ -632,8 +643,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_unifiedsearchmodal",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "unifiedsearchmodal()"
     },
     {
@@ -1189,8 +1200,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -1292,8 +1303,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_notificationcontext_usenotifications",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "usenotifications()"
     },
     {
@@ -1428,8 +1439,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "usebackhandler.js"
     },
     {
@@ -1440,8 +1451,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "usebackhandler()"
     },
     {
@@ -1543,8 +1554,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
     {
@@ -1555,8 +1566,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
     {
@@ -1567,8 +1578,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
     {
@@ -1579,8 +1590,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 22,
-      "community_name": "CompleteProfileModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -1590,8 +1601,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
@@ -1601,8 +1612,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "backhandlers"
     },
     {
@@ -1613,8 +1624,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "registerbackhandler()"
     },
     {
@@ -1625,8 +1636,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "unregisterbackhandler()"
     },
     {
@@ -1637,8 +1648,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
@@ -1673,8 +1684,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 3,
+      "community_name": "App.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -1684,8 +1695,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "hitsoochiservice.js"
     },
     {
@@ -1695,8 +1706,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_local_satvik_ontology",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "local_satvik_ontology"
     },
     {
@@ -1708,8 +1719,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "hitsoochiservice"
     },
     {
@@ -1720,8 +1731,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getcuratedsuggestions",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".getcuratedsuggestions()"
     },
     {
@@ -1732,8 +1743,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_rankitems",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".rankitems()"
     },
     {
@@ -1744,8 +1755,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_optimizequery",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".optimizequery()"
     },
     {
@@ -1756,8 +1767,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getsuggestions",
-      "community": 3,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".getsuggestions()"
     },
     {
@@ -2082,8 +2093,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcacheditem",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "getcacheditem()"
     },
     {
@@ -2263,8 +2274,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "realtimemultiplexer"
     },
     {
@@ -2275,8 +2286,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_constructor",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".constructor()"
     },
     {
@@ -2287,8 +2298,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_ensuresubscribed",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".ensuresubscribed()"
     },
     {
@@ -2299,8 +2310,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2347,8 +2358,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeorders",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribeorders()"
     },
     {
@@ -2359,8 +2370,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribesingleorder",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribesingleorder()"
     },
     {
@@ -2371,8 +2382,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribenotifications",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribenotifications()"
     },
     {
@@ -2383,8 +2394,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeusers",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribeusers()"
     },
     {
@@ -2395,8 +2406,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribemenus",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribemenus()"
     },
     {
@@ -2407,8 +2418,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeshops",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribeshops()"
     },
     {
@@ -2419,8 +2430,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeoffers",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".subscribeoffers()"
     },
     {
@@ -2490,8 +2501,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudshops",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "subscribecloudshops()"
     },
     {
@@ -2502,8 +2513,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudoffers",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "subscribecloudoffers()"
     },
     {
@@ -2774,8 +2785,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudroles",
-      "community": 0,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "getcloudroles()"
     },
     {
@@ -2870,8 +2881,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudusers",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 0,
+      "community_name": "AuthContext.jsx",
       "norm_label": "subscribecloudusers()"
     },
     {
@@ -2882,8 +2893,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "createcloudreview()"
     },
     {
@@ -2899,10 +2910,94 @@
       "norm_label": "getcloudreviews()"
     },
     {
+      "label": "getOrderOTP()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2781",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_getorderotp",
+      "community": 3,
+      "community_name": "App.jsx",
+      "norm_label": "getorderotp()"
+    },
+    {
+      "label": "verifyOrderOTP()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2792",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_verifyorderotp",
+      "community": 3,
+      "community_name": "App.jsx",
+      "norm_label": "verifyorderotp()"
+    },
+    {
+      "label": "getUserTrustScore()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2804",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_getusertrustscore",
+      "community": 2,
+      "community_name": "supabase.js",
+      "norm_label": "getusertrustscore()"
+    },
+    {
+      "label": "updateUserTrustScore()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2819",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_updateusertrustscore",
+      "community": 2,
+      "community_name": "supabase.js",
+      "norm_label": "updateusertrustscore()"
+    },
+    {
+      "label": "getRiderCashLedger()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2855",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_getridercashledger",
+      "community": 2,
+      "community_name": "supabase.js",
+      "norm_label": "getridercashledger()"
+    },
+    {
+      "label": "recordCashSettlement()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2869",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_recordcashsettlement",
+      "community": 2,
+      "community_name": "supabase.js",
+      "norm_label": "recordcashsettlement()"
+    },
+    {
+      "label": "recordMultiStaffReview()",
+      "file_type": "code",
+      "source_file": "src/supabase.js",
+      "source_location": "L2927",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_supabase_recordmultistaffreview",
+      "community": 22,
+      "community_name": "ReviewModal.jsx",
+      "norm_label": "recordmultistaffreview()"
+    },
+    {
       "label": "COMPLETE_FOODY_DATABASE_SCHEMA_SQL",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L2777",
+      "source_location": "L2973",
       "_origin": "ast",
       "id": "src_supabase_complete_foody_database_schema_sql",
       "community": 2,
@@ -2913,7 +3008,7 @@
       "label": "getOrderItemSummary()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3263",
+      "source_location": "L3459",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getorderitemsummary",
@@ -2925,7 +3020,7 @@
       "label": "getOrderCustomerName()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3289",
+      "source_location": "L3485",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getordercustomername",
@@ -3018,7 +3113,7 @@
       "label": "KitchenView()",
       "file_type": "code",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_kitchenview_kitchenview",
@@ -4107,6 +4202,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal",
+      "target": "src_supabase_getorderotp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ActiveOrderTrackingModal.jsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_activeordertrackingmodal",
       "target": "src_supabase_resolvedishcutout",
       "confidence_score": 1.0
     },
@@ -4176,7 +4283,19 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L958",
+      "source_location": "L865",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
+      "target": "src_supabase_getorderotp"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/ActiveOrderTrackingModal.jsx",
+      "source_location": "L982",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5300,7 +5419,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_reviewmodal",
-      "target": "src_components_reviewmodal_review_tags",
+      "target": "src_components_reviewmodal_chef_tags",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/ReviewModal.jsx",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_reviewmodal",
+      "target": "src_components_reviewmodal_reviewmodal",
       "confidence_score": 1.0
     },
     {
@@ -5311,7 +5441,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_reviewmodal",
-      "target": "src_components_reviewmodal_reviewmodal",
+      "target": "src_components_reviewmodal_rider_tags",
       "confidence_score": 1.0
     },
     {
@@ -5335,7 +5465,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_reviewmodal",
-      "target": "src_supabase_createcloudreview",
+      "target": "src_supabase_recordmultistaffreview",
       "confidence_score": 1.0
     },
     {
@@ -5356,11 +5486,11 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ReviewModal.jsx",
-      "source_location": "L60",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_reviewmodal_reviewmodal",
-      "target": "src_supabase_createcloudreview"
+      "target": "src_supabase_recordmultistaffreview"
     },
     {
       "relation": "imports",
@@ -5709,7 +5839,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview",
@@ -5745,7 +5875,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview",
@@ -5884,7 +6014,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview",
@@ -5944,7 +6074,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview",
@@ -6843,7 +6973,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -7488,7 +7618,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L61",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -7808,7 +7938,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -8445,7 +8575,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2777",
+      "source_location": "L2973",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -8753,7 +8883,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3289",
+      "source_location": "L3485",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -8764,11 +8894,22 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3263",
+      "source_location": "L3459",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
       "target": "src_supabase_getorderitemsummary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2781",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_getorderotp",
       "confidence_score": 1.0
     },
     {
@@ -8780,6 +8921,28 @@
       "_origin": "ast",
       "source": "src_supabase",
       "target": "src_supabase_getrecommendedriders",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2855",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_getridercashledger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2804",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_getusertrustscore",
       "confidence_score": 1.0
     },
     {
@@ -8929,11 +9092,33 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
+      "source_location": "L2869",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_recordcashsettlement",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
       "source_location": "L2364",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
       "target": "src_supabase_recordloggedinuser",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2927",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_recordmultistaffreview",
       "confidence_score": 1.0
     },
     {
@@ -9182,11 +9367,33 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
+      "source_location": "L2819",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_updateusertrustscore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
       "source_location": "L1976",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
       "target": "src_supabase_users_table_sql_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2792",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase",
+      "target": "src_supabase_verifyorderotp",
       "confidence_score": 1.0
     },
     {
@@ -9794,6 +10001,18 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
+      "source_location": "L2919",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_recordcashsettlement",
+      "target": "src_supabase_dispatchsafeevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
       "source_location": "L2438",
       "weight": 1.0,
       "_origin": "ast",
@@ -9846,6 +10065,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
+      "target": "src_supabase_dispatchsafeevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2847",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_updateusertrustscore",
       "target": "src_supabase_dispatchsafeevent",
       "confidence_score": 1.0
     },
@@ -10611,7 +10842,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -10695,7 +10926,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L195",
+      "source_location": "L196",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -10731,7 +10962,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L216",
+      "source_location": "L217",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -11270,7 +11501,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L113",
+      "source_location": "L114",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -11390,7 +11621,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L198",
+      "source_location": "L199",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -11882,7 +12113,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L345",
+      "source_location": "L358",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -12297,6 +12528,18 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2840",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_updateusertrustscore",
+      "target": "src_supabase_updateclouduser",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -12374,7 +12617,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L352",
+      "source_location": "L365",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -12477,6 +12720,102 @@
       "target": "src_supabase_subscribecloudusers"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2969",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_recordmultistaffreview",
+      "target": "src_supabase_createcloudreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2795",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_verifyorderotp",
+      "target": "src_supabase_getorderotp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/views/KitchenView.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_views_kitchenview",
+      "target": "src_supabase_getorderotp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/views/KitchenView.jsx",
+      "source_location": "L545",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_views_kitchenview_kitchenview",
+      "target": "src_supabase_getorderotp"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2822",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_updateusertrustscore",
+      "target": "src_supabase_getusertrustscore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2917",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_recordcashsettlement",
+      "target": "src_supabase_updateusertrustscore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2947",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_recordmultistaffreview",
+      "target": "src_supabase_updateusertrustscore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/supabase.js",
+      "source_location": "L2890",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_supabase_recordcashsettlement",
+      "target": "src_supabase_getridercashledger",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -12494,7 +12833,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L231",
+      "source_location": "L244",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -12542,7 +12881,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L232",
+      "source_location": "L245",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview_kitchenview",
@@ -12644,7 +12983,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/views/KitchenView.jsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_kitchenview",
@@ -12719,5 +13058,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7e1b6470ae101206cdf20095d62e0bbe01e112aa"
+  "built_at_commit": "22b9d353cb45857715dc1d69620de988d2a9e07e"
 }
