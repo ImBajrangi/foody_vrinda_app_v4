@@ -278,65 +278,100 @@ export default function DeveloperView({ setCurrentTab }) {
   } = useAudioAlarm();
 
   const [usersList, setUsersList] = useState(() => getCachedUsers());
+  const [isSyncingAccount, setIsSyncingAccount] = useState(false);
 
+  // Helper for deep equality comparison of list entities to prevent DOM flicker
+  const isEqualList = (a = [], b = []) => {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      const itemA = a[i];
+      const itemB = b[i];
+      if (!itemA || !itemB) return false;
+      if (itemA.id !== itemB.id) return false;
+      if (itemA.name !== itemB.name) return false;
+      if (itemA.isOpen !== itemB.isOpen) return false;
+      if (itemA.isAvailable !== itemB.isAvailable) return false;
+      if (itemA.role !== itemB.role) return false;
+      if (itemA.shopId !== itemB.shopId) return false;
+      if (itemA.active !== itemB.active) return false;
+    }
+    return true;
+  };
+
+  // --- REALTIME SUPABASE & CACHE HYDRATION ---
   useEffect(() => {
     // 1. Initial synchronous hydration for stats from cache with zero cloud requests
     const cachedShops = getCachedShops();
     const cachedUsers = getCachedUsers();
     const cachedOffers = getCachedOffers();
-    setShopsList(cachedShops);
-    setUsersList(cachedUsers);
-    setOffersList(cachedOffers);
+    const cachedMenus = getCloudMenus('all');
 
-    setStats({
-      shops: cachedShops.length || 3,
-      items: 6,
-      orders: 0,
-      notifications: cachedUsers.length,
-      offers: cachedOffers.length
+    setShopsList(prev => isEqualList(prev, cachedShops) ? prev : cachedShops);
+    setOffersList(prev => isEqualList(prev, cachedOffers) ? prev : cachedOffers);
+    setUsersList(prev => isEqualList(prev, cachedUsers) ? prev : cachedUsers);
+    
+    setStats(prev => {
+      const nextStats = {
+        shops: cachedShops.length,
+        items: Array.isArray(cachedMenus) ? cachedMenus.length : 0,
+        orders: 0,
+        notifications: cachedUsers.length,
+        offers: cachedOffers.length
+      };
+      if (
+        prev.shops === nextStats.shops &&
+        prev.items === nextStats.items &&
+        prev.notifications === nextStats.notifications &&
+        prev.offers === nextStats.offers
+      ) {
+        return prev;
+      }
+      return nextStats;
     });
 
-    // 2. Realtime listener updates user state dynamically
+    // 2. Realtime listener updates user state dynamically without unneeded re-renders
     const unsubscribe = subscribeCloudUsers((list) => {
       if (list && list.length > 0) {
-        setUsersList(list);
-        setStats(prev => ({ ...prev, notifications: list.length }));
+        setUsersList(prev => isEqualList(prev, list) ? prev : list);
+        setStats(prev => prev.notifications === list.length ? prev : ({ ...prev, notifications: list.length }));
       }
     });
 
     const handleLocalUsersChanged = (e) => {
       if (e?.detail?.users && Array.isArray(e.detail.users) && e.detail.users.length > 0) {
-        setUsersList(e.detail.users);
-        setStats(prev => ({ ...prev, notifications: e.detail.users.length }));
+        setUsersList(prev => isEqualList(prev, e.detail.users) ? prev : e.detail.users);
+        setStats(prev => prev.notifications === e.detail.users.length ? prev : ({ ...prev, notifications: e.detail.users.length }));
       }
     };
     window.addEventListener('foody_users_changed', handleLocalUsersChanged);
 
     const handleLocalShopsChanged = (e) => {
       if (e?.detail?.shops && Array.isArray(e.detail.shops)) {
-        setShopsList(e.detail.shops);
-        setStats(prev => ({ ...prev, shops: e.detail.shops.length }));
+        setShopsList(prev => isEqualList(prev, e.detail.shops) ? prev : e.detail.shops);
+        setStats(prev => prev.shops === e.detail.shops.length ? prev : ({ ...prev, shops: e.detail.shops.length }));
       }
     };
     window.addEventListener('foody_shops_changed', handleLocalShopsChanged);
 
     const handleLocalMenusChanged = (e) => {
       if (e?.detail?.menus && Array.isArray(e.detail.menus)) {
-        setMenusList(e.detail.menus);
-        setStats(prev => ({ ...prev, items: e.detail.menus.length }));
+        setMenusList(prev => isEqualList(prev, e.detail.menus) ? prev : e.detail.menus);
+        setStats(prev => prev.items === e.detail.menus.length ? prev : ({ ...prev, items: e.detail.menus.length }));
       }
     };
     window.addEventListener('foody_menus_changed', handleLocalMenusChanged);
 
     const handleLocalOffersChanged = (e) => {
       if (e?.detail?.offers && Array.isArray(e.detail.offers)) {
-        setOffersList(e.detail.offers);
-        setStats(prev => ({ ...prev, offers: e.detail.offers.length }));
+        setOffersList(prev => isEqualList(prev, e.detail.offers) ? prev : e.detail.offers);
+        setStats(prev => prev.offers === e.detail.offers.length ? prev : ({ ...prev, offers: e.detail.offers.length }));
       }
     };
     window.addEventListener('foody_offers_changed', handleLocalOffersChanged);
 
-    // 3. SWR background revalidation (fetch fresh data from Supabase)
+    // 3. SWR background revalidation (fetch fresh data from Supabase silently)
     (async () => {
       try {
         const [shops, menus, orders, users, offers] = await Promise.all([
@@ -346,17 +381,33 @@ export default function DeveloperView({ setCurrentTab }) {
           getCloudUsers(true),
           getCloudOffers(true)
         ]);
-        if (shops && shops.length > 0) setShopsList(shops);
-        if (menus && menus.length > 0) setMenusList(menus);
-        if (users && users.length > 0) setUsersList(users);
-        if (offers && offers.length > 0) setOffersList(offers);
+        if (shops && shops.length > 0) setShopsList(prev => isEqualList(prev, shops) ? prev : shops);
+        if (menus && menus.length > 0) setMenusList(prev => isEqualList(prev, menus) ? prev : menus);
+        if (users && users.length > 0) setUsersList(prev => isEqualList(prev, users) ? prev : users);
+        if (offers && offers.length > 0) setOffersList(prev => isEqualList(prev, offers) ? prev : offers);
 
-        setStats({
-          shops: (shops || []).length,
-          items: (menus || []).length,
-          orders: (orders || []).length,
-          notifications: (users || []).length,
-          offers: (offers || []).length
+        setStats(prev => {
+          const nextShops = (shops || []).length;
+          const nextItems = (menus || []).length;
+          const nextOrders = (orders || []).length;
+          const nextUsers = (users || []).length;
+          const nextOffers = (offers || []).length;
+          if (
+            prev.shops === nextShops &&
+            prev.items === nextItems &&
+            prev.orders === nextOrders &&
+            prev.notifications === nextUsers &&
+            prev.offers === nextOffers
+          ) {
+            return prev;
+          }
+          return {
+            shops: nextShops,
+            items: nextItems,
+            orders: nextOrders,
+            notifications: nextUsers,
+            offers: nextOffers
+          };
         });
         logActivity(`Supabase synced: ${(shops||[]).length} kitchens, ${(menus||[]).length} dishes, ${(users||[]).length} users`, 'success');
       } catch (e) {
@@ -2719,24 +2770,34 @@ export default function DeveloperView({ setCurrentTab }) {
 
               <button
                 type="button"
-                onClick={() => {
-                  const uProfile = {
-                    id: user.id,
-                    email: user.email || '',
-                    displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In Dev',
-                    phone: userData?.phone || '',
-                    role: userData?.role || 'developer',
-                    shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
-                    shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
-                    isLoggedInUser: true
-                  };
-                  createCloudUser(uProfile);
-                  setToast({ message: "Active Supabase account synced to users directory!", type: "success" });
+                disabled={isSyncingAccount}
+                onClick={async () => {
+                  if (isSyncingAccount) return;
+                  setIsSyncingAccount(true);
+                  try {
+                    const uProfile = {
+                      id: user.id,
+                      email: user.email || '',
+                      displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In Dev',
+                      phone: userData?.phone || '',
+                      role: userData?.role || 'developer',
+                      shopId: userData?.shopId || allShops[0]?.id || 'shop-vrinda-main',
+                      shopIds: userData?.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
+                      isLoggedInUser: true
+                    };
+                    await createCloudUser(uProfile);
+                    setToast({ message: "Active account synced to database", type: "success" });
+                  } catch (err) {
+                    console.error("Sync error:", err);
+                    setToast({ message: "Failed to sync account", type: "error" });
+                  } finally {
+                    setTimeout(() => setIsSyncingAccount(false), 500);
+                  }
                 }}
-                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0"
+                className={`px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 ${isSyncingAccount ? 'opacity-70 pointer-events-none' : ''}`}
               >
-                <RefreshCw className="w-3.5 h-3.5 text-[#E0FF33]" />
-                <span className="hidden sm:inline">Sync Account</span>
+                <RefreshCw className={`w-3.5 h-3.5 text-[#E0FF33] ${isSyncingAccount ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncingAccount ? 'Syncing...' : 'Sync Account'}</span>
               </button>
             </div>
           )}

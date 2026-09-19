@@ -171,12 +171,28 @@ export function AuthProvider({ children }) {
     }
   }, [emergencyElevateToDev]);
 
-  // Helper to load all shops from Supabase & Cache
+  // Helper to compare shop arrays to avoid redundant state updates & flickering
+  const areShopsEqual = (prev = [], next = []) => {
+    if (prev === next) return true;
+    if (!Array.isArray(prev) || !Array.isArray(next)) return false;
+    if (prev.length !== next.length) return false;
+    for (let i = 0; i < prev.length; i++) {
+      const p = prev[i];
+      const n = next[i];
+      if (!p || !n) return false;
+      if (p.id !== n.id || p.name !== n.name || p.isOpen !== n.isOpen) return false;
+      if (p.onlinePaymentsEnabled !== n.onlinePaymentsEnabled || p.codEnabled !== n.codEnabled) return false;
+      if (JSON.stringify(p.paymentSettings) !== JSON.stringify(n.paymentSettings)) return false;
+    }
+    return true;
+  };
+
+  // Helper to load all shops from Supabase & Cache silently
   const loadShops = async () => {
     try {
       const shops = await getCloudShops();
       if (shops && shops.length > 0) {
-        setAllShops(shops);
+        setAllShops(prev => areShopsEqual(prev, shops) ? prev : shops);
         return shops;
       }
       return [];
@@ -194,11 +210,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const handleShopsChanged = (e) => {
       if (e?.detail?.shops && Array.isArray(e.detail.shops)) {
-        setAllShops(e.detail.shops);
+        setAllShops(prev => areShopsEqual(prev, e.detail.shops) ? prev : e.detail.shops);
       } else {
         const cached = getCachedShops();
         if (cached && cached.length > 0) {
-          setAllShops(cached);
+          setAllShops(prev => areShopsEqual(prev, cached) ? prev : cached);
         }
       }
     };
