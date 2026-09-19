@@ -1776,7 +1776,7 @@ export async function createCloudShop(shopData) {
       alarm_settings: normalized.alarmSettings
     };
 
-    const { error } = await supabase.from('foody_shops').upsert(payload);
+    const { error } = await supabase.from('foody_shops').upsert(payload, { onConflict: 'id' });
     if (error) console.warn("createCloudShop cloud error:", error.message);
   } catch (e) {
     console.warn("createCloudShop cloud notice:", e);
@@ -2368,7 +2368,9 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
 
 // Dedicated function to record every login/registration in the database without redundant queries or role downgrades
 export async function recordLoggedInUser(userProfile) {
-  if (!userProfile || !userProfile.id) return null;
+  if (!userProfile || !userProfile.id || userProfile.isAnonymous || String(userProfile.id).startsWith('guest-') || userProfile.id === 'master-dev-emergency') {
+    return null;
+  }
   const cleanId = String(userProfile.id).trim();
   const cleanEmail = (userProfile.email || '').toLowerCase().trim();
   const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
@@ -2439,16 +2441,16 @@ export async function recordLoggedInUser(userProfile) {
   setCachedItem('users', 'all', next);
   dispatchSafeEvent('foody_users_changed', { users: next, updatedUser: loggedUsersPayload });
 
-  // 2. Persist dual writes to Supabase foody_logged_users & foody_users
+  // 2. Persist dual writes to Supabase foody_logged_users & foody_users with explicit onConflict
   try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload);
+    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload, { onConflict: 'id' });
     if (err1) console.warn('recordLoggedInUser logged_users notice:', err1.message);
   } catch (e) {
     console.warn('recordLoggedInUser logged_users notice:', e);
   }
 
   try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(standardUsersPayload);
+    const { error: err2 } = await supabase.from('foody_users').upsert(standardUsersPayload, { onConflict: 'id' });
     if (err2) console.warn('recordLoggedInUser foody_users notice:', err2.message);
   } catch (e) {
     console.warn('recordLoggedInUser foody_users notice:', e);
@@ -2458,6 +2460,9 @@ export async function recordLoggedInUser(userProfile) {
 }
 
 export async function createCloudUser(userData) {
+  if (!userData || !userData.id || userData.isAnonymous || String(userData.id).startsWith('guest-') || userData.id === 'master-dev-emergency') {
+    return null;
+  }
   const currentUsers = getCachedUsers();
   const userId = userData.id || `user_${(userData.phone || Date.now()).toString().replace(/\D/g, '')}`;
   const nowIso = new Date().toISOString();
@@ -2507,14 +2512,14 @@ export async function createCloudUser(userData) {
   };
 
   try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedDbPayload);
+    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedDbPayload, { onConflict: 'id' });
     if (err1) console.warn('createCloudUser logged_users notice:', err1.message);
   } catch (e) {
     console.warn('createCloudUser logged_users notice:', e);
   }
 
   try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(standardDbPayload);
+    const { error: err2 } = await supabase.from('foody_users').upsert(standardDbPayload, { onConflict: 'id' });
     if (err2) console.warn('createCloudUser foody_users notice:', err2.message);
   } catch (e) {
     console.warn('createCloudUser foody_users notice:', e);
