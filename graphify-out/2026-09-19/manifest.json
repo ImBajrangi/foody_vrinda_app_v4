@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "src/components/ui/DynamicToast.jsx": {
-    "mtime": 1789743843.787621,
-    "ast_hash": "f933fe876af015245e32b4d0925f61d3",
+    "mtime": 1789821017.745886,
+    "ast_hash": "3e9d40607cf0734eb3f1a989e713ef74",
     "semantic_hash": ""
   },
   "src/components/ui/HamburgerToggle.jsx": {
@@ -175,13 +175,13 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1789818717.0547495,
-    "ast_hash": "d5ae23b95b898404f46a6fe8fa6fad59",
+    "mtime": 1789819030.0557048,
+    "ast_hash": "70d29c5ab15e88a593ddd0653e620707",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1789669579.1004379,
-    "ast_hash": "41b15c8a2d9430bcdae418027eb53138",
+    "mtime": 1789819442.2063901,
+    "ast_hash": "8eadfab30c1a981e72a1ecebe052112e",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
