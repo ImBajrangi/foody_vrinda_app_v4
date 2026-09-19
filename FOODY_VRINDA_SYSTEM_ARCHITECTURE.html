@@ -3,170 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foody Vrinda - Complete System Workflow & Architecture Guide</title>
+  <title>Foody Vrinda - How It Works (Simple 2-Minute Guide)</title>
   <style>
     :root {
-      --bg: #0D0C0D;
-      --card-bg: #181617;
+      --bg: #0C0A09;
+      --card: #181516;
       --card-border: rgba(255, 255, 255, 0.08);
       --accent: #E0FF33;
-      --accent-dim: rgba(224, 255, 51, 0.12);
-      --text: #F5F5F7;
-      --text-muted: #A1A1AA;
-      --success: #10B981;
-      --warning: #F59E0B;
-      --danger: #EF4444;
-      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --text: #FFFFFF;
+      --muted: #A1A1AA;
+      --green: #10B981;
+      --orange: #F97316;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: var(--font);
-      line-height: 1.6;
+      line-height: 1.5;
       padding: 24px 16px;
     }
     .container {
-      max-width: 900px;
+      max-width: 780px;
       margin: 0 auto;
     }
-    header {
+    
+    /* Header */
+    .hero {
       text-align: center;
-      padding: 32px 16px;
+      padding: 30px 16px 24px;
       border-bottom: 1px solid var(--card-border);
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
-    .brand-badge {
+    .tag {
       display: inline-block;
       background: var(--accent);
       color: #000;
-      font-weight: 900;
       font-size: 11px;
+      font-weight: 900;
       padding: 4px 12px;
-      border-radius: 999px;
+      border-radius: 99px;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     h1 {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 900;
-      color: #FFF;
       letter-spacing: -0.5px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-    .subtitle {
+    .hero-sub {
+      color: var(--muted);
       font-size: 14px;
-      color: var(--text-muted);
     }
-    .section-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 36px;
-      margin-bottom: 16px;
-      border-left: 4px solid var(--accent);
-      padding-left: 12px;
-    }
-    .card {
-      background: var(--card-bg);
+
+    /* Big Story Steps */
+    .step-card {
+      background: var(--card);
       border: 1px solid var(--card-border);
       border-radius: 20px;
       padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding-bottom: 8px;
-    }
-    .card-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: #FFF;
-    }
-    .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-    }
-    .badge-yellow { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(224,255,51,0.3); }
-    .badge-green { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
-    .badge-red { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
-    
-    ul { list-style: none; }
-    li {
+      margin-bottom: 18px;
       position: relative;
-      padding-left: 22px;
-      margin-bottom: 10px;
-      font-size: 13.5px;
-      color: #D4D4D8;
     }
-    li::before {
-      content: "✔";
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .step-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(224, 255, 51, 0.12);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 17px;
+      font-weight: 900;
+    }
+    .step-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .points li {
+      position: relative;
+      padding-left: 24px;
+      font-size: 13.5px;
+      color: #E4E4E7;
+    }
+    .points li::before {
+      content: "👉";
       position: absolute;
       left: 0;
-      color: var(--accent);
-      font-weight: 900;
-      font-size: 12px;
-    }
-    .highlight-box {
-      background: rgba(224, 255, 51, 0.05);
-      border: 1px dashed rgba(224, 255, 51, 0.3);
-      padding: 14px;
-      border-radius: 12px;
       font-size: 13px;
-      color: #FFF;
+    }
+
+    .callout {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 8px;
       margin-top: 12px;
+      font-size: 12.5px;
+      color: #D4D4D8;
     }
-    .flow-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .flow-step {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
-      padding: 14px;
-    }
-    .flow-step-num {
-      display: inline-block;
-      width: 22px;
-      height: 22px;
-      background: var(--accent);
-      color: #000;
-      font-weight: 900;
-      border-radius: 50%;
-      text-align: center;
-      line-height: 22px;
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-    .flow-step-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #FFF;
-      margin-bottom: 4px;
-    }
-    .flow-step-desc {
-      font-size: 12px;
-      color: var(--text-muted);
+    .callout strong { color: var(--accent); }
+
+    /* Comparison Table */
+    .table-box {
+      overflow-x: auto;
+      margin-top: 10px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 12px;
       font-size: 12.5px;
     }
     th, td {
@@ -179,165 +145,159 @@
       color: var(--accent);
       font-weight: 800;
     }
+
     footer {
       text-align: center;
-      padding: 32px 16px;
+      padding: 24px 0;
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--muted);
       border-top: 1px solid var(--card-border);
-      margin-top: 40px;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    
-    <header>
-      <div class="brand-badge">Foody Vrinda Ecosystem</div>
-      <h1>Enterprise Multi-Role Business & Technical Guide</h1>
-      <p class="subtitle">Complete Operational Blueprint for Customer, Kitchen, Sarathi & Owner</p>
-    </header>
 
-    <!-- 1. CUSTOMER WORKFLOW -->
-    <div class="section-title">1. Customer / Devotee Workflow</div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Ordering & Seamless Auth Flow</span>
-        <span class="badge badge-yellow">Mandatory Auth Gate</span>
+    <div class="hero">
+      <div class="tag">Zero Jargon • 2-Min Read</div>
+      <h1>Foody Vrinda: How The Entire System Works</h1>
+      <p class="hero-sub">From placing an order to cooking, delivery, cash settlement & ratings.</p>
+    </div>
+
+    <!-- 1. CUSTOMER -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">🛒</div>
+        <div>
+          <div class="step-title">1. The Customer (Order & Tracking)</div>
+          <div class="step-sub">Simple, fast, and no repetitive typing</div>
+        </div>
       </div>
-      <ul>
-        <li><strong>No Guest Orders</strong>: Customer must login/signup before placing an order. Guest shoppers are prompted with instant 1-tap Google/Phone login upon clicking checkout.</li>
-        <li><strong>One-Time Phone & Address Save</strong>: During first login, customer provides mobile number and street address with GPS pin. This data is permanently saved in Supabase Postgres and auto-prefilled on all future orders.</li>
-        <li><strong>Real-time Live Order Tracking</strong>: After order placement (COD or Online), customer tracks order live via interactive Map HUD & dynamic floating capsule.</li>
-        <li><strong>Delivery Verification OTP</strong>: A unique 4-digit code is displayed on customer's tracking screen. Handing over this OTP to the rider completes delivery.</li>
-        <li><strong>24/7 Dedicated Support</strong>: 1-Tap WhatsApp & Phone support available directly on the tracking screen.</li>
+      <ul class="points">
+        <li><strong>Must Login First</strong>: Nobody can place fake guest orders. One tap via Google or Phone.</li>
+        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and delivery address are saved on the first order. Next time, it's 1-tap checkout.</li>
+        <li><strong>Live Map Tracking</strong>: Customer sees real-time preparation status and delivery rider moving on the live map.</li>
+        <li><strong>Delivery OTP</strong>: Customer gets a 4-digit secret code on screen. Rider only gets "Order Completed" when customer shares this code.</li>
       </ul>
     </div>
 
-    <!-- 2. KITCHEN STAFF & CHEF WORKFLOW -->
-    <div class="section-title">2. Kitchen Staff / Chef Workflow</div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Distributed KDS & Smart Hot-Food Dispatch</span>
-        <span class="badge badge-green">Parallel Early Dispatch</span>
+    <!-- 2. KITCHEN -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">🍳</div>
+        <div>
+          <div class="step-title">2. The Kitchen (Cooking & Hot Food Magic)</div>
+          <div class="step-sub">Why food NEVER gets delivered cold</div>
+        </div>
       </div>
-      <ul>
-        <li><strong>Distributed Scoped Access</strong>: Staff only sees orders belonging to their assigned <code>shop_id</code>.</li>
-        <li><strong>Hot Food Guarantee (Parallel Early Dispatch)</strong>: When kitchen taps "Start Preparing", the system immediately alerts the nearest online Delivery Sarathi. By the time the meal is cooked (10-15 mins), the rider is already at the kitchen door! Zero waiting, food delivered piping hot.</li>
-        <li><strong>Kitchen Auto Online/Offline</strong>: Kitchen is online only if within Shop Operating Hours (e.g. 08:00 AM – 10:30 PM) AND at least one staff is On Duty. If staff goes offline or shop closes, new orders are blocked automatically.</li>
-        <li><strong>SLA Escalations</strong>:
-          <br>• <strong>15-Min Unaccepted Alert</strong>: Notifies Owner & Developer with emergency sound and message.
-          <br>• <strong>30-Min Auto-Cancel</strong>: COD orders unaccepted for 30 mins are cancelled automatically with apology reason sent to customer.</li>
-        <li><strong>Rider Pickup OTP</strong>: Kitchen screen displays a 4-digit Pickup OTP. Rider must verify this OTP to collect the order.</li>
+      <ul class="points">
+        <li><strong>Only Their Own Orders</strong>: Each kitchen screen only sees dishes for their branch.</li>
+        <li><strong>Hot Food Innovation (Parallel Dispatch)</strong>: The moment chef clicks <em>"Start Cooking"</em>, the system alerts the nearest rider right away. While the chef is frying/packing, the rider is driving to the shop. When food is ready, rider is already at the gate!</li>
+        <li><strong>Pickup OTP</strong>: Kitchen screen shows a 4-digit code. Rider must tell this code to pick up the parcel (0% wrong parcel delivery).</li>
+        <li><strong>Auto-Close</strong>: If kitchen staff goes offline or store closes, orders are automatically blocked so customers don't wait.</li>
+      </ul>
+      <div class="callout">
+        <strong>⚡ 15-Min Urgency Alert:</strong> If kitchen ignores an order for 15 minutes, Owner gets an emergency alarm. At 30 minutes, COD orders auto-cancel so customer isn't kept waiting.
+      </div>
+    </div>
+
+    <!-- 3. RIDER -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">🛵</div>
+        <div>
+          <div class="step-title">3. Delivery Sarathi (The Rider)</div>
+          <div class="step-sub">Nearest radar assignment + 2-step security</div>
+        </div>
+      </div>
+      <ul class="points">
+        <li><strong>Nearest Rider Alert</strong>: The closest active rider gets the order ping first.</li>
+        <li><strong>Step 1 (Pickup)</strong>: Gives Pickup code to Kitchen staff to collect parcel.</li>
+        <li><strong>Step 2 (Delivery)</strong>: Takes Delivery code from Customer at doorstep to finish order.</li>
       </ul>
     </div>
 
-    <!-- 3. DELIVERY SARATHI (RIDER) WORKFLOW -->
-    <div class="section-title">3. Delivery Sarathi (Fleet Rider) Workflow</div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Nearest Dispatch & 2-Way OTP Security</span>
-        <span class="badge badge-yellow">Dual OTP Protected</span>
-      </div>
-      <div class="flow-grid">
-        <div class="flow-step">
-          <span class="flow-step-num">1</span>
-          <div class="flow-step-title">Nearest Rider Broadcast</div>
-          <div class="flow-step-desc">GPS radar finds nearest on-duty riders and sends sound alert when kitchen starts cooking.</div>
-        </div>
-        <div class="flow-step">
-          <span class="flow-step-num">2</span>
-          <div class="flow-step-title">Pickup OTP at Kitchen</div>
-          <div class="flow-step-desc">Rider provides Pickup OTP to Kitchen staff to verify parcel before departure.</div>
-        </div>
-        <div class="flow-step">
-          <span class="flow-step-num">3</span>
-          <div class="flow-step-title">Delivery OTP at Doorstep</div>
-          <div class="flow-step-desc">Rider asks customer for 4-digit Delivery OTP to mark order successfully delivered.</div>
+    <!-- 4. CASH SETTLEMENT -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">💰</div>
+        <div>
+          <div class="step-title">4. Cash on Delivery (Evening Settlement)</div>
+          <div class="step-sub">Clear daily cash accounting without disputes</div>
         </div>
       </div>
-    </div>
-
-    <!-- 4. DAILY CASH SETTLEMENT & RECONCILIATION -->
-    <div class="section-title">4. Daily COD Cash Settlement Engine</div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">End-of-Day Flexible Settlement & Penalties</span>
-        <span class="badge badge-green">Audit Ledger</span>
-      </div>
-      <ul>
-        <li><strong>Daily Digital Cash Ledger</strong>: Rider collects cash throughout the day; total is tracked in their digital "Cash-in-Hand" balance.</li>
-        <li><strong>End-of-Day Reconciliation with Shopkeeper</strong>:
-          <br>• <strong>Full Payment</strong>: 100% cash deposited ➔ Ledger cleared to ₹0, Rider awarded <strong>+15 CIBIL Trust Points</strong>.
-          <br>• <strong>Partial Payment (Shortage)</strong>: Remaining balance recorded as <code>Unsettled Debt</code>. 24h grace period applies, penalty/interest accrues daily, Rider deducted <strong>-20 CIBIL Points</strong>.
-          <br>• <strong>Excess Payment</strong>: Credited to Rider's advance wallet balance.</li>
+      <ul class="points">
+        <li><strong>Daily Digital Wallet</strong>: Rider collects cash from customers all day. System tracks exact total.</li>
+        <li><strong>Evening Handover to Shopkeeper</strong>:
+          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust Points</strong>.
+          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period, late penalty applies, and <strong>-20 Trust Points</strong> deducted.
+          <br>• <strong>Paid Extra</strong>: Extra money is saved in Rider's advance wallet.</li>
       </ul>
     </div>
 
-    <!-- 5. UNIVERSAL ROLE CIBIL / TRUST SCORE SYSTEM -->
-    <div class="section-title">5. Universal Role CIBIL / Trust Score System</div>
-    <div class="card">
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-        Every role (Customer, Rider, Chef, Shop Owner) maintains a dynamic Trust Score (Scale: 300 – 900 Points) that governs priority, limits, and penalties.
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Role</th>
-            <th>+ Score Boost Factors</th>
-            <th>- Score Penalty Factors</th>
-            <th>Consequence of Low Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>🛵 Delivery Sarathi</strong></td>
-            <td>Full daily cash settlement, 5⭐ reviews, fast delivery</td>
-            <td>Unsettled cash debt, cancelled orders, late delivery</td>
-            <td>Blocked from high-value COD orders, dispatch freeze</td>
-          </tr>
-          <tr>
-            <td><strong>🍳 Kitchen Chef</strong></td>
-            <td>&lt;5 min acceptance, 5⭐ taste/heat ratings, on-time prep</td>
-            <td>15-min escalations, 30-min auto-cancels, quality complaints</td>
-            <td>Owner audit flag, loss of chef incentive bonuses</td>
-          </tr>
-          <tr>
-            <td><strong>👤 Customer</strong></td>
-            <td>Smooth delivery acceptance, online prepayments</td>
-            <td>Doorstep COD refusal, repeated order cancellations</td>
-            <td><strong>COD feature permanently revoked</strong> (Prepaid only)</td>
-          </tr>
-          <tr>
-            <td><strong>🏪 Shop Owner</strong></td>
-            <td>High menu availability, timely rider cash settlement</td>
-            <td>Frequent unannounced offline status, order rejections</td>
-            <td>Store search ranking penalty in customer view</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- 5. CIBIL TRUST SCORE -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">📊</div>
+        <div>
+          <div class="step-title">5. CIBIL Trust Score (300 to 900 Points)</div>
+          <div class="step-sub">Good workers get rewarded, bad habits get stopped</div>
+        </div>
+      </div>
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Who?</th>
+              <th>How Score Goes UP? 📈</th>
+              <th>How Score Goes DOWN? 📉</th>
+              <th>If Score Drops Too Low</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>🛵 Rider</strong></td>
+              <td>Fast delivery, timely evening cash deposit</td>
+              <td>Short cash deposit, cancelling accepted orders</td>
+              <td>High-value COD orders blocked</td>
+            </tr>
+            <tr>
+              <td><strong>🍳 Chef</strong></td>
+              <td>Accepts in &lt;5 mins, 5⭐ hot food reviews</td>
+              <td>Late cooking, 15-min alerts, food complaints</td>
+              <td>Performance bonus cut, Owner audit</td>
+            </tr>
+            <tr>
+              <td><strong>👤 Customer</strong></td>
+              <td>Smooth order acceptance, online payments</td>
+              <td>Refusing COD order at doorstep, fake orders</td>
+              <td><strong>COD permanently banned</strong> (Prepaid only)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- 6. MULTI-STAKEHOLDER CUSTOMER FEEDBACK -->
-    <div class="section-title">6. Customer Multi-Staff Feedback Engine</div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Dual Chef & Rider Recognition</span>
-        <span class="badge badge-yellow">Performance Linked</span>
+    <!-- 6. DUAL REVIEWS -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">⭐</div>
+        <div>
+          <div class="step-title">6. Separate Ratings for Chef & Rider</div>
+          <div class="step-sub">Fair credit where it's due</div>
+        </div>
       </div>
-      <p style="font-size: 13px; color: #D4D4D8; margin-bottom: 10px;">
-        Upon delivery completion, customer rates and tags both staff members independently:
-      </p>
-      <ul>
-        <li><strong>👨‍🍳 Kitchen Chef Rating (1–5 ⭐)</strong>: Piping Hot, Divine Vedic Taste, Spill-Proof Sealed, Pure Desi Ghee ➔ Directly updates Chef's CIBIL Points.</li>
-        <li><strong>🛵 Delivery Sarathi Rating (1–5 ⭐)</strong>: Super Fast, Humble & Polite, Safe & Contactless, Easy Navigation ➔ Directly updates Rider's CIBIL Points.</li>
+      <ul class="points">
+        <li><strong>Chef Rating (1–5 ⭐)</strong>: Rate the taste, freshness & packing. (e.g. <em>Piping Hot, Pure Desi Ghee</em>)</li>
+        <li><strong>Rider Rating (1–5 ⭐)</strong>: Rate the delivery speed & behavior. (e.g. <em>Super Fast, Polite & Humble</em>)</li>
+        <li><strong>Direct Impact</strong>: 5-star ratings give bonus Trust points directly to that Chef and Rider!</li>
       </ul>
     </div>
 
     <footer>
-      Foody Vrinda Enterprise Management System &bull; Production Architecture Documentation
+      Foody Vrinda Ecosystem &bull; Simple Business Guide
     </footer>
 
   </div>
