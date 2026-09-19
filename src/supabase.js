@@ -1488,20 +1488,22 @@ export async function updateCloudOffer(offerId, updates) {
 
   if (!isTableMissing('foody_offers')) {
     try {
-      const payload = {};
-      if (updates.code !== undefined) payload.code = updates.code.toUpperCase();
-      if (updates.title !== undefined) payload.title = updates.title;
-      if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
-      if (updates.discountType !== undefined) payload.discount_type = updates.discountType;
-      if (updates.discountValue !== undefined) payload.discount_value = Number(updates.discountValue);
-      if (updates.minOrderAmount !== undefined) payload.min_order_amount = Number(updates.minOrderAmount);
-      if (updates.maxDiscount !== undefined) payload.max_discount = Number(updates.maxDiscount);
-      if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
-      if (updates.isActive !== undefined) payload.is_active = updates.isActive;
-      if (updates.tag !== undefined) payload.tag = updates.tag;
-      if (updates.validUntil !== undefined) payload.valid_until = updates.validUntil;
+      const fullOfferPayload = {
+        id: updatedOffer.id,
+        code: (updatedOffer.code || '').toUpperCase(),
+        title: updatedOffer.title || '',
+        subtitle: updatedOffer.subtitle || '',
+        discount_type: updatedOffer.discountType || 'percentage',
+        discount_value: Number(updatedOffer.discountValue || 0),
+        min_order_amount: Number(updatedOffer.minOrderAmount || 0),
+        max_discount: Number(updatedOffer.maxDiscount || 0),
+        shop_id: updatedOffer.shopId || 'all',
+        is_active: updatedOffer.isActive !== undefined ? updatedOffer.isActive : true,
+        tag: updatedOffer.tag || 'Special Offer',
+        valid_until: updatedOffer.validUntil || '2026-12-31'
+      };
 
-      const { error } = await supabase.from('foody_offers').update(payload).eq('id', offerId);
+      const { error } = await supabase.from('foody_offers').upsert(fullOfferPayload, { onConflict: 'id' });
       if (error) console.warn('updateCloudOffer error:', error.message);
     } catch (e) { }
   }
@@ -1594,7 +1596,7 @@ export async function createCloudMenuItem(itemData) {
     if (!isTableMissing('foody_menus')) {
       const { data, error } = await supabase
         .from('foody_menus')
-        .upsert([payload])
+        .upsert([payload], { onConflict: 'id' })
         .select()
         .single();
 
@@ -1665,21 +1667,29 @@ export async function updateCloudMenuItem(itemId, itemData) {
         .eq('id', itemId)
         .select();
 
-      if (error) {
-        if (error.code === '42703' || error.message?.includes('updated_at')) {
-          // Schema trigger mismatch fallback (re-insert with merged values)
-          try {
-            const { data: existingData } = await supabase.from('foody_menus').select('*').eq('id', itemId).maybeSingle();
-            const merged = { ...(existingData || {}), ...payload, id: itemId };
-            await supabase.from('foody_menus').delete().eq('id', itemId);
-            const { data: insData, error: insErr } = await supabase.from('foody_menus').insert([merged]).select();
-            if (!insErr && insData) return insData;
-          } catch (e) {
-            console.warn('updateCloudMenuItem fallback notice:', e);
-          }
+      if (error || !data || data.length === 0) {
+        try {
+          const allCached = getCachedMenus('all') || [];
+          const currentItem = allCached.find(m => m.id === itemId) || {};
+          const fullItemPayload = {
+            id: itemId,
+            shop_id: itemData.shopId || itemData.shop_id || currentItem.shopId || 'shop-vrinda-main',
+            name: itemData.name || currentItem.name || 'Dish',
+            subtitle: itemData.subtitle || currentItem.subtitle || '',
+            description: itemData.description || currentItem.description || '',
+            category: itemData.category || currentItem.category || 'Main',
+            price: Number(itemData.price ?? currentItem.price ?? 0),
+            image: payload.image || currentItem.image || '',
+            tag: itemData.tag || currentItem.tag || 'Popular Choice',
+            kcal: itemData.kcal || currentItem.kcal || '250 kcal',
+            nutrition: payload.nutrition || currentItem.nutrition || { kcal: '250 kcal' },
+            is_available: payload.is_available !== undefined ? payload.is_available : (currentItem.isAvailable ?? true)
+          };
+          const { data: upsertData } = await supabase.from('foody_menus').upsert(fullItemPayload, { onConflict: 'id' }).select();
+          if (upsertData) return upsertData;
+        } catch (e) {
+          console.warn('updateCloudMenuItem upsert fallback notice:', e);
         }
-        console.warn('updateCloudMenuItem Supabase note:', error.message);
-        if (isTableError(error)) markTableMissing('foody_menus');
       }
       return data;
     }
@@ -1761,9 +1771,9 @@ export async function createCloudShop(shopData) {
       minimum_order_amount: normalized.minimumOrderAmount,
       delivery_charge: normalized.deliveryCharge,
       gst_percentage: normalized.gstPercentage,
-      operating_hours: {
-        openTime: normalized.openingTime,
-        closeTime: normalized.closingTime,
+      schedule: {
+        openingTime: normalized.openingTime,
+        closingTime: normalized.closingTime,
         autoSchedule: true
       },
       payment_settings: {
@@ -1832,60 +1842,41 @@ export async function updateCloudShop(shopId, shopData) {
     });
 
     try {
-      const payload = {};
-      if (shopData.name !== undefined) payload.name = shopData.name;
-      if (shopData.address !== undefined) payload.address = shopData.address;
-      if (shopData.phone !== undefined) payload.phone = shopData.phone;
-      if (shopData.minimumOrderAmount !== undefined) payload.minimum_order_amount = Number(shopData.minimumOrderAmount);
-      if (shopData.deliveryCharge !== undefined) payload.delivery_charge = Number(shopData.deliveryCharge);
-      if (shopData.gstPercentage !== undefined) payload.gst_percentage = Number(shopData.gstPercentage);
-      if (shopData.coordinates !== undefined) payload.coordinates = shopData.coordinates;
-      if (shopData.isOpen !== undefined) payload.is_open = shopData.isOpen;
-      if (shopData.isOnline !== undefined || shopData.is_online !== undefined) {
-        payload.is_online = shopData.isOnline ?? shopData.is_online;
-      }
-      if (shopData.shopType !== undefined || shopData.shop_type !== undefined) {
-        payload.shop_type = shopData.shopType || shopData.shop_type;
-      }
-      if (shopData.openingTime !== undefined || shopData.closingTime !== undefined) {
-        payload.operating_hours = {
-          openTime: shopData.openingTime || updatedShop?.openingTime || '08:00',
-          closeTime: shopData.closingTime || updatedShop?.closingTime || '22:30',
+      const fullShopPayload = {
+        id: updatedShop.id,
+        name: updatedShop.name,
+        address: updatedShop.address,
+        phone: updatedShop.phone,
+        coordinates: updatedShop.coordinates,
+        is_open: updatedShop.isOpen,
+        is_online: updatedShop.isOnline,
+        shop_type: updatedShop.shopType,
+        minimum_order_amount: updatedShop.minimumOrderAmount,
+        delivery_charge: updatedShop.deliveryCharge,
+        gst_percentage: updatedShop.gstPercentage,
+        schedule: {
+          openingTime: updatedShop.openingTime,
+          closingTime: updatedShop.closingTime,
           autoSchedule: true
-        };
-      }
+        },
+        payment_settings: {
+          onlinePaymentsEnabled: updatedShop.onlinePaymentsEnabled,
+          codEnabled: updatedShop.codEnabled,
+          shopType: updatedShop.shopType,
+          openingTime: updatedShop.openingTime,
+          closingTime: updatedShop.closingTime,
+          isOnline: updatedShop.isOnline
+        },
+        alarm_settings: updatedShop.alarmSettings,
+        updated_at: new Date().toISOString()
+      };
 
-      if (shopData.paymentSettings !== undefined) {
-        payload.payment_settings = {
-          ...shopData.paymentSettings,
-          shopType: shopData.shopType || shopData.shop_type || updatedShop?.shopType || 'hotel',
-          openingTime: shopData.openingTime || shopData.opening_time || updatedShop?.openingTime || '08:00',
-          closingTime: shopData.closingTime || shopData.closing_time || updatedShop?.closingTime || '22:30',
-          isOnline: shopData.isOnline ?? shopData.is_online ?? updatedShop?.isOnline ?? true
-        };
-      } else {
-        payload.payment_settings = {
-          onlinePaymentsEnabled: shopData.onlinePaymentsEnabled !== undefined ? shopData.onlinePaymentsEnabled : (updatedShop?.paymentSettings?.onlinePaymentsEnabled ?? true),
-          codEnabled: shopData.codEnabled !== undefined ? shopData.codEnabled : (updatedShop?.paymentSettings?.codEnabled ?? true),
-          shopType: shopData.shopType || shopData.shop_type || updatedShop?.shopType || 'hotel',
-          openingTime: shopData.openingTime || shopData.opening_time || updatedShop?.openingTime || '08:00',
-          closingTime: shopData.closingTime || shopData.closing_time || updatedShop?.closingTime || '22:30',
-          isOnline: shopData.isOnline ?? shopData.is_online ?? updatedShop?.isOnline ?? true
-        };
-      }
+      const { error } = await supabase
+        .from('foody_shops')
+        .upsert(fullShopPayload, { onConflict: 'id' });
 
-      if (shopData.alarmSettings !== undefined) {
-        payload.alarm_settings = shopData.alarmSettings;
-      }
-
-      if (Object.keys(payload).length > 0) {
-        const { error } = await supabase
-          .from('foody_shops')
-          .update(payload)
-          .eq('id', shopId);
-        if (error) {
-          console.warn("Supabase shop update note:", error.message);
-        }
+      if (error) {
+        console.warn("Supabase shop update note:", error.message);
       }
     } catch (sbErr) {
       console.warn("Supabase shop update note:", sbErr?.message);
