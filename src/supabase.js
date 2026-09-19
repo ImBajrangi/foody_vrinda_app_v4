@@ -2969,6 +2969,108 @@ export async function recordMultiStaffReview({
   return createCloudReview(combinedReview);
 }
 
+// ========================================================================
+// 13. RIDER CASH FLOATING LIMIT (DEFAULT: ₹3,000 CAP)
+// ========================================================================
+
+export const RIDER_MAX_CASH_LIMIT = 3000;
+
+export function isRiderCashLimitExceeded(riderId, pendingOrderAmount = 0) {
+  const ledger = getRiderCashLedger(riderId);
+  const currentTotal = Number(ledger.cashInHand || 0) + Number(ledger.unsettledDebt || 0) + Number(pendingOrderAmount || 0);
+  return {
+    isExceeded: currentTotal >= RIDER_MAX_CASH_LIMIT,
+    currentCash: Number(ledger.cashInHand || 0),
+    maxLimit: RIDER_MAX_CASH_LIMIT,
+    excessAmount: Math.max(0, currentTotal - RIDER_MAX_CASH_LIMIT)
+  };
+}
+
+// ========================================================================
+// 14. DYNAMIC DISTANCE-BASED DELIVERY FEE ENGINE
+// ========================================================================
+
+export function calculateDynamicDeliveryFee(distanceKm = 1.5, baseFee = 25, freeRadiusKm = 2.0, perKmRate = 8) {
+  const dist = Math.max(0.1, Number(distanceKm || 1.5));
+  if (dist <= freeRadiusKm) {
+    return Math.round(baseFee);
+  }
+  const extraKm = dist - freeRadiusKm;
+  const surcharge = Math.ceil(extraKm) * perKmRate;
+  return Math.round(baseFee + surcharge);
+}
+
+// ========================================================================
+// 15. ZERO-COST DIRECT WHATSAPP TRANSACTIONAL NOTIFIER
+// ========================================================================
+
+export function generateWhatsAppOrderShareLink({
+  phone,
+  orderId,
+  customerName = 'Devotee',
+  shopName = 'Foody Vrinda Kitchen',
+  status = 'confirmed',
+  totalAmount = 0,
+  deliveryOtp = ''
+}) {
+  const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
+  const orderNum = orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER';
+  const resolvedOtp = deliveryOtp || getOrderOTP(orderId, 'delivery');
+
+  let text = `🌸 *Radhe Radhe ${customerName} Ji!*\n\n`;
+  if (status === 'confirmed' || status === 'preparing') {
+    text += `✅ Your Foody Vrinda Order *#${orderNum}* from *${shopName}* is *Confirmed & Being Prepared Fresh*!\n\n`;
+    text += `💰 Total Amount: ₹${totalAmount}\n`;
+    text += `🔐 Delivery Verification OTP: *${resolvedOtp}*\n`;
+    text += `(Please share this OTP with your Sarathi at doorstep upon arrival)\n\n`;
+    text += `📍 Track Live Prasad Delivery: ${typeof window !== 'undefined' ? window.location.origin : 'https://eat.vrindopnishad.in'}\n`;
+  } else if (status === 'out_for_delivery') {
+    text += `🛵 *Order #${orderNum} is Out For Delivery!*\n\n`;
+    text += `Your Sarathi is on the way with your piping hot prasad meal.\n`;
+    text += `🔐 Delivery OTP: *${resolvedOtp}*\n\n`;
+    text += `🙏 Jai Shri Radhe! Foody Vrinda Team.`;
+  } else if (status === 'completed') {
+    text += `✨ *Order #${orderNum} Delivered Successfully!*\n\n`;
+    text += `We hope you enjoyed the pure satvik prasadam from *${shopName}*.\n`;
+    text += `⭐ Please rate your Chef & Sarathi in the app!\n`;
+  }
+
+  return `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(text)}`;
+}
+
+// ========================================================================
+// 16. WATERFALL RIDER CASCADE SELECTOR
+// ========================================================================
+
+export function getNextWaterfallRider(allRiders = [], targetCoords = { lat: 27.5706, lng: 77.6593 }, rejectedIds = []) {
+  if (!Array.isArray(allRiders) || allRiders.length === 0) return null;
+
+  const eligibleRiders = allRiders.filter(r => {
+    if (!r || !r.id) return false;
+    if (rejectedIds.includes(r.id)) return false;
+    const isOnline = r.isOnline ?? r.isActive ?? r.is_active ?? true;
+    const cashCheck = isRiderCashLimitExceeded(r.id);
+    return isOnline && !cashCheck.isExceeded;
+  });
+
+  if (eligibleRiders.length === 0) return null;
+
+  // Sort by nearest GPS distance to kitchen
+  eligibleRiders.sort((a, b) => {
+    const latA = a.coordinates?.lat || a.currentLocation?.lat || 27.5706;
+    const lngA = a.coordinates?.lng || a.currentLocation?.lng || 77.6593;
+    const latB = b.coordinates?.lat || b.currentLocation?.lat || 27.5706;
+    const lngB = b.coordinates?.lng || b.currentLocation?.lng || 77.6593;
+
+    const distA = Math.hypot(latA - targetCoords.lat, lngA - targetCoords.lng);
+    const distB = Math.hypot(latB - targetCoords.lat, lngB - targetCoords.lng);
+    return distA - distB;
+  });
+
+  return eligibleRiders[0];
+}
+
+
 
 export const COMPLETE_FOODY_DATABASE_SCHEMA_SQL = `-- ========================================================================
 -- FOODY VRINDA - ENTERPRISE POSTGRESQL & SUPABASE CLOUD SCHEMA

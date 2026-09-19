@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,7 +17,13 @@
       --orange: #F97316;
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -24,11 +31,12 @@
       line-height: 1.5;
       padding: 24px 16px;
     }
+
     .container {
       max-width: 780px;
       margin: 0 auto;
     }
-    
+
     /* Header */
     .hero {
       text-align: center;
@@ -36,6 +44,7 @@
       border-bottom: 1px solid var(--card-border);
       margin-bottom: 28px;
     }
+
     .tag {
       display: inline-block;
       background: var(--accent);
@@ -48,12 +57,14 @@
       text-transform: uppercase;
       margin-bottom: 10px;
     }
+
     h1 {
       font-size: 26px;
       font-weight: 900;
       letter-spacing: -0.5px;
       margin-bottom: 6px;
     }
+
     .hero-sub {
       color: var(--muted);
       font-size: 14px;
@@ -68,12 +79,14 @@
       margin-bottom: 18px;
       position: relative;
     }
+
     .step-header {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
     }
+
     .step-icon {
       width: 42px;
       height: 42px;
@@ -86,27 +99,31 @@
       font-size: 20px;
       flex-shrink: 0;
     }
+
     .step-title {
       font-size: 17px;
       font-weight: 900;
     }
+
     .step-sub {
       font-size: 12px;
       color: var(--muted);
     }
-    
+
     .points {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
+
     .points li {
       position: relative;
       padding-left: 24px;
       font-size: 13.5px;
       color: #E4E4E7;
     }
+
     .points li::before {
       content: "👉";
       position: absolute;
@@ -123,25 +140,32 @@
       font-size: 12.5px;
       color: #D4D4D8;
     }
-    .callout strong { color: var(--accent); }
+
+    .callout strong {
+      color: var(--accent);
+    }
 
     /* Comparison Table */
     .table-box {
       overflow-x: auto;
       margin-top: 10px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12.5px;
     }
-    th, td {
-      border: 1px solid rgba(255,255,255,0.08);
+
+    th,
+    td {
+      border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 10px 12px;
       text-align: left;
     }
+
     th {
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--accent);
       font-weight: 800;
     }
@@ -156,12 +180,13 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
 
     <div class="hero">
-      <div class="tag">Zero Jargon • 2-Min Read</div>
+      <div class="tag">Welcoming You • Foody Vrinda</div>
       <h1>Foody Vrinda: How The Entire System Works</h1>
       <p class="hero-sub">From placing an order to cooking, delivery, cash settlement & ratings.</p>
     </div>
@@ -177,9 +202,12 @@
       </div>
       <ul class="points">
         <li><strong>Must Login First</strong>: Nobody can place fake guest orders. One tap via Google or Phone.</li>
-        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and delivery address are saved on the first order. Next time, it's 1-tap checkout.</li>
-        <li><strong>Live Map Tracking</strong>: Customer sees real-time preparation status and delivery rider moving on the live map.</li>
-        <li><strong>Delivery OTP</strong>: Customer gets a 4-digit secret code on screen. Rider only gets "Order Completed" when customer shares this code.</li>
+        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and delivery address are saved on the first
+          order. Next time, it's 1-tap checkout.</li>
+        <li><strong>Live Map Tracking</strong>: Customer sees real-time preparation status and delivery rider moving on
+          the live map.</li>
+        <li><strong>Delivery OTP</strong>: Customer gets a 4-digit secret code on screen. Rider only gets "Order
+          Completed" when customer shares this code.</li>
       </ul>
     </div>
 
@@ -194,12 +222,17 @@
       </div>
       <ul class="points">
         <li><strong>Only Their Own Orders</strong>: Each kitchen screen only sees dishes for their branch.</li>
-        <li><strong>Hot Food Innovation (Parallel Dispatch)</strong>: The moment chef clicks <em>"Start Cooking"</em>, the system alerts the nearest rider right away. While the chef is frying/packing, the rider is driving to the shop. When food is ready, rider is already at the gate!</li>
-        <li><strong>Pickup OTP</strong>: Kitchen screen shows a 4-digit code. Rider must tell this code to pick up the parcel (0% wrong parcel delivery).</li>
-        <li><strong>Auto-Close</strong>: If kitchen staff goes offline or store closes, orders are automatically blocked so customers don't wait.</li>
+        <li><strong>Hot Food Innovation (Parallel Dispatch)</strong>: The moment chef clicks <em>"Start Cooking"</em>,
+          the system alerts the nearest rider right away. While the chef is frying/packing, the rider is driving to the
+          shop. When food is ready, rider is already at the gate!</li>
+        <li><strong>Pickup OTP</strong>: Kitchen screen shows a 4-digit code. Rider must tell this code to pick up the
+          parcel (0% wrong parcel delivery).</li>
+        <li><strong>Auto-Close</strong>: If kitchen staff goes offline or store closes, orders are automatically blocked
+          so customers don't wait.</li>
       </ul>
       <div class="callout">
-        <strong>⚡ 15-Min Urgency Alert:</strong> If kitchen ignores an order for 15 minutes, Owner gets an emergency alarm. At 30 minutes, COD orders auto-cancel so customer isn't kept waiting.
+        <strong>⚡ 15-Min Urgency Alert:</strong> If kitchen ignores an order for 15 minutes, Owner gets an emergency
+        alarm. At 30 minutes, COD orders auto-cancel so customer isn't kept waiting.
       </div>
     </div>
 
@@ -229,11 +262,15 @@
         </div>
       </div>
       <ul class="points">
-        <li><strong>Daily Digital Wallet</strong>: Rider collects cash from customers all day. System tracks exact total.</li>
+        <li><strong>Daily Digital Wallet</strong>: Rider collects cash from customers all day. System tracks exact
+          total.</li>
         <li><strong>Evening Handover to Shopkeeper</strong>:
-          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust Points</strong>.
-          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period, late penalty applies, and <strong>-20 Trust Points</strong> deducted.
-          <br>• <strong>Paid Extra</strong>: Extra money is saved in Rider's advance wallet.</li>
+          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust
+            Points</strong>.
+          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period, late
+          penalty applies, and <strong>-20 Trust Points</strong> deducted.
+          <br>• <strong>Paid Extra</strong>: Extra money is saved in Rider's advance wallet.
+        </li>
       </ul>
     </div>
 
@@ -290,8 +327,10 @@
         </div>
       </div>
       <ul class="points">
-        <li><strong>Chef Rating (1–5 ⭐)</strong>: Rate the taste, freshness & packing. (e.g. <em>Piping Hot, Pure Desi Ghee</em>)</li>
-        <li><strong>Rider Rating (1–5 ⭐)</strong>: Rate the delivery speed & behavior. (e.g. <em>Super Fast, Polite & Humble</em>)</li>
+        <li><strong>Chef Rating (1–5 ⭐)</strong>: Rate the taste, freshness & packing. (e.g. <em>Piping Hot, Pure Desi
+            Ghee</em>)</li>
+        <li><strong>Rider Rating (1–5 ⭐)</strong>: Rate the delivery speed & behavior. (e.g. <em>Super Fast, Polite &
+            Humble</em>)</li>
         <li><strong>Direct Impact</strong>: 5-star ratings give bonus Trust points directly to that Chef and Rider!</li>
       </ul>
     </div>
@@ -303,4 +342,5 @@
   </div>
 
 </body>
+
 </html>

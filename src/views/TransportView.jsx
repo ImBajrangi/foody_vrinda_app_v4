@@ -11,7 +11,14 @@ import {
   getOrderItemSummary, 
   getOrderCustomerName, 
   updateCloudUser,
-  updateUserOnlineStatus
+  updateUserOnlineStatus,
+  getRiderCashLedger,
+  isRiderCashLimitExceeded,
+  RIDER_MAX_CASH_LIMIT,
+  getUserTrustScore,
+  getOrderOTP,
+  verifyOrderOTP,
+  generateWhatsAppOrderShareLink
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -582,6 +589,67 @@ export default function TransportView() {
           onClose={() => setToast(null)}
         />
       )}
+
+      {/* Floating Cash Limit & CIBIL Score Metric Bar */}
+      {(() => {
+        const ledger = getRiderCashLedger(currentUser?.id || 'rider_sarathi_gopal');
+        const cashCheck = isRiderCashLimitExceeded(currentUser?.id || 'rider_sarathi_gopal');
+        const trustScore = getUserTrustScore(currentUser?.id || 'rider_sarathi_gopal');
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Cash in hand vs Limit */}
+            <div className={`p-3 rounded-2xl border flex items-center justify-between ${
+              cashCheck.isExceeded 
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300' 
+                : 'bg-stone-200/90 dark:bg-[#1E1B1C] border-stone-300 dark:border-white/5 text-white'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
+                  cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/20 text-amber-600 dark:text-[#E0FF33]'
+                }`}>
+                  <Banknote size={16} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">COD Cash in Hand</p>
+                  <p className="text-xs font-black text-stone-900 dark:text-white">
+                    ₹{ledger.cashInHand} <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-normal">/ ₹{RIDER_MAX_CASH_LIMIT} Cap</span>
+                  </p>
+                </div>
+              </div>
+              {cashCheck.isExceeded ? (
+                <span className="text-[10px] font-black bg-rose-500 text-white px-2 py-1 rounded-lg uppercase tracking-wider animate-pulse">
+                  Limit Reached
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                  Ready
+                </span>
+              )}
+            </div>
+
+            {/* Rider CIBIL Score Card */}
+            <div className="p-3 rounded-2xl bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <Star size={16} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Sarathi Trust Score</p>
+                  <p className="text-xs font-black text-stone-900 dark:text-white">
+                    {trustScore} <span className="text-[10px] text-purple-400 font-bold">/ 900 Pts</span>
+                  </p>
+                </div>
+              </div>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
+                trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+              }`}>
+                {trustScore >= 750 ? 'Top Sarathi 🏆' : 'Active Partner'}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Top Controls: Responsive Switcher between Map View and List View */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/8 p-3.5 sm:p-4 rounded-3xl shadow-xl">

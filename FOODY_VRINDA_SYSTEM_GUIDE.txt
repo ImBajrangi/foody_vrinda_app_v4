@@ -1,5 +1,5 @@
 =======================================================
-🌟 FOODY VRINDA - COMPLETE SYSTEM AT A GLANCE (1-MIN READ)
+🌟 FOODY VRINDA - COMPLETE SYSTEM AT A GLANCE
 =======================================================
 
 1. 🛒 CUSTOMER (Order & Live Tracking)

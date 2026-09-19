@@ -13,7 +13,8 @@ import {
   createCloudNotification,
   getOrderItemSummary,
   getOrderCustomerName,
-  getOrderOTP
+  getOrderOTP,
+  generateWhatsAppOrderShareLink
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -47,6 +48,7 @@ export default function KitchenView() {
 
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
+  const [isRushMode, setIsRushMode] = useState(false);
 
   // Create manual order states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -402,6 +404,24 @@ export default function KitchenView() {
             <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
           </button>
 
+          {/* Rush Mode (+15 Mins) Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsRushMode(prev => !prev);
+              showToast(!isRushMode ? "🔥 Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
+            }}
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+              isRushMode
+                ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
+            }`}
+            title="Extend prep time by +15 mins during rush hours"
+          >
+            <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500' : 'text-stone-500'} />
+            <span>{isRushMode ? 'Rush Mode ON (+15m)' : 'Rush Mode'}</span>
+          </button>
+
           <button
             onClick={handleOpenCreateModal}
             className="h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0"
@@ -501,11 +521,19 @@ export default function KitchenView() {
                             <span>{order.customerPhone}</span>
                           </a>
                           <a
-                            href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${order.customerName || 'Ji'}! Regarding your Foody Vrinda order #${order.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}:`)}`}
+                            href={generateWhatsAppOrderShareLink({
+                              phone: order.customerPhone,
+                              orderId: order.id,
+                              customerName: order.customerName,
+                              shopName: currentShop?.name || 'Foody Vrinda Kitchen',
+                              status: order.status,
+                              totalAmount: order.totalAmount,
+                              deliveryOtp: getOrderOTP(order.id, 'delivery')
+                            })}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-5 h-5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-all"
-                            title="Chat on WhatsApp"
+                            title="Send Free WhatsApp Order & OTP Update"
                           >
                             <MessageCircle size={11} />
                           </a>
