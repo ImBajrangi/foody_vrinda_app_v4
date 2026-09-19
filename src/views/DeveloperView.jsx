@@ -108,7 +108,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [activityLog, setActivityLog] = useState([]);
   const logActivity = (message, type = 'info') => {
     setActivityLog(prev => [
-      { id: Date.now(), message, type, time: new Date() },
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, message, type, time: new Date() },
       ...prev
     ].slice(0, 20));
   };
@@ -994,12 +994,6 @@ export default function DeveloperView({ setCurrentTab }) {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
               <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 dev-live-dot" />
               <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Live Sync</span>
-            </div>
-
-            {/* Database status */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-200 dark:bg-white/5 border border-stone-300 dark:border-white/10">
-              <Database className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
-              <span className="text-[10px] font-bold text-stone-700 dark:text-neutral-300 uppercase tracking-wider font-mono">Supabase</span>
             </div>
 
             {/* Auth badge */}

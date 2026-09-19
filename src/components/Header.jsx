@@ -178,13 +178,10 @@ export default function Header({
           <button
             onClick={onToggleSearch}
             className="hidden md:flex h-10 px-3.5 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center gap-2 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95"
-            title="Search (Ctrl + K)"
+            title="Search"
           >
             <Search size={16} className="text-amber-600 dark:text-[#E0FF33]" />
             <span className="text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
-            <kbd className="inline-flex items-center gap-0.5 text-[10px] font-bold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-[#1E1B1C] px-1.5 py-0.5 rounded border border-stone-300 dark:border-white/10 ml-1">
-              ⌘K
-            </kbd>
           </button>
 
           {/* Quick Cart Trigger (Uniform Circular Button with floating badge) */}

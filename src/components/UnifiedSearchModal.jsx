@@ -275,14 +275,13 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                   setExpandedOrder(null);
                 }
               }}
-              className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-1 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold"
+              className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-1 placeholder-stone-500 dark:placeholder-zinc-400 text-stone-900 dark:text-white font-bold"
             />
             <button
               onClick={handleAnimatedClose}
-              className="flex-shrink-0 h-8 px-2.5 sm:px-3 rounded-full bg-stone-200/80 dark:bg-[#282526] hover:bg-stone-300/80 dark:hover:bg-[#332E30] text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white flex items-center justify-center gap-1 text-[11px] font-black transition-all cursor-pointer apple-tap-target border border-stone-300/50 dark:border-white/5"
-              title="Close (Esc)"
+              className="flex-shrink-0 w-8 h-8 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#332E30] text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-stone-300/80 dark:border-white/15 active:scale-95"
+              title="Close"
             >
-              <span className="hidden sm:inline text-[10px] font-bold tracking-wider">ESC</span>
               <X size={15} />
             </button>
           </div>
@@ -292,7 +291,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {loading && (
               <div className="text-center py-10 flex flex-col items-center gap-2">
                 <div className="w-5 h-5 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-stone-500 dark:text-zinc-400 text-xs font-semibold">Searching cloud kitchens network...</p>
+                <p className="text-stone-600 dark:text-zinc-300 text-xs font-semibold">Searching cloud kitchens network...</p>
               </div>
             )}
 
@@ -301,12 +300,12 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 <div className="text-center">
                   <Sparkles className="w-8 h-8 text-amber-600 dark:text-[#E0FF33] mx-auto mb-2 opacity-90" />
                   <h3 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">Foody Discovery</h3>
-                  <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1">Explore divine Taste, sacred meals, and pure kitchens</p>
+                  <p className="text-xs text-stone-600 dark:text-zinc-300 mt-1">Explore divine Taste, sacred meals, and pure kitchens</p>
                 </div>
 
                 {/* Quick Intent Pills */}
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-zinc-300 mb-2.5 flex items-center gap-1.5">
                     <Tag size={12} className="text-amber-600 dark:text-[#E0FF33]" /> Popular Vedic Cravings
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -318,9 +317,9 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                           setSearchTerm(sugg.keyword);
                           performSearch(sugg.keyword.toLowerCase());
                         }}
-                        className="px-3.5 py-2 rounded-2xl bg-stone-100 hover:bg-amber-50/80 dark:bg-[#1E1B1C] dark:hover:bg-[#2A2627] border border-stone-200/80 hover:border-amber-500/40 dark:border-white/5 dark:hover:border-[#E0FF33]/40 text-xs font-bold text-stone-700 hover:text-amber-900 dark:text-zinc-300 dark:hover:text-white transition-all flex items-center gap-2 group cursor-pointer shadow-2xs"
+                        className="px-3.5 py-2 rounded-2xl bg-stone-100 hover:bg-amber-50/80 dark:bg-[#1E1B1C] dark:hover:bg-[#2A2627] border border-stone-200/80 hover:border-amber-500/40 dark:border-white/10 dark:hover:border-[#E0FF33]/40 text-xs font-bold text-stone-800 hover:text-amber-900 dark:text-zinc-200 dark:hover:text-white transition-all flex items-center gap-2 group cursor-pointer shadow-2xs"
                       >
-                        <Utensils size={12} className="text-amber-600/70 group-hover:text-amber-600 dark:text-[#E0FF33]/70 dark:group-hover:text-[#E0FF33] transition-colors" />
+                        <Utensils size={12} className="text-amber-600 dark:text-[#E0FF33] transition-colors" />
                         <span>{sugg.title}</span>
                       </button>
                     ))}
@@ -333,7 +332,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               results.shops.length === 0 &&
               results.menuItems.length === 0 &&
               results.orders.length === 0 && (
-                <p className="text-center text-stone-500 dark:text-zinc-400 py-10 text-xs font-medium">No matches found for &ldquo;{searchTerm}&rdquo;.</p>
+                <p className="text-center text-stone-600 dark:text-zinc-300 py-10 text-xs font-medium">No matches found for &ldquo;{searchTerm}&rdquo;.</p>
               )}
 
             {/* ─── KITCHENS SECTION ─── */}
@@ -341,29 +340,29 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               <div>
                 <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <Store size={14} /> Cloud Kitchens
-                  <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.shops.length})</span>
+                  <span className="text-stone-500 dark:text-zinc-400 font-semibold normal-case tracking-normal ml-1">({results.shops.length})</span>
                 </h4>
                 <div className="space-y-2">
                   {results.shops.map(shop => (
-                    <div key={shop.id} className="bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200/80 dark:border-white/5 overflow-hidden transition-all duration-300">
+                    <div key={shop.id} className="bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200/80 dark:border-white/10 overflow-hidden transition-all duration-300">
                       {/* Kitchen Row */}
                       <div
                         onClick={() => handleExpandShop(shop)}
-                        className="p-3 sm:p-3.5 flex justify-between items-center cursor-pointer hover:bg-stone-100/80 dark:hover:bg-white/[0.03] transition-colors apple-tap-target"
+                        className="p-3 sm:p-3.5 flex justify-between items-center cursor-pointer hover:bg-stone-100/80 dark:hover:bg-white/[0.05] transition-colors apple-tap-target"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/10 dark:bg-gradient-to-br dark:from-[#E0FF33]/20 dark:to-[#E0FF33]/5 border border-amber-500/20 dark:border-[#E0FF33]/20 shrink-0 flex items-center justify-center">
+                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/10 dark:bg-white/10 border border-amber-500/20 dark:border-white/15 shrink-0 flex items-center justify-center">
                             <Store size={18} className="text-amber-600 dark:text-[#E0FF33]" />
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate">{shop.name}</p>
-                            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-zinc-500 flex items-center gap-1 truncate">
+                            <p className="text-[10px] sm:text-[11px] text-stone-600 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
                               <MapPin size={10} className="shrink-0" />
                               {shop.address || 'Vrindavan Dham'}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight size={16} className={`text-stone-400 dark:text-zinc-500 shrink-0 transition-transform duration-200 ${expandedShop?.id === shop.id ? 'rotate-90' : ''}`} />
+                        <ChevronRight size={16} className={`text-stone-500 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${expandedShop?.id === shop.id ? 'rotate-90' : ''}`} />
                       </div>
 
                       {/* Expanded Kitchen Detail */}

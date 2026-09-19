@@ -91,49 +91,49 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
     
     if (text.includes('delivered') || text.includes('completed')) {
       return {
-        icon: <Check size={18} className="text-emerald-500 dark:text-emerald-400 stroke-[3]" />,
-        iconBg: 'bg-emerald-500/15 dark:bg-emerald-500/20 border-emerald-500/30',
+        icon: <Check size={18} className="text-emerald-600 dark:text-emerald-400 stroke-[3]" />,
+        iconBg: 'bg-emerald-500/15 dark:bg-emerald-500/20 border-emerald-500/30 dark:border-emerald-500/30',
         tag: 'Delivered',
-        tagBg: 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-300 border-emerald-500/30'
+        tagBg: 'bg-emerald-500/15 text-emerald-900 dark:bg-emerald-500/25 dark:text-emerald-300 border-emerald-500/30'
       };
     }
     if (text.includes('sarathi') || text.includes('rider') || text.includes('on the way') || text.includes('dispatched') || text.includes('on way')) {
       return {
-        icon: <Bike size={18} className="text-amber-600 dark:text-[#E0FF33]" />,
-        iconBg: 'bg-amber-500/15 dark:bg-[#E0FF33]/20 border-amber-500/30 dark:border-[#E0FF33]/35',
+        icon: <Bike size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+        iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
         tag: 'On Way',
-        tagBg: 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/35'
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/35'
       };
     }
     if (text.includes('cooking') || text.includes('prep') || text.includes('kitchen') || text.includes('prasad') || text.includes('bhog')) {
       return {
-        icon: <Utensils size={18} className="text-amber-600 dark:text-amber-400" />,
-        iconBg: 'bg-amber-500/15 dark:bg-amber-500/20 border-amber-500/30',
+        icon: <Utensils size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+        iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
         tag: 'Kitchen',
-        tagBg: 'bg-amber-500/15 text-amber-850 dark:bg-amber-500/25 dark:text-amber-300 border-amber-500/30'
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/35'
       };
     }
     if (text.includes('placed') || text.includes('order')) {
       return {
-        icon: <ShoppingBag size={18} className="text-sky-600 dark:text-sky-400" />,
-        iconBg: 'bg-sky-500/15 dark:bg-sky-500/20 border-sky-500/30',
+        icon: <ShoppingBag size={18} className="text-sky-600 dark:text-sky-400 stroke-[2.3]" />,
+        iconBg: 'bg-sky-500/15 dark:bg-sky-500/20 border-sky-500/30 dark:border-sky-500/30',
         tag: 'Placed',
-        tagBg: 'bg-sky-500/15 text-sky-800 dark:bg-sky-500/25 dark:text-sky-300 border-sky-500/30'
+        tagBg: 'bg-sky-500/15 text-sky-900 dark:bg-sky-500/25 dark:text-sky-300 border-sky-500/30'
       };
     }
     if (text.includes('special') || text.includes('offer') || text.includes('discount')) {
       return {
-        icon: <Gift size={18} className="text-purple-600 dark:text-purple-400" />,
-        iconBg: 'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30',
+        icon: <Gift size={18} className="text-purple-600 dark:text-purple-400 stroke-[2.3]" />,
+        iconBg: 'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30 dark:border-purple-500/30',
         tag: 'Special',
-        tagBg: 'bg-purple-500/15 text-purple-800 dark:bg-purple-500/25 dark:text-purple-300 border-purple-500/30'
+        tagBg: 'bg-purple-500/15 text-purple-900 dark:bg-purple-500/25 dark:text-purple-300 border-purple-500/30'
       };
     }
     return {
-      icon: <Sparkles size={18} className="text-amber-600 dark:text-[#E0FF33]" />,
-      iconBg: 'bg-amber-500/15 dark:bg-[#E0FF33]/20 border-amber-500/30 dark:border-[#E0FF33]/35',
+      icon: <Sparkles size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+      iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
       tag: 'System',
-      tagBg: 'bg-stone-200/90 text-stone-800 dark:bg-white/15 dark:text-neutral-200 border-stone-300 dark:border-white/15'
+      tagBg: 'bg-stone-200/90 text-stone-800 dark:bg-white/15 dark:text-zinc-100 border-stone-300 dark:border-white/15'
     };
   };
 
@@ -178,11 +178,11 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
         {/* Header */}
         <div 
           {...handleProps}
-          className="px-5 py-4 border-b border-stone-200/80 dark:border-white/10 flex justify-between items-center bg-[#F4EFE6] dark:bg-[#282526] select-none"
+          className="px-5 py-4 flex justify-between items-center bg-[#FAF7F2] dark:bg-[#1E1B1C] select-none"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/25 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs shrink-0">
-              <Bell size={20} />
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-white/10 border border-amber-500/30 dark:border-white/15 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs shrink-0">
+              <Bell size={20} className="stroke-[2.3]" />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
@@ -195,13 +195,13 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-600 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] font-medium">Live order tracking & alerts</p>
+              <p className="text-xs text-stone-600 dark:text-zinc-300 font-['Plus_Jakarta_Sans'] font-medium">Live order tracking & alerts</p>
             </div>
           </div>
 
           <button 
             onClick={handleAnimatedClose}
-            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer"
             title="Close"
             aria-label="Close notifications"
           >
@@ -210,7 +210,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
         </div>
 
         {/* Segmented Filter Tabs */}
-        <div className="px-4 py-3 bg-[#FAF7F2] dark:bg-[#151314] border-b border-stone-200/80 dark:border-white/5 flex items-center gap-2">
+        <div className="px-4 py-2.5 bg-[#FAF7F2] dark:bg-[#1E1B1C] flex items-center gap-2">
           {[
             { id: 'all', label: 'All', count: notifications.length },
             { id: 'unread', label: 'Unread', count: unreadCount },
@@ -225,14 +225,14 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 className={`flex-1 py-2 px-3 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none border ${
                   isActive 
                     ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] font-black shadow-xs' 
-                    : 'bg-stone-200/80 text-stone-700 dark:bg-white/5 dark:text-neutral-400 border-stone-300/70 dark:border-white/5 hover:text-stone-900 dark:hover:text-white hover:bg-stone-300/80'
+                    : 'bg-stone-200/90 text-stone-700 dark:bg-[#282526] dark:text-zinc-300 border-stone-300/70 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/80'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${
                   isActive 
-                    ? 'bg-white !text-amber-950 dark:bg-black/30 dark:!text-[#121011] shadow-xs' 
-                    : 'bg-stone-300 !text-stone-900 dark:bg-white/10 dark:!text-neutral-200'
+                    ? 'bg-white text-amber-950 dark:bg-black dark:text-[#E0FF33] shadow-xs font-black' 
+                    : 'bg-stone-300 text-stone-900 dark:bg-white/15 dark:text-white font-bold'
                 }`}>
                   {tab.count}
                 </span>
@@ -357,12 +357,12 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                         }}
                         className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm border transition-all cursor-pointer ${
                           n.read 
-                            ? 'text-stone-500 hover:text-stone-800 dark:text-zinc-400 dark:hover:text-white bg-stone-200/60 hover:bg-stone-300/80 dark:bg-white/5 dark:hover:bg-white/10 border-stone-300/60 dark:border-white/10' 
-                            : 'text-amber-700 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/20 border-amber-500/35 dark:border-[#E0FF33]/35 hover:bg-amber-500/25 dark:hover:bg-[#E0FF33]/30 shadow-xs'
+                            ? 'text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 border-stone-300/80 dark:border-white/15' 
+                            : 'text-stone-950 dark:text-black bg-emerald-400 dark:bg-[#E0FF33] border-emerald-500 dark:border-[#E0FF33] shadow-sm hover:scale-105 active:scale-95'
                         }`}
                         title={n.read ? "Mark as unread" : "Mark as read"}
                       >
-                        {n.read ? <Check size={16} /> : <CheckCheck size={16} />}
+                        {n.read ? <Check size={16} className="stroke-[2.5]" /> : <CheckCheck size={16} className="stroke-[2.8]" />}
                       </button>
                       
                       {deleteNotification && (
@@ -372,10 +372,10 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                             e.stopPropagation();
                             deleteNotification(n.id);
                           }}
-                          className="w-9 h-9 rounded-2xl flex items-center justify-center text-stone-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 bg-stone-200/60 hover:bg-red-500/15 dark:bg-white/5 dark:hover:bg-red-500/20 border border-stone-300/60 dark:border-white/10 transition-all cursor-pointer"
+                          className="w-9 h-9 rounded-2xl flex items-center justify-center text-stone-600 hover:text-red-600 dark:text-zinc-300 dark:hover:text-red-400 bg-stone-200/80 hover:bg-red-500/15 dark:bg-white/10 dark:hover:bg-red-500/20 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer shadow-xs active:scale-95"
                           title="Dismiss"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={16} className="stroke-[2.2]" />
                         </button>
                       )}
                     </div>

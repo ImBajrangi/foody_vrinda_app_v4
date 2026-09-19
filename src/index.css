@@ -2687,11 +2687,9 @@ path.casing-parabolic-dots,
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 12. High-Contrast Theme Guard for Neon Chartreuse (#E0FF33) Buttons */
-button[class*="bg-[#E0FF33]"],
-button[class*="bg-[#E0FF33]"] svg,
-[class*="bg-[#E0FF33]"] > svg,
+/* 12. Solid Neon CTA Buttons */
+.btn-neon-yellow,
 .btn-neon-yellow svg {
-  stroke: #121011 !important;
-  color: #121011 !important;
+  color: #121011;
+  stroke: #121011;
 }

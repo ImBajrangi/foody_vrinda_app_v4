@@ -117,6 +117,12 @@ export function useBottomSheetDrag(onClose, threshold = 50) {
           sheetRef.current.style.opacity = '0.3';
         }
         setTimeout(() => {
+          if (sheetRef.current) {
+            sheetRef.current.style.transform = '';
+            sheetRef.current.style.opacity = '';
+            sheetRef.current.style.transition = '';
+            sheetRef.current.style.willChange = '';
+          }
           onCloseRef.current?.(true);
           isDismissingRef.current = false;
         }, 170);
@@ -128,6 +134,7 @@ export function useBottomSheetDrag(onClose, threshold = 50) {
           setTimeout(() => {
             if (sheetRef.current && !isDraggingRef.current && !isDismissingRef.current) {
               sheetRef.current.style.transform = '';
+              sheetRef.current.style.opacity = '';
               sheetRef.current.style.transition = '';
               sheetRef.current.style.willChange = '';
             }

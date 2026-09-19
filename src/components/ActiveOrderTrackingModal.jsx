@@ -24,6 +24,7 @@ import {
 import { subscribeSingleCloudOrder, resolveDishCutout } from '../supabase';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
+import { useBackHandler } from '../hooks/useBackHandler';
 
 export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
   const { systemNotificationPermission, requestSystemNotificationPermission } = useNotifications();
@@ -508,10 +509,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
   // Adjust map bounds when toggling peek / expanded safely
   useEffect(() => {
-    if (!mapInstanceRef.current || !routeGroupRef.current) return;
+    if (!mapInstanceRef.current) return;
     const timer = setTimeout(() => {
-      applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
-    }, 120);
+      try {
+        mapInstanceRef.current.invalidateSize();
+      } catch (_) {}
+      if (routeGroupRef.current) {
+        applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
+      }
+    }, 150);
     return () => clearTimeout(timer);
   }, [isExpanded]);
 
@@ -529,6 +535,24 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     handleProps: modalHandleProps,
     hasMoved: modalHasMoved
   } = useBottomSheetDrag(handleAnimatedClose, 35);
+
+  // Register Tracking Modal with Back Handler Stack (Collapses if expanded, or closes)
+  useBackHandler(Boolean(order), () => {
+    if (isExpanded) {
+      setIsExpanded(false);
+    } else {
+      handleAnimatedClose();
+    }
+  }, 'active_order_tracking_modal', 12);
+
+  // Reset modal sheet transform on open
+  useEffect(() => {
+    if (order && modalSheetRef.current) {
+      modalSheetRef.current.style.transform = '';
+      modalSheetRef.current.style.opacity = '1';
+      modalSheetRef.current.style.transition = '';
+    }
+  }, [order]);
 
   // Bottom drawer gesture hook for smooth collapse to peek mode
   const {
@@ -640,42 +664,42 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         >
           <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
 
-          {/* Floating Back / Minimize Button (Top Left) */}
-          <div className="absolute top-4 left-4 z-[500] flex items-center gap-2">
+          {/* Floating Back / Minimize Button (Top Left with Safe Area Inset) */}
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[500] flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleAnimatedClose();
               }}
-              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
+              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/20 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
               title="Shrink to Floating Dynamic Island Capsule"
               aria-label="Minimize"
             >
-              <ArrowLeft className="w-4.5 h-4.5 stroke-[2.2]" />
+              <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
             </button>
           </div>
 
-          {/* Floating Controls (Top Right): Recenter & Shrink Capsule Button */}
-          <div className="absolute top-4 right-4 z-[500] flex items-center gap-2">
+          {/* Floating Controls (Top Right with Safe Area Inset): Recenter & Shrink Capsule Button */}
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[500] flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRecenter();
               }}
-              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/15 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
+              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/20 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
               title="Re-center route"
             >
-              <RotateCcw className="w-4 h-4 stroke-[2.2]" />
+              <RotateCcw className="w-4.5 h-4.5 stroke-[2.2]" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleAnimatedClose();
               }}
-              className="w-9 h-9 rounded-full bg-[#181617]/90 hover:bg-[#221F20] text-[#E0FF33] backdrop-blur-md flex items-center justify-center border border-[#E0FF33]/30 active:scale-95 transition-all cursor-pointer shadow-md pointer-events-auto"
+              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-[#E0FF33] backdrop-blur-md flex items-center justify-center border border-[#E0FF33]/40 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
               title="Minimize to Floating Capsule"
             >
-              <Minimize2 className="w-4 h-4 stroke-[2.2]" />
+              <Minimize2 className="w-4.5 h-4.5 stroke-[2.2]" />
             </button>
           </div>
         </div>
@@ -684,7 +708,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         <div
           ref={drawerSheetRef}
           style={drawerSheetStyle}
-          className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'max-h-[92px]'
+          className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'min-h-[92px]'
             } no-scrollbar`}
         >
 

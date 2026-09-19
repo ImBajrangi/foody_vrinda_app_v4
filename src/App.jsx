@@ -17,6 +17,8 @@ import EmergencyDevModal from './components/EmergencyDevModal';
 import CompleteProfileModal from './components/CompleteProfileModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useTheme } from './context/ThemeContext';
+import { useBackHandler } from './hooks/useBackHandler';
+import { executeTopBackHandler, shouldAllowAppExit } from './services/backHandlerService';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -196,44 +198,61 @@ export default function App() {
     }
   }, []);
 
-  // Android Native Hardware Back Button Handling
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
+  // Top-level Application Modals registered to Back Handler Stack
+  useBackHandler(isAuthOpen, () => setIsAuthOpen(false), 'app_auth_modal', 10);
+  useBackHandler(isSearchOpen, () => setIsSearchOpen(false), 'app_search_modal', 10);
+  useBackHandler(isNotificationsOpen, () => setIsNotificationsOpen(false), 'app_notifications_modal', 10);
+  useBackHandler(isRewardsOpen, () => setIsRewardsOpen(false), 'app_rewards_modal', 10);
+  useBackHandler(isCompleteProfileOpen, () => setIsCompleteProfileOpen(false), 'app_complete_profile_modal', 15);
+  useBackHandler(isEmergencyDevOpen, () => setIsEmergencyDevOpen(false), 'app_emergency_dev_modal', 20);
 
-    const backListener = CapApp.addListener('backButton', ({ canGoBack }) => {
-      if (isAuthOpen) {
-        setIsAuthOpen(false);
-      } else if (isSearchOpen) {
-        setIsSearchOpen(false);
-      } else if (isNotificationsOpen) {
-        setIsNotificationsOpen(false);
-      } else if (isRewardsOpen) {
-        setIsRewardsOpen(false);
-      } else if (isCompleteProfileOpen) {
-        setIsCompleteProfileOpen(false);
-      } else if (isEmergencyDevOpen) {
-        setIsEmergencyDevOpen(false);
-      } else if (currentTab !== 'customer') {
-        setCurrentTab('customer');
-      } else if (canGoBack) {
-        window.history.back();
-      } else {
-        CapApp.exitApp();
+  // Centralized Native Hardware Back Button & Web Escape Key Controller
+  useEffect(() => {
+    let backListenerPromise = null;
+
+    if (Capacitor.isNativePlatform()) {
+      backListenerPromise = CapApp.addListener('backButton', () => {
+        // 1. Check if any open modal/sheet/drawer was registered across the entire app
+        if (executeTopBackHandler()) {
+          return;
+        }
+
+        // 2. If switched to another desk/workspace, navigate back to customer storefront
+        if (currentTab !== 'customer') {
+          setCurrentTab('customer');
+          return;
+        }
+
+        // 3. Root Screen Double-Back-To-Exit Protection
+        if (shouldAllowAppExit()) {
+          CapApp.exitApp();
+        } else {
+          window.dispatchEvent(new CustomEvent('foody_toast', {
+            detail: {
+              message: 'Press back again to exit Foody Vrinda',
+              type: 'info',
+              desc: 'Double-tap back button to leave'
+            }
+          }));
+        }
+      });
+    }
+
+    // Web Browser Escape Key Support
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        executeTopBackHandler();
       }
-    });
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      backListener.then(l => l.remove()).catch(() => {});
+      if (backListenerPromise) {
+        backListenerPromise.then(l => l.remove()).catch(() => {});
+      }
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [
-    isAuthOpen,
-    isSearchOpen,
-    isNotificationsOpen,
-    isRewardsOpen,
-    isCompleteProfileOpen,
-    isEmergencyDevOpen,
-    currentTab
-  ]);
+  }, [currentTab]);
 
   // Dynamic Tab Meta Updates for Search Engines
 
@@ -303,7 +322,7 @@ export default function App() {
   };
 
   return (
-    <div className={`mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full ${currentTab === 'customer' ? 'max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl' : 'max-w-7xl'}`}>
+    <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl">
       <Header 
         audioUnlocked={audioUnlocked}
         enableAudio={enableAudio}

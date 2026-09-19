@@ -212,12 +212,12 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
         {/* Effortless Form */}
         <form onSubmit={handleSave} className="space-y-3">
           {/* Recipient Name (Compact & Clean) */}
-          <div className="bg-stone-50 dark:bg-[#1D1B1C] border border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-200/70 dark:bg-white/5 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+          <div className="bg-stone-50 dark:bg-[#1D1B1C] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-200/80 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 border border-stone-300/50 dark:border-white/10">
               <User size={15} />
             </div>
             <div className="flex-1 min-w-0">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-zinc-400 leading-none mb-1">
                 Your Name
               </label>
               <input
@@ -225,25 +225,25 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-400 font-['Plus_Jakarta_Sans']"
               />
             </div>
           </div>
 
           {/* Contact Phone */}
-          <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all ${
+          <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs ${
             shakeField === 'phone'
               ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-950/20'
-              : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+              : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
           }`}>
-            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-              shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors border ${
+              shakeField === 'phone' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#E0FF33] border-stone-300/50 dark:border-white/10'
             }`}>
               <Phone size={15} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-zinc-400 leading-none mb-1">
                   Mobile Number
                 </label>
                 {shakeField === 'phone' && (
@@ -251,7 +251,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                 )}
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-base font-bold text-stone-500 dark:text-zinc-400 select-none">+91</span>
+                <span className="text-sm sm:text-base font-bold text-stone-500 dark:text-zinc-300 select-none">+91</span>
                 <input
                   ref={phoneRef}
                   type="tel"
@@ -264,32 +264,32 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                     if (shakeField === 'phone') setShakeField(null);
                   }}
                   placeholder="9876543210"
-                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-400 font-['Plus_Jakarta_Sans']"
                 />
               </div>
             </div>
             {phone.length === 10 && (
-              <span className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-[#E0FF33]/20 text-emerald-600 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shrink-0">
-                <Check size={12} strokeWidth={3} />
+              <span className="w-5 h-5 rounded-full bg-emerald-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center animate-scale-up shrink-0 shadow-sm font-black">
+                <Check size={12} strokeWidth={3.5} />
               </span>
             )}
           </div>
 
           {/* Delivery Address with 1-Tap GPS */}
           <div className="relative">
-            <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all ${
+            <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs ${
               shakeField === 'address'
                 ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-950/20'
-                : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/8 hover:border-stone-300 dark:hover:border-white/15 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+                : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
             }`}>
-              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/70 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors border ${
+                shakeField === 'address' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#E0FF33] border-stone-300/50 dark:border-white/10'
               }`}>
                 <MapPin size={15} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-500 leading-none mb-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-zinc-400 leading-none mb-1">
                     Delivery Address
                   </label>
                   {shakeField === 'address' && (
@@ -304,8 +304,8 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                     setAddress(e.target.value);
                     if (shakeField === 'address') setShakeField(null);
                   }}
-                  placeholder="Ashram, Street, or Landmark..."
-                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans']"
+                  placeholder="e.g. Near ISKCON Temple, Raman Reti"
+                  className="w-full text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-400 font-['Plus_Jakarta_Sans']"
                 />
               </div>
               <button

@@ -62,6 +62,14 @@ export default function OrderHistoryDrawer({
   } = useBottomSheetDrag(handleAnimatedClose, 45);
 
   useEffect(() => {
+    if (isOpen && sheetRef.current) {
+      sheetRef.current.style.transform = '';
+      sheetRef.current.style.opacity = '1';
+      sheetRef.current.style.transition = '';
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     const fetchOrders = async () => {

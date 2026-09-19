@@ -148,6 +148,15 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   }, [userData, user]);
 
+  // Reset modal sheet transform & opacity when opened
+  useEffect(() => {
+    if (isOpen && authSheetRef.current) {
+      authSheetRef.current.style.transform = '';
+      authSheetRef.current.style.opacity = '1';
+      authSheetRef.current.style.transition = '';
+    }
+  }, [isOpen]);
+
   // Auto-clear success message after 3 seconds
   useEffect(() => {
     if (successMsg) {
@@ -668,9 +677,9 @@ export default function AuthModal({ isOpen, onClose }) {
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                         <div className="min-w-0">
-                          <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider block">Phone</span>
-                          <span className={`text-xs font-mono font-semibold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-200' : 'text-stone-400 dark:text-zinc-500 italic'}`}>
-                            {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : 'Not added'}
+                          <span className="text-[9px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
+                          <span className={`text-xs font-mono font-semibold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#E0FF33]/90 font-medium'}`}>
+                            {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : '+ Add phone'}
                           </span>
                         </div>
                       </div>
@@ -689,14 +698,14 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Address Pill / Editor Toggle */}
-                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/5 flex flex-col justify-center min-h-[52px] shadow-sm">
+                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[52px] shadow-sm">
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-[9px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider block">Address</span>
-                        <span className={`text-xs font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-200 font-semibold' : 'text-stone-400 dark:text-zinc-500 italic'}`}>
-                          {hasValidAddress ? userAddress : 'Not saved'}
+                        <span className="text-[9px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
+                        <span className={`text-xs font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#E0FF33]/90 font-medium'}`}>
+                          {hasValidAddress ? userAddress : '+ Set address'}
                         </span>
                       </div>
                     </div>
@@ -716,18 +725,18 @@ export default function AuthModal({ isOpen, onClose }) {
 
               {/* Inline Address Form */}
               {isEditingAddress && (
-                <div className="p-3 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 space-y-2 relative z-10 animate-fade-in shadow-sm">
+                <div className="p-3 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/15 space-y-2.5 relative z-10 animate-fade-in shadow-sm">
                   <textarea
                     rows={2}
                     value={addressInput}
                     onChange={(e) => setAddressInput(e.target.value)}
                     placeholder="Enter delivery address in Vrindavan..."
-                    className="w-full bg-stone-50 dark:bg-[#141213] text-xs text-stone-900 dark:text-white p-2.5 rounded-lg border border-stone-200 dark:border-white/10 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/60 resize-none font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-stone-50 dark:bg-[#141213] text-xs text-stone-900 dark:text-white p-2.5 rounded-lg border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-400"
                     autoFocus
                   />
 
                   {/* Quick Landmark Chips */}
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {[
                       'Near ISKCON Temple, Raman Reti',
                       'Prem Mandir Area',
@@ -738,7 +747,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         key={loc}
                         type="button"
                         onClick={() => setAddressInput(loc)}
-                        className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-[#E0FF33]/10 text-stone-700 dark:text-zinc-400 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/5 text-[9px] font-medium cursor-pointer transition-all"
+                        className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/15 text-[10px] font-semibold cursor-pointer transition-all shadow-xs"
                       >
                         + {loc}
                       </button>
@@ -749,14 +758,14 @@ export default function AuthModal({ isOpen, onClose }) {
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="px-2.5 py-1 rounded-lg bg-stone-150 hover:bg-stone-200 dark:bg-white/5 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white text-xs font-bold cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white text-xs font-bold cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveAddress}
-                      className="px-3 py-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider hover:opacity-90 cursor-pointer"
+                      className="px-3 py-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider hover:opacity-90 cursor-pointer shadow-sm"
                     >
                       Save Address
                     </button>
@@ -771,18 +780,26 @@ export default function AuthModal({ isOpen, onClose }) {
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">150 Coins</div>
-                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">₹15 savings</div>
+                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                      {userData?.coins || 150} Coins
+                    </div>
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                      ₹{Math.floor((userData?.coins || 150) / 10)} savings
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pl-3">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-300 shrink-0">
+                <div className="flex items-center gap-2 pl-2">
+                  <div className="w-7 h-7 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10 border border-cyan-500/20 dark:border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">Dham Express</div>
-                    <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold">Priority Prep</div>
+                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                      Dham Express
+                    </div>
+                    <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold truncate">
+                      Priority Prep
+                    </div>
                   </div>
                 </div>
               </div>
@@ -791,7 +808,7 @@ export default function AuthModal({ isOpen, onClose }) {
             {/* 4. Grouped Navigation & Preference Links */}
             <div className="p-1 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5">
               {/* Theme Preference Row */}
-              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300">
+              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
                   {isLight ? (
                     <Sun className="w-4 h-4 text-amber-500 shrink-0" />
@@ -800,14 +817,14 @@ export default function AuthModal({ isOpen, onClose }) {
                   )}
                   <span>App Theme</span>
                 </div>
-                <div className="flex items-center gap-1 bg-stone-200/70 dark:bg-[#282526] p-0.5 rounded-full border border-stone-300/80 dark:border-white/10">
+                <div className="flex items-center gap-1 bg-stone-200/90 dark:bg-[#252223] p-1 rounded-full border border-stone-300 dark:border-white/15">
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isLight 
-                        ? 'bg-amber-500 text-white shadow-sm' 
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        ? 'bg-stone-900 text-white shadow-sm font-black' 
+                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white'
                     }`}
                   >
                     Divine Light
@@ -815,10 +832,10 @@ export default function AuthModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isDark 
-                        ? 'bg-[#E0FF33] text-black shadow-sm' 
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        ? 'bg-[#E0FF33] text-black shadow-sm font-black' 
+                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white'
                     }`}
                   >
                     Dark Obsidian

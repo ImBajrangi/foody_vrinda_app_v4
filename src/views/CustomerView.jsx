@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useBackHandler } from '../hooks/useBackHandler';
+import { fetchAddressSuggestions } from '../services/addressService';
 import MapPicker from '../components/MapPicker';
 import BouncingLoader from '../components/ui/BouncingLoader';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -125,6 +127,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [showShopSwitcher, setShowShopSwitcher] = useState(false);
+  const [fulfillmentType, setFulfillmentType] = useState('delivery'); // 'delivery' | 'pickup'
+  const [onlineRidersCount, setOnlineRidersCount] = useState(1);
   const [cookingNotes, setCookingNotes] = useState('');
 
   // Favorites state
@@ -360,6 +365,32 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }, 3000);
   };
 
+  // Reset sheet styles on mount/open to avoid stuck transformed states
+  useEffect(() => {
+    if (selectedDishDetails && detailSheetRef.current) {
+      detailSheetRef.current.style.transform = '';
+      detailSheetRef.current.style.opacity = '1';
+      detailSheetRef.current.style.transition = '';
+    }
+  }, [selectedDishDetails]);
+
+  useEffect(() => {
+    if (showCartDrawer && cartSheetRef.current) {
+      cartSheetRef.current.style.transform = '';
+      cartSheetRef.current.style.opacity = '1';
+      cartSheetRef.current.style.transition = '';
+    }
+  }, [showCartDrawer]);
+
+  // Register all Customer View Modals to Centralized Back Handler Stack
+  useBackHandler(Boolean(selectedDishDetails), () => handleCloseDishDetail(), 'customer_dish_details', 5);
+  useBackHandler(showCartDrawer, () => handleCloseCartDrawer(), 'customer_cart_drawer', 5);
+  useBackHandler(isOrderHistoryOpen, () => setIsOrderHistoryOpen(false), 'customer_order_history', 5);
+  useBackHandler(showShopSwitcher, () => handleCloseShopSwitcher(), 'customer_shop_switcher', 8);
+  useBackHandler(isReviewModalOpen, () => setIsReviewModalOpen(false), 'customer_review_modal', 8);
+  useBackHandler(Boolean(editingQuantityItem), () => setEditingQuantityItem(null), 'customer_qty_picker', 6);
+  useBackHandler(showMapPicker, () => setShowMapPicker(false), 'customer_map_picker', 7);
+
   // Sync inputs with localStorage
   useEffect(() => {
     localStorage.setItem('customerName', checkoutName);
@@ -565,9 +596,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   }, [trackingOrderId]);
 
   // Dynamic Shops handling
-  const [showShopSwitcher, setShowShopSwitcher] = useState(false);
-  const [fulfillmentType, setFulfillmentType] = useState('delivery'); // 'delivery' | 'pickup'
-  const [onlineRidersCount, setOnlineRidersCount] = useState(1);
+
 
   useEffect(() => {
     const checkRiders = () => {
@@ -1086,18 +1115,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Search Bar */}
         <div className="relative w-full md:w-80 lg:w-96 flex-shrink-0">
-          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-400 pointer-events-none" />
+          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-300 pointer-events-none" />
           <input
             type="text"
             placeholder="Search pure delicacies..."
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
-            className="w-full h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/60 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all"
+            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/15 hover:border-amber-500/50 dark:hover:border-white/30 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all font-medium"
           />
           {menuSearch && (
             <button
               onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/10 hover:bg-stone-400 dark:hover:bg-white/20 flex items-center justify-center text-xs text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white cursor-pointer transition-all"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/20 hover:bg-stone-400 dark:hover:bg-white/30 flex items-center justify-center text-xs text-stone-800 dark:text-white cursor-pointer transition-all"
               title="Clear search"
             >
               ✕
@@ -1106,20 +1135,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       </div>
 
-      {/* 3. HORIZONTAL CATEGORY PILL CHIPS */}
-      <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-1 mb-6 sm:mb-8">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${selectedCategory.toLowerCase() === cat.toLowerCase()
-              ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
-              : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
-              }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* 3. HORIZONTAL CATEGORY PILL CHIPS (Sticky with Glassmorphism & High Contrast) */}
+      <div className="sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2.5 mb-6 sm:mb-8 bg-[#FAF7F2]/90 dark:bg-[#1E1B1C]/90 backdrop-blur-md transition-all">
+        <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5">
+          {categories.map((cat) => {
+            const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${
+                  isSelected
+                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-md scale-[1.02]'
+                    : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
@@ -1982,7 +2017,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <span className="text-sm">🛍️</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
                       <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${fulfillmentType === 'pickup'
-                          ? 'bg-white !text-amber-950 dark:bg-black/30 dark:!text-[#1E1B1C] shadow-xs'
+                          ? 'bg-white !text-amber-950 dark:bg-black dark:!text-[#E0FF33] shadow-xs'
                           : 'bg-emerald-500/20 !text-emerald-800 dark:bg-emerald-400/20 dark:!text-emerald-300 border border-emerald-500/30'
                         }`}>Free</span>
                     </button>
@@ -2278,7 +2313,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'online'
-                            ? 'bg-amber-600 text-white dark:bg-black/20 dark:text-[#121011]'
+                            ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
                             : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Zap size={19} className="stroke-[2.5]" />
@@ -2317,7 +2352,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'cash'
-                            ? 'bg-amber-600 text-white dark:bg-black/20 dark:text-[#121011]'
+                            ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
                             : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Banknote size={19} className="stroke-[2.5]" />

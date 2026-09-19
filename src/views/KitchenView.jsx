@@ -313,27 +313,27 @@ export default function KitchenView() {
       )}
 
       {/* HEADER OPERATIONS BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-5 sm:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] flex-shrink-0 shadow-sm">
-            <ChefHat size={24} strokeWidth={2.5} />
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
+            <ChefHat size={22} strokeWidth={2.5} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit']">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
                 Kitchen Operations
               </h1>
-              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 {orders.length} Active
               </span>
             </div>
-            <p className="text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5 truncate">
               Live Satvik preparation board & instant kitchen dispatch
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
           {/* Realtime Kitchen Presence Toggle */}
           <button
             type="button"
@@ -358,7 +358,7 @@ export default function KitchenView() {
                 showToast("Failed to toggle online status", "error");
               }
             }}
-            className={`px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
               (currentShop?.isOnline !== false && currentShop?.isOpen !== false)
                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
                 : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
@@ -380,7 +380,7 @@ export default function KitchenView() {
                 showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
               }
             }}
-            className={`px-4 py-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
               isPlaying
                 ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
                 : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
@@ -393,7 +393,7 @@ export default function KitchenView() {
 
           <button 
             onClick={handleOpenCreateModal}
-            className="bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-5 py-3 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target flex-shrink-0"
+            className="h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0"
           >
             <Plus size={16} strokeWidth={3} />
             <span>Create Manual Order</span>
