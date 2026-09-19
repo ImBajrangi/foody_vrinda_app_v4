@@ -513,7 +513,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     const timer = setTimeout(() => {
       try {
         mapInstanceRef.current.invalidateSize();
-      } catch (_) {}
+      } catch (_) { }
       if (routeGroupRef.current) {
         applyProfessionalViewport(mapInstanceRef.current, routeGroupRef.current, isExpanded, true);
       }
@@ -667,7 +667,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
 
           {/* Floating Back / Minimize Button (Top Left with Safe Area Inset) */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[700] flex items-center gap-2">
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[700] flex items-center gap-2 pointer-events-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -682,7 +682,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           </div>
 
           {/* Floating Controls (Top Right with Safe Area Inset): Recenter & Shrink Capsule Button */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[700] flex items-center gap-2">
+          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[700] flex items-center gap-2 pointer-events-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();

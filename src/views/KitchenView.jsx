@@ -2,36 +2,36 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { 
-  supabase, 
-  updateCloudOrderStatus, 
+import {
+  supabase,
+  updateCloudOrderStatus,
   updateCloudShop,
   updateUserOnlineStatus,
-  createCloudOrder, 
-  subscribeCloudOrders, 
-  getCloudMenus, 
+  createCloudOrder,
+  subscribeCloudOrders,
+  getCloudMenus,
   createCloudNotification,
   getOrderItemSummary,
   getOrderCustomerName
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
-import { 
-  ChefHat, 
-  Clock, 
-  CheckCircle2, 
-  Plus, 
-  ShoppingBag, 
-  Phone, 
+import {
+  ChefHat,
+  Clock,
+  CheckCircle2,
+  Plus,
+  ShoppingBag,
+  Phone,
   MessageCircle,
-  MapPin, 
-  User, 
-  FileText, 
-  Check, 
-  X, 
-  Volume2, 
-  VolumeX, 
-  Flame, 
+  MapPin,
+  User,
+  FileText,
+  Check,
+  X,
+  Volume2,
+  VolumeX,
+  Flame,
   Banknote,
   Search,
   Minus,
@@ -43,10 +43,10 @@ export default function KitchenView() {
   const { user, currentUserShopId, allShops = [], refreshShops, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
   const currentShop = allShops.find(s => s.id === currentUserShopId) || allShops[0];
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
-  
+
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
-  
+
   // Create manual order states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isModalClosing, setIsModalClosing] = useState(false);
@@ -193,7 +193,7 @@ export default function KitchenView() {
 
     try {
       const cloudOrder = await createCloudOrder(orderPayload);
-      
+
       // Notify staff
       await createCloudNotification({
         role: 'kitchen',
@@ -227,7 +227,7 @@ export default function KitchenView() {
     try {
       await updateCloudOrderStatus(orderId, 'ready_for_pickup');
       setOrders(prev => prev.filter(o => o.id !== orderId));
-      
+
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
 
@@ -261,7 +261,7 @@ export default function KitchenView() {
       const order = orders.find(o => o.id === orderId);
       if (!order || !order.items) return;
 
-      const updatedItems = order.items.map(item => 
+      const updatedItems = order.items.map(item =>
         String(item.id) === String(itemId) ? { ...item, ready: !item.ready } : item
       );
 
@@ -276,7 +276,7 @@ export default function KitchenView() {
     }
   };
 
-  const filteredMenuItems = manualCart.filter(item => 
+  const filteredMenuItems = manualCart.filter(item =>
     item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
     (item.category && item.category.toLowerCase().includes(itemSearch.toLowerCase()))
   );
@@ -284,10 +284,10 @@ export default function KitchenView() {
   return (
     <div className="space-y-6 pb-20">
       {/* ACTIVE TACTILE ALARM BANNER (DYNAMIC ISLAND STYLE) */}
-      <ActiveAlarmBanner 
-        isPlaying={isPlaying} 
-        activeAlert={activeAlert} 
-        onSilence={stopAlarm} 
+      <ActiveAlarmBanner
+        isPlaying={isPlaying}
+        activeAlert={activeAlert}
+        onSilence={stopAlarm}
         onActionClick={(alert) => {
           stopAlarm();
           if (alert?.orderId) {
@@ -305,10 +305,10 @@ export default function KitchenView() {
 
       {/* TOAST NOTIFICATION */}
       {toast && (
-        <DynamicToast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
+        <DynamicToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
 
@@ -341,27 +341,27 @@ export default function KitchenView() {
               if (!currentShop?.id) return;
               const isCurrentlyOnline = currentShop.isOnline !== false && currentShop.isOpen !== false;
               const nextOnline = !isCurrentlyOnline;
-              showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
               try {
-                updateCloudShop(currentShop.id, { 
-                  isOnline: nextOnline, 
-                  is_online: nextOnline, 
-                  isOpen: nextOnline, 
-                  is_open: nextOnline 
+                await updateCloudShop(currentShop.id, {
+                  isOnline: nextOnline,
+                  is_online: nextOnline,
+                  isOpen: nextOnline,
+                  is_open: nextOnline
                 });
                 if (user?.id) {
-                  updateUserOnlineStatus(user.id, nextOnline);
+                  await updateUserOnlineStatus(user.id, nextOnline);
                 }
+                showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
+                if (refreshShops) await refreshShops();
               } catch (e) {
                 console.error("Toggle kitchen error:", e);
                 showToast("Failed to toggle online status", "error");
               }
             }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-              (currentShop?.isOnline !== false && currentShop?.isOpen !== false)
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${(currentShop?.isOnline !== false && currentShop?.isOpen !== false)
                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
                 : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-            }`}
+              }`}
             title="Toggle Live Kitchen Availability"
           >
             <span className={`w-2 h-2 rounded-full ${currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
@@ -379,18 +379,17 @@ export default function KitchenView() {
                 showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
               }
             }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-              isPlaying
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
                 ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
                 : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
-            }`}
+              }`}
             title="Test or silence Kitchen Sound Alarm"
           >
             {isPlaying ? <VolumeX size={15} className="text-rose-500" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33]" />}
             <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
           </button>
 
-          <button 
+          <button
             onClick={handleOpenCreateModal}
             className="h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0"
           >
@@ -410,11 +409,10 @@ export default function KitchenView() {
               <button
                 key={s.id}
                 onClick={() => impersonate(s.id, userRole)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-                  isActive
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
                     ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black'
                     : 'bg-stone-200/90 text-stone-700 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300 dark:hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <Store className="w-3.5 h-3.5" />
                 <span>{s.name}</span>
@@ -440,13 +438,12 @@ export default function KitchenView() {
             const isNew = order.status === 'new';
 
             return (
-              <div 
-                key={order.id} 
+              <div
+                key={order.id}
                 id={`kitchen-order-${order.id}`}
                 style={{ animationDelay: `${idx * 60}ms` }}
-                className={`customer-card-pop bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${
-                  isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(217,119,6,0.08)] dark:shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-stone-300 dark:border-white/10'
-                }`}
+                className={`customer-card-pop bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(217,119,6,0.08)] dark:shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-stone-300 dark:border-white/10'
+                  }`}
               >
                 <div>
                   {/* Top Order Badge & Status */}
@@ -464,11 +461,10 @@ export default function KitchenView() {
                       </p>
                     </div>
 
-                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${
-                      isNew 
-                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs' 
+                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
+                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
                         : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                    }`}>
+                      }`}>
                       {isNew ? <Flame size={11} className="fill-current" /> : <Clock size={11} />}
                       <span>{order.status}</span>
                     </span>
@@ -483,7 +479,7 @@ export default function KitchenView() {
                       </p>
                       {order.customerPhone && (
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <a 
+                          <a
                             href={`tel:${order.customerPhone}`}
                             className="text-amber-700 dark:text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px]"
                             title="Call Customer"
@@ -491,7 +487,7 @@ export default function KitchenView() {
                             <Phone size={11} />
                             <span>{order.customerPhone}</span>
                           </a>
-                          <a 
+                          <a
                             href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${order.customerName || 'Ji'}! Regarding your Foody Vrinda order #${order.id ? order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}:`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -561,15 +557,14 @@ export default function KitchenView() {
                               )}
                             </div>
                           </div>
-                          
+
                           {order.status === 'preparing' && (
                             <button
                               onClick={() => toggleItemReady(order.id, item.id)}
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer apple-tap-target flex-shrink-0 ${
-                                item.ready 
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer apple-tap-target flex-shrink-0 ${item.ready
                                   ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                                   : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-300'
-                              }`}
+                                }`}
                             >
                               <Check size={11} strokeWidth={item.ready ? 3 : 2} />
                               <span>{item.ready ? 'Ready' : 'Mark'}</span>
@@ -584,7 +579,7 @@ export default function KitchenView() {
                 {/* Status Update Action Button */}
                 <div className="pt-3 border-t border-white/5">
                   {isNew ? (
-                    <button 
+                    <button
                       onClick={() => handleAcceptOrder(order.id)}
                       className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
                     >
@@ -592,7 +587,7 @@ export default function KitchenView() {
                       <span>Accept & Start Cooking</span>
                     </button>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => handleOrderReady(order.id, order)}
                       className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
                     >
@@ -609,14 +604,14 @@ export default function KitchenView() {
 
       {/* MODAL: MANUAL ORDER ENTRY */}
       {showCreateModal && (
-        <div 
+        <div
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseCreateModal();
           }}
           className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 apple-overlay ${isModalClosing ? 'closing' : ''}`}
         >
           <div className={`w-full max-w-2xl bg-[#242021] border border-white/10 text-white rounded-[36px] sm:rounded-[42px] p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col justify-between apple-modal-spring ${isModalClosing ? 'closing' : ''}`}>
-            
+
             {/* Header */}
             <div className="flex justify-between items-center pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
@@ -629,7 +624,7 @@ export default function KitchenView() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleCloseCreateModal}
                 className="w-9 h-9 rounded-full bg-[#1E1B1C] hover:bg-[#322E30] text-zinc-400 hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-white/5"
               >
@@ -642,51 +637,51 @@ export default function KitchenView() {
                 {/* Customer Information Column */}
                 <div className="space-y-3.5">
                   <h4 className="text-xs font-black uppercase text-zinc-400 tracking-wider font-['Outfit']">Customer Information</h4>
-                  
+
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1">Customer Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      required 
+                      required
                       placeholder="e.g. Radhika Sharma"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500" 
+                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1">Delivery Address</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={customerAddress}
                       onChange={(e) => setCustomerAddress(e.target.value)}
-                      required 
+                      required
                       placeholder="e.g. Raman Reti, Vrindavan"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500" 
+                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1">Phone Number</label>
-                    <input 
-                      type="tel" 
+                    <input
+                      type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      required 
+                      required
                       placeholder="e.g. 9876543210"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500" 
+                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 mb-1">Kitchen Instructions</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={cookingNotes}
                       onChange={(e) => setCookingNotes(e.target.value)}
                       placeholder="e.g. Extra tulsi patra, less spicy"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500" 
+                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
                     />
                   </div>
                 </div>
@@ -703,12 +698,12 @@ export default function KitchenView() {
                   {/* Search filter in modal */}
                   <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Filter dishes..."
                       value={itemSearch}
                       onChange={(e) => setItemSearch(e.target.value)}
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-xl py-2 pl-8 pr-3 text-white placeholder-zinc-500" 
+                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-xl py-2 pl-8 pr-3 text-white placeholder-zinc-500"
                     />
                   </div>
 
@@ -722,8 +717,8 @@ export default function KitchenView() {
 
                         {/* High-accessibility Stepper */}
                         <div className="bg-[#1E1B1C] rounded-full p-1 border border-white/10 flex items-center gap-1 shadow-inner flex-shrink-0">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => handleUpdateManualQty(item.id, -1)}
                             className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
                             aria-label="Decrease quantity"
@@ -737,8 +732,8 @@ export default function KitchenView() {
                           <span className="min-w-[18px] text-center font-black text-xs text-[#E0FF33] font-['Outfit'] select-none">
                             {item.quantity}
                           </span>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => handleUpdateManualQty(item.id, 1)}
                             className="w-6 h-6 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
@@ -760,8 +755,8 @@ export default function KitchenView() {
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
               >
                 <Check size={18} strokeWidth={3} />

@@ -1,12 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { 
-  supabase, 
-  getCloudShops, 
-  getCachedShops, 
-  getCloudUsers, 
-  createCloudUser, 
-  updateCloudUser, 
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import {
+  supabase,
+  getCloudShops,
+  getCachedShops,
+  getCloudUsers,
+  createCloudUser,
+  updateCloudUser,
   recordLoggedInUser,
   getLiveUserRoleAndProfile,
   getCachedUsers,
@@ -21,12 +21,12 @@ const AuthContext = createContext(null);
 
 // Whitelist of authorized developer & administrator emails
 export const AUTHORIZED_DEV_EMAILS = (
-  import.meta.env.VITE_DEVELOPER_EMAILS || 
+  import.meta.env.VITE_DEVELOPER_EMAILS ||
   'developer@foodyvrinda.com,dev@foodyvrinda.com,admin@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
 ).split(',').map(e => e.trim().toLowerCase());
 
 export const AUTHORIZED_ADMIN_EMAILS = (
-  import.meta.env.VITE_ADMIN_EMAILS || 
+  import.meta.env.VITE_ADMIN_EMAILS ||
   'admin@foodyvrinda.com,owner@foodyvrinda.com,manager@foodyvrinda.com,developer@foodyvrinda.com,dev@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
 ).split(',').map(e => e.trim().toLowerCase());
 
@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
     try {
       const saved = localStorage.getItem('foody_user_data');
       if (saved) return JSON.parse(saved);
-    } catch (e) {}
+    } catch (e) { }
     return null;
   });
   const [userRole, setUserRole] = useState(() => {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
         const parsed = JSON.parse(saved);
         if (parsed?.role) return parsed.role;
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'customer';
   });
   const [userDevPermissions, setUserDevPermissions] = useState([]);
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
         const parsed = JSON.parse(saved);
         if (parsed?.shopId) return parsed.shopId;
       }
-    } catch (e) {}
+    } catch (e) { }
     return null;
   });
   const [currentUserShopIds, setCurrentUserShopIds] = useState(() => {
@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
         if (parsed?.shopIds) return parsed.shopIds;
         if (parsed?.shopId) return [parsed.shopId];
       }
-    } catch (e) {}
+    } catch (e) { }
     return [];
   });
   const [currentShopName, setCurrentShopName] = useState(null);
@@ -135,7 +135,7 @@ export function AuthProvider({ children }) {
       try {
         localStorage.setItem('foody_emergency_dev_active', 'true');
         localStorage.setItem('foody_user_data', JSON.stringify(emergencyData));
-      } catch (e) {}
+      } catch (e) { }
       window.dispatchEvent(new CustomEvent('foody_emergency_dev_unlocked'));
       return { success: true, message: 'Emergency Master Developer console unlocked!' };
     }
@@ -150,7 +150,7 @@ export function AuthProvider({ children }) {
     try {
       localStorage.removeItem('foody_emergency_dev_active');
       localStorage.removeItem('foody_user_data');
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // URL search param detector for instant recovery link (e.g. ?dev_override=108108)
@@ -176,11 +176,15 @@ export function AuthProvider({ children }) {
     if (prev === next) return true;
     if (!Array.isArray(prev) || !Array.isArray(next)) return false;
     if (prev.length !== next.length) return false;
-    try {
-      return JSON.stringify(prev) === JSON.stringify(next);
-    } catch (e) {
-      return false;
+    for (let i = 0; i < prev.length; i++) {
+      const p = prev[i];
+      const n = next[i];
+      if (!p || !n) return false;
+      if (p.id !== n.id || p.name !== n.name || p.isOpen !== n.isOpen) return false;
+      if (p.onlinePaymentsEnabled !== n.onlinePaymentsEnabled || p.codEnabled !== n.codEnabled) return false;
+      if (JSON.stringify(p.paymentSettings) !== JSON.stringify(n.paymentSettings)) return false;
     }
+    return true;
   };
 
   // Helper to load all shops from Supabase & Cache silently
@@ -263,7 +267,7 @@ export function AuthProvider({ children }) {
         const uEmail = (u.email || '').toLowerCase().trim();
         const uPhone = (u.phone || '').replace(/\D/g, '');
         return (
-          (currentId && uId === currentId) || 
+          (currentId && uId === currentId) ||
           (currentEmail && uEmail && uEmail === currentEmail) ||
           (currentPhone && cleanPhone(currentPhone) && uPhone && uPhone.endsWith(currentPhone.slice(-10)))
         );
@@ -293,7 +297,7 @@ export function AuthProvider({ children }) {
             };
             try {
               localStorage.setItem('foody_user_data', JSON.stringify(updated));
-            } catch (err) {}
+            } catch (err) { }
             return updated;
           });
         }
@@ -321,8 +325,8 @@ export function AuthProvider({ children }) {
       const cleanId = String(userProfile.id).trim();
       const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
 
-      const exists = currentCached.find(u => 
-        (cleanId && String(u.id).trim() === cleanId) || 
+      const exists = currentCached.find(u =>
+        (cleanId && String(u.id).trim() === cleanId) ||
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
         (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
       );
@@ -333,8 +337,8 @@ export function AuthProvider({ children }) {
 
       // If already recorded with identical data, skip the cloud call completely
       if (
-        exists && 
-        exists.role === resolvedRole && 
+        exists &&
+        exists.role === resolvedRole &&
         exists.displayName === (userProfile.displayName || exists.displayName) &&
         (!userProfile.shopId || exists.shopId === userProfile.shopId)
       ) {
@@ -344,7 +348,7 @@ export function AuthProvider({ children }) {
       recordLoggedInUser({
         ...userProfile,
         role: resolvedRole
-      }).catch(() => {});
+      }).catch(() => { });
 
       let nextList;
       if (!exists) {
@@ -363,7 +367,7 @@ export function AuthProvider({ children }) {
       } else {
         nextList = currentCached.map(u => {
           if (
-            (cleanId && String(u.id).trim() === cleanId) || 
+            (cleanId && String(u.id).trim() === cleanId) ||
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
             (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
           ) {
@@ -395,11 +399,11 @@ export function AuthProvider({ children }) {
       setLoading(true);
       try {
         const { data, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError) {
           try {
             await supabase.auth.signOut();
-          } catch (e) {}
+          } catch (e) { }
         }
 
         const currentSbUser = data?.session?.user || null;
@@ -409,7 +413,7 @@ export function AuthProvider({ children }) {
         if (savedData) {
           try {
             parsedSaved = JSON.parse(savedData);
-          } catch (e) {}
+          } catch (e) { }
         }
 
         if (currentSbUser) {
@@ -417,22 +421,22 @@ export function AuthProvider({ children }) {
           const cleanEmail = email.toLowerCase().trim();
           const cleanId = String(currentSbUser.id).trim();
 
-          const avatarUrl = currentSbUser.user_metadata?.avatar_url || 
-            currentSbUser.user_metadata?.picture || 
-            currentSbUser.user_metadata?.photoURL || 
-            currentSbUser.identities?.[0]?.identity_data?.avatar_url || 
-            currentSbUser.identities?.[0]?.identity_data?.picture || 
-            parsedSaved?.photoURL || 
+          const avatarUrl = currentSbUser.user_metadata?.avatar_url ||
+            currentSbUser.user_metadata?.picture ||
+            currentSbUser.user_metadata?.photoURL ||
+            currentSbUser.identities?.[0]?.identity_data?.avatar_url ||
+            currentSbUser.identities?.[0]?.identity_data?.picture ||
+            parsedSaved?.photoURL ||
             parsedSaved?.avatar_url || '';
 
           currentSbUser.photoURL = avatarUrl;
           setUser(currentSbUser);
-          
+
           // Check live database role first for instant synchronization
           let liveProfile = null;
           try {
             liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
-          } catch (e) {}
+          } catch (e) { }
 
           let cachedUsersList = getCachedUsers();
           if (!liveProfile) {
@@ -441,11 +445,11 @@ export function AuthProvider({ children }) {
               if (cloudUsers && cloudUsers.length > 0) {
                 cachedUsersList = cloudUsers;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
 
-          const existingRecord = liveProfile || cachedUsersList.find(u => 
-            (cleanId && String(u.id).trim() === cleanId) || 
+          const existingRecord = liveProfile || cachedUsersList.find(u =>
+            (cleanId && String(u.id).trim() === cleanId) ||
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
           );
 
@@ -475,12 +479,12 @@ export function AuthProvider({ children }) {
           localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
           syncUserToCloudList(userProfile);
         } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
-          setUser({ 
-            id: parsedSaved.id, 
-            email: parsedSaved.email || '', 
-            phone: parsedSaved.phone || '', 
+          setUser({
+            id: parsedSaved.id,
+            email: parsedSaved.email || '',
+            phone: parsedSaved.phone || '',
             displayName: parsedSaved.displayName || 'User',
-            isLoggedInUser: true 
+            isLoggedInUser: true
           });
           setUserData(parsedSaved);
           setUserRole(parsedSaved.role || 'customer');
@@ -515,20 +519,20 @@ export function AuthProvider({ children }) {
         const cleanEmail = email.toLowerCase().trim();
         const cleanId = String(u.id).trim();
 
-        const avatarUrl = u.user_metadata?.avatar_url || 
-          u.user_metadata?.picture || 
-          u.user_metadata?.photoURL || 
-          u.identities?.[0]?.identity_data?.avatar_url || 
+        const avatarUrl = u.user_metadata?.avatar_url ||
+          u.user_metadata?.picture ||
+          u.user_metadata?.photoURL ||
+          u.identities?.[0]?.identity_data?.avatar_url ||
           u.identities?.[0]?.identity_data?.picture || '';
 
         u.photoURL = avatarUrl;
         setUser(u);
-        
+
         // Check live database role directly
         let liveProfile = null;
         try {
           liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
-        } catch (e) {}
+        } catch (e) { }
 
         let cachedUsersList = getCachedUsers();
         if (!liveProfile) {
@@ -537,11 +541,11 @@ export function AuthProvider({ children }) {
             if (cloudUsers && cloudUsers.length > 0) {
               cachedUsersList = cloudUsers;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
 
-        const existingRecord = liveProfile || cachedUsersList.find(usr => 
-          (cleanId && String(usr.id).trim() === cleanId) || 
+        const existingRecord = liveProfile || cachedUsersList.find(usr =>
+          (cleanId && String(usr.id).trim() === cleanId) ||
           (cleanEmail && usr.email && usr.email.toLowerCase().trim() === cleanEmail)
         );
 
@@ -596,21 +600,21 @@ export function AuthProvider({ children }) {
       if (!rawUrl) return;
 
       if (
-        rawUrl.includes('auth/callback') || 
-        rawUrl.includes('access_token=') || 
-        rawUrl.includes('refresh_token=') || 
+        rawUrl.includes('auth/callback') ||
+        rawUrl.includes('access_token=') ||
+        rawUrl.includes('refresh_token=') ||
         rawUrl.includes('code=')
       ) {
         try {
           // Close in-app browser Custom Tab overlay immediately
-          await Browser.close().catch(() => {});
-        } catch (_) {}
+          await Browser.close().catch(() => { });
+        } catch (_) { }
 
         try {
           // Extract query params (?) and hash params (#)
           const urlObj = new URL(rawUrl.startsWith('http') ? rawUrl : `https://dummy.local/${rawUrl.replace(/^[a-zA-Z0-9._-]+:\/\//, '')}`);
           const searchParams = urlObj.searchParams;
-          
+
           let hashParams = new URLSearchParams();
           if (rawUrl.includes('#')) {
             const hashPart = rawUrl.substring(rawUrl.indexOf('#') + 1);
@@ -645,7 +649,7 @@ export function AuthProvider({ children }) {
           if (launchUrl?.url) {
             handleIncomingUrl(launchUrl.url);
           }
-        } catch (_) {}
+        } catch (_) { }
 
         appUrlListener = await CapApp.addListener('appUrlOpen', (data) => {
           if (data?.url) {
@@ -679,7 +683,7 @@ export function AuthProvider({ children }) {
       };
       try {
         localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      } catch (_) {}
+      } catch (_) { }
       syncUserToCloudList(updated);
       return updated;
     });
@@ -692,7 +696,7 @@ export function AuthProvider({ children }) {
           ...(cleanPhone ? { phone: cleanPhone } : {}),
           ...(cleanAddr ? { address: cleanAddr } : {})
         });
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [user?.id, userData?.id, syncUserToCloudList]);
 
@@ -743,8 +747,8 @@ export function AuthProvider({ children }) {
         shopIds: [allShops[0]?.id || 'shop-vrinda-main'],
         isLoggedInUser: true
       };
-      await createCloudUser(userProfile).catch(() => {});
-      await recordLoggedInUser(userProfile).catch(() => {});
+      await createCloudUser(userProfile).catch(() => { });
+      await recordLoggedInUser(userProfile).catch(() => { });
     }
     return data;
   };
@@ -753,14 +757,14 @@ export function AuthProvider({ children }) {
     const isNative = Capacitor.isNativePlatform();
 
     // In native app, use custom scheme callback so Android routes callback right back into the app
-    const redirectUrl = isNative 
+    const redirectUrl = isNative
       ? 'com.foodyvrinda.app://auth/callback'
       : (typeof window !== 'undefined' && (
-          window.location.hostname === 'eat.vrindopnishad.in' || 
-          window.location.hostname.includes('vrindopnishad.in')
-        )
-          ? 'https://eat.vrindopnishad.in/' 
-          : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/'));
+        window.location.hostname === 'eat.vrindopnishad.in' ||
+        window.location.hostname.includes('vrindopnishad.in')
+      )
+        ? 'https://eat.vrindopnishad.in/'
+        : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/'));
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -801,7 +805,7 @@ export function AuthProvider({ children }) {
       setCurrentUserShopIds(userProfile.shopIds);
       setCurrentShopName(resolveShopName(userProfile.shopId) || null);
       localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
-      await recordLoggedInUser(userProfile).catch(() => {});
+      await recordLoggedInUser(userProfile).catch(() => { });
       return userProfile;
     }
 
@@ -826,7 +830,7 @@ export function AuthProvider({ children }) {
     setCurrentUserShopIds([]);
     setCurrentShopName(null);
     localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
-    await recordLoggedInUser(userProfile).catch(() => {});
+    await recordLoggedInUser(userProfile).catch(() => { });
     return userProfile;
   };
 
@@ -835,7 +839,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('foody_emergency_dev_active');
     try {
       await supabase.auth.signOut();
-    } catch (e) {}
+    } catch (e) { }
     setImpersonatedShopId(null);
     setImpersonatedRole(null);
     setEmergencyMasterActive(false);
@@ -854,8 +858,8 @@ export function AuthProvider({ children }) {
 
     // Guard: Grand Admin is strictly immutable and permanent
     const cachedUsers = getCachedUsers();
-    const existingTarget = cachedUsers.find(u => 
-      u.id === targetUserId || 
+    const existingTarget = cachedUsers.find(u =>
+      u.id === targetUserId ||
       (u.email && u.email.toLowerCase() === String(targetUserId).toLowerCase()) ||
       (u.phone && u.phone === String(targetUserId))
     );
@@ -901,7 +905,7 @@ export function AuthProvider({ children }) {
         };
         try {
           localStorage.setItem('foody_user_data', JSON.stringify(updated));
-        } catch (e) {}
+        } catch (e) { }
         return updated;
       });
     }
@@ -911,27 +915,27 @@ export function AuthProvider({ children }) {
 
   // Developer & Admin authorization flags
   const isGrandAdmin = Boolean(
-    (userData?.role === 'grand_admin') || 
+    (userData?.role === 'grand_admin') ||
     (userRole === 'grand_admin')
   );
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAuthorizedDeveloper = Boolean(
-    emergencyMasterActive || 
+    emergencyMasterActive ||
     isGrandAdmin ||
-    (user && !user.isAnonymous && isDevUser) || 
+    (user && !user.isAnonymous && isDevUser) ||
     (['developer', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
     (['developer', 'grand_admin'].includes(userRole))
   );
   const isAuthorizedAdmin = Boolean(
-    emergencyMasterActive || 
+    emergencyMasterActive ||
     isGrandAdmin ||
-    (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) || 
+    (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) ||
     (['developer', 'owner', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
     (['developer', 'owner', 'grand_admin'].includes(userRole))
   );
   const isStaff = Boolean(
-    emergencyMasterActive || 
+    emergencyMasterActive ||
     isGrandAdmin ||
     (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userData?.role || userRole) && !user?.isAnonymous) ||
     (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userRole))
@@ -971,7 +975,7 @@ export function AuthProvider({ children }) {
     (userData && userData.isLoggedInUser === true && (userData.phone || userData.email || userData.id))
   );
 
-  const value = useMemo(() => ({
+  const value = {
     user,
     userData,
     isAuthenticated,
@@ -1001,36 +1005,7 @@ export function AuthProvider({ children }) {
     updateUserProfile,
     setUserRole,
     refreshShops: loadShops
-  }), [
-    user,
-    userData,
-    isAuthenticated,
-    effectiveRole,
-    userRole,
-    isGrandAdmin,
-    isAuthorizedDeveloper,
-    isAuthorizedAdmin,
-    isStaff,
-    emergencyMasterActive,
-    emergencyElevateToDev,
-    emergencyRevokeDev,
-    userDevPermissions,
-    effectiveShopId,
-    effectiveShopIds,
-    effectiveShopName,
-    allShops,
-    loading,
-    loginWithEmail,
-    signupWithEmail,
-    loginWithGoogle,
-    loginWithPhoneLookup,
-    logout,
-    impersonate,
-    updateUserRole,
-    updateUserProfile,
-    setUserRole,
-    loadShops
-  ]);
+  };
 
   return (
     <AuthContext.Provider value={value}>

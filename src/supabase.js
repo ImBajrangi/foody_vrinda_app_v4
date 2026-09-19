@@ -645,6 +645,7 @@ export async function createCloudOrder(orderData) {
       cash_status: orderData.cashStatus || 'pending',
       cooking_notes: orderData.cookingNotes || '',
       created_by: orderData.createdBy || orderData.customerName || 'Customer',
+      fulfillment_type: orderData.fulfillmentType || orderData.fulfillment_type || 'delivery',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -675,7 +676,7 @@ export async function createCloudOrder(orderData) {
 
     const { data, error } = await supabase
       .from('foody_orders')
-      .upsert([orderPayload])
+      .upsert([orderPayload], { onConflict: 'id' })
       .select()
       .single();
 
@@ -1488,22 +1489,20 @@ export async function updateCloudOffer(offerId, updates) {
 
   if (!isTableMissing('foody_offers')) {
     try {
-      const fullOfferPayload = {
-        id: updatedOffer.id,
-        code: (updatedOffer.code || '').toUpperCase(),
-        title: updatedOffer.title || '',
-        subtitle: updatedOffer.subtitle || '',
-        discount_type: updatedOffer.discountType || 'percentage',
-        discount_value: Number(updatedOffer.discountValue || 0),
-        min_order_amount: Number(updatedOffer.minOrderAmount || 0),
-        max_discount: Number(updatedOffer.maxDiscount || 0),
-        shop_id: updatedOffer.shopId || 'all',
-        is_active: updatedOffer.isActive !== undefined ? updatedOffer.isActive : true,
-        tag: updatedOffer.tag || 'Special Offer',
-        valid_until: updatedOffer.validUntil || '2026-12-31'
-      };
+      const payload = {};
+      if (updates.code !== undefined) payload.code = updates.code.toUpperCase();
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
+      if (updates.discountType !== undefined) payload.discount_type = updates.discountType;
+      if (updates.discountValue !== undefined) payload.discount_value = Number(updates.discountValue);
+      if (updates.minOrderAmount !== undefined) payload.min_order_amount = Number(updates.minOrderAmount);
+      if (updates.maxDiscount !== undefined) payload.max_discount = Number(updates.maxDiscount);
+      if (updates.shopId !== undefined) payload.shop_id = updates.shopId;
+      if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+      if (updates.tag !== undefined) payload.tag = updates.tag;
+      if (updates.validUntil !== undefined) payload.valid_until = updates.validUntil;
 
-      const { error } = await supabase.from('foody_offers').upsert(fullOfferPayload, { onConflict: 'id' });
+      const { error } = await supabase.from('foody_offers').update(payload).eq('id', offerId);
       if (error) console.warn('updateCloudOffer error:', error.message);
     } catch (e) { }
   }
@@ -1535,7 +1534,7 @@ export async function createCloudMenuItem(itemData) {
   try {
     const itemId = itemData.id || `menu-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const isCombo = Boolean(itemData.isCombo || itemData.category === 'Combo Offers');
-    
+
     // Nutrition & extra fields packed into JSONB
     const nutritionObj = typeof itemData.nutrition === 'object' && itemData.nutrition !== null
       ? { ...itemData.nutrition }
@@ -1596,7 +1595,7 @@ export async function createCloudMenuItem(itemData) {
     if (!isTableMissing('foody_menus')) {
       const { data, error } = await supabase
         .from('foody_menus')
-        .upsert([payload], { onConflict: 'id' })
+        .upsert([payload])
         .select()
         .single();
 
@@ -1627,14 +1626,14 @@ export async function updateCloudMenuItem(itemId, itemData) {
     }
     if (itemData.tag !== undefined) payload.tag = itemData.tag;
     if (itemData.kcal !== undefined) payload.kcal = itemData.kcal;
-    
+
     if (
-      itemData.nutrition !== undefined || 
-      itemData.originalPrice !== undefined || 
-      itemData.original_price !== undefined || 
-      itemData.discountPercent !== undefined || 
-      itemData.discount_percent !== undefined || 
-      itemData.comboItems !== undefined || 
+      itemData.nutrition !== undefined ||
+      itemData.originalPrice !== undefined ||
+      itemData.original_price !== undefined ||
+      itemData.discountPercent !== undefined ||
+      itemData.discount_percent !== undefined ||
+      itemData.comboItems !== undefined ||
       itemData.combo_items !== undefined
     ) {
       const nutritionObj = typeof itemData.nutrition === 'object' && itemData.nutrition !== null
@@ -1667,29 +1666,21 @@ export async function updateCloudMenuItem(itemId, itemData) {
         .eq('id', itemId)
         .select();
 
-      if (error || !data || data.length === 0) {
-        try {
-          const allCached = getCachedMenus('all') || [];
-          const currentItem = allCached.find(m => m.id === itemId) || {};
-          const fullItemPayload = {
-            id: itemId,
-            shop_id: itemData.shopId || itemData.shop_id || currentItem.shopId || 'shop-vrinda-main',
-            name: itemData.name || currentItem.name || 'Dish',
-            subtitle: itemData.subtitle || currentItem.subtitle || '',
-            description: itemData.description || currentItem.description || '',
-            category: itemData.category || currentItem.category || 'Main',
-            price: Number(itemData.price ?? currentItem.price ?? 0),
-            image: payload.image || currentItem.image || '',
-            tag: itemData.tag || currentItem.tag || 'Popular Choice',
-            kcal: itemData.kcal || currentItem.kcal || '250 kcal',
-            nutrition: payload.nutrition || currentItem.nutrition || { kcal: '250 kcal' },
-            is_available: payload.is_available !== undefined ? payload.is_available : (currentItem.isAvailable ?? true)
-          };
-          const { data: upsertData } = await supabase.from('foody_menus').upsert(fullItemPayload, { onConflict: 'id' }).select();
-          if (upsertData) return upsertData;
-        } catch (e) {
-          console.warn('updateCloudMenuItem upsert fallback notice:', e);
+      if (error) {
+        if (error.code === '42703' || error.message?.includes('updated_at')) {
+          // Schema trigger mismatch fallback (re-insert with merged values)
+          try {
+            const { data: existingData } = await supabase.from('foody_menus').select('*').eq('id', itemId).maybeSingle();
+            const merged = { ...(existingData || {}), ...payload, id: itemId };
+            await supabase.from('foody_menus').delete().eq('id', itemId);
+            const { data: insData, error: insErr } = await supabase.from('foody_menus').insert([merged]).select();
+            if (!insErr && insData) return insData;
+          } catch (e) {
+            console.warn('updateCloudMenuItem fallback notice:', e);
+          }
         }
+        console.warn('updateCloudMenuItem Supabase note:', error.message);
+        if (isTableError(error)) markTableMissing('foody_menus');
       }
       return data;
     }
@@ -1766,13 +1757,26 @@ export async function createCloudShop(shopData) {
       phone: normalized.phone,
       coordinates: normalized.coordinates,
       is_open: normalized.isOpen,
+      is_online: normalized.isOnline,
+      shop_type: normalized.shopType,
+      minimum_order_amount: normalized.minimumOrderAmount,
+      delivery_charge: normalized.deliveryCharge,
+      gst_percentage: normalized.gstPercentage,
+      operating_hours: {
+        openTime: normalized.openingTime,
+        closeTime: normalized.closingTime,
+        autoSchedule: true
+      },
       payment_settings: {
         ...normalized.paymentSettings,
         shopType: normalized.shopType,
         openingTime: normalized.openingTime,
         closingTime: normalized.closingTime,
         isOnline: normalized.isOnline
-      }
+      },
+      alarm_settings: normalized.alarmSettings,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     const { error } = await supabase.from('foody_shops').upsert(payload, { onConflict: 'id' });
@@ -1838,6 +1842,16 @@ export async function updateCloudShop(shopId, shopData) {
         phone: updatedShop.phone,
         coordinates: updatedShop.coordinates,
         is_open: updatedShop.isOpen,
+        is_online: updatedShop.isOnline,
+        shop_type: updatedShop.shopType,
+        minimum_order_amount: updatedShop.minimumOrderAmount,
+        delivery_charge: updatedShop.deliveryCharge,
+        gst_percentage: updatedShop.gstPercentage,
+        operating_hours: {
+          openTime: updatedShop.openingTime,
+          closeTime: updatedShop.closingTime,
+          autoSchedule: true
+        },
         payment_settings: {
           onlinePaymentsEnabled: updatedShop.onlinePaymentsEnabled,
           codEnabled: updatedShop.codEnabled,
@@ -1845,7 +1859,9 @@ export async function updateCloudShop(shopId, shopData) {
           openingTime: updatedShop.openingTime,
           closingTime: updatedShop.closingTime,
           isOnline: updatedShop.isOnline
-        }
+        },
+        alarm_settings: updatedShop.alarmSettings,
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
@@ -2173,17 +2189,18 @@ export async function getCloudUsers(forceRefresh = false) {
 
   const promise = (async () => {
     try {
-      // 1. Fetch from foody_logged_users safely
+      // 1. Fetch from foody_logged_users (with safe order fallback)
       let loggedData = [];
       try {
         const { data, error } = await supabase
           .from('foody_logged_users')
-          .select('*');
+          .select('*')
+          .order('updated_at', { ascending: false });
         if (!error && data && data.length > 0) {
           loggedData = data;
         }
       } catch (e) {
-        // Silently fallback to cached users
+        console.warn("getCloudUsers logged_users notice:", e);
       }
 
       // 2. Fetch from foody_users as well to ensure total multi-app sync
@@ -2191,21 +2208,24 @@ export async function getCloudUsers(forceRefresh = false) {
       try {
         const { data, error } = await supabase
           .from('foody_users')
-          .select('*');
+          .select('*')
+          .order('updated_at', { ascending: false });
         if (!error && data && data.length > 0) {
           usersData = data;
         }
       } catch (e) {
-        // Silently fallback to cached users
+        console.warn("getCloudUsers foody_users notice:", e);
       }
 
       // 3. Merge & deduplicate across cache, foody_users, and foody_logged_users
       const userMap = new Map();
 
-      // Start with cached users as base
-      (cached || []).forEach(u => {
-        if (u && u.id) userMap.set(String(u.id).trim(), u);
-      });
+      // Only fallback to cache if remote database returned nothing
+      if (loggedData.length === 0 && usersData.length === 0) {
+        (cached || []).forEach(u => {
+          if (u && u.id) userMap.set(String(u.id).trim(), u);
+        });
+      }
 
       // Overlay foody_users
       usersData.forEach(u => {
@@ -2217,10 +2237,12 @@ export async function getCloudUsers(forceRefresh = false) {
           email: u.email || '',
           phone: u.phone || '',
           avatarUrl: u.avatar_url || '',
+          address: u.address || '',
           role: u.role || 'customer',
           shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
           devPermissions: u.dev_permissions || [],
+          isActive: u.is_active ?? true,
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
@@ -2238,10 +2260,12 @@ export async function getCloudUsers(forceRefresh = false) {
           email: u.email || '',
           phone: u.phone || '',
           avatarUrl: u.avatar_url || '',
+          address: u.address || '',
           role: u.role || 'customer',
           shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
           devPermissions: u.dev_permissions || [],
+          isActive: u.is_active ?? true,
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
@@ -2293,10 +2317,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         email: data.email || '',
         phone: data.phone || '',
         avatarUrl: data.avatar_url || '',
+        address: data.address || '',
         role: data.role || 'customer',
         shopId: data.shop_id || 'shop-vrinda-main',
         shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : ['shop-vrinda-main']),
         devPermissions: data.dev_permissions || [],
+        isActive: data.is_active ?? true,
         isLoggedInUser: true
       };
     }
@@ -2320,10 +2346,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         email: uData.email || '',
         phone: uData.phone || '',
         avatarUrl: uData.avatar_url || '',
+        address: uData.address || '',
         role: uData.role || 'customer',
         shopId: uData.shop_id || 'shop-vrinda-main',
         shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : ['shop-vrinda-main']),
         devPermissions: uData.dev_permissions || [],
+        isActive: uData.is_active ?? true,
         isLoggedInUser: true
       };
     }
@@ -2334,9 +2362,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
 
 // Dedicated function to record every login/registration in the database without redundant queries or role downgrades
 export async function recordLoggedInUser(userProfile) {
-  if (!userProfile || !userProfile.id || userProfile.isAnonymous || String(userProfile.id).startsWith('guest-') || userProfile.id === 'master-dev-emergency') {
-    return null;
-  }
+  if (!userProfile || !userProfile.id) return null;
   const cleanId = String(userProfile.id).trim();
   const cleanEmail = (userProfile.email || '').toLowerCase().trim();
   const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
@@ -2367,9 +2393,11 @@ export async function recordLoggedInUser(userProfile) {
     email: cleanEmail,
     phone: cleanPhone,
     avatar_url: cleanAvatar,
+    address: userProfile.address || existingUser?.address || '',
     role: finalRole,
     shop_id: finalShop,
     shop_ids: finalShops,
+    dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     login_method: loginMethod,
     is_active: true,
     last_login_at: nowIso,
@@ -2382,9 +2410,11 @@ export async function recordLoggedInUser(userProfile) {
     email: cleanEmail,
     phone: cleanPhone,
     avatar_url: cleanAvatar,
+    address: userProfile.address || existingUser?.address || '',
     role: finalRole,
     shop_id: finalShop,
     shop_ids: finalShops,
+    dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     is_active: true,
     last_seen_at: nowIso,
     updated_at: nowIso
@@ -2407,7 +2437,7 @@ export async function recordLoggedInUser(userProfile) {
   setCachedItem('users', 'all', next);
   dispatchSafeEvent('foody_users_changed', { users: next, updatedUser: loggedUsersPayload });
 
-  // 2. Persist dual writes to Supabase foody_logged_users & foody_users with explicit onConflict
+  // 2. Persist dual writes to Supabase foody_logged_users & foody_users
   try {
     const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload, { onConflict: 'id' });
     if (err1) console.warn('recordLoggedInUser logged_users notice:', err1.message);
@@ -2426,9 +2456,6 @@ export async function recordLoggedInUser(userProfile) {
 }
 
 export async function createCloudUser(userData) {
-  if (!userData || !userData.id || userData.isAnonymous || String(userData.id).startsWith('guest-') || userData.id === 'master-dev-emergency') {
-    return null;
-  }
   const currentUsers = getCachedUsers();
   const userId = userData.id || `user_${(userData.phone || Date.now()).toString().replace(/\D/g, '')}`;
   const nowIso = new Date().toISOString();
@@ -2438,9 +2465,12 @@ export async function createCloudUser(userData) {
     email: userData.email || `${userData.phone || userId}@foodyvrinda.com`,
     phone: userData.phone || '',
     avatarUrl: userData.avatarUrl || userData.avatar_url || '',
+    address: userData.address || '',
     role: userData.role || 'customer',
     shopId: userData.shopId || 'shop-vrinda-main',
     shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : ['shop-vrinda-main']),
+    devPermissions: userData.devPermissions || userData.dev_permissions || [],
+    isActive: userData.isActive ?? userData.is_active ?? true,
     lastLoginAt: nowIso,
     createdAt: nowIso,
     updatedAt: nowIso
@@ -2457,9 +2487,13 @@ export async function createCloudUser(userData) {
     email: newUser.email,
     phone: newUser.phone,
     avatar_url: newUser.avatarUrl,
+    address: newUser.address,
     role: newUser.role,
     shop_id: newUser.shopId,
     shop_ids: newUser.shopIds,
+    dev_permissions: newUser.devPermissions,
+    login_method: 'email',
+    is_active: Boolean(newUser.isActive),
     last_login_at: nowIso,
     updated_at: nowIso
   };
@@ -2470,9 +2504,12 @@ export async function createCloudUser(userData) {
     email: newUser.email,
     phone: newUser.phone,
     avatar_url: newUser.avatarUrl,
+    address: newUser.address,
     role: newUser.role,
     shop_id: newUser.shopId,
     shop_ids: newUser.shopIds,
+    dev_permissions: newUser.devPermissions,
+    is_active: Boolean(newUser.isActive),
     last_seen_at: nowIso,
     updated_at: nowIso
   };
@@ -2545,9 +2582,13 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       displayName: updates.displayName || updates.display_name || 'User',
       email: resolvedEmail,
       phone: resolvedPhone,
+      avatarUrl: updates.avatarUrl || updates.avatar_url || '',
+      address: updates.address || '',
       role: updates.role || 'customer',
       shopId: updates.shopId || updates.shop_id || 'shop-vrinda-main',
       shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || 'shop-vrinda-main'],
+      devPermissions: updates.devPermissions || updates.dev_permissions || [],
+      isActive: updates.isActive ?? updates.is_active ?? true,
       ...updates,
       createdAt: nowIso,
       updatedAt: nowIso
@@ -2561,7 +2602,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUser: updatedUserObj });
 
   // Synchronize update to both foody_logged_users and foody_users
-  const isOnlineVal = updates.isOnline !== undefined ? !!updates.isOnline : (updates.is_online !== undefined ? !!updates.is_online : (updates.is_active !== undefined ? !!updates.is_active : userExists?.isOnline ?? userExists?.is_active ?? true));
+  const isOnlineVal = updates.isOnline !== undefined ? updates.isOnline : (updates.is_online !== undefined ? updates.is_online : (updates.isActive !== undefined ? updates.isActive : (updates.is_active !== undefined ? updates.is_active : userExists?.isOnline ?? userExists?.isActive ?? true)));
 
   const fullLoggedPayload = {
     id: targetId,
@@ -2569,10 +2610,13 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     email: resolvedEmail,
     phone: resolvedPhone,
     avatar_url: updates.avatarUrl || updates.avatar_url || userExists?.avatarUrl || '',
+    address: updates.address !== undefined ? updates.address : (userExists?.address || ''),
     role: updates.role || userExists?.role || 'customer',
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
-    is_active: isOnlineVal,
+    dev_permissions: updates.devPermissions || updates.dev_permissions || userExists?.devPermissions || [],
+    is_active: Boolean(isOnlineVal),
+    last_login_at: nowIso,
     updated_at: nowIso
   };
 
@@ -2582,10 +2626,12 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     email: resolvedEmail,
     phone: resolvedPhone,
     avatar_url: fullLoggedPayload.avatar_url,
+    address: fullLoggedPayload.address,
     role: fullLoggedPayload.role,
     shop_id: fullLoggedPayload.shop_id,
     shop_ids: fullLoggedPayload.shop_ids,
-    is_active: isOnlineVal,
+    dev_permissions: fullLoggedPayload.dev_permissions,
+    is_active: Boolean(isOnlineVal),
     last_seen_at: nowIso,
     updated_at: nowIso
   };
@@ -2614,13 +2660,10 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   if (!userId) return null;
   const updates = {
     isOnline: !!isOnline,
-    is_online: !!isOnline,
+    isActive: !!isOnline,
     is_active: !!isOnline,
     last_seen_at: new Date().toISOString()
   };
-  if (coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number') {
-    updates.coordinates = coordinates;
-  }
   return updateCloudUser(userId, updates);
 }
 
