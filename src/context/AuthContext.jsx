@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   supabase, 
   getCloudShops, 
@@ -975,7 +975,7 @@ export function AuthProvider({ children }) {
     (userData && userData.isLoggedInUser === true && (userData.phone || userData.email || userData.id))
   );
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     userData,
     isAuthenticated,
@@ -1005,7 +1005,36 @@ export function AuthProvider({ children }) {
     updateUserProfile,
     setUserRole,
     refreshShops: loadShops
-  };
+  }), [
+    user,
+    userData,
+    isAuthenticated,
+    effectiveRole,
+    userRole,
+    isGrandAdmin,
+    isAuthorizedDeveloper,
+    isAuthorizedAdmin,
+    isStaff,
+    emergencyMasterActive,
+    emergencyElevateToDev,
+    emergencyRevokeDev,
+    userDevPermissions,
+    effectiveShopId,
+    effectiveShopIds,
+    effectiveShopName,
+    allShops,
+    loading,
+    loginWithEmail,
+    signupWithEmail,
+    loginWithGoogle,
+    loginWithPhoneLookup,
+    logout,
+    impersonate,
+    updateUserRole,
+    updateUserProfile,
+    setUserRole,
+    loadShops
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -341,18 +341,17 @@ export default function KitchenView() {
               if (!currentShop?.id) return;
               const isCurrentlyOnline = currentShop.isOnline !== false && currentShop.isOpen !== false;
               const nextOnline = !isCurrentlyOnline;
+              showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
               try {
-                await updateCloudShop(currentShop.id, { 
+                updateCloudShop(currentShop.id, { 
                   isOnline: nextOnline, 
                   is_online: nextOnline, 
                   isOpen: nextOnline, 
                   is_open: nextOnline 
                 });
                 if (user?.id) {
-                  await updateUserOnlineStatus(user.id, nextOnline);
+                  updateUserOnlineStatus(user.id, nextOnline);
                 }
-                showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
-                if (refreshShops) await refreshShops();
               } catch (e) {
                 console.error("Toggle kitchen error:", e);
                 showToast("Failed to toggle online status", "error");

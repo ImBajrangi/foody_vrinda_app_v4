@@ -471,25 +471,38 @@ export default function DeveloperView({ setCurrentTab }) {
 
   const handleToggleKitchenPayment = async (shopId, key, value) => {
     if (!shopId) return;
-    const targetShop = allShops.find(s => s.id === shopId);
+    const targetShop = allShops.find(s => s.id === shopId) || shopsList.find(s => s.id === shopId);
     const currentOnline = targetShop?.paymentSettings?.onlinePaymentsEnabled ?? targetShop?.onlinePaymentsEnabled ?? true;
     const currentCod = targetShop?.paymentSettings?.codEnabled ?? targetShop?.codEnabled ?? true;
 
-    const updated = {
+    const updatedPaymentSettings = {
       onlinePaymentsEnabled: key === 'onlinePaymentsEnabled' ? value : currentOnline,
       codEnabled: key === 'codEnabled' ? value : currentCod
     };
 
-    await updateCloudShop(shopId, {
-      paymentSettings: updated,
-      onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
-      codEnabled: updated.codEnabled
-    });
+    // Optimistic local state update for instant 0ms feedback
+    setShopsList(prev => prev.map(s => {
+      if (s.id === shopId) {
+        return {
+          ...s,
+          paymentSettings: updatedPaymentSettings,
+          onlinePaymentsEnabled: updatedPaymentSettings.onlinePaymentsEnabled,
+          codEnabled: updatedPaymentSettings.codEnabled
+        };
+      }
+      return s;
+    }));
 
-    if (refreshShops) await refreshShops();
     setToast({
       message: `${targetShop?.name || 'Kitchen'}: ${key === 'onlinePaymentsEnabled' ? 'Online Pay' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`,
       type: 'success'
+    });
+
+    // Execute cloud write silently in background
+    updateCloudShop(shopId, {
+      paymentSettings: updatedPaymentSettings,
+      onlinePaymentsEnabled: updatedPaymentSettings.onlinePaymentsEnabled,
+      codEnabled: updatedPaymentSettings.codEnabled
     });
   };
 
@@ -522,27 +535,25 @@ export default function DeveloperView({ setCurrentTab }) {
       return updated;
     });
 
-    setToast({ message: `Kitchen "${newShop.name}" created and synced!`, type: 'success' });
+    setToast({ message: `Kitchen "${newShop.name}" created!`, type: 'success' });
     logActivity(`Kitchen "${newShop.name}" created`, 'success');
     setIsCreatingShop(false);
     setNewShopName('');
     setNewShopAddress('');
     setNewShopPhone('');
 
-    await createCloudShop(newShop);
-    if (refreshShops) await refreshShops();
+    createCloudShop(newShop);
   };
 
   const handleToggleShopOpen = async (shopId, currentIsOpen) => {
     const nextState = !currentIsOpen;
     setShopsList(prev => {
-      const updated = prev.map(s => s.id === shopId ? { ...s, isOpen: nextState } : s);
+      const updated = prev.map(s => s.id === shopId ? { ...s, isOpen: nextState, isOnline: nextState } : s);
       saveCachedShops(updated);
       return updated;
     });
     setToast({ message: `Kitchen status set to ${nextState ? 'OPEN' : 'CLOSED'}`, type: 'info' });
-    await updateCloudShop(shopId, { isOpen: nextState });
-    if (refreshShops) await refreshShops();
+    updateCloudShop(shopId, { isOpen: nextState, isOnline: nextState });
   };
 
   const handleDeleteShop = async (shopId, shopName) => {
@@ -556,8 +567,7 @@ export default function DeveloperView({ setCurrentTab }) {
     });
     setToast({ message: `Kitchen "${shopName}" removed`, type: 'info' });
     logActivity(`Kitchen "${shopName}" deleted`, 'warning');
-    await deleteCloudShop(shopId);
-    if (refreshShops) await refreshShops();
+    deleteCloudShop(shopId);
   };
 
   // ==========================================
