@@ -644,18 +644,18 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       >
 
         {/* Top Header Grab Bar (Drag down center top to shrink to floating capsule) */}
-        <div className="absolute top-0 inset-x-0 h-9 z-[500] flex items-center justify-center pointer-events-none select-none">
+        <div className="absolute top-0 inset-x-0 h-7 z-[500] flex items-center justify-center pointer-events-none select-none">
           <div
             {...modalHandleProps}
-            className="w-24 h-8 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
+            className="w-24 h-7 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
             title="Drag down to shrink to floating capsule"
           >
-            <div className="w-12 h-1.5 bg-white/40 hover:bg-white/70 rounded-full shadow-sm transition-colors" />
+            <div className="w-10 h-1 bg-black/25 dark:bg-white/35 hover:bg-black/40 dark:hover:bg-white/60 rounded-full transition-colors" />
           </div>
         </div>
 
-        {/* Dedicated High-Z Floating Controls (OUTSIDE Leaflet map to guarantee 100% click/touch responsiveness) */}
-        <div className="absolute top-[max(0.85rem,env(safe-area-inset-top)+8px)] inset-x-3.5 z-[1000] flex items-center justify-between pointer-events-none">
+        {/* Dedicated Floating Controls (Clean, shadowless modern buttons over map) */}
+        <div className="absolute top-[max(0.75rem,env(safe-area-inset-top)+6px)] inset-x-3.5 z-[1000] flex items-center justify-between pointer-events-none">
           {/* Back / Close Button */}
           <button
             type="button"
@@ -666,7 +666,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               e.stopPropagation();
               handleAnimatedClose(true);
             }}
-            className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer pointer-events-auto backdrop-blur-md transition-all"
+            className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer pointer-events-auto backdrop-blur-md transition-all"
             title="Close / Shrink to floating capsule"
             aria-label="Back"
           >
@@ -684,7 +684,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 e.stopPropagation();
                 handleRecenter();
               }}
-              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer backdrop-blur-md transition-all"
+              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer backdrop-blur-md transition-all"
               title="Re-center Live Route"
               aria-label="Re-center"
             >
@@ -699,7 +699,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 e.stopPropagation();
                 handleAnimatedClose(true);
               }}
-              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-[#E0FF33] active:scale-95 flex items-center justify-center border border-[#E0FF33]/50 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer backdrop-blur-md transition-all"
+              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-[#E0FF33] active:scale-95 flex items-center justify-center border border-[#E0FF33]/40 cursor-pointer backdrop-blur-md transition-all"
               title="Minimize to Floating Capsule"
               aria-label="Minimize"
             >
@@ -713,7 +713,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           onClick={() => {
             if (isExpanded) setIsExpanded(false);
           }}
-          className="relative flex-1 bg-[#edf2f7] overflow-hidden cursor-pointer pt-3"
+          className="relative flex-1 bg-[#edf2f7] overflow-hidden cursor-pointer"
         >
           <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
         </div>

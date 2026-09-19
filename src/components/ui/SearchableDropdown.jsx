@@ -9,6 +9,7 @@ import { Search, ChevronDown, Check, X } from 'lucide-react';
  * - Rich custom rendering with icons, badges, descriptions, and active checkmarks.
  * - Full Light / Dark theme harmony (Warm Vedic Stone in Light, Premium Obsidian + Neon Lime in Dark).
  * - Keyboard navigation (Esc to close, auto-focus on search).
+ * - Synchronous, zero-flicker hardware-accelerated CSS positioning.
  * - Click-outside dismiss handler.
  */
 export default function SearchableDropdown({
@@ -30,6 +31,16 @@ export default function SearchableDropdown({
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
+
+  // Auto focus search input when opened
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Normalize options to objects: { value, label, sublabel, icon, badge, badgeColor, group }
   const normalizedOptions = useMemo(() => {
@@ -81,13 +92,11 @@ export default function SearchableDropdown({
     }
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      // Auto focus search input when opened
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
+      document.addEventListener('touchstart', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -123,38 +132,40 @@ export default function SearchableDropdown({
 
   // Size variations
   const sizeClasses = {
-    sm: 'text-xs py-1.5 px-2.5 rounded-xl gap-1.5',
-    md: 'text-xs py-2 px-3 rounded-xl gap-2',
-    lg: 'text-sm py-2.5 px-3.5 rounded-2xl gap-2.5'
-  }[size] || 'text-xs py-2 px-3 rounded-xl gap-2';
+    sm: 'text-xs py-2 px-3 rounded-xl gap-2',
+    md: 'text-xs py-2.5 px-3.5 rounded-xl gap-2',
+    lg: 'text-sm py-3 px-4 rounded-2xl gap-2.5'
+  }[size] || 'text-xs py-2.5 px-3.5 rounded-xl gap-2';
 
   return (
-    <div className={`relative inline-block text-left ${align === 'full' ? 'w-full' : ''}`} ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${align === 'full' ? 'w-full' : ''} ${isOpen ? 'z-[100]' : ''}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between font-bold border transition-all duration-200 select-none cursor-pointer ${sizeClasses} ${
+        className={`w-full flex items-center justify-between font-semibold border transition-all duration-100 ease-out select-none cursor-pointer ${sizeClasses} ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-white/5 border-stone-200 dark:border-white/5 text-stone-400 dark:text-neutral-500'
             : isOpen
-            ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-amber-600 dark:border-[#E0FF33] text-stone-950 dark:text-white shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
-            : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] text-stone-900 dark:text-white border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/25 shadow-xs'
+            ? 'bg-stone-100 dark:bg-[#252223] text-stone-950 dark:text-white border-stone-400 dark:border-white/25 shadow-sm'
+            : 'bg-white hover:bg-stone-50 dark:bg-[#1E1B1C] dark:hover:bg-[#252223] text-stone-900 dark:text-neutral-100 border-stone-200/90 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 shadow-2xs'
         } ${className}`}
       >
-        <div className="flex items-center gap-2 min-w-0 flex-1 truncate text-left">
+        <div className="flex items-center gap-2 min-w-0 flex-1 text-left overflow-hidden">
           {SelectedIcon && (
-            <div className={`shrink-0 flex items-center justify-center ${selectedOption?.iconBg || 'text-amber-700 dark:text-[#E0FF33]'}`}>
+            <div className={`shrink-0 flex items-center justify-center w-5 h-5 rounded-lg ${
+              selectedOption?.iconBg || 'bg-amber-500/10 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]'
+            }`}>
               {renderIcon(SelectedIcon, "w-3.5 h-3.5")}
             </div>
           )}
-          <span className="truncate">
+          <span className="truncate font-bold whitespace-nowrap">
             {selectedOption ? selectedOption.label : <span className="text-stone-400 dark:text-neutral-500 font-normal">{placeholder}</span>}
           </span>
           {selectedOption?.badge && (
-            <span className={`text-[9.5px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-md shrink-0 ${
-              selectedOption.badgeColor || 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33]'
+            <span className={`text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0 ${
+              selectedOption.badgeColor || 'bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-neutral-300 border border-stone-200/60 dark:border-white/5'
             }`}>
               {selectedOption.badge}
             </span>
@@ -162,23 +173,23 @@ export default function SearchableDropdown({
         </div>
 
         <ChevronDown
-          className={`w-3.5 h-3.5 shrink-0 ml-1.5 text-stone-500 dark:text-neutral-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-amber-600 dark:text-[#E0FF33]' : ''
+          className={`w-3.5 h-3.5 shrink-0 ml-2 text-stone-400 dark:text-neutral-400 transition-transform duration-150 ${
+            isOpen ? 'rotate-180 text-stone-900 dark:text-white' : ''
           }`}
         />
       </button>
 
-      {/* Dropdown Menu Popover */}
+      {/* Dropdown Menu Popover with Synchronous Zero-Flicker Layout */}
       {isOpen && (
         <div
-          className={`absolute z-50 mt-1.5 min-w-[220px] max-w-sm rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/15 shadow-2xl backdrop-blur-xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute z-[200] mt-1.5 min-w-[280px] max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#1A1819] border border-stone-200/90 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100 flex flex-col ${
             align === 'right' ? 'right-0' : align === 'full' ? 'w-full left-0 right-0' : 'left-0'
           } ${menuClassName}`}
-          style={{ maxHeight: '340px' }}
+          style={{ maxHeight: '380px' }}
         >
           {/* Integrated Search Input */}
           {(showSearch || normalizedOptions.length > 4) && (
-            <div className="p-1 pb-1.5 border-b border-stone-100 dark:border-white/10">
+            <div className="p-1 pb-1.5 border-b border-stone-100 dark:border-white/5 shrink-0">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -187,7 +198,7 @@ export default function SearchableDropdown({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full bg-stone-100 dark:bg-[#282526] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-7 py-1.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/60 focus:ring-1 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all font-medium"
+                  className="w-full bg-stone-100/90 dark:bg-[#242122] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-7 py-2 focus:outline-none focus:border-stone-400 dark:focus:border-white/30 focus:ring-1 focus:ring-stone-400/20 dark:focus:ring-white/10 transition-all duration-100 font-medium"
                 />
                 {searchQuery && (
                   <button
@@ -203,7 +214,7 @@ export default function SearchableDropdown({
           )}
 
           {/* Options List with Custom Scrollbar */}
-          <div className="max-h-[240px] overflow-y-auto no-scrollbar space-y-0.5 pr-0.5">
+          <div className="overflow-y-auto no-scrollbar space-y-0.5 pr-0.5 pb-1 flex-1 max-h-[280px]">
             {Object.entries(groupedOptions).map(([groupName, groupOpts]) => (
               <div key={groupName} className="space-y-0.5">
                 {groupName !== '__ungrouped__' && (
@@ -220,13 +231,13 @@ export default function SearchableDropdown({
                       key={String(opt.value)}
                       type="button"
                       onClick={() => handleSelect(opt.value)}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 text-left cursor-pointer group select-none ${
+                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors duration-100 ease-out text-left cursor-pointer group select-none ${
                         isSelected
-                          ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] font-black'
-                          : 'text-stone-800 dark:text-neutral-200 hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-950 dark:hover:text-white'
+                          ? 'bg-amber-500/10 text-stone-950 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] font-bold'
+                          : 'text-stone-800 dark:text-neutral-200 hover:bg-stone-100 dark:hover:bg-white/[0.08] hover:text-stone-950 dark:hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         {ItemIcon && (
                           <div className={`shrink-0 flex items-center justify-center w-5 h-5 rounded-lg ${
                             isSelected
@@ -238,10 +249,10 @@ export default function SearchableDropdown({
                         )}
                         <div className="min-w-0 flex-1 truncate">
                           <div className="truncate flex items-center gap-1.5">
-                            <span>{opt.label}</span>
+                            <span className={isSelected ? 'font-bold' : 'font-medium'}>{opt.label}</span>
                             {opt.badge && (
-                              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded shrink-0 ${
-                                opt.badgeColor || 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300'
+                              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded shrink-0 ${
+                                opt.badgeColor || 'bg-stone-100 text-stone-600 dark:bg-white/10 dark:text-neutral-300 border border-stone-200/60 dark:border-white/5'
                               }`}>
                                 {opt.badge}
                               </span>
@@ -256,7 +267,7 @@ export default function SearchableDropdown({
                       </div>
 
                       {isSelected && (
-                        <Check className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#E0FF33] ml-2 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#E0FF33] ml-2 stroke-[2.5]" />
                       )}
                     </button>
                   );
@@ -280,7 +291,7 @@ export default function SearchableDropdown({
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
+                  className="text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer font-semibold"
                 >
                   Reset
                 </button>

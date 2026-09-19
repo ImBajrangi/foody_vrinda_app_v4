@@ -764,8 +764,8 @@ export default function TransportView() {
 
       {/* 3. BRANCH SELECTOR */}
       {isGlobalRole && allShops.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2.5 py-1">
-          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+        <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
+          <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
             <Store size={14} className="text-amber-600 dark:text-[#E0FF33]" />
             Switch Kitchen:
           </span>
@@ -778,11 +778,11 @@ export default function TransportView() {
               sublabel: s.address || 'Vrindavan Dham Kitchen',
               icon: Store,
               badge: s.tag || 'Branch',
-              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+              badgeColor: 'bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
             }))}
             size="sm"
             searchPlaceholder="Search kitchens..."
-            className="w-full sm:w-64"
+            className="w-full sm:w-auto sm:min-w-[340px]"
           />
         </div>
       )}

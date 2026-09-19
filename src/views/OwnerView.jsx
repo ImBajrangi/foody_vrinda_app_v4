@@ -24,6 +24,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
+import NativeTimePicker from '../components/ui/NativeTimePicker';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -826,8 +827,11 @@ export default function OwnerView() {
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
       {/* Top Hero Card */}
-      <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative overflow-hidden shadow-2xl space-y-4">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/10 dark:from-[#E0FF33]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative z-20 shadow-2xl space-y-4">
+        {/* Background glow contained within rounded bounds */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/10 dark:from-[#E0FF33]/10 to-transparent rounded-full blur-3xl" />
+        </div>
 
         {/* Top Minimal Bar */}
         <div className="flex items-center justify-between gap-3 relative z-10">
@@ -898,7 +902,7 @@ export default function OwnerView() {
         {/* BRANCH SELECTOR — Integrated inside Hero with Searchable Dropdown */}
         {isGlobalRole && allShops.length > 1 && (
           <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-10">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+            <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
               <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
               Switch Kitchen:
             </span>
@@ -911,11 +915,11 @@ export default function OwnerView() {
                 sublabel: s.address || 'Vrindavan Dham Kitchen',
                 icon: Store,
                 badge: s.tag || 'Branch',
-                badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                badgeColor: 'bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
               }))}
               size="sm"
               searchPlaceholder="Search kitchens..."
-              className="w-full sm:w-64"
+              className="w-full sm:w-auto sm:min-w-[340px]"
             />
           </div>
         )}
@@ -1747,24 +1751,16 @@ export default function OwnerView() {
 
                   {!shopForm.alwaysOpen ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">Opening Time</label>
-                        <input
-                          type="time"
-                          value={shopForm.openTime}
-                          onChange={(e) => setShopForm({ ...shopForm, openTime: e.target.value })}
-                          className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">Closing Time</label>
-                        <input
-                          type="time"
-                          value={shopForm.closeTime}
-                          onChange={(e) => setShopForm({ ...shopForm, closeTime: e.target.value })}
-                          className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                        />
-                      </div>
+                      <NativeTimePicker
+                        label="Opening Time"
+                        value={shopForm.openTime}
+                        onChange={(val) => setShopForm({ ...shopForm, openTime: val })}
+                      />
+                      <NativeTimePicker
+                        label="Closing Time"
+                        value={shopForm.closeTime}
+                        onChange={(val) => setShopForm({ ...shopForm, closeTime: val })}
+                      />
                     </div>
                   ) : (
                     <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-2.5 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
@@ -2209,30 +2205,31 @@ export default function OwnerView() {
 
               {/* Category Selector */}
               <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
                   Category
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { id: 'Meals', label: 'Meals', icon: <UtensilsCrossed className="w-3.5 h-3.5 text-amber-500" /> },
-                    { id: 'Sweets', label: 'Sweets', icon: <CakeSlice className="w-3.5 h-3.5 text-purple-500" /> },
-                    { id: 'Snacks', label: 'Snacks', icon: <Sandwich className="w-3.5 h-3.5 text-orange-500" /> },
-                    { id: 'Drinks', label: 'Drinks', icon: <CupSoda className="w-3.5 h-3.5 text-cyan-500" /> }
+                    { id: 'Meals', label: 'Meals', icon: UtensilsCrossed, color: 'text-amber-500' },
+                    { id: 'Sweets', label: 'Sweets', icon: CakeSlice, color: 'text-purple-500' },
+                    { id: 'Snacks', label: 'Snacks', icon: Sandwich, color: 'text-orange-500' },
+                    { id: 'Drinks', label: 'Drinks', icon: CupSoda, color: 'text-cyan-500' }
                   ].map(cat => {
                     const isSelected = menuForm.category === cat.id ||
                       (cat.id === 'Meals' && menuForm.category === 'Main') ||
                       (cat.id === 'Sweets' && menuForm.category === 'Sweets & Prasad');
+                    const IconComponent = cat.icon;
                     return (
                       <button
                         key={cat.id}
                         type="button"
                         onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
-                        className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer whitespace-nowrap ${isSelected
-                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
-                          : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 dark:bg-[#1E1B1C] dark:text-zinc-300 dark:border-white/5 dark:hover:text-white dark:hover:border-white/15'
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 select-none cursor-pointer whitespace-nowrap active:scale-[0.98] ${isSelected
+                          ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] font-black shadow-xs'
+                          : 'bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-950 border-stone-200/80 dark:bg-[#1E1B1C] dark:text-zinc-300 dark:border-white/5 dark:hover:text-white dark:hover:border-white/15'
                           }`}
                       >
-                        {cat.icon}
+                        <IconComponent className={`w-4 h-4 shrink-0 ${isSelected ? 'text-inherit' : cat.color}`} />
                         <span>{cat.label}</span>
                       </button>
                     );
@@ -2242,17 +2239,17 @@ export default function OwnerView() {
 
               {/* Visual Transparent PNG Asset Cutout Picker */}
               <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
                   Dish Cutout Visual Asset
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-2.5">
                   {[
-                    { src: '/dishes/burger.png', name: 'Burger' },
-                    { src: '/dishes/thali.png', name: 'Thali' },
-                    { src: '/dishes/sweet.png', name: 'Kheer' },
-                    { src: '/dishes/pizza.png', name: 'Pizza' },
-                    { src: '/dishes/curry.png', name: 'Paneer' },
-                    { src: '/dishes/rice.png', name: 'Rice' }
+                    { src: '/dishes/thali.png', name: 'Royal Thali' },
+                    { src: '/dishes/curry.png', name: 'Shahi Paneer' },
+                    { src: '/dishes/sweet.png', name: 'Saffron Kheer' },
+                    { src: '/dishes/rice.png', name: 'Jeera Rice' },
+                    { src: '/dishes/pizza.png', name: 'Satvik Pizza' },
+                    { src: '/dishes/burger.png', name: 'Veggie Burger' }
                   ].map((asset) => {
                     const isSelected = menuForm.imageUrl === asset.src;
                     return (
@@ -2260,23 +2257,27 @@ export default function OwnerView() {
                         key={asset.src}
                         type="button"
                         onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
-                        className={`aspect-square rounded-2xl p-2 border transition-all flex flex-col items-center justify-center relative group cursor-pointer ${isSelected
-                          ? 'bg-amber-500/10 dark:bg-[#FAF5EB]/10 border-amber-500 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]'
-                          : 'bg-stone-100 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-200 dark:hover:bg-[#282526]'
+                        className={`rounded-2xl p-2.5 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
+                          ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                          : 'bg-stone-100 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-200/70 dark:hover:bg-[#252223]'
                           }`}
                         title={asset.name}
                       >
-                        <img
-                          src={asset.src}
-                          alt={asset.name}
-                          className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform"
-                        />
+                        <div className="w-12 h-12 flex items-center justify-center">
+                          <img
+                            src={asset.src}
+                            alt={asset.name}
+                            className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
+                          />
+                        </div>
                         {isSelected && (
-                          <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-sm">
+                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
                             <Check size={10} className="stroke-[3]" />
                           </div>
                         )}
-                        <span className="text-[9px] font-bold text-stone-600 dark:text-neutral-400 mt-1 truncate">{asset.name}</span>
+                        <span className={`text-[10px] font-bold mt-1 text-center truncate w-full ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
+                          {asset.name}
+                        </span>
                       </button>
                     );
                   })}
@@ -2291,7 +2292,7 @@ export default function OwnerView() {
                     className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                   {menuForm.imageUrl && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
                       <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                     </div>
                   )}
@@ -2300,28 +2301,29 @@ export default function OwnerView() {
 
               {/* Spiciness Level Selector */}
               <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
                   Spiciness Level
                 </label>
-                <div className="flex bg-stone-100 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-200 dark:border-white/10 gap-1.5">
+                <div className="grid grid-cols-3 bg-stone-100 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-200 dark:border-white/10 gap-1.5">
                   {[
                     {
                       id: 'Mild',
                       label: 'Mild',
-                      activeClass: 'bg-emerald-50 text-emerald-900 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 shadow-sm',
-                      icon: (selected) => <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${selected ? 'bg-emerald-500 ring-2 ring-emerald-500/40' : 'bg-emerald-400/80'}`} />
+                      activeClass: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-500/40 shadow-xs',
+                      dotClass: 'bg-emerald-500'
                     },
                     {
                       id: 'Medium',
                       label: 'Medium',
-                      activeClass: 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40 shadow-sm',
-                      icon: (selected) => <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${selected ? 'bg-amber-500 ring-2 ring-amber-500/40' : 'bg-amber-400/80'}`} />
+                      activeClass: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/40 shadow-xs',
+                      dotClass: 'bg-amber-500'
                     },
                     {
                       id: 'Spicy',
                       label: 'Spicy',
-                      activeClass: 'bg-rose-50 text-rose-900 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40 shadow-sm',
-                      icon: (selected) => <Flame className={`w-3.5 h-3.5 shrink-0 ${selected ? 'text-rose-600 dark:text-rose-400' : 'text-rose-400/80'}`} />
+                      activeClass: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30 dark:border-rose-500/40 shadow-xs',
+                      dotClass: 'bg-rose-500',
+                      isFlame: true
                     }
                   ].map(spice => {
                     const isSelected = menuForm.spicyLevel === spice.id;
@@ -2330,12 +2332,16 @@ export default function OwnerView() {
                         key={spice.id}
                         type="button"
                         onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
-                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none border ${isSelected
+                        className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 cursor-pointer select-none border active:scale-[0.98] ${isSelected
                           ? `${spice.activeClass} font-black`
                           : 'border-transparent text-stone-600 hover:text-stone-950 hover:bg-white/80 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
                           }`}
                       >
-                        {spice.icon(isSelected)}
+                        {spice.isFlame ? (
+                          <Flame className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-neutral-500'}`} />
+                        ) : (
+                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isSelected ? `${spice.dotClass} ring-2 ring-current/30` : 'bg-stone-300 dark:bg-neutral-600'}`} />
+                        )}
                         <span>{spice.label}</span>
                       </button>
                     );
@@ -2345,7 +2351,7 @@ export default function OwnerView() {
 
               {/* Nutrition Info Input */}
               <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5 font-['Outfit']">
                   Nutrition Info
                 </label>
                 <input
