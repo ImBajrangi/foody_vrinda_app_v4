@@ -701,39 +701,67 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       payload.status = newStatus === 'ready' ? 'ready_for_pickup' : newStatus;
     }
 
-    // Filter to known database columns to avoid 400 Bad Request
-    const ALLOWED_COLUMNS = [
-      'status',
-      'shop_id',
-      'user_id',
-      'customer_name',
-      'customer_phone',
-      'customer_address',
-      'delivery_address',
-      'delivery_coordinates',
-      'fulfillment_type',
-      'items',
-      'subtotal',
-      'delivery_charge',
-      'gst_amount',
-      'total_amount',
-      'payment_method',
-      'payment_id',
-      'cash_status',
-      'cooking_notes',
-      'rider_id',
-      'rider_name',
-      'rider_phone',
-      'rider_rating',
-      'rider_avatar',
-      'created_by',
-      'updated_at'
-    ];
+    // Comprehensive column mapping for both camelCase and snake_case
+    const FIELD_MAP = {
+      shopId: 'shop_id',
+      shop_id: 'shop_id',
+      userId: 'user_id',
+      user_id: 'user_id',
+      customerName: 'customer_name',
+      customer_name: 'customer_name',
+      customerPhone: 'customer_phone',
+      customer_phone: 'customer_phone',
+      customerAddress: 'customer_address',
+      customer_address: 'customer_address',
+      deliveryAddress: 'delivery_address',
+      delivery_address: 'delivery_address',
+      deliveryCoordinates: 'delivery_coordinates',
+      delivery_coordinates: 'delivery_coordinates',
+      fulfillmentType: 'fulfillment_type',
+      fulfillment_type: 'fulfillment_type',
+      items: 'items',
+      subtotal: 'subtotal',
+      deliveryCharge: 'delivery_charge',
+      delivery_charge: 'delivery_charge',
+      gstAmount: 'gst_amount',
+      gst_amount: 'gst_amount',
+      totalAmount: 'total_amount',
+      total_amount: 'total_amount',
+      paymentMethod: 'payment_method',
+      payment_method: 'payment_method',
+      paymentId: 'payment_id',
+      payment_id: 'payment_id',
+      cashStatus: 'cash_status',
+      cash_status: 'cash_status',
+      cookingNotes: 'cooking_notes',
+      cooking_notes: 'cooking_notes',
+      chefId: 'chef_id',
+      chef_id: 'chef_id',
+      chefName: 'chef_name',
+      chef_name: 'chef_name',
+      pickupOtp: 'pickup_otp',
+      pickup_otp: 'pickup_otp',
+      deliveryOtp: 'delivery_otp',
+      delivery_otp: 'delivery_otp',
+      riderId: 'rider_id',
+      rider_id: 'rider_id',
+      riderName: 'rider_name',
+      rider_name: 'rider_name',
+      riderPhone: 'rider_phone',
+      rider_phone: 'rider_phone',
+      riderRating: 'rider_rating',
+      rider_rating: 'rider_rating',
+      riderAvatar: 'rider_avatar',
+      rider_avatar: 'rider_avatar',
+      createdBy: 'created_by',
+      created_by: 'created_by'
+    };
 
     if (extra && typeof extra === 'object') {
-      for (const key of Object.keys(extra)) {
-        if (ALLOWED_COLUMNS.includes(key)) {
-          payload[key] = extra[key];
+      for (const [key, value] of Object.entries(extra)) {
+        const dbCol = FIELD_MAP[key];
+        if (dbCol && value !== undefined) {
+          payload[dbCol] = value;
         }
       }
     }
@@ -2603,6 +2631,9 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
 
   // Synchronize update to both foody_logged_users and foody_users
   const isOnlineVal = updates.isOnline !== undefined ? updates.isOnline : (updates.is_online !== undefined ? updates.is_online : (updates.isActive !== undefined ? updates.isActive : (updates.is_active !== undefined ? updates.is_active : userExists?.isOnline ?? userExists?.isActive ?? true)));
+  const resolvedTrust = updates.trustScore ?? updates.cibilScore ?? updates.trust_score ?? userExists?.trustScore ?? userExists?.cibilScore ?? 750;
+  const resolvedCash = updates.cashInHand ?? updates.cash_in_hand ?? userExists?.cashInHand ?? 0;
+  const resolvedDebt = updates.unsettledDebt ?? updates.unsettled_debt ?? userExists?.unsettledDebt ?? 0;
 
   const fullLoggedPayload = {
     id: targetId,
@@ -2615,6 +2646,10 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
     dev_permissions: updates.devPermissions || updates.dev_permissions || userExists?.devPermissions || [],
+    trust_score: Number(resolvedTrust),
+    cibil_score: Number(resolvedTrust),
+    cash_in_hand: Number(resolvedCash),
+    unsettled_debt: Number(resolvedDebt),
     is_active: Boolean(isOnlineVal),
     last_login_at: nowIso,
     updated_at: nowIso
@@ -2631,6 +2666,10 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     shop_id: fullLoggedPayload.shop_id,
     shop_ids: fullLoggedPayload.shop_ids,
     dev_permissions: fullLoggedPayload.dev_permissions,
+    trust_score: Number(resolvedTrust),
+    cibil_score: Number(resolvedTrust),
+    cash_in_hand: Number(resolvedCash),
+    unsettled_debt: Number(resolvedDebt),
     is_active: Boolean(isOnlineVal),
     last_seen_at: nowIso,
     updated_at: nowIso
@@ -2672,7 +2711,7 @@ export async function deleteCloudUser(userId) {
   const updatedList = currentUsers.filter(u => u.id !== userId);
   saveCachedUsers(updatedList);
   setCachedItem('users', 'all', updatedList);
-  dispatchSafeEvent('foody_users_changed', { users: updatedList });
+  dispatchSafeEvent('foody_users_changed', { users: updatedList, deletedUserId: userId });
 
   try {
     const { error } = await supabase.from('foody_logged_users').delete().eq('id', userId);
@@ -2731,6 +2770,8 @@ export async function createCloudReview(reviewData) {
       rating: Number(reviewData.rating || 5),
       tags: reviewData.tags || [],
       comment: reviewData.comment || '',
+      chef_feedback: reviewData.chef_feedback || reviewData.chefFeedback || {},
+      rider_feedback: reviewData.rider_feedback || reviewData.riderFeedback || {},
       created_at: reviewData.created_at || new Date().toISOString()
     };
 
@@ -2913,8 +2954,31 @@ export async function recordCashSettlement({ riderId, shopId, expectedAmount, re
     safeStorage.setItem(`foody_rider_cash_${cleanId}`, JSON.stringify(updatedLedger));
   } catch (e) { }
 
-  // Update Rider Trust Score
+  // Record into Supabase foody_cash_settlements table
+  try {
+    await supabase.from('foody_cash_settlements').insert([{
+      rider_id: cleanId,
+      shop_id: shopId || 'shop-vrinda-main',
+      expected_amount: expected,
+      received_amount: received,
+      difference: difference,
+      status: status,
+      settled_by: settledBy,
+      notes: `Settlement via Daily Cash Panel (${status})`,
+      created_at: nowIso
+    }]);
+  } catch (e) {
+    console.warn('recordCashSettlement database insert notice:', e);
+  }
+
+  // Update Rider Trust Score and live cash metrics in database
   await updateUserTrustScore(cleanId, cibilChange, `Daily COD Cash Settlement (${status}: ₹${received}/₹${expected})`);
+  try {
+    await updateCloudUser(cleanId, {
+      cashInHand: updatedLedger.cashInHand,
+      unsettledDebt: updatedLedger.unsettledDebt
+    });
+  } catch (e) { }
 
   dispatchSafeEvent('foody_cash_settled', { riderId: cleanId, ledger: updatedLedger });
   return updatedLedger;
