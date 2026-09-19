@@ -224,17 +224,19 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 onClick={() => setActiveFilter(tab.id)}
                 className={`flex-1 py-2 px-3 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none border ${
                   isActive 
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] font-black shadow-xs' 
-                    : 'bg-stone-200/90 text-stone-700 dark:bg-[#282526] dark:text-zinc-300 border-stone-300/70 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/80'
+                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] font-black shadow-sm' 
+                    : 'bg-stone-200/90 text-stone-800 dark:bg-[#282526] dark:text-zinc-200 border-stone-300/80 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/80'
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${
+                <span className={`text-xs px-2 py-0.5 min-w-[20px] rounded-full font-black shrink-0 transition-all text-center inline-flex items-center justify-center leading-none ${
                   isActive 
-                    ? 'bg-white text-amber-950 dark:bg-black dark:text-[#E0FF33] shadow-xs font-black' 
-                    : 'bg-stone-300 text-stone-900 dark:bg-white/15 dark:text-white font-bold'
+                    ? 'bg-white !text-[#1C1917] dark:bg-black dark:!text-[#E0FF33] shadow-xs ring-1 ring-black/10 dark:ring-[#E0FF33]/30' 
+                    : 'bg-stone-300/90 !text-[#1C1917] dark:bg-white/15 dark:!text-white'
                 }`}>
-                  {tab.count}
+                  <span className="badge-count !text-[#1C1917] dark:!text-[#E0FF33] font-black">
+                    {tab.count}
+                  </span>
                 </span>
               </button>
             );
@@ -358,7 +360,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                         className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm border transition-all cursor-pointer ${
                           n.read 
                             ? 'text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 border-stone-300/80 dark:border-white/15' 
-                            : 'text-stone-950 dark:text-black bg-emerald-400 dark:bg-[#E0FF33] border-emerald-500 dark:border-[#E0FF33] shadow-sm hover:scale-105 active:scale-95'
+                            : 'text-white dark:text-black bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] border-amber-600 dark:border-[#E0FF33] shadow-sm hover:scale-105 active:scale-95'
                         }`}
                         title={n.read ? "Mark as unread" : "Mark as read"}
                       >

@@ -109,12 +109,32 @@
     rel="stylesheet" />
 
   <!-- Theme & Icons -->
-  <meta name="theme-color" content="#1E1B1C" />
+  <meta name="theme-color" content="#FAF7F2" id="theme-color-meta" />
   <link rel="icon" type="image/webp" href="/foody-vrinda-logo.webp" />
   <link rel="icon" type="image/png" sizes="192x192" href="/app-icon.png" />
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.json" />
+
+  <!-- Immediate Zero-Latency Theme Hydration Script (Avoids Flash of Dark/Light) -->
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('foody_theme');
+        var theme = (saved === 'light' || saved === 'dark')
+          ? saved 
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        var root = document.documentElement;
+        root.setAttribute('data-theme', theme);
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+        var meta = document.getElementById('theme-color-meta');
+        if (meta) {
+          meta.setAttribute('content', theme === 'light' ? '#FAF7F2' : '#1E1B1C');
+        }
+      } catch (e) {}
+    })();
+  </script>
 
   <style>
     html, body {
@@ -132,41 +152,117 @@
       background-color: #1E1B1C;
       color: #ffffff;
     }
+
+    /* Dynamic Theme-Aware Splash Screen */
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+      box-sizing: border-box;
+      position: relative;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    /* Light Theme Splash (Pristine Vedic Warm Cream & Saffron Amber) */
+    .light .splash-container,
+    [data-theme="light"] .splash-container {
+      background: radial-gradient(circle at 50% 40%, #FFFDF9 0%, #FAF7F2 85%);
+      color: #1C1917;
+    }
+    .light .splash-medallion,
+    [data-theme="light"] .splash-medallion {
+      background: #FFFFFF;
+      border: 1.5px solid rgba(217, 119, 6, 0.25);
+      box-shadow: 0 16px 36px rgba(180, 83, 9, 0.12), 0 0 20px rgba(217, 119, 6, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    }
+    .light .splash-badge,
+    [data-theme="light"] .splash-badge {
+      background: rgba(217, 119, 6, 0.1);
+      border: 1px solid rgba(217, 119, 6, 0.28);
+      color: #B45309;
+    }
+    .light .splash-title,
+    [data-theme="light"] .splash-title {
+      color: #1C1917;
+    }
+    .light .splash-subtitle,
+    [data-theme="light"] .splash-subtitle {
+      color: #78716C;
+    }
+    .light .splash-footer,
+    [data-theme="light"] .splash-footer {
+      color: rgba(120, 113, 108, 0.7);
+    }
+
+    /* Dark Theme Splash (Luxury Obsidian & Neon Lime) */
+    .dark .splash-container,
+    [data-theme="dark"] .splash-container {
+      background: radial-gradient(circle at 50% 40%, #1a1718 0%, #121011 75%);
+      color: #FFFFFF;
+    }
+    .dark .splash-medallion,
+    [data-theme="dark"] .splash-medallion {
+      background: #181617;
+      border: 1.5px solid rgba(224, 255, 51, 0.28);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85), 0 0 20px rgba(224, 255, 51, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+    }
+    .dark .splash-badge,
+    [data-theme="dark"] .splash-badge {
+      background: rgba(224, 255, 51, 0.08);
+      border: 1px solid rgba(224, 255, 51, 0.2);
+      color: #E0FF33;
+    }
+    .dark .splash-title,
+    [data-theme="dark"] .splash-title {
+      color: #FFFFFF;
+    }
+    .dark .splash-subtitle,
+    [data-theme="dark"] .splash-subtitle {
+      color: #8b8f96;
+    }
+    .dark .splash-footer,
+    [data-theme="dark"] .splash-footer {
+      color: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 
-<body class="antialiased selection:bg-[#E0FF33] selection:text-[#121011]">
+<body class="antialiased selection:bg-amber-500 selection:text-white dark:selection:bg-[#E0FF33] dark:selection:text-[#121011]">
   <div id="root">
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(circle at 50% 40%, #1a1718 0%, #121011 75%); padding: 24px; text-align: center; box-sizing: border-box; position: relative;">
+    <div class="splash-container">
       
-      <!-- Static Brand Medallion -->
-      <div style="position: relative; width: 76px; height: 76px; margin-bottom: 22px;">
-        <div style="width: 100%; height: 100%; border-radius: 22px; background: #181617; border: 1.5px solid rgba(224, 255, 51, 0.28); display: flex; align-items: center; justify-content: center; box-shadow: 0 14px 36px rgba(0,0,0,0.85), 0 0 20px rgba(224, 255, 51, 0.1), inset 0 1px 1px rgba(255,255,255,0.12); overflow: hidden; padding: 10px; box-sizing: border-box;">
+      <!-- Dynamic Brand Medallion -->
+      <div style="position: relative; width: 80px; height: 80px; margin-bottom: 22px;">
+        <div class="splash-medallion" style="width: 100%; height: 100%; border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px; box-sizing: border-box; transition: all 0.3s ease;">
           
-          <!-- Official Foody Vrinda Brand Logo (Lightweight WebP) -->
-          <img src="/foody-vrinda-logo.webp" alt="Foody Vrinda" width="56" height="56" fetchpriority="high" decoding="async" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; display: block;" />
+          <!-- Official Foody Vrinda Brand Logo -->
+          <img src="/foody-vrinda-logo.webp" alt="Foody Vrinda" width="60" height="60" fetchpriority="high" decoding="async" style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px; display: block;" />
         </div>
       </div>
 
-      <!-- Static Minimalist Brand Hierarchy -->
+      <!-- Minimalist Dynamic Brand Hierarchy -->
       <div>
-        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(224,255,51,0.08); border: 1px solid rgba(224,255,51,0.2); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;">
-          <span style="font-size: 9.5px; font-weight: 800; color: #E0FF33; letter-spacing: 1.2px; text-transform: uppercase; font-family: 'Outfit', sans-serif;">
+        <div class="splash-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 3.5px 12px; border-radius: 999px; margin-bottom: 12px; transition: all 0.3s ease;">
+          <span style="font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; font-family: 'Outfit', sans-serif;">
             100% PURE SATVIK • DESI GHEE
           </span>
         </div>
 
-        <h1 style="font-size: 24px; font-weight: 900; margin: 0 0 4px 0; color: #ffffff; letter-spacing: -0.5px; font-family: 'Outfit', sans-serif;">
+        <h1 class="splash-title" style="font-size: 26px; font-weight: 900; margin: 0 0 4px 0; letter-spacing: -0.5px; font-family: 'Outfit', sans-serif; transition: color 0.3s ease;">
           FOODY VRINDA
         </h1>
         
-        <p style="color: #8b8f96; font-size: 12.5px; font-weight: 500; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <p class="splash-subtitle" style="font-size: 13px; font-weight: 500; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: color 0.3s ease;">
           Temple Kitchens of Sri Dham Vrindavan
         </p>
       </div>
 
-      <!-- Subtle Static Devotional Footer -->
-      <div style="position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.22); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; font-family: 'Laila', serif;">
+      <!-- Subtle Devotional Footer -->
+      <div class="splash-footer" style="position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; font-size: 11.5px; font-weight: 600; letter-spacing: 0.5px; font-family: 'Laila', serif; transition: color 0.3s ease;">
         श्री धाम वृन्दावन • राधे राधे
       </div>
 

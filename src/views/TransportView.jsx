@@ -22,6 +22,7 @@ import {
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import {
   Truck,
   Navigation,
@@ -566,7 +567,7 @@ export default function TransportView() {
   });
 
   return (
-    <div className="space-y-4 pb-20 max-w-5xl mx-auto">
+    <div className="space-y-6 pb-24">
       {/* Dynamic Tactile Alarm Banner (Apple Dynamic Island Style) */}
       <ActiveAlarmBanner
         isPlaying={isPlaying}
@@ -590,94 +591,120 @@ export default function TransportView() {
         />
       )}
 
-      {/* Floating Cash Limit & CIBIL Score Metric Bar */}
+      {/* 1. RIDER FINANCIAL & TRUST METRICS (Grand Stat Cards Matching Platform standards) */}
       {(() => {
         const ledger = getRiderCashLedger(currentUser?.id || 'rider_sarathi_gopal');
         const cashCheck = isRiderCashLimitExceeded(currentUser?.id || 'rider_sarathi_gopal');
         const trustScore = getUserTrustScore(currentUser?.id || 'rider_sarathi_gopal');
+        const cashPercent = Math.min(100, Math.round((ledger.cashInHand / RIDER_MAX_CASH_LIMIT) * 100));
+        const trustPercent = Math.min(100, Math.round((trustScore / 900) * 100));
 
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Cash in hand vs Limit */}
-            <div className={`p-3 rounded-2xl border flex items-center justify-between ${
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Card 1: COD Cash in Hand */}
+            <div className={`p-5 sm:p-6 rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${
               cashCheck.isExceeded 
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300' 
-                : 'bg-stone-200/90 dark:bg-[#1E1B1C] border-stone-300 dark:border-white/5 text-white'
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' 
+                : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
             }`}>
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
-                  cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/20 text-amber-600 dark:text-[#E0FF33]'
-                }`}>
-                  <Banknote size={16} />
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-sm ${
+                    cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
+                  }`}>
+                    <Banknote size={20} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">COD Cash In Hand</p>
+                    <div className="flex items-baseline gap-1.5 mt-0.5">
+                      <span className="text-xl sm:text-2xl font-black text-stone-950 dark:text-white font-['Outfit']">₹{ledger.cashInHand}</span>
+                      <span className="text-xs text-stone-500 dark:text-zinc-400 font-medium">/ ₹{RIDER_MAX_CASH_LIMIT} Cap</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">COD Cash in Hand</p>
-                  <p className="text-xs font-black text-stone-900 dark:text-white">
-                    ₹{ledger.cashInHand} <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-normal">/ ₹{RIDER_MAX_CASH_LIMIT} Cap</span>
-                  </p>
-                </div>
+
+                {cashCheck.isExceeded ? (
+                  <span className="text-[10px] font-black bg-rose-500 text-white px-3 py-1 rounded-full uppercase tracking-wider animate-pulse shadow-sm">
+                    Limit Reached
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 shadow-xs">
+                    Ready for Delivery
+                  </span>
+                )}
               </div>
-              {cashCheck.isExceeded ? (
-                <span className="text-[10px] font-black bg-rose-500 text-white px-2 py-1 rounded-lg uppercase tracking-wider animate-pulse">
-                  Limit Reached
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                  Ready
-                </span>
-              )}
+
+              {/* Progress Bar */}
+              <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${cashCheck.isExceeded ? 'bg-rose-500' : 'bg-amber-500 dark:bg-[#E0FF33]'}`} 
+                  style={{ width: `${cashPercent}%` }}
+                />
+              </div>
             </div>
 
-            {/* Rider CIBIL Score Card */}
-            <div className="p-3 rounded-2xl bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                  <Star size={16} />
+            {/* Card 2: Sarathi Trust & CIBIL Score */}
+            <div className="p-5 sm:p-6 rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold shadow-sm">
+                    <Star size={20} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Sarathi Trust Score</p>
+                    <div className="flex items-baseline gap-1.5 mt-0.5">
+                      <span className="text-xl sm:text-2xl font-black text-stone-950 dark:text-white font-['Outfit']">{trustScore}</span>
+                      <span className="text-xs text-purple-600 dark:text-purple-400 font-bold">/ 900 Pts</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Sarathi Trust Score</p>
-                  <p className="text-xs font-black text-stone-900 dark:text-white">
-                    {trustScore} <span className="text-[10px] text-purple-400 font-bold">/ 900 Pts</span>
-                  </p>
-                </div>
+
+                <span className={`text-[11px] font-black px-3 py-1 rounded-full border shadow-xs ${
+                  trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                }`}>
+                  {trustScore >= 750 ? 'Top Sarathi 🏆' : 'Active Partner'}
+                </span>
               </div>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
-                trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-              }`}>
-                {trustScore >= 750 ? 'Top Sarathi 🏆' : 'Active Partner'}
-              </span>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                  style={{ width: `${trustPercent}%` }}
+                />
+              </div>
             </div>
           </div>
         );
       })()}
 
-      {/* Top Controls: Responsive Switcher between Map View and List View */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/8 p-3.5 sm:p-4 rounded-3xl shadow-xl">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-stone-300/60 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-md">
-            <Truck className="w-5 h-5" />
+      {/* 2. MAIN OPERATIONS HEADER BAR (Grand Scale Matching Kitchen Operations) */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
+            <Truck size={22} strokeWidth={2.5} />
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
-              Sarathi Delivery Fleet
-            </h3>
-            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
-              <span className="flex items-center gap-1.5 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33] animate-pulse shrink-0" />
-                <strong className="text-stone-900 dark:text-white font-bold">{orders.length}</strong> {orders.length === 1 ? 'Active Order' : 'Active Orders'}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
+                Sarathi Delivery Fleet
+              </h1>
+              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
+                {orders.length} Active {orders.length === 1 ? 'Trip' : 'Trips'}
               </span>
-              <span className="text-stone-400 dark:text-neutral-600">•</span>
-              <span className="truncate">{viewMode === 'map' ? 'CARTO HUD View' : 'Queue View'}</span>
             </div>
+            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5 truncate">
+              Live GPS route dispatch board, real-time rider navigation & delivery handoff
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0 self-stretch sm:self-auto justify-end">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap sm:flex-nowrap">
           {/* Rider Duty Presence Toggle */}
           <button
             type="button"
             onClick={toggleRiderDuty}
-            className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
               isRiderOnDuty
                 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
                 : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
@@ -685,7 +712,7 @@ export default function TransportView() {
             title="Toggle Rider Duty Availability"
           >
             <span className={`w-2 h-2 rounded-full ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            <span>{isRiderOnDuty ? 'On Duty' : 'Off Duty'}</span>
+            <span>{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
           </button>
 
           <button
@@ -699,62 +726,64 @@ export default function TransportView() {
                 showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
               }
             }}
-            className={`px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${isPlaying
+            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
                 ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/8 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/15'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
               }`}
             title="Test or silence Sarathi Rider Chime"
           >
-            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-cyan-400" />}
-            <span className="hidden sm:inline">{isPlaying ? 'Silence' : 'Test Sound'}</span>
+            {isPlaying ? <VolumeX size={15} className="text-rose-500" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33]" />}
+            <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 bg-stone-300/70 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-300 dark:border-white/8 shadow-inner shrink-0 flex-1 sm:flex-none justify-center">
+          {/* List vs Carto View Switcher */}
+          <div className="flex items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner shrink-0">
             <button
               onClick={() => setViewMode('list')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'list'
-                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121214] font-black shadow-md'
-                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'list'
+                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
+                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
-              <List className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Orders ({orders.length})</span>
+              <List size={14} className="shrink-0" />
+              <span className="whitespace-nowrap font-['Outfit']">Orders ({orders.length})</span>
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewMode === 'map'
-                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121214] font-black shadow-md'
-                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'map'
+                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
+                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
-              <Map className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap font-['Plus_Jakarta_Sans']">Carto HUD</span>
+              <Map size={14} className="shrink-0" />
+              <span className="whitespace-nowrap font-['Outfit']">Carto HUD</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* BRANCH SELECTOR — Global roles can switch delivery branches inline */}
+      {/* 3. BRANCH SELECTOR */}
       {isGlobalRole && allShops.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
-          {allShops.map(s => {
-            const isActive = currentUserShopId === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => impersonate(s.id, userRole)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                  ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black'
-                  : 'bg-stone-200/90 text-stone-700 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300 dark:hover:bg-white/5'
-                  }`}
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>{s.name}</span>
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-0.5" />}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center gap-2.5 py-1">
+          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+            <Store size={14} className="text-amber-600 dark:text-[#E0FF33]" />
+            Switch Kitchen:
+          </span>
+          <SearchableDropdown
+            value={currentUserShopId || allShops[0]?.id}
+            onChange={(val) => impersonate(val, userRole)}
+            options={allShops.map(s => ({
+              value: s.id,
+              label: s.name,
+              sublabel: s.address || 'Vrindavan Dham Kitchen',
+              icon: Store,
+              badge: s.tag || 'Branch',
+              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+            }))}
+            size="sm"
+            searchPlaceholder="Search kitchens..."
+            className="w-full sm:w-64"
+          />
         </div>
       )}
 
@@ -817,29 +846,29 @@ export default function TransportView() {
           {/* Dispatch Sidebar & Action Console (Right / Bottom) */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-4 w-full">
             {/* Primary Active Dispatch Card */}
-            <div className="bg-[#282526] border border-white/10 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-3xl p-5 shadow-2xl space-y-4">
               {/* Customer Profile & Direct Contact Actions */}
-              <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-white/5">
+              <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-stone-200 dark:border-white/5">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 rounded-2xl bg-[#1E1B1C] border border-white/10 text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#1E1B1C] border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
                     <User size={18} className="stroke-[2.2]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm tracking-tight font-['Outfit'] text-white truncate">
+                      <h4 className="font-bold text-sm tracking-tight font-['Outfit'] text-stone-900 dark:text-white truncate">
                         {activeOrder.customerName || 'Customer'}
                       </h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-white/5 text-neutral-300 border border-white/10 shrink-0 font-mono">
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300 dark:border-white/10 shrink-0 font-mono">
                         #{activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-amber-400 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
+                    <div className="flex items-center gap-1.5 text-amber-500 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-current" />
-                        <span className="text-white text-[11px] font-black">5.0</span>
+                        <span className="text-stone-900 dark:text-white text-[11px] font-black">5.0</span>
                       </div>
-                      <span className="text-neutral-600 text-[10px]">•</span>
-                      <span className="text-neutral-400 text-[11px] font-medium truncate">
+                      <span className="text-stone-400 dark:text-neutral-600 text-[10px]">•</span>
+                      <span className="text-stone-500 dark:text-neutral-400 text-[11px] font-medium truncate">
                         {activeOrder.items?.length || 1} {(activeOrder.items?.length || 1) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
@@ -852,7 +881,7 @@ export default function TransportView() {
                       href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-9 h-9 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="WhatsApp Customer"
                     >
                       <MessageCircle className="w-4 h-4 stroke-[2]" />
@@ -861,45 +890,45 @@ export default function TransportView() {
                   {activeOrder.customerPhone && (
                     <a
                       href={`tel:${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}`}
-                      className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                      className="w-9 h-9 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-white border border-stone-300 dark:border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
-                      <Phone className="w-4 h-4 text-[#E0FF33] stroke-[2]" />
+                      <Phone className="w-4 h-4 text-amber-600 dark:text-[#E0FF33] stroke-[2]" />
                     </a>
                   )}
                 </div>
               </div>
 
               {/* ETA & Drop-off Target */}
-              <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
+              <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-white/5 text-white flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4 text-[#E0FF33]" />
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-white/5 text-amber-700 dark:text-white flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
-                    <h5 className="font-bold text-sm text-white font-['Outfit'] truncate">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
+                    <h5 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">
                       Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </h5>
                   </div>
                 </div>
-                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-[#E0FF33] bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border border-[#E0FF33]/30 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] animate-pulse"></span>
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-amber-800 bg-amber-500/15 border-amber-500/30 dark:text-[#E0FF33] dark:bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border dark:border-[#E0FF33]/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-[#E0FF33] animate-pulse"></span>
                   Live Active
                 </span>
               </div>
 
               {/* Destination Address */}
-              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#1E1B1C] border border-white/5">
-                <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4 text-[#E0FF33]" />
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Destination</p>
-                    <span className="text-[10px] font-bold text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 shrink-0 whitespace-nowrap">ETA: ~8–10 Min</span>
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Destination</p>
+                    <span className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 bg-stone-200/80 dark:bg-white/5 px-2 py-0.5 rounded-md border border-stone-300 dark:border-white/5 shrink-0 whitespace-nowrap">ETA: ~8–10 Min</span>
                   </div>
-                  <p className="text-xs font-bold text-white font-['Outfit'] line-clamp-2 leading-relaxed">
+                  <p className="text-xs font-bold text-stone-900 dark:text-white font-['Outfit'] line-clamp-2 leading-relaxed">
                     {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Raman Reti, Parikrama Marg, Vrindavan'}
                   </p>
                 </div>
@@ -914,10 +943,10 @@ export default function TransportView() {
                   return (
                     <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-2 overflow-hidden">
                       <div className="flex items-center gap-2 min-w-0">
-                        <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="text-xs font-bold text-emerald-300 truncate">Prepaid Online</span>
+                        <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 truncate">Prepaid Online</span>
                       </div>
-                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
                         NO CASH DUE
                       </span>
                     </div>
@@ -927,10 +956,10 @@ export default function TransportView() {
                   return (
                     <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between gap-2 overflow-hidden">
                       <div className="flex items-center gap-2 min-w-0">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="text-xs font-bold text-emerald-300 truncate">Cash Paid</span>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 truncate">Cash Paid</span>
                       </div>
-                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
                         COLLECTED
                       </span>
                     </div>
@@ -939,10 +968,10 @@ export default function TransportView() {
                 return (
                   <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 overflow-hidden">
                     <div className="flex items-center gap-2 min-w-0">
-                      <Banknote className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span className="text-xs font-bold text-amber-300 truncate">Cash on Delivery</span>
+                      <Banknote className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span className="text-xs font-bold text-amber-800 dark:text-amber-300 truncate">Cash on Delivery</span>
                     </div>
-                    <span className="font-black text-sm text-amber-400 font-['Outfit'] shrink-0 whitespace-nowrap">
+                    <span className="font-black text-sm text-amber-700 dark:text-amber-400 font-['Outfit'] shrink-0 whitespace-nowrap">
                       ₹{activeOrder.totalAmount || activeOrder.total_amount || 0}
                     </span>
                   </div>
@@ -956,9 +985,9 @@ export default function TransportView() {
                     href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryCoordinates.lat},${activeOrder.deliveryCoordinates.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 border border-stone-300 dark:border-white/10 hover:border-stone-400 dark:hover:border-white/20 text-stone-900 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
-                    <Compass className="w-4 h-4 text-[#E0FF33]" />
+                    <Compass className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
                     <span>Open Live On Google Maps</span>
                   </a>
                 )}
@@ -966,7 +995,7 @@ export default function TransportView() {
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
                     onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <span>Pick Up & Start Delivery</span>
                     <ArrowRight className="w-4 h-4 shrink-0" />
@@ -974,7 +1003,7 @@ export default function TransportView() {
                 ) : (
                   <button
                     onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(224,255,51,0.3)] active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5] shrink-0" />
                     <span>Mark as Delivered</span>
@@ -985,12 +1014,12 @@ export default function TransportView() {
 
             {/* Other Active Deliveries Queue (Directly in Sidebar) */}
             {orders.length > 1 && (
-              <div className="bg-[#282526] border border-white/10 rounded-3xl p-4.5 space-y-3 shadow-xl">
+              <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-3xl p-4.5 space-y-3 shadow-xl">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-black text-white text-xs uppercase tracking-wider font-['Outfit']">
+                  <h4 className="font-black text-stone-900 dark:text-white text-xs uppercase tracking-wider font-['Outfit']">
                     Other Active Deliveries ({orders.length - 1})
                   </h4>
-                  <span className="text-[10px] text-neutral-400 font-bold">Tap to switch</span>
+                  <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-bold">Tap to switch</span>
                 </div>
                 <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
                   {orders.map(o => {
@@ -1001,19 +1030,19 @@ export default function TransportView() {
                         key={o.id}
                         onClick={() => setSelectedOrder(o)}
                         className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${isCur
-                          ? 'bg-[#1E1B1C] border-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)] ring-1 ring-[#E0FF33]'
-                          : 'bg-[#1E1B1C]/60 border-white/5 hover:border-white/15 hover:bg-[#1E1B1C]'
+                          ? 'bg-amber-500/10 border-amber-500 dark:bg-[#1E1B1C] dark:border-[#E0FF33] shadow-md ring-1 ring-amber-500 dark:ring-[#E0FF33]'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C]/60 border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 hover:bg-stone-100 dark:hover:bg-[#1E1B1C]'
                           }`}
                       >
                         <div className="min-w-0 pr-2">
-                          <p className="font-bold text-white text-xs truncate">
+                          <p className="font-bold text-stone-900 dark:text-white text-xs truncate">
                             #{o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} • {o.customerName || 'Customer'}
                           </p>
-                          <p className="text-[10px] text-neutral-400 truncate">
+                          <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
                             {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
                           </p>
                         </div>
-                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/15 text-amber-300 border border-amber-400/25' : 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/25'
+                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30' : 'bg-cyan-400/20 text-cyan-800 dark:text-cyan-300 border border-cyan-400/30'
                           }`}>
                           {isReadyOrder ? 'Ready' : 'In Transit'}
                         </span>
@@ -1029,25 +1058,25 @@ export default function TransportView() {
 
       {/* VIEW MODE 2: ALL DISPATCH ORDERS LIST VIEW */}
       {(viewMode === 'list' || !activeOrder) && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-neutral-500" />
+            <Search className="w-4 h-4 absolute left-4.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-neutral-400" />
             <input
               type="text"
               placeholder="Search by order ID, customer name, or dish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-stone-900 dark:text-white placeholder:text-stone-500 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+              className="w-full h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-500 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans'] shadow-inner"
             />
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div className="bg-stone-200/80 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-16 text-center space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-stone-300/60 dark:bg-white/5 flex items-center justify-center text-stone-600 dark:text-neutral-400">
-                <PackageCheck className="w-7 h-7 text-amber-600 dark:text-[#E0FF33]" />
+            <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-[32px] p-12 sm:p-16 text-center shadow-md flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] mb-4 shadow-sm">
+                <PackageCheck size={32} strokeWidth={2.2} />
               </div>
-              <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">All deliveries caught up!</h3>
-              <p className="text-xs text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto">
+              <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">All Deliveries Caught Up!</h3>
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto mt-1">
                 No active delivery orders currently pending. New pickup requests will chime the live alarm.
               </p>
             </div>

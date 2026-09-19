@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1789827546.732298,
-    "ast_hash": "091ee43b4582e8054c9302dc1882a33c",
+    "mtime": 1789830314.7546318,
+    "ast_hash": "b4e4aea9dac766ade17bce8f04c04160",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
-    "mtime": 1789818602.4134638,
-    "ast_hash": "3671d29eaf130761836a86f77146a104",
+    "mtime": 1789830612.5739183,
+    "ast_hash": "8e6630aa4c1218a6b388b22f0276f5e9",
     "semantic_hash": ""
   },
   "src/components/Loader.jsx": {
@@ -35,18 +35,18 @@
     "semantic_hash": ""
   },
   "src/components/NotificationPanel.jsx": {
-    "mtime": 1789818865.5260692,
-    "ast_hash": "9a9af6af027c1bbfc2381ff7af38fcdd",
+    "mtime": 1789830421.1372206,
+    "ast_hash": "818ccbe3e41af2a17d7c50a3f333995e",
     "semantic_hash": ""
   },
   "src/components/OrderHistoryDrawer.jsx": {
-    "mtime": 1789817547.8720472,
-    "ast_hash": "aaf98f0b6911f33220d94220feaef4ed",
+    "mtime": 1789830056.9333582,
+    "ast_hash": "24cb2217e6c997805455e85a47877c97",
     "semantic_hash": ""
   },
   "src/components/QuantityPickerSheet.jsx": {
-    "mtime": 1789735326.5066733,
-    "ast_hash": "f7cd45d92c05a0302f4710aba16b53d8",
+    "mtime": 1789830235.177818,
+    "ast_hash": "e8deb4bc664e79d6573a10d66d04abef",
     "semantic_hash": ""
   },
   "src/components/ReviewModal.jsx": {
@@ -170,13 +170,13 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789827487.8265605,
-    "ast_hash": "571e8fc63964c1f6d23f8910c9e0d6e1",
+    "mtime": 1789828752.0655868,
+    "ast_hash": "5f468b3262d0d4ee1007ed301ae99d3e",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1789819030.0557048,
-    "ast_hash": "70d29c5ab15e88a593ddd0653e620707",
+    "mtime": 1789830229.88198,
+    "ast_hash": "e5e55f979575ad6d5f7cfdf72a68b514",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1789827594.6821907,
-    "ast_hash": "946528310b37f0098c2b6c817366e53f",
+    "mtime": 1789828460.3593557,
+    "ast_hash": "a14ff89a58b76f9efac0cac343b0b06e",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -195,13 +195,8 @@
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1789670447.5507925,
-    "ast_hash": "91cdcdca83da45741348357a53f7848f",
-    "semantic_hash": ""
-  },
-  "supabase_schema.sql": {
-    "mtime": 1789668338.1449234,
-    "ast_hash": "bde41a5c23d12c68f702b01f654ca955",
+    "mtime": 1789830661.721721,
+    "ast_hash": "598bebeb815726678f00895276f4df39",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -215,23 +210,13 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1789670077.4358711,
-    "ast_hash": "507a7d5870a85e423304089285a4392a",
+    "mtime": 1789830551.9248443,
+    "ast_hash": "a5e781ecbf079dcd07ed2286379b21b9",
     "semantic_hash": ""
   },
   "src/components/UnauthorizedAccessScreen.jsx": {
     "mtime": 1788928178.6280878,
     "ast_hash": "add649247298803a70dfd3f409681938",
-    "semantic_hash": ""
-  },
-  "SUPABASE_OFFERS_MIGRATION.sql": {
-    "mtime": 1789070693.3890178,
-    "ast_hash": "09f1d93b831088f115b3a80415e635f1",
-    "semantic_hash": ""
-  },
-  "SUPABASE_ROLE_RELATION_MIGRATION.sql": {
-    "mtime": 1789070716.1797073,
-    "ast_hash": "83da22f771887dd8995ef09dbe679968",
     "semantic_hash": ""
   },
   "scripts/run-android.js": {
@@ -240,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderCapsule.jsx": {
-    "mtime": 1788968988.3228688,
-    "ast_hash": "37ff9c2a849ef275fc0849c2255c7a38",
+    "mtime": 1789829859.3667178,
+    "ast_hash": "a50a2ef53fcdd21e4f5c918067f44a2f",
     "semantic_hash": ""
   },
   "src/components/CompleteProfileModal.jsx": {
@@ -315,13 +300,13 @@
     "semantic_hash": ""
   },
   "FOODY_VRINDA_SYSTEM_ARCHITECTURE.html": {
-    "mtime": 1789827618.143616,
-    "ast_hash": "5ea94e458b5b744c97d5527d93e10293",
+    "mtime": 1789828099.955349,
+    "ast_hash": "364f5c5ad6adaee1c652515e3b2dfef5",
     "semantic_hash": ""
   },
   "FOODY_VRINDA_SYSTEM_GUIDE.txt": {
-    "mtime": 1789827629.097157,
-    "ast_hash": "85951367507a15073fda549ac3344bad",
+    "mtime": 1789828113.4940987,
+    "ast_hash": "bf33f9afbd472a21266c42992402598c",
     "semantic_hash": ""
   }
 }

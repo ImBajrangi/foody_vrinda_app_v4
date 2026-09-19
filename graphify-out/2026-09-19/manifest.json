@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1789823933.9217045,
-    "ast_hash": "2df8f1f58745b48ed6f0d97a08d2025f",
+    "mtime": 1789829776.8067896,
+    "ast_hash": "e27649c9864e610036d7528950405f31",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -35,23 +35,23 @@
     "semantic_hash": ""
   },
   "src/components/NotificationPanel.jsx": {
-    "mtime": 1789818865.5260692,
-    "ast_hash": "9a9af6af027c1bbfc2381ff7af38fcdd",
+    "mtime": 1789829556.077846,
+    "ast_hash": "ea2e9d212e580f3c5d8f3f6de5b492bb",
     "semantic_hash": ""
   },
   "src/components/OrderHistoryDrawer.jsx": {
-    "mtime": 1789817547.8720472,
-    "ast_hash": "aaf98f0b6911f33220d94220feaef4ed",
+    "mtime": 1789830056.9333582,
+    "ast_hash": "24cb2217e6c997805455e85a47877c97",
     "semantic_hash": ""
   },
   "src/components/QuantityPickerSheet.jsx": {
-    "mtime": 1789735326.5066733,
-    "ast_hash": "f7cd45d92c05a0302f4710aba16b53d8",
+    "mtime": 1789830235.177818,
+    "ast_hash": "e8deb4bc664e79d6573a10d66d04abef",
     "semantic_hash": ""
   },
   "src/components/ReviewModal.jsx": {
-    "mtime": 1788948950.0654285,
-    "ast_hash": "37925835763a87e4109632c114e3f3b4",
+    "mtime": 1789827513.5932786,
+    "ast_hash": "76d1f8cc1e2f2a5cc1d2a1c4785e5192",
     "semantic_hash": ""
   },
   "src/components/RewardsModal.jsx": {
@@ -170,13 +170,13 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789824089.2116573,
-    "ast_hash": "31d3605530307da7be582e69932830e7",
+    "mtime": 1789828752.0655868,
+    "ast_hash": "5f468b3262d0d4ee1007ed301ae99d3e",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1789819030.0557048,
-    "ast_hash": "70d29c5ab15e88a593ddd0653e620707",
+    "mtime": 1789830229.88198,
+    "ast_hash": "e5e55f979575ad6d5f7cfdf72a68b514",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1789823504.0131843,
-    "ast_hash": "fd90fa47a121df2eeb0fa2800e393ddc",
+    "mtime": 1789828460.3593557,
+    "ast_hash": "a14ff89a58b76f9efac0cac343b0b06e",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -195,13 +195,8 @@
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1789670447.5507925,
-    "ast_hash": "91cdcdca83da45741348357a53f7848f",
-    "semantic_hash": ""
-  },
-  "supabase_schema.sql": {
-    "mtime": 1789668338.1449234,
-    "ast_hash": "bde41a5c23d12c68f702b01f654ca955",
+    "mtime": 1789828404.081074,
+    "ast_hash": "814d93d073c8453f5ebadd0e511ed203",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -224,24 +219,14 @@
     "ast_hash": "add649247298803a70dfd3f409681938",
     "semantic_hash": ""
   },
-  "SUPABASE_OFFERS_MIGRATION.sql": {
-    "mtime": 1789070693.3890178,
-    "ast_hash": "09f1d93b831088f115b3a80415e635f1",
-    "semantic_hash": ""
-  },
-  "SUPABASE_ROLE_RELATION_MIGRATION.sql": {
-    "mtime": 1789070716.1797073,
-    "ast_hash": "83da22f771887dd8995ef09dbe679968",
-    "semantic_hash": ""
-  },
   "scripts/run-android.js": {
     "mtime": 1789732677.9141731,
     "ast_hash": "dd85305b22cf12cb3431b782df126301",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderCapsule.jsx": {
-    "mtime": 1788968988.3228688,
-    "ast_hash": "37ff9c2a849ef275fc0849c2255c7a38",
+    "mtime": 1789829859.3667178,
+    "ast_hash": "a50a2ef53fcdd21e4f5c918067f44a2f",
     "semantic_hash": ""
   },
   "src/components/CompleteProfileModal.jsx": {
@@ -312,6 +297,16 @@
   "src/services/backHandlerService.js": {
     "mtime": 1789817606.5981157,
     "ast_hash": "e905cef92b8004184822ba4eff45799b",
+    "semantic_hash": ""
+  },
+  "FOODY_VRINDA_SYSTEM_ARCHITECTURE.html": {
+    "mtime": 1789828099.955349,
+    "ast_hash": "364f5c5ad6adaee1c652515e3b2dfef5",
+    "semantic_hash": ""
+  },
+  "FOODY_VRINDA_SYSTEM_GUIDE.txt": {
+    "mtime": 1789828113.4940987,
+    "ast_hash": "bf33f9afbd472a21266c42992402598c",
     "semantic_hash": ""
   }
 }

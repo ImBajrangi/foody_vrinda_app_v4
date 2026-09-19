@@ -894,7 +894,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-gradient-to-b dark:from-[#181617] dark:to-[#121011] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-sm">
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#181617] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-sm">
                 <div className="flex items-center justify-between px-0.5">
                   <div className="flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
@@ -932,9 +932,6 @@ export default function AuthModal({ isOpen, onClose }) {
                           <Icon className="w-3.5 h-3.5" />
                         </div>
                         <span className="truncate">{d.label}</span>
-                        {isCurrent && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-auto mr-1 animate-pulse" />
-                        )}
                       </button>
                     );
                   })}
@@ -943,7 +940,7 @@ export default function AuthModal({ isOpen, onClose }) {
             )}
 
             {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out */}
-            <div className="p-1.5 rounded-2xl bg-stone-100 dark:bg-gradient-to-r dark:from-[#181617] dark:via-[#141213] dark:to-[#181617] border border-stone-200 dark:border-white/10 grid grid-cols-2 gap-2 shadow-sm mt-1">
+            <div className="p-1.5 rounded-2xl bg-stone-100 dark:bg-[#181617] border border-stone-200 dark:border-white/10 grid grid-cols-2 gap-2 shadow-sm mt-1">
               <button
                 type="button"
                 onClick={() => setShowLoginView(true)}

@@ -15,7 +15,7 @@ export default function QuantityPickerSheet({
   const [selectedQty, setSelectedQty] = useState(item?.quantity || 1);
   const [isClosing, setIsClosing] = useState(false);
   const [dragOffsetY, setDragOffsetY] = useState(0);
-  
+
   const wheelRef = useRef(null);
   const isDraggingSheet = useRef(false);
   const sheetStartY = useRef(0);
@@ -143,40 +143,38 @@ export default function QuantityPickerSheet({
   const itemImgSrc = resolveDishCutout(item?.image || item?.imageUrl, item?.name, item?.category);
 
   return (
-    <div 
-      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${
-        isClosing ? 'opacity-0' : 'opacity-100'
-      }`}
+    <div
+      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'
+        }`}
       onClick={handleClose}
       onPointerMove={handleSheetPointerMove}
       onPointerUp={handleSheetPointerUp}
       onTouchMove={handleSheetPointerMove}
       onTouchEnd={handleSheetPointerUp}
     >
-      <div 
+      <div
         style={{
           transform: dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
           transition: dragOffsetY > 0 ? 'none' : 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        className={`w-full sm:max-w-[400px] bg-[#1E1B1C] border-t sm:border border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-200 select-none ${
-          isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0' : 'translate-y-0 sm:scale-100 sm:opacity-100'
-        }`}
+        className={`w-full sm:max-w-[400px] bg-stone-50 dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-200 select-none ${isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0' : 'translate-y-0 sm:scale-100 sm:opacity-100'
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Apple Pull / Drag Handle */}
-        <div 
+        <div
           onPointerDown={handleSheetPointerDown}
           onTouchStart={handleSheetPointerDown}
           className="w-full py-2 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
         >
-          <div className="w-10 h-1.5 rounded-full bg-zinc-600/80 transition-colors hover:bg-zinc-500" />
+          <div className="w-10 h-1.5 rounded-full bg-stone-300 dark:bg-zinc-600/80 transition-colors hover:bg-stone-400 dark:hover:bg-zinc-500" />
         </div>
 
         {/* Dish Summary Info with Image and discreet Actions */}
-        <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-white/10">
+        <div className="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-stone-200 dark:border-white/10">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Dish Image Thumbnail */}
-            <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">
+            <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-neutral-900 border border-stone-200 dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">
               <img
                 src={itemImgSrc}
                 alt={item?.name || 'Dish'}
@@ -189,20 +187,20 @@ export default function QuantityPickerSheet({
             </div>
 
             <div className="min-w-0 flex-1">
-              <h3 className="text-base font-black text-white font-['Outfit'] truncate">
+              <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                 {item?.name || 'Dish'}
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                ₹{item?.price} each · Total: <span className="text-[#E0FF33] font-bold">₹{(item?.price || 0) * selectedQty}</span>
+              <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">
+                ₹{item?.price} each · Total: <span className="text-amber-700 dark:text-[#E0FF33] font-bold">₹{(item?.price || 0) * selectedQty}</span>
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button
               type="button"
               onClick={handleRemove}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-red-500/20 flex items-center justify-center text-zinc-400 hover:text-red-400 transition-all cursor-pointer apple-tap-target"
+              className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 dark:hover:bg-red-500/20 flex items-center justify-center text-stone-600 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-red-400 transition-all cursor-pointer apple-tap-target"
               title="Remove item"
             >
               <Trash2 size={15} />
@@ -210,7 +208,7 @@ export default function QuantityPickerSheet({
             <button
               type="button"
               onClick={handleClose}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all cursor-pointer apple-tap-target"
+              className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-stone-600 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-all cursor-pointer apple-tap-target"
               title="Close"
             >
               <X size={16} />
@@ -227,11 +225,10 @@ export default function QuantityPickerSheet({
                 key={num}
                 type="button"
                 onClick={() => scrollToQty(num)}
-                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
-                  selectedQty === num
-                    ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md ring-1 ring-[#E0FF33]'
-                    : 'bg-[#282526] text-zinc-300 hover:text-white border border-white/5'
-                }`}
+                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${selectedQty === num
+                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
+                    : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
+                  }`}
               >
                 {num}
               </button>
@@ -243,11 +240,10 @@ export default function QuantityPickerSheet({
                 key={num}
                 type="button"
                 onClick={() => scrollToQty(num)}
-                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
-                  selectedQty === num
-                    ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md ring-1 ring-[#E0FF33]'
-                    : 'bg-[#282526] text-zinc-300 hover:text-white border border-white/5'
-                }`}
+                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${selectedQty === num
+                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
+                    : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
+                  }`}
               >
                 {num}
               </button>
@@ -255,22 +251,22 @@ export default function QuantityPickerSheet({
           </div>
 
           {/* Precision Stepper Controls */}
-          <div className="flex items-center justify-between bg-[#151314] rounded-2xl p-2 border border-white/10 mb-5">
+          <div className="flex items-center justify-between bg-stone-100 dark:bg-[#151314] rounded-2xl p-2 border border-stone-200 dark:border-white/10 mb-5">
             <button
               type="button"
               onClick={() => scrollToQty(Math.max(1, selectedQty - 1))}
               disabled={selectedQty <= 1}
-              className="w-10 h-10 rounded-xl bg-[#282526] hover:bg-[#322E30] text-zinc-200 hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-[#282526] dark:hover:bg-[#322E30] text-stone-700 hover:text-stone-900 dark:text-zinc-200 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed"
               title="Decrease"
             >
               <Minus size={16} strokeWidth={2.5} />
             </button>
 
             <div className="text-center">
-              <span className="text-xl font-black text-[#E0FF33] font-['Outfit'] leading-none">
+              <span className="text-xl font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit'] leading-none">
                 {selectedQty}
               </span>
-              <span className="text-[10px] text-zinc-400 block font-medium mt-0.5">
+              <span className="text-[10px] text-stone-500 dark:text-zinc-400 block font-medium mt-0.5">
                 {selectedQty === 1 ? 'Selected Item' : 'Selected Items'}
               </span>
             </div>
@@ -279,10 +275,10 @@ export default function QuantityPickerSheet({
               type="button"
               onClick={() => scrollToQty(Math.min(10, selectedQty + 1))}
               disabled={selectedQty >= 10}
-              className="w-10 h-10 rounded-xl bg-[#E0FF33] hover:bg-[#ccff00] text-[#121011] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
               title="Increase"
             >
-              <Plus size={16} strokeWidth={3.5} className="text-[#121011]" />
+              <Plus size={16} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
             </button>
           </div>
         </div>
@@ -291,14 +287,14 @@ export default function QuantityPickerSheet({
         <button
           type="button"
           onClick={handleConfirm}
-          className="w-full py-4 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] text-[#1E1B1C] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#ccff00] dark:text-[#1E1B1C] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2"
         >
           <Check size={18} strokeWidth={3} />
           <span>Confirm Quantity ({selectedQty})</span>
         </button>
 
         {/* iOS Home Indicator Bar */}
-        <div className="w-32 h-1 bg-white/20 rounded-full mx-auto mt-4 sm:hidden" />
+        <div className="w-32 h-1 bg-stone-300 dark:bg-white/20 rounded-full mx-auto mt-4 sm:hidden" />
       </div>
     </div>
   );

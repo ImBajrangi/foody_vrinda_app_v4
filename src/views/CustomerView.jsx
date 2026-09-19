@@ -1100,15 +1100,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold text-amber-700 dark:text-[#E0FF33] bg-amber-500/10 dark:bg-[#E0FF33]/10 px-3.5 py-1 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20 font-laila flex items-center gap-1.5 shadow-xs">
-              <span>वृन्दोपनिषद्</span>
-              <span className="text-xs font-bold text-stone-600 dark:text-zinc-300 font-['Outfit']">· vrindopnishad</span>
+            <span className="text-xs font-bold bg-stone-200/90 dark:bg-white/10 px-3.5 py-1 rounded-full border border-stone-300 dark:border-white/10 font-laila flex items-center gap-1.5 shadow-xs">
+              <span className="font-bold text-emerald-700 dark:text-[#E0FF33]">वृन्दोपनिषद्</span>
+              <span className="text-xs font-bold text-stone-500 dark:text-zinc-400 font-['Outfit']">· vrindopnishad</span>
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight font-['Outfit']">
-            <span className="font-laila font-bold text-stone-900 dark:text-white">वृन्दोपनिषद्</span> <span className="text-amber-600 dark:text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight font-['Outfit'] text-stone-900 dark:text-white">
+            <span className="font-laila font-bold text-stone-900 dark:text-white">वृन्दोपनिषद्</span> <span className="text-stone-900 dark:text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
           </h1>
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-400 mt-1.5 font-medium tracking-wide">
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-400 mt-1.5 font-medium tracking-wide font-['Plus_Jakarta_Sans']">
             100% Vrinda · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
           </p>
         </div>
@@ -1126,17 +1126,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           {menuSearch && (
             <button
               onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/20 hover:bg-stone-400 dark:hover:bg-white/30 flex items-center justify-center text-xs text-stone-800 dark:text-white cursor-pointer transition-all"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-stone-300 hover:bg-stone-400 dark:bg-white/20 dark:hover:bg-white/30 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer transition-all active:scale-90"
               title="Clear search"
+              aria-label="Clear search query"
             >
-              ✕
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           )}
         </div>
       </div>
 
       {/* 3. HORIZONTAL CATEGORY PILL CHIPS (Sticky with Glassmorphism & High Contrast) */}
-      <div className="sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2.5 mb-6 sm:mb-8 bg-[#FAF7F2]/90 dark:bg-[#1E1B1C]/90 backdrop-blur-md transition-all">
+      <div className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2.5 mb-6 sm:mb-8 bg-[#FAF7F2]/90 dark:bg-[#1E1B1C]/90 backdrop-blur-md transition-all">
         <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5">
           {categories.map((cat) => {
             const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
@@ -1144,11 +1145,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${
-                  isSelected
+                className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${isSelected
                     ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-md scale-[1.02]'
                     : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -1159,23 +1159,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
       {trackingOrder && (
-        <div className="mb-6 bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-2xl relative apple-modal-spring overflow-hidden">
+        <div className="mb-6 bg-stone-100/95 dark:bg-[#282526] border border-stone-200/90 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-2xl relative apple-modal-spring overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             {/* Left: Icon & Status Text */}
             <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <div className="w-11 h-11 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-inner">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-inner">
                 <Navigation className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-3 py-0.5 rounded-full border border-[#E0FF33]/20">
+                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-3 py-0.5 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20">
                     Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                   </span>
-                  <span className="text-xs font-bold text-zinc-400 capitalize">
+                  <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 capitalize">
                     • {trackingOrder.status?.replace(/_/g, ' ')}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">
+                <p className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                   {trackingOrder.status === 'out_for_delivery'
                     ? 'Rider is on the way to your location!'
                     : trackingOrder.status === 'completed'
@@ -1190,10 +1190,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   setTrackingOrderId(null);
                   setIsTrackingModalOpen(false);
                 }}
-                className="sm:hidden w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-xs shrink-0 cursor-pointer"
+                className="sm:hidden w-8 h-8 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90 apple-tap-target"
                 title="Dismiss banner"
+                aria-label="Dismiss tracking banner"
               >
-                ✕
+                <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
 
@@ -1205,17 +1206,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     setReviewOrderTarget(trackingOrder);
                     setIsReviewModalOpen(true);
                   }}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-[#E0FF33] text-[#1E1B1C] font-black text-xs hover:bg-[#ccff00] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] font-black text-xs hover:bg-amber-600 dark:hover:bg-[#ccff00] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
-                  <Star className="w-3.5 h-3.5 fill-[#1E1B1C]" />
+                  <Star className="w-3.5 h-3.5 fill-current" />
                   <span>Rate & Review</span>
                 </button>
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] border border-white/10"
+                className="flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
               >
-                <Navigation className="w-3.5 h-3.5 text-[#E0FF33]" />
+                <span className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
+                  <Navigation className="w-3 h-3 text-white dark:text-[#121011] fill-current" />
+                </span>
                 <span>Live Map Track</span>
               </button>
               <button
@@ -1223,10 +1226,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   setTrackingOrderId(null);
                   setIsTrackingModalOpen(false);
                 }}
-                className="hidden sm:flex w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white items-center justify-center text-xs apple-tap-target cursor-pointer shrink-0"
+                className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs apple-tap-target cursor-pointer shrink-0 transition-all active:scale-90"
                 title="Dismiss banner"
+                aria-label="Dismiss tracking banner"
               >
-                ✕
+                <X className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2.5]" />
               </button>
             </div>
           </div>
@@ -1239,12 +1243,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <BouncingLoader />
         </div>
       ) : filteredMenuItems.length === 0 ? (
-        <div className="bg-[#282526] rounded-[32px] sm:rounded-[36px] p-12 sm:p-16 text-center text-zinc-400 border border-white/5 flex flex-col items-center justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
-            <Soup size={32} className="text-[#E0FF33]" />
+        <div className="bg-stone-100 dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-200 dark:border-white/5 flex flex-col items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-stone-200/80 dark:bg-white/5 flex items-center justify-center mb-3">
+            <Soup size={32} className="text-amber-600 dark:text-[#E0FF33]" />
           </div>
-          <p className="font-black text-white text-base sm:text-lg">No items found</p>
-          <p className="text-xs text-zinc-500 mt-1">Try searching for other pure delicacies.</p>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg">No items found</p>
+          <p className="text-xs text-stone-500 dark:text-zinc-500 mt-1">Try searching for other pure delicacies.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
@@ -1369,10 +1373,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           addToCart(item);
                           showToast(`+1 ${item.name}`, 'success', `₹${item.price * (quantityInCart + 1)}`);
                         }}
-                        className="w-8 h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-md !text-[#121011]"
+                        className="w-8 h-8 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-md text-white dark:text-[#1E1B1C]"
                         title="Add another"
                       >
-                        <Plus size={16} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
+                        <Plus size={16} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
                       </button>
                     </div>
                   )}
@@ -1399,19 +1403,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       )}
 
       {/* Streamlined Vrinda Devotee Footer */}
-      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-zinc-400 text-xs font-['Plus_Jakarta_Sans']">
+      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-stone-600 dark:text-zinc-400 text-xs font-['Plus_Jakarta_Sans']">
         {/* Sacred Brand & Mission */}
         <div className="space-y-0.5">
           <div className="flex items-center justify-center gap-2">
-            <span className="font-laila text-xs font-bold text-zinc-300">
+            <span className="font-laila text-xs font-bold text-emerald-700 dark:text-[#E0FF33]">
               वृन्दोपनिषद्
             </span>
-            <span className="text-zinc-600">•</span>
-            <span className="text-xs text-[#E0FF33] font-['Outfit'] font-black">
+            <span className="text-stone-400 dark:text-zinc-600">•</span>
+            <span className="text-xs text-stone-900 dark:text-white font-['Outfit'] font-black">
               Foody Vrinda
             </span>
           </div>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-stone-600 dark:text-zinc-400">
             100% Vrinda Cloud Kitchen & Prasad Delivery • Vrindavan Dham
           </p>
         </div>
@@ -1422,34 +1426,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
 
         {/* Regulatory Links & Policy */}
-        <div className="flex items-center justify-center gap-3 pt-0.5 text-xs text-zinc-400">
+        <div className="flex items-center justify-center gap-3 pt-0.5 text-xs text-stone-600 dark:text-zinc-400">
           <a
             href="/privacy.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-200 transition-colors"
+            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
           >
             Privacy Policy
           </a>
-          <span className="text-zinc-700">•</span>
+          <span className="text-stone-400 dark:text-zinc-700">•</span>
           <a
             href="/terms.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-zinc-200 transition-colors"
+            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
           >
             Terms of Service
           </a>
-          <span className="text-zinc-700">•</span>
+          <span className="text-stone-400 dark:text-zinc-700">•</span>
           <a
             href="mailto:vrinda.connect.us@gmail.com"
-            className="hover:text-zinc-200 transition-colors"
+            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
           >
             Contact
           </a>
         </div>
 
-        <p className="text-xs text-zinc-500 pt-0.5 font-['Outfit']">
+        <p className="text-xs text-stone-500 dark:text-zinc-500 pt-0.5 font-['Outfit']">
           © 2026 vrindopnishad. All rights reserved.
         </p>
       </footer>
@@ -1479,7 +1483,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="pointer-events-auto w-full animate-slide-up">
               <div
                 onClick={() => setShowCartDrawer(true)}
-                className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all hover:scale-[1.02] active:scale-[0.98] group"
+                className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all active:scale-[0.98] group"
               >
                 {/* Left: Icon + Quantity Badge + Price */}
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1812,11 +1816,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setDetailQuantity(detailQuantity + 1)}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center !text-[#121011] cursor-pointer transition-all shadow-md apple-tap-target"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                         aria-label="Increase quantity"
                         title="Increase quantity"
                       >
-                        <Plus size={15} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
+                        <Plus size={15} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
                       </button>
                     </div>
 
@@ -1931,11 +1935,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center !text-[#121011] cursor-pointer transition-all shadow-md apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
-                          <Plus size={14} strokeWidth={3.5} color="#121011" className="!text-[#121011] !stroke-[#121011]" />
+                          <Plus size={14} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
                         </button>
                       </div>
                     </div>
@@ -1997,8 +2001,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
                       }}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'delivery'
-                          ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-xs'
-                          : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-xs'
+                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                         } ${onlineRidersCount === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
                     >
                       <span className="text-sm">🛵</span>
@@ -2010,15 +2014,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       type="button"
                       onClick={() => setFulfillmentType('pickup')}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'pickup'
-                          ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
-                          : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
+                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                         }`}
                     >
                       <span className="text-sm">🛍️</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
                       <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${fulfillmentType === 'pickup'
-                          ? 'bg-white !text-amber-950 dark:bg-black dark:!text-[#E0FF33] shadow-xs'
-                          : 'bg-emerald-500/20 !text-emerald-800 dark:bg-emerald-400/20 dark:!text-emerald-300 border border-emerald-500/30'
+                        ? 'bg-white text-stone-950 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                        : 'bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30'
                         }`}>Free</span>
                     </button>
                   </div>
@@ -2076,8 +2080,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Name Input */}
                 <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'name'
-                    ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                  ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                   }`}>
                   <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                     }`}>
@@ -2117,8 +2121,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Phone Input */}
                 <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'phone'
-                    ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                    : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                  ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                   }`}>
                   <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
                     }`}>
@@ -2165,8 +2169,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {fulfillmentType === 'delivery' ? (
                   <div className="relative">
                     <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${shakeField === 'address'
-                        ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                        : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                      ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
+                      : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
                       }`}>
                       {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
                       <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
@@ -2196,7 +2200,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
                           title="Auto-fill GPS address or pin on map"
                         >
-                          <Compass size={14} strokeWidth={2.5} />
+                          <span className="w-4.5 h-4.5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
+                            <Compass size={11} strokeWidth={2.8} className="text-white dark:text-[#1E1B1C]" />
+                          </span>
                           <span>Auto-Fill GPS</span>
                         </button>
                       </div>
@@ -2305,16 +2311,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       disabled={!onlineAvailable}
                       onClick={() => setPaymentMethod('online')}
                       className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!onlineAvailable
-                          ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
-                          : paymentMethod === 'online'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                            : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
+                        ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
+                        : paymentMethod === 'online'
+                          ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
+                          : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
                         }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'online'
-                            ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                            : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
+                          ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                          : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
@@ -2330,8 +2336,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           Online Pay
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'online'
-                            ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
-                            : 'text-stone-600 dark:text-zinc-400'
+                          ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                          : 'text-stone-600 dark:text-zinc-400'
                           }`}>
                           {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
                         </p>
@@ -2344,16 +2350,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       disabled={!isCodAvailableForOrder}
                       onClick={() => setPaymentMethod('cash')}
                       className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!isCodAvailableForOrder
-                          ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
-                          : paymentMethod === 'cash'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                            : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
+                        ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
+                        : paymentMethod === 'cash'
+                          ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
+                          : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
                         }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'cash'
-                            ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                            : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
+                          ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                          : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
@@ -2369,8 +2375,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'cash'
-                            ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
-                            : 'text-stone-600 dark:text-zinc-400'
+                          ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                          : 'text-stone-600 dark:text-zinc-400'
                           }`}>
                           {!isCodAvailableForOrder ? 'COD Disabled' : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
                         </p>

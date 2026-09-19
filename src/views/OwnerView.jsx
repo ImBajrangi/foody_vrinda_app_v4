@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -894,27 +895,28 @@ export default function OwnerView() {
           </div>
         </div>
 
-        {/* BRANCH SELECTOR — Integrated inside Hero for easy switching */}
+        {/* BRANCH SELECTOR — Integrated inside Hero with Searchable Dropdown */}
         {isGlobalRole && allShops.length > 1 && (
-          <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar relative z-10">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0">Switch Branch:</span>
-            {allShops.map(s => {
-              const isActive = currentUserShopId === s.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => impersonate(s.id, userRole)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                    ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black'
-                    : 'bg-stone-200/90 text-stone-700 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300 dark:hover:bg-white/5'
-                    }`}
-                >
-                  <Store className="w-3.5 h-3.5" />
-                  <span>{s.name}</span>
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-0.5" />}
-                </button>
-              );
-            })}
+          <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-10">
+            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+              <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+              Switch Kitchen:
+            </span>
+            <SearchableDropdown
+              value={currentUserShopId || allShops[0]?.id}
+              onChange={(val) => impersonate(val, userRole)}
+              options={allShops.map(s => ({
+                value: s.id,
+                label: s.name,
+                sublabel: s.address || 'Vrindavan Dham Kitchen',
+                icon: Store,
+                badge: s.tag || 'Branch',
+                badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+              }))}
+              size="sm"
+              searchPlaceholder="Search kitchens..."
+              className="w-full sm:w-64"
+            />
           </div>
         )}
       </div>
@@ -967,15 +969,15 @@ export default function OwnerView() {
       {activeTab === 'orders' && (
         <div className="space-y-6">
           {/* Top Filter and Search Ribbon */}
-          <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 shadow-xl space-y-4">
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 shadow-xl space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white font-['Outfit']">Live Orders Dispatch Board</h3>
-                  <p className="text-xs text-neutral-400">Track and manage live customer tickets in real-time</p>
+                  <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">Live Orders Dispatch Board</h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400">Track and manage live customer tickets in real-time</p>
                 </div>
               </div>
 
@@ -987,7 +989,7 @@ export default function OwnerView() {
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
                   placeholder="Search order #, customer, phone..."
-                  className="w-full bg-stone-100 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans'] transition-colors"
+                  className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans'] transition-colors"
                 />
               </div>
             </div>
@@ -1012,10 +1014,11 @@ export default function OwnerView() {
                       }`}
                   >
                     <span>{f.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${isActive 
-                      ? 'bg-black/20 text-white dark:bg-black dark:text-white' 
-                      : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
-                      }`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
+                      isActive 
+                        ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
+                        : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
+                    }`}>
                       {f.count}
                     </span>
                   </button>
@@ -1041,12 +1044,12 @@ export default function OwnerView() {
 
             if (filteredOrders.length === 0) {
               return (
-                <div className="bg-[#282526] border border-white/5 rounded-3xl p-12 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 text-neutral-400 flex items-center justify-center mx-auto">
+                <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-stone-200 dark:bg-white/5 text-stone-500 dark:text-neutral-400 flex items-center justify-center mx-auto">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <h4 className="text-base font-bold text-white font-['Outfit']">No Orders Found</h4>
-                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                  <h4 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">No Orders Found</h4>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 max-w-sm mx-auto">
                     {orderSearch ? `No tickets match "${orderSearch}". Try searching by order ID or customer name.` : "No active orders under this filter status."}
                   </p>
                 </div>
@@ -1067,7 +1070,7 @@ export default function OwnerView() {
                   return (
                     <div
                       key={o.id}
-                      className={`bg-[#282526] rounded-3xl p-5 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${isNew ? 'border-[#E0FF33]/40 shadow-[0_10px_30px_rgba(224,255,51,0.06)] ring-1 ring-[#E0FF33]/20' : 'border-white/10'
+                      className={`bg-stone-100/90 dark:bg-[#282526] rounded-3xl p-5 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 shadow-md ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20' : 'border-stone-200 dark:border-white/10'
                         }`}
                     >
                       <div className="space-y-3">
@@ -1189,46 +1192,46 @@ export default function OwnerView() {
         <div className="space-y-6">
           {/* KPI Widget Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all shadow-xl">
+            <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-amber-500/30 dark:hover:border-white/10 transition-all shadow-xl">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Total Revenue</span>
-                <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center">
+                <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Total Revenue</span>
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center">
                   <DollarSign className="w-5 h-5" />
                 </div>
               </div>
-              <p className="text-3xl font-black text-white mt-3 font-['Outfit']">₹{totalRevenue.toLocaleString('en-IN')}</p>
-              <p className="text-[11px] text-neutral-500 font-medium mt-1">From all completed deliveries</p>
+              <p className="text-3xl font-black text-stone-900 dark:text-white mt-3 font-['Outfit']">₹{totalRevenue.toLocaleString('en-IN')}</p>
+              <p className="text-[11px] text-stone-500 dark:text-neutral-500 font-medium mt-1">From all completed deliveries</p>
             </div>
 
-            <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all shadow-xl">
+            <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-cyan-500/30 dark:hover:border-white/10 transition-all shadow-xl">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Completed Orders</span>
-                <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Completed Orders</span>
+                <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 flex items-center justify-center">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
               </div>
-              <p className="text-3xl font-black text-white mt-3 font-['Outfit']">{totalOrdersCount}</p>
-              <p className="text-[11px] text-neutral-500 font-medium mt-1">Total fulfilled requests</p>
+              <p className="text-3xl font-black text-stone-900 dark:text-white mt-3 font-['Outfit']">{totalOrdersCount}</p>
+              <p className="text-[11px] text-stone-500 dark:text-neutral-500 font-medium mt-1">Total fulfilled requests</p>
             </div>
 
-            <div className="bg-[#282526] border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all shadow-xl">
+            <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-indigo-500/30 dark:hover:border-white/10 transition-all shadow-xl">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Avg Order Value</span>
-                <div className="w-10 h-10 rounded-2xl bg-indigo-400/10 text-indigo-400 flex items-center justify-center">
+                <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Avg Order Value</span>
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 dark:bg-indigo-400/10 text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5" />
                 </div>
               </div>
-              <p className="text-3xl font-black text-white mt-3 font-['Outfit']">₹{avgOrderValue}</p>
-              <p className="text-[11px] text-neutral-500 font-medium mt-1">Per completed client ticket</p>
+              <p className="text-3xl font-black text-stone-900 dark:text-white mt-3 font-['Outfit']">₹{avgOrderValue}</p>
+              <p className="text-[11px] text-stone-500 dark:text-neutral-500 font-medium mt-1">Per completed client ticket</p>
             </div>
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 bg-[#282526] border border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
+            <div className="lg:col-span-3 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-white text-sm font-['Outfit']">Daily Sales Timeline</h3>
-                <span className="text-[10px] font-bold text-[#E0FF33] px-2 py-0.5 rounded-full bg-[#E0FF33]/10">LIVE METRIC</span>
+                <h3 className="font-bold text-stone-900 dark:text-white text-sm font-['Outfit']">Daily Sales Timeline</h3>
+                <span className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] px-2 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20">LIVE METRIC</span>
               </div>
               <div className="flex-1 w-full relative">
                 {sortedDates.length > 0 ? (
@@ -1241,10 +1244,10 @@ export default function OwnerView() {
               </div>
             </div>
 
-            <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
+            <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-white text-sm font-['Outfit']">Orders by Status</h3>
-                <span className="text-[10px] font-bold text-neutral-400 px-2 py-0.5 rounded-full bg-white/5">CURRENT RUN</span>
+                <h3 className="font-bold text-stone-900 dark:text-white text-sm font-['Outfit']">Orders by Status</h3>
+                <span className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-white/5">CURRENT RUN</span>
               </div>
               <div className="flex-1 w-full relative">
                 {orders.length > 0 ? (
@@ -1261,15 +1264,15 @@ export default function OwnerView() {
           {/* Payment Settings & Plan Tier */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Payment Gateway Configurations */}
-            <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
+            <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-base font-bold text-white font-['Outfit']">Payment Gateways & Collection</h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    Managing payments for <span className="text-[#E0FF33] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
+                  <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">Payment Gateways & Collection</h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
+                    Managing payments for <span className="text-amber-700 dark:text-[#E0FF33] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
                   </p>
                 </div>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 text-neutral-400 border border-white/10 self-start sm:self-auto">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10 self-start sm:self-auto">
                   Kitchen-Level Config
                 </span>
               </div>
@@ -1364,30 +1367,30 @@ export default function OwnerView() {
 
       {/* VIEW 2: KITCHEN PROFILE */}
       {activeTab === 'shops' && (
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/5 mb-6 gap-3">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-stone-200 dark:border-white/5 mb-6 gap-3">
             <div>
-              <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit']">Kitchen Operational Settings</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">Configure store address, delivery fees, minimum order thresholds & operating hours</p>
+              <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit']">Kitchen Operational Settings</h3>
+              <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">Configure store address, delivery fees, minimum order thresholds & operating hours</p>
             </div>
-            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#181617]/80 backdrop-blur-md border border-white/10 shadow-inner self-start sm:self-auto">
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/80 dark:bg-[#181617]/80 backdrop-blur-md border border-stone-300 dark:border-white/10 shadow-inner self-start sm:self-auto">
               <button
                 type="button"
                 onClick={expandAllShopSections}
-                className="group px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-[#E0FF33]/20 hover:to-[#E0FF33]/5 text-neutral-300 hover:text-white text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+                className="group px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
               >
-                <div className="w-4 h-4 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_8px_rgba(224,255,51,0.2)]">
-                  <Maximize2 className="w-2.5 h-2.5" />
+                <div className="w-4.5 h-4.5 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                  <Maximize2 className="w-3 h-3 stroke-[2.5]" />
                 </div>
                 <span>Expand All</span>
               </button>
               <button
                 type="button"
                 onClick={collapseAllShopSections}
-                className="group px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-white/15 hover:to-white/5 text-neutral-400 hover:text-neutral-200 text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+                className="group px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-700 hover:text-stone-950 dark:text-neutral-300 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-stone-400 dark:hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
               >
-                <div className="w-4 h-4 rounded-lg bg-white/10 text-neutral-400 group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Minimize2 className="w-2.5 h-2.5" />
+                <div className="w-4.5 h-4.5 rounded-lg bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-300 group-hover:text-stone-950 dark:group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Minimize2 className="w-3 h-3 stroke-[2.5]" />
                 </div>
                 <span>Collapse All</span>
               </button>
@@ -2027,20 +2030,20 @@ export default function OwnerView() {
         <div className="space-y-4">
           {/* Mobile Quick Expand Banner when Form is Collapsed */}
           {isMenuFormCollapsed && !editingMenuItem && (
-            <div className="bg-[#282526] border border-[#E0FF33]/30 rounded-3xl p-4 flex items-center justify-between gap-3 shadow-lg lg:hidden animate-fadeIn">
+            <div className="bg-stone-100/90 dark:bg-[#282526] border border-amber-500/30 dark:border-[#E0FF33]/30 rounded-3xl p-4 flex items-center justify-between gap-3 shadow-lg lg:hidden animate-fadeIn">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-2xl bg-[#E0FF33] text-black flex items-center justify-center font-black">
+                <div className="w-8 h-8 rounded-2xl bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center font-black">
                   <Plus className="w-4 h-4 stroke-[3]" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-white font-['Outfit']">Add New Dish to Menu</h4>
-                  <p className="text-[10px] text-neutral-400">Form minimized for clean dish catalog browsing</p>
+                  <h4 className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">Add New Dish to Menu</h4>
+                  <p className="text-[10px] text-stone-500 dark:text-neutral-400">Form minimized for clean dish catalog browsing</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMenuFormCollapsed(false)}
-                className="px-3 py-1.5 rounded-xl bg-[#E0FF33] text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md"
+                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md"
               >
                 Open Form
               </button>
@@ -2051,36 +2054,36 @@ export default function OwnerView() {
             {/* Menu Item Form (Add / Edit) */}
             <div
               ref={menuFormRef}
-              className={`bg-[#282526] rounded-3xl p-4 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
-                ? 'border-2 border-[#E0FF33] shadow-[0_0_40px_rgba(224,255,51,0.2)] ring-2 ring-[#E0FF33]/30'
-                : 'border border-white/5'
+              className={`bg-stone-100/90 dark:bg-[#282526] rounded-3xl p-4 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
+                ? 'border-2 border-amber-500 dark:border-[#E0FF33] shadow-lg ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                : 'border border-stone-200 dark:border-white/5'
                 }`}
             >
               <button
                 type="button"
                 onClick={() => setIsMenuFormCollapsed(!isMenuFormCollapsed)}
-                className="w-full flex items-center justify-between pb-4 border-b border-white/5 mb-4 text-left cursor-pointer group"
+                className="w-full flex items-center justify-between pb-4 border-b border-stone-200 dark:border-white/5 mb-4 text-left cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
                     <UtensilsCrossed className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-white font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                    <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                       {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
                     </h3>
                     {isMenuFormCollapsed && (
-                      <p className="text-[10px] text-neutral-400">Tap to expand and configure dish fields</p>
+                      <p className="text-[10px] text-stone-500 dark:text-neutral-400">Tap to expand and configure dish fields</p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {editingMenuItem && (
-                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E0FF33] text-[#1E1B1C] shadow-md uppercase tracking-wider">
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-md uppercase tracking-wider">
                       EDITING LIVE
                     </span>
                   )}
-                  <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${isMenuFormCollapsed ? '' : 'rotate-180'}`}>
+                  <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${isMenuFormCollapsed ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -2090,20 +2093,20 @@ export default function OwnerView() {
                 <>
                   {/* Prominent Active Edit Notice Banner */}
                   {editingMenuItem && (
-                    <div className="mb-4 p-3.5 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
+                    <div className="mb-4 p-3.5 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
                           <Edit2 size={15} strokeWidth={3} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] uppercase font-black tracking-wider text-[#E0FF33]">Now Editing Dish</p>
-                          <p className="text-xs font-bold text-white truncate">{editingMenuItem.name}</p>
+                          <p className="text-[10px] uppercase font-black tracking-wider text-amber-800 dark:text-[#E0FF33]">Now Editing Dish</p>
+                          <p className="text-xs font-bold text-stone-900 dark:text-white truncate">{editingMenuItem.name}</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 hover:text-white text-[10px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer border border-white/10"
+                        className="px-3 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white text-[10px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer border border-stone-300 dark:border-white/10"
                       >
                         Cancel
                       </button>
@@ -2424,15 +2427,15 @@ export default function OwnerView() {
       </div>
 
           {/* Menu Catalog Table & Showcase — Scaled for Mass Items */}
-          <div className="lg:col-span-2 bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/5">
+          <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200 dark:border-white/5">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">
+                <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
                   Dish Catalog ({filteredMenuItems.length}{filteredMenuItems.length !== menuItems.length ? ` of ${menuItems.length}` : ''})
                 </h3>
-                <p className="text-xs text-neutral-400">All live dishes visible to customers</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400">All live dishes visible to customers</p>
               </div>
-              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap self-start sm:self-auto">
+              <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap self-start sm:self-auto">
                 {menuItems.length} Dishes Live
               </span>
             </div>
@@ -2440,21 +2443,23 @@ export default function OwnerView() {
             {/* Mass Items Filter Toolbar: Search & Category Filter */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search dishes by name or ingredients..."
-                  className="w-full bg-[#1E1B1C] border border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white text-xs cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 dark:text-neutral-500 dark:hover:text-white cursor-pointer p-0.5 rounded-full transition-colors active:scale-90"
+                    title="Clear search"
+                    aria-label="Clear dish search"
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 )}
               </div>
@@ -2469,8 +2474,8 @@ export default function OwnerView() {
                       type="button"
                       onClick={() => setCategoryFilter(cat)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none ${isActive
-                        ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
-                        : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5'
+                        ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                        : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5'
                         }`}
                     >
                       {cat}
@@ -2483,7 +2488,7 @@ export default function OwnerView() {
             {/* Mobile Card List (< sm screens) */}
             <div className="sm:hidden space-y-3 max-h-[580px] overflow-y-auto no-scrollbar p-0.5">
               {filteredMenuItems.length === 0 ? (
-                <div className="py-12 text-center text-neutral-500 text-xs font-semibold">
+                <div className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
                   {menuItems.length === 0
                     ? "No dishes added yet. Use the form above to add your first dish."
                     : "No dishes match your current search/filter."}
@@ -2495,12 +2500,12 @@ export default function OwnerView() {
                     <div
                       key={item.id}
                       className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
-                        ? 'bg-[#1E1B1C] border-2 border-[#E0FF33] shadow-[0_0_25px_rgba(224,255,51,0.25)] ring-2 ring-[#E0FF33]/20'
-                        : 'bg-[#1E1B1C] border border-white/10'
+                        ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
+                        : 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
                         }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-[#282526] border border-white/10 shrink-0 flex items-center justify-center p-1 relative">
+                        <div className="w-14 h-14 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-1 relative">
                           <img
                             src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
                             alt={item.name}
@@ -2508,7 +2513,7 @@ export default function OwnerView() {
                             loading="lazy"
                           />
                           {isBeingEdited && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E0FF33] text-black flex items-center justify-center">
+                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center">
                               <Check size={10} className="stroke-[3]" />
                             </div>
                           )}
@@ -2516,28 +2521,28 @@ export default function OwnerView() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-1">
                             <div className="min-w-0">
-                              <p className="font-bold text-white text-sm font-['Outfit'] truncate">{item.name}</p>
+                              <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit'] truncate">{item.name}</p>
                               {isBeingEdited && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-[#E0FF33] uppercase tracking-wider">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
                                   <Edit2 size={10} className="stroke-[2.5]" /> Active in Form
                                 </span>
                               )}
                             </div>
-                            <span className="font-black text-[#E0FF33] text-sm font-['Outfit'] shrink-0">₹{item.price}</span>
+                            <span className="font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] shrink-0">₹{item.price}</span>
                           </div>
-                          <p className="text-[11px] text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
 
                           <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-stone-200 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border border-stone-300 dark:border-white/10 whitespace-nowrap">
                               {item.category}
                             </span>
                             {(item.isSatvik === true || item.isSatvik === undefined) && (
-                              <span className="inline-flex items-center bg-emerald-400/10 text-emerald-300 border border-emerald-400/20 text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap">
+                              <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
                                 Satvik
                               </span>
                             )}
                             {item.isDailySpecial && (
-                              <span className="inline-flex items-center bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap">
+                              <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
                                 Special
                               </span>
                             )}
@@ -2545,12 +2550,12 @@ export default function OwnerView() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
                         <button
                           onClick={() => handleEditMenuItem(item)}
                           className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
-                            ? 'bg-[#E0FF33] text-[#1E1B1C] border-[#E0FF33] font-black shadow-md'
-                            : 'bg-white/5 hover:bg-white/10 text-white border-white/5'
+                            ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
+                            : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
                             }`}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -2558,7 +2563,7 @@ export default function OwnerView() {
                         </button>
                         <button
                           onClick={() => setDeleteTargetId(item.id)}
-                          className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
+                          className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Delete</span>
@@ -2571,108 +2576,112 @@ export default function OwnerView() {
             </div>
 
             {/* Desktop Table (>= sm screens) with Smooth Scroll Container */}
-            <div className="hidden sm:block overflow-x-auto max-h-[580px] overflow-y-auto no-scrollbar">
-              <table className="w-full text-left text-sm">
-                <thead className="sticky top-0 bg-[#282526] z-10">
-                  <tr className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5">
-                    <th className="pb-3 pr-3 whitespace-nowrap bg-[#282526]">Dish</th>
-                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Category</th>
-                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Price</th>
-                    <th className="pb-3 px-3 whitespace-nowrap bg-[#282526]">Badges</th>
-                    <th className="pb-3 pl-3 text-right whitespace-nowrap bg-[#282526]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 text-neutral-200">
-                  {filteredMenuItems.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-12 text-center text-neutral-500 text-xs font-semibold">
-                        {menuItems.length === 0
-                          ? "No dishes added yet. Use the form to add dishes."
-                          : "No dishes match your search or category filter."}
-                      </td>
+            <div className="hidden sm:block rounded-3xl border border-stone-300 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-[#1E1B1C]/80 shadow-sm backdrop-blur-sm">
+              <div className="overflow-x-auto max-h-[580px] overflow-y-auto no-scrollbar">
+                <table className="w-full text-left text-sm">
+                  <thead className="sticky top-0 bg-stone-200/95 dark:bg-[#252223]/95 backdrop-blur-md z-10 border-b border-stone-300 dark:border-white/10">
+                    <tr className="text-[11px] font-black text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
+                      <th className="py-3.5 px-4 whitespace-nowrap">Dish</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Price</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Badges</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Actions</th>
                     </tr>
-                  ) : (
-                    filteredMenuItems.map(item => {
-                      const isBeingEdited = editingMenuItem?.id === item.id;
-                      return (
-                        <tr
-                          key={item.id}
-                          className={`transition-all group ${isBeingEdited
-                            ? 'bg-[#E0FF33]/10 border-l-4 border-l-[#E0FF33]'
-                            : 'hover:bg-white/5'
-                            }`}
-                        >
-                          <td className="py-3.5 pr-3">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-11 h-11 rounded-2xl bg-[#1E1B1C] overflow-hidden shrink-0 flex items-center justify-center p-1 ${isBeingEdited ? 'border-2 border-[#E0FF33]' : 'border border-white/10'
-                                }`}>
-                                <img
-                                  src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
-                                  alt={item.name}
-                                  className="w-full h-full object-contain"
-                                  loading="lazy"
-                                />
+                  </thead>
+                  <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
+                    {filteredMenuItems.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                          {menuItems.length === 0
+                            ? "No dishes added yet. Use the form to add dishes."
+                            : "No dishes match your search or category filter."}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredMenuItems.map(item => {
+                        const isBeingEdited = editingMenuItem?.id === item.id;
+                        return (
+                          <tr
+                            key={item.id}
+                            className={`transition-all duration-150 group ${isBeingEdited
+                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-l-4 border-l-amber-500 dark:border-l-[#E0FF33]'
+                              : 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
+                              }`}
+                          >
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-11 h-11 rounded-2xl bg-stone-100 dark:bg-[#282526] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs ${isBeingEdited ? 'border-2 border-amber-500 dark:border-[#E0FF33]' : 'border border-stone-200 dark:border-white/10'
+                                  }`}>
+                                  <img
+                                    src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                                    alt={item.name}
+                                    className="w-full h-full object-contain"
+                                    loading="lazy"
+                                  />
+                                </div>
+                                <div className="min-w-0 max-w-[180px] lg:max-w-xs">
+                                  <p className="font-black text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
+                                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">{item.description || 'No description provided'}</p>
+                                  {isBeingEdited && (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase">
+                                      <Edit2 size={10} className="stroke-[2.5]" /> Editing
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div className="min-w-0 max-w-[180px] lg:max-w-xs">
-                                <p className="font-bold text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
-                                <p className="text-[10px] text-neutral-400 truncate">{item.description || 'No description provided'}</p>
-                                {isBeingEdited && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-[#E0FF33] uppercase">
-                                    <Edit2 size={10} className="stroke-[2.5]" /> Editing
+                            </td>
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-200/90 dark:bg-white/10 text-stone-800 dark:text-neutral-200 border border-stone-300 dark:border-white/10 whitespace-nowrap shadow-2xs">
+                                {item.category}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] whitespace-nowrap text-sm">
+                              ₹{item.price}
+                            </td>
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5">
+                                {(item.isSatvik === true || item.isSatvik === undefined) && (
+                                  <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
+                                    Satvik
+                                  </span>
+                                )}
+                                {item.isDailySpecial && (
+                                  <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
+                                    Special
                                   </span>
                                 )}
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 whitespace-nowrap">
-                              {item.category}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3 font-black text-[#E0FF33] font-['Outfit'] whitespace-nowrap">
-                            ₹{item.price}
-                          </td>
-                          <td className="py-3.5 px-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1">
-                              {(item.isSatvik === true || item.isSatvik === undefined) && (
-                                <span className="inline-flex items-center bg-emerald-400/10 text-emerald-300 border border-emerald-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                                  Satvik
-                                </span>
-                              )}
-                              {item.isDailySpecial && (
-                                <span className="inline-flex items-center bg-amber-400/10 text-amber-300 border border-amber-400/20 text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                                  Special
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-3.5 pl-3 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleEditMenuItem(item)}
-                                className={`p-2 rounded-xl transition-all cursor-pointer ${isBeingEdited
-                                  ? 'bg-[#E0FF33] text-[#1E1B1C] shadow-md font-bold'
-                                  : 'bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white'
-                                  }`}
-                                title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => setDeleteTargetId(item.id)}
-                                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
-                                title="Delete Dish"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                            </td>
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditMenuItem(item)}
+                                  className={`w-8 h-8 rounded-xl transition-all cursor-pointer border flex items-center justify-center shadow-2xs active:scale-95 ${isBeingEdited
+                                    ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] shadow-md font-bold'
+                                    : 'bg-stone-200/90 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-white/10 dark:hover:bg-white/20 dark:text-neutral-200 dark:hover:text-white dark:border-white/10'
+                                    }`}
+                                  title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
+                                >
+                                  <Edit2 size={13} className="stroke-[2.5]" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteTargetId(item.id)}
+                                  title="Delete Dish"
+                                  className="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                                >
+                                  <Trash2 size={13} className="stroke-[2.5]" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -2681,14 +2690,14 @@ export default function OwnerView() {
 
       {/* VIEW 4: CASH AUDIT */}
       {activeTab === 'audit' && (
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/5 gap-2">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-200 dark:border-white/5 gap-2">
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit']">Cash on Delivery (COD) Audit Log</h3>
-              <p className="text-xs text-neutral-400">Reconcile physical cash receipts collected by couriers</p>
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD) Audit Log</h3>
+              <p className="text-xs text-stone-500 dark:text-neutral-400">Reconcile physical cash receipts collected by couriers</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 border border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+              <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
                 {orders.filter(o => o.paymentMethod === 'cash').length} COD Tickets
               </span>
             </div>
@@ -2697,7 +2706,7 @@ export default function OwnerView() {
           {/* Mobile Card Layout (< md screens) */}
           <div className="md:hidden space-y-3">
             {orders.filter(o => o.paymentMethod === 'cash').length === 0 ? (
-              <div className="py-8 text-center text-neutral-500 text-xs font-semibold">
+              <div className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
                 No Cash on Delivery orders recorded.
               </div>
             ) : (
@@ -2712,30 +2721,30 @@ export default function OwnerView() {
                     : 'Recent';
                   const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
                   return (
-                    <div key={order.id} className="bg-[#1E1B1C] border border-white/10 rounded-2xl p-4 space-y-3 shadow-md">
+                    <div key={order.id} className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl p-4 space-y-3 shadow-md">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-black text-white text-sm font-['Outfit']">
+                          <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit']">
                             #{order.id.slice(-6).toUpperCase()}
                           </p>
-                          <p className="text-[10px] text-neutral-400 mt-0.5">{date}</p>
+                          <p className="text-[10px] text-stone-500 dark:text-neutral-400 mt-0.5">{date}</p>
                         </div>
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
-                          ? 'bg-white/5 text-neutral-400 border border-white/10'
-                          : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                          ? 'bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
+                          : 'bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/20'
                           }`}>
                           {isCollected ? 'Collected' : 'Pending'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-2 border-y border-white/5 text-xs">
+                      <div className="flex items-center justify-between py-2 border-y border-stone-200 dark:border-white/5 text-xs">
                         <div>
-                          <p className="font-bold text-white">{order.customerName || order.customer_name || 'Customer'}</p>
-                          <p className="text-[11px] text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
+                          <p className="font-bold text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] text-neutral-400 uppercase font-semibold">Amount</p>
-                          <p className="font-black text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
+                          <p className="text-[10px] text-stone-500 dark:text-neutral-400 uppercase font-semibold">Amount</p>
+                          <p className="font-black text-stone-950 dark:text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
                         </div>
                       </div>
 
@@ -2743,14 +2752,14 @@ export default function OwnerView() {
                         {!isCollected ? (
                           <button
                             onClick={() => handleMarkCashCollected(order.id)}
-                            className="w-full py-2.5 px-4 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                             <span>Confirm Cash Received</span>
                           </button>
                         ) : (
-                          <div className="w-full py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-neutral-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
-                            <CheckCircle2 className="w-4 h-4 text-neutral-400" />
+                          <div className="w-full py-2.5 px-3 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
+                            <CheckCircle2 className="w-4 h-4 text-stone-500 dark:text-neutral-400" />
                             <span>Cash Reconciled</span>
                           </div>
                         )}
@@ -2765,7 +2774,7 @@ export default function OwnerView() {
           <div className="hidden md:block overflow-x-auto no-scrollbar">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5">
+                <tr className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider border-b border-stone-200 dark:border-white/5">
                   <th className="pb-3 whitespace-nowrap">Order Ticket</th>
                   <th className="pb-3 whitespace-nowrap">Customer</th>
                   <th className="pb-3 whitespace-nowrap">COD Amount</th>
@@ -2773,13 +2782,13 @@ export default function OwnerView() {
                   <th className="pb-3 text-right whitespace-nowrap">Reconcile Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-neutral-200">
+              <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
                 {orders.filter(o => {
                   const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
                   return m === 'cash' || m === 'cod';
                 }).length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-neutral-500 text-xs font-semibold">
+                    <td colSpan={5} className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
                       No Cash on Delivery orders recorded.
                     </td>
                   </tr>
@@ -2795,22 +2804,22 @@ export default function OwnerView() {
                         : 'Recent';
                       const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
                       return (
-                        <tr key={order.id} className="hover:bg-white/5 transition-all">
+                        <tr key={order.id} className="hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all">
                           <td className="py-3.5 pr-4 whitespace-nowrap">
-                            <p className="font-bold text-white text-xs font-['Outfit']">#{order.id.slice(-6).toUpperCase()}</p>
-                            <p className="text-[10px] text-neutral-500">{date}</p>
+                            <p className="font-bold text-stone-900 dark:text-white text-xs font-['Outfit']">#{order.id.slice(-6).toUpperCase()}</p>
+                            <p className="text-[10px] text-stone-500 dark:text-neutral-500">{date}</p>
                           </td>
                           <td className="py-3.5 pr-4 whitespace-nowrap">
-                            <p className="font-semibold text-xs text-white">{order.customerName || order.customer_name || 'Customer'}</p>
-                            <p className="text-[10px] text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
+                            <p className="font-semibold text-xs text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                            <p className="text-[10px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
                           </td>
-                          <td className="py-3.5 pr-4 font-black text-[#E0FF33] font-['Outfit'] text-sm whitespace-nowrap">
+                          <td className="py-3.5 pr-4 font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] text-sm whitespace-nowrap">
                             ₹{order.totalAmount || order.total_amount || 0}
                           </td>
                           <td className="py-3.5 pr-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
-                              ? 'bg-white/5 text-neutral-400 border border-white/10'
-                              : 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
+                              ? 'bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
+                              : 'bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/20'
                               }`}>
                               {isCollected ? 'Collected' : 'Pending Payment'}
                             </span>
@@ -2819,14 +2828,14 @@ export default function OwnerView() {
                             {!isCollected ? (
                               <button
                                 onClick={() => handleMarkCashCollected(order.id)}
-                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
+                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 <span>Confirm Cash Received</span>
                               </button>
                             ) : (
-                              <span className="text-xs text-neutral-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400" />
+                              <span className="text-xs text-stone-700 dark:text-neutral-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 px-3 py-1.5 rounded-xl">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-stone-500 dark:text-neutral-400" />
                                 <span>Reconciled</span>
                               </span>
                             )}
@@ -2844,23 +2853,23 @@ export default function OwnerView() {
       {/* Staff & Role Management Tab */}
       {activeTab === 'staff' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#282526] border border-white/5 p-6 rounded-3xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 p-6 rounded-3xl shadow-xl">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-xs font-bold text-amber-300">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-800 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300">
                 <Users className="w-3.5 h-3.5" />
                 <span>Kitchen Staff Directory</span>
               </div>
-              <h3 className="text-xl font-bold text-white font-['Outfit']">
+              <h3 className="text-xl font-bold text-stone-900 dark:text-white font-['Outfit']">
                 {currentShop?.name || 'Kitchen'} Team & Active Roles
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-stone-600 dark:text-neutral-400">
                 Manage roles for cooks, kitchen helpers, and delivery sarathis assigned to this kitchen.
               </p>
             </div>
 
             <button
               onClick={() => setIsAddingStaff(!isAddingStaff)}
-              className="px-4 py-2.5 rounded-2xl bg-[#E0FF33] hover:bg-[#CCFF00] text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
+              className="px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
             >
               <UserPlus className="w-4 h-4" />
               <span>{isAddingStaff ? 'Cancel' : 'Add Staff Member'}</span>
@@ -2869,53 +2878,55 @@ export default function OwnerView() {
 
           {/* Add Staff Form */}
           {isAddingStaff && (
-            <form onSubmit={handleAddStaffMember} className="p-5 bg-[#282526] rounded-3xl border border-[#E0FF33]/30 space-y-4 animate-fadeIn shadow-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                <span className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">
+            <form onSubmit={handleAddStaffMember} className="p-5 bg-stone-100/90 dark:bg-[#282526] rounded-3xl border border-amber-500/40 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn shadow-xl">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-white/5">
+                <span className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">
                   Assign Staff to {currentShop?.name}
                 </span>
-                <button type="button" onClick={() => setIsAddingStaff(false)} className="text-neutral-400 hover:text-white">
+                <button type="button" onClick={() => setIsAddingStaff(false)} className="text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Staff Name</label>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Staff Name</label>
                   <input
                     type="text"
                     value={newStaffName}
                     onChange={(e) => setNewStaffName(e.target.value)}
                     placeholder="e.g. Shyam Cook"
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                    className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
                   <input
                     type="tel"
                     value={newStaffPhone}
                     onChange={(e) => setNewStaffPhone(e.target.value)}
                     placeholder="9876543210"
                     required
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                    className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Role</label>
-                  <select
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Role</label>
+                  <SearchableDropdown
                     value={newStaffRole}
-                    onChange={(e) => setNewStaffRole(e.target.value)}
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                  >
-                    <option value="kitchen">Kitchen Staff / Cook</option>
-                    <option value="delivery">Delivery Sarathi</option>
-                    <option value="owner">Co-Owner / Manager</option>
-                  </select>
+                    onChange={(val) => setNewStaffRole(val)}
+                    options={[
+                      { value: 'kitchen', label: 'Kitchen Cook', sublabel: 'Order prep & KDS', icon: ChefHat, badge: 'Cook', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                      { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                      { value: 'owner', label: 'Store Manager', sublabel: 'Kitchen manager & store ops', icon: ShieldCheck, badge: 'Manager', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' }
+                    ]}
+                    align="full"
+                    searchPlaceholder="Search staff role..."
+                  />
                 </div>
                 <div className="flex items-end">
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
                   >
                     Save Staff
                   </button>
@@ -2943,32 +2954,32 @@ export default function OwnerView() {
               <div className="space-y-4">
                 {/* Metric Summary Ribbon - 3 Key Store Roles */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-amber-400/20 flex items-center justify-between">
+                  <div className="p-3.5 bg-stone-100/90 dark:bg-[#282526] rounded-2xl border border-amber-500/30 dark:border-amber-400/20 flex items-center justify-between shadow-sm">
                     <div>
-                      <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Kitchen Cooks</p>
-                      <p className="text-xl font-black text-amber-300 font-['Outfit'] mt-0.5">{cooksCount}</p>
+                      <p className="text-[10px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider">Kitchen Cooks</p>
+                      <p className="text-xl font-black text-stone-900 dark:text-amber-300 font-['Outfit'] mt-0.5">{cooksCount}</p>
                     </div>
-                    <div className="w-9 h-9 rounded-xl bg-amber-400/15 text-amber-300 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300 flex items-center justify-center">
                       <ChefHat className="w-4 h-4" />
                     </div>
                   </div>
 
-                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-cyan-400/20 flex items-center justify-between">
+                  <div className="p-3.5 bg-stone-100/90 dark:bg-[#282526] rounded-2xl border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-between shadow-sm">
                     <div>
-                      <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Delivery Sarathi</p>
-                      <p className="text-xl font-black text-cyan-300 font-['Outfit'] mt-0.5">{deliveryCount}</p>
+                      <p className="text-[10px] font-bold text-cyan-800 dark:text-cyan-400 uppercase tracking-wider">Delivery Sarathi</p>
+                      <p className="text-xl font-black text-stone-900 dark:text-cyan-300 font-['Outfit'] mt-0.5">{deliveryCount}</p>
                     </div>
-                    <div className="w-9 h-9 rounded-xl bg-cyan-400/15 text-cyan-300 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-700 dark:bg-cyan-400/15 dark:text-cyan-300 flex items-center justify-center">
                       <Truck className="w-4 h-4" />
                     </div>
                   </div>
 
-                  <div className="p-3.5 bg-[#282526] rounded-2xl border border-purple-400/20 flex items-center justify-between">
+                  <div className="p-3.5 bg-stone-100/90 dark:bg-[#282526] rounded-2xl border border-purple-500/30 dark:border-purple-400/20 flex items-center justify-between shadow-sm">
                     <div>
-                      <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Store Managers</p>
-                      <p className="text-xl font-black text-purple-300 font-['Outfit'] mt-0.5">{managersCount}</p>
+                      <p className="text-[10px] font-bold text-purple-800 dark:text-purple-400 uppercase tracking-wider">Store Managers</p>
+                      <p className="text-xl font-black text-stone-900 dark:text-purple-300 font-['Outfit'] mt-0.5">{managersCount}</p>
                     </div>
-                    <div className="w-9 h-9 rounded-xl bg-purple-400/15 text-purple-300 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-700 dark:bg-purple-400/15 dark:text-purple-300 flex items-center justify-center">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                   </div>
@@ -2977,13 +2988,13 @@ export default function OwnerView() {
                 {/* Search & Filter Bar */}
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                   <div className="relative w-full sm:w-80 shrink-0">
-                    <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={staffSearch}
                       onChange={(e) => setStaffSearch(e.target.value)}
                       placeholder="Search store staff by name, phone, or UID..."
-                      className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50"
+                      className="w-full bg-stone-50 dark:bg-[#282526] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
                     />
                   </div>
 
@@ -3002,14 +3013,17 @@ export default function OwnerView() {
                           type="button"
                           onClick={() => setStaffRoleFilter(tab.id)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                            : 'bg-[#282526] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                            ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                            : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
                             }`}
                         >
-                          <IconComp size={13} className={isActive ? 'text-black stroke-[2.5]' : 'text-neutral-400'} />
+                          <IconComp size={13} className={isActive ? 'text-white dark:text-black stroke-[2.5]' : 'text-stone-500 dark:text-neutral-400'} />
                           <span>{tab.label}</span>
-                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${isActive ? 'bg-black/20 text-black' : 'bg-white/5 text-neutral-400'
-                            }`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
+                            isActive 
+                              ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
+                              : 'bg-stone-300 dark:bg-white/10 text-stone-800 dark:text-neutral-300'
+                          }`}>
                             {tab.count}
                           </span>
                         </button>
@@ -3047,10 +3061,10 @@ export default function OwnerView() {
 
                     if (filtered.length === 0) {
                       return (
-                        <div className="col-span-full text-center py-12 bg-[#282526] rounded-3xl border border-white/5">
-                          <Users className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-                          <p className="text-sm font-bold text-neutral-300">No staff members found for this filter.</p>
-                          <p className="text-xs text-neutral-500 mt-1">Click "Add Staff Member" above to assign cooks or delivery sarathis to this kitchen.</p>
+                        <div className="col-span-full text-center py-12 bg-stone-100/90 dark:bg-[#282526] rounded-3xl border border-stone-200 dark:border-white/5">
+                          <Users className="w-10 h-10 text-stone-400 dark:text-neutral-600 mx-auto mb-2" />
+                          <p className="text-sm font-bold text-stone-700 dark:text-neutral-300">No staff members found for this filter.</p>
+                          <p className="text-xs text-stone-500 dark:text-neutral-500 mt-1">Click "Add Staff Member" above to assign cooks or delivery sarathis to this kitchen.</p>
                         </div>
                       );
                     }
@@ -3060,37 +3074,37 @@ export default function OwnerView() {
                       return (
                         <div
                           key={u.id}
-                          className="p-5 bg-[#282526] rounded-3xl border border-white/5 hover:border-white/10 transition-all space-y-4 shadow-lg flex flex-col justify-between"
+                          className="p-5 bg-stone-100/90 dark:bg-[#282526] rounded-3xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10 transition-all space-y-4 shadow-lg flex flex-col justify-between"
                         >
                           {/* Top Identity Header */}
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                                role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                                  'bg-purple-400/20 text-purple-300 border border-purple-400/30'
+                              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 ${role === 'kitchen' ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30' :
+                                role === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 border border-cyan-500/30 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/30' :
+                                  'bg-purple-500/15 text-purple-800 border border-purple-500/30 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/30'
                                 }`}>
-                                {role === 'kitchen' ? <ChefHat className="w-5 h-5 text-amber-300" /> :
-                                  role === 'delivery' ? <Truck className="w-5 h-5 text-cyan-300" /> :
-                                    <ShieldCheck className="w-5 h-5 text-purple-300" />}
+                                {role === 'kitchen' ? <ChefHat className="w-5 h-5" /> :
+                                  role === 'delivery' ? <Truck className="w-5 h-5" /> :
+                                    <ShieldCheck className="w-5 h-5" />}
                               </div>
 
                               <div className="min-w-0">
-                                <p className="font-bold text-sm text-white truncate font-['Outfit']">
+                                <p className="font-bold text-sm text-stone-900 dark:text-white truncate font-['Outfit']">
                                   {u.displayName || (u.email ? u.email.split('@')[0] : `Staff (${(u.phone || '').slice(-4)})`)}
                                 </p>
-                                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 mt-0.5 truncate">
+                                <div className="flex items-center gap-1.5 text-[11px] text-stone-600 dark:text-neutral-300 mt-0.5 truncate">
                                   {u.phone ? (
-                                    <span className="font-mono text-neutral-300 flex items-center gap-1">
-                                      <Phone className="w-3 h-3 text-neutral-500 shrink-0" />
+                                    <span className="font-mono text-stone-700 dark:text-neutral-300 flex items-center gap-1">
+                                      <Phone className="w-3 h-3 text-stone-400 dark:text-neutral-500 shrink-0" />
                                       +91 {u.phone}
                                     </span>
                                   ) : u.email ? (
-                                    <span className="truncate text-neutral-300 flex items-center gap-1">
-                                      <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
+                                    <span className="truncate text-stone-700 dark:text-neutral-300 flex items-center gap-1">
+                                      <Mail className="w-3 h-3 text-stone-400 dark:text-neutral-500 shrink-0" />
                                       {u.email}
                                     </span>
                                   ) : (
-                                    <span className="font-mono text-neutral-500 text-[10px] truncate">
+                                    <span className="font-mono text-stone-500 dark:text-neutral-500 text-[10px] truncate">
                                       UID: {u.id.slice(0, 14)}...
                                     </span>
                                   )}
@@ -3099,9 +3113,9 @@ export default function OwnerView() {
                             </div>
 
                             {/* Role Badge */}
-                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 tracking-wider ${role === 'kitchen' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' :
-                              role === 'delivery' ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' :
-                                'bg-purple-400/20 text-purple-300 border border-purple-400/30'
+                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 tracking-wider ${role === 'kitchen' ? 'bg-amber-500/15 text-amber-900 border border-amber-500/30 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30' :
+                              role === 'delivery' ? 'bg-cyan-500/15 text-cyan-900 border border-cyan-500/30 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/30' :
+                                'bg-purple-500/15 text-purple-900 border border-purple-500/30 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/30'
                               }`}>
                               {role === 'kitchen' ? 'Kitchen Cook' :
                                 role === 'delivery' ? 'Delivery Sarathi' :
@@ -3110,27 +3124,30 @@ export default function OwnerView() {
                           </div>
 
                           {/* Bottom Role Control Row */}
-                          <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2">
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider shrink-0">
+                          <div className="pt-3 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
+                            <label className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider shrink-0">
                               Role Scope:
                             </label>
 
                             <div className="flex items-center gap-2">
-                              <select
+                              <SearchableDropdown
                                 value={role}
-                                onChange={(e) => handleUpdateStaffRole(u.id, e.target.value)}
-                                className="bg-[#1E1B1C] text-xs font-bold text-white border border-white/10 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer"
-                              >
-                                <option value="kitchen">Kitchen Cook</option>
-                                <option value="delivery">Delivery Sarathi</option>
-                                <option value="owner">Store Manager</option>
-                                <option value="customer">Remove / Demote</option>
-                              </select>
+                                onChange={(val) => handleUpdateStaffRole(u.id, val)}
+                                options={[
+                                  { value: 'kitchen', label: 'Kitchen Cook', sublabel: 'Order prep & KDS', icon: ChefHat, badge: 'Cook', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                                  { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                                  { value: 'owner', label: 'Store Manager', sublabel: 'Kitchen manager & ops', icon: ShieldCheck, badge: 'Manager', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+                                  { value: 'customer', label: 'Remove / Demote', sublabel: 'Demote to customer', icon: Users, badge: 'Demote', badgeColor: 'bg-red-500/15 text-red-700 dark:text-red-400' }
+                                ]}
+                                size="sm"
+                                searchPlaceholder="Filter role..."
+                                className="w-48"
+                              />
                               <button
                                 type="button"
                                 onClick={() => handleRemoveStaffMember(u.id, u.displayName)}
                                 title="Remove staff member from kitchen roster"
-                                className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all cursor-pointer"
+                                className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -3150,20 +3167,20 @@ export default function OwnerView() {
       {/* Delete Confirmation Modal */}
       {deleteTargetId && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-[#282526] border border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+          <div className="bg-stone-100 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-red-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-white font-['Outfit']">Delete this dish?</h3>
-              <p className="text-xs text-neutral-400 font-['Plus_Jakarta_Sans']">
+              <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">Delete this dish?</h3>
+              <p className="text-xs text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
                 This item will be removed permanently from your customer menu catalog.
               </p>
             </div>
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setDeleteTargetId(null)}
-                className="flex-1 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all"
+                className="flex-1 py-2.5 rounded-2xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs transition-all"
               >
                 Cancel
               </button>

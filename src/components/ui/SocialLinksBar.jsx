@@ -45,20 +45,20 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
   return (
     <div className={`flex flex-col items-center gap-2.5 ${className}`}>
       {showLabel && (
-        <div className="flex items-center gap-2 text-zinc-400 text-xs font-['Outfit'] tracking-wide">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33]/60" />
-          <span className="text-zinc-400 font-medium">Follow & Join</span>
-          <span className="text-zinc-200 font-bold bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-[11px]">
+        <div className="flex items-center gap-2 text-stone-600 dark:text-zinc-400 text-xs font-['Outfit'] tracking-wide">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-[#E0FF33]/60" />
+          <span className="text-stone-600 dark:text-zinc-400 font-medium">Follow & Join</span>
+          <span className="text-stone-900 dark:text-zinc-200 font-bold bg-stone-200/80 dark:bg-white/5 px-2 py-0.5 rounded-full border border-stone-300 dark:border-white/10 text-[11px]">
             @vrindopnishad
           </span>
         </div>
       )}
 
       {/* Unified Luxury Floating Capsule */}
-      <div className={`inline-flex items-center rounded-full border border-white/10 ${
+      <div className={`inline-flex items-center rounded-full border ${
         compact 
-          ? 'gap-1 p-1 bg-[#181617]/90 shadow-sm' 
-          : 'gap-1.5 p-1.5 bg-gradient-to-b from-[#1E1B1C] to-[#141213] shadow-[0_4px_24px_rgba(0,0,0,0.5)]'
+          ? 'gap-1 p-1 bg-stone-200/80 border-stone-300 dark:bg-[#181617]/90 dark:border-white/10 shadow-xs' 
+          : 'gap-1.5 p-1.5 bg-stone-200/90 border-stone-300 dark:bg-gradient-to-b dark:from-[#1E1B1C] dark:to-[#141213] dark:border-white/10 shadow-sm'
       }`}>
         {SOCIAL_CHANNELS.map((item) => {
           const isHovered = hoveredId === item.id;
@@ -75,8 +75,8 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
                 compact ? 'w-7.5 h-7.5' : 'w-9 h-9'
               } ${
                 isHovered
-                  ? 'bg-white/10 text-white shadow-sm'
-                  : 'bg-white/[0.03] text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white text-stone-950 dark:bg-white/10 dark:text-white shadow-xs'
+                  : 'bg-white/70 dark:bg-white/[0.03] text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
               {/* Subtle hover backlight */}

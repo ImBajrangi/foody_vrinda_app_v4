@@ -31,6 +31,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeGroupRef = useRef(null);
+  const closeTimeoutRef = useRef(null);
 
   const [showItems, setShowItems] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -629,11 +630,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          if (isExpanded) {
-            setIsExpanded(false);
-          } else {
-            handleAnimatedClose();
-          }
+          handleAnimatedClose();
         }
       }}
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
@@ -657,6 +654,60 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           </div>
         </div>
 
+        {/* Dedicated High-Z Floating Controls (OUTSIDE Leaflet map to guarantee 100% click/touch responsiveness) */}
+        <div className="absolute top-[max(0.85rem,env(safe-area-inset-top)+8px)] inset-x-3.5 z-[1000] flex items-center justify-between pointer-events-none">
+          {/* Back / Close Button */}
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAnimatedClose(true);
+            }}
+            className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer pointer-events-auto backdrop-blur-md transition-all"
+            title="Close / Shrink to floating capsule"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+          </button>
+
+          {/* Right Action Controls: Re-center + Minimize */}
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleRecenter();
+              }}
+              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer backdrop-blur-md transition-all"
+              title="Re-center Live Route"
+              aria-label="Re-center"
+            >
+              <RotateCcw className="w-4.5 h-4.5 stroke-[2.4]" />
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAnimatedClose(true);
+              }}
+              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#252223] text-[#E0FF33] active:scale-95 flex items-center justify-center border border-[#E0FF33]/50 shadow-[0_4px_16px_rgba(0,0,0,0.6)] cursor-pointer backdrop-blur-md transition-all"
+              title="Minimize to Floating Capsule"
+              aria-label="Minimize"
+            >
+              <Minimize2 className="w-4.5 h-4.5 stroke-[2.4]" />
+            </button>
+          </div>
+        </div>
+
         {/* Top Leaflet Map Section - Outer Click Collapses to Peek Mode */}
         <div
           onClick={() => {
@@ -665,45 +716,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           className="relative flex-1 bg-[#edf2f7] overflow-hidden cursor-pointer pt-3"
         >
           <div ref={mapContainerRef} className="w-full h-full z-0 pointer-events-auto" />
-
-          {/* Floating Back / Minimize Button (Top Left with Safe Area Inset) */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] left-4 z-[700] flex items-center gap-2 pointer-events-auto">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAnimatedClose();
-              }}
-              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/20 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
-              title="Shrink to Floating Dynamic Island Capsule"
-              aria-label="Minimize"
-            >
-              <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
-            </button>
-          </div>
-
-          {/* Floating Controls (Top Right with Safe Area Inset): Recenter & Shrink Capsule Button */}
-          <div className="absolute top-[max(1rem,env(safe-area-inset-top)+10px)] right-4 z-[700] flex items-center gap-2 pointer-events-auto">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRecenter();
-              }}
-              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-white backdrop-blur-md flex items-center justify-center border border-white/20 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
-              title="Re-center route"
-            >
-              <RotateCcw className="w-4.5 h-4.5 stroke-[2.2]" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAnimatedClose();
-              }}
-              className="w-10 h-10 rounded-full bg-[#181617]/95 hover:bg-[#221F20] text-[#E0FF33] backdrop-blur-md flex items-center justify-center border border-[#E0FF33]/40 active:scale-95 transition-all cursor-pointer shadow-lg pointer-events-auto"
-              title="Minimize to Floating Capsule"
-            >
-              <Minimize2 className="w-4.5 h-4.5 stroke-[2.2]" />
-            </button>
-          </div>
         </div>
 
         {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
@@ -724,15 +736,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none"
             title="Tap to toggle • Swipe down to collapse"
           >
-            <div className="w-10 h-1 bg-white/30 hover:bg-white/60 rounded-full mb-1 transition-colors" />
-            <div className="w-full flex items-center justify-between text-neutral-400 text-[11px] font-bold">
-              <span className="flex items-center gap-1.5 text-white">
-                <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-pulse" />
-                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-[#E0FF33]">
+            <div className="w-10 h-1 bg-stone-300 dark:bg-white/30 hover:bg-stone-400 dark:hover:bg-white/60 rounded-full mb-1 transition-colors" />
+            <div className="w-full flex items-center justify-between text-stone-500 dark:text-neutral-400 text-[11px] font-bold">
+              <span className="flex items-center gap-1.5 text-stone-900 dark:text-white">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-[#E0FF33] animate-pulse" />
+                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-emerald-700 dark:text-[#E0FF33]">
                   {milestones.active}
                 </span>
               </span>
-              <span className="flex items-center gap-1 text-neutral-400 hover:text-white transition-colors text-[10px]">
+              <span className="flex items-center gap-1 text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white transition-colors text-[10px]">
                 {isExpanded ? 'Drag down to minimize' : 'Tap to expand details'}
                 {isExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
               </span>
@@ -751,20 +763,20 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               title="Tap to expand details • Swipe down to minimize"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-[#221F20] border border-white/10 flex items-center justify-center text-[#E0FF33]">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#E0FF33]">
                   <Clock size={15} />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-white font-['Outfit']">
+                  <p className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">
                     Estimated {getDynamicEstimatedTime()}
                   </p>
-                  <p className="text-[10px] text-neutral-400 truncate">
+                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
                     {realDistance || '2.2km'} • {getAddressLabel()} ({customerAddress})
                   </p>
                 </div>
               </div>
 
-              <span className="bg-[#E0FF33]/15 text-[#E0FF33] text-[10px] font-black px-2.5 py-1 rounded-full border border-[#E0FF33]/20 shrink-0">
+              <span className="bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#E0FF33]/20 shrink-0">
                 {getDynamicArrivalWindow()}
               </span>
             </div>
@@ -775,32 +787,32 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             <div className="px-4 pb-5 space-y-2.5">
 
               {/* 1. Hero Dynamic Status & ETA Card */}
-              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3.5 relative overflow-hidden">
+              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3.5 relative overflow-hidden">
                 <div className="flex items-start justify-between gap-3 mb-2.5">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-[#E0FF33] font-['Outfit']">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-[#E0FF33] font-['Outfit']">
                       Estimated Delivery
                     </p>
-                    <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit'] tracking-tight">
+                    <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                       {getDynamicEstimatedTime()}
                     </h3>
-                    <p className="text-[11px] text-neutral-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
-                      <span>Distance: <strong className="text-white font-bold">{realDistance || '2.2km'}</strong></span>
-                      {roadSummary && <span className="text-[10px] text-neutral-500">• via {roadSummary}</span>}
+                    <p className="text-[11px] text-stone-600 dark:text-neutral-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span>Distance: <strong className="text-stone-900 dark:text-white font-bold">{realDistance || '2.2km'}</strong></span>
+                      {roadSummary && <span className="text-[10px] text-stone-400 dark:text-neutral-500">• via {roadSummary}</span>}
                     </p>
                   </div>
 
                   {/* Arrival Window Pill */}
-                  <div className="bg-[#E0FF33]/15 border border-[#E0FF33]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
-                    <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Arrival in</p>
-                    <p className="text-xs font-black text-[#E0FF33] font-['Outfit']">
+                  <div className="bg-amber-500/15 border border-amber-500/25 dark:bg-[#E0FF33]/15 dark:border-[#E0FF33]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
+                    <p className="text-[9px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Arrival in</p>
+                    <p className="text-xs font-black text-amber-800 dark:text-[#E0FF33] font-['Outfit']">
                       {getDynamicArrivalWindow()}
                     </p>
                   </div>
                 </div>
 
                 {/* 4-Step Animated Milestone Progress Stepper */}
-                <div className="pt-2 border-t border-white/5 space-y-1">
+                <div className="pt-2 border-t border-stone-200/80 dark:border-white/5 space-y-1">
                   <div className="grid grid-cols-4 gap-1">
                     {[
                       { label: 'Placed', icon: Check },
@@ -812,9 +824,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       const isCurrent = currentStage === idx;
                       return (
                         <div key={idx} className="space-y-1">
-                          <div className={`h-1 rounded-full transition-all duration-300 ${isPassed ? 'bg-[#E0FF33]' : 'bg-white/10'
+                          <div className={`h-1.5 rounded-full transition-all duration-300 ${isPassed ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-200 dark:bg-white/10'
                             }`} />
-                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-[#E0FF33] font-black' : isPassed ? 'text-neutral-300' : 'text-neutral-600'
+                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-amber-800 dark:text-[#E0FF33] font-black' : isPassed ? 'text-stone-800 dark:text-neutral-300' : 'text-stone-400 dark:text-neutral-600'
                             }`}>
                             {st.label}
                           </p>
@@ -826,17 +838,17 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                 {/* 1-Tap OS Notification Permission Activation */}
                 {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
-                  <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <BellRing className="w-3.5 h-3.5 text-[#E0FF33] shrink-0 animate-bounce" />
-                      <p className="text-[10px] text-neutral-300 truncate">
+                      <BellRing className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 animate-bounce" />
+                      <p className="text-[10px] text-stone-700 dark:text-neutral-300 truncate">
                         Get live order updates on lock screen
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={requestSystemNotificationPermission}
-                      className="px-2.5 py-1 rounded-lg bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
                     >
                       Enable
                     </button>
@@ -846,21 +858,21 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
               {/* 2. Customer Delivery Security OTP Card */}
               {currentOrder?.id && (
-                <div className="bg-gradient-to-r from-[#E0FF33]/15 via-emerald-500/10 to-[#E0FF33]/15 border border-[#E0FF33]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
+                <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-amber-500/10 dark:from-[#E0FF33]/15 dark:via-emerald-500/10 dark:to-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0FF33] text-black font-black flex items-center justify-center text-sm shadow-md shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
                       OTP
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-neutral-300 uppercase tracking-wider">
+                      <p className="text-[10px] font-bold text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
                         Delivery Verification Code
                       </p>
-                      <p className="text-[10px] text-neutral-400 truncate">
+                      <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
                         Share with Sarathi upon prasad handover
                       </p>
                     </div>
                   </div>
-                  <div className="bg-[#141213] border border-[#E0FF33]/50 px-3 py-1.5 rounded-xl text-center shrink-0 shadow-inner">
+                  <div className="otp-code-pill bg-stone-900 dark:bg-[#141213] border border-stone-800 dark:border-[#E0FF33]/50 px-3.5 py-1.5 rounded-xl text-center shrink-0 shadow-sm">
                     <span className="text-base font-black text-[#E0FF33] tracking-[0.25em] font-mono">
                       {getOrderOTP(currentOrder.id, 'delivery')}
                     </span>
@@ -869,10 +881,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               )}
 
               {/* 3. Delivery Sarathi Partner Card & 24/7 Support */}
-              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
+              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#E0FF33]/60 bg-[#141213] shrink-0 relative aspect-square">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-500/50 dark:border-[#E0FF33]/60 bg-stone-200 dark:bg-[#141213] shrink-0 relative aspect-square">
                     <img
                       src={riderPhoto}
                       alt={riderName}
@@ -882,19 +894,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                      <h4 className="font-bold text-white text-xs sm:text-sm font-['Outfit'] tracking-tight truncate">
+                      <h4 className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] tracking-tight truncate">
                         {riderName}
                       </h4>
-                      <ShieldCheck className="w-3 h-3 text-[#E0FF33] shrink-0" />
+                      <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-[#E0FF33] shrink-0" />
                     </div>
 
-                    <div className="flex items-center gap-1 text-amber-400 text-[10px] mt-0.5">
+                    <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[10px] mt-0.5">
                       <div className="flex items-center gap-0.5">
-                        <Star className="w-2.5 h-2.5 fill-amber-400 stroke-amber-400" />
-                        <span className="text-white text-[10px] font-black ml-0.5">{riderRating}</span>
+                        <Star className="w-2.5 h-2.5 fill-amber-500 stroke-amber-500" />
+                        <span className="text-stone-900 dark:text-white text-[10px] font-black ml-0.5">{riderRating}</span>
                       </div>
-                      <span className="text-neutral-600 text-[9px]">•</span>
-                      <span className="text-emerald-400 text-[10px] font-medium truncate">
+                      <span className="text-stone-400 dark:text-neutral-600 text-[9px]">•</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 text-[10px] font-medium truncate">
                         {isOutForDelivery ? 'Sarathi Partner' : 'Sacred Kitchen Dispatch'}
                       </span>
                     </div>
@@ -910,7 +922,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     onClick={() => {
                       if (onToast) onToast("Connecting WhatsApp...", "info", "Opening dispatch chat");
                     }}
-                    className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                     title="WhatsApp dispatch"
                   >
                     <MessageCircle className="w-4 h-4 stroke-[2]" />
@@ -918,7 +930,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                   <a
                     href={`tel:${riderPhone}`}
-                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-white border border-white/10 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/15 text-stone-700 dark:text-white border border-stone-300/80 dark:border-white/10 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                     title="Call dispatch"
                   >
                     <Phone className="w-4 h-4 stroke-[2]" />
@@ -927,34 +939,34 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               </div>
 
               {/* 3. Delivery Route Location Details */}
-              <div className="bg-[#201D1E] border border-white/[0.06] rounded-[20px] p-3 space-y-2.5">
+              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3 space-y-2.5">
                 {/* Origin */}
                 <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-white/5 text-white flex items-center justify-center shrink-0 mt-0.5">
-                    <Utensils className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  <div className="w-7 h-7 rounded-lg bg-stone-200/70 dark:bg-white/5 text-amber-700 dark:text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <Utensils className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">From Kitchen</p>
-                    <p className="text-xs font-bold text-white truncate font-['Outfit']">{shop?.name || 'Foody Vrinda Sacred Kitchen'}</p>
-                    <p className="text-[10px] text-neutral-400 truncate">{shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}</p>
+                    <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">From Kitchen</p>
+                    <p className="text-xs font-bold text-stone-900 dark:text-white truncate font-['Outfit']">{shop?.name || 'Foody Vrinda Sacred Kitchen'}</p>
+                    <p className="text-[10px] text-stone-600 dark:text-neutral-400 truncate">{shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}</p>
                   </div>
                 </div>
 
-                <div className="border-t border-dashed border-white/5 ml-3 pl-3" />
+                <div className="border-t border-dashed border-stone-200 dark:border-white/5 ml-3 pl-3" />
 
                 {/* Drop-off Destination */}
                 <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#E0FF33]" />
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
-                      <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">{getAddressLabel()} Drop-off</p>
-                      <span className="text-[9px] font-bold text-[#E0FF33] bg-[#E0FF33]/10 px-1.5 py-0.2 rounded-md border border-[#E0FF33]/20">
+                      <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">{getAddressLabel()} Drop-off</p>
+                      <span className="text-[9px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-1.5 py-0.2 rounded-md border border-amber-500/25 dark:border-[#E0FF33]/20">
                         {realDistance || '2.2km'}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-white font-['Outfit'] mt-0.5 truncate" title={customerAddress}>
+                    <p className="text-xs font-bold text-stone-900 dark:text-white font-['Outfit'] mt-0.5 truncate" title={customerAddress}>
                       {customerAddress}
                     </p>
                   </div>
@@ -962,14 +974,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               </div>
 
               {/* 4. Collapsible Order Items Details */}
-              <div className="bg-[#141213] rounded-[18px] p-3 border border-white/[0.06] text-xs">
+              <div className="bg-stone-50 dark:bg-[#141213] rounded-[18px] p-3 border border-stone-200/80 dark:border-white/[0.06] text-xs">
                 <button
                   onClick={() => setShowItems(!showItems)}
-                  className="w-full flex items-center justify-between text-neutral-300 hover:text-white font-bold cursor-pointer transition-colors"
+                  className="w-full flex items-center justify-between text-stone-700 hover:text-stone-950 dark:text-neutral-300 dark:hover:text-white font-bold cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span>Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}</span>
-                    <span className="text-[9px] font-black px-2 py-0.2 rounded-full bg-white/10 text-neutral-300">
+                    <span className="text-[9px] font-black px-2 py-0.2 rounded-full bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-neutral-300">
                       {currentOrder?.items?.length || 1} {(currentOrder?.items?.length || 1) === 1 ? 'item' : 'items'}
                     </span>
                   </div>
@@ -977,7 +989,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </button>
 
                 {showItems && (
-                  <div className="mt-2.5 space-y-2 pt-2 border-t border-white/5 text-neutral-400">
+                  <div className="mt-2.5 space-y-2 pt-2 border-t border-stone-200 dark:border-white/5 text-stone-600 dark:text-neutral-400">
                     {currentOrder?.items?.map((it, idx) => {
                       const itemImg = resolveDishCutout(it.image || it.imageUrl, it.name, it.category);
                       return (
@@ -986,21 +998,21 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                             <img
                               src={itemImg}
                               alt={it.name || 'Dish'}
-                              className="w-7 h-7 rounded-lg object-cover bg-neutral-900 border border-white/10 shrink-0"
+                              className="w-7 h-7 rounded-lg object-cover bg-stone-200 dark:bg-neutral-900 border border-stone-300 dark:border-white/10 shrink-0"
                               onError={(e) => {
                                 e.currentTarget.onerror = null;
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
                               }}
                             />
-                            <span className="text-white font-medium truncate">{it.name} × {it.quantity}</span>
+                            <span className="text-stone-900 dark:text-white font-medium truncate">{it.name} × {it.quantity}</span>
                           </div>
-                          <span className="font-bold text-[#E0FF33] shrink-0">₹{it.price * it.quantity}</span>
+                          <span className="font-bold text-amber-700 dark:text-[#E0FF33] shrink-0">₹{it.price * it.quantity}</span>
                         </div>
                       );
                     })}
-                    <div className="pt-2 border-t border-white/5 flex justify-between items-center font-black text-white text-xs">
+                    <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex justify-between items-center font-black text-stone-900 dark:text-white text-xs">
                       <span>Total Amount Paid</span>
-                      <span className="text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || '140'}</span>
+                      <span className="text-amber-700 dark:text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || '140'}</span>
                     </div>
                   </div>
                 )}

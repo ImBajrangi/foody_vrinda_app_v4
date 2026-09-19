@@ -320,9 +320,11 @@ export default function OrderHistoryDrawer({
                               onTrackOrder(order);
                               handleAnimatedClose();
                             }}
-                            className="h-8 px-3 rounded-xl bg-amber-400 dark:bg-[#E0FF33] hover:bg-amber-500 dark:hover:bg-[#d4f820] text-stone-950 text-xs font-black flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
+                            className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] text-xs font-black flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
                           >
-                            <Navigation size={12} className="fill-stone-950" />
+                            <span className="w-4.5 h-4.5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
+                              <Navigation size={10} className="fill-current text-white dark:text-[#121011]" />
+                            </span>
                             <span>Track Live</span>
                           </button>
                         ) : (

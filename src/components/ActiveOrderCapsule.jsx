@@ -54,45 +54,63 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
 
   const isCompleted = status === 'completed' || status === 'delivered';
 
-  // Dynamic Status Metadata
+  // Dynamic Status Metadata with Theme-Native Palette
   const getStatusInfo = () => {
     switch (status) {
       case 'new':
         return {
           title: 'Order Confirmed',
           icon: PackageCheck,
-          accent: '#E0FF33'
+          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          timeText: '3–9m'
         };
       case 'preparing':
         return {
           title: 'Cooking in Ghee',
           icon: Utensils,
-          accent: '#E0FF33'
+          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          timeText: '5–12m'
         };
       case 'ready_for_pickup':
         return {
           title: 'Prasad Packed',
           icon: PackageCheck,
-          accent: '#E0FF33'
+          accentClass: 'text-emerald-600 dark:text-emerald-400',
+          bgClass: 'bg-emerald-500/10 dark:bg-emerald-400/15',
+          borderClass: 'border-emerald-500/25 dark:border-emerald-400/30',
+          timeText: 'Ready'
         };
       case 'out_for_delivery':
         return {
           title: 'Sarathi on the way',
           icon: Bike,
-          accent: '#E0FF33'
+          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          timeText: 'Arriving'
         };
       case 'completed':
       case 'delivered':
         return {
           title: 'Prasad Delivered',
           icon: Sparkles,
-          accent: '#10B981'
+          accentClass: 'text-emerald-600 dark:text-emerald-400',
+          bgClass: 'bg-emerald-500/10 dark:bg-emerald-400/15',
+          borderClass: 'border-emerald-500/25 dark:border-emerald-400/30',
+          timeText: 'Done'
         };
       default:
         return {
           title: 'Active Order',
           icon: Utensils,
-          accent: '#E0FF33'
+          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          timeText: '3–9m'
         };
     }
   };
@@ -206,32 +224,32 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
       }
       className={`${
         isEmbedded ? 'relative' : 'fixed left-1/2 z-[45]'
-      } flex items-center gap-2.5 h-[40px] px-3 sm:px-3.5 rounded-full bg-[#181617]/95 text-white border border-[#E0FF33]/35 shadow-[0_14px_36px_-6px_rgba(0,0,0,0.75),0_0_16px_rgba(224,255,51,0.12)] backdrop-blur-2xl cursor-pointer select-none hover:border-[#E0FF33]/70 hover:bg-[#201D1E] active:scale-[0.97] transition-all`}
+      } flex items-center gap-2.5 h-[44px] px-3.5 rounded-full bg-white/95 dark:bg-[#1E1B1C]/95 text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 shadow-[0_10px_30px_rgba(28,25,23,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl cursor-pointer select-none hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 active:scale-[0.98] transition-all`}
     >
-      {/* Cute Solid Glyph Node (Zero distracting ripples) */}
-      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#242122] border border-[#E0FF33]/50 shrink-0">
-        <IconComponent className="w-3.5 h-3.5 text-[#E0FF33]" />
+      {/* Theme Status Glyph Node */}
+      <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusInfo.bgClass} border ${statusInfo.borderClass} shrink-0`}>
+        <IconComponent className={`w-3.5 h-3.5 ${statusInfo.accentClass}`} />
       </div>
 
-      {/* Clean Single-Row Hierarchy with Zero Clipping */}
+      {/* Clean Hierarchy with High Legibility */}
       <div className="flex items-center gap-1.5 whitespace-nowrap">
-        <span className="text-xs font-black font-['Outfit'] text-white">
+        <span className="text-xs sm:text-[13px] font-black font-['Outfit'] text-stone-950 dark:text-white tracking-tight">
           {statusInfo.title}
         </span>
-        <span className="text-zinc-500 text-[11px] font-bold">•</span>
-        <span className="text-[11px] font-bold text-zinc-300">
+        <span className="text-stone-300 dark:text-zinc-600 text-[11px] font-bold">•</span>
+        <span className="text-xs font-bold text-stone-600 dark:text-zinc-300">
           {cleanShop}
         </span>
       </div>
 
-      {/* Trailing Dynamic Window Pill */}
-      <div className="flex items-center gap-1.5 shrink-0 pl-0.5">
-        <div className="flex items-center gap-1 bg-[#E0FF33]/15 border border-[#E0FF33]/30 px-2 py-0.5 rounded-full text-[10.5px] font-black text-[#E0FF33] font-['Outfit']">
-          <Clock className="w-2.5 h-2.5" />
-          <span>{isCompleted ? 'Done' : '3–9m'}</span>
+      {/* Trailing Theme-Native Time Pill & Expand Trigger */}
+      <div className="flex items-center gap-1.5 shrink-0 pl-1">
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
+          <Clock className="w-3 h-3 stroke-[2.8]" />
+          <span>{isCompleted ? 'Done' : statusInfo.timeText}</span>
         </div>
-        <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-zinc-400">
-          <ChevronUp className="w-2.5 h-2.5" />
+        <div className="w-5 h-5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 border border-stone-200/80 dark:border-white/15 flex items-center justify-center text-stone-600 dark:text-white shrink-0 transition-colors">
+          <ChevronUp className="w-3 h-3 stroke-[2.5]" />
         </div>
       </div>
     </div>

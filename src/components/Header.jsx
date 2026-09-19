@@ -88,7 +88,7 @@ export default function Header({
           
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[12px] sm:text-[13px] font-bold text-amber-600 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
+              <span className="text-[12px] sm:text-[13px] font-bold text-emerald-700 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
                 वृन्दोपनिषद्
               </span>
               <span className="text-[8.5px] sm:text-[9px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit'] shrink-0">
@@ -136,7 +136,7 @@ export default function Header({
                 onClick={() => setCurrentTab('delivery')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'delivery' 
-                    ? 'bg-cyan-600 dark:bg-[#06B6D4] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
                     : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >

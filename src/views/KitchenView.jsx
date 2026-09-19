@@ -18,6 +18,7 @@ import {
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import {
   ChefHat,
   Clock,
@@ -434,25 +435,26 @@ export default function KitchenView() {
 
       {/* BRANCH SELECTOR — Global roles can switch kitchen branches inline */}
       {isGlobalRole && allShops.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 pl-1">Branch:</span>
-          {allShops.map(s => {
-            const isActive = currentUserShopId === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => impersonate(s.id, userRole)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                    ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black'
-                    : 'bg-stone-200/90 text-stone-700 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300 dark:hover:bg-white/5'
-                  }`}
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>{s.name}</span>
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-black shrink-0 ml-0.5" />}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center gap-2.5 py-1">
+          <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+            Switch Kitchen:
+          </span>
+          <SearchableDropdown
+            value={currentUserShopId || allShops[0]?.id}
+            onChange={(val) => impersonate(val, userRole)}
+            options={allShops.map(s => ({
+              value: s.id,
+              label: s.name,
+              sublabel: s.address || 'Vrindavan Dham Kitchen',
+              icon: Store,
+              badge: s.tag || 'Branch',
+              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+            }))}
+            size="sm"
+            searchPlaceholder="Search kitchens..."
+            className="w-full sm:w-64"
+          />
         </div>
       )}
 
@@ -662,23 +664,23 @@ export default function KitchenView() {
           }}
           className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 apple-overlay ${isModalClosing ? 'closing' : ''}`}
         >
-          <div className={`w-full max-w-2xl bg-[#242021] border border-white/10 text-white rounded-[36px] sm:rounded-[42px] p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col justify-between apple-modal-spring ${isModalClosing ? 'closing' : ''}`}>
+          <div className={`w-full max-w-2xl bg-stone-50 dark:bg-[#242021] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-[36px] sm:rounded-[42px] p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col justify-between apple-modal-spring ${isModalClosing ? 'closing' : ''}`}>
 
             {/* Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
+            <div className="flex justify-between items-center pb-4 border-b border-stone-200 dark:border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33]">
                   <Plus size={20} strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white font-['Outfit']">Create Manual Order</h3>
-                  <p className="text-xs text-zinc-400 font-medium">Record in-person or phone delivery order</p>
+                  <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit']">Create Manual Order</h3>
+                  <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">Record in-person or phone delivery order</p>
                 </div>
               </div>
 
               <button
                 onClick={handleCloseCreateModal}
-                className="w-9 h-9 rounded-full bg-[#1E1B1C] hover:bg-[#322E30] text-zinc-400 hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-white/5"
+                className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#322E30] text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-stone-300/80 dark:border-white/5"
               >
                 <X size={16} />
               </button>
@@ -688,52 +690,52 @@ export default function KitchenView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Customer Information Column */}
                 <div className="space-y-3.5">
-                  <h4 className="text-xs font-black uppercase text-zinc-400 tracking-wider font-['Outfit']">Customer Information</h4>
+                  <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-['Outfit']">Customer Information</h4>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-300 mb-1">Customer Name</label>
+                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Customer Name</label>
                     <input
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       required
                       placeholder="e.g. Radhika Sharma"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
+                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-300 mb-1">Delivery Address</label>
+                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Delivery Address</label>
                     <input
                       type="text"
                       value={customerAddress}
                       onChange={(e) => setCustomerAddress(e.target.value)}
                       required
                       placeholder="e.g. Raman Reti, Vrindavan"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
+                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-300 mb-1">Phone Number</label>
+                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Phone Number</label>
                     <input
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       required
                       placeholder="e.g. 9876543210"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
+                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-300 mb-1">Kitchen Instructions</label>
+                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Kitchen Instructions</label>
                     <input
                       type="text"
                       value={cookingNotes}
                       onChange={(e) => setCookingNotes(e.target.value)}
                       placeholder="e.g. Extra tulsi patra, less spicy"
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-2xl py-3 px-4 text-white placeholder-zinc-500"
+                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
                     />
                   </div>
                 </div>
@@ -741,38 +743,38 @@ export default function KitchenView() {
                 {/* Menu Items Selector Column */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <h4 className="text-xs font-black uppercase text-zinc-400 tracking-wider font-['Outfit']">Select Satvik Dishes</h4>
-                    <span className="text-[11px] text-[#E0FF33] font-bold">
+                    <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Satvik Dishes</h4>
+                    <span className="text-[11px] text-amber-700 dark:text-[#E0FF33] font-bold">
                       {manualCart.filter(i => i.quantity > 0).length} selected
                     </span>
                   </div>
 
                   {/* Search filter in modal */}
                   <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500" />
                     <input
                       type="text"
                       placeholder="Filter dishes..."
                       value={itemSearch}
                       onChange={(e) => setItemSearch(e.target.value)}
-                      className="w-full text-xs !bg-[#1E1B1C] !border-white/5 !rounded-xl py-2 pl-8 pr-3 text-white placeholder-zinc-500"
+                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
                     />
                   </div>
 
-                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1 no-scrollbar divide-y divide-white/5">
+                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1 no-scrollbar divide-y divide-stone-200 dark:divide-white/5">
                     {filteredMenuItems.map(item => (
                       <div key={item.id} className="pt-2 flex justify-between items-center gap-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-white text-xs truncate">{item.name}</p>
-                          <p className="text-[10px] text-zinc-400">₹{item.price}</p>
+                          <p className="font-bold text-stone-900 dark:text-white text-xs truncate">{item.name}</p>
+                          <p className="text-[10px] text-stone-500 dark:text-zinc-400">₹{item.price}</p>
                         </div>
 
                         {/* High-accessibility Stepper */}
-                        <div className="bg-[#1E1B1C] rounded-full p-1 border border-white/10 flex items-center gap-1 shadow-inner flex-shrink-0">
+                        <div className="bg-stone-100 dark:bg-[#1E1B1C] rounded-full p-1 border border-stone-200 dark:border-white/10 flex items-center gap-1 shadow-inner flex-shrink-0">
                           <button
                             type="button"
                             onClick={() => handleUpdateManualQty(item.id, -1)}
-                            className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
+                            className="w-6 h-6 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-xs apple-tap-target"
                             aria-label="Decrease quantity"
                           >
                             {item.quantity === 1 ? (
@@ -781,16 +783,16 @@ export default function KitchenView() {
                               <Minus size={11} strokeWidth={2.5} />
                             )}
                           </button>
-                          <span className="min-w-[18px] text-center font-black text-xs text-[#E0FF33] font-['Outfit'] select-none">
+                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#E0FF33] font-['Outfit'] select-none">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleUpdateManualQty(item.id, 1)}
-                            className="w-6 h-6 rounded-full bg-[#E0FF33] hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
                           >
-                            <Plus size={11} strokeWidth={3} />
+                            <Plus size={11} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
                           </button>
                         </div>
                       </div>
@@ -798,9 +800,9 @@ export default function KitchenView() {
                   </div>
 
                   {/* Total Bill Box */}
-                  <div className="bg-[#151314] rounded-2xl p-3.5 border border-white/5 flex justify-between items-center mt-3">
-                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Total Bill (COD)</span>
-                    <span className="text-lg font-black text-[#E0FF33]">
+                  <div className="bg-stone-100 dark:bg-[#151314] rounded-2xl p-3.5 border border-stone-200 dark:border-white/5 flex justify-between items-center mt-3">
+                    <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider">Total Bill (COD)</span>
+                    <span className="text-lg font-black text-stone-950 dark:text-[#E0FF33]">
                       ₹{manualCart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
                     </span>
                   </div>
@@ -809,7 +811,7 @@ export default function KitchenView() {
 
               <button
                 type="submit"
-                className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
+                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
               >
                 <Check size={18} strokeWidth={3} />
                 <span>Confirm & Create Kitchen Order</span>

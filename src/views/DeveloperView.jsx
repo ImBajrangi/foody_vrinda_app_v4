@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import DynamicToast from '../components/ui/DynamicToast';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import {
   Terminal,
   Store,
@@ -1150,16 +1151,16 @@ export default function DeveloperView({ setCurrentTab }) {
           })}
         </div>
 
-        <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#181617]/80 backdrop-blur-md border border-white/10 shadow-inner">
+        <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200 dark:border-white/5">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/80 dark:bg-[#181617]/80 backdrop-blur-md border border-stone-300 dark:border-white/10 shadow-inner">
             <button
               type="button"
               onClick={expandAll}
               title="Expand All Sections"
-              className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-[#E0FF33]/20 hover:to-[#E0FF33]/5 text-neutral-300 hover:text-white text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+              className="group relative px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-800 hover:text-stone-950 dark:text-neutral-200 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
             >
-              <div className="w-4 h-4 rounded-lg bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_8px_rgba(224,255,51,0.2)]">
-                <Maximize2 className="w-2.5 h-2.5" />
+              <div className="w-4.5 h-4.5 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                <Maximize2 className="w-3 h-3 stroke-[2.5]" />
               </div>
               <span className="tracking-wide">Expand All</span>
             </button>
@@ -1168,10 +1169,10 @@ export default function DeveloperView({ setCurrentTab }) {
               type="button"
               onClick={collapseAll}
               title="Collapse All Sections"
-              className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] hover:from-white/15 hover:to-white/5 text-neutral-400 hover:text-neutral-200 text-[11px] font-bold font-['Outfit'] border border-white/10 hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-sm active:scale-95 cursor-pointer select-none"
+              className="group relative px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-700 hover:text-stone-950 dark:text-neutral-300 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-stone-400 dark:hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
             >
-              <div className="w-4 h-4 rounded-lg bg-white/10 text-neutral-400 group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Minimize2 className="w-2.5 h-2.5" />
+              <div className="w-4.5 h-4.5 rounded-lg bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-300 group-hover:text-stone-950 dark:group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Minimize2 className="w-3 h-3 stroke-[2.5]" />
               </div>
               <span className="tracking-wide">Collapse All</span>
             </button>
@@ -1185,41 +1186,41 @@ export default function DeveloperView({ setCurrentTab }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* 1. Impersonation Settings — Full Width with Side-by-Side Layout */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <button
             type="button"
             onClick={() => toggleSection('impersonation')}
             className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
                 <UserCheck className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                   Instant Role Impersonation
                 </h3>
-                <p className="text-[11px] text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
+                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+              <span className="text-[10px] font-bold text-stone-500 dark:text-neutral-500 uppercase tracking-wider hidden sm:inline">
                 {collapsedSections.impersonation ? 'Expand' : 'Minimize'}
               </span>
-              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.impersonation ? '' : 'rotate-180'}`}>
+              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.impersonation ? '' : 'rotate-180'}`}>
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </button>
 
           {!collapsedSections.impersonation && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               {/* Kitchen Staff Impersonation */}
-              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                    <ChefHat className="w-3.5 h-3.5 text-amber-400" />
+                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                    <ChefHat className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                     <span>Impersonate Kitchen Staff</span>
                   </label>
                   <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
@@ -1231,8 +1232,8 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => setSelectedShopId(s.id)}
                           className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            ? 'bg-amber-500/20 text-amber-900 border-amber-500/40 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/40 shadow-sm'
+                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                             }`}
                         >
                           {s.name}
@@ -1244,7 +1245,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   onClick={() => handleImpersonateShop(selectedShopId)}
                   disabled={!selectedShopId}
-                  className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
                 >
                   <ChefHat className="w-4 h-4" />
                   <span>Launch Kitchen Staff View</span>
@@ -1252,10 +1253,10 @@ export default function DeveloperView({ setCurrentTab }) {
               </div>
 
               {/* Delivery Rider Impersonation */}
-              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                     <span>Impersonate Delivery Rider</span>
                   </label>
                   <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
@@ -1267,8 +1268,8 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => setSelectedDeliveryShopId(s.id)}
                           className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-cyan-400/20 text-cyan-300 border-cyan-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            ? 'bg-cyan-500/20 text-cyan-900 border-cyan-500/40 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/40 shadow-sm'
+                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                             }`}
                         >
                           {s.name}
@@ -1280,7 +1281,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
                   disabled={!selectedDeliveryShopId}
-                  className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 dark:bg-cyan-400 dark:hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
                 >
                   <Truck className="w-4 h-4" />
                   <span>Launch Sarathi Rider View</span>
@@ -1288,10 +1289,10 @@ export default function DeveloperView({ setCurrentTab }) {
               </div>
 
               {/* Store Owner Impersonation */}
-              <div className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 space-y-3 flex flex-col justify-between">
+              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <label className="block text-xs font-bold text-neutral-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span>Impersonate Store Owner</span>
                   </label>
                   <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
@@ -1303,8 +1304,8 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => setSelectedOwnerShopId(s.id)}
                           className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-purple-400/20 text-purple-300 border-purple-400/40 shadow-sm'
-                            : 'bg-[#282526] text-neutral-400 border-white/5 hover:text-white hover:border-white/15'
+                            ? 'bg-purple-500/20 text-purple-900 border-purple-500/40 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/40 shadow-sm'
+                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                             }`}
                         >
                           {s.name}
@@ -1316,7 +1317,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
                   disabled={!selectedOwnerShopId}
-                  className="w-full py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
+                  className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   <span>Launch Store Owner View</span>
@@ -1327,26 +1328,26 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 2. Kitchens & Locations Master */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
             <button
               type="button"
               onClick={() => toggleSection('shops')}
               className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
                 <Store className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                     Kitchens & Store Locations
                   </h3>
-                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.shops ? '' : 'rotate-180'}`}>
+                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.shops ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">Add new branches, toggle open/closed state, and manage cloud kitchens.</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Add new branches, toggle open/closed state, and manage cloud kitchens.</p>
               </div>
             </button>
 
@@ -1357,7 +1358,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
                   setIsCreatingShop(!isCreatingShop);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
                 <span>{isCreatingShop ? 'Close Form' : 'Add Kitchen'}</span>
@@ -1366,24 +1367,24 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.shops && (
-            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               {/* Create Shop Form Drawer */}
               {isCreatingShop && (
-                <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-4 animate-fadeIn">
+                <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-xs font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
                       <Store className="w-4 h-4" /> Add New Cloud Kitchen Branch
                     </h4>
-                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#282526] border border-white/5 space-y-1.5">
-                    <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Establishment Category</label>
+                  <div className="p-3 rounded-xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/5 space-y-1.5">
+                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Establishment Category</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setNewShopType('hotel')}
-                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/40' : 'bg-black/20 text-neutral-400 border-white/5'
+                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
                           }`}
                       >
                         🍽️ Hotel / Restaurant
@@ -1391,7 +1392,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       <button
                         type="button"
                         onClick={() => setNewShopType('shop')}
-                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-400/15 text-amber-300 border-amber-400/40' : 'bg-black/20 text-neutral-400 border-white/5'
+                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
                           }`}
                       >
                         🏪 Shop / Retail Stall
@@ -1401,93 +1402,93 @@ export default function DeveloperView({ setCurrentTab }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
                       <input
                         type="text"
                         value={newShopName}
                         onChange={e => setNewShopName(e.target.value)}
                         placeholder="e.g. Govind Dham Annakoot"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
                       <input
                         type="text"
                         value={newShopPhone}
                         onChange={e => setNewShopPhone(e.target.value)}
                         placeholder="e.g. 9876543210"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
                       <input
                         type="text"
                         value={newShopPrepTime}
                         onChange={e => setNewShopPrepTime(e.target.value)}
                         placeholder="15-20 mins"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
                       <input
                         type="text"
                         value={newShopRadius}
                         onChange={e => setNewShopRadius(e.target.value)}
                         placeholder="12 km"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Address / Landmark</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Address / Landmark</label>
                       <input
                         type="text"
                         value={newShopAddress}
                         onChange={e => setNewShopAddress(e.target.value)}
                         placeholder="Near ISKCON Temple, Raman Reti, Vrindavan"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
 
                     <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Cover Image URL</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Cover Image URL</label>
                       <input
                         type="text"
                         value={newShopImage}
                         onChange={e => setNewShopImage(e.target.value)}
                         placeholder="https://..."
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
                     <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
                         <input
                           type="checkbox"
                           checked={newShopPureVeg}
                           onChange={e => setNewShopPureVeg(e.target.checked)}
-                          className="rounded text-[#E0FF33] focus:ring-0"
+                          className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
                         />
-                        <span className="font-bold text-emerald-400">100% Pure Satvik Veg</span>
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">100% Pure Satvik Veg</span>
                       </label>
 
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
                         <input
                           type="checkbox"
                           checked={newShopIsOpen}
                           onChange={e => setNewShopIsOpen(e.target.checked)}
-                          className="rounded text-[#E0FF33] focus:ring-0"
+                          className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
                         />
-                        <span className="font-bold text-white">Open for Orders</span>
+                        <span className="font-bold text-stone-900 dark:text-white">Open for Orders</span>
                       </label>
                     </div>
 
@@ -1495,13 +1496,13 @@ export default function DeveloperView({ setCurrentTab }) {
                       <button
                         type="button"
                         onClick={() => setIsCreatingShop(false)}
-                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                       >
                         Create Kitchen
                       </button>
@@ -1513,16 +1514,16 @@ export default function DeveloperView({ setCurrentTab }) {
               {/* Search & Filter Bar */}
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search kitchen by name or address..."
                     value={shopSearch}
                     onChange={e => setShopSearch(e.target.value)}
-                    className="w-full bg-[#1E1B1C] text-xs text-white placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#E0FF33]/50"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50"
                   />
                 </div>
-                <span className="text-[11px] font-bold text-neutral-400 px-3 py-2 bg-[#1E1B1C] rounded-xl border border-white/5 shrink-0">
+                <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 px-3 py-2 bg-stone-50 dark:bg-[#1E1B1C] rounded-xl border border-stone-200 dark:border-white/5 shrink-0">
                   {shopsList.length} Kitchens
                 </span>
               </div>
@@ -1534,39 +1535,39 @@ export default function DeveloperView({ setCurrentTab }) {
                   .map(s => {
                     const isOpen = s.isOpen ?? true;
                     return (
-                      <div key={s.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                      <div key={s.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <h4 className="font-bold text-sm text-white truncate font-['Outfit']">{s.name}</h4>
-                              <p className="text-[11px] text-neutral-400 truncate flex items-center gap-1 mt-0.5">
-                                <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <h4 className="font-bold text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{s.name}</h4>
+                              <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
                                 <span>{s.address || 'Vrindavan, UP'}</span>
                               </p>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border border-rose-500/30'
                               }`}>
                               {isOpen ? 'Open' : 'Closed'}
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-[10px] text-neutral-400">
-                            <div className="p-2 rounded-lg bg-white/5 flex items-center gap-1.5">
-                              <Clock className="w-3 h-3 text-amber-400" />
+                          <div className="grid grid-cols-2 gap-2 text-[10px] text-stone-600 dark:text-neutral-400">
+                            <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
+                              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                               <span>{s.preparationTime || '15-20 mins'}</span>
                             </div>
-                            <div className="p-2 rounded-lg bg-white/5 flex items-center gap-1.5">
-                              <Truck className="w-3 h-3 text-cyan-400" />
+                            <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
+                              <Truck className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
                               <span>{s.deliveryRadius || '10 km'}</span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => handleToggleShopOpen(s.id, isOpen)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                               }`}
                           >
                             {isOpen ? 'Mark Closed' : 'Mark Open'}
@@ -1577,7 +1578,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               type="button"
                               onClick={() => handleImpersonateShop(s.id)}
                               title="Launch Staff View"
-                              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-amber-400 border border-white/5 cursor-pointer"
+                              className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-amber-700 dark:text-amber-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                             >
                               <ChefHat className="w-3.5 h-3.5" />
                             </button>
@@ -1585,7 +1586,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               type="button"
                               onClick={() => handleDeleteShop(s.id, s.name)}
                               title="Delete Kitchen"
-                              className="p-1.5 rounded-xl bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                              className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1600,26 +1601,26 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 3. Dishes & Menu Catalog Master */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
             <button
               type="button"
               onClick={() => toggleSection('dishes')}
               className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
             >
-              <div className="w-9 h-9 rounded-xl bg-cyan-400/15 text-cyan-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-700 dark:text-cyan-400 flex items-center justify-center shrink-0">
                 <UtensilsCrossed className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-400 transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                     Dishes & Food Menu Catalog
                   </h3>
-                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.dishes ? '' : 'rotate-180'}`}>
+                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.dishes ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">Create new items, set prices, update descriptions, and toggle instant in-stock availability.</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create new items, set prices, update descriptions, and toggle instant in-stock availability.</p>
               </div>
             </button>
 
@@ -1630,7 +1631,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
                   setIsCreatingDish(!isCreatingDish);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
                 <span>{isCreatingDish ? 'Close Form' : 'Add Dish'}</span>
@@ -1639,128 +1640,137 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.dishes && (
-            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               {/* Create Dish Form */}
               {isCreatingDish && (
-                <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-cyan-400/30 space-y-4 animate-fadeIn">
+                <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-cyan-500/30 dark:border-cyan-400/30 space-y-4 animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-xs font-black text-cyan-700 dark:text-cyan-400 uppercase tracking-wider flex items-center gap-2">
                       <UtensilsCrossed className="w-4 h-4" /> Add Dish to Menu Catalog
                     </h4>
-                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Dish Name</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Name</label>
                       <input
                         type="text"
                         value={newDishName}
                         onChange={e => setNewDishName(e.target.value)}
                         placeholder="e.g. Shahi Mathura Peda (4 pcs)"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Category</label>
-                      <select
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Category</label>
+                      <SearchableDropdown
                         value={newDishCategory}
-                        onChange={e => setNewDishCategory(e.target.value)}
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
-                      >
-                        <option value="Satvik Thali">Satvik Thali</option>
-                        <option value="Sweets & Desserts">Sweets & Desserts</option>
-                        <option value="Snacks & Chaat">Snacks & Chaat</option>
-                        <option value="Lassi & Beverages">Lassi & Beverages</option>
-                        <option value="Special Bhog">Special Bhog</option>
-                        <option value="Breads & Rice">Breads & Rice</option>
-                      </select>
+                        onChange={val => setNewDishCategory(val)}
+                        options={[
+                          { value: 'Satvik Thali', label: 'Satvik Thali', icon: UtensilsCrossed, badge: 'Thali', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                          { value: 'Sweets & Desserts', label: 'Sweets & Desserts', icon: Sparkles, badge: 'Sweet', badgeColor: 'bg-pink-500/15 text-pink-700 dark:text-pink-400' },
+                          { value: 'Snacks & Chaat', label: 'Snacks & Chaat', icon: Flame, badge: 'Chaat', badgeColor: 'bg-orange-500/15 text-orange-700 dark:text-orange-400' },
+                          { value: 'Lassi & Beverages', label: 'Lassi & Beverages', icon: Sparkles, badge: 'Drink', badgeColor: 'bg-blue-500/15 text-blue-700 dark:text-blue-400' },
+                          { value: 'Special Bhog', label: 'Special Bhog', icon: Crown, badge: 'Bhog', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]' },
+                          { value: 'Breads & Rice', label: 'Breads & Rice', icon: UtensilsCrossed, badge: 'Grain', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                        ]}
+                        align="full"
+                        searchPlaceholder="Filter category..."
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
                       <input
                         type="number"
                         value={newDishPrice}
                         onChange={e => setNewDishPrice(e.target.value)}
                         placeholder="e.g. 160"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Original / MRP Price (₹)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original / MRP Price (₹)</label>
                       <input
                         type="number"
                         value={newDishOriginalPrice}
                         onChange={e => setNewDishOriginalPrice(e.target.value)}
                         placeholder="e.g. 200 (optional)"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Assign to Kitchen</label>
-                      <select
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Assign to Kitchen</label>
+                      <SearchableDropdown
                         value={newDishShopId}
-                        onChange={e => setNewDishShopId(e.target.value)}
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
-                      >
-                        <option value="all">All Kitchens (Universal)</option>
-                        {shopsList.map(s => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
+                        onChange={val => setNewDishShopId(val)}
+                        options={[
+                          { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                          ...shopsList.map(s => ({
+                            value: s.id,
+                            label: s.name,
+                            sublabel: s.address || 'Vrindavan Kitchen',
+                            icon: Store,
+                            badge: 'Branch',
+                            badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                          }))
+                        ]}
+                        align="full"
+                        searchPlaceholder="Filter kitchen..."
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Dish Image URL</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Image URL</label>
                       <input
                         type="text"
                         value={newDishImage}
                         onChange={e => setNewDishImage(e.target.value)}
                         placeholder="https://..."
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
                       />
                     </div>
 
                     <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Description / Ingredients</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Description / Ingredients</label>
                       <textarea
                         rows={2}
                         value={newDishDescription}
                         onChange={e => setNewDishDescription(e.target.value)}
                         placeholder="Prepared with pure desi ghee, fresh milk and authentic Vrindavan spices..."
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
                       <input
                         type="checkbox"
                         checked={newDishIsAvailable}
                         onChange={e => setNewDishIsAvailable(e.target.checked)}
-                        className="rounded text-cyan-400 focus:ring-0"
+                        className="rounded text-cyan-600 dark:text-cyan-400 focus:ring-0"
                       />
-                      <span className="font-bold text-emerald-400">Available In-Stock Now</span>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Available In-Stock Now</span>
                     </label>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setIsCreatingDish(false)}
-                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                       >
                         Add Dish
                       </button>
@@ -1772,13 +1782,13 @@ export default function DeveloperView({ setCurrentTab }) {
               {/* Filters & Search */}
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative flex-1 w-full">
-                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search dishes by name or category..."
                     value={dishSearch}
                     onChange={e => setDishSearch(e.target.value)}
-                    className="w-full bg-[#1E1B1C] text-xs text-white placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-cyan-400/50"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400/50"
                   />
                 </div>
 
@@ -1789,8 +1799,8 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={() => setDishCategoryFilter(cat)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
-                          ? 'bg-cyan-400 text-black font-black shadow-sm'
-                          : 'bg-[#1E1B1C] text-neutral-400 hover:text-white border border-white/5'
+                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-black font-black shadow-sm'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
                         }`}
                     >
                       {cat === 'all' ? 'All Items' : cat}
@@ -1810,33 +1820,33 @@ export default function DeveloperView({ setCurrentTab }) {
                   .map(d => {
                     const isAvailable = d.isAvailable ?? d.is_available ?? true;
                     return (
-                      <div key={d.id} className="p-3.5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                      <div key={d.id} className="p-3.5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
                         <div className="space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <h4 className="font-bold text-xs sm:text-sm text-white truncate font-['Outfit']">{d.name}</h4>
-                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-neutral-400 font-medium inline-block mt-0.5">
+                              <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{d.name}</h4>
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-medium inline-block mt-0.5">
                                 {d.category || 'General'}
                               </span>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-xs sm:text-sm font-black text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
+                              <p className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
                               {d.originalPrice && d.originalPrice > d.price && (
-                                <p className="text-[10px] text-neutral-500 line-through">₹{d.originalPrice}</p>
+                                <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{d.originalPrice}</p>
                               )}
                             </div>
                           </div>
 
-                          <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">{d.description || 'Traditional satvik culinary preparation.'}</p>
+                          <p className="text-[11px] text-stone-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">{d.description || 'Traditional satvik culinary preparation.'}</p>
                         </div>
 
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => handleToggleDishAvailability(d.id, isAvailable)}
                             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${isAvailable
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
                               }`}
                           >
                             {isAvailable ? 'In-Stock' : 'Out of Stock'}
@@ -1846,7 +1856,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => handleDeleteDish(d.id, d.name)}
                             title="Delete dish"
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -1860,26 +1870,26 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 4. Combo Packs Builder Master */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
             <button
               type="button"
               onClick={() => toggleSection('combos')}
               className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
             >
-              <div className="w-9 h-9 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-amber-400/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <Gift className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-400 transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                     Combo Packs & Festival Boxes
                   </h3>
-                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.combos ? '' : 'rotate-180'}`}>
+                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.combos ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">Bundle bestsellers into high-converting combo boxes with auto % discount badges.</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Bundle bestsellers into high-converting combo boxes with auto % discount badges.</p>
               </div>
             </button>
 
@@ -1890,7 +1900,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   if (collapsedSections.combos) setCollapsedSections(prev => ({ ...prev, combos: false }));
                   setIsCreatingCombo(!isCreatingCombo);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
                 <span>{isCreatingCombo ? 'Close Form' : 'Build Combo'}</span>
@@ -1899,95 +1909,102 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.combos && (
-            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               {/* Build Combo Form */}
               {isCreatingCombo && (
-                <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-amber-400/30 space-y-4 animate-fadeIn">
+                <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-amber-400/30 space-y-4 animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
                       <Gift className="w-4 h-4" /> Build New Satvik Combo Pack
                     </h4>
-                    <span className="text-[10px] text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
                       <input
                         type="text"
                         value={newComboName}
                         onChange={e => setNewComboName(e.target.value)}
                         placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
                       <input
                         type="number"
                         value={newComboPrice}
                         onChange={e => setNewComboPrice(e.target.value)}
                         placeholder="e.g. 299"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
                       <input
                         type="number"
                         value={newComboOriginalPrice}
                         onChange={e => setNewComboOriginalPrice(e.target.value)}
                         placeholder="e.g. 399"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
                       <textarea
                         rows={3}
                         value={newComboItems}
                         onChange={e => setNewComboItems(e.target.value)}
                         placeholder="1x Royal Rajbhog Thali&#10;1x Kesar Badam Lassi&#10;2x Malpua Rabdi"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
-                      <select
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
+                      <SearchableDropdown
                         value={newComboShopId}
-                        onChange={e => setNewComboShopId(e.target.value)}
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-400"
-                      >
-                        <option value="all">All Kitchens</option>
-                        {shopsList.map(s => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
+                        onChange={val => setNewComboShopId(val)}
+                        options={[
+                          { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                          ...shopsList.map(s => ({
+                            value: s.id,
+                            label: s.name,
+                            sublabel: s.address || 'Vrindavan Kitchen',
+                            icon: Store,
+                            badge: 'Branch',
+                            badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                          }))
+                        ]}
+                        align="full"
+                        searchPlaceholder="Filter kitchen..."
+                      />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                    <span className="text-xs text-neutral-400 font-medium">
-                      Auto-Calculated Savings: <strong className="text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10">
+                    <span className="text-xs text-stone-600 dark:text-neutral-400 font-medium">
+                      Auto-Calculated Savings: <strong className="text-amber-700 dark:text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
                     </span>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setIsCreatingCombo(false)}
-                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                       >
                         Publish Combo Pack
                       </button>
@@ -2004,29 +2021,29 @@ export default function DeveloperView({ setCurrentTab }) {
                     const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
                     const items = Array.isArray(combo.comboItems) ? combo.comboItems : Array.isArray(combo.combo_items) ? combo.combo_items : [];
                     return (
-                      <div key={combo.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                      <div key={combo.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <h4 className="font-bold text-sm text-white font-['Outfit'] truncate">{combo.name}</h4>
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                              <h4 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">{combo.name}</h4>
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
                                 Save {combo.discountPercent || (combo.originalPrice > combo.price ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100) : 15)}%
                               </span>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-base font-black text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
+                              <p className="text-base font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
                               {combo.originalPrice && combo.originalPrice > combo.price && (
-                                <p className="text-[10px] text-neutral-500 line-through">₹{combo.originalPrice}</p>
+                                <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
                               )}
                             </div>
                           </div>
 
                           {items.length > 0 && (
                             <div className="space-y-1">
-                              <p className="text-[10px] uppercase font-bold text-neutral-500">Box Contents</p>
+                              <p className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-500">Box Contents</p>
                               <div className="flex flex-wrap gap-1">
                                 {items.map((itemStr, idx) => (
-                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-neutral-300 border border-white/5">
+                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300/50 dark:border-white/5">
                                     {itemStr}
                                   </span>
                                 ))}
@@ -2035,13 +2052,13 @@ export default function DeveloperView({ setCurrentTab }) {
                           )}
                         </div>
 
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
                             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
                               }`}
                           >
                             {isAvailable ? 'In-Stock' : 'Sold Out'}
@@ -2051,7 +2068,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => handleDeleteDish(combo.id, combo.name)}
                             title="Delete Combo"
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2065,26 +2082,26 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 5. Promotions & Offers Master */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
             <button
               type="button"
               onClick={() => toggleSection('offers')}
               className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-400/15 text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
                 <Tag className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-emerald-400 transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     Promo Codes & Offers Master
                   </h3>
-                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.offers ? '' : 'rotate-180'}`}>
+                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.offers ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">Create coupon codes, flat/percentage discounts, min order limits and active toggles.</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create coupon codes, flat/percentage discounts, min order limits and active toggles.</p>
               </div>
             </button>
 
@@ -2095,7 +2112,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   if (collapsedSections.offers) setCollapsedSections(prev => ({ ...prev, offers: false }));
                   setIsCreatingOffer(!isCreatingOffer);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
                 <span>{isCreatingOffer ? 'Close Form' : 'New Promo Code'}</span>
@@ -2104,110 +2121,112 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.offers && (
-            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               {/* Create Offer Form */}
               {isCreatingOffer && (
-                <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-emerald-400/30 space-y-4 animate-fadeIn">
+                <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-emerald-500/30 dark:border-emerald-400/30 space-y-4 animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                       <Tag className="w-4 h-4" /> Create New Promo Code
                     </h4>
-                    <span className="text-[10px] text-neutral-400 font-mono">Syncs to `foody_offers`</span>
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to `foody_offers`</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Coupon Code (Uppercase)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Coupon Code (Uppercase)</label>
                       <input
                         type="text"
                         value={newOfferCode}
                         onChange={e => setNewOfferCode(e.target.value.toUpperCase())}
                         placeholder="e.g. RADHE108"
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400 uppercase font-mono font-bold"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 uppercase font-mono font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Discount Type</label>
-                      <select
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Type</label>
+                      <SearchableDropdown
                         value={newOfferDiscountType}
-                        onChange={e => setNewOfferDiscountType(e.target.value)}
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
-                      >
-                        <option value="percentage">Percentage Discount (%)</option>
-                        <option value="flat">Flat Amount (₹)</option>
-                      </select>
+                        onChange={val => setNewOfferDiscountType(val)}
+                        options={[
+                          { value: 'percentage', label: 'Percentage Discount (%)', icon: Percent, badge: '% Off', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                          { value: 'flat', label: 'Flat Amount (₹)', icon: Banknote, badge: '₹ Flat', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' }
+                        ]}
+                        align="full"
+                        showSearch={false}
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Discount Value</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Value</label>
                       <input
                         type="number"
                         value={newOfferDiscountValue}
                         onChange={e => setNewOfferDiscountValue(e.target.value)}
                         placeholder={newOfferDiscountType === 'percentage' ? "e.g. 20 (%)" : "e.g. 50 (₹)"}
                         required
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400 font-bold"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Min Order Amount (₹)</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Min Order Amount (₹)</label>
                       <input
                         type="number"
                         value={newOfferMinOrder}
                         onChange={e => setNewOfferMinOrder(e.target.value)}
                         placeholder="e.g. 199"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Offer Title</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Offer Title</label>
                       <input
                         type="text"
                         value={newOfferTitle}
                         onChange={e => setNewOfferTitle(e.target.value)}
                         placeholder="e.g. Festival Prasad Special Discount"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Subtitle / Marketing Note</label>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Subtitle / Marketing Note</label>
                       <input
                         type="text"
                         value={newOfferSubtitle}
                         onChange={e => setNewOfferSubtitle(e.target.value)}
                         placeholder="e.g. Get 20% OFF up to ₹100 on your satvik order"
-                        className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-400"
+                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
                       <input
                         type="checkbox"
                         checked={newOfferIsActive}
                         onChange={e => setNewOfferIsActive(e.target.checked)}
-                        className="rounded text-emerald-400 focus:ring-0"
+                        className="rounded text-emerald-600 dark:text-emerald-400 focus:ring-0"
                       />
-                      <span className="font-bold text-emerald-400">Coupon Code Active</span>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Coupon Code Active</span>
                     </label>
 
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setIsCreatingOffer(false)}
-                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 text-xs font-bold cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                       >
                         Create Promo Code
                       </button>
@@ -2223,46 +2242,46 @@ export default function DeveloperView({ setCurrentTab }) {
                   const isPct = (offer.discountType || offer.discount_type) === 'percentage';
                   const val = offer.discountValue ?? offer.discount_value ?? 20;
                   return (
-                    <div key={offer.id} className="p-4 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-emerald-400/20 transition-all space-y-3 flex flex-col justify-between shadow-md">
+                    <div key={offer.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/30 dark:hover:border-emerald-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-black text-sm text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-400/10 border border-emerald-400/30">
+                            <span className="font-mono font-black text-sm text-emerald-800 dark:text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/10 border border-emerald-500/30 dark:border-emerald-400/30">
                               {offer.code}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyOfferCode(offer.code)}
                               title="Copy code"
-                              className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
+                              className="p-1 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
                             >
                               <Copy className="w-3 h-3" />
                             </button>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${isActive ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-800 text-neutral-500'
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${isActive ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-stone-200 dark:bg-neutral-800 text-stone-500 dark:text-neutral-500'
                             }`}>
                             {isActive ? 'Active' : 'Disabled'}
                           </span>
                         </div>
 
                         <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-white font-['Outfit']">{offer.title}</h4>
-                          <p className="text-[11px] text-neutral-400 mt-0.5">{offer.subtitle || (isPct ? `${val}% OFF on satvik meals` : `Flat ₹${val} OFF`)}</p>
+                          <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white font-['Outfit']">{offer.title}</h4>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">{offer.subtitle || (isPct ? `${val}% OFF on satvik meals` : `Flat ₹${val} OFF`)}</p>
                         </div>
 
-                        <div className="flex items-center gap-3 text-[10px] text-neutral-400 pt-1">
+                        <div className="flex items-center gap-3 text-[10px] text-stone-500 dark:text-neutral-400 pt-1">
                           <span>Min: ₹{offer.minOrderAmount ?? offer.min_order_amount ?? 0}</span>
                           {offer.maxDiscount && <span>Max: ₹{offer.maxDiscount}</span>}
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                      <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => handleToggleOfferActive(offer.id, isActive)}
                           className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isActive
-                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-neutral-800 text-neutral-400 hover:text-white'
+                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                              : 'bg-stone-200 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
                             }`}
                         >
                           {isActive ? 'Active' : 'Enable'}
@@ -2272,7 +2291,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => handleDeleteOffer(offer.id, offer.code)}
                           title="Delete offer"
-                          className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-neutral-400 hover:text-rose-400 border border-white/5 cursor-pointer"
+                          className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -2286,7 +2305,7 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 6. Global & Per-Kitchen Payment Configuration */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
 
           <button
             type="button"
@@ -2294,52 +2313,52 @@ export default function DeveloperView({ setCurrentTab }) {
             className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/10 text-[#E0FF33] border border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
                 <CreditCard className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                   Payment Gateways Master
                 </h3>
-                <p className="text-[11px] text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
+                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-[10px] font-black uppercase text-[#E0FF33] bg-[#E0FF33]/10 px-2 py-0.5 rounded-full border border-[#E0FF33]/20 hidden sm:inline">
+              <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20 hidden sm:inline">
                 Master Switches
               </span>
-              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.payments ? '' : 'rotate-180'}`}>
+              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.payments ? '' : 'rotate-180'}`}>
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </button>
 
           {!collapsedSections.payments && (
-            <div className="space-y-6 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-6 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
 
               {/* 1. Global Master Switches */}
               <div className="space-y-3">
-                <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E0FF33]" />
+                <p className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33]" />
                   1. Global Master Switches (All Kitchens)
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Online Razorpay Global */}
-                  <div className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                  <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
                         <CreditCard className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Online Payments (Razorpay & UPI)</p>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">Platform-wide UPI, Credit/Debit Cards & Netbanking</p>
+                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (Razorpay & UPI)</p>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide UPI, Credit/Debit Cards & Netbanking</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.onlinePaymentsEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.onlinePaymentsEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
                         }`}
                       role="switch"
                       aria-checked={paymentsConfig.onlinePaymentsEnabled}
@@ -2353,20 +2372,20 @@ export default function DeveloperView({ setCurrentTab }) {
                   </div>
 
                   {/* Cash on Delivery Global */}
-                  <div className="p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                  <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
                         <Banknote className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Cash on Delivery (COD)</p>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">Platform-wide Physical Cash Collection on Delivery</p>
+                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide Physical Cash Collection on Delivery</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.codEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.codEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
                         }`}
                       role="switch"
                       aria-checked={paymentsConfig.codEnabled}
@@ -2382,7 +2401,7 @@ export default function DeveloperView({ setCurrentTab }) {
               </div>
 
               {/* 2. Specific Kitchen Master Switches */}
-              <div className="space-y-3 pt-3 border-t border-white/5">
+              <div className="space-y-3 pt-3 border-t border-stone-200 dark:border-white/5">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between flex-wrap gap-1">
                     <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -2400,13 +2419,12 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => setSelectedPaymentShopId(s.id)}
                           className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
-                            ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.25)]'
-                            : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                            ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
+                            : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-white/20'
                             }`}
                         >
                           <Store className="w-3.5 h-3.5" />
                           <span className="whitespace-nowrap">{s.name}</span>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
                         </button>
                       );
                     })}
@@ -2422,28 +2440,28 @@ export default function DeveloperView({ setCurrentTab }) {
 
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                      <div className={`p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalOnlineOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/5 hover:border-white/10'
+                      <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalOnlineOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10'
                         }`}>
                         <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-2xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
                             <CreditCard className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
+                              <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
                               {isGlobalOnlineOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
                                   Disabled Globally
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'onlinePaymentsEnabled', !shopOnline)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopOnline ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopOnline ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
                             }`}
                           role="switch"
                           aria-checked={shopOnline}
@@ -2456,28 +2474,28 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                       </div>
 
-                      <div className={`p-4 sm:p-5 bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalCodOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/5 hover:border-white/10'
+                      <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalCodOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10'
                         }`}>
                         <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
                             <Banknote className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-xs sm:text-sm font-bold text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                              <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
                               {isGlobalCodOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
                                   Disabled Globally
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'codEnabled', !shopCod)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopCod ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-neutral-700'
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopCod ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
                             }`}
                           role="switch"
                           aria-checked={shopCod}
@@ -2498,43 +2516,44 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 3. Simulator Container */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        {/* 7. End-to-End Order Simulator */}
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <button
             type="button"
             onClick={() => toggleSection('simulator')}
             className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-rose-500/15 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30 dark:border-rose-500/20 flex items-center justify-center shrink-0">
                 <Flame className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                   End-to-End Order Simulator
                 </h3>
-                <p className="text-[11px] text-neutral-400 truncate">Generate simulated tickets into Supabase without going through payment gateways.</p>
+                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Generate simulated tickets into Supabase without going through payment gateways.</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:inline">
+              <span className="text-[10px] font-bold text-stone-500 dark:text-neutral-500 uppercase tracking-wider hidden sm:inline">
                 {collapsedSections.simulator ? 'Expand' : 'Minimize'}
               </span>
-              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.simulator ? '' : 'rotate-180'}`}>
+              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.simulator ? '' : 'rotate-180'}`}>
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </button>
 
           {!collapsedSections.simulator && (
-            <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-white/5 dev-section-expand">
+            <form onSubmit={handleRunOrderSimulator} className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+                    <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
                       Target Kitchen
                     </label>
-                    <span className="text-[10px] text-neutral-500 font-bold font-['Plus_Jakarta_Sans']">
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-bold font-['Plus_Jakarta_Sans']">
                       {allShops.length} Locations
                     </span>
                   </div>
@@ -2547,13 +2566,12 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => handleSimShopChange(s.id)}
                           className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 cursor-pointer shrink-0 select-none ${isSelected
-                              ? 'bg-[#E0FF33] text-black border-[#E0FF33] shadow-[0_2px_10px_rgba(224,255,51,0.25)] font-black'
-                              : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                              ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-md font-black'
+                              : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                             }`}
                         >
                           <Store className="w-3.5 h-3.5" />
                           <span className="whitespace-nowrap">{s.name}</span>
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />}
                         </button>
                       );
                     })}
@@ -2561,47 +2579,47 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Client Name</label>
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Client Name</label>
                   <input
                     type="text"
                     value={simName}
                     onChange={(e) => setSimName(e.target.value)}
                     required
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl p-3 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Delivery Address</label>
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Delivery Address</label>
                   <input
                     type="text"
                     value={simAddress}
                     onChange={(e) => setSimAddress(e.target.value)}
                     required
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl p-3 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Client Phone</label>
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Client Phone</label>
                   <input
                     type="tel"
                     value={simPhone}
                     onChange={(e) => setSimPhone(e.target.value)}
                     required
-                    className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl p-3 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Simulated Payment Gateway</label>
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Simulated Payment Gateway</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setSimPaymentMethod('online')}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${simPaymentMethod === 'online'
-                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 shadow-sm font-black'
-                          : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
+                          ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40 dark:border-emerald-400/40 shadow-sm font-black'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
                         }`}
                     >
                       <CreditCard size={13} />
@@ -2611,8 +2629,8 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={() => setSimPaymentMethod('cash')}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${simPaymentMethod === 'cash'
-                          ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 shadow-sm font-black'
-                          : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white'
+                          ? 'bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-500/40 dark:border-amber-400/40 shadow-sm font-black'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
                         }`}
                     >
                       <Banknote size={13} />
@@ -2624,30 +2642,30 @@ export default function DeveloperView({ setCurrentTab }) {
 
               <div className="space-y-3 flex flex-col justify-between">
                 <div>
-                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Select Simulated Dishes</label>
-                  <div className="border border-white/10 bg-[#1E1B1C] rounded-2xl p-3 max-h-56 overflow-y-auto space-y-2 no-scrollbar">
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Select Simulated Dishes</label>
+                  <div className="border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl p-3 max-h-56 overflow-y-auto space-y-2 no-scrollbar">
                     {simMenuItems.length === 0 ? (
-                      <p className="text-neutral-500 text-center py-12 text-xs">Choose a kitchen location on the left first.</p>
+                      <p className="text-stone-500 dark:text-neutral-500 text-center py-12 text-xs">Choose a kitchen location on the left first.</p>
                     ) : (
                       simCart.map(item => (
-                        <div key={item.id} className="flex justify-between items-center text-xs py-2 border-b last:border-b-0 border-white/5">
+                        <div key={item.id} className="flex justify-between items-center text-xs py-2 border-b last:border-b-0 border-stone-200 dark:border-white/5">
                           <div className="pr-2">
-                            <p className="font-bold text-white font-['Outfit']">{item.name}</p>
-                            <p className="text-[10px] text-[#E0FF33] font-bold">₹{item.price}</p>
+                            <p className="font-bold text-stone-900 dark:text-white font-['Outfit']">{item.name}</p>
+                            <p className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-bold">₹{item.price}</p>
                           </div>
-                          <div className="flex items-center gap-2 bg-[#282526] rounded-xl border border-white/10 p-1">
+                          <div className="flex items-center gap-2 bg-stone-200/70 dark:bg-[#282526] rounded-xl border border-stone-300/60 dark:border-white/10 p-1">
                             <button
                               type="button"
                               onClick={() => handleUpdateSimQty(item.id, -1)}
-                              className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white text-xs font-bold"
+                              className="w-6 h-6 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 flex items-center justify-center text-stone-900 dark:text-white text-xs font-bold"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="w-5 text-center font-bold text-white text-xs">{item.quantity}</span>
+                            <span className="w-5 text-center font-bold text-stone-900 dark:text-white text-xs">{item.quantity}</span>
                             <button
                               type="button"
                               onClick={() => handleUpdateSimQty(item.id, 1)}
-                              className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white text-xs font-bold"
+                              className="w-6 h-6 rounded-lg bg-stone-100 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 flex items-center justify-center text-stone-900 dark:text-white text-xs font-bold"
                             >
                               <Plus className="w-3 h-3" />
                             </button>
@@ -2661,7 +2679,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   type="submit"
                   disabled={simMenuItems.length === 0 || isSimulating}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d2f323] disabled:opacity-30 disabled:pointer-events-none text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d2f323] disabled:opacity-30 disabled:pointer-events-none text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>{isSimulating ? 'Creating Order...' : 'Dispatch Simulated Order (Bypass Payment)'}</span>
@@ -2671,27 +2689,27 @@ export default function DeveloperView({ setCurrentTab }) {
           )}
         </div>
 
-        {/* 4. Registered Users & Role Directory Management */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        {/* 8. Registered Users & Role Directory Management */}
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
             <button
               type="button"
               onClick={() => toggleSection('users')}
               className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                 <Users className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                     Registered Users & Role Matrix
                   </h3>
-                  <div className={`p-1 rounded-lg bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.users ? '' : 'rotate-180'}`}>
+                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.users ? '' : 'rotate-180'}`}>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5 truncate">Manage live roles, assign kitchen locations, and test role-based permissions.</p>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Manage live roles, assign kitchen locations, and test role-based permissions.</p>
               </div>
             </button>
 
@@ -2700,9 +2718,9 @@ export default function DeveloperView({ setCurrentTab }) {
                 type="button"
                 onClick={handleRestoreDefaultAccounts}
                 title="Restore default developer, owner, chef and delivery accounts"
-                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
                 <span className="truncate">Restore Master</span>
               </button>
 
@@ -2711,7 +2729,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
                   setIsCreatingUser(!isCreatingUser);
                 }}
-                className="px-3.5 py-2 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
@@ -2720,25 +2738,25 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
 
           {!collapsedSections.users && (
-            <div className="space-y-5 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-5 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
 
               {/* Active Supabase Logged-In User Banner */}
               {user && (user.email || user.phone || user.id) && (
-                <div className="p-3.5 bg-[#1E1B1C] border border-white/10 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                <div className="p-3.5 bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 dark:bg-white/5 border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
                       <Terminal className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">
+                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit'] truncate">
                           {user.email || user.phone || 'Authenticated User'}
                         </p>
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 tracking-wider shrink-0">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30 tracking-wider shrink-0">
                           {userData?.role || 'developer'}
                         </span>
                       </div>
-                      <p className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">
+                      <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-mono truncate mt-0.5">
                         UID: {user.id}
                       </p>
                     </div>
@@ -2770,9 +2788,9 @@ export default function DeveloperView({ setCurrentTab }) {
                         setTimeout(() => setIsSyncingAccount(false), 500);
                       }
                     }}
-                    className={`px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs border border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 ${isSyncingAccount ? 'opacity-70 pointer-events-none' : ''}`}
+                    className={`px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 ${isSyncingAccount ? 'opacity-70 pointer-events-none' : ''}`}
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 text-[#E0FF33] ${isSyncingAccount ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33] ${isSyncingAccount ? 'animate-spin' : ''}`} />
                     <span className="hidden sm:inline">{isSyncingAccount ? 'Syncing...' : 'Sync Account'}</span>
                   </button>
                 </div>
@@ -2812,113 +2830,122 @@ export default function DeveloperView({ setCurrentTab }) {
                   <>
                     {/* 5-Metric Role Stats Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                      <div className="col-span-2 sm:col-span-1 p-3 bg-[#1E1B1C] rounded-2xl border border-white/10 hover:border-white/20 transition-all">
+                      <div className="col-span-2 sm:col-span-1 p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/10 hover:border-amber-500/30 dark:hover:border-white/20 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Total Users</p>
-                          <Users className="w-3.5 h-3.5 text-neutral-400" />
+                          <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Total Users</p>
+                          <Users className="w-3.5 h-3.5 text-stone-500 dark:text-neutral-400" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-white mt-1 font-['Outfit']">{effectiveList.length}</p>
+                        <p className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-1 font-['Outfit']">{effectiveList.length}</p>
                       </div>
 
-                      <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
+                      <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-[#E0FF33] uppercase tracking-wider">Developers</p>
-                          <Terminal className="w-3.5 h-3.5 text-[#E0FF33]" />
+                          <p className="text-[10px] font-bold text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">Developers</p>
+                          <Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33]" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
+                        <p className="text-xl sm:text-2xl font-black text-amber-700 dark:text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
                       </div>
 
-                      <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
+                      <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-purple-500/30 dark:hover:border-white/15 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Store Owners</p>
-                          <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                          <p className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Store Owners</p>
+                          <ShieldCheck className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-purple-300 mt-1 font-['Outfit']">{ownerCount}</p>
+                        <p className="text-xl sm:text-2xl font-black text-purple-800 dark:text-purple-300 mt-1 font-['Outfit']">{ownerCount}</p>
                       </div>
 
-                      <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
+                      <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Kitchen Chefs</p>
-                          <ChefHat className="w-3.5 h-3.5 text-amber-400" />
+                          <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Kitchen Chefs</p>
+                          <ChefHat className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-amber-300 mt-1 font-['Outfit']">{kitchenCount}</p>
+                        <p className="text-xl sm:text-2xl font-black text-amber-800 dark:text-amber-300 mt-1 font-['Outfit']">{kitchenCount}</p>
                       </div>
 
-                      <div className="p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 hover:border-white/15 transition-all">
+                      <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/15 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Riders (Sarathi)</p>
-                          <Truck className="w-3.5 h-3.5 text-cyan-400" />
+                          <p className="text-[10px] font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider">Riders (Sarathi)</p>
+                          <Truck className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-cyan-300 mt-1 font-['Outfit']">{deliveryCount}</p>
+                        <p className="text-xl sm:text-2xl font-black text-cyan-800 dark:text-cyan-300 mt-1 font-['Outfit']">{deliveryCount}</p>
                       </div>
                     </div>
 
                     {/* New User Creation Form */}
                     {isCreatingUser && (
-                      <form onSubmit={handleCreateTestUser} className="p-4 bg-[#1E1B1C] rounded-2xl border border-[#E0FF33]/30 space-y-3 animate-fadeIn">
-                        <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                          <span className="text-xs font-bold text-white uppercase tracking-wider font-['Outfit']">Provision New User / Staff Record</span>
-                          <button type="button" onClick={() => setIsCreatingUser(false)} className="text-neutral-400 hover:text-white">
+                      <form onSubmit={handleCreateTestUser} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-3 animate-fadeIn">
+                        <div className="flex items-center justify-between pb-2 border-b border-stone-200 dark:border-white/5">
+                          <span className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">Provision New User / Staff Record</span>
+                          <button type="button" onClick={() => setIsCreatingUser(false)} className="text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
                           <div>
-                            <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Full Name</label>
+                            <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Full Name</label>
                             <input
                               type="text"
                               value={newUserName}
                               onChange={(e) => setNewUserName(e.target.value)}
                               placeholder="e.g. Radhe Chef"
-                              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
+                            <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Mobile Phone (10 digits) *</label>
                             <input
                               type="tel"
                               value={newUserPhone}
                               onChange={(e) => setNewUserPhone(e.target.value)}
                               placeholder="9876543210"
                               required
-                              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
+                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Role</label>
-                            <select
+                            <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Assigned Role</label>
+                            <SearchableDropdown
                               value={newUserRole}
-                              onChange={(e) => setNewUserRole(e.target.value)}
-                              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33]"
-                            >
-                              <option value="kitchen">Kitchen Staff</option>
-                              <option value="delivery">Delivery Sarathi</option>
-                              <option value="owner">Store Owner</option>
-                              <option value="developer">Developer Admin</option>
-                              <option value="customer">Customer</option>
-                            </select>
+                              onChange={(val) => setNewUserRole(val)}
+                              options={[
+                                { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                                { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                                { value: 'owner', label: 'Store Owner', sublabel: 'Financials & store manager', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+                                { value: 'developer', label: 'Developer Admin', sublabel: 'Root admin simulation', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                                { value: 'customer', label: 'Customer', sublabel: 'Ordering devotee account', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                              ]}
+                              align="full"
+                              searchPlaceholder="Search roles..."
+                            />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-neutral-400 uppercase mb-1">Assigned Kitchen</label>
-                            <select
-                              value={newUserShopId}
-                              onChange={(e) => setNewUserShopId(e.target.value)}
-                              disabled={newUserRole === 'grand_admin' || newUserRole === 'developer'}
-                              className="w-full bg-[#282526] text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#E0FF33] disabled:opacity-50"
-                            >
-                              {(newUserRole === 'grand_admin' || newUserRole === 'developer') ? (
-                                <option value="">Global Access (All Kitchens)</option>
-                              ) : (
-                                allShops.map(s => (
-                                  <option key={s.id} value={s.id}>{s.name}</option>
-                                ))
-                              )}
-                            </select>
+                            <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Assigned Kitchen</label>
+                            {(newUserRole === 'grand_admin' || newUserRole === 'developer') ? (
+                              <div className="w-full bg-stone-100 dark:bg-[#282526] text-xs font-bold text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10 rounded-xl p-2.5 flex items-center gap-1.5">
+                                <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33]" />
+                                <span>Global Access (All Kitchens)</span>
+                              </div>
+                            ) : (
+                              <SearchableDropdown
+                                value={newUserShopId || allShops[0]?.id || ''}
+                                onChange={(val) => setNewUserShopId(val)}
+                                options={allShops.map(s => ({
+                                  value: s.id,
+                                  label: s.name,
+                                  sublabel: s.address || 'Vrindavan Kitchen',
+                                  icon: Store,
+                                  badge: 'Branch',
+                                  badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                }))}
+                                align="full"
+                                searchPlaceholder="Search kitchens..."
+                              />
+                            )}
                           </div>
                           <div className="flex items-end">
                             <button
                               type="submit"
-                              className="w-full py-2.5 rounded-xl bg-[#E0FF33] hover:bg-[#d6f727] text-black font-black text-xs uppercase tracking-wider cursor-pointer"
+                              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
                             >
                               Save User
                             </button>
@@ -2930,13 +2957,13 @@ export default function DeveloperView({ setCurrentTab }) {
                     {/* Search & Role Filter Bar */}
                     <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between pt-1">
                       <div className="relative w-full lg:w-72 shrink-0">
-                        <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           value={userSearch}
                           onChange={(e) => setUserSearch(e.target.value)}
                           placeholder="Search name, phone, email, UID..."
-                          className="w-full bg-[#1E1B1C] text-xs text-white border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
                         />
                       </div>
 
@@ -2955,13 +2982,16 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={f.id}
                               onClick={() => setUserRoleFilter(f.id)}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                                  ? 'bg-[#E0FF33] text-black border-[#E0FF33] font-black shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                                  : 'bg-[#1E1B1C] text-neutral-400 border-white/10 hover:text-white hover:border-white/20'
+                                  ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                                  : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                                 }`}
                             >
                               <span>{f.label}</span>
-                              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${isActive ? 'bg-black/20 text-black' : 'bg-white/5 text-neutral-400'
-                                }`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
+                                isActive 
+                                  ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
+                                  : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
+                              }`}>
                                 {f.count}
                               </span>
                             </button>
@@ -2986,10 +3016,10 @@ export default function DeveloperView({ setCurrentTab }) {
 
                         if (filtered.length === 0) {
                           return (
-                            <div className="text-center py-10 bg-[#1E1B1C] rounded-2xl border border-white/5">
-                              <Users className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
-                              <p className="text-xs font-bold text-neutral-400">No registered users matched the criteria.</p>
-                              <p className="text-[11px] text-neutral-600 mt-0.5">Add a new staff account above or adjust your search.</p>
+                            <div className="text-center py-10 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5">
+                              <Users className="w-8 h-8 text-stone-400 dark:text-neutral-600 mx-auto mb-2" />
+                              <p className="text-xs font-bold text-stone-600 dark:text-neutral-400">No registered users matched the criteria.</p>
+                              <p className="text-[11px] text-stone-400 dark:text-neutral-600 mt-0.5">Add a new staff account above or adjust your search.</p>
                             </div>
                           );
                         }
@@ -3002,9 +3032,9 @@ export default function DeveloperView({ setCurrentTab }) {
                           return (
                             <div
                               key={u.id}
-                              className={`p-3.5 sm:p-4 bg-[#1E1B1C] hover:bg-[#232021] rounded-2xl border transition-all space-y-3 shadow-sm ${isCurrentSessionUser
-                                  ? 'border-[#E0FF33]/30 bg-[#1E1B1C]/95'
-                                  : 'border-white/5 hover:border-white/15'
+                              className={`p-3.5 sm:p-4 bg-stone-50 dark:bg-[#1E1B1C] hover:bg-stone-100 dark:hover:bg-[#232021] rounded-2xl border transition-all space-y-3 shadow-sm ${isCurrentSessionUser
+                                  ? 'border-amber-500/50 dark:border-[#E0FF33]/30 bg-amber-50/50 dark:bg-[#1E1B1C]/95'
+                                  : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15'
                                 }`}
                             >
                               {/* Top Row: User Identity & Action Icons */}
@@ -3014,12 +3044,12 @@ export default function DeveloperView({ setCurrentTab }) {
                                   className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group/user"
                                   title="Click to view detailed user profile"
                                 >
-                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' :
-                                      role === 'developer' ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                        role === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
-                                          role === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
-                                            role === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
-                                              'bg-white/10 text-neutral-300 border border-white/10'
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                                      role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                        role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
+                                          role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
+                                            role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
+                                              'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300 border border-stone-300 dark:border-white/10'
                                     }`}>
                                     {role === 'grand_admin' ? <Crown className="w-4 h-4" /> :
                                       role === 'developer' ? <Terminal className="w-4 h-4" /> :
@@ -3031,15 +3061,15 @@ export default function DeveloperView({ setCurrentTab }) {
 
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-bold text-xs sm:text-sm text-white group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
+                                      <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white group-hover/user:text-amber-600 dark:group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
                                         {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
                                       </p>
-                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30' :
-                                          role === 'developer' ? 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30' :
-                                            role === 'owner' ? 'bg-purple-400/15 text-purple-300 border border-purple-400/30' :
-                                              role === 'kitchen' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
-                                                role === 'delivery' ? 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30' :
-                                                  'bg-white/5 text-neutral-400 border border-white/10'
+                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
+                                          role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                            role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
+                                              role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
+                                                role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
+                                                  'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
                                         }`}>
                                         {role === 'grand_admin' ? 'Grand Admin' :
                                           role === 'developer' ? 'Developer' :
@@ -3049,25 +3079,25 @@ export default function DeveloperView({ setCurrentTab }) {
                                                   'Customer'}
                                       </span>
                                       {isCurrentSessionUser && (
-                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E0FF33]/20 text-[#E0FF33] border border-[#E0FF33]/30 shrink-0">
+                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-900 dark:text-[#E0FF33] border border-amber-500/40 dark:border-[#E0FF33]/30 shrink-0">
                                           You
                                         </span>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-neutral-400 truncate mt-0.5">
+                                    <div className="flex items-center gap-2 text-xs text-stone-500 dark:text-neutral-400 truncate mt-0.5">
                                       {u.email && (
-                                        <span className="truncate flex items-center gap-1 text-neutral-300">
-                                          <Mail className="w-3 h-3 text-neutral-500 shrink-0" />
+                                        <span className="truncate flex items-center gap-1 text-stone-700 dark:text-neutral-300">
+                                          <Mail className="w-3 h-3 text-stone-400 dark:text-neutral-500 shrink-0" />
                                           {u.email}
                                         </span>
                                       )}
                                       {u.phone && !u.email && (
-                                        <span className="font-mono text-neutral-300 flex items-center gap-1 shrink-0">
-                                          <Phone className="w-3 h-3 text-neutral-500" />
+                                        <span className="font-mono text-stone-700 dark:text-neutral-300 flex items-center gap-1 shrink-0">
+                                          <Phone className="w-3 h-3 text-stone-400 dark:text-neutral-500" />
                                           +91 {u.phone}
                                         </span>
                                       )}
-                                      <span className="font-mono text-neutral-500 text-[10px] shrink-0">
+                                      <span className="font-mono text-stone-400 dark:text-neutral-500 text-[10px] shrink-0">
                                         ({u.id.slice(0, 8)})
                                       </span>
                                     </div>
@@ -3080,14 +3110,14 @@ export default function DeveloperView({ setCurrentTab }) {
                                     type="button"
                                     onClick={() => setSelectedUserDetail(u)}
                                     title="View account metadata & permissions"
-                                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                    className="p-2 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
                                   >
                                     <Info className="w-3.5 h-3.5" />
                                   </button>
 
                                   {role === 'grand_admin' ? (
                                     <div
-                                      className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400/60 cursor-not-allowed"
+                                      className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400/60 cursor-not-allowed"
                                       title="Permanent protected account"
                                     >
                                       <Lock className="w-3.5 h-3.5" />
@@ -3097,7 +3127,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                       type="button"
                                       onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
                                       title="Delete user account"
-                                      className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all active:scale-95 cursor-pointer"
+                                      className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-red-400 border border-rose-500/20 transition-all active:scale-95 cursor-pointer"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -3106,49 +3136,58 @@ export default function DeveloperView({ setCurrentTab }) {
                               </div>
 
                               {/* Bottom Row: Controls Toolbar (Role, Scope, Test Login) */}
-                              <div className="pt-2.5 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 min-w-0 flex-1">
                                   {/* Role Selector / Fixed Badge */}
                                   {role === 'grand_admin' ? (
                                     <div
-                                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center justify-center sm:justify-start gap-1.5 select-none shrink-0"
+                                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center sm:justify-start gap-1.5 select-none shrink-0"
                                       title="Grand Admin role is permanent across the platform"
                                     >
-                                      <Lock className="w-3 h-3 shrink-0 text-amber-400" />
+                                      <Lock className="w-3 h-3 shrink-0 text-amber-700 dark:text-amber-400" />
                                       <span className="truncate">Grand Admin</span>
                                     </div>
                                   ) : (
-                                    <select
+                                    <SearchableDropdown
                                       value={role}
-                                      onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                                      className="w-full sm:w-auto bg-[#151314] text-xs font-bold text-white border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0"
-                                    >
-                                      <option value="customer">Customer</option>
-                                      <option value="kitchen">Kitchen Staff</option>
-                                      <option value="delivery">Delivery Sarathi</option>
-                                      <option value="owner">Store Owner</option>
-                                      <option value="developer">Developer</option>
-                                    </select>
+                                      onChange={(val) => handleUpdateUserRole(u.id, val)}
+                                      options={[
+                                        { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                                        { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                                        { value: 'owner', label: 'Store Owner', sublabel: 'Store manager & analytics', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+                                        { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                                        { value: 'customer', label: 'Customer', sublabel: 'Devotee user profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                                      ]}
+                                      size="sm"
+                                      searchPlaceholder="Filter role..."
+                                      className="w-full sm:w-44"
+                                    />
                                   )}
 
                                   {/* Scope / Branch Assignment */}
                                   {(role === 'kitchen' || role === 'delivery' || role === 'owner') ? (
-                                    <select
+                                    <SearchableDropdown
                                       value={u.shopId || (allShops[0]?.id || '')}
-                                      onChange={(e) => handleUpdateUserShop(u.id, e.target.value)}
-                                      className="w-full sm:w-auto bg-[#151314] text-xs font-bold text-neutral-300 border border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#E0FF33] cursor-pointer shrink-0 max-w-full sm:max-w-[150px] truncate"
-                                    >
-                                      {allShops.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                      ))}
-                                    </select>
+                                      onChange={(val) => handleUpdateUserShop(u.id, val)}
+                                      options={allShops.map(s => ({
+                                        value: s.id,
+                                        label: s.name,
+                                        sublabel: s.address || 'Vrindavan Kitchen',
+                                        icon: Store,
+                                        badge: 'Branch',
+                                        badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                      }))}
+                                      size="sm"
+                                      searchPlaceholder="Filter kitchen..."
+                                      className="w-full sm:w-48"
+                                    />
                                   ) : (role === 'grand_admin' || role === 'developer') ? (
-                                    <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
-                                      <Globe className="w-3.5 h-3.5 text-[#E0FF33] shrink-0" />
+                                    <div className="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                      <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33] shrink-0" />
                                       <span className="truncate">Global Access</span>
                                     </div>
                                   ) : (
-                                    <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-neutral-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                    <div className="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-600 dark:text-neutral-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
                                       <Users className="w-3.5 h-3.5 shrink-0" />
                                       <span className="truncate">Public User</span>
                                     </div>
@@ -3160,7 +3199,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   type="button"
                                   onClick={() => handleQuickImpersonateUser(u)}
                                   title={`Sign in as ${u.displayName || u.email || 'user'}`}
-                                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-[#E0FF33]/15 hover:bg-[#E0FF33] text-[#E0FF33] hover:text-black font-black text-xs border border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33] dark:text-[#E0FF33] dark:hover:text-black font-black text-xs border border-amber-600 dark:border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
                                 >
                                   <Play className="w-3 h-3 fill-current shrink-0" />
                                   <span>Test Login</span>
@@ -3179,50 +3218,50 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
 
         {/* 5. Audio System Telemetry & Role Synthesizer */}
-        <div className="bg-[#282526] border border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <button
             type="button"
             onClick={() => toggleSection('alarm')}
             className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
                 <Volume2 className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#E0FF33] transition-colors">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                   Audio Synthesizer & Telemetry
                 </h3>
-                <p className="text-[11px] text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
+                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border hidden sm:inline-flex items-center gap-1 ${audioUnlocked
-                  ? 'bg-emerald-400/20 text-emerald-300 border-emerald-400/30'
-                  : 'bg-amber-400/20 text-amber-300 border-amber-400/30'
+              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border hidden sm:inline-flex items-center gap-1.5 ${audioUnlocked
+                  ? 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30 dark:bg-emerald-400/20 dark:text-emerald-300 dark:border-emerald-400/30'
+                  : 'bg-amber-500/15 text-amber-800 border-amber-500/30 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30'
                 }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-amber-600 dark:bg-amber-400'}`} />
                 <span>{audioUnlocked ? 'Active' : 'Standby'}</span>
               </span>
-              <div className={`p-1.5 rounded-xl bg-white/5 text-neutral-400 group-hover:text-white transition-transform duration-200 ${collapsedSections.alarm ? '' : 'rotate-180'}`}>
+              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.alarm ? '' : 'rotate-180'}`}>
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </button>
 
           {!collapsedSections.alarm && (
-            <div className="space-y-4 pt-3 border-t border-white/5 dev-section-expand">
+            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-400">Synthesizer engine control & background triggers</span>
+                  <span className="text-xs text-stone-600 dark:text-neutral-400">Synthesizer engine control & background triggers</span>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
                   {!audioUnlocked && (
                     <button
                       onClick={warmUpAudio}
-                      className="px-3 py-1 rounded-xl bg-[#E0FF33] text-black font-black text-xs uppercase tracking-wider hover:bg-[#d4f820] active:scale-95 cursor-pointer"
+                      className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#d4f820] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
                     >
                       Unlock Audio
                     </button>
@@ -3240,9 +3279,9 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-[#1E1B1C] rounded-2xl border border-white/5 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 items-center">
                 <div>
-                  <p className="text-[10px] font-bold text-neutral-400 uppercase">Volume Level: {Math.round(volume * 100)}%</p>
+                  <p className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase">Volume Level: {Math.round(volume * 100)}%</p>
                   <input
                     type="range"
                     min="0.1"
@@ -3250,14 +3289,14 @@ export default function DeveloperView({ setCurrentTab }) {
                     step="0.05"
                     value={volume}
                     onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="w-full accent-[#E0FF33] cursor-pointer mt-1"
+                    className="w-full accent-amber-600 dark:accent-[#E0FF33] cursor-pointer mt-1"
                   />
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-bold text-neutral-400 uppercase">Browser Push Alerts</p>
-                  <p className="text-xs font-bold text-white mt-0.5">
-                    Status: <span className={notificationPermission === 'granted' ? 'text-emerald-400' : 'text-amber-400'}>
+                  <p className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase">Browser Push Alerts</p>
+                  <p className="text-xs font-bold text-stone-900 dark:text-white mt-0.5">
+                    Status: <span className={notificationPermission === 'granted' ? 'text-emerald-700 dark:text-emerald-400 font-black' : 'text-amber-700 dark:text-amber-400 font-black'}>
                       {notificationPermission.toUpperCase()}
                     </span>
                   </p>
@@ -3267,12 +3306,12 @@ export default function DeveloperView({ setCurrentTab }) {
                   {notificationPermission !== 'granted' ? (
                     <button
                       onClick={requestNotificationPermission}
-                      className="px-3 py-1.5 rounded-xl bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 hover:bg-cyan-400/30 text-xs font-bold transition-all cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-800 border border-cyan-500/30 hover:bg-cyan-500/25 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/30 dark:hover:bg-cyan-400/30 text-xs font-bold transition-all cursor-pointer"
                     >
                       Enable Push
                     </button>
                   ) : (
-                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-xs text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" /> Push Active
                     </span>
                   )}
@@ -3282,38 +3321,38 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
                 <button
                   onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'ord-test-kitch' }, true)}
-                  className="py-3 px-3 rounded-2xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  className="py-3 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 dark:text-amber-300 dark:border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
                 >
-                  <ChefHat className="w-4 h-4 text-amber-400" />
-                  <span>Kitchen Buzzer</span>
-                  <span className="text-[9px] text-amber-400/70">880/1174Hz Urgent Loop</span>
+                  <ChefHat className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                  <span className="font-['Outfit']">Kitchen Buzzer</span>
+                  <span className="text-[9px] text-amber-800/80 dark:text-amber-400/70 font-medium">880/1174Hz Urgent Loop</span>
                 </button>
 
                 <button
                   onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
-                  className="py-3 px-3 rounded-2xl bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-300 border border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  className="py-3 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-900 border border-cyan-500/30 dark:bg-cyan-400/20 dark:hover:bg-cyan-400/30 dark:text-cyan-300 dark:border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
                 >
-                  <Truck className="w-4 h-4 text-cyan-400" />
-                  <span>Sarathi Chime</span>
-                  <span className="text-[9px] text-cyan-400/70">3-Tone Ascending Ping</span>
+                  <Truck className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
+                  <span className="font-['Outfit']">Sarathi Chime</span>
+                  <span className="text-[9px] text-cyan-800/80 dark:text-cyan-400/70 font-medium">3-Tone Ascending Ping</span>
                 </button>
 
                 <button
                   onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
-                  className="py-3 px-3 rounded-2xl bg-[#E0FF33]/20 hover:bg-[#E0FF33]/30 text-[#E0FF33] border border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#E0FF33]/20 dark:hover:bg-[#E0FF33]/30 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
                 >
-                  <ShieldCheck className="w-4 h-4 text-[#E0FF33]" />
-                  <span>Admin Bell</span>
-                  <span className="text-[9px] text-[#E0FF33]/70">Resonant Executive Ping</span>
+                  <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#E0FF33]" />
+                  <span className="font-['Outfit']">Admin Bell</span>
+                  <span className="text-[9px] text-purple-800/80 dark:text-[#E0FF33]/70 font-medium">Resonant Executive Ping</span>
                 </button>
 
                 <button
                   onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
-                  className="py-3 px-3 rounded-2xl bg-emerald-400/20 hover:bg-emerald-400/30 text-emerald-300 border border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer"
+                  className="py-3 px-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 border border-emerald-500/30 dark:bg-emerald-400/20 dark:hover:bg-emerald-400/30 dark:text-emerald-300 dark:border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
                 >
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Prasad Blessing</span>
-                  <span className="text-[9px] text-emerald-400/70">528Hz Solfeggio Chime</span>
+                  <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                  <span className="font-['Outfit']">Prasad Blessing</span>
+                  <span className="text-[9px] text-emerald-800/80 dark:text-emerald-400/70 font-medium">528Hz Solfeggio Chime</span>
                 </button>
               </div>
             </div>
@@ -3325,28 +3364,28 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* Custom Confirmation Modal for Deleting User Account */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#282526] border border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-scaleUp">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
+          <div className="bg-stone-100 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-scaleUp">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-red-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-white font-['Outfit']">Delete User Account?</h3>
-              <p className="text-xs text-neutral-400 font-['Plus_Jakarta_Sans']">
-                Are you sure you want to permanently delete <span className="text-white font-bold">"{userToDelete.name}"</span>? This will remove all assigned roles and credentials.
+              <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">Delete User Account?</h3>
+              <p className="text-xs text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
+                Are you sure you want to permanently delete <span className="text-stone-900 dark:text-white font-bold">"{userToDelete.name}"</span>? This will remove all assigned roles and credentials.
               </p>
             </div>
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setUserToDelete(null)}
-                className="flex-1 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer border border-white/10"
+                className="flex-1 py-2.5 rounded-2xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-white font-bold text-xs transition-all active:scale-95 cursor-pointer border border-stone-300 dark:border-white/10"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDeleteUser}
-                className="flex-1 py-2.5 rounded-2xl bg-red-500 hover:bg-red-400 text-white font-bold text-xs transition-all shadow-lg active:scale-95 cursor-pointer"
+                className="flex-1 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-lg active:scale-95 cursor-pointer"
               >
                 Confirm Delete
               </button>
@@ -3358,19 +3397,19 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* Detailed User Profile Info Modal */}
       {selectedUserDetail && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#1E1B1C] border border-white/10 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl animate-scaleUp relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl animate-scaleUp relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 dark:bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex items-start justify-between gap-3 border-b border-white/5 pb-4">
+            <div className="flex items-start justify-between gap-3 border-b border-stone-200 dark:border-white/5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30 flex items-center justify-center font-black text-lg">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-black text-lg">
                   {(selectedUserDetail.displayName || selectedUserDetail.email || 'U')[0].toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-black text-white text-base font-['Outfit']">
+                  <h3 className="font-black text-stone-900 dark:text-white text-base font-['Outfit']">
                     {selectedUserDetail.displayName || 'User Profile'}
                   </h3>
-                  <p className="text-xs text-neutral-400 font-mono">
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 font-mono">
                     UID: {selectedUserDetail.id.slice(0, 16)}...
                   </p>
                 </div>
@@ -3378,7 +3417,7 @@ export default function DeveloperView({ setCurrentTab }) {
               <button
                 type="button"
                 onClick={() => setSelectedUserDetail(null)}
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center cursor-pointer transition-all"
+                className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white flex items-center justify-center cursor-pointer transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -3386,80 +3425,80 @@ export default function DeveloperView({ setCurrentTab }) {
 
             {/* Profile Fields */}
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-neutral-400">Assigned Platform Role</span>
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400">Assigned Platform Role</span>
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-white uppercase text-sm flex items-center gap-1.5">
+                  <span className="font-bold text-stone-900 dark:text-white uppercase text-sm flex items-center gap-1.5">
                     {selectedUserDetail.role === 'grand_admin' ? (
                       <>
-                        <Crown size={14} className="text-amber-400 stroke-[2.5]" />
+                        <Crown size={14} className="text-amber-700 dark:text-amber-400 stroke-[2.5]" />
                         <span>Grand Admin (Permanent Root)</span>
                       </>
                     ) : selectedUserDetail.role === 'developer' ? (
                       <>
-                        <Terminal size={14} className="text-[#E0FF33] stroke-[2.5]" />
+                        <Terminal size={14} className="text-amber-700 dark:text-[#E0FF33] stroke-[2.5]" />
                         <span>Developer</span>
                       </>
                     ) : selectedUserDetail.role === 'owner' ? (
                       <>
-                        <ShieldCheck size={14} className="text-purple-400 stroke-[2.5]" />
+                        <ShieldCheck size={14} className="text-purple-700 dark:text-purple-400 stroke-[2.5]" />
                         <span>Owner</span>
                       </>
                     ) : selectedUserDetail.role === 'kitchen' ? (
                       <>
-                        <ChefHat size={14} className="text-amber-400 stroke-[2.5]" />
+                        <ChefHat size={14} className="text-amber-700 dark:text-amber-400 stroke-[2.5]" />
                         <span>Cook</span>
                       </>
                     ) : selectedUserDetail.role === 'delivery' ? (
                       <>
-                        <Bike size={14} className="text-cyan-400 stroke-[2.5]" />
+                        <Bike size={14} className="text-cyan-700 dark:text-cyan-400 stroke-[2.5]" />
                         <span>Sarathi Rider</span>
                       </>
                     ) : (
                       selectedUserDetail.role || 'customer'
                     )}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#E0FF33]/15 text-[#E0FF33] font-bold border border-[#E0FF33]/30 font-mono">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] font-bold border border-amber-500/30 dark:border-[#E0FF33]/30 font-mono">
                     {selectedUserDetail.role === 'grand_admin' ? 'Level 6 (Permanent)' : selectedUserDetail.role === 'developer' ? 'Level 5 (Admin)' : 'Standard'}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-cyan-400" /> Email
+                <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400 flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-cyan-600 dark:text-cyan-400" /> Email
                   </span>
-                  <p className="font-bold text-white truncate">{selectedUserDetail.email || 'Not Provided'}</p>
+                  <p className="font-bold text-stone-900 dark:text-white truncate">{selectedUserDetail.email || 'Not Provided'}</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-emerald-400" /> Phone
+                <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Phone
                   </span>
-                  <p className="font-bold text-white truncate">{selectedUserDetail.phone ? `+91 ${selectedUserDetail.phone}` : 'Not Linked'}</p>
+                  <p className="font-bold text-stone-900 dark:text-white truncate">{selectedUserDetail.phone ? `+91 ${selectedUserDetail.phone}` : 'Not Linked'}</p>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold text-neutral-400">Full Supabase Auth UID</span>
+                  <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400">Full Supabase Auth UID</span>
                   <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(selectedUserDetail.id);
                       setToast({ message: 'UID copied to clipboard!', type: 'success' });
                     }}
-                    className="text-[10px] text-[#E0FF33] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-[10px] text-amber-700 dark:text-[#E0FF33] hover:underline flex items-center gap-1 cursor-pointer font-bold"
                   >
                     <Copy className="w-3 h-3" /> Copy
                   </button>
                 </div>
-                <p className="font-mono text-[11px] text-neutral-300 break-all select-all">{selectedUserDetail.id}</p>
+                <p className="font-mono text-[11px] text-stone-700 dark:text-neutral-300 break-all select-all">{selectedUserDetail.id}</p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-neutral-400">Assigned Branch Kitchen</span>
-                <p className="font-bold text-white">
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400">Assigned Branch Kitchen</span>
+                <p className="font-bold text-stone-900 dark:text-white">
                   {allShops.find(s => s.id === selectedUserDetail.shopId)?.name || (selectedUserDetail.role === 'developer' || selectedUserDetail.role === 'grand_admin' ? 'Global (All Kitchens)' : 'Public Customer Scope')}
                 </p>
               </div>
@@ -3473,7 +3512,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   handleQuickImpersonateUser(selectedUserDetail);
                   setSelectedUserDetail(null);
                 }}
-                className="flex-1 py-3 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
+                className="flex-1 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f820] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Switch to this User View</span>
