@@ -285,19 +285,11 @@ export default function DeveloperView({ setCurrentTab }) {
     if (a === b) return true;
     if (!Array.isArray(a) || !Array.isArray(b)) return false;
     if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      const itemA = a[i];
-      const itemB = b[i];
-      if (!itemA || !itemB) return false;
-      if (itemA.id !== itemB.id) return false;
-      if (itemA.name !== itemB.name) return false;
-      if (itemA.isOpen !== itemB.isOpen) return false;
-      if (itemA.isAvailable !== itemB.isAvailable) return false;
-      if (itemA.role !== itemB.role) return false;
-      if (itemA.shopId !== itemB.shopId) return false;
-      if (itemA.active !== itemB.active) return false;
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch (e) {
+      return false;
     }
-    return true;
   };
 
   // --- REALTIME SUPABASE & CACHE HYDRATION ---

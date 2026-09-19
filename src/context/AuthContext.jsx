@@ -176,15 +176,11 @@ export function AuthProvider({ children }) {
     if (prev === next) return true;
     if (!Array.isArray(prev) || !Array.isArray(next)) return false;
     if (prev.length !== next.length) return false;
-    for (let i = 0; i < prev.length; i++) {
-      const p = prev[i];
-      const n = next[i];
-      if (!p || !n) return false;
-      if (p.id !== n.id || p.name !== n.name || p.isOpen !== n.isOpen) return false;
-      if (p.onlinePaymentsEnabled !== n.onlinePaymentsEnabled || p.codEnabled !== n.codEnabled) return false;
-      if (JSON.stringify(p.paymentSettings) !== JSON.stringify(n.paymentSettings)) return false;
+    try {
+      return JSON.stringify(prev) === JSON.stringify(next);
+    } catch (e) {
+      return false;
     }
-    return true;
   };
 
   // Helper to load all shops from Supabase & Cache silently

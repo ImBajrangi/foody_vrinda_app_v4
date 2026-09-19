@@ -1766,24 +1766,13 @@ export async function createCloudShop(shopData) {
       phone: normalized.phone,
       coordinates: normalized.coordinates,
       is_open: normalized.isOpen,
-      is_online: normalized.isOnline,
-      shop_type: normalized.shopType,
-      minimum_order_amount: normalized.minimumOrderAmount,
-      delivery_charge: normalized.deliveryCharge,
-      gst_percentage: normalized.gstPercentage,
-      schedule: {
-        openingTime: normalized.openingTime,
-        closingTime: normalized.closingTime,
-        autoSchedule: true
-      },
       payment_settings: {
         ...normalized.paymentSettings,
         shopType: normalized.shopType,
         openingTime: normalized.openingTime,
         closingTime: normalized.closingTime,
         isOnline: normalized.isOnline
-      },
-      alarm_settings: normalized.alarmSettings
+      }
     };
 
     const { error } = await supabase.from('foody_shops').upsert(payload, { onConflict: 'id' });
@@ -1849,16 +1838,6 @@ export async function updateCloudShop(shopId, shopData) {
         phone: updatedShop.phone,
         coordinates: updatedShop.coordinates,
         is_open: updatedShop.isOpen,
-        is_online: updatedShop.isOnline,
-        shop_type: updatedShop.shopType,
-        minimum_order_amount: updatedShop.minimumOrderAmount,
-        delivery_charge: updatedShop.deliveryCharge,
-        gst_percentage: updatedShop.gstPercentage,
-        schedule: {
-          openingTime: updatedShop.openingTime,
-          closingTime: updatedShop.closingTime,
-          autoSchedule: true
-        },
         payment_settings: {
           onlinePaymentsEnabled: updatedShop.onlinePaymentsEnabled,
           codEnabled: updatedShop.codEnabled,
@@ -1866,9 +1845,7 @@ export async function updateCloudShop(shopId, shopData) {
           openingTime: updatedShop.openingTime,
           closingTime: updatedShop.closingTime,
           isOnline: updatedShop.isOnline
-        },
-        alarm_settings: updatedShop.alarmSettings,
-        updated_at: new Date().toISOString()
+        }
       };
 
       const { error } = await supabase
