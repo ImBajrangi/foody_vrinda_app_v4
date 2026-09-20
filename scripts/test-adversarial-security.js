@@ -288,12 +288,23 @@ async function runAdversarialTestSuite() {
     'Exploit: Concurrent race condition possible on OTP verification'
   );
 
-  // 6.2 Replay attack on already-consumed OTP
+  // 6.2 Separate pickup and delivery verification timestamps (Prevent Cross-Step Invalidation)
   assertDefense(
-    sqlContent.includes("IF current_order.otp_verified_at IS NOT NULL THEN") &&
-    sqlContent.includes("RAISE EXCEPTION 'OTP_ALREADY_USED"),
-    'Replay attack on already consumed OTP is rejected with OTP_ALREADY_USED exception',
-    'Exploit: Replay attack accepted consumed OTP'
+    sqlContent.includes("ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_verified_at TIMESTAMPTZ;") &&
+    sqlContent.includes("ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_verified_at TIMESTAMPTZ;") &&
+    sqlContent.includes("IF otp_type = 'delivery' AND current_order.delivery_otp_verified_at IS NOT NULL THEN") &&
+    sqlContent.includes("IF otp_type = 'pickup' AND current_order.pickup_otp_verified_at IS NOT NULL THEN"),
+    'Pickup and Delivery OTPs have independent verification timestamps, preventing cross-step replay bugs',
+    'Exploit: Shared OTP timestamp caused premature OTP invalidation'
+  );
+
+  // 6.3 Zero-Key Pure Hash OTP Architecture (No hardcoded key / No reversible cipher)
+  assertDefense(
+    sqlContent.includes('ALTER TABLE public.foody_orders DROP COLUMN IF EXISTS delivery_otp_encrypted;') &&
+    !sqlContent.includes('foody_vrinda_secure_vault_key_2026') &&
+    sqlContent.includes('request_delivery_otp'),
+    'Zero-Key Pure Hash OTP Architecture: All hardcoded encryption keys eliminated; OTPs stored as one-way bcrypt hashes',
+    'Exploit: Hardcoded reversible encryption key found in database routines'
   );
 
   // 6.3 Brute-force rate limiting (Max 3 attempts lock)
@@ -396,12 +407,13 @@ async function runAdversarialTestSuite() {
     'Exploit: Missing scoped user_id + client_request_id idempotency constraint'
   );
 
-  // 9.2 Scoped idempotency deduplication check
+  // 9.2 Scoped idempotency deduplication check with race-proof exception handler
   assertDefense(
     sqlContent.includes('WHERE user_id = caller_id AND client_request_id = client_req_id;') &&
-    sqlContent.includes("RAISE EXCEPTION 'IDEMPOTENCY_KEY_CONFLICT"),
-    'Duplicate submission scoped to caller; cross-account collision throws IDEMPOTENCY_KEY_CONFLICT exception',
-    'Exploit: Cross-tenant idempotency leak possible'
+    sqlContent.includes("RAISE EXCEPTION 'IDEMPOTENCY_KEY_CONFLICT") &&
+    sqlContent.includes('EXCEPTION WHEN unique_violation THEN'),
+    'Duplicate submission scoped to caller; race-proof concurrent unique_violation handled safely with existing record replay',
+    'Exploit: Cross-tenant idempotency leak or unhandled unique_violation race condition'
   );
 
   // 9.3 Duplicate payment webhook protection
@@ -410,6 +422,14 @@ async function runAdversarialTestSuite() {
     sqlContent.includes('idx_orders_unique_payment_id'),
     'Payment transactions tracked with unique payment_id preventing duplicate webhook credits',
     'Exploit: Replayed payment webhook credited twice'
+  );
+
+  // 9.4 Mandatory delivery address validation (no default Vrindavan Dham fallback)
+  assertDefense(
+    sqlContent.includes("IF fulfillment = 'delivery' AND delivery_addr IS NULL THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'DELIVERY_ADDRESS_REQUIRED"),
+    'Doorstep delivery requires explicit non-empty address (Zero silent location fallback)',
+    'Exploit: Missing delivery address accepted with silent fallback'
   );
 
   // =========================================================================
@@ -458,11 +478,13 @@ async function runAdversarialTestSuite() {
     'Exploit: Same-status transition leaked order without authorization'
   );
 
-  // 10.6 Rider self-dispatch binds strictly to caller_id
+  // 10.6 Dedicated Atomic Delivery Order Claiming RPC
   assertDefense(
-    sqlContent.includes("WHEN caller_role = 'delivery' AND new_status = 'out_for_delivery' THEN caller_id"),
-    'Rider self-dispatch strictly binds rider_id = caller_id and rejects spoofed rider IDs',
-    'Exploit: Rider could self-assign another rider ID'
+    sqlContent.includes('CREATE OR REPLACE FUNCTION public.claim_delivery_order(') &&
+    sqlContent.includes("WHERE id = target_order_id") &&
+    sqlContent.includes("FOR UPDATE;"),
+    'claim_delivery_order() provides atomic row-locked claiming for delivery Sarathis',
+    'Exploit: Missing atomic claim_delivery_order RPC'
   );
 
   // 10.7 Safe zero fallback in get_auth_shop_ids()
@@ -481,21 +503,39 @@ async function runAdversarialTestSuite() {
     'Exploit: Hardcoded 5% GST assumption remained'
   );
 
-  // 10.9 Immutable Cash Settlements Ledger
+  // 10.9 Authoritative DB-Derived Cash Settlement RPC & Ledger Immutability
   assertDefense(
-    sqlContent.includes('CREATE TABLE IF NOT EXISTS public.cash_settlements') &&
+    sqlContent.includes('CREATE OR REPLACE FUNCTION public.record_cash_settlement(') &&
+    sqlContent.includes('COALESCE(SUM(total_amount), 0)') &&
+    sqlContent.includes('CREATE POLICY "Block Direct Settlement Insert"') &&
     sqlContent.includes('CREATE POLICY "Block Settlement Updates"') &&
     sqlContent.includes('CREATE POLICY "Block Settlement Deletions"'),
-    'cash_settlements ledger is strictly append-only (UPDATE and DELETE prohibited by RLS)',
-    'Exploit: Cash settlement records could be updated or deleted'
+    'Cash settlements are 100% DB-aggregated and verified; direct table INSERT/UPDATE/DELETE strictly blocked',
+    'Exploit: Cash settlement amounts could be forged or modified'
   );
 
-  // 10.10 Auto-cancel worker execution lockdown
+  // 10.10 Payment-safe auto-cancellation with refund protection
   assertDefense(
+    sqlContent.includes("payment_status = 'refund_pending'") &&
     sqlContent.includes('REVOKE ALL ON FUNCTION public.auto_cancel_expired_orders(INT, INT) FROM PUBLIC, anon, authenticated;') &&
     sqlContent.includes('GRANT EXECUTE ON FUNCTION public.auto_cancel_expired_orders(INT, INT) TO service_role;'),
-    'auto_cancel_expired_orders() is restricted exclusively to service_role scheduler',
-    'Exploit: Public/Authenticated users could execute auto-cancellation worker'
+    'auto_cancel_expired_orders() protects paid orders by routing to refund_pending, locked to service_role',
+    'Exploit: Paid orders silently dropped or auto-cancel callable by public'
+  );
+
+  // 10.11 Direct User Profile UPDATE Lockdown
+  assertDefense(
+    sqlContent.includes('CREATE POLICY "Block Direct User Update"') &&
+    sqlContent.includes('CREATE POLICY "Block Direct Logged User Update"'),
+    'Direct client UPDATE on user tables is blocked; profile updates enforced through update_customer_profile()',
+    'Exploit: Direct REST update allowed on user accounts'
+  );
+
+  // 10.12 Phone Identity Change Protection
+  assertDefense(
+    sqlContent.includes("RAISE EXCEPTION 'PHONE_VERIFICATION_REQUIRED"),
+    'Customer profile updates reject unverified phone number changes (PHONE_VERIFICATION_REQUIRED)',
+    'Exploit: Unverified phone number takeover permitted'
   );
 
   // =========================================================================

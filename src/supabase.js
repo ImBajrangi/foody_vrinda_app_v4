@@ -508,13 +508,14 @@ export async function getCloudShops() {
 
   const promise = (async () => {
     try {
-      const { data, error } = await supabase
-        .from('foody_shops')
-        .select('*')
-        .order('name');
+      // First try the security-barrier public_shop_catalog view, fallback to foody_shops
+      let res = await supabase.from('public_shop_catalog').select('*').order('name');
+      if (res.error) {
+        res = await supabase.from('foody_shops').select('*').order('name');
+      }
 
-      if (!error && data && data.length > 0) {
-        const normalized = data.map(d => normalizeShop(d));
+      if (!res.error && res.data && res.data.length > 0) {
+        const normalized = res.data.map(d => normalizeShop(d));
         const finalShops = saveCachedShops(normalized);
         memoryCache.shops = { data: finalShops, timestamp: Date.now() };
         return finalShops;
@@ -551,11 +552,21 @@ export async function getCloudMenus(shopId = 'all') {
 
   const promise = (async () => {
     try {
-      let query = supabase.from('foody_menus').select('*');
+      // First try the security-barrier public_menu_catalog view, fallback to foody_menus
+      let query = supabase.from('public_menu_catalog').select('*');
       if (shopId && shopId !== 'all') {
         query = query.eq('shop_id', shopId);
       }
-      const { data, error } = await query;
+      let { data, error } = await query;
+      if (error) {
+        let fallbackQuery = supabase.from('foody_menus').select('*');
+        if (shopId && shopId !== 'all') {
+          fallbackQuery = fallbackQuery.eq('shop_id', shopId);
+        }
+        const fallbackRes = await fallbackQuery;
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+      }
       if (error) {
         if (isTableError(error)) markTableMissing('foody_menus');
         return [];

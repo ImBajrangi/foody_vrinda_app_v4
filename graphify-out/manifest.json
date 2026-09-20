@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789919836.3061464,
-    "ast_hash": "5ceccd7be03e9fe0b073b1566da1a529",
+    "mtime": 1789921404.6358752,
+    "ast_hash": "31524368932774011af4676a0f0509ad",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -315,13 +315,18 @@
     "semantic_hash": ""
   },
   "scripts/test-database-sync.js": {
-    "mtime": 1789919812.3672757,
-    "ast_hash": "10745f7c4702373be3846d899f760193",
+    "mtime": 1789921506.6021223,
+    "ast_hash": "b692d8627200834227f21f32ad7ffce2",
     "semantic_hash": ""
   },
   "public/robots.txt": {
     "mtime": 1789918995.654892,
     "ast_hash": "4fb0910b97ba3428576df6f374eb48cf",
+    "semantic_hash": ""
+  },
+  "scripts/test-adversarial-security.js": {
+    "mtime": 1789921438.5168037,
+    "ast_hash": "ba3cc13361f40c99bf0419cb10a178d7",
     "semantic_hash": ""
   }
 }
