@@ -13,7 +13,6 @@ import OwnerView from './views/OwnerView';
 import DeveloperView from './views/DeveloperView';
 import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
-import EmergencyDevModal from './components/EmergencyDevModal';
 import CompleteProfileModal from './components/CompleteProfileModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useTheme } from './context/ThemeContext';
@@ -95,7 +94,6 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
-  const [isEmergencyDevOpen, setIsEmergencyDevOpen] = useState(false);
 
   // Active Customer Tracking Order ID (persisted across reloads)
   const [trackingOrderId, setTrackingOrderId] = useState(() => {
@@ -125,20 +123,14 @@ export default function App() {
     }
   }, [currentTab, isAuthorizedAdmin, isAuthorizedDeveloper]);
 
-  // Global Ctrl+K (search) & Ctrl+Shift+D (Emergency Dev Console) hotkeys
+  // Global Ctrl+K (search) hotkey
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsSearchOpen(true);
       }
-      // Emergency Developer Mode Hotkey: Ctrl+Shift+D / Cmd+Shift+D
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
-        e.preventDefault();
-        setIsEmergencyDevOpen(true);
-      }
     };
-    const handleOpenEmergency = () => setIsEmergencyDevOpen(true);
     const handleOpenAuth = () => setIsAuthOpen(true);
     const handleOpenCompleteProfile = (e) => {
       const isForced = e?.detail?.force === true;
@@ -156,13 +148,11 @@ export default function App() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('foody_open_emergency_dev', handleOpenEmergency);
     window.addEventListener('foody-open-auth', handleOpenAuth);
     window.addEventListener('foody_open_auth', handleOpenAuth);
     window.addEventListener('foody-complete-profile', handleOpenCompleteProfile);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('foody_open_emergency_dev', handleOpenEmergency);
       window.removeEventListener('foody-open-auth', handleOpenAuth);
       window.removeEventListener('foody_open_auth', handleOpenAuth);
       window.removeEventListener('foody-complete-profile', handleOpenCompleteProfile);
@@ -204,7 +194,6 @@ export default function App() {
   useBackHandler(isNotificationsOpen, () => setIsNotificationsOpen(false), 'app_notifications_modal', 10);
   useBackHandler(isRewardsOpen, () => setIsRewardsOpen(false), 'app_rewards_modal', 10);
   useBackHandler(isCompleteProfileOpen, () => setIsCompleteProfileOpen(false), 'app_complete_profile_modal', 15);
-  useBackHandler(isEmergencyDevOpen, () => setIsEmergencyDevOpen(false), 'app_emergency_dev_modal', 20);
 
   // Centralized Native Hardware Back Button & Web Escape Key Controller
   useEffect(() => {
@@ -366,7 +355,6 @@ export default function App() {
                 requiredRole="Administrator" 
                 onAuthenticate={() => setIsAuthOpen(true)}
                 onReturnStore={() => setCurrentTab('customer')}
-                onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
               />
             )
           )}
@@ -379,7 +367,6 @@ export default function App() {
                 requiredRole="Developer" 
                 onAuthenticate={() => setIsAuthOpen(true)}
                 onReturnStore={() => setCurrentTab('customer')}
-                onEmergencyOverride={() => setIsEmergencyDevOpen(true)}
               />
             )
           )}
@@ -419,15 +406,6 @@ export default function App() {
           setCurrentTab('customer');
         }}
         onSelectOrder={handleSearchOrderSelect}
-      />
-
-      {/* Emergency Developer Console Reclaim Modal */}
-      <EmergencyDevModal
-        isOpen={isEmergencyDevOpen}
-        onClose={() => setIsEmergencyDevOpen(false)}
-        onSuccess={() => {
-          setCurrentTab('developer');
-        }}
       />
     </div>
   );

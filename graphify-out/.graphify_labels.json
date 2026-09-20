@@ -1,14 +1,14 @@
 {
-  "0": "UnifiedSearchModal",
+  "0": "OwnerView.jsx",
   "1": "run-android.js",
-  "2": "supabase.js",
-  "3": "App.jsx",
+  "2": "DeveloperView.jsx",
+  "3": "ErrorBoundary",
   "4": "CustomerView.jsx",
-  "5": "OwnerView.jsx",
+  "5": "App.jsx",
   "6": "Foody Vrinda (v3)",
   "7": "eslint.config.js",
   "8": "vite.config.js",
-  "9": "ReviewModal.jsx",
+  "9": "SocialLinksBar.jsx",
   "10": "Loader.jsx",
   "11": "AMPMToggle.jsx",
   "12": "DayNightSwitch.jsx",
@@ -21,7 +21,7 @@
   "19": "StarRating.jsx",
   "20": "RealtimeMultiplexer",
   "21": "NativeNotificationService",
-  "22": "AuthContext.jsx",
+  "22": "supabase.js",
   "23": "firebase.js",
   "24": "AGENTS.md"
 }

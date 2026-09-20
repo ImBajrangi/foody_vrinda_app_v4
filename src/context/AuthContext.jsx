@@ -30,17 +30,15 @@ export const AUTHORIZED_ADMIN_EMAILS = (
   'admin@foodyvrinda.com,owner@foodyvrinda.com,manager@foodyvrinda.com,developer@foodyvrinda.com,dev@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
 ).split(',').map(e => e.trim().toLowerCase());
 
-export const MASTER_DEV_PIN = import.meta.env.VITE_DEV_MASTER_PIN || '108108';
-
 export const isDeveloperUser = (email = '', role = '') => {
-  if (role === 'developer') return true;
+  if (role === 'developer' || role === 'grand_admin') return true;
   if (!email) return false;
   const clean = email.toLowerCase().trim();
   return AUTHORIZED_DEV_EMAILS.includes(clean) || clean.startsWith('dev@') || clean.includes('+dev@');
 };
 
 export const isAdminUser = (email = '', role = '') => {
-  if (role === 'owner' || role === 'developer') return true;
+  if (role === 'owner' || role === 'developer' || role === 'grand_admin') return true;
   if (!email) return false;
   const clean = email.toLowerCase().trim();
   return AUTHORIZED_ADMIN_EMAILS.includes(clean) || isDeveloperUser(clean, role);
@@ -91,85 +89,9 @@ export function AuthProvider({ children }) {
   const [allShops, setAllShops] = useState(() => getCachedShops());
   const [loading, setLoading] = useState(true);
 
-  // Emergency Master Key Override State
-  const [emergencyMasterActive, setEmergencyMasterActive] = useState(() => {
-    try {
-      return localStorage.getItem('foody_emergency_dev_active') === 'true';
-    } catch (e) {
-      return false;
-    }
-  });
-
-  // Impersonation states for developer & quick desk switches
+  // Impersonation states for developer & quick desk switches (allowed only for verified admins)
   const [impersonatedShopId, setImpersonatedShopId] = useState(null);
-  const [impersonatedRole, setImpersonatedRole] = useState(() => {
-    try {
-      return localStorage.getItem('foody_emergency_dev_active') === 'true' ? 'developer' : null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  // Emergency Developer Elevation function
-  const emergencyElevateToDev = useCallback((pin) => {
-    const validPins = [
-      MASTER_DEV_PIN,
-      '108108',
-      '108',
-      'foody108',
-      'vrinda108'
-    ];
-    if (validPins.includes(String(pin).trim())) {
-      const emergencyData = {
-        id: 'master-dev-emergency',
-        role: 'developer',
-        email: 'master.dev@foodyvrinda.com',
-        displayName: 'Master Developer (Emergency Override)',
-        shopId: allShops[0]?.id || 'shop-vrinda-main',
-        isMasterDev: true
-      };
-      setEmergencyMasterActive(true);
-      setImpersonatedRole('developer');
-      setUserRole('developer');
-      setUserData(emergencyData);
-      try {
-        localStorage.setItem('foody_emergency_dev_active', 'true');
-        localStorage.setItem('foody_user_data', JSON.stringify(emergencyData));
-      } catch (e) { }
-      window.dispatchEvent(new CustomEvent('foody_emergency_dev_unlocked'));
-      return { success: true, message: 'Emergency Master Developer console unlocked!' };
-    }
-    return { success: false, message: 'Invalid Emergency Master Passcode' };
-  }, [allShops]);
-
-  // Emergency Revoke
-  const emergencyRevokeDev = useCallback(() => {
-    setEmergencyMasterActive(false);
-    setImpersonatedRole(null);
-    setUserRole('customer');
-    try {
-      localStorage.removeItem('foody_emergency_dev_active');
-      localStorage.removeItem('foody_user_data');
-    } catch (e) { }
-  }, []);
-
-  // URL search param detector for instant recovery link (e.g. ?dev_override=108108)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const devParam = urlParams.get('dev_override') || urlParams.get('master_pin') || urlParams.get('dev');
-      if (devParam) {
-        const res = emergencyElevateToDev(devParam);
-        if (res.success) {
-          const url = new URL(window.location);
-          url.searchParams.delete('dev_override');
-          url.searchParams.delete('master_pin');
-          url.searchParams.delete('dev');
-          window.history.replaceState({}, '', url);
-        }
-      }
-    }
-  }, [emergencyElevateToDev]);
+  const [impersonatedRole, setImpersonatedRole] = useState(null);
 
   // Helper to compare shop arrays to avoid redundant state updates & flickering
   const areShopsEqual = (prev = [], next = []) => {
@@ -836,13 +758,11 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     localStorage.removeItem('foody_user_data');
-    localStorage.removeItem('foody_emergency_dev_active');
     try {
       await supabase.auth.signOut();
     } catch (e) { }
     setImpersonatedShopId(null);
     setImpersonatedRole(null);
-    setEmergencyMasterActive(false);
     setUserRole('customer');
     const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
     setUser(guestUser);
@@ -920,30 +840,33 @@ export function AuthProvider({ children }) {
   );
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
   const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
+  
+  // Production RBAC: Privileges require an authenticated non-anonymous session
   const isAuthorizedDeveloper = Boolean(
-    emergencyMasterActive ||
-    isGrandAdmin ||
-    (user && !user.isAnonymous && isDevUser) ||
-    (['developer', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
-    (['developer', 'grand_admin'].includes(userRole))
-  );
-  const isAuthorizedAdmin = Boolean(
-    emergencyMasterActive ||
-    isGrandAdmin ||
-    (user && !user.isAnonymous && (isAdminUserMatch || isDevUser)) ||
-    (['developer', 'owner', 'grand_admin'].includes(userData?.role) && !user?.isAnonymous) ||
-    (['developer', 'owner', 'grand_admin'].includes(userRole))
-  );
-  const isStaff = Boolean(
-    emergencyMasterActive ||
-    isGrandAdmin ||
-    (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userData?.role || userRole) && !user?.isAnonymous) ||
-    (['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userRole))
+    user && !user.isAnonymous && (
+      isGrandAdmin ||
+      (isDevUser && ['developer', 'grand_admin'].includes(userRole))
+    )
   );
 
-  // Developer impersonation control helper
+  const isAuthorizedAdmin = Boolean(
+    user && !user.isAnonymous && (
+      isGrandAdmin ||
+      isAuthorizedDeveloper ||
+      ((isAdminUserMatch || ['developer', 'owner', 'grand_admin'].includes(userRole)) && ['developer', 'owner', 'grand_admin'].includes(userData?.role || userRole))
+    )
+  );
+
+  const isStaff = Boolean(
+    user && !user.isAnonymous && (
+      isAuthorizedAdmin ||
+      ['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userRole)
+    )
+  );
+
+  // Developer impersonation control helper (available only to authenticated developers/admins)
   const impersonate = (shopId, role) => {
-    if (!isAuthorizedDeveloper && !isAuthorizedAdmin && ['developer', 'owner'].includes(role)) {
+    if (!isAuthorizedDeveloper && !isAuthorizedAdmin) {
       console.warn("Unauthorized attempt to impersonate privileged role:", role);
       return false;
     }
@@ -986,9 +909,6 @@ export function AuthProvider({ children }) {
     isAuthorizedDeveloper,
     isAuthorizedAdmin,
     isStaff,
-    emergencyMasterActive,
-    emergencyElevateToDev,
-    emergencyRevokeDev,
     userDevPermissions,
     currentUserShopId: effectiveShopId,
     currentUserShopIds: effectiveShopIds,

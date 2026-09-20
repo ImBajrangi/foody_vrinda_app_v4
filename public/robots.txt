@@ -1,0 +1,7 @@
+# robots.txt for Foody Vrinda (https://eat.vrindopnishad.in)
+User-agent: *
+Allow: /
+Disallow: /?dev=
+Disallow: /api/
+
+Sitemap: https://eat.vrindopnishad.in/sitemap.xml

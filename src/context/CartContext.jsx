@@ -72,13 +72,14 @@ export function CartProvider({ children }) {
     });
   }, []);
 
-  // Helper to resolve specific shop payment options considering global master flags
+  // Helper to resolve specific shop payment options considering global master flags (Fail-Closed Architecture)
   const resolveShopPaymentOptions = useCallback((shop) => {
-    const globalOnline = paymentSettings?.onlinePaymentsEnabled !== false;
-    const globalCod = paymentSettings?.codEnabled !== false;
+    // Fail-Closed: If payment settings cannot be loaded, do not assume open by default
+    const globalOnline = paymentSettings ? paymentSettings.onlinePaymentsEnabled === true : false;
+    const globalCod = paymentSettings ? paymentSettings.codEnabled === true : false;
 
-    const shopOnline = shop?.paymentSettings?.onlinePaymentsEnabled ?? shop?.onlinePaymentsEnabled ?? true;
-    const shopCod = shop?.paymentSettings?.codEnabled ?? shop?.codEnabled ?? true;
+    const shopOnline = shop?.paymentSettings?.onlinePaymentsEnabled ?? shop?.onlinePaymentsEnabled ?? false;
+    const shopCod = shop?.paymentSettings?.codEnabled ?? shop?.codEnabled ?? false;
 
     return {
       onlineAvailable: Boolean(globalOnline && shopOnline),
@@ -87,14 +88,30 @@ export function CartProvider({ children }) {
       globalCod,
       shopOnline,
       shopCod,
-      reasonOnlineUnavailable: !globalOnline ? 'Platform Master Disabled' : (!shopOnline ? 'Kitchen Online Pay Disabled' : null),
-      reasonCodUnavailable: !globalCod ? 'Platform Master Disabled' : (!shopCod ? 'Kitchen COD Disabled' : null),
+      reasonOnlineUnavailable: !globalOnline ? 'Platform Online Payments Temporarily Unavailable' : (!shopOnline ? 'Kitchen Online Pay Disabled' : null),
+      reasonCodUnavailable: !globalCod ? 'Platform COD Temporarily Unavailable' : (!shopCod ? 'Kitchen COD Disabled' : null),
       shopName: shop?.name || 'Kitchen'
     };
   }, [paymentSettings]);
 
   const addToCart = (item, shopId) => {
     const targetShopId = shopId || item.shopId || selectedShopId;
+    
+    // Check if user is attempting to add item from a different kitchen while having items in cart
+    if (selectedShopId && targetShopId && selectedShopId !== targetShopId && cart.length > 0) {
+      const confirmSwitch = typeof window !== 'undefined' ? window.confirm(
+        'Your cart already contains sacred prasad from another kitchen.\n\nSwitching kitchens will clear your existing cart. Do you want to clear your cart and continue with this kitchen?'
+      ) : true;
+
+      if (!confirmSwitch) {
+        return; // Preserve existing user cart
+      }
+      // User confirmed switch: Clear previous cart and initialize with new kitchen item
+      setSelectedShopId(targetShopId);
+      setCart([{ ...item, quantity: 1, shopId: targetShopId }]);
+      return;
+    }
+
     if (targetShopId && (!selectedShopId || selectedShopId === targetShopId)) {
       setSelectedShopId(targetShopId);
       setCart(prevCart => {
@@ -105,7 +122,6 @@ export function CartProvider({ children }) {
         return [...prevCart, { ...item, quantity: 1, shopId: targetShopId }];
       });
     } else {
-      // Switching kitchens smoothly
       setSelectedShopId(targetShopId);
       setCart([{ ...item, quantity: 1, shopId: targetShopId }]);
     }

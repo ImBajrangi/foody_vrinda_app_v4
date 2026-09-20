@@ -1,10 +1,9 @@
-import { ShieldAlert, LogIn, ArrowLeft, KeyRound } from 'lucide-react';
+import { ShieldAlert, LogIn, ArrowLeft } from 'lucide-react';
 
 export default function UnauthorizedAccessScreen({ 
   requiredRole = 'Administrator', 
   onAuthenticate, 
-  onReturnStore,
-  onEmergencyOverride 
+  onReturnStore
 }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 py-12 text-center animate-fade-in">
@@ -23,7 +22,7 @@ export default function UnauthorizedAccessScreen({
             {requiredRole} Privileges Required
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 font-['Plus_Jakarta_Sans'] leading-relaxed max-w-xs mx-auto">
-            This operational console is restricted to authorized platform administrators and developers only.
+            This operational console is restricted to authorized platform administrators and verified staff only.
           </p>
         </div>
 
@@ -33,18 +32,8 @@ export default function UnauthorizedAccessScreen({
             className="w-full py-3.5 px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md cursor-pointer font-['Outfit']"
           >
             <LogIn className="w-4 h-4" />
-            <span>Sign In with Admin Account</span>
+            <span>Sign In with Staff / Admin Account</span>
           </button>
-
-          {onEmergencyOverride && (
-            <button
-              onClick={onEmergencyOverride}
-              className="w-full py-3 px-5 rounded-full bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 border border-amber-400/30 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer font-['Outfit']"
-            >
-              <KeyRound className="w-4 h-4" />
-              <span>Emergency Master Key Override</span>
-            </button>
-          )}
 
           <button
             onClick={onReturnStore}
@@ -56,7 +45,7 @@ export default function UnauthorizedAccessScreen({
         </div>
 
         <p className="text-[11px] text-zinc-500 font-mono">
-          Security policy: RBAC verification enforced. (Press <kbd className="text-[#E0FF33]">Ctrl+Shift+D</kbd> for Emergency Recovery)
+          Security policy: Server-side RBAC verification enforced.
         </p>
       </div>
     </div>

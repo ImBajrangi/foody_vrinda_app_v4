@@ -346,6 +346,29 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                 ))}
               </div>
             )}
+            {/* Quick Vrindavan Landmarks & Ashrams */}
+            <div className="pt-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                'Near ISKCON Temple',
+                'Prem Mandir Road',
+                'Banke Bihari Dham',
+                'Radha Raman Area',
+                'Gaudiya Math Ashram',
+                'Chaitanya Kuti'
+              ].map((lm) => (
+                <button
+                  key={lm}
+                  type="button"
+                  onClick={() => {
+                    setAddress(prev => prev ? `${prev}, ${lm}, Vrindavan` : `${lm}, Vrindavan`);
+                    if (shakeField === 'address') setShakeField(null);
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-stone-200/70 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-zinc-300 text-[10px] font-bold shrink-0 transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer"
+                >
+                  + {lm}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Action Row: Primary Save + Effortless "I'll add later" */}

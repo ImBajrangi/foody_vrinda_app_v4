@@ -170,13 +170,13 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789917757.7375934,
-    "ast_hash": "15b6cfb082e64c46b33eba94c0d6f213",
+    "mtime": 1789918015.2295766,
+    "ast_hash": "3cdd9ec7582fa488590f4a36127abaa1",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1789917915.2954037,
-    "ast_hash": "45c6a411bef12fb1460ca3eaa2f3008b",
+    "mtime": 1789918034.4675603,
+    "ast_hash": "7e049e349e9f86e6c1b7c9814d2eeb7c",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
-    "mtime": 1789917876.660695,
-    "ast_hash": "c6c105e83ab3633f19fa433f5523ea8b",
+    "mtime": 1789918024.4402595,
+    "ast_hash": "c8a195095a17f32c3876e05ffe975711",
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
@@ -317,6 +317,11 @@
   "src/components/ui/NativeTimePicker.jsx": {
     "mtime": 1789837182.3034706,
     "ast_hash": "e933eaed814bd5df52c72fee3d3ad7bf",
+    "semantic_hash": ""
+  },
+  "scripts/test-database-sync.js": {
+    "mtime": 1789918138.0422978,
+    "ast_hash": "8552bddaa4791234c6c2b09a907d4670",
     "semantic_hash": ""
   }
 }

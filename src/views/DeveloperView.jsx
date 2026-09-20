@@ -97,8 +97,6 @@ export default function DeveloperView({ setCurrentTab }) {
     allShops = [],
     impersonate,
     refreshShops,
-    emergencyMasterActive,
-    emergencyRevokeDev,
     user,
     userData,
     updateUserRole

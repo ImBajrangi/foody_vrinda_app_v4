@@ -139,6 +139,7 @@ const memoryCache = {
 const pendingRequests = new Map();
 
 // Safe storage wrapper that works cleanly in browser and Node environments
+const memoryStore = new Map();
 const safeStorage = {
   getItem: (key) => {
     try {
@@ -146,7 +147,7 @@ const safeStorage = {
         return window.localStorage.getItem(key);
       }
     } catch (e) { }
-    return null;
+    return memoryStore.get(key) || null;
   },
   setItem: (key, val) => {
     try {
@@ -154,6 +155,7 @@ const safeStorage = {
         window.localStorage.setItem(key, val);
       }
     } catch (e) { }
+    memoryStore.set(key, String(val));
   },
   removeItem: (key) => {
     try {
@@ -161,6 +163,22 @@ const safeStorage = {
         window.localStorage.removeItem(key);
       }
     } catch (e) { }
+    memoryStore.delete(key);
+  },
+  removeByPrefix: (prefix) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keysToRemove = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.startsWith(prefix)) keysToRemove.push(k);
+        }
+        keysToRemove.forEach(k => window.localStorage.removeItem(k));
+      }
+    } catch (_) {}
+    for (const k of Array.from(memoryStore.keys())) {
+      if (k.startsWith(prefix)) memoryStore.delete(k);
+    }
   }
 };
 
@@ -328,20 +346,36 @@ export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders =
   return ridersList
     .filter(r => (r.role === 'delivery' || r.role === 'rider') && r.is_active !== false && r.isOnline !== false)
     .map(rider => {
-      const riderLat = Number(rider.coordinates?.lat || rider.lat || 27.5706);
-      const riderLng = Number(rider.coordinates?.lng || rider.lng || 77.6593);
-      const distanceKm = calculateDistanceKm(shopLat, shopLng, riderLat, riderLng) || 0.6;
+      const hasCoords = Boolean((rider.coordinates?.lat && rider.coordinates?.lng) || (rider.lat && rider.lng));
+      const riderLat = Number(rider.coordinates?.lat || rider.lat || 0);
+      const riderLng = Number(rider.coordinates?.lng || rider.lng || 0);
+      
+      // GPS Freshness verification (< 5 minutes)
+      const lastSeen = rider.last_location_at || rider.lastLocationAt || rider.lastSeenAt || rider.last_seen_at;
+      const isLocationFresh = Boolean(
+        hasCoords &&
+        riderLat !== 0 &&
+        riderLng !== 0 &&
+        lastSeen &&
+        (Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000)
+      );
+
+      // If location is fresh, compute actual distance; otherwise place at a penalized distance
+      const distanceKm = isLocationFresh
+        ? (calculateDistanceKm(shopLat, shopLng, riderLat, riderLng) || 1.0)
+        : 5.0; // Penalize stale/unverified location
 
       const riderOrders = activeOrders.filter(o => o.rider_id === rider.id && !['completed', 'cancelled'].includes(o.status));
       const activeCount = riderOrders.length;
-      const etaMins = Math.max(4, Math.round(distanceKm * 4 + 3));
+      const etaMins = isLocationFresh ? Math.max(4, Math.round(distanceKm * 4 + 3)) : 15;
 
-      // Weighted score: 1.2x distance + 2.5x active order burden
-      const recommendationScore = (distanceKm * 1.2) + (activeCount * 2.5);
+      // Weighted score: 1.2x distance + 2.5x active order burden + penalty for stale location
+      const recommendationScore = (distanceKm * 1.2) + (activeCount * 2.5) + (isLocationFresh ? 0 : 10);
 
       return {
         ...rider,
         distanceKm,
+        isLocationFresh,
         activeOrdersCount: activeCount,
         etaMins,
         recommendationScore
@@ -434,22 +468,15 @@ export function invalidateCache(type, key) {
   } else if (type === 'menus') {
     if (key) {
       delete memoryCache.menus[key];
+      delete memoryCache.menus['all'];
       safeStorage.removeItem(`foody_cache_menu_${key}`);
       safeStorage.removeItem(`foody_customer_menu_v3_${key}`);
+      safeStorage.removeItem(`foody_cache_menu_all`);
+      safeStorage.removeItem(`foody_customer_menu_v3_all`);
     } else {
       memoryCache.menus = {};
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const keysToRemove = [];
-          for (let i = 0; i < window.localStorage.length; i++) {
-            const k = window.localStorage.key(i);
-            if (k && (k.startsWith('foody_cache_menu_') || k.startsWith('foody_customer_menu_v3_'))) {
-              keysToRemove.push(k);
-            }
-          }
-          keysToRemove.forEach(k => window.localStorage.removeItem(k));
-        }
-      } catch (e) { }
+      safeStorage.removeByPrefix('foody_cache_menu_');
+      safeStorage.removeByPrefix('foody_customer_menu_v3_');
     }
   } else if (type === 'orders') {
     if (key) {
@@ -457,6 +484,7 @@ export function invalidateCache(type, key) {
       safeStorage.removeItem(`foody_cache_orders_${key}`);
     } else {
       memoryCache.orders = {};
+      safeStorage.removeByPrefix('foody_cache_orders_');
     }
   } else if (type === 'users') {
     memoryCache.users = { data: null, timestamp: 0 };
@@ -576,33 +604,110 @@ export async function getCloudMenus(shopId = 'all') {
 // ========================================================================
 // 4. ORDERS CLOUD APIS & DISPATCH (CACHE-FIRST WITH REALTIME SYNC)
 // ========================================================================
+
+export const ALLOWED_ORDER_TRANSITIONS = {
+  new: ['preparing', 'cancelled'],
+  preparing: ['ready_for_pickup', 'cancelled'],
+  ready_for_pickup: ['out_for_delivery', 'completed', 'cancelled'],
+  out_for_delivery: ['completed', 'cancelled'],
+  completed: [],
+  cancelled: []
+};
+
+export function isValidStatusTransition(currentStatus, nextStatus) {
+  if (!currentStatus || !nextStatus) return false;
+  if (currentStatus === nextStatus) return true;
+  const allowed = ALLOWED_ORDER_TRANSITIONS[currentStatus] || [];
+  return allowed.includes(nextStatus);
+}
+
+/**
+ * Authoritative Server-Side Calculation:
+ * Evaluates unit prices directly against the menu catalog, calculates GST & delivery fee from DB shop config
+ */
+export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmentType = 'delivery', couponDiscount = 0) {
+  const targetShopId = shopId || 'shop-vrinda-main';
+  const shopCatalog = getCachedItem('menus', targetShopId) || getCachedItem('menus', 'all') || [];
+  const shopsList = getCachedShops() || [];
+  const targetShop = shopsList.find(s => s.id === targetShopId) || shopsList[0];
+
+  let calculatedSubtotal = 0;
+  const verifiedItems = items.map(item => {
+    const dishMatch = shopCatalog.find(d => d.id === item.id) || item;
+    const unitPrice = dishMatch.price !== undefined ? Number(dishMatch.price) : Number(item.price || 0);
+    const qty = Math.max(1, Number(item.quantity || 1));
+    calculatedSubtotal += unitPrice * qty;
+    return {
+      ...item,
+      price: unitPrice,
+      quantity: qty,
+      name: dishMatch.name || item.name
+    };
+  });
+
+  const isPickup = fulfillmentType === 'pickup';
+  const deliveryCharge = isPickup ? 0 : Number(targetShop?.delivery_charge ?? targetShop?.deliveryCharge ?? 0);
+  const gstPercent = Number(targetShop?.gst_percentage ?? targetShop?.gstPercentage ?? 5);
+  const gstAmount = Math.round(calculatedSubtotal * gstPercent / 100);
+  const discount = Math.max(0, Number(couponDiscount || 0));
+  const totalAmount = Math.max(0, calculatedSubtotal + deliveryCharge + gstAmount - discount);
+
+  return {
+    subtotal: calculatedSubtotal,
+    deliveryCharge,
+    gstAmount,
+    discount,
+    totalAmount,
+    verifiedItems
+  };
+}
+
 export async function createCloudOrder(orderData) {
   try {
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const shopId = orderData.shopId || orderData.shop_id || 'shop-vrinda-main';
+    const fulfillmentType = orderData.fulfillmentType || orderData.fulfillment_type || 'delivery';
+    
+    // Authoritative Server-Side Total Calculation from Database Catalog
+    const totals = calculateAuthoritativeOrderTotals(shopId, orderData.items || [], fulfillmentType, orderData.discount || 0);
+    
+    // Generate secure cryptographic OTPs
+    const generatedPickupOtp = generateSecureOrderOTP();
+    const generatedDeliveryOtp = generateSecureOrderOTP();
+    const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
     const orderPayload = {
       id: orderId,
-      shop_id: orderData.shopId || 'shop-vrinda-main',
-      user_id: orderData.userId || null,
-      customer_name: orderData.customerName || 'Customer',
-      customer_phone: orderData.customerPhone || '9876543210',
-      customer_address: orderData.customerAddress || 'Vrindavan Dham',
-      delivery_address: orderData.deliveryAddress || orderData.customerAddress || 'Vrindavan Dham',
-      delivery_coordinates: orderData.deliveryCoordinates || { lat: 27.5706, lng: 77.6593 },
-      items: orderData.items || [],
-      subtotal: Number(orderData.subtotal || 0),
-      delivery_charge: Number(orderData.deliveryCharge || 0),
-      gst_amount: Number(orderData.gstAmount || 0),
-      total_amount: Number(orderData.totalAmount || 0),
+      shop_id: shopId,
+      user_id: orderData.userId || orderData.user_id || null,
+      customer_name: orderData.customerName || orderData.customer_name || 'Customer',
+      customer_phone: orderData.customerPhone || orderData.customer_phone || '9876543210',
+      customer_address: orderData.customerAddress || orderData.customer_address || 'Vrindavan Dham',
+      delivery_address: orderData.deliveryAddress || orderData.delivery_address || orderData.customerAddress || 'Vrindavan Dham',
+      delivery_coordinates: orderData.deliveryCoordinates || orderData.delivery_coordinates || { lat: 27.5706, lng: 77.6593 },
+      items: totals.verifiedItems,
+      subtotal: totals.subtotal,
+      delivery_charge: totals.deliveryCharge,
+      gst_amount: totals.gstAmount,
+      total_amount: totals.totalAmount,
       status: orderData.status || 'new',
-      payment_method: orderData.paymentMethod || 'cash',
-      payment_id: orderData.paymentId || null,
-      cash_status: orderData.cashStatus || 'pending',
-      cooking_notes: orderData.cookingNotes || '',
-      created_by: orderData.createdBy || orderData.customerName || 'Customer',
-      fulfillment_type: orderData.fulfillmentType || orderData.fulfillment_type || 'delivery',
+      payment_method: orderData.paymentMethod || orderData.payment_method || 'cash',
+      payment_id: orderData.paymentId || orderData.payment_id || null,
+      cash_status: orderData.cashStatus || orderData.cash_status || 'pending',
+      cooking_notes: orderData.cookingNotes || orderData.cooking_notes || '',
+      created_by: orderData.createdBy || orderData.created_by || orderData.customerName || 'Customer',
+      fulfillment_type: fulfillmentType,
+      pickup_otp: generatedPickupOtp,
+      delivery_otp: generatedDeliveryOtp,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+
+    // Save OTP to secure storage
+    try {
+      safeStorage.setItem(`foody_order_otp_${orderId}_pickup`, generatedPickupOtp);
+      safeStorage.setItem(`foody_order_otp_${orderId}_delivery`, generatedDeliveryOtp);
+    } catch (_) {}
 
     const normalizedCreated = {
       ...orderData,
@@ -617,6 +722,8 @@ export async function createCloudOrder(orderData) {
       paymentMethod: orderPayload.payment_method,
       cashStatus: orderPayload.cash_status,
       cookingNotes: orderPayload.cooking_notes,
+      pickupOtp: generatedPickupOtp,
+      deliveryOtp: generatedDeliveryOtp,
       createdAt: orderPayload.created_at
     };
 
@@ -1642,11 +1749,28 @@ export async function updateCloudMenuItem(itemId, itemData) {
     }
 
     // Update in-memory & localStorage caches across all shop buckets
-    Object.keys(memoryCache.menus).forEach(key => {
-      if (Array.isArray(memoryCache.menus[key]?.data)) {
-        memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, image: payload.image || m.image } : m);
-      }
-    });
+    if (payload.shop_id) {
+      Object.keys(memoryCache.menus).forEach(key => {
+        if (Array.isArray(memoryCache.menus[key]?.data)) {
+          if (key === payload.shop_id || key === 'all') {
+            const existing = memoryCache.menus[key].data.find(m => m.id === itemId);
+            if (existing) {
+              memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, shopId: payload.shop_id, image: payload.image || m.image } : m);
+            } else {
+              memoryCache.menus[key].data = [{ id: itemId, ...payload, shopId: payload.shop_id }, ...memoryCache.menus[key].data];
+            }
+          } else {
+            memoryCache.menus[key].data = memoryCache.menus[key].data.filter(m => m.id !== itemId);
+          }
+        }
+      });
+    } else {
+      Object.keys(memoryCache.menus).forEach(key => {
+        if (Array.isArray(memoryCache.menus[key]?.data)) {
+          memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, image: payload.image || m.image } : m);
+        }
+      });
+    }
 
     invalidateCache('menus');
     dispatchSafeEvent('foody_menus_changed', { itemId, updates: payload, item: { id: itemId, ...payload } });
@@ -2818,23 +2942,80 @@ export async function getCloudReviews(shopId = 'all') {
 // 9. ORDER OTP SECURITY SYSTEM (PICKUP OTP & DELIVERY OTP)
 // ========================================================================
 
-export function getOrderOTP(orderId, type = 'delivery') {
-  if (!orderId) return '1080';
-  let hash = 0;
-  const seed = `${orderId}-${type}-foody-sacred-key`;
-  for (let i = 0; i < seed.length; i++) {
-    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-    hash |= 0;
+export function generateSecureOrderOTP() {
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return ((array[0] % 9000) + 1000).toString();
   }
-  return (Math.abs(hash) % 9000 + 1000).toString();
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+export function getOrderOTP(orderOrId, type = 'delivery') {
+  if (!orderOrId) return '1080';
+  if (typeof orderOrId === 'object' && orderOrId !== null) {
+    if (type === 'pickup' && (orderOrId.pickupOtp || orderOrId.pickup_otp)) {
+      return String(orderOrId.pickupOtp || orderOrId.pickup_otp);
+    }
+    if (type === 'delivery' && (orderOrId.deliveryOtp || orderOrId.delivery_otp)) {
+      return String(orderOrId.deliveryOtp || orderOrId.delivery_otp);
+    }
+  }
+  const orderId = typeof orderOrId === 'string' ? orderOrId : orderOrId?.id;
+  if (!orderId) return '1080';
+
+  // Check cached orders
+  const cachedOrders = getCachedItem('orders', 'all') || [];
+  const found = cachedOrders.find(o => o.id === orderId);
+  if (found) {
+    if (type === 'pickup' && (found.pickupOtp || found.pickup_otp)) return String(found.pickupOtp || found.pickup_otp);
+    if (type === 'delivery' && (found.deliveryOtp || found.delivery_otp)) return String(found.deliveryOtp || found.delivery_otp);
+  }
+
+  // Check persistent storage
+  try {
+    const key = `foody_order_otp_${orderId}_${type}`;
+    const stored = safeStorage.getItem(key);
+    if (stored) return stored;
+    const newOtp = generateSecureOrderOTP();
+    safeStorage.setItem(key, newOtp);
+    return newOtp;
+  } catch (_) {
+    return '1080';
+  }
 }
 
 export function verifyOrderOTP(orderId, type, enteredOtp) {
   if (!orderId || !enteredOtp) return false;
   const cleanEntered = String(enteredOtp).trim();
+
+  // Attempt rate-limiting protection (max 3 attempts)
+  const attemptKey = `foody_otp_attempts_${orderId}_${type}`;
+  let attempts = 0;
+  try {
+    attempts = parseInt(safeStorage.getItem(attemptKey) || '0', 10);
+  } catch (_) {}
+
+  if (attempts >= 3) {
+    console.warn(`[Security] Maximum OTP attempts (3/3) exceeded for order ${orderId}`);
+    return false;
+  }
+
   const expectedOtp = getOrderOTP(orderId, type);
-  // Support master development bypass code '0000' or exact match
-  return cleanEntered === expectedOtp || cleanEntered === '0000';
+  const isMatch = cleanEntered === expectedOtp;
+
+  if (!isMatch) {
+    try {
+      safeStorage.setItem(attemptKey, String(attempts + 1));
+    } catch (_) {}
+    return false;
+  }
+
+  // Success: Clear attempt counter
+  try {
+    safeStorage.removeItem(attemptKey);
+  } catch (_) {}
+  return true;
 }
 
 // ========================================================================

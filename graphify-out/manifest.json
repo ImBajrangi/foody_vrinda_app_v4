@@ -5,13 +5,13 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1789818343.5445185,
-    "ast_hash": "27fdcf57a6348f41303fb7271de85e0d",
+    "mtime": 1789918789.3916712,
+    "ast_hash": "a33edd149eef706791ac01129bd8c42e",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1789834699.8202758,
-    "ast_hash": "a4676ce482b789a64e291cfad56d9165",
+    "mtime": 1789918985.8972554,
+    "ast_hash": "00403ad8c889317b2336da82c8525fea",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -120,13 +120,13 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1789823504.041516,
-    "ast_hash": "feea45cb8cc8ca6bbee0142a8c8f5615",
+    "mtime": 1789918744.2353122,
+    "ast_hash": "b755f18cf997ea00560c99862ed5655e",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
-    "mtime": 1789743363.5286257,
-    "ast_hash": "5f2134dc89b21a46f25e5c9bf8c8c1c2",
+    "mtime": 1789918866.9312794,
+    "ast_hash": "b970be95e5bddc22221d58d4267b197e",
     "semantic_hash": ""
   },
   "src/context/NotificationContext.jsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789918015.2295766,
-    "ast_hash": "3cdd9ec7582fa488590f4a36127abaa1",
+    "mtime": 1789919170.9341085,
+    "ast_hash": "d2282b9797a7b203230f60639001dca0",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1789833657.833948,
-    "ast_hash": "80000eea7f8f3fb7d47e6349b3b03825",
+    "mtime": 1789918805.9384732,
+    "ast_hash": "86ebacc7f1d30f38086e00565fd8d563",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "src/components/UnauthorizedAccessScreen.jsx": {
-    "mtime": 1788928178.6280878,
-    "ast_hash": "add649247298803a70dfd3f409681938",
+    "mtime": 1789918753.547897,
+    "ast_hash": "d8e728f01ec8ca887c57a9f26820b691",
     "semantic_hash": ""
   },
   "scripts/run-android.js": {
@@ -230,13 +230,8 @@
     "semantic_hash": ""
   },
   "src/components/CompleteProfileModal.jsx": {
-    "mtime": 1789818024.8146846,
-    "ast_hash": "c974a24ec7eb1c83ad164728cc61f3b2",
-    "semantic_hash": ""
-  },
-  "src/components/EmergencyDevModal.jsx": {
-    "mtime": 1788928167.8665476,
-    "ast_hash": "280314c5a9f54dfb3bbb919ea4d486a0",
+    "mtime": 1789918975.9019508,
+    "ast_hash": "5c73e2f11abca44f6f9182cc84bc8a68",
     "semantic_hash": ""
   },
   "src/components/ErrorBoundary.jsx": {
@@ -317,6 +312,16 @@
   "src/components/ui/NativeTimePicker.jsx": {
     "mtime": 1789837182.3034706,
     "ast_hash": "e933eaed814bd5df52c72fee3d3ad7bf",
+    "semantic_hash": ""
+  },
+  "scripts/test-database-sync.js": {
+    "mtime": 1789919018.964166,
+    "ast_hash": "388b9ad36a03f7398895713e0f2827e0",
+    "semantic_hash": ""
+  },
+  "public/robots.txt": {
+    "mtime": 1789918995.654892,
+    "ast_hash": "4fb0910b97ba3428576df6f374eb48cf",
     "semantic_hash": ""
   }
 }

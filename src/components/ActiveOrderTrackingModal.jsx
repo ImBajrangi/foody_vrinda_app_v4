@@ -1010,9 +1010,27 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                         </div>
                       );
                     })}
-                    <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex justify-between items-center font-black text-stone-900 dark:text-white text-xs">
-                      <span>Total Amount Paid</span>
-                      <span className="text-amber-700 dark:text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || '140'}</span>
+                    <div className="pt-2 border-t border-stone-200 dark:border-white/5 space-y-1.5 text-[11px]">
+                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                        <span>Item Subtotal</span>
+                        <span>₹{currentOrder?.subtotal || currentOrder?.totalAmount || '140'}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                        <span>GST & Govt Taxes (5%)</span>
+                        <span>₹{currentOrder?.gst_amount || currentOrder?.gstAmount || Math.round(Number(currentOrder?.totalAmount || 140) * 0.05)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                        <span>Delivery & Packaging</span>
+                        <span>{Number(currentOrder?.delivery_charge || currentOrder?.deliveryCharge || 0) > 0 ? `₹${currentOrder?.delivery_charge || currentOrder?.deliveryCharge}` : 'FREE'}</span>
+                      </div>
+                      <div className="pt-1.5 border-t border-stone-200 dark:border-white/5 flex justify-between items-center font-black text-stone-900 dark:text-white text-xs">
+                        <span>Total Amount</span>
+                        <span className="text-amber-700 dark:text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
+                      </div>
+                      <div className="pt-1 flex items-center justify-between text-[10px] text-stone-500 dark:text-neutral-400">
+                        <span className="uppercase font-bold tracking-wider">Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}</span>
+                        <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">FSSAI Lic: 22724923000108</span>
+                      </div>
                     </div>
                   </div>
                 )}
