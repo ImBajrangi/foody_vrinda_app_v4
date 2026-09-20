@@ -1,11 +1,11 @@
 # Graph Report - foody_vrinda_v3  (2026-09-20)
 
 ## Corpus Check
-- 59 files · ~111,099 words
+- 59 files · ~111,483 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 287 nodes · 867 edges · 25 communities (14 shown, 11 thin omitted)
+- 288 nodes · 869 edges · 25 communities (14 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
@@ -15,12 +15,12 @@
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- UnifiedSearchModal
+- UnifiedSearchModal.jsx
 - run-android.js
 - supabase.js
 - App.jsx
 - CustomerView.jsx
-- OwnerView.jsx
+- TransportView.jsx
 - Foody Vrinda (v3)
 - ReviewModal.jsx
 - Loader.jsx
@@ -35,7 +35,7 @@
 - StarRating.jsx
 - RealtimeMultiplexer
 - NativeNotificationService
-- AuthContext.jsx
+- OwnerView.jsx
 - firebase.js
 
 ## God Nodes (most connected - your core abstractions)
@@ -51,25 +51,25 @@
 10. `getCloudMenus()` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `App()` --calls--> `useCart()`  [EXTRACTED]
-  src/App.jsx → src/context/CartContext.jsx
-- `App()` --calls--> `useTheme()`  [EXTRACTED]
-  src/App.jsx → src/context/ThemeContext.jsx
 - `App()` --calls--> `useAudioAlarm()`  [EXTRACTED]
   src/App.jsx → src/hooks/useAudioAlarm.js
-- `ActiveOrderTrackingModal()` --calls--> `useBackHandler()`  [EXTRACTED]
-  src/components/ActiveOrderTrackingModal.jsx → src/hooks/useBackHandler.js
 - `ActiveOrderTrackingModal()` --calls--> `getOrderOTP()`  [EXTRACTED]
   src/components/ActiveOrderTrackingModal.jsx → src/supabase.js
+- `ActiveOrderTrackingModal()` --calls--> `resolveDishCutout()`  [EXTRACTED]
+  src/components/ActiveOrderTrackingModal.jsx → src/supabase.js
+- `ActiveOrderTrackingModal()` --calls--> `subscribeSingleCloudOrder()`  [EXTRACTED]
+  src/components/ActiveOrderTrackingModal.jsx → src/supabase.js
+- `AuthModal()` --calls--> `updateCloudUser()`  [EXTRACTED]
+  src/components/AuthModal.jsx → src/supabase.js
 
 ## Import Cycles
 - None detected.
 
 ## Communities (25 total, 11 thin omitted)
 
-### Community 0 - "UnifiedSearchModal"
-Cohesion: 0.29
-Nodes (3): UnifiedSearchModal(), HitSoochiService, LOCAL_SATVIK_ONTOLOGY
+### Community 0 - "UnifiedSearchModal.jsx"
+Cohesion: 0.25
+Nodes (4): DynamicToast(), UnifiedSearchModal(), HitSoochiService, LOCAL_SATVIK_ONTOLOGY
 
 ### Community 1 - "run-android.js"
 Cohesion: 0.27
@@ -77,19 +77,19 @@ Nodes (10): ANDROID_DIR, APK_PATH, __dirname, ensureDeviceReady(), __filename, g
 
 ### Community 2 - "supabase.js"
 Cohesion: 0.12
-Nodes (43): broadcastAlarmEvent(), CACHE_TTL_MS, calculateDistanceKm(), COMPLETE_FOODY_DATABASE_SCHEMA_SQL, createCloudMenuItem(), createCloudOffer(), createCloudShop(), DEFAULT_OFFERS (+35 more)
+Nodes (42): broadcastAlarmEvent(), CACHE_TTL_MS, calculateDistanceKm(), COMPLETE_FOODY_DATABASE_SCHEMA_SQL, createCloudMenuItem(), createCloudOffer(), createCloudShop(), DEFAULT_OFFERS (+34 more)
 
 ### Community 3 - "App.jsx"
-Cohesion: 0.11
-Nodes (16): App(), CompleteProfileModal(), EmergencyDevModal(), ErrorBoundary, RewardsModal(), UnauthorizedAccessScreen(), useAuth(), useBackHandler() (+8 more)
+Cohesion: 0.10
+Nodes (26): App(), ActiveOrderTrackingModal(), AuthModal(), DESK_CONFIG, EmergencyDevModal(), ErrorBoundary, Header(), NotificationPanel() (+18 more)
 
 ### Community 4 - "CustomerView.jsx"
-Cohesion: 0.09
-Nodes (32): ActiveOrderCapsule(), ActiveOrderTrackingModal(), AuthModal(), DESK_CONFIG, Header(), MapPicker(), NotificationPanel(), OrderHistoryDrawer() (+24 more)
+Cohesion: 0.11
+Nodes (22): ActiveOrderCapsule(), CompleteProfileModal(), MapPicker(), QUANTITIES, QuantityPickerSheet(), BouncingLoader(), StyledWrapper, SocialLinksBar() (+14 more)
 
-### Community 5 - "OwnerView.jsx"
-Cohesion: 0.14
-Nodes (29): ActiveAlarmBanner(), DynamicToast(), NativeTimePicker(), SearchableDropdown(), DEFAULT_SEEDS, NotificationContext, NotificationProvider(), getAudioContext() (+21 more)
+### Community 5 - "TransportView.jsx"
+Cohesion: 0.15
+Nodes (27): ActiveAlarmBanner(), SearchableDropdown(), DEFAULT_SEEDS, NotificationContext, NotificationProvider(), getAudioContext(), useAudioAlarm(), useFastNotify() (+19 more)
 
 ### Community 6 - "Foody Vrinda (v3)"
 Cohesion: 0.40
@@ -103,9 +103,9 @@ Nodes (5): CHEF_TAGS, ReviewModal(), RIDER_TAGS, createCloudReview(), recordMult
 Cohesion: 0.22
 Nodes (5): getCachedItem(), getCloudRoles(), RealtimeMultiplexer, subscribeCloudOffers(), subscribeCloudShops()
 
-### Community 22 - "AuthContext.jsx"
-Cohesion: 0.27
-Nodes (18): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), MASTER_DEV_PIN, createCloudUser() (+10 more)
+### Community 22 - "OwnerView.jsx"
+Cohesion: 0.23
+Nodes (21): NativeTimePicker(), AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), MASTER_DEV_PIN (+13 more)
 
 ### Community 23 - "firebase.js"
 Cohesion: 0.50
@@ -119,17 +119,17 @@ Nodes (3): app, auth, db
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `NativeNotificationService` connect `NativeNotificationService` to `OwnerView.jsx`?**
+- **Why does `NativeNotificationService` connect `NativeNotificationService` to `TransportView.jsx`?**
   _High betweenness centrality (0.055) - this node is a cross-community bridge._
-- **Why does `useAuth()` connect `App.jsx` to `UnifiedSearchModal`, `supabase.js`, `CustomerView.jsx`, `OwnerView.jsx`, `AuthContext.jsx`?**
+- **Why does `useAuth()` connect `App.jsx` to `UnifiedSearchModal.jsx`, `supabase.js`, `CustomerView.jsx`, `TransportView.jsx`, `OwnerView.jsx`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `__filename`, `__dirname`, `ROOT_DIR` to the rest of the system?**
   _44 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `supabase.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.12 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12414965986394558 - nodes in this community are weakly interconnected._
 - **Should `App.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11491935483870967 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09877551020408164 - nodes in this community are weakly interconnected._
 - **Should `CustomerView.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09490196078431372 - nodes in this community are weakly interconnected._
-- **Should `OwnerView.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.14390243902439023 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11174242424242424 - nodes in this community are weakly interconnected._
+- **Should `TransportView.jsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.1495798319327731 - nodes in this community are weakly interconnected._

@@ -9,7 +9,6 @@ import {
   markCloudOrderCashCollected,
   subscribeCloudOrders,
   updateCloudOrderStatus,
-  DEFAULT_PRASAD_ITEMS,
   resolveDishCutout,
   subscribeCloudUsers,
   getCloudUsers,
@@ -100,7 +99,9 @@ import {
   ChevronDown,
   ChevronUp,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -210,6 +211,64 @@ export default function OwnerView() {
   const menuFormRef = useRef(null);
   const dishNameInputRef = useRef(null);
   const descriptionInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+
+  // Instant Client-Side Image / AI Photo Uploader (Fast WebP resize, zero lag)
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setToast({ message: 'Please select a valid image file (PNG, JPG, WEBP)', type: 'warning' });
+      return;
+    }
+
+    setImageUploadLoading(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/webp', 0.85);
+        setMenuForm(prev => ({ ...prev, imageUrl: dataUrl }));
+        setImageUploadLoading(false);
+        setToast({ message: 'AI / Custom photo loaded successfully!', type: 'success' });
+      };
+      img.onerror = () => {
+        setMenuForm(prev => ({ ...prev, imageUrl: event.target.result }));
+        setImageUploadLoading(false);
+        setToast({ message: 'Image loaded successfully!', type: 'success' });
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      setImageUploadLoading(false);
+      setToast({ message: 'Failed to read image file', type: 'error' });
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Form State for Shop Profile
   const [shopForm, setShopForm] = useState({
@@ -383,6 +442,7 @@ export default function OwnerView() {
     description: '',
     price: '',
     category: 'Snacks',
+    shopId: currentUserShopId || '',
     isAvailable: true,
     isVeg: true,
     spicyLevel: 'Mild',
@@ -434,17 +494,47 @@ export default function OwnerView() {
     };
   }, [currentUserShopId]);
 
-  // Fetch menu items for menu manager from Supabase
+  // Fetch menu items for menu manager from Supabase with live event reactivity
   useEffect(() => {
     if (!currentUserShopId) return;
 
     async function loadMenus() {
       const items = await getCloudMenus(currentUserShopId);
-      if (items && items.length > 0) {
+      if (Array.isArray(items)) {
         setMenuItems(items);
       }
     }
     loadMenus();
+
+    const handleMenuEvent = (e) => {
+      const detail = e.detail;
+      if (!detail) return;
+      if (detail.deleted || detail.eventType === 'DELETE') {
+        const delId = detail.itemId || detail.item?.id;
+        if (delId) {
+          setMenuItems(prev => prev.filter(m => m.id !== delId));
+        }
+      } else if (detail.item) {
+        if (detail.shopId === currentUserShopId || !detail.shopId) {
+          setMenuItems(prev => {
+            const idx = prev.findIndex(m => m.id === detail.item.id);
+            if (idx >= 0) {
+              const copy = [...prev];
+              copy[idx] = { ...copy[idx], ...detail.item };
+              return copy;
+            }
+            return [detail.item, ...prev];
+          });
+        }
+      } else {
+        loadMenus();
+      }
+    };
+
+    window.addEventListener('foody_menus_changed', handleMenuEvent);
+    return () => {
+      window.removeEventListener('foody_menus_changed', handleMenuEvent);
+    };
   }, [currentUserShopId]);
 
   // Mass Items Handler: Filtered Menu Catalog with search & category filter
@@ -698,11 +788,12 @@ export default function OwnerView() {
       description: item.description || '',
       price: item.price || 0,
       category: item.category || 'Main',
+      shopId: item.shopId || item.shop_id || currentUserShopId,
       isSatvik: item.isSatvik !== undefined ? item.isSatvik : true,
       isDailySpecial: item.isDailySpecial || false,
       spicyLevel: item.spicyLevel || 'Mild',
       imageUrl: item.imageUrl || item.image || '',
-      nutrition: typeof item.nutrition === 'object' ? item.nutrition.kcal : (item.nutrition || ''),
+      nutrition: typeof item.nutrition === 'object' ? (item.nutrition.kcal || '') : (item.nutrition || ''),
       ingredients: item.ingredients || ''
     });
 
@@ -724,8 +815,9 @@ export default function OwnerView() {
     setMenuForm({
       name: '',
       description: '',
-      price: 0,
-      category: 'Main',
+      price: '',
+      category: 'Snacks',
+      shopId: currentUserShopId,
       isSatvik: true,
       isDailySpecial: false,
       spicyLevel: 'Mild',
@@ -742,12 +834,13 @@ export default function OwnerView() {
   const handleSaveMenuForm = async (e) => {
     e.preventDefault();
     try {
+      const targetShopId = menuForm.shopId || currentUserShopId;
       const payload = {
         name: menuForm.name,
         description: menuForm.description,
         price: parseFloat(menuForm.price) || 0,
         category: menuForm.category,
-        shopId: currentUserShopId,
+        shopId: targetShopId,
         isSatvik: menuForm.isSatvik,
         isDailySpecial: menuForm.isDailySpecial,
         spicyLevel: menuForm.spicyLevel,
@@ -759,14 +852,23 @@ export default function OwnerView() {
       if (editingMenuItem) {
         // Supabase Cloud update
         await updateCloudMenuItem(editingMenuItem.id, payload);
-        // Local state update
-        setMenuItems(prev => prev.map(m => m.id === editingMenuItem.id ? { ...m, ...payload, image: payload.imageUrl } : m));
-        setToast({ message: `"${menuForm.name}" updated successfully`, type: "success" });
+        
+        // If moved to a different kitchen than current view, remove from current view list
+        if (targetShopId !== currentUserShopId) {
+          setMenuItems(prev => prev.filter(m => m.id !== editingMenuItem.id));
+          const targetShop = allShops.find(s => s.id === targetShopId);
+          setToast({ message: `"${menuForm.name}" moved to ${targetShop?.name || 'selected kitchen'}!`, type: "success" });
+        } else {
+          // Local state update
+          setMenuItems(prev => prev.map(m => m.id === editingMenuItem.id ? { ...m, ...payload, image: payload.imageUrl || m.image } : m));
+          setToast({ message: `"${menuForm.name}" updated successfully`, type: "success" });
+        }
       } else {
         // Supabase Cloud insert
         const newDish = await createCloudMenuItem(payload);
-        // Local state update
-        setMenuItems(prev => [newDish, ...prev]);
+        if (targetShopId === currentUserShopId) {
+          setMenuItems(prev => [newDish, ...prev]);
+        }
         setToast({ message: `"${menuForm.name}" added to menu!`, type: "success" });
       }
 
@@ -774,8 +876,9 @@ export default function OwnerView() {
       setMenuForm({
         name: '',
         description: '',
-        price: 0,
-        category: 'Main',
+        price: '',
+        category: 'Snacks',
+        shopId: currentUserShopId,
         isSatvik: true,
         isDailySpecial: false,
         spicyLevel: 'Mild',
@@ -792,13 +895,14 @@ export default function OwnerView() {
   const handleConfirmDeleteMenuItem = async () => {
     if (!deleteTargetId) return;
     try {
+      const targetId = deleteTargetId;
+      setDeleteTargetId(null);
       // Supabase Cloud delete
-      await deleteCloudMenuItem(deleteTargetId);
+      await deleteCloudMenuItem(targetId, currentUserShopId);
       // Local state update
-      setMenuItems(prev => prev.filter(m => m.id !== deleteTargetId));
+      setMenuItems(prev => prev.filter(m => m.id !== targetId));
 
       setToast({ message: "Dish removed from catalog", type: "success" });
-      setDeleteTargetId(null);
     } catch (e) {
       console.error(e);
       setToast({ message: "Failed to delete dish", type: "error" });
@@ -2203,6 +2307,42 @@ export default function OwnerView() {
                 </div>
               </div>
 
+              {/* Kitchen / Branch Selector */}
+              <div>
+                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
+                  <span>Target Kitchen (Branch)</span>
+                  {allShops.length > 1 && (
+                    <span className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold lowercase">
+                      assigns dish to selected kitchen
+                    </span>
+                  )}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(allShops.length > 0 ? allShops : [{ id: currentUserShopId || 'shop-vrinda-main', name: 'Vrinda Cloud Kitchen (Main)', address: 'Vrindavan' }]).map(shop => {
+                    const isSelected = (menuForm.shopId || currentUserShopId) === shop.id;
+                    return (
+                      <button
+                        key={shop.id}
+                        type="button"
+                        onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
+                        className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
+                          ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30 font-black'
+                          : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className="text-xs font-bold truncate">{shop.name}</span>
+                          {isSelected && <Check size={14} className="stroke-[3] shrink-0 ml-1" />}
+                        </div>
+                        <span className={`text-[10px] truncate ${isSelected ? 'text-white/80 dark:text-[#121011]/80 font-medium' : 'text-stone-400 dark:text-neutral-500'}`}>
+                          {shop.address || 'Vrindavan Dham'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Category Selector */}
               <div>
                 <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
@@ -2237,50 +2377,58 @@ export default function OwnerView() {
                 </div>
               </div>
 
-              {/* Visual Transparent PNG Asset Cutout Picker */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
-                  Dish Cutout Visual Asset
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-2.5">
-                  {[
-                    { src: '/dishes/thali.png', name: 'Royal Thali' },
-                    { src: '/dishes/curry.png', name: 'Shahi Paneer' },
-                    { src: '/dishes/sweet.png', name: 'Saffron Kheer' },
-                    { src: '/dishes/rice.png', name: 'Jeera Rice' },
-                    { src: '/dishes/pizza.png', name: 'Satvik Pizza' },
-                    { src: '/dishes/burger.png', name: 'Veggie Burger' }
-                  ].map((asset) => {
-                    const isSelected = menuForm.imageUrl === asset.src;
-                    return (
-                      <button
-                        key={asset.src}
-                        type="button"
-                        onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
-                        className={`rounded-2xl p-2.5 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
-                          ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
-                          : 'bg-stone-100 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-200/70 dark:hover:bg-[#252223]'
-                          }`}
-                        title={asset.name}
-                      >
-                        <div className="w-12 h-12 flex items-center justify-center">
-                          <img
-                            src={asset.src}
-                            alt={asset.name}
-                            className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
-                          />
-                        </div>
-                        {isSelected && (
-                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
-                            <Check size={10} className="stroke-[3]" />
-                          </div>
-                        )}
-                        <span className={`text-[10px] font-bold mt-1 text-center truncate w-full ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
-                          {asset.name}
-                        </span>
-                      </button>
-                    );
-                  })}
+              {/* Visual Transparent PNG Asset & AI Photo Uploader */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
+                    Dish Photo / AI Image
+                  </label>
+                  {menuForm.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setMenuForm({ ...menuForm, imageUrl: '' })}
+                      className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                    >
+                      Clear Image
+                    </button>
+                  )}
+                </div>
+
+                {/* Direct Device/AI Photo Upload Button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileUpload}
+                  className="hidden"
+                />
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={imageUploadLoading}
+                    className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33]/25 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
+                  >
+                    <Upload className="w-4 h-4 shrink-0" />
+                    <span>{imageUploadLoading ? 'Optimizing AI Photo...' : '📁 Upload Photo / AI Image from Device'}</span>
+                  </button>
+
+                  {menuForm.imageUrl && (
+                    <div className="flex items-center gap-2 bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 px-3 py-1.5 rounded-2xl">
+                      <div className="w-8 h-8 rounded-lg bg-white dark:bg-black/40 overflow-hidden flex items-center justify-center shrink-0 border border-stone-200 dark:border-white/10">
+                        <img
+                          src={menuForm.imageUrl}
+                          alt="Uploaded Preview"
+                          className="w-full h-full object-contain"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+                      <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-[140px]">
+                        Custom Photo Set
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative">
@@ -2288,14 +2436,61 @@ export default function OwnerView() {
                     type="text"
                     value={menuForm.imageUrl}
                     onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
-                    placeholder="Or enter custom cutout image URL (https://...)"
+                    placeholder="Or paste image URL (https://... or /dishes/...)"
                     className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
                   />
                   {menuForm.imageUrl && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] dark:bg-black/60 p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
                       <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                     </div>
                   )}
+                </div>
+
+                {/* Preset Cutout Quick Tiles */}
+                <div>
+                  <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5 font-['Outfit']">
+                    Or select a preset visual cutout:
+                  </span>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                    {[
+                      { src: '/dishes/thali.png', name: 'Royal Thali' },
+                      { src: '/dishes/curry.png', name: 'Shahi Paneer' },
+                      { src: '/dishes/sweet.png', name: 'Saffron Kheer' },
+                      { src: '/dishes/rice.png', name: 'Jeera Rice' },
+                      { src: '/dishes/pizza.png', name: 'Satvik Pizza' },
+                      { src: '/dishes/burger.png', name: 'Veggie Burger' }
+                    ].map((asset) => {
+                      const isSelected = menuForm.imageUrl === asset.src;
+                      return (
+                        <button
+                          key={asset.src}
+                          type="button"
+                          onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
+                          className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[86px] ${isSelected
+                            ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                            : 'bg-stone-100 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-200/70 dark:hover:bg-[#252223]'
+                            }`}
+                          title={asset.name}
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center">
+                            <img
+                              src={asset.src}
+                              alt={asset.name}
+                              className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
+                            />
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
+                              <Check size={10} className="stroke-[3]" />
+                            </div>
+                          )}
+                          <span className={`text-[10px] font-bold mt-1 text-center truncate w-full ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
+                            {asset.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

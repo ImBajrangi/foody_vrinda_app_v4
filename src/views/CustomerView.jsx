@@ -426,7 +426,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     async function fetchLiveMenus() {
       try {
         const liveItems = await getCloudMenus(shopKey);
-        if (isMounted && Array.isArray(liveItems) && liveItems.length > 0) {
+        if (isMounted && Array.isArray(liveItems)) {
           setMenuItems(liveItems);
           setLocalCustomerMenus(shopKey, liveItems);
         }
@@ -465,19 +465,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       if (!isMounted) return;
       const detail = e.detail;
       if (!detail) return;
-      if (detail.item) {
+      if (detail.deleted || detail.eventType === 'DELETE') {
+        const delId = detail.itemId || detail.item?.id;
+        if (delId) {
+          setMenuItems(prev => {
+            const updatedList = prev.filter(m => m.id !== delId);
+            setLocalCustomerMenus(shopKey, updatedList);
+            return updatedList;
+          });
+        }
+      } else if (detail.item) {
         setMenuItems(prev => {
           let updatedList;
-          if (detail.deleted || detail.eventType === 'DELETE') {
-            updatedList = prev.filter(m => m.id !== detail.item.id);
+          const index = prev.findIndex(m => m.id === detail.item.id);
+          if (index >= 0) {
+            updatedList = [...prev];
+            updatedList[index] = { ...updatedList[index], ...detail.item };
           } else {
-            const index = prev.findIndex(m => m.id === detail.item.id);
-            if (index >= 0) {
-              updatedList = [...prev];
-              updatedList[index] = { ...updatedList[index], ...detail.item };
-            } else {
-              updatedList = [detail.item, ...prev];
-            }
+            updatedList = [detail.item, ...prev];
           }
           setLocalCustomerMenus(shopKey, updatedList);
           return updatedList;
@@ -939,8 +944,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     setSelectedDishDetails(null);
   };
 
-  // Desktop Spotlight Dish state
-  const [spotlightDishId, setSpotlightDishId] = useState('prasad-1');
+  // Desktop Spotlight Dish state (dynamically bound to live items)
+  const [spotlightDishId, setSpotlightDishId] = useState(null);
   const [spotlightSize, setSpotlightSize] = useState('380g');
   const [spotlightQty, setSpotlightQty] = useState(1);
   const [spotlightAddons, setSpotlightAddons] = useState(['extra-paneer', 'fresh-tomato']);
@@ -1389,7 +1394,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     alt={item.name}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = '/dishes/burger.png';
+                      e.target.src = resolveDishCutout('', item.name, item.category);
                     }}
                     className={`w-full h-full object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.18)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
                     loading="lazy"
@@ -1671,7 +1676,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     alt={selectedDishDetails.name}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = '/dishes/burger.png';
+                      e.target.src = resolveDishCutout('', selectedDishDetails.name, selectedDishDetails.category);
                     }}
                     className="w-full h-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.22)] select-none pointer-events-none"
                     loading="lazy"

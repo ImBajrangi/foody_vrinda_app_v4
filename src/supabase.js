@@ -81,102 +81,41 @@ export const SEED_SHOPS = [
   }
 ];
 
-export const DEFAULT_PRASAD_ITEMS = [
-  {
-    id: 'prasad-1',
-    name: 'Cheese With Satvik Burger',
-    subtitle: 'Cheesy satvik, special price',
-    category: 'Snacks',
-    price: 140,
-    kcal: '260 kcal',
-    tag: 'Popular Choice',
-    image: '/dishes/burger.png',
-    description: 'Fresh baked artisanal whole wheat bun filled with pure paneer patty, garden crisp lettuce, heirloom tomatoes, and creamy satvik herbal cheese.',
-    nutrition: { carbs: '32g', fat: '11g', protein: '14g', kcal: '260 kcal' },
-    isAvailable: true
-  },
-  {
-    id: 'prasad-2',
-    name: 'Royal Vedic Thali',
-    subtitle: 'Complete nutritional Satvik platter',
-    category: 'Meals',
-    price: 220,
-    kcal: '480 kcal',
-    tag: "Chef's Special",
-    image: '/dishes/thali.png',
-    description: 'Steaming aromatic Govind Bhog rice, 4 whole wheat phulkas, Dal Makhani with desi ghee, Paneer Butter Masala, seasonal Subzi, sweet Gulab Jamun, and crisp Papad.',
-    nutrition: { carbs: '68g', fat: '16g', protein: '22g', kcal: '480 kcal' },
-    isAvailable: true
-  },
-  {
-    id: 'prasad-3',
-    name: 'Kesariya Rabdi Kheer',
-    subtitle: 'Slow simmered thickened milk dessert',
-    category: 'Sweets & Prasad',
-    price: 120,
-    kcal: '210 kcal',
-    tag: 'Sacred Prasad',
-    image: '/dishes/sweet.png',
-    description: 'Rich Govind Bhog rice kheer infused with pure Kashmiri saffron, crushed green cardamom, roasted almond slivers, pistachios, and pure chironji.',
-    nutrition: { carbs: '28g', fat: '9g', protein: '7g', kcal: '210 kcal' },
-    isAvailable: true
-  },
-  {
-    id: 'prasad-4',
-    name: 'Paneer Satvik Pizza (10")',
-    subtitle: 'Crispy thin crust with desi herbs',
-    category: 'Snacks',
-    price: 240,
-    kcal: '340 kcal',
-    tag: 'Chef Special',
-    image: '/dishes/pizza.png',
-    description: 'Hand-tossed thin crust with fresh tomato basil coulis, diced fresh Malai paneer, bell peppers, sweet corn, and mozzarella cheese.',
-    nutrition: { carbs: '42g', fat: '14g', protein: '18g', kcal: '340 kcal' },
-    isAvailable: true
-  },
-  {
-    id: 'prasad-5',
-    name: 'Paneer Makhani Meal',
-    subtitle: 'Rich cashew gravy, butter roti',
-    category: 'Meals',
-    price: 180,
-    kcal: '360 kcal',
-    tag: 'Pure Desi Ghee',
-    image: '/dishes/curry.png',
-    description: 'Fresh organic cottage cheese simmered in a luscious tomato and cashew butter gravy, infused with cardamom and pure desi ghee.',
-    nutrition: { carbs: '38g', fat: '18g', protein: '22g', kcal: '360 kcal' },
-    isAvailable: true
-  },
-  {
-    id: 'prasad-6',
-    name: 'Govind Bhog Basmati Rice',
-    subtitle: 'Steamed aromatic long grain rice',
-    category: 'Meals',
-    price: 90,
-    kcal: '210 kcal',
-    tag: 'Vedic Grain',
-    image: '/dishes/rice.png',
-    description: 'Premium aged Govind Bhog long-grain basmati rice steamed with fragrant bay leaf, green cardamom, and a dollop of pure A2 cow ghee.',
-    nutrition: { carbs: '44g', fat: '3g', protein: '5g', kcal: '210 kcal' },
-    isAvailable: true
-  }
-];
 
-// Helper to intelligently resolve dish images to crisp transparent PNG cutouts
+
+// Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
 export function resolveDishCutout(image, name = '', category = '') {
-  if (image && typeof image === 'string' && image.startsWith('/dishes/')) return image;
+  // 1. If a valid custom user image or upload is supplied, ALWAYS honor and preserve it
+  if (image && typeof image === 'string') {
+    const trimmed = image.trim();
+    if (
+      trimmed.startsWith('data:image/') ||
+      trimmed.startsWith('blob:') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('/') ||
+      trimmed.startsWith('./')
+    ) {
+      // Don't override user's image unless it's a known generic unsplash placeholder
+      if (!trimmed.includes('unsplash.com/photo-1546833999-b9f581a1996d')) {
+        return trimmed;
+      }
+    }
+  }
+
+  // 2. Fallback to smart cutouts based on item keywords if no image is supplied
   const lowerName = (name || '').toLowerCase();
   const lowerCat = (category || '').toLowerCase();
 
   if (lowerName.includes('burger')) return '/dishes/burger.png';
   if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.png';
-  if (lowerName.includes('pizza') || lowerName.includes('bread') || lowerName.includes('snack')) return '/dishes/pizza.png';
+  if (lowerName.includes('pizza') || lowerName.includes('bread')) return '/dishes/pizza.png';
   if (lowerName.includes('kheer') || lowerName.includes('sweet') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
   if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.png';
   if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
+  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('chaat') || lowerName.includes('chat') || lowerName.includes('samosa') || lowerName.includes('kachori') || lowerName.includes('tikki') || lowerName.includes('pakora')) return '/dishes/pizza.png';
 
-  if (image && typeof image === 'string' && !image.includes('unsplash.com') && image.startsWith('http')) return image;
-  return '/dishes/burger.png';
+  return '/dishes/thali.png';
 }
 
 // ========================================================================
@@ -496,8 +435,21 @@ export function invalidateCache(type, key) {
     if (key) {
       delete memoryCache.menus[key];
       safeStorage.removeItem(`foody_cache_menu_${key}`);
+      safeStorage.removeItem(`foody_customer_menu_v3_${key}`);
     } else {
       memoryCache.menus = {};
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const keysToRemove = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (k && (k.startsWith('foody_cache_menu_') || k.startsWith('foody_customer_menu_v3_'))) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => window.localStorage.removeItem(k));
+        }
+      } catch (e) { }
     }
   } else if (type === 'orders') {
     if (key) {
@@ -562,7 +514,7 @@ export async function getCloudShops() {
 export async function getCloudMenus(shopId = 'all') {
   const cached = getCachedItem('menus', shopId);
   if (cached) return cached;
-  if (isTableMissing('foody_menus')) return DEFAULT_PRASAD_ITEMS;
+  if (isTableMissing('foody_menus')) return [];
 
   const reqKey = `getCloudMenus_${shopId}`;
   if (pendingRequests.has(reqKey)) {
@@ -578,10 +530,11 @@ export async function getCloudMenus(shopId = 'all') {
       const { data, error } = await query;
       if (error) {
         if (isTableError(error)) markTableMissing('foody_menus');
-        return DEFAULT_PRASAD_ITEMS;
+        return [];
       }
       if (!data || data.length === 0) {
-        return DEFAULT_PRASAD_ITEMS;
+        setCachedItem('menus', shopId, []);
+        return [];
       }
       const mapped = data.map(d => {
         const nut = typeof d.nutrition === 'object' && d.nutrition !== null ? d.nutrition : {};
@@ -590,18 +543,18 @@ export async function getCloudMenus(shopId = 'all') {
           id: d.id,
           shopId: d.shop_id,
           name: d.name,
-          subtitle: d.subtitle,
-          description: d.description,
-          category: d.category,
-          price: Number(d.price),
+          subtitle: d.subtitle || '',
+          description: d.description || '',
+          category: d.category || (isCombo ? 'Combo Offers' : 'Main'),
+          price: Number(d.price || 0),
           originalPrice: Number(d.original_price || nut.originalPrice || d.price || 0),
           discountPercent: Number(d.discount_percent || nut.discountPercent || 0),
           isCombo,
           comboItems: d.combo_items || nut.comboItems || [],
           image: resolveDishCutout(d.image, d.name, d.category),
-          tag: d.tag,
+          tag: d.tag || '',
           kcal: d.kcal || nut.kcal || '250 kcal',
-          nutrition: d.nutrition || { carbs: '35g', fat: '12g', protein: '16g', kcal: '250 kcal' },
+          nutrition: d.nutrition || nut || { kcal: '250 kcal' },
           isAvailable: d.is_available ?? true
         };
       });
@@ -609,7 +562,8 @@ export async function getCloudMenus(shopId = 'all') {
       setCachedItem('menus', shopId, mapped);
       return mapped;
     } catch (err) {
-      return DEFAULT_PRASAD_ITEMS;
+      console.warn('getCloudMenus exception:', err?.message);
+      return [];
     } finally {
       pendingRequests.delete(reqKey);
     }
@@ -1644,6 +1598,9 @@ export async function createCloudMenuItem(itemData) {
 export async function updateCloudMenuItem(itemId, itemData) {
   try {
     const payload = {};
+    if (itemData.shopId !== undefined || itemData.shop_id !== undefined) {
+      payload.shop_id = itemData.shopId || itemData.shop_id;
+    }
     if (itemData.name !== undefined) payload.name = itemData.name;
     if (itemData.subtitle !== undefined) payload.subtitle = itemData.subtitle;
     if (itemData.description !== undefined) payload.description = itemData.description;
@@ -1684,8 +1641,15 @@ export async function updateCloudMenuItem(itemId, itemData) {
       payload.is_available = itemData.isAvailable ?? itemData.is_available;
     }
 
+    // Update in-memory & localStorage caches across all shop buckets
+    Object.keys(memoryCache.menus).forEach(key => {
+      if (Array.isArray(memoryCache.menus[key]?.data)) {
+        memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, image: payload.image || m.image } : m);
+      }
+    });
+
     invalidateCache('menus');
-    dispatchSafeEvent('foody_menus_changed', { itemId, updates: payload });
+    dispatchSafeEvent('foody_menus_changed', { itemId, updates: payload, item: { id: itemId, ...payload } });
 
     if (!isTableMissing('foody_menus')) {
       const { data, error } = await supabase
@@ -1721,8 +1685,43 @@ export async function updateCloudMenuItem(itemId, itemData) {
 
 export async function deleteCloudMenuItem(itemId, shopId = null) {
   try {
+    // 1. Instantly purge item from all in-memory menus
+    Object.keys(memoryCache.menus).forEach(key => {
+      if (Array.isArray(memoryCache.menus[key]?.data)) {
+        memoryCache.menus[key].data = memoryCache.menus[key].data.filter(m => m.id !== itemId);
+      }
+    });
+
+    // 2. Instantly purge item from all localStorage menu caches
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && (k.startsWith('foody_cache_menu_') || k.startsWith('foody_customer_menu_v3_'))) {
+            try {
+              const raw = window.localStorage.getItem(k);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                  window.localStorage.setItem(k, JSON.stringify(parsed.filter(m => m.id !== itemId)));
+                } else if (parsed && Array.isArray(parsed.data)) {
+                  parsed.data = parsed.data.filter(m => m.id !== itemId);
+                  window.localStorage.setItem(k, JSON.stringify(parsed));
+                }
+              }
+            } catch (e) { }
+          }
+        }
+      }
+    } catch (e) { }
+
     invalidateCache('menus', shopId);
-    dispatchSafeEvent('foody_menus_changed', { itemId, deleted: true });
+    dispatchSafeEvent('foody_menus_changed', {
+      itemId,
+      deleted: true,
+      eventType: 'DELETE',
+      item: { id: itemId }
+    });
 
     if (!isTableMissing('foody_menus')) {
       const { error } = await supabase
