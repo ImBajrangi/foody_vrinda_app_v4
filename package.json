@@ -12,6 +12,8 @@
     "android:build": "npm run build && npx cap sync && cd android && ./gradlew assembleDebug",
     "lint": "eslint .",
     "test:db": "node scripts/test-database-sync.js",
+    "test:security": "node scripts/test-adversarial-security.js",
+    "test": "npm run test:db && npm run test:security",
     "preview": "vite preview"
   },
   "dependencies": {
