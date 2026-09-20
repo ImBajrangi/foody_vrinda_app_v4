@@ -354,7 +354,7 @@ async function runAdversarialTestSuite() {
   );
 
   // =========================================================================
-  // ATTACK SCENARIO 8: AUTHORITATIVE ORDER ITEMS NORMALIZATION
+  // ATTACK SCENARIO 8: AUTHORITATIVE ORDER ITEMS LEDGER AUDIT
   // =========================================================================
   section('ATTACK SUITE 8: AUTHORITATIVE ORDER ITEMS LEDGER AUDIT');
 
@@ -373,6 +373,80 @@ async function runAdversarialTestSuite() {
     sqlContent.includes('o.rider_id = auth.uid()::text'),
     'order_items rows strictly isolated per customer, kitchen shop, and assigned delivery rider',
     'Exploit: order_items exposed across tenants'
+  );
+
+  // 8.3 Anonymous reading order_items blocked by RLS
+  assertDefense(
+    sqlContent.includes('CREATE POLICY "Strict Order Items Read Policy"') &&
+    sqlContent.includes('public.is_platform_admin()'),
+    'Anonymous users are strictly blocked by RLS from reading order_items',
+    'Exploit: Anonymous could read order_items'
+  );
+
+  // =========================================================================
+  // ATTACK SCENARIO 9: IDEMPOTENCY & DUPLICATE SUBMISSION DEFENSE
+  // =========================================================================
+  section('ATTACK SUITE 9: IDEMPOTENCY & DUPLICATE ORDER / PAYMENT SUBMISSIONS');
+
+  // 9.1 client_request_id column in database
+  assertDefense(
+    sqlContent.includes('ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS client_request_id TEXT UNIQUE;'),
+    'foody_orders enforces unique client_request_id for atomic idempotency deduplication',
+    'Exploit: Missing client_request_id uniqueness constraint'
+  );
+
+  // 9.2 Duplicate order submission returns existing order without creating new order
+  assertDefense(
+    sqlContent.includes('client_req_id := order_data ->> \'client_request_id\';') &&
+    sqlContent.includes('WHERE client_request_id = client_req_id;') &&
+    sqlContent.includes('RETURN existing_order;'),
+    'Duplicate order placement with matching client_request_id safely returns existing record (0 duplicate charge)',
+    'Exploit: Network retry created duplicate order'
+  );
+
+  // 9.3 Duplicate payment webhook protection
+  assertDefense(
+    sqlContent.includes('ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;') ||
+    sqlContent.includes('payment_id = EXCLUDED.payment_id'),
+    'Payment transactions tracked with unique payment_id preventing duplicate webhook credits',
+    'Exploit: Replayed payment webhook credited twice'
+  );
+
+  // =========================================================================
+  // ATTACK SCENARIO 10: DIRECT RPC CALLER PRIVILEGE ENFORCEMENT
+  // =========================================================================
+  section('ATTACK SUITE 10: DIRECT RPC CALLER PRIVILEGE ENFORCEMENT');
+
+  // 10.1 Customer A calling set_user_role() RPC
+  assertDefense(
+    sqlContent.includes("IF caller_role NOT IN ('owner', 'developer', 'grand_admin') AND (auth.jwt() ->> 'role') <> 'service_role' THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'SECURITY VIOLATION: Unauthorized attempt to modify user role"),
+    'Customer A directly calling set_user_role() RPC throws SECURITY VIOLATION',
+    'Exploit: Customer A called set_user_role() RPC'
+  );
+
+  // 10.2 Customer A calling transition_order_status() to mark order 'preparing'
+  assertDefense(
+    sqlContent.includes("IF NOT is_admin AND NOT (caller_role IN ('kitchen', 'owner') AND current_order.shop_id = ANY(caller_shop_ids)) THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'PERMISSION_DENIED"),
+    'Customer A calling transition_order_status() for kitchen status throws PERMISSION_DENIED',
+    'Exploit: Customer A invoked kitchen status transition'
+  );
+
+  // 10.3 Customer A calling verify_order_otp_rpc() directly
+  assertDefense(
+    sqlContent.includes("IF otp_type = 'delivery' AND NOT (caller_role = 'delivery' AND current_order.rider_id = caller_id) THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'PERMISSION_DENIED: Only assigned delivery Sarathi can verify customer delivery OTP.'"),
+    'Customer A calling verify_order_otp_rpc() directly throws PERMISSION_DENIED',
+    'Exploit: Customer A invoked verify_order_otp_rpc'
+  );
+
+  // 10.4 Rider A attempting to read Rider B customer delivery address
+  assertDefense(
+    sqlContent.includes('CREATE POLICY "Strict Orders Read Policy"') &&
+    sqlContent.includes('(public.get_auth_role() = \'delivery\' AND (rider_id = auth.uid()::text'),
+    'Rider A is strictly blocked from reading Rider B assigned customer addresses',
+    'Exploit: Rider A could read Rider B delivery destination'
   );
 
   // =========================================================================
