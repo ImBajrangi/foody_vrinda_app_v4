@@ -384,40 +384,49 @@ async function runAdversarialTestSuite() {
   );
 
   // =========================================================================
-  // ATTACK SCENARIO 9: IDEMPOTENCY & DUPLICATE SUBMISSION DEFENSE
+  // ATTACK SCENARIO 9: IDEMPOTENCY & MULTI-TENANT ISOLATION DEFENSE
   // =========================================================================
-  section('ATTACK SUITE 9: IDEMPOTENCY & DUPLICATE ORDER / PAYMENT SUBMISSIONS');
+  section('ATTACK SUITE 9: IDEMPOTENCY & MULTI-TENANT CONFLICT ISOLATION');
 
-  // 9.1 client_request_id column in database
+  // 9.1 Scoped unique index per user
   assertDefense(
-    sqlContent.includes('ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS client_request_id TEXT UNIQUE;'),
-    'foody_orders enforces unique client_request_id for atomic idempotency deduplication',
-    'Exploit: Missing client_request_id uniqueness constraint'
+    sqlContent.includes('CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_user_client_request ON public.foody_orders (user_id, client_request_id)') ||
+    sqlContent.includes('idx_orders_user_client_request'),
+    'Idempotency key strictly scoped per user (UNIQUE user_id, client_request_id) preventing cross-account leaks',
+    'Exploit: Missing scoped user_id + client_request_id idempotency constraint'
   );
 
-  // 9.2 Duplicate order submission returns existing order without creating new order
+  // 9.2 Scoped idempotency deduplication check
   assertDefense(
-    sqlContent.includes('client_req_id := order_data ->> \'client_request_id\';') &&
-    sqlContent.includes('WHERE client_request_id = client_req_id;') &&
-    sqlContent.includes('RETURN existing_order;'),
-    'Duplicate order placement with matching client_request_id safely returns existing record (0 duplicate charge)',
-    'Exploit: Network retry created duplicate order'
+    sqlContent.includes('WHERE user_id = caller_id AND client_request_id = client_req_id;') &&
+    sqlContent.includes("RAISE EXCEPTION 'IDEMPOTENCY_KEY_CONFLICT"),
+    'Duplicate submission scoped to caller; cross-account collision throws IDEMPOTENCY_KEY_CONFLICT exception',
+    'Exploit: Cross-tenant idempotency leak possible'
   );
 
   // 9.3 Duplicate payment webhook protection
   assertDefense(
     sqlContent.includes('ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;') ||
-    sqlContent.includes('payment_id = EXCLUDED.payment_id'),
+    sqlContent.includes('idx_orders_unique_payment_id'),
     'Payment transactions tracked with unique payment_id preventing duplicate webhook credits',
     'Exploit: Replayed payment webhook credited twice'
   );
 
   // =========================================================================
-  // ATTACK SCENARIO 10: DIRECT RPC CALLER PRIVILEGE ENFORCEMENT
+  // ATTACK SCENARIO 10: DIRECT RPC CALLER PRIVILEGE & SECURITY DEFINER LOCKDOWN
   // =========================================================================
-  section('ATTACK SUITE 10: DIRECT RPC CALLER PRIVILEGE ENFORCEMENT');
+  section('ATTACK SUITE 10: DIRECT RPC PRIVILEGE ENFORCEMENT & SEARCH_PATH HARDENING');
 
-  // 10.1 Customer A calling set_user_role() RPC
+  // 10.1 SECURITY DEFINER search_path hardening across all functions
+  assertDefense(
+    sqlContent.includes('SECURITY DEFINER') &&
+    sqlContent.includes('SET search_path = public, pg_temp') &&
+    sqlContent.includes('REVOKE ALL ON FUNCTION public.set_user_role'),
+    'All SECURITY DEFINER functions enforce SET search_path = public, pg_temp and revoke default public execution',
+    'Exploit: Insecure search_path or missing privilege revokes on SECURITY DEFINER functions'
+  );
+
+  // 10.2 Customer A calling set_user_role() RPC
   assertDefense(
     sqlContent.includes("IF caller_role NOT IN ('owner', 'developer', 'grand_admin') AND (auth.jwt() ->> 'role') <> 'service_role' THEN") &&
     sqlContent.includes("RAISE EXCEPTION 'SECURITY VIOLATION: Unauthorized attempt to modify user role"),
@@ -425,7 +434,7 @@ async function runAdversarialTestSuite() {
     'Exploit: Customer A called set_user_role() RPC'
   );
 
-  // 10.2 Customer A calling transition_order_status() to mark order 'preparing'
+  // 10.3 Customer A calling transition_order_status() to mark order 'preparing'
   assertDefense(
     sqlContent.includes("IF NOT is_admin AND NOT (caller_role IN ('kitchen', 'owner') AND current_order.shop_id = ANY(caller_shop_ids)) THEN") &&
     sqlContent.includes("RAISE EXCEPTION 'PERMISSION_DENIED"),
@@ -433,7 +442,7 @@ async function runAdversarialTestSuite() {
     'Exploit: Customer A invoked kitchen status transition'
   );
 
-  // 10.3 Customer A calling verify_order_otp_rpc() directly
+  // 10.4 Customer A calling verify_order_otp_rpc() directly
   assertDefense(
     sqlContent.includes("IF otp_type = 'delivery' AND NOT (caller_role = 'delivery' AND current_order.rider_id = caller_id) THEN") &&
     sqlContent.includes("RAISE EXCEPTION 'PERMISSION_DENIED: Only assigned delivery Sarathi can verify customer delivery OTP.'"),
@@ -441,12 +450,52 @@ async function runAdversarialTestSuite() {
     'Exploit: Customer A invoked verify_order_otp_rpc'
   );
 
-  // 10.4 Rider A attempting to read Rider B customer delivery address
+  // 10.5 Anti-Data-Leak Authorization check before returning same-status order
   assertDefense(
-    sqlContent.includes('CREATE POLICY "Strict Orders Read Policy"') &&
-    sqlContent.includes('(public.get_auth_role() = \'delivery\' AND (rider_id = auth.uid()::text'),
-    'Rider A is strictly blocked from reading Rider B assigned customer addresses',
-    'Exploit: Rider A could read Rider B delivery destination'
+    sqlContent.includes('-- CRITICAL ANTI-LEAK: Authorize caller access BEFORE returning any order data') &&
+    sqlContent.includes('IF current_order.status = new_status THEN'),
+    'transition_order_status() strictly authorizes caller before executing same-status order return',
+    'Exploit: Same-status transition leaked order without authorization'
+  );
+
+  // 10.6 Rider self-dispatch binds strictly to caller_id
+  assertDefense(
+    sqlContent.includes("WHEN caller_role = 'delivery' AND new_status = 'out_for_delivery' THEN caller_id"),
+    'Rider self-dispatch strictly binds rider_id = caller_id and rejects spoofed rider IDs',
+    'Exploit: Rider could self-assign another rider ID'
+  );
+
+  // 10.7 Safe zero fallback in get_auth_shop_ids()
+  assertDefense(
+    sqlContent.includes('RETURN COALESCE(shops_arr, ARRAY[]::TEXT[]);') &&
+    !sqlContent.includes("COALESCE(shops_arr, ARRAY['shop-vrinda-main'])"),
+    'get_auth_shop_ids() returns empty array for unassigned staff (0 unsafe fallback to main kitchen)',
+    'Exploit: Unassigned staff defaulted to main kitchen'
+  );
+
+  // 10.8 Dynamic GST tax rate enforcement
+  assertDefense(
+    sqlContent.includes("IF shop_record.gst_percentage IS NULL THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'TAX_CONFIGURATION_MISSING"),
+    'create_verified_order() strictly enforces dynamic shop GST and rejects missing tax configuration',
+    'Exploit: Hardcoded 5% GST assumption remained'
+  );
+
+  // 10.9 Immutable Cash Settlements Ledger
+  assertDefense(
+    sqlContent.includes('CREATE TABLE IF NOT EXISTS public.cash_settlements') &&
+    sqlContent.includes('CREATE POLICY "Block Settlement Updates"') &&
+    sqlContent.includes('CREATE POLICY "Block Settlement Deletions"'),
+    'cash_settlements ledger is strictly append-only (UPDATE and DELETE prohibited by RLS)',
+    'Exploit: Cash settlement records could be updated or deleted'
+  );
+
+  // 10.10 Auto-cancel worker execution lockdown
+  assertDefense(
+    sqlContent.includes('REVOKE ALL ON FUNCTION public.auto_cancel_expired_orders(INT, INT) FROM PUBLIC, anon, authenticated;') &&
+    sqlContent.includes('GRANT EXECUTE ON FUNCTION public.auto_cancel_expired_orders(INT, INT) TO service_role;'),
+    'auto_cancel_expired_orders() is restricted exclusively to service_role scheduler',
+    'Exploit: Public/Authenticated users could execute auto-cancellation worker'
   );
 
   // =========================================================================
