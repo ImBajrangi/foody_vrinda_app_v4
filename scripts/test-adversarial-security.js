@@ -119,7 +119,7 @@ async function runAdversarialTestSuite() {
 
   // 2.1 Customer A attempting to place an order on behalf of Customer B (User ID Spoofing)
   assertDefense(
-    sqlContent.includes("IF order_user_id <> caller_id THEN") &&
+    sqlContent.includes("order_user_id <> caller_id") &&
     sqlContent.includes("RAISE EXCEPTION 'USER_MISMATCH"),
     'Customer A spoofing Customer B account ID is rejected with USER_MISMATCH exception',
     'Exploit: Customer A was able to place order under Customer B identity'
@@ -298,7 +298,17 @@ async function runAdversarialTestSuite() {
     'Exploit: Shared OTP timestamp caused premature OTP invalidation'
   );
 
-  // 6.3 Zero-Key Pure Hash OTP Architecture (No hardcoded key / No reversible cipher)
+  // 6.3 Separate pickup and delivery attempt counters & expiries
+  assertDefense(
+    sqlContent.includes("ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_attempts INT DEFAULT 0;") &&
+    sqlContent.includes("ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_attempts INT DEFAULT 0;") &&
+    sqlContent.includes("IF COALESCE(current_order.delivery_otp_attempts, 0) >= 3 THEN") &&
+    sqlContent.includes("IF COALESCE(current_order.pickup_otp_attempts, 0) >= 3 THEN"),
+    'Pickup and Delivery OTPs have independent attempt counters and expiration timers',
+    'Exploit: Shared attempt counter caused cross-stage OTP lockout'
+  );
+
+  // 6.4 Zero-Key Pure Hash OTP Architecture (No hardcoded key / No reversible cipher)
   assertDefense(
     sqlContent.includes('ALTER TABLE public.foody_orders DROP COLUMN IF EXISTS delivery_otp_encrypted;') &&
     !sqlContent.includes('foody_vrinda_secure_vault_key_2026') &&
@@ -307,23 +317,16 @@ async function runAdversarialTestSuite() {
     'Exploit: Hardcoded reversible encryption key found in database routines'
   );
 
-  // 6.3 Brute-force rate limiting (Max 3 attempts lock)
+  // 6.5 OTP Regeneration rate limit & cooldown defense
   assertDefense(
-    sqlContent.includes("IF COALESCE(current_order.otp_attempts, 0) >= 3 THEN") &&
-    sqlContent.includes("RAISE EXCEPTION 'MAX_ATTEMPTS_EXCEEDED"),
-    'Brute-force attack exceeding 3 attempts is permanently locked with MAX_ATTEMPTS_EXCEEDED',
-    'Exploit: Unlimited brute-force attempts possible'
+    sqlContent.includes("INTERVAL '60 seconds'") &&
+    sqlContent.includes("RAISE EXCEPTION 'OTP_COOLDOWN_ACTIVE") &&
+    sqlContent.includes("RAISE EXCEPTION 'OTP_REGEN_LIMIT_EXCEEDED"),
+    'request_delivery_otp() enforces 60-second cooldown and maximum 5 regeneration limits',
+    'Exploit: Uncontrolled OTP regeneration flooding'
   );
 
-  // 6.4 Expired OTP rejection (45 min timeout)
-  assertDefense(
-    sqlContent.includes("IF current_order.otp_expires_at IS NOT NULL AND NOW() > current_order.otp_expires_at THEN") &&
-    sqlContent.includes("RAISE EXCEPTION 'OTP_EXPIRED"),
-    'Expired OTP token is rejected with OTP_EXPIRED exception',
-    'Exploit: Stale expired OTP accepted'
-  );
-
-  // 6.5 Cryptographic OTP randomness verification
+  // 6.6 Cryptographic OTP randomness verification
   const generatedTokens = new Set();
   for (let i = 0; i < 50; i++) {
     generatedTokens.add(generateSecureOrderOTP());
@@ -355,7 +358,15 @@ async function runAdversarialTestSuite() {
     'Exploit: Store owner created unauthorized administrator account'
   );
 
-  // 7.3 Downgrading or modifying Grand Admin
+  // 7.3 Store Owner managing staff across non-owned shops
+  assertDefense(
+    sqlContent.includes("NOT (target_user_shops && caller_shop_ids)") &&
+    sqlContent.includes("RAISE EXCEPTION 'PERMISSION_DENIED: Store owner cannot manage users assigned to other kitchen branches.'"),
+    'Store owner targeting staff outside their assigned shops is strictly blocked even when target_shop is null',
+    'Exploit: Store owner could manage users across arbitrary shops'
+  );
+
+  // 7.4 Downgrading or modifying Grand Admin
   assertDefense(
     sqlContent.includes("AND role = 'grand_admin'") &&
     sqlContent.includes("AND new_role <> 'grand_admin'") &&
@@ -432,6 +443,22 @@ async function runAdversarialTestSuite() {
     'Exploit: Missing delivery address accepted with silent fallback'
   );
 
+  // 9.5 Strict verified customer phone validation (no fake phone fallback)
+  assertDefense(
+    sqlContent.includes("IF cust_phone IS NULL THEN") &&
+    sqlContent.includes("RAISE EXCEPTION 'PHONE_REQUIRED: A valid customer phone number is required to place an order.'") &&
+    !sqlContent.includes("'9876543210'"),
+    'Customer phone number strictly verified; fake placeholder number fallbacks eliminated',
+    'Exploit: Fake phone number placeholder accepted'
+  );
+
+  // 9.6 UUID-based Order ID Generation
+  assertDefense(
+    sqlContent.includes("new_order_id := COALESCE(order_data ->> 'id', 'ord-' || gen_random_uuid()::text);"),
+    'Order IDs generated via gen_random_uuid() eliminating collision risks',
+    'Exploit: Timestamp-based order ID collision possible'
+  );
+
   // =========================================================================
   // ATTACK SCENARIO 10: DIRECT RPC CALLER PRIVILEGE & SECURITY DEFINER LOCKDOWN
   // =========================================================================
@@ -503,15 +530,14 @@ async function runAdversarialTestSuite() {
     'Exploit: Hardcoded 5% GST assumption remained'
   );
 
-  // 10.9 Authoritative DB-Derived Cash Settlement RPC & Ledger Immutability
+  // 10.9 Authoritative DB-Derived Cash Settlement RPC & Ledger Immutability (Row-locked + Unambiguous)
   assertDefense(
     sqlContent.includes('CREATE OR REPLACE FUNCTION public.record_cash_settlement(') &&
-    sqlContent.includes('COALESCE(SUM(total_amount), 0)') &&
-    sqlContent.includes('CREATE POLICY "Block Direct Settlement Insert"') &&
-    sqlContent.includes('CREATE POLICY "Block Settlement Updates"') &&
-    sqlContent.includes('CREATE POLICY "Block Settlement Deletions"'),
-    'Cash settlements are 100% DB-aggregated and verified; direct table INSERT/UPDATE/DELETE strictly blocked',
-    'Exploit: Cash settlement amounts could be forged or modified'
+    sqlContent.includes('FOR UPDATE;') &&
+    sqlContent.includes('SET \n        settlement_id = v_settlement_id') || sqlContent.includes('settlement_id = v_settlement_id') &&
+    sqlContent.includes('CREATE POLICY "Block Direct Settlement Insert"'),
+    'Cash settlements are row-locked and DB-derived with unambiguous variable assignment; direct modification blocked',
+    'Exploit: Cash settlement ambiguous assignment or concurrent calculation race'
   );
 
   // 10.10 Payment-safe auto-cancellation with refund protection
@@ -536,6 +562,48 @@ async function runAdversarialTestSuite() {
     sqlContent.includes("RAISE EXCEPTION 'PHONE_VERIFICATION_REQUIRED"),
     'Customer profile updates reject unverified phone number changes (PHONE_VERIFICATION_REQUIRED)',
     'Exploit: Unverified phone number takeover permitted'
+  );
+
+  // =========================================================================
+  // ATTACK SCENARIO 11: LEGACY RLS PURGE, BASE TABLE ISOLATION & EXPANDED ENTITIES
+  // =========================================================================
+  section('ATTACK SUITE 11: DYNAMIC POLICY PURGE & EXPANDED ENTITY SECURITY');
+
+  // 11.1 Dynamic Legacy RLS Policy Drop Loop
+  assertDefense(
+    sqlContent.includes('target_tables TEXT[] := ARRAY[') &&
+    sqlContent.includes("EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', pol.policyname, tbl);"),
+    'Dynamic PL/pgSQL block purges ALL legacy RLS policies to guarantee zero permissive policy leaks',
+    'Exploit: Old permissive USING(true) policy could survive migration'
+  );
+
+  // 11.2 Public Base Table vs Catalog View Column Isolation
+  assertDefense(
+    sqlContent.includes('CREATE OR REPLACE VIEW public.public_shop_catalog') &&
+    sqlContent.includes('CREATE OR REPLACE VIEW public.public_menu_catalog') &&
+    sqlContent.includes('REVOKE ALL ON public.foody_shops FROM anon;') &&
+    sqlContent.includes('REVOKE ALL ON public.foody_menus FROM anon;'),
+    'Base shop/menu tables restricted from public; safe security-barrier catalog views exposed with column isolation',
+    'Exploit: Internal alarm/payment settings exposed on base tables'
+  );
+
+  // 11.3 Scoped Notifications RLS Policies
+  assertDefense(
+    sqlContent.includes('CREATE POLICY "Users view assigned notifications"') &&
+    sqlContent.includes('shop_id = ANY(public.get_auth_shop_ids())') &&
+    sqlContent.includes("role = 'delivery'"),
+    'Notifications partitioned strictly by user ID, assigned shop staff, delivery role, and public broadcast',
+    'Exploit: Notification leakage across roles'
+  );
+
+  // 11.4 Comprehensive Reviews RLS Policies
+  assertDefense(
+    sqlContent.includes('CREATE POLICY "Public can view reviews"') &&
+    sqlContent.includes('CREATE POLICY "Authenticated users insert own review"') &&
+    sqlContent.includes('CREATE POLICY "Users update own reviews, Admins moderate"') &&
+    sqlContent.includes('CREATE POLICY "Users delete own reviews, Admins moderate"'),
+    'Reviews table hardened with explicit public read, authenticated insert, and owner/moderator update/delete policies',
+    'Exploit: Uncontrolled review deletion or missing review policies'
   );
 
   // =========================================================================

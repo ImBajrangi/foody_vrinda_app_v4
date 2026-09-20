@@ -3854,7 +3854,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/test-adversarial-security.js",
-      "source_location": "L329",
+      "source_location": "L332",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_test_adversarial_security_runadversarialtestsuite",
@@ -14390,5 +14390,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "db56d21c07ce98ea14e333115a79645367d118a8"
+  "built_at_commit": "a2c546062e6d8f3116540bd11d2e80c89852105d"
 }
