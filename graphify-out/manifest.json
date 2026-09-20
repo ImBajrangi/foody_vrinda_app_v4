@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1789919170.9341085,
-    "ast_hash": "d2282b9797a7b203230f60639001dca0",
+    "mtime": 1789919836.3061464,
+    "ast_hash": "5ceccd7be03e9fe0b073b1566da1a529",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "scripts/test-database-sync.js": {
-    "mtime": 1789919018.964166,
-    "ast_hash": "388b9ad36a03f7398895713e0f2827e0",
+    "mtime": 1789919812.3672757,
+    "ast_hash": "10745f7c4702373be3846d899f760193",
     "semantic_hash": ""
   },
   "public/robots.txt": {

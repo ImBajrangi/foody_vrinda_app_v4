@@ -632,18 +632,26 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
   const targetShop = shopsList.find(s => s.id === targetShopId) || shopsList[0];
 
   let calculatedSubtotal = 0;
-  const verifiedItems = items.map(item => {
-    const dishMatch = shopCatalog.find(d => d.id === item.id) || item;
-    const unitPrice = dishMatch.price !== undefined ? Number(dishMatch.price) : Number(item.price || 0);
+  const verifiedItems = [];
+  
+  for (const item of items) {
+    // Strictly find dish within the target shop's menu catalog (ZERO client price fallback)
+    const dishMatch = shopCatalog.find(d => String(d.id) === String(item.id));
+    if (!dishMatch) {
+      console.warn(`[Security Alert] Dish ID "${item?.id}" does not exist in catalog for shop "${targetShopId}". Client-supplied price is strictly rejected.`);
+      continue;
+    }
+    const unitPrice = Number(dishMatch.price || 0);
     const qty = Math.max(1, Number(item.quantity || 1));
     calculatedSubtotal += unitPrice * qty;
-    return {
+    verifiedItems.push({
       ...item,
+      id: dishMatch.id,
       price: unitPrice,
       quantity: qty,
       name: dishMatch.name || item.name
-    };
-  });
+    });
+  }
 
   const isPickup = fulfillmentType === 'pickup';
   const deliveryCharge = isPickup ? 0 : Number(targetShop?.delivery_charge ?? targetShop?.deliveryCharge ?? 0);
@@ -735,6 +743,22 @@ export async function createCloudOrder(orderData) {
       setCachedItem('orders', orderPayload.shop_id, [normalizedCreated, ...shopOrders.filter(o => o.id !== orderId)]);
     }
 
+    // Attempt authoritative execution via secure Postgres RPC first
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_verified_order', {
+        order_data: orderPayload
+      });
+      if (!rpcError && rpcData) {
+        return { ...normalizedCreated, ...rpcData };
+      }
+      if (rpcError) {
+        console.warn('create_verified_order RPC note:', rpcError.message);
+      }
+    } catch (rpcEx) {
+      console.warn('create_verified_order RPC exception:', rpcEx.message);
+    }
+
+    // Graceful fallback for local development/offline mock
     const { data, error } = await supabase
       .from('foody_orders')
       .upsert([orderPayload], { onConflict: 'id' })
@@ -837,6 +861,26 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       }
     });
 
+    // Attempt authoritative state transition via secure Postgres RPC first
+    if (payload.status) {
+      try {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('transition_order_status', {
+          target_order_id: orderId,
+          new_status: payload.status,
+          extra_payload: payload
+        });
+        if (!rpcError && rpcData) {
+          return rpcData;
+        }
+        if (rpcError) {
+          console.warn('transition_order_status RPC note:', rpcError.message);
+        }
+      } catch (rpcEx) {
+        console.warn('transition_order_status RPC exception:', rpcEx.message);
+      }
+    }
+
+    // Graceful fallback for direct updates if allowed
     const { data, error } = await supabase
       .from('foody_orders')
       .update(payload)

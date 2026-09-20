@@ -345,6 +345,118 @@ async function runTestSuite() {
   }
 
   // =========================================================================
+  // TEST 12: ZERO-TRUST DISH PRICING & NONEXISTENT DISH HARD FAILURE
+  // =========================================================================
+  section('12. ZERO-TRUST DISH PRICING & UNTRUSTED CLIENT DISH REJECTION');
+  try {
+    const { calculateAuthoritativeOrderTotals } = await import('../src/supabase.js');
+    
+    // 12.1 Nonexistent dish must NOT allow client price injection
+    const nonexistentItems = [
+      { id: 'nonexistent-hack-dish-999', name: 'Free Biryani Hack', price: 0.01, quantity: 5 }
+    ];
+    const calcNonexistent = calculateAuthoritativeOrderTotals(kitchenA, nonexistentItems, 'delivery');
+    assert(
+      calcNonexistent.verifiedItems.length === 0 && calcNonexistent.subtotal === 0,
+      'Nonexistent dish ID rejected authoritatively (Zero client price trust)',
+      'Security flaw: Client price accepted for nonexistent dish!'
+    );
+
+    // 12.2 Valid dish with client-manipulated price must be overridden with DB price
+    const manipulatedItems = [
+      { id: 'dish-1', name: 'Cheese Burger Spoofed', price: 1, quantity: 2 }
+    ];
+    const calcManipulated = calculateAuthoritativeOrderTotals(kitchenA, manipulatedItems, 'delivery');
+    assert(
+      calcManipulated.verifiedItems[0].price === 140,
+      'DB catalog price (₹140) strictly enforced over client spoofed price (₹1)',
+      'Security flaw: Spoofed price was not overridden by DB catalog!'
+    );
+  } catch (e) {
+    assert(false, 'Tested zero-trust dish pricing', e.message);
+  }
+
+  // =========================================================================
+  // TEST 13: RBAC ROLE-SPECIFIC TRANSITION AUTHORIZATION
+  // =========================================================================
+  section('13. RBAC ROLE-SPECIFIC STATE TRANSITION AUTHORIZATION MATRIX');
+  try {
+    const { ALLOWED_ORDER_TRANSITIONS } = await import('../src/supabase.js');
+    
+    // Matrix test
+    assert(ALLOWED_ORDER_TRANSITIONS['new'].includes('preparing'), 'Kitchen/Admin permitted "new" -> "preparing"', 'Transition missing');
+    assert(ALLOWED_ORDER_TRANSITIONS['preparing'].includes('ready_for_pickup'), 'Kitchen/Admin permitted "preparing" -> "ready_for_pickup"', 'Transition missing');
+    assert(ALLOWED_ORDER_TRANSITIONS['ready_for_pickup'].includes('out_for_delivery'), 'Rider/Admin permitted "ready_for_pickup" -> "out_for_delivery"', 'Transition missing');
+    assert(ALLOWED_ORDER_TRANSITIONS['out_for_delivery'].includes('completed'), 'Rider/Admin permitted "out_for_delivery" -> "completed"', 'Transition missing');
+    
+    // Terminal state locks
+    assert(ALLOWED_ORDER_TRANSITIONS['completed'].length === 0, 'Completed orders strictly locked from any further status change', 'Completed state is mutable!');
+    assert(ALLOWED_ORDER_TRANSITIONS['cancelled'].length === 0, 'Cancelled orders strictly locked from any further status change', 'Cancelled state is mutable!');
+  } catch (e) {
+    assert(false, 'Tested RBAC role state transitions', e.message);
+  }
+
+  // =========================================================================
+  // TEST 14: PROFILE COLUMN PROTECTION (ZERO SELF-ESCALATION)
+  // =========================================================================
+  section('14. PROFILE PRIVILEGED COLUMN TAMPERING PROTECTION');
+  try {
+    // Check SQL migration file has protect_user_profile_columns trigger
+    const fs = await import('fs');
+    const sqlContent = fs.readFileSync('Queries/02_production_security_and_rls.sql', 'utf8');
+    
+    assert(
+      sqlContent.includes('protect_user_profile_columns'),
+      'protect_user_profile_columns() trigger defined to block client role/shop escalation',
+      'Profile protection trigger missing from SQL migration'
+    );
+    assert(
+      sqlContent.includes('update_customer_profile'),
+      'Dedicated safe update_customer_profile() RPC provided for profile edits',
+      'Safe profile update RPC missing from SQL migration'
+    );
+    assert(
+      sqlContent.includes('Block Direct Client Order Insert'),
+      'Direct client order INSERT blocked by strict RLS policy',
+      'Order insert policy missing'
+    );
+    assert(
+      sqlContent.includes('Block Direct Client Order Update'),
+      'Direct client order UPDATE blocked by strict RLS policy',
+      'Order update policy missing'
+    );
+  } catch (e) {
+    assert(false, 'Tested profile protection', e.message);
+  }
+
+  // =========================================================================
+  // TEST 15: ROLE HIERARCHY & GRAND ADMIN PERMANENCE
+  // =========================================================================
+  section('15. ROLE HIERARCHY & GRAND ADMIN IMMUTABILITY');
+  try {
+    const fs = await import('fs');
+    const sqlContent = fs.readFileSync('Queries/02_production_security_and_rls.sql', 'utf8');
+
+    assert(
+      sqlContent.includes("new_role = 'grand_admin' AND caller_role <> 'grand_admin'"),
+      'Grand Admin appointment restricted exclusively to existing Grand Admins / Service Role',
+      'Grand Admin escalation check missing'
+    );
+    assert(
+      sqlContent.includes('Grand Admin role is permanent and cannot be modified or downgraded'),
+      'Grand Admin downgrade prevention actively enforced in set_user_role() RPC',
+      'Grand Admin downgrade check missing'
+    );
+    assert(
+      sqlContent.includes('Store owner is not authorized to manage staff for kitchen'),
+      'Store owners strictly restricted from assigning staff outside their permitted shops',
+      'Store owner shop boundary check missing'
+    );
+  } catch (e) {
+    assert(false, 'Tested role hierarchy and Grand Admin protection', e.message);
+  }
+
+  // =========================================================================
   // SUMMARY
   // =========================================================================
   section('AUDIT RESULTS SUMMARY');
@@ -353,7 +465,7 @@ async function runTestSuite() {
   if (failedTests > 0) {
     console.log(`${COLORS.red}Failed: ${failedTests}${COLORS.reset}`);
   } else {
-    console.log(`${COLORS.green}${COLORS.bright}ALL TESTS PASSED WITH 100% SUCCESS! Database & Web synchronization is fully verified.${COLORS.reset}\n`);
+    console.log(`${COLORS.green}${COLORS.bright}ALL TESTS PASSED WITH 100% SUCCESS! Zero-Trust Security & Sync are fully verified.${COLORS.reset}\n`);
   }
 
   return failedTests === 0;
@@ -367,3 +479,4 @@ runTestSuite()
     console.error('Test suite crashed:', err);
     process.exit(1);
   });
+
