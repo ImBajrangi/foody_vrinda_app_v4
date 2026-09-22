@@ -36,6 +36,7 @@ import {
   Moon
 } from 'lucide-react';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
+import SocialLinksBar from './ui/SocialLinksBar';
 
 const DESK_CONFIG = {
   customer: {
@@ -465,7 +466,7 @@ export default function AuthModal({ isOpen, onClose }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) handleAnimatedClose();
       }}
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-[2px] transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
     >
       {/* Modal / Bottom Sheet Box */}
       <div
@@ -968,6 +969,42 @@ export default function AuthModal({ isOpen, onClose }) {
                   <div className="text-[10px] text-rose-600/80 dark:text-rose-400/60 group-hover:text-rose-800 dark:group-hover:text-rose-200 font-medium truncate">End session</div>
                 </div>
               </button>
+            </div>
+
+            {/* 7. Community Channels & Legal Links (Native App Settings Pattern) */}
+            <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 space-y-2.5 text-center">
+              <SocialLinksBar compact={true} showLabel={false} />
+
+              <div className="flex items-center justify-center gap-2.5 text-[11px] font-semibold text-stone-600 dark:text-zinc-400">
+                <a
+                  href="/privacy.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-stone-900 dark:hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                <span>•</span>
+                <a
+                  href="/terms.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-stone-900 dark:hover:text-white transition-colors"
+                >
+                  Terms of Service
+                </a>
+                <span>•</span>
+                <a
+                  href="mailto:vrinda.connect.us@gmail.com"
+                  className="hover:text-stone-900 dark:hover:text-white transition-colors"
+                >
+                  Contact Support
+                </a>
+              </div>
+
+              <div className="text-[10px] text-stone-600 dark:text-zinc-400 font-mono">
+                Foody Vrinda v3.2.0 • Sri Vrindavan Dham 🙏
+              </div>
             </div>
           </div>
         ) : (

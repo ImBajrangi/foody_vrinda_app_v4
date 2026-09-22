@@ -135,7 +135,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
     <>
       {/* Sleek, Calm, Non-blinking Floating Audio HUD Banner */}
       {isPlaying && !isDismissed && (
-        <div className="fixed top-3 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:top-5 sm:right-6 z-[999999] w-[calc(100vw-24px)] sm:w-[440px] max-w-full animate-slide-down select-none">
+        <div className="fixed top-[max(18px,env(safe-area-inset-top)+14px)] left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:top-5 sm:right-6 z-[999999] w-[calc(100vw-24px)] sm:w-[440px] max-w-full animate-slide-down select-none">
           <div className="p-3.5 sm:p-4 rounded-2xl bg-[#161415]/95 backdrop-blur-2xl border border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative overflow-hidden">
             
             {/* Close Button */}

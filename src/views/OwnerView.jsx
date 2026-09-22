@@ -935,12 +935,7 @@ export default function OwnerView() {
       <DynamicToast toast={toast} onClose={() => setToast(null)} />
 
       {/* Top Hero Card */}
-      <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative z-20 shadow-2xl space-y-4">
-        {/* Background glow contained within rounded bounds */}
-        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/10 dark:from-[#E0FF33]/10 to-transparent rounded-full blur-3xl" />
-        </div>
-
+      <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative z-20 shadow-xl space-y-4">
         {/* Top Minimal Bar */}
         <div className="flex items-center justify-between gap-3 relative z-10 flex-wrap">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-300/60 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-semibold text-amber-700 dark:text-[#E0FF33]">
@@ -1038,7 +1033,7 @@ export default function OwnerView() {
 
         {/* BRANCH SELECTOR — Integrated inside Hero with Searchable Dropdown */}
         {isGlobalRole && allShops.length > 1 && (
-          <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-10">
+          <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-30">
             <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
               <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
               Switch Kitchen:
@@ -1136,26 +1131,27 @@ export default function OwnerView() {
             </div>
 
             {/* Status Filter Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pt-1 pb-1 touch-pan-x">
               {[
-                { id: 'all', label: 'All Orders', count: orders.length },
-                { id: 'new', label: 'New Tickets', count: orders.filter(o => o.status === 'new').length },
-                { id: 'preparing', label: 'Cooking / Preparing', count: orders.filter(o => o.status === 'preparing').length },
-                { id: 'ready', label: 'Ready for Pickup', count: orders.filter(o => o.status === 'ready').length },
-                { id: 'delivered', label: 'Delivered', count: orders.filter(o => o.status === 'delivered' || o.status === 'completed').length }
+                { id: 'all', label: 'All Orders', shortLabel: 'All', count: orders.length },
+                { id: 'new', label: 'New Tickets', shortLabel: 'New', count: orders.filter(o => o.status === 'new').length },
+                { id: 'preparing', label: 'Cooking / Preparing', shortLabel: 'Cooking', count: orders.filter(o => o.status === 'preparing').length },
+                { id: 'ready', label: 'Ready for Pickup', shortLabel: 'Ready', count: orders.filter(o => o.status === 'ready').length },
+                { id: 'delivered', label: 'Delivered', shortLabel: 'Delivered', count: orders.filter(o => o.status === 'delivered' || o.status === 'completed').length }
               ].map(f => {
                 const isActive = (orderStatusFilter || 'all') === f.id;
                 return (
                   <button
                     key={f.id}
                     onClick={() => setOrderStatusFilter(f.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isActive
+                    className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 select-none whitespace-nowrap active:scale-95 ${isActive
                       ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
                       : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 hover:border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
                       }`}
                   >
-                    <span>{f.label}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
+                    <span className="hidden sm:inline">{f.label}</span>
+                    <span className="sm:hidden">{f.shortLabel}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full font-black tracking-wide ${
                       isActive 
                         ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
                         : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
@@ -3375,7 +3371,7 @@ export default function OwnerView() {
                                 ]}
                                 size="sm"
                                 searchPlaceholder="Filter role..."
-                                className="w-48"
+                                className="flex-1 min-w-[150px] sm:w-52"
                               />
                               <button
                                 type="button"

@@ -137,9 +137,6 @@ export function CartProvider({ children }) {
         return i;
       }).filter(Boolean);
 
-      if (updated.length === 0) {
-        setSelectedShopId(null);
-      }
       return updated;
     });
   };
@@ -147,9 +144,7 @@ export function CartProvider({ children }) {
   const setExactQuantity = (itemId, exactQty, itemObj = null) => {
     setCart(prevCart => {
       if (exactQty <= 0) {
-        const updated = prevCart.filter(i => i.id !== itemId);
-        if (updated.length === 0) setSelectedShopId(null);
-        return updated;
+        return prevCart.filter(i => i.id !== itemId);
       }
       const existing = prevCart.find(i => i.id === itemId);
       if (existing) {
@@ -166,17 +161,12 @@ export function CartProvider({ children }) {
 
   const removeFromCart = (itemId) => {
     setCart(prevCart => {
-      const updated = prevCart.filter(i => i.id !== itemId);
-      if (updated.length === 0) {
-        setSelectedShopId(null);
-      }
-      return updated;
+      return prevCart.filter(i => i.id !== itemId);
     });
   };
 
   const clearCart = () => {
     setCart([]);
-    setSelectedShopId(null);
   };
 
   // Helper to load Razorpay checkout script dynamically

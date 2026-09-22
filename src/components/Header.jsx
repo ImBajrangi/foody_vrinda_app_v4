@@ -60,8 +60,8 @@ export default function Header({
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <button 
             onClick={handleProfileClick}
-            className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/50 via-amber-400/30 to-[#E0FF33]/70 hover:from-[#E0FF33] hover:to-[#CCFF00] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-[0_2px_12px_rgba(224,255,51,0.15)] hover:shadow-[0_0_18px_rgba(224,255,51,0.35)]"
-            title="Profile & Settings (Tap to open)"
+            className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-amber-400/40 to-[#E0FF33] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-sm"
+            title="Profile & Settings"
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-[#1E1B1C] border border-[#1E1B1C] flex items-center justify-center relative">
               {userAvatar ? (
@@ -87,20 +87,18 @@ export default function Header({
           </button>
           
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[12px] sm:text-[13px] font-bold text-emerald-700 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-amber-700 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
                 वृन्दोपनिषद्
               </span>
-              <span className="text-[8.5px] sm:text-[9px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-zinc-400 font-['Outfit'] shrink-0">
-                (vrindopnishad)
+              <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
+              <span className="text-[11px] font-semibold text-stone-500 dark:text-zinc-400 truncate">
+                Sri Vrindavan Dham
               </span>
             </div>
-            <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base md:text-lg tracking-tight leading-tight font-['Outfit'] truncate">
-              Hi, {getDisplayName()}
+            <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-['Outfit'] truncate">
+              {getDisplayName()}
             </h2>
-            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-              Welcome to Foody Vrinda
-            </p>
           </div>
         </div>
 

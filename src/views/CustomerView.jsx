@@ -949,7 +949,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [spotlightSize, setSpotlightSize] = useState('380g');
   const [spotlightQty, setSpotlightQty] = useState(1);
   const [spotlightAddons, setSpotlightAddons] = useState(['extra-paneer', 'fresh-tomato']);
-  const [promocodeApplied, setPromocodeApplied] = useState(true);
+  const [promocodeApplied, setPromocodeApplied] = useState(false);
 
   const toggleAddon = (addonId) => {
     setSpotlightAddons(prev =>
@@ -975,7 +975,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const desktopTotal = Math.max(0, subtotal - desktopDiscount + (subtotal > 0 ? deliveryCharge + gstAmount : 0));
 
   return (
-    <div className="w-full pb-6 text-white">
+    <div className="w-full flex-1 flex flex-col pb-6 text-white">
       {/* MAP PICKER MODAL */}
       {showMapPicker && (
         <MapPicker
@@ -998,41 +998,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         />
       )}
 
-      {/* DYNAMIC SHOP SELECTOR & LIVE TIMING ROW (Flawless Single-Line Responsive Standard) */}
-      <div className="relative mb-6 z-30">
+      {/* DYNAMIC UNIFIED LOCATION & SEARCH BAR (Apple HIG Clean Standard) */}
+      <div className="relative mb-4 sm:mb-6 z-30 space-y-3">
+        {/* Top Control Strip: Branch Selector Pill + Orders History Button */}
         <div className="flex items-center gap-2 sm:gap-3 justify-between w-full">
           <button
             onClick={() => allShops.length > 1 && (showShopSwitcher ? handleCloseShopSwitcher() : setShowShopSwitcher(true))}
-            className={`flex-1 min-w-0 h-11 sm:h-12 flex items-center gap-2.5 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs shadow-md transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`flex-1 min-w-0 h-11 flex items-center gap-2 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] border border-stone-300 dark:border-white/10 px-3.5 rounded-full text-xs shadow-xs transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
             title={allShops.length > 1 ? "Switch Kitchen Branch" : "Current Branch"}
           >
             <MapPin size={15} className="text-amber-600 dark:text-[#E0FF33] flex-shrink-0" />
             <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
               {activeShop?.name || 'Vrinda Cloud Kitchen'}
             </span>
-            {activeShop?.discountTag && (
-              <span className="hidden lg:inline-flex items-center gap-1 bg-amber-500/20 text-amber-700 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                <TagIcon size={10} /> {activeShop.discountTag}
+            {activeShop?.estimatedWaitTime && (
+              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                {activeShop.estimatedWaitTime} min
               </span>
             )}
             {allShops.length > 1 && (
-              <ChevronDown size={14} className={`text-stone-500 dark:text-zinc-400 flex-shrink-0 ml-1 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-stone-500 dark:text-zinc-400 flex-shrink-0 transition-transform duration-200 ${showShopSwitcher && !isShopClosing ? 'rotate-180' : ''}`} />
             )}
           </button>
 
-          {/* Live Wait Time Capsule - only shown when space is available (hidden on mobile, visible on sm/md+) */}
-          <div className="hidden sm:flex h-11 sm:h-12 flex-shrink-0 whitespace-nowrap items-center gap-2 bg-stone-200/90 dark:bg-[#282526] px-3.5 sm:px-4 rounded-full border border-stone-300 dark:border-white/10 shadow-md">
-            <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] flex-shrink-0 shadow-[0_0_8px_rgba(217,119,6,0.6)] dark:shadow-[0_0_8px_#E0FF33]"></span>
-            <span className="text-xs font-bold text-stone-800 dark:text-zinc-200 whitespace-nowrap">
-              {activeShop?.estimatedWaitTime ? `${activeShop.estimatedWaitTime} min` : '20–30 min'}
-            </span>
-          </div>
-
-          {/* My Orders History Button */}
+          {/* My Orders Button */}
           <button
             onClick={() => setIsOrderHistoryOpen(true)}
-            className="h-11 sm:h-12 flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 px-3.5 sm:px-4 rounded-full text-xs font-bold shadow-md transition-all cursor-pointer apple-tap-target"
-            title="View Past Orders & Tracking"
+            className="h-11 px-3.5 sm:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold shadow-xs transition-all cursor-pointer apple-tap-target flex items-center gap-1.5 shrink-0"
+            title="Past Orders & Tracking"
           >
             <History size={15} className="text-amber-600 dark:text-[#E0FF33]" />
             <span className="hidden sm:inline">My Orders</span>
@@ -1041,38 +1034,58 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Global Shop Offline / Closed Warning Indicator */}
         {!isShopOpen && (
-          <div className="mt-3 p-3.5 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-3 text-red-700 dark:text-red-300 text-xs shadow-lg animate-fade-in">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444] shrink-0" />
-              <span className="font-bold">
-                {activeShop?.name || 'This Kitchen'} is currently Offline / Closed
+          <div className="p-3 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-3 text-red-700 dark:text-red-300 text-xs shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <span className="font-bold truncate">
+                {activeShop?.name || 'Kitchen'} is currently Offline / Closed
               </span>
             </div>
-            <span className="text-[11px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2.5 py-1 rounded-full border border-red-500/25 shrink-0">
-              Hours: {activeShop?.openingTime || '08:00'} – {activeShop?.closingTime || '22:30'}
+            <span className="text-[10px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2 py-0.5 rounded-full border border-red-500/25 shrink-0">
+              {activeShop?.openingTime || '08:00'} – {activeShop?.closingTime || '22:30'}
             </span>
           </div>
         )}
 
-        {/* Dynamic Shops Popover (Overlay Standard with Backdrop & Apple Spring Animation) */}
+        {/* Integrated Clean Search Bar */}
+        <div className="relative w-full">
+          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search pure delicacies & prasad..."
+            value={menuSearch}
+            onChange={(e) => setMenuSearch(e.target.value)}
+            className="w-full h-11 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-10 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
+          />
+          {menuSearch && (
+            <button
+              onClick={() => setMenuSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/20 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer active:scale-90"
+              title="Clear search"
+            >
+              <X size={13} strokeWidth={2.5} />
+            </button>
+          )}
+        </div>
+
+        {/* Dynamic Shops Popover */}
         {showShopSwitcher && allShops.length > 1 && (
           <>
             <div
               className="fixed inset-0 z-40 bg-black/40 transition-opacity"
               onClick={handleCloseShopSwitcher}
             />
-            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
-              <div className="flex justify-between items-center mb-3.5">
+            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-3xl p-4 shadow-xl apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
+              <div className="flex justify-between items-center mb-3">
                 <h4 className="text-xs font-black uppercase text-stone-500 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
                 <button
                   onClick={handleCloseShopSwitcher}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 dark:text-zinc-300 hover:text-stone-900 dark:hover:text-white cursor-pointer transition-all border border-stone-300 dark:border-white/5 shadow-sm apple-tap-target"
-                  title="Close"
+                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 flex items-center justify-center text-stone-700 dark:text-zinc-300 cursor-pointer apple-tap-target"
                 >
-                  <X size={16} strokeWidth={2.5} />
+                  <X size={14} strokeWidth={2.5} />
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto no-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto no-scrollbar">
                 {allShops.map(s => (
                   <div
                     key={s.id}
@@ -1081,15 +1094,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       handleCloseShopSwitcher();
                       showToast(s.name, 'info');
                     }}
-                    className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-lg ring-1 ring-amber-600/50 dark:ring-[#E0FF33]/50' : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-200 dark:hover:bg-white/5 border border-stone-200 dark:border-white/5'}`}
+                    className={`p-3 rounded-2xl flex items-center justify-between gap-2.5 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-md' : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-200 dark:hover:bg-white/5 border border-stone-200 dark:border-white/5'}`}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-black truncate">{s.name}</p>
-                      <p className={`text-[11px] truncate mt-0.5 ${s.id === selectedShopId ? 'text-white/90 dark:text-[#1E1B1C]/80 font-semibold' : 'text-stone-500 dark:text-zinc-400'}`}>{s.address || 'Vrindavan Dham'}</p>
+                      <p className="text-xs sm:text-sm font-black truncate">{s.name}</p>
+                      <p className={`text-[10px] truncate mt-0.5 ${s.id === selectedShopId ? 'text-white/90 dark:text-[#1E1B1C]/80 font-semibold' : 'text-stone-500 dark:text-zinc-400'}`}>{s.address || 'Vrindavan Dham'}</p>
                     </div>
                     {s.id === selectedShopId && (
-                      <span className="text-[11px] font-black bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 whitespace-nowrap shadow-sm">
-                        <Check size={12} strokeWidth={3} />
+                      <span className="text-[10px] font-black bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                        <Check size={11} strokeWidth={3} />
                         <span>Active</span>
                       </span>
                     )}
@@ -1101,57 +1114,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         )}
       </div>
 
-      {/* 1 & 2. HERO HEADLINE & INTEGRATED SEARCH BAR (Responsive Desktop & Mobile) */}
-      <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold bg-stone-200/90 dark:bg-white/10 px-3.5 py-1 rounded-full border border-stone-300 dark:border-white/10 font-laila flex items-center gap-1.5 shadow-xs">
-              <span className="font-bold text-emerald-700 dark:text-[#E0FF33]">वृन्दोपनिषद्</span>
-              <span className="text-xs font-bold text-stone-500 dark:text-zinc-400 font-['Outfit']">· vrindopnishad</span>
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight font-['Outfit'] text-stone-900 dark:text-white">
-            <span className="font-laila font-bold text-stone-900 dark:text-white">वृन्दोपनिषद्</span> <span className="text-stone-900 dark:text-[#E0FF33] font-['Outfit'] font-black">Foody Vrinda</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-400 mt-1.5 font-medium tracking-wide font-['Plus_Jakarta_Sans']">
-            100% Vrinda · Pure Desi Ghee · Divine Vedic Flavors in Vrindavan Dham
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative w-full md:w-80 lg:w-96 flex-shrink-0">
-          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-300 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search pure delicacies..."
-            value={menuSearch}
-            onChange={(e) => setMenuSearch(e.target.value)}
-            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/15 hover:border-amber-500/50 dark:hover:border-white/30 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:focus:ring-[#E0FF33]/20 transition-all font-medium"
-          />
-          {menuSearch && (
-            <button
-              onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-stone-300 hover:bg-stone-400 dark:bg-white/20 dark:hover:bg-white/30 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer transition-all active:scale-90"
-              title="Clear search"
-              aria-label="Clear search query"
-            >
-              <X className="w-4 h-4 stroke-[2.5]" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 3. HORIZONTAL CATEGORY PILL CHIPS (Sticky with Glassmorphism & High Contrast) */}
-      <div className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2.5 mb-6 sm:mb-8 bg-[#FAF7F2]/90 dark:bg-[#1E1B1C]/90 backdrop-blur-md transition-all">
-        <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5">
+      {/* HORIZONTAL CATEGORY PILL CHIPS (Sticky Navigation Bar) */}
+      <div className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2 mb-4 sm:mb-6 bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 transition-all">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           {categories.map((cat) => {
             const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`h-10 sm:h-11 px-4.5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${isSelected
-                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-md scale-[1.02]'
+                className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${isSelected
+                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs scale-[1.02]'
                     : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
                   }`}
               >
@@ -1258,8 +1231,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
           {filteredMenuItems.map((item, idx) => {
-            const isMint = idx % 2 === 0;
-            const cardBg = isMint ? 'bg-[#CEF3E7]' : 'bg-[#FFF2E6]';
             const isFav = favorites.includes(item.id);
             const cartItem = cart.find(c => c.id === item.id);
             const quantityInCart = cartItem ? cartItem.quantity : 0;
@@ -1275,28 +1246,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   }
                   handleOpenDishDetail(item);
                 }}
-                style={{ animationDelay: `${idx * 50}ms` }}
-                className={`${cardBg} text-[#1E1B1C] rounded-[32px] sm:rounded-[38px] p-5 sm:p-6 lg:p-7 shadow-xl relative overflow-hidden cursor-pointer min-h-[195px] sm:min-h-[225px] flex flex-col justify-between apple-card-interactive transition-all duration-300 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-[#1E1B1C]/25 shadow-2xl' : ''}`}
+                style={{ animationDelay: `${idx * 40}ms` }}
+                className={`bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-amber-500/80 dark:ring-[#E0FF33]/80 shadow-md' : ''}`}
               >
                 {/* Top Row: Dish Name + Optional Selection Pill + Outline Heart Button */}
                 <div className="flex justify-between items-start z-10 gap-2">
                   <div className="max-w-[62%]">
                     {item.isCombo && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs font-black uppercase tracking-wider mb-1.5 shadow-xs">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
                         <Sparkles size={11} className="text-[#E0FF33]" />
                         {item.tag || 'Combo Offer'}
                       </span>
                     )}
-                    <h3 className="text-xl sm:text-2xl font-black text-[#1E1B1C] leading-[1.1] tracking-tight">
+                    <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
                       {item.name}
                     </h3>
-                    <p className="text-xs sm:text-sm font-semibold text-zinc-700 mt-1 leading-snug">
-                      {item.subtitle || 'Cheesy Vrinda, special price'}
+                    <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
+                      {item.subtitle || 'Authentic Satvik preparation'}
                     </p>
                     {item.comboItems && item.comboItems.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {item.comboItems.map((ci, cidx) => (
-                          <span key={cidx} className="text-xs font-bold bg-black/5 text-zinc-800 px-2 py-0.5 rounded-lg border border-black/5">
+                          <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
                             + {ci}
                           </span>
                         ))}
@@ -1306,12 +1277,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <button
                     onClick={(e) => toggleFavorite(item.id, e)}
-                    className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target hover:scale-105 active:scale-95"
+                    className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target hover:scale-105 active:scale-95"
                     title="Favorite"
                   >
                     <Heart
-                      size={19}
-                      className={isFav ? 'text-red-500 fill-red-500' : 'text-zinc-800'}
+                      size={17}
+                      className={isFav ? 'text-red-500 fill-red-500' : 'text-stone-700 dark:text-stone-300'}
                     />
                   </button>
                 </div>
@@ -1319,11 +1290,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
                 <div className="mt-3 sm:mt-4 z-10">
                   <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-                    <span className="text-2xl sm:text-3xl font-black text-[#1E1B1C] font-['Outfit']">
+                    <span className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-white font-['Outfit']">
                       ₹{item.price}
                     </span>
                     {item.originalPrice && (
-                      <span className="text-xs sm:text-sm font-bold text-zinc-400 line-through font-['Outfit']">
+                      <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
                         ₹{item.originalPrice}
                       </span>
                     )}
@@ -1336,7 +1307,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         addToCart(item);
                         showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                       }}
-                      className="bg-[#1E1B1C] hover:bg-black text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target active:scale-95"
+                      className="bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4.5 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95"
                     >
                       <span>Order Now</span>
                       <ChevronRight size={14} strokeWidth={3} />
@@ -1344,7 +1315,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center bg-[#1E1B1C] text-white rounded-full p-1 shadow-lg border border-white/10 select-none animate-scale-up"
+                      className="inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] text-white rounded-full p-1 shadow-md border border-white/10 select-none animate-scale-up"
                     >
                       <button
                         type="button"
@@ -1357,17 +1328,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             showToast(`${item.name} (${quantityInCart - 1})`, 'info', `₹${item.price * (quantityInCart - 1)}`);
                           }
                         }}
-                        className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center transition-all cursor-pointer"
+                        className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center transition-all cursor-pointer"
                         title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
                       >
                         {quantityInCart === 1 ? (
-                          <Trash2 size={14} strokeWidth={2.5} className="text-red-400" />
+                          <Trash2 size={13} strokeWidth={2.5} className="text-red-400" />
                         ) : (
-                          <Minus size={14} strokeWidth={2.5} className="text-white" />
+                          <Minus size={13} strokeWidth={2.5} className="text-white" />
                         )}
                       </button>
 
-                      <span className="px-3 text-xs sm:text-sm font-black text-[#E0FF33] font-['Outfit'] min-w-[24px] text-center select-none">
+                      <span className="px-2.5 text-xs sm:text-sm font-bold text-white dark:text-[#E0FF33] font-['Outfit'] min-w-[20px] text-center select-none">
                         {quantityInCart}
                       </span>
 
@@ -1378,10 +1349,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           addToCart(item);
                           showToast(`+1 ${item.name}`, 'success', `₹${item.price * (quantityInCart + 1)}`);
                         }}
-                        className="w-8 h-8 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-md text-white dark:text-[#1E1B1C]"
+                        className="w-7 h-7 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-sm text-white dark:text-stone-950"
                         title="Add another"
                       >
-                        <Plus size={16} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
+                        <Plus size={14} strokeWidth={3.5} className="text-white dark:text-stone-950 stroke-current" />
                       </button>
                     </div>
                   )}
@@ -1396,7 +1367,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       e.target.onerror = null;
                       e.target.src = resolveDishCutout('', item.name, item.category);
                     }}
-                    className={`w-full h-full object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.18)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
+                    className={`w-full h-full object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.45)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
                     loading="lazy"
                     decoding="async"
                   />
@@ -1407,61 +1378,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* Streamlined Vrinda Devotee Footer */}
-      <footer className="w-full max-w-lg mx-auto mt-8 mb-6 px-4 text-center select-none space-y-2.5 text-stone-600 dark:text-zinc-400 text-xs font-['Plus_Jakarta_Sans']">
-        {/* Sacred Brand & Mission */}
-        <div className="space-y-0.5">
-          <div className="flex items-center justify-center gap-2">
-            <span className="font-laila text-xs font-bold text-emerald-700 dark:text-[#E0FF33]">
-              वृन्दोपनिषद्
-            </span>
-            <span className="text-stone-400 dark:text-zinc-600">•</span>
-            <span className="text-xs text-stone-900 dark:text-white font-['Outfit'] font-black">
-              Foody Vrinda
-            </span>
-          </div>
-          <p className="text-xs text-stone-600 dark:text-zinc-400">
-            100% Vrinda Cloud Kitchen & Prasad Delivery • Vrindavan Dham
-          </p>
+      {/* Sleek Native Mobile End-of-Feed Signature */}
+      <div className="w-full text-center select-none pt-6 pb-28 sm:pb-32 space-y-1 opacity-70 hover:opacity-100 transition-opacity mt-auto">
+        <div className="flex items-center justify-center gap-2">
+          <span className="font-laila text-xs font-bold text-amber-700 dark:text-[#E0FF33]">
+            वृन्दोपनिषद्
+          </span>
+          <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
+          <span className="text-xs text-stone-700 dark:text-zinc-400 font-semibold font-['Outfit']">
+            Foody Vrinda · Sri Vrindavan Dham
+          </span>
         </div>
-
-        {/* Subtle Social & Community Capsule */}
-        <div className="flex justify-center pt-0.5">
-          <SocialLinksBar compact={true} showLabel={false} />
-        </div>
-
-        {/* Regulatory Links & Policy */}
-        <div className="flex items-center justify-center gap-3 pt-0.5 text-xs text-stone-600 dark:text-zinc-400">
-          <a
-            href="/privacy.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
-          >
-            Privacy Policy
-          </a>
-          <span className="text-stone-400 dark:text-zinc-700">•</span>
-          <a
-            href="/terms.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
-          >
-            Terms of Service
-          </a>
-          <span className="text-stone-400 dark:text-zinc-700">•</span>
-          <a
-            href="mailto:vrinda.connect.us@gmail.com"
-            className="hover:text-stone-950 dark:hover:text-zinc-200 transition-colors"
-          >
-            Contact
-          </a>
-        </div>
-
-        <p className="text-xs text-stone-500 dark:text-zinc-500 pt-0.5 font-['Outfit']">
-          © 2026 vrindopnishad. All rights reserved.
+        <p className="text-[10px] text-stone-600 dark:text-zinc-400 font-medium">
+          100% Satvik Pure Cloud Kitchen · Radhe Radhe 🙏
         </p>
-      </footer>
+      </div>
 
       {/* BOTTOM FLOATING HUD STACK (Active Order Tracker + Dynamic Cart Capsule - Non-overlapping) */}
       {((!isTrackingModalOpen && trackingOrder) || cart.length > 0) && (
@@ -1540,12 +1471,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseDishDetail();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-[2px] transition-opacity duration-200 ${isDetailClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isDetailClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={detailSheetRef}
             style={detailSheetStyle}
-            className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative transition-transform duration-200 ${isDraggingDetail ? 'sheet-dragging' : ''}`}
+            className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative transition-transform duration-200 apple-sheet-spring ${isDetailClosing ? 'closing' : ''} ${isDraggingDetail ? 'sheet-dragging' : ''}`}
           >
 
             {/* Close Button (Desktop Only) */}
@@ -1860,12 +1791,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseCartDrawer();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-[2px] transition-opacity duration-200 ${isCartClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isCartClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={cartSheetRef}
             style={cartSheetStyle}
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative transition-transform duration-200 ${isDraggingCart ? 'sheet-dragging' : ''}`}
+            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative transition-transform duration-200 apple-sheet-spring ${isCartClosing ? 'closing' : ''} ${isDraggingCart ? 'sheet-dragging' : ''}`}
           >
             {/* Top Fixed Header & Grab Bar */}
             <div className="shrink-0">

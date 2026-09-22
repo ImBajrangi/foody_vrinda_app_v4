@@ -633,7 +633,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           handleAnimatedClose();
         }
       }}
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
     >
 
       {/* Luxury Obsidian Modal Container with 120fps Gesture Support */}

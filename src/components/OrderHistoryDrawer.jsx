@@ -180,7 +180,7 @@ export default function OrderHistoryDrawer({
     <>
       <div 
         onClick={(e) => { if (e.target === e.currentTarget) handleAnimatedClose(); }}
-        className={`fixed inset-0 z-[99999] flex items-end sm:items-stretch sm:justify-end bg-black/60 dark:bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`fixed inset-0 z-[99999] flex items-end sm:items-stretch sm:justify-end bg-black/60 dark:bg-black/80 transition-opacity duration-200 ${
           closing ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >

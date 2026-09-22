@@ -413,15 +413,15 @@ export function isShopCurrentlyOpen(shop) {
 export function getCachedShops() {
   try {
     const raw = safeStorage.getItem('foody_cached_shops') || safeStorage.getItem('foody_cache_shops');
-    if (raw) {
+    if (raw !== null && raw !== undefined) {
       const parsed = JSON.parse(raw);
       const list = Array.isArray(parsed) ? parsed : parsed?.data;
-      if (Array.isArray(list) && list.length > 0) {
+      if (Array.isArray(list)) {
         return list.map(normalizeShop);
       }
     }
   } catch (e) { }
-  return SEED_SHOPS.map(normalizeShop);
+  return [];
 }
 
 export function saveCachedShops(shopsList) {
@@ -496,8 +496,7 @@ export function invalidateCache(type, key) {
 // 2. SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
 // ========================================================================
 export async function getCloudShops() {
-  const localCached = getCachedShops();
-  if (memoryCache.shops?.data && memoryCache.shops.data.length > 0) {
+  if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data)) {
     return memoryCache.shops.data;
   }
 
@@ -514,20 +513,21 @@ export async function getCloudShops() {
         res = await supabase.from('foody_shops').select('*').order('name');
       }
 
-      if (!res.error && res.data && res.data.length > 0) {
-        const normalized = res.data.map(d => normalizeShop(d));
+      if (!res.error && Array.isArray(res.data)) {
+        const activeOnly = res.data.filter(d => d.is_active !== false && d.is_deleted !== true);
+        const normalized = activeOnly.map(d => normalizeShop(d));
         const finalShops = saveCachedShops(normalized);
         memoryCache.shops = { data: finalShops, timestamp: Date.now() };
         return finalShops;
       }
-      const fallback = saveCachedShops(localCached.length > 0 ? localCached : SEED_SHOPS);
-      memoryCache.shops = { data: fallback, timestamp: Date.now() };
-      return fallback;
+      const localCached = getCachedShops();
+      memoryCache.shops = { data: localCached, timestamp: Date.now() };
+      return localCached;
     } catch (err) {
-      console.warn('Supabase getCloudShops fallback:', err.message);
-      const fallback = saveCachedShops(localCached.length > 0 ? localCached : SEED_SHOPS);
-      memoryCache.shops = { data: fallback, timestamp: Date.now() };
-      return fallback;
+      console.warn('Supabase getCloudShops notice:', err?.message);
+      const localCached = getCachedShops();
+      memoryCache.shops = { data: localCached, timestamp: Date.now() };
+      return localCached;
     } finally {
       pendingRequests.delete('getCloudShops');
     }
@@ -1511,24 +1511,24 @@ export const DEFAULT_OFFERS = [
 export function getCachedOffers() {
   try {
     const raw = safeStorage.getItem('foody_cached_offers');
-    if (raw) {
+    if (raw !== null && raw !== undefined) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) { }
-  return DEFAULT_OFFERS;
+  return [];
 }
 
 export function saveCachedOffers(offersList) {
+  const safeList = Array.isArray(offersList) ? offersList : [];
   try {
-    safeStorage.setItem('foody_cached_offers', JSON.stringify(offersList));
+    safeStorage.setItem('foody_cached_offers', JSON.stringify(safeList));
   } catch (e) { }
-  return offersList;
+  return safeList;
 }
 
 export async function getCloudOffers(forceRefresh = false) {
-  const cached = getCachedOffers();
-  if (!forceRefresh || isTableMissing('foody_offers')) return cached;
+  if (isTableMissing('foody_offers')) return getCachedOffers();
 
   try {
     const { data, error } = await supabase
@@ -1540,32 +1540,31 @@ export async function getCloudOffers(forceRefresh = false) {
       if (isTableError(error)) {
         markTableMissing('foody_offers');
       }
-      return cached;
+      return getCachedOffers();
     }
 
-    if (data && data.length > 0) {
-      const mapped = data.map(d => ({
-        id: d.id,
-        code: d.code || '',
-        title: d.title || '',
-        subtitle: d.subtitle || '',
-        discountType: d.discount_type || d.discountType || 'flat',
-        discountValue: Number(d.discount_value || d.discountValue || 0),
-        minOrderAmount: Number(d.min_order_amount || d.minOrderAmount || 0),
-        maxDiscount: Number(d.max_discount || d.maxDiscount || 0),
-        shopId: d.shop_id || d.shopId || 'all',
-        isActive: d.is_active ?? d.isActive ?? true,
-        tag: d.tag || '',
-        validUntil: d.valid_until || d.validUntil || '2028-12-31T23:59:59.000Z',
-        createdAt: d.created_at || new Date().toISOString()
-      }));
-      saveCachedOffers(mapped);
-      return mapped;
-    }
+    const mapped = Array.isArray(data) ? data.map(d => ({
+      id: d.id,
+      code: d.code || '',
+      title: d.title || '',
+      subtitle: d.subtitle || '',
+      discountType: d.discount_type || d.discountType || 'flat',
+      discountValue: Number(d.discount_value || d.discountValue || 0),
+      minOrderAmount: Number(d.min_order_amount || d.minOrderAmount || 0),
+      maxDiscount: Number(d.max_discount || d.maxDiscount || 0),
+      shopId: d.shop_id || d.shopId || 'all',
+      isActive: d.is_active ?? d.isActive ?? true,
+      tag: d.tag || '',
+      validUntil: d.valid_until || d.validUntil || '2028-12-31T23:59:59.000Z',
+      createdAt: d.created_at || new Date().toISOString()
+    })) : [];
+
+    saveCachedOffers(mapped);
+    return mapped;
   } catch (err) {
-    // SWR fallback safely returns instant local cache
+    console.warn('getCloudOffers exception:', err);
   }
-  return cached;
+  return getCachedOffers();
 }
 
 export async function createCloudOffer(offerData) {
@@ -2099,10 +2098,28 @@ export async function deleteCloudShop(shopId) {
   });
 
   try {
+    // 1. Reassign foreign key relations before deleting shop from database to satisfy Postgres constraints
+    try {
+      await supabase.from('foody_menus').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      await supabase.from('foody_orders').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+    } catch (fkErr) {
+      console.warn("Foreign key reassign note:", fkErr);
+    }
+
+    // 2. Perform hard delete on foody_shops
     const { error } = await supabase.from('foody_shops').delete().eq('id', shopId);
-    if (error) console.warn("deleteCloudShop error:", error.message);
+    if (error) {
+      console.warn("deleteCloudShop hard delete note, applying soft-delete flag:", error.message);
+      // 3. Fallback: Mark as inactive & deleted so database queries and views permanently filter it out
+      await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+    }
   } catch (e) {
     console.warn("deleteCloudShop error:", e);
+    try {
+      await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+    } catch (err) { }
   }
 
   return true;
@@ -2158,12 +2175,12 @@ export const SEED_USERS = [
 export function getCachedUsers() {
   try {
     const saved = safeStorage.getItem('foody_cached_users');
-    if (saved) {
+    if (saved !== null && saved !== undefined) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) { }
-  return SEED_USERS;
+  return [];
 }
 
 export function saveCachedUsers(users) {
@@ -2480,12 +2497,9 @@ export async function getCloudUsers(forceRefresh = false) {
       });
 
       const merged = Array.from(userMap.values());
-      if (merged.length > 0) {
-        saveCachedUsers(merged);
-        setCachedItem('users', 'all', merged);
-        return merged;
-      }
-      return cached;
+      saveCachedUsers(merged);
+      setCachedItem('users', 'all', merged);
+      return merged;
     } catch (e) {
       console.warn("getCloudUsers exception:", e);
       return cached;

@@ -160,11 +160,11 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
   return (
     <div 
       onClick={handleDismiss}
-      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-md animate-fadeIn select-none"
+      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/75 animate-fadeIn select-none"
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[410px] bg-[#171516]/95 border border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(224,255,51,0.08)] relative overflow-hidden backdrop-blur-xl"
+        className="w-full max-w-[410px] bg-[#171516] border border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(224,255,51,0.08)] relative overflow-hidden"
       >
         {/* Soft Ambient Top Glow */}
         <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-[#E0FF33]/70 to-transparent" />

@@ -42,9 +42,9 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState(() => {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
-      if (cached) {
+      if (cached !== null && cached !== undefined) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           // Filter out legacy mock seed order W399A and streamline verbose legacy text
           const sanitized = parsed
             .filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A')
@@ -57,7 +57,7 @@ export function NotificationProvider({ children }) {
               }
               return { ...n, message: msg };
             });
-          if (sanitized.length > 0) return sanitized;
+          return sanitized;
         }
       }
     } catch {
@@ -496,7 +496,7 @@ export function NotificationProvider({ children }) {
   const clearAllNotifications = () => {
     setNotifications([]);
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_KEY, '[]');
     } catch {
       // ignore
     }

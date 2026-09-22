@@ -46,20 +46,16 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
     <div className={`flex flex-col items-center gap-2.5 ${className}`}>
       {showLabel && (
         <div className="flex items-center gap-2 text-stone-600 dark:text-zinc-400 text-xs font-['Outfit'] tracking-wide">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-[#E0FF33]/60" />
-          <span className="text-stone-600 dark:text-zinc-400 font-medium">Follow & Join</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-[#E0FF33]/80" />
+          <span className="text-stone-600 dark:text-zinc-400 font-medium">Join our community</span>
           <span className="text-stone-900 dark:text-zinc-200 font-bold bg-stone-200/80 dark:bg-white/5 px-2 py-0.5 rounded-full border border-stone-300 dark:border-white/10 text-[11px]">
             @vrindopnishad
           </span>
         </div>
       )}
 
-      {/* Unified Luxury Floating Capsule */}
-      <div className={`inline-flex items-center rounded-full border ${
-        compact 
-          ? 'gap-1 p-1 bg-stone-200/80 border-stone-300 dark:bg-[#181617]/90 dark:border-white/10 shadow-xs' 
-          : 'gap-1.5 p-1.5 bg-stone-200/90 border-stone-300 dark:bg-gradient-to-b dark:from-[#1E1B1C] dark:to-[#141213] dark:border-white/10 shadow-sm'
-      }`}>
+      {/* Modern High-End Floating Micro-Pill Row */}
+      <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap">
         {SOCIAL_CHANNELS.map((item) => {
           const isHovered = hoveredId === item.id;
           return (
@@ -71,30 +67,28 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
               onMouseEnter={() => setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}
               title={`${item.label} (${item.handle})`}
-              className={`relative flex items-center justify-center rounded-full transition-all duration-300 cursor-pointer select-none active:scale-90 ${
-                compact ? 'w-7.5 h-7.5' : 'w-9 h-9'
-              } ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all duration-200 cursor-pointer select-none active:scale-90 relative group shadow-2xs ${
                 isHovered
-                  ? 'bg-white text-stone-950 dark:bg-white/10 dark:text-white shadow-xs'
-                  : 'bg-white/70 dark:bg-white/[0.03] text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-zinc-200'
+                  ? 'bg-white dark:bg-[#322E30] border-stone-400 dark:border-white/30 shadow-md -translate-y-0.5'
+                  : 'bg-stone-100 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 border-stone-300/80 dark:border-white/10 text-stone-700 dark:text-zinc-300'
               }`}
             >
-              {/* Subtle hover backlight */}
+              {/* Subtle hover color glow */}
               {isHovered && (
                 <div 
-                  className="absolute inset-0 rounded-full blur-md opacity-40 transition-opacity pointer-events-none"
+                  className="absolute inset-0 rounded-full blur-md opacity-30 transition-opacity pointer-events-none"
                   style={{ backgroundColor: item.color }}
                 />
               )}
 
               <span 
-                className="relative z-10 transition-transform duration-300 flex items-center justify-center"
+                className="relative z-10 transition-transform duration-200 flex items-center justify-center"
                 style={{
                   color: isHovered ? item.color : undefined,
-                  transform: isHovered ? 'scale(1.15)' : 'scale(1)'
+                  transform: isHovered ? 'scale(1.1)' : 'scale(1)'
                 }}
               >
-                <SocialIcon id={item.id} className={compact ? "w-4 h-4" : "w-4 h-4"} />
+                <SocialIcon id={item.id} className="w-4 h-4" />
               </span>
             </a>
           );
@@ -105,3 +99,4 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
 };
 
 export default SocialLinksBar;
+

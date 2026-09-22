@@ -144,7 +144,7 @@ export default function QuantityPickerSheet({
 
   return (
     <div
-      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'
+      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'
         }`}
       onClick={handleClose}
       onPointerMove={handleSheetPointerMove}

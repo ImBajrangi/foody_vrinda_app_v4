@@ -311,7 +311,7 @@ export default function App() {
   };
 
   return (
-    <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl">
+    <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
       <Header 
         audioUnlocked={audioUnlocked}
         enableAudio={enableAudio}
@@ -334,7 +334,7 @@ export default function App() {
         setCurrentTab={setCurrentTab}
       />
 
-      <main className="w-full">
+      <main className="w-full flex-1 flex flex-col">
         <ErrorBoundary>
           {currentTab === 'customer' && (
             <CustomerView 

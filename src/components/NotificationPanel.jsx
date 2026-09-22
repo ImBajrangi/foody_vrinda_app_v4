@@ -156,7 +156,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
       onClick={(e) => {
         if (e.target === e.currentTarget) handleAnimatedClose();
       }}
-      className={`fixed inset-0 z-[99999] flex items-end sm:items-start justify-center sm:justify-end p-0 sm:p-4 sm:pt-20 sm:pr-6 bg-black/60 dark:bg-black/75 backdrop-blur-sm transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[99999] flex items-end sm:items-start justify-center sm:justify-end p-0 sm:p-4 sm:pt-20 sm:pr-6 bg-black/60 dark:bg-black/75 transition-opacity duration-200 ${
         closing ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >

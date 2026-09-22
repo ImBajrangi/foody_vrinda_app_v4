@@ -214,17 +214,20 @@ export default function DeveloperView({ setCurrentTab }) {
   const [simPaymentMethod, setSimPaymentMethod] = useState('online');
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Mobile / Desktop Collapsible Section state (default: all collapsed)
+  // Active Segmented Tab ('all' | 'impersonation' | 'shops' | 'dishes' | 'combos' | 'offers' | 'users' | 'payments' | 'simulator' | 'alarm')
+  const [activeDevTab, setActiveDevTab] = useState('all');
+
+  // Mobile / Desktop Collapsible Section state
   const [collapsedSections, setCollapsedSections] = useState({
-    impersonation: true,
-    shops: true,
-    dishes: true,
-    combos: true,
-    offers: true,
-    payments: true,
-    simulator: true,
-    users: true,
-    alarm: true
+    impersonation: false,
+    shops: false,
+    dishes: false,
+    combos: false,
+    offers: false,
+    payments: false,
+    simulator: false,
+    users: false,
+    alarm: false
   });
 
   const toggleSection = (key) => {
@@ -380,10 +383,10 @@ export default function DeveloperView({ setCurrentTab }) {
           getCloudUsers(true),
           getCloudOffers(true)
         ]);
-        if (shops && shops.length > 0) setShopsList(prev => isEqualList(prev, shops) ? prev : shops);
-        if (menus && menus.length > 0) setMenusList(prev => isEqualList(prev, menus) ? prev : menus);
-        if (users && users.length > 0) setUsersList(prev => isEqualList(prev, users) ? prev : users);
-        if (offers && offers.length > 0) setOffersList(prev => isEqualList(prev, offers) ? prev : offers);
+        if (shops && Array.isArray(shops)) setShopsList(prev => isEqualList(prev, shops) ? prev : shops);
+        if (menus && Array.isArray(menus)) setMenusList(prev => isEqualList(prev, menus) ? prev : menus);
+        if (users && Array.isArray(users)) setUsersList(prev => isEqualList(prev, users) ? prev : users);
+        if (offers && Array.isArray(offers)) setOffersList(prev => isEqualList(prev, offers) ? prev : offers);
 
         setStats(prev => {
           const nextShops = (shops || []).length;
@@ -1102,9 +1105,9 @@ export default function DeveloperView({ setCurrentTab }) {
             {activityLog.slice(0, 8).map((entry) => (
               <div key={entry.id} className="dev-activity-row flex items-center gap-2.5 px-3 py-2 rounded-xl bg-stone-100 dark:bg-white/[0.03] border border-stone-300/60 dark:border-white/[0.03] hover:bg-stone-200 dark:hover:bg-white/[0.06] transition-all">
                 <Zap className={`w-3 h-3 shrink-0 ${entry.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' :
-                    entry.type === 'warning' ? 'text-amber-600 dark:text-amber-400' :
-                      entry.type === 'error' ? 'text-rose-600 dark:text-rose-400' :
-                        'text-cyan-600 dark:text-cyan-400'
+                  entry.type === 'warning' ? 'text-amber-600 dark:text-amber-400' :
+                    entry.type === 'error' ? 'text-rose-600 dark:text-rose-400' :
+                      'text-cyan-600 dark:text-cyan-400'
                   }`} />
                 <span className="text-[11px] text-stone-800 dark:text-neutral-300 font-medium truncate flex-1">{entry.message}</span>
                 <span className="text-[9px] text-stone-500 dark:text-neutral-500 font-mono shrink-0">
@@ -1116,66 +1119,45 @@ export default function DeveloperView({ setCurrentTab }) {
         </div>
       )}
 
-      {/* Mobile / Desktop Section Quick Toolbar & Minimizer */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 shadow-xl">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-          {[
-            { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
-            { id: 'shops', label: 'Kitchens', icon: Store },
-            { id: 'dishes', label: 'Dishes', icon: UtensilsCrossed },
-            { id: 'combos', label: 'Combos', icon: Gift },
-            { id: 'offers', label: 'Offers', icon: Tag },
-            { id: 'users', label: 'Users & Roles', icon: Users },
-            { id: 'payments', label: 'Payments', icon: CreditCard },
-            { id: 'simulator', label: 'Simulator', icon: Flame },
-            { id: 'alarm', label: 'Alarms', icon: Volume2 }
-          ].map(sec => {
-            const isExpanded = !collapsedSections[sec.id];
-            const Icon = sec.icon;
-            return (
-              <button
-                key={sec.id}
-                type="button"
-                onClick={() => toggleSection(sec.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${isExpanded
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-600 dark:border-[#E0FF33]/30 shadow-sm font-black'
-                    : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/5 hover:text-stone-950 dark:hover:text-white'
-                  }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{sec.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center justify-end gap-1.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200 dark:border-white/5">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/80 dark:bg-[#181617]/80 backdrop-blur-md border border-stone-300 dark:border-white/10 shadow-inner">
+      {/* Apple-grade Segmented Tab Bar */}
+      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-xl">
+        {[
+          { id: 'all', label: 'View All', icon: Layers },
+          { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
+          { id: 'shops', label: 'Kitchens', icon: Store, badge: stats.shops },
+          { id: 'dishes', label: 'Dishes', icon: UtensilsCrossed, badge: stats.items },
+          { id: 'combos', label: 'Combos', icon: Gift },
+          { id: 'offers', label: 'Offers', icon: Tag, badge: stats.offers },
+          { id: 'users', label: 'Users & Roles', icon: Users, badge: stats.notifications },
+          { id: 'payments', label: 'Payments', icon: CreditCard },
+          { id: 'simulator', label: 'Simulator', icon: Flame },
+          { id: 'alarm', label: 'Alarms', icon: Volume2 }
+        ].map(tab => {
+          const isActive = activeDevTab === tab.id;
+          const Icon = tab.icon;
+          return (
             <button
+              key={tab.id}
               type="button"
-              onClick={expandAll}
-              title="Expand All Sections"
-              className="group relative px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-800 hover:text-stone-950 dark:text-neutral-200 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
+              onClick={() => setActiveDevTab(tab.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer select-none active:scale-95 ${isActive
+                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-sm font-black'
+                : 'text-stone-700 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/50 dark:hover:bg-white/5'
+                }`}
             >
-              <div className="w-4.5 h-4.5 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <Maximize2 className="w-3 h-3 stroke-[2.5]" />
-              </div>
-              <span className="tracking-wide">Expand All</span>
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : ''}`} />
+              <span>{tab.label}</span>
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-black leading-none flex items-center justify-center min-w-[20px] font-['Outfit'] transition-colors ${isActive
+                  ? 'bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] shadow-xs border border-white/10 dark:border-black/30'
+                  : 'bg-stone-300/80 text-stone-800 dark:bg-white/10 dark:text-neutral-300 border border-stone-300/60 dark:border-white/5'
+                  }`}>
+                  {tab.badge}
+                </span>
+              )}
             </button>
-
-            <button
-              type="button"
-              onClick={collapseAll}
-              title="Collapse All Sections"
-              className="group relative px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-700 hover:text-stone-950 dark:text-neutral-300 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-stone-400 dark:hover:border-white/20 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
-            >
-              <div className="w-4.5 h-4.5 rounded-lg bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-300 group-hover:text-stone-950 dark:group-hover:text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Minimize2 className="w-3 h-3 stroke-[2.5]" />
-              </div>
-              <span className="tracking-wide">Collapse All</span>
-            </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
 
@@ -1184,888 +1166,1120 @@ export default function DeveloperView({ setCurrentTab }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* 1. Impersonation Settings — Full Width with Side-by-Side Layout */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <button
-            type="button"
-            onClick={() => toggleSection('impersonation')}
-            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
-                <UserCheck className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                  Instant Role Impersonation
-                </h3>
-                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-[10px] font-bold text-stone-500 dark:text-neutral-500 uppercase tracking-wider hidden sm:inline">
-                {collapsedSections.impersonation ? 'Expand' : 'Minimize'}
-              </span>
-              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.impersonation ? '' : 'rotate-180'}`}>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-            </div>
-          </button>
-
-          {!collapsedSections.impersonation && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              {/* Kitchen Staff Impersonation */}
-              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
-                    <ChefHat className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <span>Impersonate Kitchen Staff</span>
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                    {allShops.map(s => {
-                      const isSelected = selectedShopId === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setSelectedShopId(s.id)}
-                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-amber-500/20 text-amber-900 border-amber-500/40 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/40 shadow-sm'
-                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
-                            }`}
-                        >
-                          {s.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleImpersonateShop(selectedShopId)}
-                  disabled={!selectedShopId}
-                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
-                >
-                  <ChefHat className="w-4 h-4" />
-                  <span>Launch Kitchen Staff View</span>
-                </button>
-              </div>
-
-              {/* Delivery Rider Impersonation */}
-              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-                    <span>Impersonate Delivery Rider</span>
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                    {allShops.map(s => {
-                      const isSelected = selectedDeliveryShopId === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setSelectedDeliveryShopId(s.id)}
-                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-cyan-500/20 text-cyan-900 border-cyan-500/40 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/40 shadow-sm'
-                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
-                            }`}
-                        >
-                          {s.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
-                  disabled={!selectedDeliveryShopId}
-                  className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 dark:bg-cyan-400 dark:hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
-                >
-                  <Truck className="w-4 h-4" />
-                  <span>Launch Sarathi Rider View</span>
-                </button>
-              </div>
-
-              {/* Store Owner Impersonation */}
-              <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Impersonate Store Owner</span>
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
-                    {allShops.map(s => {
-                      const isSelected = selectedOwnerShopId === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setSelectedOwnerShopId(s.id)}
-                          className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                            ? 'bg-purple-500/20 text-purple-900 border-purple-500/40 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/40 shadow-sm'
-                            : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
-                            }`}
-                        >
-                          {s.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
-                  disabled={!selectedOwnerShopId}
-                  className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Launch Store Owner View</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 2. Kitchens & Locations Master */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+        {(activeDevTab === 'all' || activeDevTab === 'impersonation') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
             <button
               type="button"
-              onClick={() => toggleSection('shops')}
-              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+              onClick={() => toggleSection('impersonation')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
-                <Store className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                    Kitchens & Store Locations
-                  </h3>
-                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.shops ? '' : 'rotate-180'}`}>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </div>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Add new branches, toggle open/closed state, and manage cloud kitchens.</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    Instant Role Impersonation
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="text-[10px] font-bold text-stone-500 dark:text-neutral-500 uppercase tracking-wider hidden sm:inline">
+                  {(activeDevTab === 'impersonation' || !collapsedSections.impersonation) ? 'Minimize' : 'Expand'}
+                </span>
+                <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'impersonation' || !collapsedSections.impersonation) ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
               </div>
             </button>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {(activeDevTab === 'impersonation' || !collapsedSections.impersonation) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Kitchen Staff Impersonation */}
+                <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                      <ChefHat className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <span>Impersonate Kitchen Staff</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                      {allShops.map(s => {
+                        const isSelected = selectedShopId === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setSelectedShopId(s.id)}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-amber-500/20 text-amber-900 border-amber-500/40 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/40 shadow-sm'
+                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              }`}
+                          >
+                            {s.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleImpersonateShop(selectedShopId)}
+                    disabled={!selectedShopId}
+                    className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
+                  >
+                    <ChefHat className="w-4 h-4" />
+                    <span>Launch Kitchen Staff View</span>
+                  </button>
+                </div>
+
+                {/* Delivery Rider Impersonation */}
+                <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                      <span>Impersonate Delivery Rider</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                      {allShops.map(s => {
+                        const isSelected = selectedDeliveryShopId === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setSelectedDeliveryShopId(s.id)}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-cyan-500/20 text-cyan-900 border-cyan-500/40 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/40 shadow-sm'
+                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              }`}
+                          >
+                            {s.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
+                    disabled={!selectedDeliveryShopId}
+                    className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 dark:bg-cyan-400 dark:hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
+                  >
+                    <Truck className="w-4 h-4" />
+                    <span>Launch Sarathi Rider View</span>
+                  </button>
+                </div>
+
+                {/* Store Owner Impersonation */}
+                <div className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 space-y-3 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-stone-700 dark:text-neutral-400 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Impersonate Store Owner</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
+                      {allShops.map(s => {
+                        const isSelected = selectedOwnerShopId === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setSelectedOwnerShopId(s.id)}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
+                              ? 'bg-purple-500/20 text-purple-900 border-purple-500/40 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/40 shadow-sm'
+                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              }`}
+                          >
+                            {s.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleImpersonateOwner(selectedOwnerShopId)}
+                    disabled={!selectedOwnerShopId}
+                    className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-md"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Launch Store Owner View</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. Kitchens & Locations Master */}
+        {(activeDevTab === 'all' || activeDevTab === 'shops') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <button
                 type="button"
-                onClick={() => {
-                  if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
-                  setIsCreatingShop(!isCreatingShop);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                onClick={() => toggleSection('shops')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>{isCreatingShop ? 'Close Form' : 'Add Kitchen'}</span>
-              </button>
-            </div>
-          </div>
-
-          {!collapsedSections.shops && (
-            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              {/* Create Shop Form Drawer */}
-              {isCreatingShop && (
-                <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
-                      <Store className="w-4 h-4" /> Add New Cloud Kitchen Branch
-                    </h4>
-                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/5 space-y-1.5">
-                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Establishment Category</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setNewShopType('hotel')}
-                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
-                          }`}
-                      >
-                        🍽️ Hotel / Restaurant
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewShopType('shop')}
-                        className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
-                          }`}
-                      >
-                        🏪 Shop / Retail Stall
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
-                      <input
-                        type="text"
-                        value={newShopName}
-                        onChange={e => setNewShopName(e.target.value)}
-                        placeholder="e.g. Govind Dham Annakoot"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
-                      <input
-                        type="text"
-                        value={newShopPhone}
-                        onChange={e => setNewShopPhone(e.target.value)}
-                        placeholder="e.g. 9876543210"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
-                      <input
-                        type="text"
-                        value={newShopPrepTime}
-                        onChange={e => setNewShopPrepTime(e.target.value)}
-                        placeholder="15-20 mins"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
-                      <input
-                        type="text"
-                        value={newShopRadius}
-                        onChange={e => setNewShopRadius(e.target.value)}
-                        placeholder="12 km"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Address / Landmark</label>
-                      <input
-                        type="text"
-                        value={newShopAddress}
-                        onChange={e => setNewShopAddress(e.target.value)}
-                        placeholder="Near ISKCON Temple, Raman Reti, Vrindavan"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Cover Image URL</label>
-                      <input
-                        type="text"
-                        value={newShopImage}
-                        onChange={e => setNewShopImage(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
-                        <input
-                          type="checkbox"
-                          checked={newShopPureVeg}
-                          onChange={e => setNewShopPureVeg(e.target.checked)}
-                          className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
-                        />
-                        <span className="font-bold text-emerald-700 dark:text-emerald-400">100% Pure Satvik Veg</span>
-                      </label>
-
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
-                        <input
-                          type="checkbox"
-                          checked={newShopIsOpen}
-                          onChange={e => setNewShopIsOpen(e.target.checked)}
-                          className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
-                        />
-                        <span className="font-bold text-stone-900 dark:text-white">Open for Orders</span>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreatingShop(false)}
-                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
-                      >
-                        Create Kitchen
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              )}
-
-              {/* Search & Filter Bar */}
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search kitchen by name or address..."
-                    value={shopSearch}
-                    onChange={e => setShopSearch(e.target.value)}
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50"
-                  />
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <Store className="w-4 h-4" />
                 </div>
-                <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 px-3 py-2 bg-stone-50 dark:bg-[#1E1B1C] rounded-xl border border-stone-200 dark:border-white/5 shrink-0">
-                  {shopsList.length} Kitchens
-                </span>
-              </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                      Kitchens & Store Locations
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'shops' || !collapsedSections.shops) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Add new branches, toggle open/closed state, and manage cloud kitchens.</p>
+                </div>
+              </button>
 
-              {/* Kitchen Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {shopsList
-                  .filter(s => !shopSearch || s.name?.toLowerCase().includes(shopSearch.toLowerCase()) || s.address?.toLowerCase().includes(shopSearch.toLowerCase()))
-                  .map(s => {
-                    const isOpen = s.isOpen ?? true;
-                    return (
-                      <div key={s.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
-                        <div className="space-y-2.5">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4 className="font-bold text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{s.name}</h4>
-                              <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate flex items-center gap-1 mt-0.5">
-                                <MapPin className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                                <span>{s.address || 'Vrindavan, UP'}</span>
-                              </p>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
+                    setIsCreatingShop(!isCreatingShop);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isCreatingShop ? 'Close Form' : 'Add Kitchen'}</span>
+                </button>
+              </div>
+            </div>
+
+            {(activeDevTab === 'shops' || !collapsedSections.shops) && (
+              <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Create Shop Form Drawer */}
+                {isCreatingShop && (
+                  <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
+                        <Store className="w-4 h-4" /> Add New Cloud Kitchen Branch
+                      </h4>
+                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/5 space-y-1.5">
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Establishment Category</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewShopType('hotel')}
+                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
+                            }`}
+                        >
+                          🍽️ Hotel / Restaurant
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewShopType('shop')}
+                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
+                            }`}
+                        >
+                          🏪 Shop / Retail Stall
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
+                        <input
+                          type="text"
+                          value={newShopName}
+                          onChange={e => setNewShopName(e.target.value)}
+                          placeholder="e.g. Govind Dham Annakoot"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
+                        <input
+                          type="text"
+                          value={newShopPhone}
+                          onChange={e => setNewShopPhone(e.target.value)}
+                          placeholder="e.g. 9876543210"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
+                        <input
+                          type="text"
+                          value={newShopPrepTime}
+                          onChange={e => setNewShopPrepTime(e.target.value)}
+                          placeholder="15-20 mins"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
+                        <input
+                          type="text"
+                          value={newShopRadius}
+                          onChange={e => setNewShopRadius(e.target.value)}
+                          placeholder="12 km"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Address / Landmark</label>
+                        <input
+                          type="text"
+                          value={newShopAddress}
+                          onChange={e => setNewShopAddress(e.target.value)}
+                          placeholder="Near ISKCON Temple, Raman Reti, Vrindavan"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Cover Image URL</label>
+                        <input
+                          type="text"
+                          value={newShopImage}
+                          onChange={e => setNewShopImage(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
+                          <input
+                            type="checkbox"
+                            checked={newShopPureVeg}
+                            onChange={e => setNewShopPureVeg(e.target.checked)}
+                            className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
+                          />
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">100% Pure Satvik Veg</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
+                          <input
+                            type="checkbox"
+                            checked={newShopIsOpen}
+                            onChange={e => setNewShopIsOpen(e.target.checked)}
+                            className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
+                          />
+                          <span className="font-bold text-stone-900 dark:text-white">Open for Orders</span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingShop(false)}
+                          className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        >
+                          Create Kitchen
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Search & Filter Bar */}
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search kitchen by name or address..."
+                      value={shopSearch}
+                      onChange={e => setShopSearch(e.target.value)}
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50"
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 px-3 py-2 bg-stone-50 dark:bg-[#1E1B1C] rounded-xl border border-stone-200 dark:border-white/5 shrink-0">
+                    {shopsList.length} Kitchens
+                  </span>
+                </div>
+
+                {/* Kitchen Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {shopsList
+                    .filter(s => !shopSearch || s.name?.toLowerCase().includes(shopSearch.toLowerCase()) || s.address?.toLowerCase().includes(shopSearch.toLowerCase()))
+                    .map(s => {
+                      const isOpen = s.isOpen ?? true;
+                      return (
+                        <div key={s.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
+                          <div className="space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{s.name}</h4>
+                                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                                  <span>{s.address || 'Vrindavan, UP'}</span>
+                                </p>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border border-rose-500/30'
+                                }`}>
+                                {isOpen ? 'Open' : 'Closed'}
+                              </span>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border border-rose-500/30'
-                              }`}>
-                              {isOpen ? 'Open' : 'Closed'}
-                            </span>
+
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-stone-600 dark:text-neutral-400">
+                              <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
+                                <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                                <span>{s.preparationTime || '15-20 mins'}</span>
+                              </div>
+                              <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
+                                <Truck className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                                <span>{s.deliveryRadius || '10 km'}</span>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-[10px] text-stone-600 dark:text-neutral-400">
-                            <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
-                              <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                              <span>{s.preparationTime || '15-20 mins'}</span>
-                            </div>
-                            <div className="p-2 rounded-lg bg-stone-200/70 dark:bg-white/5 flex items-center gap-1.5">
-                              <Truck className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
-                              <span>{s.deliveryRadius || '10 km'}</span>
+                          <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleShopOpen(s.id, isOpen)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                }`}
+                            >
+                              {isOpen ? 'Mark Closed' : 'Mark Open'}
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleImpersonateShop(s.id)}
+                                title="Launch Staff View"
+                                className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-amber-700 dark:text-amber-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                              >
+                                <ChefHat className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteShop(s.id, s.name)}
+                                title="Delete Kitchen"
+                                className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
                         </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
-                        <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleShopOpen(s.id, isOpen)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                              }`}
-                          >
-                            {isOpen ? 'Mark Closed' : 'Mark Open'}
-                          </button>
+        {/* 3. Dishes & Menu Catalog Master */}
+        {(activeDevTab === 'all' || activeDevTab === 'dishes') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+              <button
+                type="button"
+                onClick={() => toggleSection('dishes')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+              >
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-700 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                  <UtensilsCrossed className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                      Dishes & Food Menu Catalog
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'dishes' || !collapsedSections.dishes) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create new items, set prices, update descriptions, and toggle instant in-stock availability.</p>
+                </div>
+              </button>
 
-                          <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
+                    setIsCreatingDish(!isCreatingDish);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isCreatingDish ? 'Close Form' : 'Add Dish'}</span>
+                </button>
+              </div>
+            </div>
+
+            {(activeDevTab === 'dishes' || !collapsedSections.dishes) && (
+              <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Create Dish Form */}
+                {isCreatingDish && (
+                  <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-cyan-500/30 dark:border-cyan-400/30 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-cyan-700 dark:text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                        <UtensilsCrossed className="w-4 h-4" /> Add Dish to Menu Catalog
+                      </h4>
+                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Name</label>
+                        <input
+                          type="text"
+                          value={newDishName}
+                          onChange={e => setNewDishName(e.target.value)}
+                          placeholder="e.g. Shahi Mathura Peda (4 pcs)"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Category</label>
+                        <SearchableDropdown
+                          value={newDishCategory}
+                          onChange={val => setNewDishCategory(val)}
+                          options={[
+                            { value: 'Satvik Thali', label: 'Satvik Thali', icon: UtensilsCrossed, badge: 'Thali', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                            { value: 'Sweets & Desserts', label: 'Sweets & Desserts', icon: Sparkles, badge: 'Sweet', badgeColor: 'bg-pink-500/15 text-pink-700 dark:text-pink-400' },
+                            { value: 'Snacks & Chaat', label: 'Snacks & Chaat', icon: Flame, badge: 'Chaat', badgeColor: 'bg-orange-500/15 text-orange-700 dark:text-orange-400' },
+                            { value: 'Lassi & Beverages', label: 'Lassi & Beverages', icon: Sparkles, badge: 'Drink', badgeColor: 'bg-blue-500/15 text-blue-700 dark:text-blue-400' },
+                            { value: 'Special Bhog', label: 'Special Bhog', icon: Crown, badge: 'Bhog', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]' },
+                            { value: 'Breads & Rice', label: 'Breads & Rice', icon: UtensilsCrossed, badge: 'Grain', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                          ]}
+                          align="full"
+                          searchPlaceholder="Filter category..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newDishPrice}
+                          onChange={e => setNewDishPrice(e.target.value)}
+                          placeholder="e.g. 160"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original / MRP Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newDishOriginalPrice}
+                          onChange={e => setNewDishOriginalPrice(e.target.value)}
+                          placeholder="e.g. 200 (optional)"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Assign to Kitchen</label>
+                        <SearchableDropdown
+                          value={newDishShopId}
+                          onChange={val => setNewDishShopId(val)}
+                          options={[
+                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            ...shopsList.map(s => ({
+                              value: s.id,
+                              label: s.name,
+                              sublabel: s.address || 'Vrindavan Kitchen',
+                              icon: Store,
+                              badge: 'Branch',
+                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                            }))
+                          ]}
+                          align="full"
+                          searchPlaceholder="Filter kitchen..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Image URL</label>
+                        <input
+                          type="text"
+                          value={newDishImage}
+                          onChange={e => setNewDishImage(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Description / Ingredients</label>
+                        <textarea
+                          rows={2}
+                          value={newDishDescription}
+                          onChange={e => setNewDishDescription(e.target.value)}
+                          placeholder="Prepared with pure desi ghee, fresh milk and authentic Vrindavan spices..."
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
+                        <input
+                          type="checkbox"
+                          checked={newDishIsAvailable}
+                          onChange={e => setNewDishIsAvailable(e.target.checked)}
+                          className="rounded text-cyan-600 dark:text-cyan-400 focus:ring-0"
+                        />
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">Available In-Stock Now</span>
+                      </label>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingDish(false)}
+                          className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        >
+                          Add Dish
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Filters & Search */}
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="relative flex-1 w-full">
+                    <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search dishes by name or category..."
+                      value={dishSearch}
+                      onChange={e => setDishSearch(e.target.value)}
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400/50"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
+                    {['all', 'Satvik Thali', 'Sweets & Desserts', 'Snacks & Chaat', 'Lassi & Beverages', 'Combo Offers'].map(cat => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setDishCategoryFilter(cat)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
+                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-black font-black shadow-sm'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
+                          }`}
+                      >
+                        {cat === 'all' ? 'All Items' : cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dishes Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                  {menusList
+                    .filter(d => {
+                      const matchSearch = !dishSearch || d.name?.toLowerCase().includes(dishSearch.toLowerCase()) || d.category?.toLowerCase().includes(dishSearch.toLowerCase());
+                      const matchCategory = dishCategoryFilter === 'all' || d.category === dishCategoryFilter;
+                      return matchSearch && matchCategory;
+                    })
+                    .map(d => {
+                      const isAvailable = d.isAvailable ?? d.is_available ?? true;
+                      return (
+                        <div key={d.id} className="p-3.5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{d.name}</h4>
+                                <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-medium inline-block mt-0.5">
+                                  {d.category || 'General'}
+                                </span>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
+                                {d.originalPrice && d.originalPrice > d.price && (
+                                  <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{d.originalPrice}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-stone-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">{d.description || 'Traditional satvik culinary preparation.'}</p>
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                             <button
                               type="button"
-                              onClick={() => handleImpersonateShop(s.id)}
-                              title="Launch Staff View"
-                              className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-amber-700 dark:text-amber-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                              onClick={() => handleToggleDishAvailability(d.id, isAvailable)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${isAvailable
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                }`}
                             >
-                              <ChefHat className="w-3.5 h-3.5" />
+                              {isAvailable ? 'In-Stock' : 'Out of Stock'}
                             </button>
+
                             <button
                               type="button"
-                              onClick={() => handleDeleteShop(s.id, s.name)}
-                              title="Delete Kitchen"
-                              className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                              onClick={() => handleDeleteDish(d.id, d.name)}
+                              title="Delete dish"
+                              className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 4. Combo Packs Builder Master */}
+        {(activeDevTab === 'all' || activeDevTab === 'combos') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+              <button
+                type="button"
+                onClick={() => toggleSection('combos')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+              >
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-amber-400/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Gift className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                      Combo Packs & Festival Boxes
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'combos' || !collapsedSections.combos) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Bundle bestsellers into high-converting combo boxes with auto % discount badges.</p>
+                </div>
+              </button>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (collapsedSections.combos) setCollapsedSections(prev => ({ ...prev, combos: false }));
+                    setIsCreatingCombo(!isCreatingCombo);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isCreatingCombo ? 'Close Form' : 'Build Combo'}</span>
+                </button>
+              </div>
+            </div>
+
+            {(activeDevTab === 'combos' || !collapsedSections.combos) && (
+              <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Build Combo Form */}
+                {isCreatingCombo && (
+                  <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-amber-400/30 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <Gift className="w-4 h-4" /> Build New Satvik Combo Pack
+                      </h4>
+                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
+                        <input
+                          type="text"
+                          value={newComboName}
+                          onChange={e => setNewComboName(e.target.value)}
+                          placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newComboPrice}
+                          onChange={e => setNewComboPrice(e.target.value)}
+                          placeholder="e.g. 299"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
+                        <input
+                          type="number"
+                          value={newComboOriginalPrice}
+                          onChange={e => setNewComboOriginalPrice(e.target.value)}
+                          placeholder="e.g. 399"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
+                        <textarea
+                          rows={3}
+                          value={newComboItems}
+                          onChange={e => setNewComboItems(e.target.value)}
+                          placeholder="1x Royal Rajbhog Thali&#10;1x Kesar Badam Lassi&#10;2x Malpua Rabdi"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
+                        <SearchableDropdown
+                          value={newComboShopId}
+                          onChange={val => setNewComboShopId(val)}
+                          options={[
+                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            ...shopsList.map(s => ({
+                              value: s.id,
+                              label: s.name,
+                              sublabel: s.address || 'Vrindavan Kitchen',
+                              icon: Store,
+                              badge: 'Branch',
+                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                            }))
+                          ]}
+                          align="full"
+                          searchPlaceholder="Filter kitchen..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10">
+                      <span className="text-xs text-stone-600 dark:text-neutral-400 font-medium">
+                        Auto-Calculated Savings: <strong className="text-amber-700 dark:text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingCombo(false)}
+                          className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        >
+                          Publish Combo Pack
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Combos Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {menusList
+                    .filter(m => m.isCombo || m.is_combo || m.category === 'Combo Offers')
+                    .map(combo => {
+                      const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
+                      const items = Array.isArray(combo.comboItems) ? combo.comboItems : Array.isArray(combo.combo_items) ? combo.combo_items : [];
+                      return (
+                        <div key={combo.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
+                          <div className="space-y-2.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">{combo.name}</h4>
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
+                                  Save {combo.discountPercent || (combo.originalPrice > combo.price ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100) : 15)}%
+                                </span>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="text-base font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
+                                {combo.originalPrice && combo.originalPrice > combo.price && (
+                                  <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {items.length > 0 && (
+                              <div className="space-y-1">
+                                <p className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-500">Box Contents</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {items.map((itemStr, idx) => (
+                                    <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300/50 dark:border-white/5">
+                                      {itemStr}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
+                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                }`}
+                            >
+                              {isAvailable ? 'In-Stock' : 'Sold Out'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDish(combo.id, combo.name)}
+                              title="Delete Combo"
+                              className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 3. Dishes & Menu Catalog Master */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
-            <button
-              type="button"
-              onClick={() => toggleSection('dishes')}
-              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
-            >
-              <div className="w-9 h-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-700 dark:text-cyan-400 flex items-center justify-center shrink-0">
-                <UtensilsCrossed className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                    Dishes & Food Menu Catalog
-                  </h3>
-                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.dishes ? '' : 'rotate-180'}`}>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </div>
+                      );
+                    })}
                 </div>
-                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create new items, set prices, update descriptions, and toggle instant in-stock availability.</p>
               </div>
-            </button>
+            )}
+          </div>
+        )}
 
-            <div className="flex items-center gap-2 shrink-0">
+        {/* 5. Promotions & Offers Master */}
+        {(activeDevTab === 'all' || activeDevTab === 'offers') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <button
                 type="button"
-                onClick={() => {
-                  if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
-                  setIsCreatingDish(!isCreatingDish);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                onClick={() => toggleSection('offers')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>{isCreatingDish ? 'Close Form' : 'Add Dish'}</span>
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      Promo Codes & Offers Master
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'offers' || !collapsedSections.offers) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create coupon codes, flat/percentage discounts, min order limits and active toggles.</p>
+                </div>
               </button>
-            </div>
-          </div>
 
-          {!collapsedSections.dishes && (
-            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              {/* Create Dish Form */}
-              {isCreatingDish && (
-                <form onSubmit={handleCreateDish} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-cyan-500/30 dark:border-cyan-400/30 space-y-4 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-cyan-700 dark:text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-                      <UtensilsCrossed className="w-4 h-4" /> Add Dish to Menu Catalog
-                    </h4>
-                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Name</label>
-                      <input
-                        type="text"
-                        value={newDishName}
-                        onChange={e => setNewDishName(e.target.value)}
-                        placeholder="e.g. Shahi Mathura Peda (4 pcs)"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Category</label>
-                      <SearchableDropdown
-                        value={newDishCategory}
-                        onChange={val => setNewDishCategory(val)}
-                        options={[
-                          { value: 'Satvik Thali', label: 'Satvik Thali', icon: UtensilsCrossed, badge: 'Thali', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
-                          { value: 'Sweets & Desserts', label: 'Sweets & Desserts', icon: Sparkles, badge: 'Sweet', badgeColor: 'bg-pink-500/15 text-pink-700 dark:text-pink-400' },
-                          { value: 'Snacks & Chaat', label: 'Snacks & Chaat', icon: Flame, badge: 'Chaat', badgeColor: 'bg-orange-500/15 text-orange-700 dark:text-orange-400' },
-                          { value: 'Lassi & Beverages', label: 'Lassi & Beverages', icon: Sparkles, badge: 'Drink', badgeColor: 'bg-blue-500/15 text-blue-700 dark:text-blue-400' },
-                          { value: 'Special Bhog', label: 'Special Bhog', icon: Crown, badge: 'Bhog', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]' },
-                          { value: 'Breads & Rice', label: 'Breads & Rice', icon: UtensilsCrossed, badge: 'Grain', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
-                        ]}
-                        align="full"
-                        searchPlaceholder="Filter category..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Selling Price (₹)</label>
-                      <input
-                        type="number"
-                        value={newDishPrice}
-                        onChange={e => setNewDishPrice(e.target.value)}
-                        placeholder="e.g. 160"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400 font-bold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original / MRP Price (₹)</label>
-                      <input
-                        type="number"
-                        value={newDishOriginalPrice}
-                        onChange={e => setNewDishOriginalPrice(e.target.value)}
-                        placeholder="e.g. 200 (optional)"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Assign to Kitchen</label>
-                      <SearchableDropdown
-                        value={newDishShopId}
-                        onChange={val => setNewDishShopId(val)}
-                        options={[
-                          { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
-                          ...shopsList.map(s => ({
-                            value: s.id,
-                            label: s.name,
-                            sublabel: s.address || 'Vrindavan Kitchen',
-                            icon: Store,
-                            badge: 'Branch',
-                            badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
-                          }))
-                        ]}
-                        align="full"
-                        searchPlaceholder="Filter kitchen..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Dish Image URL</label>
-                      <input
-                        type="text"
-                        value={newDishImage}
-                        onChange={e => setNewDishImage(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Description / Ingredients</label>
-                      <textarea
-                        rows={2}
-                        value={newDishDescription}
-                        onChange={e => setNewDishDescription(e.target.value)}
-                        placeholder="Prepared with pure desi ghee, fresh milk and authentic Vrindavan spices..."
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
-                      <input
-                        type="checkbox"
-                        checked={newDishIsAvailable}
-                        onChange={e => setNewDishIsAvailable(e.target.checked)}
-                        className="rounded text-cyan-600 dark:text-cyan-400 focus:ring-0"
-                      />
-                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Available In-Stock Now</span>
-                    </label>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreatingDish(false)}
-                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
-                      >
-                        Add Dish
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              )}
-
-              {/* Filters & Search */}
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative flex-1 w-full">
-                  <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search dishes by name or category..."
-                    value={dishSearch}
-                    onChange={e => setDishSearch(e.target.value)}
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400/50"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
-                  {['all', 'Satvik Thali', 'Sweets & Desserts', 'Snacks & Chaat', 'Lassi & Beverages', 'Combo Offers'].map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setDishCategoryFilter(cat)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
-                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-black font-black shadow-sm'
-                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
-                        }`}
-                    >
-                      {cat === 'all' ? 'All Items' : cat}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (collapsedSections.offers) setCollapsedSections(prev => ({ ...prev, offers: false }));
+                    setIsCreatingOffer(!isCreatingOffer);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isCreatingOffer ? 'Close Form' : 'New Promo Code'}</span>
+                </button>
               </div>
+            </div>
 
-              {/* Dishes Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-                {menusList
-                  .filter(d => {
-                    const matchSearch = !dishSearch || d.name?.toLowerCase().includes(dishSearch.toLowerCase()) || d.category?.toLowerCase().includes(dishSearch.toLowerCase());
-                    const matchCategory = dishCategoryFilter === 'all' || d.category === dishCategoryFilter;
-                    return matchSearch && matchCategory;
-                  })
-                  .map(d => {
-                    const isAvailable = d.isAvailable ?? d.is_available ?? true;
+            {(activeDevTab === 'offers' || !collapsedSections.offers) && (
+              <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Create Offer Form */}
+                {isCreatingOffer && (
+                  <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-emerald-500/30 dark:border-emerald-400/30 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <Tag className="w-4 h-4" /> Create New Promo Code
+                      </h4>
+                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to `foody_offers`</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Coupon Code (Uppercase)</label>
+                        <input
+                          type="text"
+                          value={newOfferCode}
+                          onChange={e => setNewOfferCode(e.target.value.toUpperCase())}
+                          placeholder="e.g. RADHE108"
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 uppercase font-mono font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Type</label>
+                        <SearchableDropdown
+                          value={newOfferDiscountType}
+                          onChange={val => setNewOfferDiscountType(val)}
+                          options={[
+                            { value: 'percentage', label: 'Percentage Discount (%)', icon: Percent, badge: '% Off', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            { value: 'flat', label: 'Flat Amount (₹)', icon: Banknote, badge: '₹ Flat', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' }
+                          ]}
+                          align="full"
+                          showSearch={false}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Value</label>
+                        <input
+                          type="number"
+                          value={newOfferDiscountValue}
+                          onChange={e => setNewOfferDiscountValue(e.target.value)}
+                          placeholder={newOfferDiscountType === 'percentage' ? "e.g. 20 (%)" : "e.g. 50 (₹)"}
+                          required
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Min Order Amount (₹)</label>
+                        <input
+                          type="number"
+                          value={newOfferMinOrder}
+                          onChange={e => setNewOfferMinOrder(e.target.value)}
+                          placeholder="e.g. 199"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Offer Title</label>
+                        <input
+                          type="text"
+                          value={newOfferTitle}
+                          onChange={e => setNewOfferTitle(e.target.value)}
+                          placeholder="e.g. Festival Prasad Special Discount"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Subtitle / Marketing Note</label>
+                        <input
+                          type="text"
+                          value={newOfferSubtitle}
+                          onChange={e => setNewOfferSubtitle(e.target.value)}
+                          placeholder="e.g. Get 20% OFF up to ₹100 on your satvik order"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
+                        <input
+                          type="checkbox"
+                          checked={newOfferIsActive}
+                          onChange={e => setNewOfferIsActive(e.target.checked)}
+                          className="rounded text-emerald-600 dark:text-emerald-400 focus:ring-0"
+                        />
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">Coupon Code Active</span>
+                      </label>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingOffer(false)}
+                          className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        >
+                          Create Promo Code
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                )}
+
+                {/* Promo Codes Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {offersList.map(offer => {
+                    const isActive = offer.isActive ?? offer.is_active ?? true;
+                    const isPct = (offer.discountType || offer.discount_type) === 'percentage';
+                    const val = offer.discountValue ?? offer.discount_value ?? 20;
                     return (
-                      <div key={d.id} className="p-3.5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/15 transition-all space-y-3 flex flex-col justify-between shadow-sm">
+                      <div key={offer.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/30 dark:hover:border-emerald-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
                         <div className="space-y-2">
                           <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white truncate font-['Outfit']">{d.name}</h4>
-                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-medium inline-block mt-0.5">
-                                {d.category || 'General'}
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-sm text-emerald-800 dark:text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/10 border border-emerald-500/30 dark:border-emerald-400/30">
+                                {offer.code}
                               </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyOfferCode(offer.code)}
+                                title="Copy code"
+                                className="p-1 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
                             </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
-                              {d.originalPrice && d.originalPrice > d.price && (
-                                <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{d.originalPrice}</p>
-                              )}
-                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${isActive ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-stone-200 dark:bg-neutral-800 text-stone-500 dark:text-neutral-500'
+                              }`}>
+                              {isActive ? 'Active' : 'Disabled'}
+                            </span>
                           </div>
 
-                          <p className="text-[11px] text-stone-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">{d.description || 'Traditional satvik culinary preparation.'}</p>
+                          <div>
+                            <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white font-['Outfit']">{offer.title}</h4>
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">{offer.subtitle || (isPct ? `${val}% OFF on satvik meals` : `Flat ₹${val} OFF`)}</p>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-[10px] text-stone-500 dark:text-neutral-400 pt-1">
+                            <span>Min: ₹{offer.minOrderAmount ?? offer.min_order_amount ?? 0}</span>
+                            {offer.maxDiscount && <span>Max: ₹{offer.maxDiscount}</span>}
+                          </div>
                         </div>
 
                         <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
                           <button
                             type="button"
-                            onClick={() => handleToggleDishAvailability(d.id, isAvailable)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${isAvailable
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                            onClick={() => handleToggleOfferActive(offer.id, isActive)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isActive
+                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                              : 'bg-stone-200 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
                               }`}
                           >
-                            {isAvailable ? 'In-Stock' : 'Out of Stock'}
+                            {isActive ? 'Active' : 'Enable'}
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => handleDeleteDish(d.id, d.name)}
-                            title="Delete dish"
-                            className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Combo Packs Builder Master */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
-            <button
-              type="button"
-              onClick={() => toggleSection('combos')}
-              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-amber-400/15 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
-                <Gift className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                    Combo Packs & Festival Boxes
-                  </h3>
-                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.combos ? '' : 'rotate-180'}`}>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Bundle bestsellers into high-converting combo boxes with auto % discount badges.</p>
-              </div>
-            </button>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (collapsedSections.combos) setCollapsedSections(prev => ({ ...prev, combos: false }));
-                  setIsCreatingCombo(!isCreatingCombo);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>{isCreatingCombo ? 'Close Form' : 'Build Combo'}</span>
-              </button>
-            </div>
-          </div>
-
-          {!collapsedSections.combos && (
-            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              {/* Build Combo Form */}
-              {isCreatingCombo && (
-                <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-amber-400/30 space-y-4 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                      <Gift className="w-4 h-4" /> Build New Satvik Combo Pack
-                    </h4>
-                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
-                      <input
-                        type="text"
-                        value={newComboName}
-                        onChange={e => setNewComboName(e.target.value)}
-                        placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
-                      <input
-                        type="number"
-                        value={newComboPrice}
-                        onChange={e => setNewComboPrice(e.target.value)}
-                        placeholder="e.g. 299"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-bold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
-                      <input
-                        type="number"
-                        value={newComboOriginalPrice}
-                        onChange={e => setNewComboOriginalPrice(e.target.value)}
-                        placeholder="e.g. 399"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
-                      <textarea
-                        rows={3}
-                        value={newComboItems}
-                        onChange={e => setNewComboItems(e.target.value)}
-                        placeholder="1x Royal Rajbhog Thali&#10;1x Kesar Badam Lassi&#10;2x Malpua Rabdi"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-mono"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
-                      <SearchableDropdown
-                        value={newComboShopId}
-                        onChange={val => setNewComboShopId(val)}
-                        options={[
-                          { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
-                          ...shopsList.map(s => ({
-                            value: s.id,
-                            label: s.name,
-                            sublabel: s.address || 'Vrindavan Kitchen',
-                            icon: Store,
-                            badge: 'Branch',
-                            badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
-                          }))
-                        ]}
-                        align="full"
-                        searchPlaceholder="Filter kitchen..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10">
-                    <span className="text-xs text-stone-600 dark:text-neutral-400 font-medium">
-                      Auto-Calculated Savings: <strong className="text-amber-700 dark:text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreatingCombo(false)}
-                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
-                      >
-                        Publish Combo Pack
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              )}
-
-              {/* Combos Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {menusList
-                  .filter(m => m.isCombo || m.is_combo || m.category === 'Combo Offers')
-                  .map(combo => {
-                    const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
-                    const items = Array.isArray(combo.comboItems) ? combo.comboItems : Array.isArray(combo.combo_items) ? combo.combo_items : [];
-                    return (
-                      <div key={combo.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
-                        <div className="space-y-2.5">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">{combo.name}</h4>
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
-                                Save {combo.discountPercent || (combo.originalPrice > combo.price ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100) : 15)}%
-                              </span>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-base font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
-                              {combo.originalPrice && combo.originalPrice > combo.price && (
-                                <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {items.length > 0 && (
-                            <div className="space-y-1">
-                              <p className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-500">Box Contents</p>
-                              <div className="flex flex-wrap gap-1">
-                                {items.map((itemStr, idx) => (
-                                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300/50 dark:border-white/5">
-                                    {itemStr}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                              }`}
-                          >
-                            {isAvailable ? 'In-Stock' : 'Sold Out'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDish(combo.id, combo.name)}
-                            title="Delete Combo"
+                            onClick={() => handleDeleteOffer(offer.id, offer.code)}
+                            title="Delete offer"
                             className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2074,448 +2288,228 @@ export default function DeveloperView({ setCurrentTab }) {
                       </div>
                     );
                   })}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
-        {/* 5. Promotions & Offers Master */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+        {/* 6. Global & Per-Kitchen Payment Configuration */}
+        {(activeDevTab === 'all' || activeDevTab === 'payments') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
+
             <button
               type="button"
-              onClick={() => toggleSection('offers')}
-              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+              onClick={() => toggleSection('payments')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <Tag className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Promo Codes & Offers Master
-                  </h3>
-                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.offers ? '' : 'rotate-180'}`}>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </div>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-4 h-4" />
                 </div>
-                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Create coupon codes, flat/percentage discounts, min order limits and active toggles.</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    Payment Gateways Master
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20 hidden sm:inline">
+                  Master Switches
+                </span>
+                <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'payments' || !collapsedSections.payments) ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
               </div>
             </button>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (collapsedSections.offers) setCollapsedSections(prev => ({ ...prev, offers: false }));
-                  setIsCreatingOffer(!isCreatingOffer);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span>{isCreatingOffer ? 'Close Form' : 'New Promo Code'}</span>
-              </button>
-            </div>
-          </div>
+            {(activeDevTab === 'payments' || !collapsedSections.payments) && (
+              <div className="space-y-6 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
 
-          {!collapsedSections.offers && (
-            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              {/* Create Offer Form */}
-              {isCreatingOffer && (
-                <form onSubmit={handleCreateOffer} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-emerald-500/30 dark:border-emerald-400/30 space-y-4 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-                      <Tag className="w-4 h-4" /> Create New Promo Code
-                    </h4>
-                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to `foody_offers`</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Coupon Code (Uppercase)</label>
-                      <input
-                        type="text"
-                        value={newOfferCode}
-                        onChange={e => setNewOfferCode(e.target.value.toUpperCase())}
-                        placeholder="e.g. RADHE108"
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 uppercase font-mono font-bold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Type</label>
-                      <SearchableDropdown
-                        value={newOfferDiscountType}
-                        onChange={val => setNewOfferDiscountType(val)}
-                        options={[
-                          { value: 'percentage', label: 'Percentage Discount (%)', icon: Percent, badge: '% Off', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
-                          { value: 'flat', label: 'Flat Amount (₹)', icon: Banknote, badge: '₹ Flat', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' }
-                        ]}
-                        align="full"
-                        showSearch={false}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Discount Value</label>
-                      <input
-                        type="number"
-                        value={newOfferDiscountValue}
-                        onChange={e => setNewOfferDiscountValue(e.target.value)}
-                        placeholder={newOfferDiscountType === 'percentage' ? "e.g. 20 (%)" : "e.g. 50 (₹)"}
-                        required
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400 font-bold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Min Order Amount (₹)</label>
-                      <input
-                        type="number"
-                        value={newOfferMinOrder}
-                        onChange={e => setNewOfferMinOrder(e.target.value)}
-                        placeholder="e.g. 199"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Offer Title</label>
-                      <input
-                        type="text"
-                        value={newOfferTitle}
-                        onChange={e => setNewOfferTitle(e.target.value)}
-                        placeholder="e.g. Festival Prasad Special Discount"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Subtitle / Marketing Note</label>
-                      <input
-                        type="text"
-                        value={newOfferSubtitle}
-                        onChange={e => setNewOfferSubtitle(e.target.value)}
-                        placeholder="e.g. Get 20% OFF up to ₹100 on your satvik order"
-                        className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 flex-wrap gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 dark:text-neutral-300">
-                      <input
-                        type="checkbox"
-                        checked={newOfferIsActive}
-                        onChange={e => setNewOfferIsActive(e.target.checked)}
-                        className="rounded text-emerald-600 dark:text-emerald-400 focus:ring-0"
-                      />
-                      <span className="font-bold text-emerald-700 dark:text-emerald-400">Coupon Code Active</span>
-                    </label>
-
-                    <div className="flex items-center gap-2">
+                {/* 1. Global Master Switches */}
+                <div className="space-y-3">
+                  <p className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33]" />
+                    1. Global Master Switches (All Kitchens)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Online Razorpay Global */}
+                    <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (Razorpay & UPI)</p>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide UPI, Credit/Debit Cards & Netbanking</p>
+                        </div>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => setIsCreatingOffer(false)}
-                        className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
+                        onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.onlinePaymentsEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
+                          }`}
+                        role="switch"
+                        aria-checked={paymentsConfig.onlinePaymentsEnabled}
                       >
-                        Cancel
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${paymentsConfig.onlinePaymentsEnabled ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
                       </button>
+                    </div>
+
+                    {/* Cash on Delivery Global */}
+                    <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
+                          <Banknote className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide Physical Cash Collection on Delivery</p>
+                        </div>
+                      </div>
                       <button
-                        type="submit"
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                        type="button"
+                        onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.codEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
+                          }`}
+                        role="switch"
+                        aria-checked={paymentsConfig.codEnabled}
                       >
-                        Create Promo Code
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${paymentsConfig.codEnabled ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
                       </button>
                     </div>
                   </div>
-                </form>
-              )}
+                </div>
 
-              {/* Promo Codes Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {offersList.map(offer => {
-                  const isActive = offer.isActive ?? offer.is_active ?? true;
-                  const isPct = (offer.discountType || offer.discount_type) === 'percentage';
-                  const val = offer.discountValue ?? offer.discount_value ?? 20;
-                  return (
-                    <div key={offer.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-emerald-500/30 dark:hover:border-emerald-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-black text-sm text-emerald-800 dark:text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/15 dark:bg-emerald-400/10 border border-emerald-500/30 dark:border-emerald-400/30">
-                              {offer.code}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyOfferCode(offer.code)}
-                              title="Copy code"
-                              className="p-1 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
-                            >
-                              <Copy className="w-3 h-3" />
-                            </button>
-                          </div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${isActive ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' : 'bg-stone-200 dark:bg-neutral-800 text-stone-500 dark:text-neutral-500'
-                            }`}>
-                            {isActive ? 'Active' : 'Disabled'}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white font-['Outfit']">{offer.title}</h4>
-                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">{offer.subtitle || (isPct ? `${val}% OFF on satvik meals` : `Flat ₹${val} OFF`)}</p>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-[10px] text-stone-500 dark:text-neutral-400 pt-1">
-                          <span>Min: ₹{offer.minOrderAmount ?? offer.min_order_amount ?? 0}</span>
-                          {offer.maxDiscount && <span>Max: ₹{offer.maxDiscount}</span>}
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleOfferActive(offer.id, isActive)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isActive
-                              ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                              : 'bg-stone-200 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
-                            }`}
-                        >
-                          {isActive ? 'Active' : 'Enable'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteOffer(offer.id, offer.code)}
-                          title="Delete offer"
-                          className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                {/* 2. Specific Kitchen Master Switches */}
+                <div className="space-y-3 pt-3 border-t border-stone-200 dark:border-white/5">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        2. Kitchen-Specific Payment Config
+                      </p>
+                      <span className="text-[10px] text-neutral-400 font-medium">Select kitchen branch to configure</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                      {allShops.map(s => {
+                        const isSelected = (selectedPaymentShopId || allShops[0]?.id) === s.id;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => setSelectedPaymentShopId(s.id)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
+                              ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
+                              : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-white/20'
+                              }`}
+                          >
+                            <Store className="w-3.5 h-3.5" />
+                            <span className="whitespace-nowrap">{s.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const activeTargetShop = allShops.find(s => s.id === (selectedPaymentShopId || allShops[0]?.id)) || allShops[0];
+                    const shopOnline = activeTargetShop?.paymentSettings?.onlinePaymentsEnabled ?? activeTargetShop?.onlinePaymentsEnabled ?? true;
+                    const shopCod = activeTargetShop?.paymentSettings?.codEnabled ?? activeTargetShop?.codEnabled ?? true;
+                    const isGlobalOnlineOff = paymentsConfig.onlinePaymentsEnabled === false;
+                    const isGlobalCodOff = paymentsConfig.codEnabled === false;
+
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalOnlineOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10'
+                          }`}>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
+                              <CreditCard className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
+                                {isGlobalOnlineOff && (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
+                                    Disabled Globally
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'onlinePaymentsEnabled', !shopOnline)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopOnline ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
+                              }`}
+                            role="switch"
+                            aria-checked={shopOnline}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${shopOnline ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
+                          </button>
+                        </div>
+
+                        <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalCodOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10'
+                          }`}>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
+                              <Banknote className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
+                                {isGlobalCodOff && (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
+                                    Disabled Globally
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'codEnabled', !shopCod)}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopCod ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
+                              }`}
+                            role="switch"
+                            aria-checked={shopCod}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${shopCod ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
             </div>
           )}
         </div>
+      )}
 
-        {/* 6. Global & Per-Kitchen Payment Configuration */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl md:col-span-2 transition-all">
-
-          <button
-            type="button"
-            onClick={() => toggleSection('payments')}
-            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                  Payment Gateways Master
-                </h3>
-                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20 hidden sm:inline">
-                Master Switches
-              </span>
-              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.payments ? '' : 'rotate-180'}`}>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-            </div>
-          </button>
-
-          {!collapsedSections.payments && (
-            <div className="space-y-6 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-
-              {/* 1. Global Master Switches */}
-              <div className="space-y-3">
-                <p className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33]" />
-                  1. Global Master Switches (All Kitchens)
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Online Razorpay Global */}
-                  <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
-                        <CreditCard className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (Razorpay & UPI)</p>
-                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide UPI, Credit/Debit Cards & Netbanking</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdatePaymentsConfig('onlinePaymentsEnabled', !paymentsConfig.onlinePaymentsEnabled)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.onlinePaymentsEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
-                        }`}
-                      role="switch"
-                      aria-checked={paymentsConfig.onlinePaymentsEnabled}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${paymentsConfig.onlinePaymentsEnabled ? 'translate-x-5' : 'translate-x-0'
-                          }`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Cash on Delivery Global */}
-                  <div className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10 transition-all flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
-                        <Banknote className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
-                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">Platform-wide Physical Cash Collection on Delivery</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdatePaymentsConfig('codEnabled', !paymentsConfig.codEnabled)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${paymentsConfig.codEnabled ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
-                        }`}
-                      role="switch"
-                      aria-checked={paymentsConfig.codEnabled}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${paymentsConfig.codEnabled ? 'translate-x-5' : 'translate-x-0'
-                          }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Specific Kitchen Master Switches */}
-              <div className="space-y-3 pt-3 border-t border-stone-200 dark:border-white/5">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between flex-wrap gap-1">
-                    <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                      2. Kitchen-Specific Payment Config
-                    </p>
-                    <span className="text-[10px] text-neutral-400 font-medium">Select kitchen branch to configure</span>
-                  </div>
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                    {allShops.map(s => {
-                      const isSelected = (selectedPaymentShopId || allShops[0]?.id) === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setSelectedPaymentShopId(s.id)}
-                          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
-                            ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
-                            : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-white/20'
-                            }`}
-                        >
-                          <Store className="w-3.5 h-3.5" />
-                          <span className="whitespace-nowrap">{s.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {(() => {
-                  const activeTargetShop = allShops.find(s => s.id === (selectedPaymentShopId || allShops[0]?.id)) || allShops[0];
-                  const shopOnline = activeTargetShop?.paymentSettings?.onlinePaymentsEnabled ?? activeTargetShop?.onlinePaymentsEnabled ?? true;
-                  const shopCod = activeTargetShop?.paymentSettings?.codEnabled ?? activeTargetShop?.codEnabled ?? true;
-                  const isGlobalOnlineOff = paymentsConfig.onlinePaymentsEnabled === false;
-                  const isGlobalCodOff = paymentsConfig.codEnabled === false;
-
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                      <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalOnlineOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/10'
-                        }`}>
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/20 flex items-center justify-center shrink-0">
-                            <CreditCard className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
-                              {isGlobalOnlineOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
-                                  Disabled Globally
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'onlinePaymentsEnabled', !shopOnline)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopOnline ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
-                            }`}
-                          role="switch"
-                          aria-checked={shopOnline}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${shopOnline ? 'translate-x-5' : 'translate-x-0'
-                              }`}
-                          />
-                        </button>
-                      </div>
-
-                      <div className={`p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border transition-all flex items-center justify-between gap-4 ${isGlobalCodOff ? 'border-amber-500/40 bg-amber-500/5' : 'border-stone-200 dark:border-white/5 hover:border-cyan-500/30 dark:hover:border-white/10'
-                        }`}>
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
-                            <Banknote className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
-                              {isGlobalCodOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
-                                  Disabled Globally
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5 truncate">For {activeTargetShop?.name || 'Selected Kitchen'}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleKitchenPayment(activeTargetShop?.id, 'codEnabled', !shopCod)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${shopCod ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)]' : 'bg-stone-300 dark:bg-neutral-700'
-                            }`}
-                          role="switch"
-                          aria-checked={shopCod}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${shopCod ? 'translate-x-5' : 'translate-x-0'
-                              }`}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 3. Simulator Container */}
         {/* 7. End-to-End Order Simulator */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+        {(activeDevTab === 'all' || activeDevTab === 'simulator') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
           <button
             type="button"
             onClick={() => toggleSection('simulator')}
@@ -2564,8 +2558,8 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => handleSimShopChange(s.id)}
                           className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 cursor-pointer shrink-0 select-none ${isSelected
-                              ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-md font-black'
-                              : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
+                            ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-md font-black'
+                            : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                             }`}
                         >
                           <Store className="w-3.5 h-3.5" />
@@ -2616,8 +2610,8 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={() => setSimPaymentMethod('online')}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${simPaymentMethod === 'online'
-                          ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40 dark:border-emerald-400/40 shadow-sm font-black'
-                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
+                        ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/40 dark:border-emerald-400/40 shadow-sm font-black'
+                        : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
                         }`}
                     >
                       <CreditCard size={13} />
@@ -2627,8 +2621,8 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={() => setSimPaymentMethod('cash')}
                       className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${simPaymentMethod === 'cash'
-                          ? 'bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-500/40 dark:border-amber-400/40 shadow-sm font-black'
-                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
+                        ? 'bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-500/40 dark:border-amber-400/40 shadow-sm font-black'
+                        : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white'
                         }`}
                     >
                       <Banknote size={13} />
@@ -2686,56 +2680,58 @@ export default function DeveloperView({ setCurrentTab }) {
             </form>
           )}
         </div>
+      )}
 
         {/* 8. Registered Users & Role Directory Management */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
-            <button
-              type="button"
-              onClick={() => toggleSection('users')}
-              className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
-            >
-              <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                <Users className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                    Registered Users & Role Matrix
-                  </h3>
-                  <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.users ? '' : 'rotate-180'}`}>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Manage live roles, assign kitchen locations, and test role-based permissions.</p>
-              </div>
-            </button>
-
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
+        {(activeDevTab === 'all' || activeDevTab === 'users') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <button
                 type="button"
-                onClick={handleRestoreDefaultAccounts}
-                title="Restore default developer, owner, chef and delivery accounts"
-                className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                onClick={() => toggleSection('users')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                <span className="truncate">Restore Master</span>
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                      Registered Users & Role Matrix
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'users' || !collapsedSections.users) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">Manage live roles, assign kitchen locations, and test role-based permissions.</p>
+                </div>
               </button>
 
-              <button
-                onClick={() => {
-                  if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
-                  setIsCreatingUser(!isCreatingUser);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
-              >
-                <UserPlus className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
-              </button>
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleRestoreDefaultAccounts}
+                  title="Restore default developer, owner, chef and delivery accounts"
+                  className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                  <span className="truncate">Restore Master</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
+                    setIsCreatingUser(!isCreatingUser);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          {!collapsedSections.users && (
+            {(activeDevTab === 'users' || !collapsedSections.users) && (
             <div className="space-y-5 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
 
               {/* Active Supabase Logged-In User Banner */}
@@ -2980,16 +2976,15 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={f.id}
                               onClick={() => setUserRoleFilter(f.id)}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                                  ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
-                                  : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
+                                ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                                : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                                 }`}
                             >
                               <span>{f.label}</span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
-                                isActive 
-                                  ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
-                                  : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
-                              }`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${isActive
+                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                                : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
+                                }`}>
                                 {f.count}
                               </span>
                             </button>
@@ -3031,8 +3026,8 @@ export default function DeveloperView({ setCurrentTab }) {
                             <div
                               key={u.id}
                               className={`p-3.5 sm:p-4 bg-stone-50 dark:bg-[#1E1B1C] hover:bg-stone-100 dark:hover:bg-[#232021] rounded-2xl border transition-all space-y-3 shadow-sm ${isCurrentSessionUser
-                                  ? 'border-amber-500/50 dark:border-[#E0FF33]/30 bg-amber-50/50 dark:bg-[#1E1B1C]/95'
-                                  : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15'
+                                ? 'border-amber-500/50 dark:border-[#E0FF33]/30 bg-amber-50/50 dark:bg-[#1E1B1C]/95'
+                                : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15'
                                 }`}
                             >
                               {/* Top Row: User Identity & Action Icons */}
@@ -3043,11 +3038,11 @@ export default function DeveloperView({ setCurrentTab }) {
                                   title="Click to view detailed user profile"
                                 >
                                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                                      role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
-                                        role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
-                                          role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
-                                            role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
-                                              'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300 border border-stone-300 dark:border-white/10'
+                                    role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                      role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
+                                        role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
+                                          role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
+                                            'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300 border border-stone-300 dark:border-white/10'
                                     }`}>
                                     {role === 'grand_admin' ? <Crown className="w-4 h-4" /> :
                                       role === 'developer' ? <Terminal className="w-4 h-4" /> :
@@ -3063,11 +3058,11 @@ export default function DeveloperView({ setCurrentTab }) {
                                         {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
                                       </p>
                                       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
-                                          role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
-                                            role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
-                                              role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
-                                                role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
-                                                  'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
+                                        role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                          role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
+                                            role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
+                                              role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
+                                                'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
                                         }`}>
                                         {role === 'grand_admin' ? 'Grand Admin' :
                                           role === 'developer' ? 'Developer' :
@@ -3134,16 +3129,16 @@ export default function DeveloperView({ setCurrentTab }) {
                               </div>
 
                               {/* Bottom Row: Controls Toolbar (Role, Scope, Test Login) */}
-                              <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 min-w-0 flex-1">
+                              <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2 min-w-0 flex-1">
                                   {/* Role Selector / Fixed Badge */}
                                   {role === 'grand_admin' ? (
                                     <div
-                                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center sm:justify-start gap-1.5 select-none shrink-0"
+                                      className="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 flex items-center justify-center sm:justify-start gap-1.5 select-none shrink-0"
                                       title="Grand Admin role is permanent across the platform"
                                     >
-                                      <Lock className="w-3 h-3 shrink-0 text-amber-700 dark:text-amber-400" />
-                                      <span className="truncate">Grand Admin</span>
+                                      <Lock className="w-3.5 h-3.5 shrink-0 text-amber-700 dark:text-amber-400" />
+                                      <span className="whitespace-nowrap font-bold">Grand Admin</span>
                                     </div>
                                   ) : (
                                     <SearchableDropdown
@@ -3158,7 +3153,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                       ]}
                                       size="sm"
                                       searchPlaceholder="Filter role..."
-                                      className="w-full sm:w-44"
+                                      className="w-full sm:w-auto sm:min-w-[155px]"
                                     />
                                   )}
 
@@ -3177,17 +3172,17 @@ export default function DeveloperView({ setCurrentTab }) {
                                       }))}
                                       size="sm"
                                       searchPlaceholder="Filter kitchen..."
-                                      className="w-full sm:w-48"
+                                      className="w-full sm:w-auto sm:min-w-[165px]"
                                     />
                                   ) : (role === 'grand_admin' || role === 'developer') ? (
-                                    <div className="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                    <div className="px-3 py-2 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
                                       <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33] shrink-0" />
-                                      <span className="truncate">Global Access</span>
+                                      <span className="whitespace-nowrap font-bold">Global Access</span>
                                     </div>
                                   ) : (
-                                    <div className="px-3 py-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-600 dark:text-neutral-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+                                    <div className="px-3 py-2 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-600 dark:text-neutral-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
                                       <Users className="w-3.5 h-3.5 shrink-0" />
-                                      <span className="truncate">Public User</span>
+                                      <span className="whitespace-nowrap font-bold">Public User</span>
                                     </div>
                                   )}
                                 </div>
@@ -3197,7 +3192,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   type="button"
                                   onClick={() => handleQuickImpersonateUser(u)}
                                   title={`Sign in as ${u.displayName || u.email || 'user'}`}
-                                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33] dark:text-[#E0FF33] dark:hover:text-black font-black text-xs border border-amber-600 dark:border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+                                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33] dark:text-[#E0FF33] dark:hover:text-black font-black text-xs border border-amber-600 dark:border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
                                 >
                                   <Play className="w-3 h-3 fill-current shrink-0" />
                                   <span>Test Login</span>
@@ -3214,148 +3209,124 @@ export default function DeveloperView({ setCurrentTab }) {
             </div>
           )}
         </div>
+      )}
 
-        {/* 5. Audio System Telemetry & Role Synthesizer */}
-        <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
-          <button
-            type="button"
-            onClick={() => toggleSection('alarm')}
-            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
-                <Volume2 className="w-4 h-4" />
+        {/* 9. Audio System Telemetry & Role Synthesizer */}
+        {(activeDevTab === 'all' || activeDevTab === 'alarm') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('alarm')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 dark:bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 dark:border-cyan-400/20 flex items-center justify-center shrink-0">
+                  <Volume2 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    Audio Synthesizer & Telemetry
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                  Audio Synthesizer & Telemetry
-                </h3>
-                <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0 ml-2">
-              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border hidden sm:inline-flex items-center gap-1.5 ${audioUnlocked
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border hidden sm:inline-flex items-center gap-1.5 ${audioUnlocked
                   ? 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30 dark:bg-emerald-400/20 dark:text-emerald-300 dark:border-emerald-400/30'
                   : 'bg-amber-500/15 text-amber-800 border-amber-500/30 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30'
-                }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-amber-600 dark:bg-amber-400'}`} />
-                <span>{audioUnlocked ? 'Active' : 'Standby'}</span>
-              </span>
-              <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${collapsedSections.alarm ? '' : 'rotate-180'}`}>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-            </div>
-          </button>
-
-          {!collapsedSections.alarm && (
-            <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-stone-600 dark:text-neutral-400">Synthesizer engine control & background triggers</span>
+                  }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-amber-600 dark:bg-amber-400'}`} />
+                  <span>{audioUnlocked ? 'Active' : 'Standby'}</span>
+                </span>
+                <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'alarm' || !collapsedSections.alarm) ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
                 </div>
+              </div>
+            </button>
 
-                <div className="flex items-center gap-2 flex-wrap">
-                  {!audioUnlocked && (
-                    <button
-                      onClick={warmUpAudio}
-                      className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#d4f820] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
-                    >
-                      Unlock Audio
-                    </button>
-                  )}
+            {(activeDevTab === 'alarm' || !collapsedSections.alarm) && (
+              <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-stone-600 dark:text-neutral-400">Synthesizer engine control & background triggers</span>
+                  </div>
 
-                  {isPlaying && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {!audioUnlocked && (
+                      <button
+                        onClick={warmUpAudio}
+                        className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#d4f820] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
+                      >
+                        Unlock Audio
+                      </button>
+                    )}
+
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs">
+                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-bold uppercase">Volume:</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="w-16 accent-amber-600 dark:accent-[#E0FF33] cursor-pointer"
+                      />
+                      <span className="text-[10px] font-mono text-stone-700 dark:text-neutral-300">{Math.round(volume * 100)}%</span>
+                    </div>
+
                     <button
                       onClick={stopAlarm}
-                      className="px-3.5 py-1 rounded-xl bg-red-500 hover:bg-red-400 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                      className="px-3 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-500/30 text-xs font-bold active:scale-95 cursor-pointer transition-all flex items-center gap-1"
                     >
                       <VolumeX className="w-3.5 h-3.5" />
-                      <span>Silence</span>
+                      <span>Silence All</span>
                     </button>
-                  )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <button
+                    onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN SIREN', orderId: 'ord-test-kitchen' }, true)}
+                    className="py-3 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 dark:text-amber-300 dark:border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <ChefHat className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                    <span className="font-['Outfit']">Kitchen Siren</span>
+                    <span className="text-[9px] text-amber-800/80 dark:text-amber-400/70 font-medium">880/1174Hz Urgent Loop</span>
+                  </button>
+
+                  <button
+                    onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
+                    className="py-3 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-900 border border-cyan-500/30 dark:bg-cyan-400/20 dark:hover:bg-cyan-400/30 dark:text-cyan-300 dark:border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <Truck className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
+                    <span className="font-['Outfit']">Sarathi Chime</span>
+                    <span className="text-[9px] text-cyan-800/80 dark:text-cyan-400/70 font-medium">3-Tone Ascending Ping</span>
+                  </button>
+
+                  <button
+                    onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
+                    className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#E0FF33]/20 dark:hover:bg-[#E0FF33]/30 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#E0FF33]" />
+                    <span className="font-['Outfit']">Admin Bell</span>
+                    <span className="text-[9px] text-purple-800/80 dark:text-[#E0FF33]/70 font-medium">Resonant Executive Ping</span>
+                  </button>
+
+                  <button
+                    onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
+                    className="py-3 px-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 border border-emerald-500/30 dark:bg-emerald-400/20 dark:hover:bg-emerald-400/30 dark:text-emerald-300 dark:border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                    <span className="font-['Outfit']">Prasad Blessing</span>
+                    <span className="text-[9px] text-emerald-800/80 dark:text-emerald-400/70 font-medium">528Hz Solfeggio Chime</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 items-center">
-                <div>
-                  <p className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase">Volume Level: {Math.round(volume * 100)}%</p>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="w-full accent-amber-600 dark:accent-[#E0FF33] cursor-pointer mt-1"
-                  />
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase">Browser Push Alerts</p>
-                  <p className="text-xs font-bold text-stone-900 dark:text-white mt-0.5">
-                    Status: <span className={notificationPermission === 'granted' ? 'text-emerald-700 dark:text-emerald-400 font-black' : 'text-amber-700 dark:text-amber-400 font-black'}>
-                      {notificationPermission.toUpperCase()}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex justify-start sm:justify-end">
-                  {notificationPermission !== 'granted' ? (
-                    <button
-                      onClick={requestNotificationPermission}
-                      className="px-3 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-800 border border-cyan-500/30 hover:bg-cyan-500/25 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/30 dark:hover:bg-cyan-400/30 text-xs font-bold transition-all cursor-pointer"
-                    >
-                      Enable Push
-                    </button>
-                  ) : (
-                    <span className="text-xs text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4" /> Push Active
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                <button
-                  onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'ord-test-kitch' }, true)}
-                  className="py-3 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 dark:text-amber-300 dark:border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
-                >
-                  <ChefHat className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                  <span className="font-['Outfit']">Kitchen Buzzer</span>
-                  <span className="text-[9px] text-amber-800/80 dark:text-amber-400/70 font-medium">880/1174Hz Urgent Loop</span>
-                </button>
-
-                <button
-                  onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
-                  className="py-3 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-900 border border-cyan-500/30 dark:bg-cyan-400/20 dark:hover:bg-cyan-400/30 dark:text-cyan-300 dark:border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
-                >
-                  <Truck className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
-                  <span className="font-['Outfit']">Sarathi Chime</span>
-                  <span className="text-[9px] text-cyan-800/80 dark:text-cyan-400/70 font-medium">3-Tone Ascending Ping</span>
-                </button>
-
-                <button
-                  onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
-                  className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#E0FF33]/20 dark:hover:bg-[#E0FF33]/30 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
-                >
-                  <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#E0FF33]" />
-                  <span className="font-['Outfit']">Admin Bell</span>
-                  <span className="text-[9px] text-purple-800/80 dark:text-[#E0FF33]/70 font-medium">Resonant Executive Ping</span>
-                </button>
-
-                <button
-                  onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
-                  className="py-3 px-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 border border-emerald-500/30 dark:bg-emerald-400/20 dark:hover:bg-emerald-400/30 dark:text-emerald-300 dark:border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
-                >
-                  <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                  <span className="font-['Outfit']">Prasad Blessing</span>
-                  <span className="text-[9px] text-emerald-800/80 dark:text-emerald-400/70 font-medium">528Hz Solfeggio Chime</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
       </div>
 
@@ -3396,8 +3367,6 @@ export default function DeveloperView({ setCurrentTab }) {
       {selectedUserDetail && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl animate-scaleUp relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 dark:bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none" />
-
             <div className="flex items-start justify-between gap-3 border-b border-stone-200 dark:border-white/5 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-black text-lg">
