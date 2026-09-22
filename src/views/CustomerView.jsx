@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useBackHandler } from '../hooks/useBackHandler';
@@ -128,6 +129,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showShopSwitcher, setShowShopSwitcher] = useState(false);
+  const [shopSearch, setShopSearch] = useState('');
   const [fulfillmentType, setFulfillmentType] = useState('delivery'); // 'delivery' | 'pickup'
   const [onlineRidersCount, setOnlineRidersCount] = useState(1);
   const [cookingNotes, setCookingNotes] = useState('');
@@ -338,15 +340,20 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     setTimeout(() => {
       setShowShopSwitcher(false);
       setIsShopClosing(false);
+      setShopSearch('');
     }, 220);
   };
 
-  const showToast = (message, type = 'success', desc = '') => {
+  const toastTimeoutRef = useRef(null);
+  const showToast = useCallback((message, type = 'success', desc = '') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToast({ message, type, desc });
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       setToast(prev => (prev && prev.message === message ? null : prev));
-    }, 3000);
-  };
+    }, 2400);
+  }, []);
 
   // Reset sheet styles on mount/open to avoid stuck transformed states
   useEffect(() => {
@@ -616,6 +623,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   };
 
   const isShopOpen = isShopCurrentlyOpen(activeShop);
+
+  const filteredShops = useMemo(() => {
+    if (!shopSearch.trim()) return allShops || [];
+    const q = shopSearch.toLowerCase().trim();
+    return (allShops || []).filter(s =>
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.address && s.address.toLowerCase().includes(q)) ||
+      (s.city && s.city.toLowerCase().includes(q)) ||
+      (s.area && s.area.toLowerCase().includes(q)) ||
+      (s.description && s.description.toLowerCase().includes(q))
+    );
+  }, [allShops, shopSearch]);
   const minOrderAmount = activeShop?.minimumOrderAmount || 0;
   const deliveryCharge = fulfillmentType === 'pickup' ? 0 : (activeShop?.deliveryCharge || 0);
   const gstPct = activeShop?.gstPercentage || 5;
@@ -862,36 +881,46 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return resolveDishCutout(item?.image || item?.imageUrl, item?.name, item?.category);
   };
 
-  // Map live database items into rich, responsive UI cards
-  const displayItems = (menuItems || []).map((it, i) => ({
-    ...it,
-    image: resolveDishCutout(it.image || it.imageUrl, it.name, it.category),
-    subtitle: it.subtitle || (it.category === 'Thali & Meals' ? 'Rich gravy, hot rotis' : (it.category === 'Sweets & Prasad' ? 'Desi ghee, saffron flavored' : 'Cheesy crisp, special price')),
-    kcal: it.kcal || `${Math.round(220 + ((it.price || 140) * 0.8))} kcal`,
-    carbs: it.carbs || `${Math.round(35 + (i * 4))}g`,
-    fat: it.fat || `${Math.round(14 + (i * 3))}g`,
-    protein: it.protein || `${Math.round(18 + (i * 4))}g`,
-    tag: it.tag || (it.category === 'Sweets & Prasad' ? 'Sacred Prasad' : (it.category === 'Thali & Meals' ? 'Pure Desi Ghee' : 'Full Protein'))
-  }));
+  // Map live database items into rich, responsive UI cards (memoized to eliminate mobile lag)
+  const displayItems = useMemo(() => {
+    return (menuItems || []).map((it, i) => ({
+      ...it,
+      image: resolveDishCutout(it.image || it.imageUrl, it.name, it.category),
+      subtitle: it.subtitle || (it.category === 'Thali & Meals' ? 'Rich gravy, hot rotis' : (it.category === 'Sweets & Prasad' ? 'Desi ghee, saffron flavored' : 'Cheesy crisp, special price')),
+      kcal: it.kcal || `${Math.round(220 + ((it.price || 140) * 0.8))} kcal`,
+      carbs: it.carbs || `${Math.round(35 + (i * 4))}g`,
+      fat: it.fat || `${Math.round(14 + (i * 3))}g`,
+      protein: it.protein || `${Math.round(18 + (i * 4))}g`,
+      tag: it.tag || (it.category === 'Sweets & Prasad' ? 'Sacred Prasad' : (it.category === 'Thali & Meals' ? 'Pure Desi Ghee' : 'Full Protein'))
+    }));
+  }, [menuItems]);
 
   // Dynamically compute categories from active items
-  const dynamicCategories = [
+  const dynamicCategories = useMemo(() => [
     'All',
     ...Array.from(new Set(displayItems.map(i => i.category).filter(Boolean)))
-  ];
+  ], [displayItems]);
+
   // Ensure we always have pleasant category chips
-  const categories = dynamicCategories.length > 1 ? dynamicCategories : ['All', 'Snacks', 'Thali & Meals', 'Sweets & Prasad', 'Beverages'];
+  const categories = useMemo(() => 
+    dynamicCategories.length > 1 ? dynamicCategories : ['All', 'Snacks', 'Thali & Meals', 'Sweets & Prasad', 'Beverages']
+  , [dynamicCategories]);
 
-  // Filter menu items
-  const filteredMenuItems = displayItems.filter(item => {
-    const matchesSearch = item.name?.toLowerCase().includes(menuSearch.toLowerCase()) ||
-      (item.subtitle && item.subtitle.toLowerCase().includes(menuSearch.toLowerCase())) ||
-      (item.description && item.description.toLowerCase().includes(menuSearch.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' ||
-      item.category?.toLowerCase() === selectedCategory.toLowerCase();
+  // Filter menu items (instant sub-millisecond filtering)
+  const filteredMenuItems = useMemo(() => {
+    const search = menuSearch.toLowerCase().trim();
+    const cat = selectedCategory.toLowerCase();
+    return displayItems.filter(item => {
+      const matchesSearch = !search ||
+        (item.name && item.name.toLowerCase().includes(search)) ||
+        (item.subtitle && item.subtitle.toLowerCase().includes(search)) ||
+        (item.description && item.description.toLowerCase().includes(search));
+      const matchesCategory = cat === 'all' ||
+        (item.category && item.category.toLowerCase() === cat);
 
-    return matchesSearch && matchesCategory;
-  });
+      return matchesSearch && matchesCategory;
+    });
+  }, [displayItems, menuSearch, selectedCategory]);
 
   const handleOpenDishDetail = (item) => {
     if (!item) return;
@@ -1044,49 +1073,163 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           )}
         </div>
 
-        {/* Dynamic Shops Popover */}
-        {showShopSwitcher && allShops.length > 1 && (
-          <>
+        {/* Dynamic Shops Modal (Portaled to prevent any background layout shift or document scroll height expansion) */}
+        {showShopSwitcher && allShops.length > 1 && createPortal(
+          <div
+            className={`fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 apple-overlay ${isShopClosing ? 'closing' : ''}`}
+            onClick={handleCloseShopSwitcher}
+          >
             <div
-              className="fixed inset-0 z-40 bg-black/40 transition-opacity"
-              onClick={handleCloseShopSwitcher}
-            />
-            <div className={`absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-3xl p-4 shadow-xl apple-dropdown-spring ${isShopClosing ? 'closing' : ''}`}>
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="text-xs font-black uppercase text-stone-500 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Kitchen Branch</h4>
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-xl max-h-[88vh] flex flex-col bg-white dark:bg-[#242021] border border-stone-200 dark:border-white/10 rounded-[32px] sm:rounded-[36px] shadow-2xl apple-modal-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
+            >
+              {/* Header */}
+              <div className="p-4 sm:p-5 pb-3 border-b border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-inner">
+                    <Store size={18} strokeWidth={2.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] uppercase tracking-wide truncate">
+                      Select Kitchen Branch
+                    </h3>
+                    <p className="text-[11px] font-medium text-stone-500 dark:text-zinc-400">
+                      {allShops.length} Cloud Kitchens in Vrindavan Dham
+                    </p>
+                  </div>
+                </div>
+
                 <button
                   onClick={handleCloseShopSwitcher}
-                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 flex items-center justify-center text-stone-700 dark:text-zinc-300 cursor-pointer apple-tap-target"
+                  className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 flex items-center justify-center text-stone-700 dark:text-zinc-300 cursor-pointer apple-tap-target transition-colors shrink-0"
+                  title="Close branch selector"
                 >
-                  <X size={14} strokeWidth={2.5} />
+                  <X size={15} strokeWidth={2.5} />
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto no-scrollbar">
-                {allShops.map(s => (
-                  <div
-                    key={s.id}
-                    onClick={() => {
-                      setSelectedShopId(s.id);
-                      handleCloseShopSwitcher();
-                      showToast(s.name, 'info');
-                    }}
-                    className={`p-3 rounded-2xl flex items-center justify-between gap-2.5 cursor-pointer transition-all apple-tap-target ${s.id === selectedShopId ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-md' : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-200 dark:hover:bg-white/5 border border-stone-200 dark:border-white/5'}`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-black truncate">{s.name}</p>
-                      <p className={`text-[10px] truncate mt-0.5 ${s.id === selectedShopId ? 'text-white/90 dark:text-[#1E1B1C]/80 font-semibold' : 'text-stone-500 dark:text-zinc-400'}`}>{s.address || 'Vrindavan Dham'}</p>
-                    </div>
-                    {s.id === selectedShopId && (
-                      <span className="text-[10px] font-black bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                        <Check size={11} strokeWidth={3} />
-                        <span>Active</span>
-                      </span>
+
+              {/* Integrated Search Bar inside Modal */}
+              <div className="p-3 sm:px-5 sm:py-3.5 bg-stone-50/80 dark:bg-[#1E1B1C]/80 border-b border-stone-200/60 dark:border-white/5 space-y-2">
+                <div className="relative w-full">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={shopSearch}
+                    onChange={(e) => setShopSearch(e.target.value)}
+                    placeholder="Search kitchen branch by name, area or temple..."
+                    className="w-full h-10 bg-white dark:bg-[#2D292A] border border-stone-300 dark:border-white/10 focus:border-amber-600 dark:focus:border-[#E0FF33] rounded-full pl-9 pr-9 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all shadow-inner font-medium"
+                    autoFocus
+                  />
+                  {shopSearch && (
+                    <button
+                      onClick={() => setShopSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-200 dark:bg-white/20 flex items-center justify-center text-stone-700 dark:text-white cursor-pointer active:scale-90"
+                      title="Clear search"
+                    >
+                      <X size={12} strokeWidth={2.5} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter count & quick stats */}
+                <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400 px-1">
+                  <span>
+                    {shopSearch ? (
+                      <>Found <strong className="text-stone-800 dark:text-[#E0FF33]">{filteredShops.length}</strong> of {allShops.length} kitchens</>
+                    ) : (
+                      <>Showing all <strong>{allShops.length}</strong> available kitchens</>
                     )}
+                  </span>
+                  {activeShop && (
+                    <span className="truncate max-w-[180px] text-right">
+                      Active: <strong className="text-amber-600 dark:text-[#E0FF33]">{activeShop.name}</strong>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Scrollable Shop List */}
+              <div className="p-3 sm:p-5 flex-1 overflow-y-auto no-scrollbar space-y-2.5 max-h-[380px] sm:max-h-[420px]">
+                {filteredShops.length === 0 ? (
+                  <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-400 dark:text-zinc-500">
+                      <Store size={22} />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-bold text-stone-800 dark:text-zinc-200">
+                        No kitchen found matching &ldquo;{shopSearch}&rdquo;
+                      </p>
+                      <p className="text-[11px] text-stone-500 dark:text-zinc-400 mt-0.5">
+                        Try searching with a different temple name or location
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShopSearch('')}
+                      className="px-4 py-2 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-stone-950 font-bold text-xs shadow-sm hover:scale-102 active:scale-95 transition-all cursor-pointer"
+                    >
+                      Show All Branches
+                    </button>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {filteredShops.map(s => {
+                      const isSelected = s.id === selectedShopId;
+                      const isOpen = isShopCurrentlyOpen(s);
+
+                      return (
+                        <div
+                          key={s.id}
+                          onClick={() => {
+                            setSelectedShopId(s.id);
+                            handleCloseShopSwitcher();
+                            showToast(s.name, 'info');
+                          }}
+                          className={`p-3.5 rounded-2xl flex flex-col justify-between gap-2.5 cursor-pointer transition-all apple-tap-target border relative ${
+                            isSelected
+                              ? 'bg-amber-500/10 border-amber-600 dark:bg-[#E0FF33]/10 dark:border-[#E0FF33] shadow-md ring-1 ring-amber-500/30 dark:ring-[#E0FF33]/30'
+                              : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-100 dark:hover:bg-[#282526] border-stone-200 dark:border-white/10 shadow-xs'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                                <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate">
+                                  {s.name}
+                                </p>
+                              </div>
+                              <p className="text-[11px] text-stone-500 dark:text-zinc-400 mt-1 line-clamp-1 flex items-center gap-1">
+                                <MapPin size={11} className="shrink-0 text-stone-400 dark:text-zinc-500" />
+                                <span className="truncate">{s.address || 'Sri Vrindavan Dham'}</span>
+                              </p>
+                            </div>
+
+                            {isSelected && (
+                              <span className="text-[10px] font-black bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-stone-950 px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0 shadow-xs">
+                                <Check size={11} strokeWidth={3} />
+                                <span>Active</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-stone-200/60 dark:border-white/5 text-stone-500 dark:text-zinc-400">
+                            <span className="flex items-center gap-1 font-medium">
+                              <Clock size={11} className="text-amber-500 dark:text-[#E0FF33]" />
+                              {s.estimatedWaitTime ? `${s.estimatedWaitTime} min prep` : '15-20 min prep'}
+                            </span>
+                            <span className={`font-semibold px-2 py-0.5 rounded-full ${isOpen ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
+                              {isOpen ? 'Accepting Orders' : 'Currently Closed'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
-          </>
+          </div>,
+          document.body
         )}
       </div>
 
@@ -1099,7 +1242,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center ${isSelected
+                className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
                     ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs scale-[1.02]'
                     : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
                   }`}
@@ -1216,9 +1359,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={item.id}
                 onClick={() => handleOpenDishDetail(item)}
                 style={{ animationDelay: `${idx * 40}ms` }}
-                className={`bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-amber-500/80 dark:ring-[#E0FF33]/80 shadow-md' : ''}`}
+                className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-300 customer-card-pop ${
+                  quantityInCart > 0
+                    ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+                    : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
+                }`}
               >
-                {/* Top Row: Dish Name + Optional Selection Pill + Outline Heart Button */}
+                {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
                 <div className="flex justify-between items-start z-10 gap-2">
                   <div className="max-w-[62%]">
                     {item.isCombo && (
@@ -1258,16 +1405,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
                 <div className="mt-3 sm:mt-4 z-10">
-                  <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-                    <span className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-white font-['Outfit']">
-                      ₹{item.price}
-                    </span>
-                    {item.originalPrice && (
-                      <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
-                        ₹{item.originalPrice}
-                      </span>
-                    )}
-                  </div>
+                  {(() => {
+                    const activePrice = quantityInCart > 0 ? item.price * quantityInCart : item.price;
+                    const hasDiscount = Boolean(item.originalPrice && Number(item.originalPrice) > Number(item.price));
+                    const activeOriginalPrice = hasDiscount 
+                      ? (quantityInCart > 0 ? item.originalPrice * quantityInCart : item.originalPrice)
+                      : null;
+
+                    return (
+                      <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
+                        <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
+                          quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
+                        }`}>
+                          ₹{activePrice}
+                        </span>
+                        {hasDiscount && (
+                          <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
+                            ₹{activeOriginalPrice}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {quantityInCart === 0 ? (
                     <button
@@ -1276,7 +1435,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         addToCart(item);
                         showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
                       }}
-                      className="bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4.5 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95"
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
                     >
                       <span>Order Now</span>
                       <ChevronRight size={14} strokeWidth={3} />
@@ -1284,7 +1444,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] text-white rounded-full p-1 shadow-md border border-white/10 select-none animate-scale-up"
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className="h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
                     >
                       <button
                         type="button"
@@ -1297,17 +1458,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             showToast(`${item.name} (${quantityInCart - 1})`, 'info', `₹${item.price * (quantityInCart - 1)}`);
                           }
                         }}
-                        className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center transition-all cursor-pointer"
+                        onTouchStart={(e) => e.stopPropagation()}
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-800 dark:bg-white/10 hover:bg-stone-700 dark:hover:bg-white/20 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
                         title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
+                        aria-label="Decrease quantity"
                       >
                         {quantityInCart === 1 ? (
-                          <Trash2 size={13} strokeWidth={2.5} className="text-red-400" />
+                          <Trash2 size={15} strokeWidth={2.5} className="text-red-400" />
                         ) : (
-                          <Minus size={13} strokeWidth={2.5} className="text-white" />
+                          <Minus size={15} strokeWidth={3} className="text-white" />
                         )}
                       </button>
 
-                      <span className="px-2.5 text-xs sm:text-sm font-bold text-white dark:text-[#E0FF33] font-['Outfit'] min-w-[20px] text-center select-none">
+                      <span className="px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none">
                         {quantityInCart}
                       </span>
 
@@ -1318,10 +1481,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           addToCart(item);
                           showToast(`+1 ${item.name}`, 'success', `₹${item.price * (quantityInCart + 1)}`);
                         }}
-                        className="w-7 h-7 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] active:scale-90 flex items-center justify-center transition-all cursor-pointer shadow-sm text-white dark:text-stone-950"
+                        onTouchStart={(e) => e.stopPropagation()}
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
                         title="Add another"
+                        aria-label="Increase quantity"
                       >
-                        <Plus size={14} strokeWidth={3.5} className="text-white dark:text-stone-950 stroke-current" />
+                        <Plus size={16} strokeWidth={3.5} className="text-white dark:text-stone-950 stroke-current" />
                       </button>
                     </div>
                   )}
@@ -1410,8 +1575,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
-                    <p className="text-xs text-amber-700 dark:text-[#E0FF33] font-bold truncate tracking-wide">
-                      Vrinda Prasad Basket
+                    <p className="hidden sm:block text-xs text-amber-700 dark:text-[#E0FF33] font-bold truncate tracking-wide">
+                      {activeShop?.name || 'Vrinda Prasad'} Basket
                     </p>
                   </div>
                 </div>

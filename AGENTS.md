@@ -18,3 +18,10 @@
 
 ### Rule [GPU Budget Guard]:
 "Avoid continuous looping CSS animations (animate-pulse, infinite keyframe loops, dynamic blur filters) on mobile viewports (max-width: 768px) to ensure 60fps responsiveness and zero thermal throttling on all phone segments."
+
+[Portal & Zero-Shift Modal Invariant]:
+"All full-screen dialogs, branch switchers, and dropdown sheets must be rendered using createPortal(..., document.body) with fixed coordinates, and html must maintain scrollbar-gutter: stable; to guarantee zero Cumulative Layout Shift (CLS), zero sibling margin pollution, and zero background jumps on open/close across all devices."
+
+[Mobile Stepper Ergonomics & Gesture Isolation]:
+"All quantity steppers and inline action bars on food cards must maintain a minimum 40px touch height (h-10 sm:h-11), minimum 36px interactive button targets with apple-tap-target, touch-manipulation, and must bind onTouchStart={(e) => e.stopPropagation()} alongside onClick to strictly isolate stepper events from parent card click gestures."
+

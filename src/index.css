@@ -91,6 +91,11 @@
     touch-action: manipulation;
   }
 
+  html {
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
+
   html,
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Outfit", system-ui, sans-serif;
@@ -98,7 +103,6 @@
     min-height: 100%;
     width: 100%;
     overflow-x: hidden;
-    overflow-y: auto;
     color: var(--text-primary);
     -webkit-overflow-scrolling: touch;
   }
