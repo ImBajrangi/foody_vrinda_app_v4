@@ -32,6 +32,94 @@ function isTableError(error) {
     (hint.includes('relation') && hint.includes('does not exist'));
 }
 
+// Track tables blocked by RLS / 403 Forbidden permissions to prevent continuous network spam and console errors
+const FORBIDDEN_WRITE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooldown before retry
+const _forbiddenWriteTables = new Map();
+
+export function isTableWriteForbidden(tableName) {
+  // Check in-memory map first
+  const last403Mem = _forbiddenWriteTables.get(tableName);
+  if (last403Mem) {
+    if (Date.now() - last403Mem < FORBIDDEN_WRITE_COOLDOWN_MS) {
+      return true;
+    }
+    _forbiddenWriteTables.delete(tableName);
+  }
+
+  // Check sessionStorage for cross-component / refresh persistence
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const stored = sessionStorage.getItem(`foody_forbidden_write_${tableName}`);
+      if (stored) {
+        const timestamp = Number(stored);
+        if (Date.now() - timestamp < FORBIDDEN_WRITE_COOLDOWN_MS) {
+          _forbiddenWriteTables.set(tableName, timestamp);
+          return true;
+        }
+        sessionStorage.removeItem(`foody_forbidden_write_${tableName}`);
+      }
+    }
+  } catch (_) { }
+
+  return false;
+}
+
+export function markTableWriteForbidden(tableName) {
+  const now = Date.now();
+  _forbiddenWriteTables.set(tableName, now);
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.setItem(`foody_forbidden_write_${tableName}`, String(now));
+    }
+  } catch (_) { }
+}
+
+export function resetForbiddenTables() {
+  _forbiddenWriteTables.clear();
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('foody_forbidden_write_')) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    }
+  } catch (_) { }
+}
+
+export function isForbiddenError(error) {
+  if (!error) return false;
+  const status = Number(error.status || error.statusCode || 0);
+  const code = String(error.code || '');
+  const msg = String(error.message || '').toLowerCase();
+  const details = String(error.details || '').toLowerCase();
+
+  return (
+    status === 403 ||
+    status === 401 ||
+    code === '42501' || // PostgreSQL insufficient privilege
+    code === 'PGRST301' ||
+    msg.includes('permission denied') ||
+    msg.includes('row-level security') ||
+    msg.includes('not authorized') ||
+    msg.includes('403') ||
+    details.includes('permission denied') ||
+    details.includes('row-level security')
+  );
+}
+
+// Reset forbidden tables when user authenticates or token changes
+if (typeof supabase !== 'undefined' && supabase?.auth) {
+  try {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        resetForbiddenTables();
+      }
+    });
+  } catch (_) { }
+}
+
 // Seed data constants for zero-latency local fallback & instant hydration
 export const SEED_SHOPS = [
   {
@@ -2121,12 +2209,17 @@ export async function deleteCloudShop(shopId) {
   try {
     // 1. Reassign foreign key relations before deleting shop from database to satisfy Postgres constraints
     try {
-      await supabase.from('foody_menus').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      await supabase.from('foody_orders').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_menus')) await supabase.from('foody_menus').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_orders')) await supabase.from('foody_orders').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_logged_users')) await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_users')) await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
     } catch (fkErr) {
-      console.warn("Foreign key reassign note:", fkErr);
+      if (isForbiddenError(fkErr)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn("Foreign key reassign note:", fkErr);
+      }
     }
 
     // 2. Perform hard delete on foody_shops
@@ -2683,18 +2776,44 @@ export async function recordLoggedInUser(userProfile) {
   dispatchSafeEvent('foody_users_changed', { users: next, updatedUser: loggedUsersPayload });
 
   // 2. Persist dual writes to Supabase foody_logged_users & foody_users
-  try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload, { onConflict: 'id' });
-    if (err1) console.warn('recordLoggedInUser logged_users notice:', err1.message);
-  } catch (e) {
-    console.warn('recordLoggedInUser logged_users notice:', e);
+  if (!isTableWriteForbidden('foody_logged_users')) {
+    try {
+      const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload, { onConflict: 'id' });
+      if (err1) {
+        if (isForbiddenError(err1)) {
+          markTableWriteForbidden('foody_logged_users');
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('recordLoggedInUser logged_users notice:', err1.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('recordLoggedInUser logged_users notice:', e);
+      }
+    }
   }
 
-  try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(standardUsersPayload, { onConflict: 'id' });
-    if (err2) console.warn('recordLoggedInUser foody_users notice:', err2.message);
-  } catch (e) {
-    console.warn('recordLoggedInUser foody_users notice:', e);
+  if (!isTableWriteForbidden('foody_users')) {
+    try {
+      const { error: err2 } = await supabase.from('foody_users').upsert(standardUsersPayload, { onConflict: 'id' });
+      if (err2) {
+        if (isForbiddenError(err2)) {
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('recordLoggedInUser foody_users notice:', err2.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('recordLoggedInUser foody_users notice:', e);
+      }
+    }
   }
 
   return loggedUsersPayload;
@@ -2759,18 +2878,44 @@ export async function createCloudUser(userData) {
     updated_at: nowIso
   };
 
-  try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedDbPayload, { onConflict: 'id' });
-    if (err1) console.warn('createCloudUser logged_users notice:', err1.message);
-  } catch (e) {
-    console.warn('createCloudUser logged_users notice:', e);
+  if (!isTableWriteForbidden('foody_logged_users')) {
+    try {
+      const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedDbPayload, { onConflict: 'id' });
+      if (err1) {
+        if (isForbiddenError(err1)) {
+          markTableWriteForbidden('foody_logged_users');
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('createCloudUser logged_users notice:', err1.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('createCloudUser logged_users notice:', e);
+      }
+    }
   }
 
-  try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(standardDbPayload, { onConflict: 'id' });
-    if (err2) console.warn('createCloudUser foody_users notice:', err2.message);
-  } catch (e) {
-    console.warn('createCloudUser foody_users notice:', e);
+  if (!isTableWriteForbidden('foody_users')) {
+    try {
+      const { error: err2 } = await supabase.from('foody_users').upsert(standardDbPayload, { onConflict: 'id' });
+      if (err2) {
+        if (isForbiddenError(err2)) {
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('createCloudUser foody_users notice:', err2.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('createCloudUser foody_users notice:', e);
+      }
+    }
   }
 
   return newUser;
@@ -2892,18 +3037,44 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     updated_at: nowIso
   };
 
-  try {
-    const { error: err1 } = await supabase.from('foody_logged_users').upsert(fullLoggedPayload, { onConflict: 'id' });
-    if (err1) console.warn('updateCloudUser logged_users note:', err1.message);
-  } catch (e) {
-    console.warn('updateCloudUser logged_users note:', e);
+  if (!isTableWriteForbidden('foody_logged_users')) {
+    try {
+      const { error: err1 } = await supabase.from('foody_logged_users').upsert(fullLoggedPayload, { onConflict: 'id' });
+      if (err1) {
+        if (isForbiddenError(err1)) {
+          markTableWriteForbidden('foody_logged_users');
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('updateCloudUser logged_users note:', err1.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('updateCloudUser logged_users note:', e);
+      }
+    }
   }
 
-  try {
-    const { error: err2 } = await supabase.from('foody_users').upsert(fullStandardPayload, { onConflict: 'id' });
-    if (err2) console.warn('updateCloudUser foody_users note:', err2.message);
-  } catch (e) {
-    console.warn('updateCloudUser foody_users note:', e);
+  if (!isTableWriteForbidden('foody_users')) {
+    try {
+      const { error: err2 } = await supabase.from('foody_users').upsert(fullStandardPayload, { onConflict: 'id' });
+      if (err2) {
+        if (isForbiddenError(err2)) {
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('updateCloudUser foody_users note:', err2.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_users');
+      } else {
+        console.warn('updateCloudUser foody_users note:', e);
+      }
+    }
   }
 
   return updatedUserObj;
@@ -2930,15 +3101,41 @@ export async function deleteCloudUser(userId) {
   setCachedItem('users', 'all', updatedList);
   dispatchSafeEvent('foody_users_changed', { users: updatedList, deletedUserId: userId });
 
-  try {
-    const { error } = await supabase.from('foody_logged_users').delete().eq('id', userId);
-    if (error) console.warn('deleteCloudUser logged_users note:', error.message);
-  } catch (e) { }
+  if (!isTableWriteForbidden('foody_logged_users')) {
+    try {
+      const { error } = await supabase.from('foody_logged_users').delete().eq('id', userId);
+      if (error) {
+        if (isForbiddenError(error)) {
+          markTableWriteForbidden('foody_logged_users');
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('deleteCloudUser logged_users note:', error.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
+      }
+    }
+  }
 
-  try {
-    const { error } = await supabase.from('foody_users').delete().eq('id', userId);
-    if (error) console.warn('deleteCloudUser foody_users note:', error.message);
-  } catch (e) { }
+  if (!isTableWriteForbidden('foody_users')) {
+    try {
+      const { error } = await supabase.from('foody_users').delete().eq('id', userId);
+      if (error) {
+        if (isForbiddenError(error)) {
+          markTableWriteForbidden('foody_users');
+        } else {
+          console.warn('deleteCloudUser foody_users note:', error.message);
+        }
+      }
+    } catch (e) {
+      if (isForbiddenError(e)) {
+        markTableWriteForbidden('foody_users');
+      }
+    }
+  }
 
   return true;
 }
@@ -3534,6 +3731,15 @@ ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_avatar TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cooking_notes TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cash_status TEXT DEFAULT 'pending';
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp TEXT;
+
+DO $$ BEGIN
+    ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_status_check;
+    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_status_check CHECK (status IN ('new', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled', 'returned'));
+    ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_cash_status_check;
+    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_cash_status_check CHECK (cash_status IN ('none', 'pending', 'collected', 'settled'));
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 DROP TRIGGER IF EXISTS trg_foody_orders_updated_at ON public.foody_orders;
 CREATE TRIGGER trg_foody_orders_updated_at
@@ -3596,6 +3802,10 @@ CREATE TABLE IF NOT EXISTS public.foody_logged_users (
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT true;
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'on_duty';
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb;
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS trust_score NUMERIC DEFAULT 750;
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS cibil_score NUMERIC DEFAULT 750;
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS cash_in_hand NUMERIC DEFAULT 0;
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS unsettled_debt NUMERIC DEFAULT 0;
 
 DROP TRIGGER IF EXISTS trg_foody_logged_users_updated_at ON public.foody_logged_users;
 CREATE TRIGGER trg_foody_logged_users_updated_at
@@ -3628,6 +3838,10 @@ ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAUL
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'on_duty';
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb;
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS trust_score NUMERIC DEFAULT 750;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS cibil_score NUMERIC DEFAULT 750;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS cash_in_hand NUMERIC DEFAULT 0;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS unsettled_debt NUMERIC DEFAULT 0;
 
 -- Pre-normalize invalid or null roles before applying foreign keys
 UPDATE public.foody_users SET role = 'customer' WHERE role IS NULL OR role NOT IN (SELECT id FROM public.foody_roles);
@@ -3678,7 +3892,44 @@ CREATE TABLE IF NOT EXISTS public.foody_notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. PERFORMANCE INDEXES
+-- 7. FOODY OFFERS TABLE
+CREATE TABLE IF NOT EXISTS public.foody_offers (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL,
+    title TEXT NOT NULL,
+    subtitle TEXT,
+    discount_type TEXT DEFAULT 'flat' CHECK (discount_type IN ('flat', 'percent')),
+    discount_value NUMERIC NOT NULL DEFAULT 0,
+    min_order_amount NUMERIC DEFAULT 0,
+    max_discount NUMERIC DEFAULT 0,
+    shop_id TEXT DEFAULT 'all',
+    is_active BOOLEAN DEFAULT true,
+    tag TEXT DEFAULT 'Special Offer',
+    valid_until TIMESTAMPTZ DEFAULT '2028-12-31T23:59:59.000Z',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS trg_foody_offers_updated_at ON public.foody_offers;
+CREATE TRIGGER trg_foody_offers_updated_at
+    BEFORE UPDATE ON public.foody_offers
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- 8. FOODY CASH TRANSACTIONS TABLE (Fleet Sarathi & Cash Audit)
+CREATE TABLE IF NOT EXISTS public.foody_cash_transactions (
+    id TEXT PRIMARY KEY,
+    order_id TEXT,
+    shop_id TEXT DEFAULT 'shop-vrinda-main',
+    amount NUMERIC NOT NULL DEFAULT 0,
+    type TEXT NOT NULL CHECK (type IN ('collection', 'settlement', 'refund')),
+    user_id TEXT,
+    user_name TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. PERFORMANCE INDEXES
 CREATE INDEX IF NOT EXISTS idx_orders_shop_status ON public.foody_orders (shop_id, status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.foody_orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.foody_orders (user_id);
@@ -3701,8 +3952,11 @@ CREATE INDEX IF NOT EXISTS idx_users_shop_id ON public.foody_users (shop_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.foody_notifications (user_id, read);
 CREATE INDEX IF NOT EXISTS idx_notifications_shop_role ON public.foody_notifications (shop_id, role);
 CREATE INDEX IF NOT EXISTS idx_reviews_shop ON public.foody_reviews (shop_id);
+CREATE INDEX IF NOT EXISTS idx_offers_code ON public.foody_offers (code);
+CREATE INDEX IF NOT EXISTS idx_cash_tx_order ON public.foody_cash_transactions (order_id);
+CREATE INDEX IF NOT EXISTS idx_cash_tx_user ON public.foody_cash_transactions (user_id);
 
--- 8. REPLICA IDENTITY (Allows 0-Egress Full-Row Realtime Streaming)
+-- 10. REPLICA IDENTITY (Allows 0-Egress Full-Row Realtime Streaming)
 ALTER TABLE public.foody_shops REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_menus REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_orders REPLICA IDENTITY FULL;
@@ -3710,8 +3964,10 @@ ALTER TABLE public.foody_logged_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_notifications REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_roles REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_offers REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_cash_transactions REPLICA IDENTITY FULL;
 
--- 9. ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
+-- 11. ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
 ALTER TABLE public.foody_roles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access roles" ON public.foody_roles;
 CREATE POLICY "Public access roles" ON public.foody_roles FOR ALL USING (true) WITH CHECK (true);
@@ -3734,6 +3990,8 @@ CREATE POLICY "Public access logged users" ON public.foody_logged_users FOR ALL 
 
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access users" ON public.foody_users;
+DROP POLICY IF EXISTS "Public read users" ON public.foody_users;
+DROP POLICY IF EXISTS "Public write users" ON public.foody_users;
 CREATE POLICY "Public access users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE public.foody_reviews ENABLE ROW LEVEL SECURITY;
@@ -3744,7 +4002,15 @@ ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access notifications" ON public.foody_notifications;
 CREATE POLICY "Public access notifications" ON public.foody_notifications FOR ALL USING (true) WITH CHECK (true);
 
--- 10. REALTIME STREAMING PUBLICATION (Idempotent)
+ALTER TABLE public.foody_offers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access offers" ON public.foody_offers;
+CREATE POLICY "Public access offers" ON public.foody_offers FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_cash_transactions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access cash transactions" ON public.foody_cash_transactions;
+CREATE POLICY "Public access cash transactions" ON public.foody_cash_transactions FOR ALL USING (true) WITH CHECK (true);
+
+-- 12. REALTIME STREAMING PUBLICATION (Idempotent)
 DO $$ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_roles; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops; EXCEPTION WHEN duplicate_object THEN NULL; END;
@@ -3754,6 +4020,8 @@ DO $$ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_reviews; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_offers; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_transactions; EXCEPTION WHEN duplicate_object THEN NULL; END;
 END $$;
 
 NOTIFY pgrst, 'reload schema';

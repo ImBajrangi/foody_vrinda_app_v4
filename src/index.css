@@ -1764,23 +1764,45 @@
   }
 }
 
-/* 3. Apple Bottom Sheet (Mobile Ergonomics) */
+/* 3. Native-Grade Bottom Sheet Standard (Zero Snap, Fluid Continuity) */
 .apple-sheet-spring {
-  animation: appleSheetSpringIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
-.apple-sheet-spring.closing {
-  animation: appleSheetSpringOut 0.20s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-  pointer-events: none;
+@media (min-width: 640px) {
+  .apple-sheet-spring {
+    animation: appleSheetSpringIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
-.sheet-dragging {
+@media (max-width: 639px) {
+  .apple-sheet-spring {
+    animation: appleMobileSheetIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+.sheet-dragging,
+.sheet-dismissing {
   animation: none !important;
   touch-action: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+
+.sheet-dragging {
   transition: none !important;
+}
+
+@keyframes appleMobileSheetIn {
+  0% {
+    opacity: 0.5;
+    transform: translate3d(0, 100%, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes appleSheetSpringIn {
@@ -1797,18 +1819,6 @@
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes appleSheetSpringOut {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(105%) scale(0.96);
   }
 }
 
@@ -2232,33 +2242,85 @@ path.casing-parabolic-dots,
   animation-delay: 160ms;
 }
 
-/* ===== CUSTOMER MENU CARD STAGGER POP-IN ===== */
+/* ===== CUSTOMER MENU CARD STAGGER POP-IN (Desktop Only) ===== */
 
-@keyframes customerCardPop {
-  0% {
-    opacity: 0;
-    transform: translateY(24px) scale(0.94);
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  @keyframes customerCardPop {
+    0% {
+      opacity: 0;
+      transform: translateY(18px) scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
-  60% {
-    opacity: 1;
-    transform: translateY(-4px) scale(1.01);
+  .customer-card-pop {
+    animation: customerCardPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.12s ease-out;
   }
 
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  .customer-card-pop:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
   }
 }
 
-.customer-card-pop {
-  animation: customerCardPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.12s ease-out;
-}
+/* Mobile & Touch Devices: Instant Zero-Lag Rendering (No Sticky Hovers, No Unnecessary Animations) */
+@media (hover: none) or (pointer: coarse) or (max-width: 768px) {
+  /* 1. Neutralize sticky hover transforms and hovering states on touch */
+  button:hover:not(:active),
+  a:hover:not(:active),
+  [role="button"]:hover:not(:active),
+  .customer-card-pop:hover:not(:active),
+  .apple-tap-target:hover:not(:active),
+  .apple-card:hover:not(:active),
+  .dev-stat-card:hover:not(:active) {
+    transform: none !important;
+    filter: none !important;
+  }
 
-.customer-card-pop:hover {
-  transform: translateY(-4px) scale(1.015);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  /* 2. Tactile Touch Down (:active) for Instantaneous Physical Feel */
+  button:active,
+  [role="button"]:active,
+  .apple-tap-target:active,
+  .customer-card-pop:active {
+    transform: scale(0.975) !important;
+    transition: transform 0.05s ease-out !important;
+  }
+
+  /* 3. Strip All Unnecessary Continuous / Looping GPU Animations on Mobile */
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .dev-hero-gradient,
+  .dev-live-dot,
+  .dev-stat-card,
+  .dev-activity-row,
+  .specular-shimmer-text {
+    animation: none !important;
+  }
+
+  /* Specular shimmer text fallback: clear, sharp static neon chartreuse */
+  .specular-shimmer-text {
+    background: none !important;
+    -webkit-text-fill-color: #E0FF33 !important;
+    color: #E0FF33 !important;
+  }
+
+  /* 4. Instant Card Rendering (Zero Stagger Latency) */
+  .customer-card-pop {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 5. Mobile GPU Efficiency: Avoid Heavy Real-Time Backdrop Blurs in WebViews */
+  .apple-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
 /* ========================================================================

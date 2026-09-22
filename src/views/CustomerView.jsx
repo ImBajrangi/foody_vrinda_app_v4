@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useBackHandler } from '../hooks/useBackHandler';
@@ -283,71 +283,54 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearTimeout(timer);
   }, [checkoutAddress]);
 
-  const closeDishTimeoutRef = useRef(null);
-  const closeCartTimeoutRef = useRef(null);
-
-  const handleCloseDishDetail = (isImmediate = false) => {
-    if (closeDishTimeoutRef.current) {
-      clearTimeout(closeDishTimeoutRef.current);
-      closeDishTimeoutRef.current = null;
-    }
-    if (isImmediate === true) {
-      setSelectedDishDetails(null);
-      setIsDetailClosing(false);
-      return;
-    }
-    if (isDetailClosing) return;
-    setIsDetailClosing(true);
-    if (detailSheetRef.current) {
-      detailSheetRef.current.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.18s ease-out';
-      detailSheetRef.current.style.transform = 'translate3d(0, 105%, 0)';
-      detailSheetRef.current.style.opacity = '0';
-    }
-    closeDishTimeoutRef.current = setTimeout(() => {
-      setSelectedDishDetails(null);
-      setIsDetailClosing(false);
-      closeDishTimeoutRef.current = null;
-    }, 190);
-  };
-
-  const handleCloseCartDrawer = (isImmediate = false) => {
-    if (closeCartTimeoutRef.current) {
-      clearTimeout(closeCartTimeoutRef.current);
-      closeCartTimeoutRef.current = null;
-    }
-    if (isImmediate === true) {
-      setShowCartDrawer(false);
-      setIsCartClosing(false);
-      return;
-    }
-    if (isCartClosing) return;
-    setIsCartClosing(true);
-    if (cartSheetRef.current) {
-      cartSheetRef.current.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.18s ease-out';
-      cartSheetRef.current.style.transform = 'translate3d(0, 105%, 0)';
-      cartSheetRef.current.style.opacity = '0';
-    }
-    closeCartTimeoutRef.current = setTimeout(() => {
-      setShowCartDrawer(false);
-      setIsCartClosing(false);
-      closeCartTimeoutRef.current = null;
-    }, 190);
-  };
-
-  // 120fps ultra-fluid gesture hooks (Vrinda Map Modal Standard)
+  // 120fps ultra-fluid native gesture hooks (Apple & Android predictive standard)
   const {
     sheetRef: detailSheetRef,
+    overlayRef: detailOverlayRef,
+    dismiss: dismissDetailSheet,
     sheetStyle: detailSheetStyle,
     handleProps: detailHandleProps,
     isDragging: isDraggingDetail
-  } = useBottomSheetDrag(handleCloseDishDetail, 45);
+  } = useBottomSheetDrag((isImmediate) => {
+    setSelectedDishDetails(null);
+    setIsDetailClosing(false);
+  }, 45);
 
   const {
     sheetRef: cartSheetRef,
+    overlayRef: cartOverlayRef,
+    dismiss: dismissCartSheet,
     sheetStyle: cartSheetStyle,
     handleProps: cartHandleProps,
     isDragging: isDraggingCart
-  } = useBottomSheetDrag(handleCloseCartDrawer, 45);
+  } = useBottomSheetDrag((isImmediate) => {
+    setShowCartDrawer(false);
+    setIsCartClosing(false);
+  }, 45);
+
+  const handleCloseDishDetail = useCallback((isImmediate = false) => {
+    if (isImmediate === true) {
+      setSelectedDishDetails(null);
+      setIsDetailClosing(false);
+      return;
+    }
+    dismissDetailSheet(() => {
+      setSelectedDishDetails(null);
+      setIsDetailClosing(false);
+    });
+  }, [dismissDetailSheet]);
+
+  const handleCloseCartDrawer = useCallback((isImmediate = false) => {
+    if (isImmediate === true) {
+      setShowCartDrawer(false);
+      setIsCartClosing(false);
+      return;
+    }
+    dismissCartSheet(() => {
+      setShowCartDrawer(false);
+      setIsCartClosing(false);
+    });
+  }, [dismissCartSheet]);
 
   const handleCloseShopSwitcher = () => {
     if (isShopClosing) return;
@@ -912,13 +895,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const handleOpenDishDetail = (item) => {
     if (!item) return;
-    // Strict ghost-click guard against delayed synthetic clicks after gesture dismiss
-    if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < 450) return;
-    if (isDetailClosing) return;
-    if (closeDishTimeoutRef.current) {
-      clearTimeout(closeDishTimeoutRef.current);
-      closeDishTimeoutRef.current = null;
-    }
     setIsDetailClosing(false);
     setSelectedDishDetails(item);
     const existingInCart = cart.find(c => c.id === item.id);
@@ -1238,14 +1214,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             return (
               <div
                 key={item.id}
-                onClick={(e) => {
-                  if (Date.now() - (window.__foody_last_sheet_dismiss || 0) < 450) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                  }
-                  handleOpenDishDetail(item);
-                }}
+                onClick={() => handleOpenDishDetail(item)}
                 style={{ animationDelay: `${idx * 40}ms` }}
                 className={`bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop ${quantityInCart > 0 ? 'ring-2 ring-amber-500/80 dark:ring-[#E0FF33]/80 shadow-md' : ''}`}
               >
@@ -1277,7 +1246,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <button
                     onClick={(e) => toggleFavorite(item.id, e)}
-                    className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target hover:scale-105 active:scale-95"
+                    className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target sm:hover:scale-105 active:scale-95"
                     title="Favorite"
                   >
                     <Heart
@@ -1465,18 +1434,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       )}
 
-      {/* 6. PRODUCT DETAIL MODAL / SHEET (Flawlessly Responsive: Mobile Sheet & Desktop 2-Column with Pure Hardware Transforms) */}
+      {/* 6. PRODUCT DETAIL MODAL / SHEET (Industry Standard Native Sheet: Fluid Drag & Luxury Aesthetic) */}
       {selectedDishDetails && (
         <div
+          ref={detailOverlayRef}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseDishDetail();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isDetailClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isDetailClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={detailSheetRef}
             style={detailSheetStyle}
-            className={`bg-[#1E1B1C] w-full max-w-[440px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[40px] md:p-6 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border border-white/10 relative transition-transform duration-200 apple-sheet-spring ${isDetailClosing ? 'closing' : ''} ${isDraggingDetail ? 'sheet-dragging' : ''}`}
+            className={`bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-white/10 relative apple-sheet-spring ${isDraggingDetail ? 'sheet-dragging' : ''}`}
           >
 
             {/* Close Button (Desktop Only) */}
@@ -1493,23 +1463,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <X size={17} />
             </button>
 
-            {/* LEFT / TOP CONTAINER (Ivory Cream `#FAF5EB` - Showcase Card) */}
+            {/* LEFT / TOP HERO SECTION: Showcase Image + Interactive Drag Zone */}
             <div
-              className="w-full md:w-[46%] lg:w-[44%] bg-[#FAF5EB] md:rounded-[30px] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 select-none md:select-auto"
+              className="w-full md:w-[46%] lg:w-[44%] bg-[#242021] md:bg-[#1A1819] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 border-b md:border-b-0 md:border-r border-white/5"
             >
               {/* Drag Handle Bar (Interactive Drag Down Indicator - Mobile Only) */}
               <div
                 {...detailHandleProps}
-                className="w-full py-2.5 -mt-2 mb-1 flex items-center justify-center md:hidden cursor-grab active:cursor-grabbing touch-none select-none"
-                title="Drag down to close"
+                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center md:hidden cursor-grab active:cursor-grabbing touch-none select-none"
+                title="Swipe down to dismiss"
               >
-                <div className="w-12 h-1.5 bg-zinc-400/80 rounded-full pointer-events-none" />
+                <div className="w-12 h-1.5 bg-white/20 hover:bg-white/30 rounded-full pointer-events-none transition-colors" />
               </div>
 
-              {/* Top Navigation Bar: Back (Mobile), Share, Favorite */}
-              <div
-                className="flex justify-between items-center z-30 mb-1.5 sm:mb-3 relative pointer-events-auto touch-auto"
-              >
+              {/* Top Navigation Row on Mobile (Back, Share, Favorite) */}
+              <div className="flex justify-between items-center z-30 mb-2 relative pointer-events-auto">
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
@@ -1517,10 +1485,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     handleCloseDishDetail();
                   }}
-                  className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer font-black md:hidden relative z-50 pointer-events-auto select-none"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer font-black md:hidden relative z-50 pointer-events-auto"
                   title="Go Back"
                 >
-                  <ChevronLeft size={22} strokeWidth={2.5} />
+                  <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
 
                 <div className="flex items-center gap-2 ml-auto relative z-50 pointer-events-auto">
@@ -1553,10 +1521,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         }
                       }
                     }}
-                    className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center text-zinc-800 transition-all cursor-pointer relative z-50 pointer-events-auto select-none"
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer relative z-50 pointer-events-auto"
                     title="Share"
                   >
-                    <Share2 size={17} />
+                    <Share2 size={16} />
                   </button>
 
                   <button
@@ -1568,40 +1536,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       toggleFavorite(selectedDishDetails.id);
                       showToast(isNowFav ? "Added to Favorites" : "Removed from Favorites", "info");
                     }}
-                    className="w-10 h-10 rounded-full bg-[#EDE6DC] hover:bg-[#E2D8CA] active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50 pointer-events-auto select-none"
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50 pointer-events-auto"
                     title="Favorite"
                   >
                     <Heart
-                      size={18}
-                      className={favorites.includes(selectedDishDetails.id) ? 'text-red-500 fill-red-500' : 'text-zinc-800'}
+                      size={17}
+                      className={favorites.includes(selectedDishDetails.id) ? 'text-red-500 fill-red-500' : 'text-zinc-300'}
                     />
                   </button>
                 </div>
               </div>
 
-              {/* Title & Micro-Info Pills (Mobile Only) */}
-              <div className="z-10 md:hidden mb-1 pointer-events-none">
-                <h2 className="text-xl sm:text-2xl font-black text-[#1E1B1C] tracking-tight leading-tight line-clamp-2 font-['Outfit']">
-                  {selectedDishDetails.name}
-                </h2>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <p className="text-[#8B5E3C] text-[11px] sm:text-xs font-bold uppercase tracking-wider">
-                    {selectedDishDetails.category || "Vrinda Meal"}
-                  </p>
-                  <span className="text-[#8B5E3C]/40 text-xs">•</span>
-                  <p className="text-[#854D0E] text-[11px] sm:text-xs font-bold flex items-center gap-1">
-                    <span>Nutrition</span>
-                    <span className="w-3.5 h-3.5 rounded-full border border-[#A16207] flex items-center justify-center text-[8px] font-black leading-none">i</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Hero Cutout Image & Secondary Swipe Drag Area */}
+              {/* Hero Image Showcase */}
               <div
                 {...detailHandleProps}
-                className="relative py-1 sm:py-3 my-auto flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[190px] md:min-h-[240px] cursor-grab active:cursor-grabbing touch-none select-none"
+                className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] cursor-grab active:cursor-grabbing touch-none select-none"
               >
-                <div className="w-36 h-32 xs:w-44 xs:h-36 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
+                {/* Soft ambient plate glow */}
+                <div className="absolute inset-0 bg-radial from-[#E0FF33]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
+
+                <div className="w-40 h-36 xs:w-48 xs:h-40 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
                   <img
                     src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
                     alt={selectedDishDetails.name}
@@ -1609,87 +1563,74 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       e.target.onerror = null;
                       e.target.src = resolveDishCutout('', selectedDishDetails.name, selectedDishDetails.category);
                     }}
-                    className="w-full h-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                    className="w-full h-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.5)] select-none pointer-events-none"
                     loading="lazy"
                     decoding="async"
                   />
                 </div>
 
                 {/* Floating Tag Pill */}
-                <div className="absolute bottom-0 left-0 sm:bottom-2 sm:left-2 z-10 flex items-center pointer-events-none">
-                  <span className="bg-[#FDE7D4] text-[#B25010] text-[10px] sm:text-xs font-black px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-md border border-[#FDBA74]/40">
-                    {selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : 'Full Protein')}
+                <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
+                  <span className="bg-[#282526] text-[#E0FF33] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-[#E0FF33]/20 flex items-center gap-1">
+                    <Sparkles size={11} className="shrink-0" />
+                    <span>{selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik')}</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT / BOTTOM CONTAINER (Obsidian `#1E1B1C` - Content & Action Section) */}
+            {/* RIGHT / BOTTOM CONTENT & ACTION DOCK */}
             <div className="w-full md:w-[54%] lg:w-[56%] bg-[#1E1B1C] text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
-
+              
               {/* Scrollable Information Body */}
-              <div className="overflow-y-auto flex-1 p-4 sm:p-6 md:p-2 md:pl-6 space-y-3 sm:space-y-4 no-scrollbar">
-                {/* Desktop Dish Title & Category Header */}
-                <div className="hidden md:block pr-8">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[#E0FF33] text-xs font-bold uppercase tracking-wider bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full">
+              <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
+                
+                {/* Dish Header: Category + Live In-Basket pill */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[#E0FF33] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20">
                       {selectedDishDetails.category || "Vrinda Meal"}
                     </span>
                     <span className="text-zinc-500 text-xs">•</span>
                     <span className="text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
-                    {cart.find(c => c.id === selectedDishDetails.id)?.quantity > 0 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[11px] font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        {cart.find(c => c.id === selectedDishDetails.id).quantity} in basket
+                  </div>
+
+                  {cart.find(c => c.id === selectedDishDetails.id)?.quantity > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[11px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {cart.find(c => c.id === selectedDishDetails.id).quantity} in basket
+                    </span>
+                  )}
+                </div>
+
+                {/* Dish Name */}
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight font-['Outfit']">
+                  {selectedDishDetails.name}
+                </h2>
+
+                {/* Price & Clean Energy Row */}
+                <div className="flex justify-between items-center py-1 border-y border-white/5">
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-2xl sm:text-3xl font-black text-[#E0FF33] font-['Outfit']">
+                      ₹{selectedDishDetails.price}
+                    </div>
+                    {selectedDishDetails.originalPrice && selectedDishDetails.originalPrice > selectedDishDetails.price && (
+                      <span className="text-sm font-bold text-zinc-500 line-through">
+                        ₹{selectedDishDetails.originalPrice}
                       </span>
                     )}
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight font-['Outfit']">
-                    {selectedDishDetails.name}
-                  </h2>
-                </div>
 
-                {/* Price & Calories Row (Always Visible) */}
-                <div className="flex justify-between items-center pt-0.5">
-                  <div>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Price</span>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white font-['Outfit']">
-                      ₹{selectedDishDetails.price}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] sm:text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Energy</span>
-                    <div className="text-xs sm:text-sm md:text-base font-bold text-[#E0FF33] flex items-center justify-end gap-1">
-                      <span>{getItemNutrition(selectedDishDetails).kcal}</span>
-                      <Flame size={15} className="text-amber-400 fill-amber-400/20" />
-                    </div>
+                  {/* Clean, Non-Exaggerated Nutrition Indicator */}
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[11px] sm:text-xs font-bold text-amber-400">
+                    <Flame size={13} className="text-amber-400 fill-amber-400/20" />
+                    <span>Pure Desi Ghee</span>
                   </div>
                 </div>
 
-                {/* Nutrition Macros Breakdown */}
-                {(() => {
-                  const nut = getItemNutrition(selectedDishDetails);
-                  return (
-                    <div className="bg-[#151314] border border-white/5 rounded-2xl p-2.5 sm:p-3 flex items-center justify-around text-center divide-x divide-white/10">
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm md:text-base font-black text-white">{nut.carbs}</p>
-                        <p className="text-[9px] sm:text-[10px] text-zinc-500 font-bold uppercase mt-0.5 tracking-wider">Carbs</p>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm md:text-base font-black text-white">{nut.fat}</p>
-                        <p className="text-[9px] sm:text-[10px] text-zinc-500 font-bold uppercase mt-0.5 tracking-wider">Fat</p>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm md:text-base font-black text-white">{nut.protein}</p>
-                        <p className="text-[9px] sm:text-[10px] text-zinc-500 font-bold uppercase mt-0.5 tracking-wider">Protein</p>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Bundled Combo Items Breakdown */}
+                {/* Bundled Combo Items Breakdown (if combo) */}
                 {selectedDishDetails.comboItems && selectedDishDetails.comboItems.length > 0 && (
-                  <div className="bg-[#151314] border border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
+                  <div className="bg-[#242021] border border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] sm:text-xs font-black uppercase text-[#E0FF33] tracking-wider flex items-center gap-1.5">
                         <Sparkles size={12} />
@@ -1715,26 +1656,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Description */}
                 <div>
                   <h4 className="text-[10px] sm:text-xs font-black uppercase text-zinc-400 tracking-wider mb-1">Description</h4>
-                  <p className="text-[11px] sm:text-xs md:text-sm text-zinc-300 leading-relaxed font-normal">
-                    {selectedDishDetails.description || "Our pure meal features authentic Vedic preparation, rich spices, pure desi ghee, and fresh ingredients cooked with love and devotion."}
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal">
+                    {selectedDishDetails.description || "Prepared fresh with pure desi ghee, sacred spices, and 100% Satvik ingredients. Free from onion and garlic."}
                   </p>
                 </div>
 
-                {/* Vrinda Assurance Badge */}
-                <div className="flex items-center gap-1.5 bg-[#282526] px-3 py-2 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
+                {/* Vrinda Satvik Guarantee Banner */}
+                <div className="flex items-center gap-2 bg-[#282526] px-3 py-2 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
                   <span className="text-[#E0FF33] font-bold">✓</span>
-                  <span className="truncate">100% Vrinda · No Onion, No Garlic</span>
+                  <span className="truncate">100% Pure Satvik · Pure Desi Ghee · No Onion, No Garlic</span>
                 </div>
               </div>
 
-              {/* Sticky / Dedicated Action Dock (100% Accessible & Synchronized) */}
+              {/* Fixed Ergonomic Action Dock */}
               {(() => {
                 const currentInBasket = selectedDishDetails ? cart.find(c => c.id === selectedDishDetails.id) : null;
                 const inBasketQty = currentInBasket ? currentInBasket.quantity : 0;
 
                 return (
-                  <div className="bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-6 md:p-0 md:pt-4 md:pl-6 border-t border-white/10 md:border-t-0 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)] md:pb-0">
-                    {/* Quantity Stepper (High-accessibility tactile pills) */}
+                  <div className="bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-5 border-t border-white/10 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)]">
+                    {/* Quantity Stepper */}
                     <div className="bg-[#282526] text-white rounded-full p-1 sm:p-1.5 border border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0">
                       <button
                         type="button"
@@ -1752,15 +1693,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setDetailQuantity(detailQuantity + 1)}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                         aria-label="Increase quantity"
                         title="Increase quantity"
                       >
-                        <Plus size={15} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
+                        <Plus size={15} strokeWidth={3.5} className="text-[#1E1B1C] stroke-current" />
                       </button>
                     </div>
 
-                    {/* Add / Update Cart Button */}
+                    {/* Add / Update Cart CTA Button */}
                     <button
                       type="button"
                       onClick={handleDetailAddToCart}
@@ -1772,7 +1713,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           ? (detailQuantity === inBasketQty
                             ? `In Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`
                             : `Update Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`)
-                          : `Add · ₹${(selectedDishDetails.price || 0) * detailQuantity}`}
+                          : `Add to Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`}
                       </span>
                       <ChevronRight size={14} strokeWidth={3} className="text-[#1E1B1C] flex-shrink-0" />
                     </button>
@@ -1788,6 +1729,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       {/* CART DRAWER OVERLAY (Pure Hardware Transforms & Drag-Down Dismiss) */}
       {showCartDrawer && (
         <div
+          ref={cartOverlayRef}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseCartDrawer();
           }}
@@ -1796,7 +1738,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <div
             ref={cartSheetRef}
             style={cartSheetStyle}
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative transition-transform duration-200 apple-sheet-spring ${isCartClosing ? 'closing' : ''} ${isDraggingCart ? 'sheet-dragging' : ''}`}
+            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring ${isDraggingCart ? 'sheet-dragging' : ''}`}
           >
             {/* Top Fixed Header & Grab Bar */}
             <div className="shrink-0">

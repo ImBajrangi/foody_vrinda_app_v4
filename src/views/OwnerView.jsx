@@ -757,12 +757,25 @@ export default function OwnerView() {
     }
   };
 
-  const isShopOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+  const [shopOnlineOverride, setShopOnlineOverride] = useState(null);
+  const isShopOnline = shopOnlineOverride !== null
+    ? shopOnlineOverride
+    : (currentShop?.isOnline !== false && currentShop?.isOpen !== false);
+
+  useEffect(() => {
+    setShopOnlineOverride(null);
+  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
 
   const handleToggleShopOnline = async () => {
     const targetShop = editingShop || currentShop || (allShops && allShops[0]);
     if (!targetShop?.id) return;
     const nextOnline = !isShopOnline;
+    setShopOnlineOverride(nextOnline);
+    setToast({
+      message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
+      type: nextOnline ? "success" : "warning"
+    });
+
     try {
       await updateCloudShop(targetShop.id, { 
         isOnline: nextOnline, 
@@ -770,15 +783,12 @@ export default function OwnerView() {
         isOpen: nextOnline,
         is_open: nextOnline
       });
-      setToast({
-        message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
-        type: nextOnline ? "success" : "warning"
-      });
       if (refreshShops) {
         await refreshShops();
       }
     } catch (e) {
       console.error("Toggle shop online error:", e);
+      setShopOnlineOverride(!nextOnline);
       setToast({ message: "Failed to update online status", type: "error" });
     }
   };

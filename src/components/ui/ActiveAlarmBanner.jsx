@@ -98,32 +98,44 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
           icon: ChefHat,
           tag: 'Kitchen Order',
           title: 'New Order Received',
-          badgeBg: 'bg-amber-400/15 text-amber-300 border border-amber-400/30',
-          btnBg: 'bg-amber-400 hover:bg-amber-300 text-black'
+          iconBox: 'bg-amber-500/15 border border-amber-400/30 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.15)]',
+          dotColor: 'bg-amber-400',
+          pingColor: 'bg-amber-400',
+          glowBg: 'bg-amber-400/10',
+          btnBg: 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#151314] shadow-[0_4px_16px_rgba(245,158,11,0.25)]'
         };
       case 'delivery':
         return {
           icon: Truck,
           tag: 'Delivery Dispatch',
           title: 'Order Ready for Pickup',
-          badgeBg: 'bg-cyan-400/15 text-cyan-300 border border-cyan-400/30',
-          btnBg: 'bg-cyan-400 hover:bg-cyan-300 text-black'
+          iconBox: 'bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.15)]',
+          dotColor: 'bg-cyan-400',
+          pingColor: 'bg-cyan-400',
+          glowBg: 'bg-cyan-400/10',
+          btnBg: 'bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-[#151314] shadow-[0_4px_16px_rgba(6,182,212,0.25)]'
         };
       case 'owner':
         return {
           icon: Store,
           tag: 'Store Dispatch',
           title: 'New Store Order',
-          badgeBg: 'bg-[#E0FF33]/15 text-[#E0FF33] border border-[#E0FF33]/30',
-          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-black'
+          iconBox: 'bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]',
+          dotColor: 'bg-[#E0FF33]',
+          pingColor: 'bg-[#E0FF33]',
+          glowBg: 'bg-[#E0FF33]/10',
+          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-[#151314] shadow-[0_4px_16px_rgba(224,255,51,0.25)]'
         };
       default:
         return {
           icon: BellRing,
           tag: 'Order Alert',
           title: 'Live Order Notification',
-          badgeBg: 'bg-white/10 text-white border border-white/15',
-          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-black'
+          iconBox: 'bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]',
+          dotColor: 'bg-[#E0FF33]',
+          pingColor: 'bg-[#E0FF33]',
+          glowBg: 'bg-[#E0FF33]/10',
+          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-[#151314] shadow-[0_4px_16px_rgba(224,255,51,0.25)]'
         };
     }
   };
@@ -136,8 +148,11 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
       {/* Sleek, Calm, Non-blinking Floating Audio HUD Banner */}
       {isPlaying && !isDismissed && (
         <div className="fixed top-[max(18px,env(safe-area-inset-top)+14px)] left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:top-5 sm:right-6 z-[999999] w-[calc(100vw-24px)] sm:w-[440px] max-w-full animate-slide-down select-none">
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#161415]/95 backdrop-blur-2xl border border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)] relative overflow-hidden">
+          <div className="p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#1E1B1C]/95 backdrop-blur-2xl border border-white/15 text-white shadow-[0_24px_60px_-10px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)] relative overflow-hidden">
             
+            {/* Ambient subtle corner glow matching role */}
+            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full ${config.glowBg || 'bg-[#E0FF33]/5'} blur-2xl pointer-events-none`} />
+
             {/* Close Button */}
             <button
               type="button"
@@ -145,64 +160,73 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                 setIsDismissed(true);
                 onSilence();
               }}
-              className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-              title="Dismiss"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/5 active:scale-90"
+              title="Dismiss alert"
             >
               <X className="w-3.5 h-3.5" />
             </button>
 
             {/* Header Content */}
-            <div className="flex items-center gap-3 pr-6">
-              <div className={`w-10 h-10 rounded-xl ${config.badgeBg} flex items-center justify-center font-bold shrink-0`}>
-                <IconComponent className="w-5 h-5" />
+            <div className="flex items-center gap-3 pr-7">
+              {/* Refined Medallion Icon with Live Pulse Indicator */}
+              <div className="relative shrink-0">
+                <div className={`w-11 h-11 rounded-2xl ${config.iconBox} flex items-center justify-center font-bold`}>
+                  <IconComponent className="w-5 h-5 drop-shadow-sm" />
+                </div>
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pingColor} opacity-75`} />
+                  <span className={`relative inline-flex rounded-full h-3 w-3 ${config.dotColor} border-2 border-[#1E1B1C]`} />
+                </span>
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 font-['Outfit']">
                     {config.tag}
                   </span>
                   {shortId && (
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-white/10 text-white">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/[0.08] text-neutral-200 border border-white/[0.08]">
                       #{shortId}
                     </span>
                   )}
                   {totalAmount > 0 && (
-                    <span className="text-xs font-mono font-bold text-[#E0FF33]">
+                    <span className="text-xs font-mono font-black text-[#E0FF33] ml-auto">
                       ₹{totalAmount}
                     </span>
                   )}
                 </div>
 
-                <h4 className="text-sm font-bold text-white font-['Outfit'] truncate mt-0.5">
+                <h4 className="text-sm sm:text-base font-extrabold text-white font-['Outfit'] truncate mt-0.5 tracking-tight">
                   {config.title}
                 </h4>
 
-                <p className="text-xs text-neutral-400 truncate">
-                  <span className="text-neutral-200 font-medium">{customerName}</span> · {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                <p className="text-xs text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
+                  <span className="text-neutral-200 font-medium">{customerName}</span>
+                  <span className="text-white/20">·</span>
+                  <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
                 </p>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center gap-2">
+            {/* Action Buttons: Silence (compact utility) + View Details (prominent full-width CTA) */}
+            <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center gap-2">
               <button
                 type="button"
                 onClick={onSilence}
-                className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors border border-white/10 active:scale-95 cursor-pointer"
+                className="h-10 px-3.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-white/10 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
                 title="Silence sound"
               >
-                <VolumeX className="w-3.5 h-3.5 text-rose-400" />
+                <VolumeX className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>Silence</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleOpenDetails}
-                className={`flex-1 py-2 px-3 rounded-xl ${config.btnBg} font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors active:scale-95 cursor-pointer font-['Outfit']`}
+                className={`flex-1 h-10 px-4 rounded-xl ${config.btnBg} font-extrabold text-xs sm:text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer font-['Outfit'] whitespace-nowrap min-w-0`}
               >
-                <Receipt className="w-3.5 h-3.5" />
-                <span>View Details</span>
+                <Receipt className="w-4 h-4 shrink-0" />
+                <span className="truncate">View Details</span>
               </button>
             </div>
           </div>

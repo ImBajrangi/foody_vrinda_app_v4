@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, ChevronDown, Check, X } from 'lucide-react';
+import { useBottomSheetDrag } from '../../hooks/useBottomSheetDrag';
 
 /**
  * SearchableDropdown - Web Customised, Fast, Searchable Dropdown
@@ -11,6 +12,7 @@ import { Search, ChevronDown, Check, X } from 'lucide-react';
  * - Keyboard navigation (Esc to close, auto-focus on search).
  * - Synchronous, zero-flicker hardware-accelerated CSS positioning.
  * - Click-outside dismiss handler.
+ * - Native-grade 120fps swipe-down-to-dismiss on mobile viewports.
  */
 export default function SearchableDropdown({
   options = [],
@@ -32,6 +34,20 @@ export default function SearchableDropdown({
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
+
+  // Native 120fps gesture drag-to-dismiss for mobile bottom sheet
+  const handleSheetClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  const {
+    sheetRef: mobileSheetRef,
+    overlayRef: mobileOverlayRef,
+    dismiss: dismissMobileSheet,
+    sheetStyle: mobileSheetStyle,
+    handleProps: mobileHandleProps,
+    isDragging: isMobileDragging
+  } = useBottomSheetDrag(handleSheetClose, 40);
 
   // Normalize options to objects: { value, label, sublabel, icon, badge, badgeColor, group }
   const normalizedOptions = useMemo(() => {
@@ -117,8 +133,12 @@ export default function SearchableDropdown({
 
   const handleSelect = (optValue) => {
     onChange?.(optValue);
-    setIsOpen(false);
     setSearchQuery('');
+    if (typeof window !== 'undefined' && window.innerWidth < 640) {
+      dismissMobileSheet();
+    } else {
+      setIsOpen(false);
+    }
   };
 
   // Safe icon renderer supporting functions, forwardRef components, and JSX elements
@@ -191,23 +211,32 @@ export default function SearchableDropdown({
         <>
           {/* Mobile Backdrop Overlay (dismiss on tap outside) */}
           <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[99998] sm:hidden animate-in fade-in duration-150"
-            onClick={() => setIsOpen(false)}
+            ref={mobileOverlayRef}
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[99998] sm:hidden apple-overlay"
+            onClick={dismissMobileSheet}
           />
 
           <div
+            ref={mobileSheetRef}
+            style={{
+              maxHeight: 'min(500px, calc(100dvh - 100px))',
+              ...mobileSheetStyle
+            }}
             className={`
               /* Mobile Screen: Apple-grade Native Bottom Sheet */
-              fixed inset-x-0 bottom-0 z-[99999] rounded-t-[32px] bg-white dark:bg-[#1E1B1C] border-t border-stone-200 dark:border-white/15 shadow-[0_-20px_60px_rgba(0,0,0,0.85)] p-4 pb-[max(20px,env(safe-area-inset-bottom,20px))] max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-200
+              fixed inset-x-0 bottom-0 z-[99999] rounded-t-[32px] bg-white dark:bg-[#1E1B1C] border-t border-stone-200 dark:border-white/15 shadow-[0_-20px_60px_rgba(0,0,0,0.85)] p-4 pb-[max(20px,env(safe-area-inset-bottom,20px))] max-h-[85vh] flex flex-col apple-sheet-spring ${isMobileDragging ? 'sheet-dragging' : ''}
               /* Desktop Screen: Anchored Floating Popover */
               sm:animate-none sm:fade-in sm:zoom-in-95 sm:duration-100 sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:mt-2 sm:w-auto sm:min-w-[320px] sm:max-w-md sm:rounded-2xl sm:p-2.5 sm:space-y-1.5 sm:shadow-[0_25px_60px_rgba(0,0,0,0.55)] sm:border sm:border-stone-200 sm:dark:border-white/15
               ${align === 'right' ? 'sm:right-0 sm:left-auto' : align === 'full' ? 'sm:w-full sm:left-0 sm:right-0' : 'sm:left-0 sm:right-auto'}
               ${menuClassName}
             `}
-            style={{ maxHeight: 'min(500px, calc(100dvh - 100px))' }}
           >
-            {/* Mobile Sheet Handle & Dynamic Header */}
-            <div className="flex sm:hidden flex-col gap-2 pb-2">
+            {/* Mobile Sheet Handle & Dynamic Header (Interactive Swipe-Down Area) */}
+            <div
+              {...mobileHandleProps}
+              className="flex sm:hidden flex-col gap-2 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+              title="Swipe down to dismiss"
+            >
               <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/20 mx-auto -mt-1 mb-1 pointer-events-none" />
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -223,8 +252,12 @@ export default function SearchableDropdown({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-300 flex items-center justify-center text-xs hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dismissMobileSheet();
+                  }}
+                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-300 flex items-center justify-center text-xs sm:hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
                   title="Close"
                 >
                   <X className="w-4 h-4" />

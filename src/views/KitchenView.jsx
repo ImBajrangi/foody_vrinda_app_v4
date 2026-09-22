@@ -50,6 +50,39 @@ export default function KitchenView() {
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
   const [isRushMode, setIsRushMode] = useState(false);
+  const [shopOnlineOverride, setShopOnlineOverride] = useState(null);
+
+  const isShopOnline = shopOnlineOverride !== null
+    ? shopOnlineOverride
+    : (currentShop?.isOnline !== false && currentShop?.isOpen !== false);
+
+  useEffect(() => {
+    setShopOnlineOverride(null);
+  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
+
+  const handleToggleKitchenOnline = async () => {
+    const targetShopId = currentShop?.id || currentUserShopId || allShops[0]?.id || 'shop-vrinda-main';
+    const nextOnline = !isShopOnline;
+    setShopOnlineOverride(nextOnline);
+    showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
+
+    try {
+      await updateCloudShop(targetShopId, {
+        isOnline: nextOnline,
+        is_online: nextOnline,
+        isOpen: nextOnline,
+        is_open: nextOnline
+      });
+      if (user?.id) {
+        await updateUserOnlineStatus(user.id, nextOnline);
+      }
+      if (refreshShops) await refreshShops();
+    } catch (e) {
+      console.error("Toggle kitchen error:", e);
+      setShopOnlineOverride(!nextOnline);
+      showToast("Failed to toggle online status", "error");
+    }
+  };
 
   // Create manual order states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -349,86 +382,80 @@ export default function KitchenView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-          {/* Realtime Kitchen Presence Toggle */}
-          <button
-            type="button"
-            onClick={async () => {
-              if (!currentShop?.id) return;
-              const isCurrentlyOnline = currentShop.isOnline !== false && currentShop.isOpen !== false;
-              const nextOnline = !isCurrentlyOnline;
-              try {
-                await updateCloudShop(currentShop.id, {
-                  isOnline: nextOnline,
-                  is_online: nextOnline,
-                  isOpen: nextOnline,
-                  is_open: nextOnline
-                });
-                if (user?.id) {
-                  await updateUserOnlineStatus(user.id, nextOnline);
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
+          {/* Operations Utility Strip: 3-column balanced grid on mobile, horizontal flex on desktop */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto">
+            {/* Realtime Kitchen Presence Toggle */}
+            <button
+              type="button"
+              onClick={handleToggleKitchenOnline}
+              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isShopOnline
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                }`}
+              title="Toggle Live Kitchen Availability"
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="truncate">
+                <span className="sm:hidden">{isShopOnline ? 'Online' : 'Offline'}</span>
+                <span className="hidden sm:inline">{isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
+              </span>
+            </button>
+
+            {/* Sound Alarm Quick Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isPlaying) {
+                  stopAlarm();
+                } else {
+                  warmUpAudio();
+                  playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'test-kitch-tone' }, true);
+                  showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
                 }
-                showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
-                if (refreshShops) await refreshShops();
-              } catch (e) {
-                console.error("Toggle kitchen error:", e);
-                showToast("Failed to toggle online status", "error");
-              }
-            }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${(currentShop?.isOnline !== false && currentShop?.isOpen !== false)
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+              }}
+              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
+                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
+                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
+                }`}
+              title="Test or silence Kitchen Sound Alarm"
+            >
+              {isPlaying ? <VolumeX size={15} className="text-rose-500 shrink-0" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />}
+              <span className="truncate">
+                <span className="sm:hidden">{isPlaying ? 'Silence' : 'Sound'}</span>
+                <span className="hidden sm:inline">{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
+              </span>
+            </button>
+
+            {/* Rush Mode (+15 Mins) Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsRushMode(prev => !prev);
+                showToast(!isRushMode ? "🔥 Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
+              }}
+              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+                isRushMode
+                  ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
+                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
               }`}
-            title="Toggle Live Kitchen Availability"
-          >
-            <span className={`w-2 h-2 rounded-full ${currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            <span>{currentShop?.isOnline !== false && currentShop?.isOpen !== false ? 'Kitchen Online' : 'Kitchen Offline'}</span>
-          </button>
+              title="Extend prep time by +15 mins during rush hours"
+            >
+              <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
+              <span className="truncate">
+                <span className="sm:hidden">{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
+                <span className="hidden sm:inline">{isRushMode ? 'Rush Mode ON (+15m)' : 'Rush Mode'}</span>
+              </span>
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (isPlaying) {
-                stopAlarm();
-              } else {
-                warmUpAudio();
-                playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'test-kitch-tone' }, true);
-                showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
-              }
-            }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
-                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
-              }`}
-            title="Test or silence Kitchen Sound Alarm"
-          >
-            {isPlaying ? <VolumeX size={15} className="text-rose-500" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33]" />}
-            <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
-          </button>
-
-          {/* Rush Mode (+15 Mins) Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsRushMode(prev => !prev);
-              showToast(!isRushMode ? "🔥 Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
-            }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-              isRushMode
-                ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
-            }`}
-            title="Extend prep time by +15 mins during rush hours"
-          >
-            <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500' : 'text-stone-500'} />
-            <span>{isRushMode ? 'Rush Mode ON (+15m)' : 'Rush Mode'}</span>
-          </button>
-
+          {/* Primary CTA: Create Manual Order */}
           <button
             onClick={handleOpenCreateModal}
-            className="h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0"
+            className="w-full sm:w-auto h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-['Outfit'] tracking-wide"
           >
             <Plus size={16} strokeWidth={3} />
-            <span>Create Manual Order</span>
+            <span className="whitespace-nowrap">Create Manual Order</span>
           </button>
         </div>
       </div>

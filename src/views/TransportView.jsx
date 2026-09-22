@@ -56,7 +56,8 @@ import {
 } from 'lucide-react';
 
 export default function TransportView() {
-  const { currentUser, currentUserShopId, currentUserShopIds = [], allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { user, currentUser, userData, currentUserShopId, currentUserShopIds = [], allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const activeUser = currentUser || user || userData;
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -73,6 +74,7 @@ export default function TransportView() {
       localStorage.setItem('foody_transport_view_mode', viewMode);
     } catch (e) { }
   }, [viewMode]);
+
   const [isRiderOnDuty, setIsRiderOnDuty] = useState(() => {
     try {
       return localStorage.getItem('foody_rider_on_duty') !== 'false';
@@ -83,16 +85,28 @@ export default function TransportView() {
 
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
 
-  // Live Realtime GPS Broadcaster for Delivery Sarathis
+  // Live Realtime GPS Broadcaster for Delivery Sarathis (throttled to avoid redundant egress)
   useEffect(() => {
     if (!isRiderOnDuty || typeof window === 'undefined' || !navigator.geolocation) return;
+
+    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    let lastBroadcastTime = Date.now();
+    let lastCoords = null;
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setRiderCoords(coords);
-        if (currentUser?.id || currentUser?.email) {
-          updateUserOnlineStatus(currentUser.id || currentUser.email, true, coords).catch(() => {});
+
+        const now = Date.now();
+        const timeDiff = now - lastBroadcastTime;
+        const hasMovedSignificantly = !lastCoords || 
+          (Math.abs(coords.lat - lastCoords.lat) > 0.0003 || Math.abs(coords.lng - lastCoords.lng) > 0.0003);
+
+        if (timeDiff > 30000 || (timeDiff > 10000 && hasMovedSignificantly)) {
+          lastBroadcastTime = now;
+          lastCoords = coords;
+          updateUserOnlineStatus(riderId, true, coords).catch(() => {});
         }
       },
       (err) => {
@@ -104,7 +118,7 @@ export default function TransportView() {
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [isRiderOnDuty, currentUser]);
+  }, [isRiderOnDuty, activeUser]);
 
   const toggleRiderDuty = async () => {
     const nextState = !isRiderOnDuty;
@@ -112,11 +126,12 @@ export default function TransportView() {
     try {
       localStorage.setItem('foody_rider_on_duty', String(nextState));
     } catch (e) { }
-    if (currentUser?.id || currentUser?.email) {
-      try {
-        await updateUserOnlineStatus(currentUser.id || currentUser.email, nextState, riderCoords);
-      } catch (e) { }
-    }
+
+    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    try {
+      await updateUserOnlineStatus(riderId, nextState, riderCoords);
+    } catch (e) { }
+
     showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
   };
 
@@ -593,45 +608,60 @@ export default function TransportView() {
 
       {/* 1. RIDER FINANCIAL & TRUST METRICS (Grand Stat Cards Matching Platform standards) */}
       {(() => {
-        const ledger = getRiderCashLedger(currentUser?.id || 'rider_sarathi_gopal');
-        const cashCheck = isRiderCashLimitExceeded(currentUser?.id || 'rider_sarathi_gopal');
-        const trustScore = getUserTrustScore(currentUser?.id || 'rider_sarathi_gopal');
+        const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+        const ledger = getRiderCashLedger(riderId);
+        const cashCheck = isRiderCashLimitExceeded(riderId);
+        const trustScore = getUserTrustScore(riderId);
         const cashPercent = Math.min(100, Math.round((ledger.cashInHand / RIDER_MAX_CASH_LIMIT) * 100));
         const trustPercent = Math.min(100, Math.round((trustScore / 900) * 100));
 
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Card 1: COD Cash in Hand */}
-            <div className={`p-5 sm:p-6 rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${
+            <div className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${
               cashCheck.isExceeded 
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' 
                 : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
             }`}>
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-sm ${
+              {/* Row 1: Icon + Title on Left, Status Badge on Right */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${
                     cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
                   }`}>
-                    <Banknote size={20} strokeWidth={2.5} />
+                    <Banknote size={19} strokeWidth={2.5} />
                   </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">COD Cash In Hand</p>
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-xl sm:text-2xl font-black text-stone-950 dark:text-white font-['Outfit']">₹{ledger.cashInHand}</span>
-                      <span className="text-xs text-stone-500 dark:text-zinc-400 font-medium">/ ₹{RIDER_MAX_CASH_LIMIT} Cap</span>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] truncate">
+                      COD Cash In Hand
+                    </p>
                   </div>
                 </div>
 
                 {cashCheck.isExceeded ? (
-                  <span className="text-[10px] font-black bg-rose-500 text-white px-3 py-1 rounded-full uppercase tracking-wider animate-pulse shadow-sm">
+                  <span className="text-[10px] font-black bg-rose-500 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-sm shrink-0 whitespace-nowrap">
                     Limit Reached
                   </span>
                 ) : (
-                  <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 shadow-xs">
+                  <span className="text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-emerald-500/30 shadow-xs shrink-0 whitespace-nowrap">
                     Ready for Delivery
                   </span>
                 )}
+              </div>
+
+              {/* Row 2: Metric Amount + Cap Limit across full width with ZERO line-wrapping */}
+              <div className="flex items-baseline justify-between gap-2 mt-3 mb-2.5">
+                <div className="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
+                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
+                    ₹{ledger.cashInHand}
+                  </span>
+                  <span className="text-xs font-semibold text-stone-500 dark:text-zinc-400 font-mono">
+                    / ₹{RIDER_MAX_CASH_LIMIT} Cap
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-zinc-400 shrink-0">
+                  {cashPercent}%
+                </span>
               </div>
 
               {/* Progress Bar */}
@@ -644,25 +674,39 @@ export default function TransportView() {
             </div>
 
             {/* Card 2: Sarathi Trust & CIBIL Score */}
-            <div className="p-5 sm:p-6 rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold shadow-sm">
-                    <Star size={20} strokeWidth={2.5} />
+            <div className="p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
+              {/* Row 1: Icon + Title on Left, Badge on Right */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <Star size={19} strokeWidth={2.5} />
                   </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Sarathi Trust Score</p>
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-xl sm:text-2xl font-black text-stone-950 dark:text-white font-['Outfit']">{trustScore}</span>
-                      <span className="text-xs text-purple-600 dark:text-purple-400 font-bold">/ 900 Pts</span>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] truncate">
+                      Sarathi Trust Score
+                    </p>
                   </div>
                 </div>
 
-                <span className={`text-[11px] font-black px-3 py-1 rounded-full border shadow-xs ${
+                <span className={`text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap ${
                   trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
                 }`}>
                   {trustScore >= 750 ? 'Top Sarathi 🏆' : 'Active Partner'}
+                </span>
+              </div>
+
+              {/* Row 2: Score + Total Pts with zero wrapping */}
+              <div className="flex items-baseline justify-between gap-2 mt-3 mb-2.5">
+                <div className="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
+                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
+                    {trustScore}
+                  </span>
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">
+                    / 900 Pts
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-zinc-400 shrink-0">
+                  {trustPercent}%
                 </span>
               </div>
 
@@ -699,48 +743,52 @@ export default function TransportView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap sm:flex-nowrap">
-          {/* Rider Duty Presence Toggle */}
-          <button
-            type="button"
-            onClick={toggleRiderDuty}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-              isRiderOnDuty
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-            }`}
-            title="Toggle Rider Duty Availability"
-          >
-            <span className={`w-2 h-2 rounded-full ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            <span>{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (isPlaying) {
-                stopAlarm();
-              } else {
-                warmUpAudio();
-                playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'test-deliv-tone' }, true);
-                showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
-              }
-            }}
-            className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
-                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
+          {/* Status Controls: Equal 2-column grid on mobile, inline on desktop */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+            {/* Rider Duty Presence Toggle */}
+            <button
+              type="button"
+              onClick={toggleRiderDuty}
+              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
+                isRiderOnDuty
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
               }`}
-            title="Test or silence Sarathi Rider Chime"
-          >
-            {isPlaying ? <VolumeX size={15} className="text-rose-500" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33]" />}
-            <span>{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
-          </button>
+              title="Toggle Rider Duty Availability"
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="truncate">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+            </button>
 
-          {/* List vs Carto View Switcher */}
-          <div className="flex items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner shrink-0">
+            {/* Test Sound Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isPlaying) {
+                  stopAlarm();
+                } else {
+                  warmUpAudio();
+                  playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'test-deliv-tone' }, true);
+                  showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
+                }
+              }}
+              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
+                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
+                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
+                }`}
+              title="Test or silence Sarathi Rider Chime"
+            >
+              {isPlaying ? <VolumeX size={15} className="text-rose-500 shrink-0" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />}
+              <span className="truncate">{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
+            </button>
+          </div>
+
+          {/* List vs Carto View Switcher: Ergonomic full-width segmented control on mobile, compact on desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner w-full sm:w-auto shrink-0">
             <button
               onClick={() => setViewMode('list')}
-              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'list'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
                 ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
                 : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
@@ -750,7 +798,7 @@ export default function TransportView() {
             </button>
             <button
               onClick={() => setViewMode('map')}
-              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'map'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
                 ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
                 : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
