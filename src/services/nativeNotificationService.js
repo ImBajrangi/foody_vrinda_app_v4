@@ -188,9 +188,6 @@ class NativeNotificationService {
         try {
           const localPerm = await LocalNotifications.requestPermissions();
           console.log('System notification permissions:', localPerm);
-          if (localPerm?.display === 'granted') {
-            this.notifyWelcomeIfFirstTime();
-          }
         } catch (e) {
           console.warn('Notification permission request error:', e);
         }

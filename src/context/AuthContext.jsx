@@ -518,10 +518,6 @@ export function AuthProvider({ children }) {
         localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
         syncUserToCloudList(userProfile);
 
-        if (_event === 'SIGNED_IN') {
-          nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
-        }
-
         // If phone or address is missing for a newly logged-in customer, prompt profile completion
         if (!userPhone || !userAddr) {
           setTimeout(() => {
@@ -657,6 +653,10 @@ export function AuthProvider({ children }) {
       }
       throw error;
     }
+    if (data?.user) {
+      const name = data.user.user_metadata?.displayName || data.user.user_metadata?.name || cleanEmail.split('@')[0];
+      nativeNotify.notifyLogin(name);
+    }
     return data;
   };
 
@@ -693,6 +693,7 @@ export function AuthProvider({ children }) {
       };
       await createCloudUser(userProfile).catch(() => { });
       await recordLoggedInUser(userProfile).catch(() => { });
+      nativeNotify.notifyLogin(cleanName);
     }
     return data;
   };

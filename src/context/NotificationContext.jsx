@@ -280,9 +280,6 @@ export function NotificationProvider({ children }) {
     try {
       const permission = await Notification.requestPermission();
       setSystemNotificationPermission(permission);
-      if (permission === 'granted') {
-        nativeNotify.notifyWelcomeIfFirstTime();
-      }
       return permission;
     } catch (err) {
       console.warn('System Notification permission request note:', err);
