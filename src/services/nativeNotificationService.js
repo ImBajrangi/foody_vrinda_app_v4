@@ -25,9 +25,37 @@ class NativeNotificationService {
   }
 
   /**
-   * Play an elegant synthesized chime for real-time alerts
+   * Play real-time alert audio (HTML5 audio / Web Audio)
    */
   playChime(type = 'customer') {
+    try {
+      const soundMap = {
+        kitchen: '/sounds/kitchen_alert.wav',
+        owner: '/sounds/owner_alert.wav',
+        delivery: '/sounds/delivery_alert.wav',
+        customer: '/sounds/customer_ping.wav',
+      };
+      const soundSrc = soundMap[type] || soundMap.customer;
+
+      // Try playing audio file first
+      if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
+        const audio = new Audio(soundSrc);
+        audio.volume = type === 'kitchen' ? 1.0 : 0.85;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            this._playSynthesizedChime(type);
+          });
+          return;
+        }
+      }
+    } catch {
+      // fallback to synthesized chime
+    }
+    this._playSynthesizedChime(type);
+  }
+
+  _playSynthesizedChime(type) {
     try {
       const ctx = this.getAudioContext();
       if (!ctx) return;
@@ -36,8 +64,7 @@ class NativeNotificationService {
       }
 
       const now = ctx.currentTime;
-      if (type === 'kitchen') {
-        // High-priority dual-pulse kitchen chime
+      if (type === 'kitchen' || type === 'owner') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sawtooth';
@@ -51,7 +78,6 @@ class NativeNotificationService {
         osc.start(now);
         osc.stop(now + 0.38);
       } else if (type === 'delivery') {
-        // Bright 3-note ascending pickup ping
         [523.25, 659.25, 783.99].forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -67,7 +93,6 @@ class NativeNotificationService {
           osc.stop(t + 0.26);
         });
       } else {
-        // Resonant Vedic prasad temple bell chime (528 Hz Solfeggio Love frequency)
         [528, 660].forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -96,30 +121,48 @@ class NativeNotificationService {
 
     try {
       if (this.isNative) {
-        // 1. Create Android Notification Channels for different roles
+        // 1. Create Android Notification Channels with custom sounds
         if (Capacitor.getPlatform() === 'android') {
+          // Kitchen Staff Channel (Max urgency alert)
           await LocalNotifications.createChannel({
             id: 'kitchen_urgent',
-            name: 'Kitchen New Order Alerts',
-            description: 'High-priority alerts with sound for incoming bhog orders',
-            importance: 5, // High / Max importance
+            name: 'Kitchen Order Alerts',
+            description: 'High-priority alerts with custom sound for incoming kitchen orders',
+            importance: 5, // High / Max importance (Heads-up banner)
             visibility: 1,
             vibration: true,
             lights: true,
             lightColor: '#E0FF33',
+            sound: 'kitchen_alert.wav',
           });
 
+          // Store Owner Channel (High priority chime)
+          await LocalNotifications.createChannel({
+            id: 'owner_urgent',
+            name: 'Store Owner Order Alerts',
+            description: 'Instant notification and sound for new customer orders',
+            importance: 5,
+            visibility: 1,
+            vibration: true,
+            lights: true,
+            lightColor: '#A855F7',
+            sound: 'owner_alert.wav',
+          });
+
+          // Driver Dispatch Channel
           await LocalNotifications.createChannel({
             id: 'driver_dispatch',
             name: 'Sarathi Dispatch & Pickup Alerts',
-            description: 'Urgent alerts for drivers when order is packed and ready',
+            description: 'Urgent alerts for drivers when order is packed and ready for pickup',
             importance: 5,
             visibility: 1,
             vibration: true,
             lights: true,
             lightColor: '#3B82F6',
+            sound: 'delivery_alert.wav',
           });
 
+          // Customer Order Updates Channel
           await LocalNotifications.createChannel({
             id: 'order_updates',
             name: 'Customer Order Status',
@@ -127,14 +170,17 @@ class NativeNotificationService {
             importance: 4,
             visibility: 1,
             vibration: true,
+            sound: 'customer_ping.wav',
           });
 
+          // System Management Alerts
           await LocalNotifications.createChannel({
             id: 'system_alerts',
-            name: 'Store & Developer Alerts',
+            name: 'Store & Platform Alerts',
             description: 'Important platform and store management notifications',
             importance: 4,
             visibility: 1,
+            sound: 'owner_alert.wav',
           });
         }
 
@@ -207,15 +253,47 @@ class NativeNotificationService {
         notifications: [
           {
             title: `🔔 NEW BHOG ORDER #${orderId}`,
-            body: `${itemCount} items (₹${total}) received! Tap to start preparing.`,
+            body: `${itemCount} items (₹${total}) received! Tap to start cooking.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'kitchen_urgent',
+            sound: 'kitchen_alert.wav',
             extra: { orderId: order.id, type: 'kitchen' },
           },
         ],
       });
     } catch (e) {
       console.warn('Failed to schedule kitchen notification:', e);
+    }
+  }
+
+  /**
+   * Store Owner: Alert when a new order is placed
+   */
+  async notifyOwnerNewOrder(order) {
+    await this.hapticNotification(NotificationType.Success);
+    this.playChime('owner');
+    if (!this.isNative) return;
+
+    try {
+      const orderId = order.id ? String(order.id).slice(-4).toUpperCase() : '108';
+      const itemCount = order.items ? order.items.length : 1;
+      const total = order.total_amount || order.totalAmount || 0;
+      const customerName = order.customer_name || order.customerName || 'Devotee';
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: `💰 NEW ORDER #${orderId} · ₹${total}`,
+            body: `${customerName} ordered ${itemCount} items. Tap to view details.`,
+            id: Math.floor(Date.now() % 100000),
+            channelId: 'owner_urgent',
+            sound: 'owner_alert.wav',
+            extra: { orderId: order.id, type: 'owner' },
+          },
+        ],
+      });
+    } catch (e) {
+      console.warn('Failed to schedule owner order notification:', e);
     }
   }
 
@@ -238,6 +316,7 @@ class NativeNotificationService {
             body: `Freshly packed for delivery to ${address}. Tap to navigate.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'driver_dispatch',
+            sound: 'delivery_alert.wav',
             extra: { orderId: order.id, type: 'driver' },
           },
         ],
@@ -267,6 +346,7 @@ class NativeNotificationService {
           body = `Your prasad is being cooked in pure Desi Ghee!`;
           break;
         case 'ready':
+        case 'ready_for_pickup':
           title = `✨ Prasad Blessed & Packed #${orderId}`;
           body = `Awaiting Sarathi express pickup.`;
           break;
@@ -289,6 +369,7 @@ class NativeNotificationService {
             body,
             id: Math.floor(Date.now() % 100000),
             channelId: 'order_updates',
+            sound: 'customer_ping.wav',
             extra: { orderId: order.id, status },
           },
         ],
@@ -303,7 +384,7 @@ class NativeNotificationService {
    */
   async notifyOwnerAlert(title, message) {
     await this.hapticNotification(NotificationType.Warning);
-    this.playChime('kitchen');
+    this.playChime('owner');
     if (!this.isNative) return;
 
     try {
@@ -314,6 +395,7 @@ class NativeNotificationService {
             body: message,
             id: Math.floor(Date.now() % 100000),
             channelId: 'system_alerts',
+            sound: 'owner_alert.wav',
           },
         ],
       });

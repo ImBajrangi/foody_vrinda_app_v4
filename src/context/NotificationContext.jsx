@@ -66,6 +66,26 @@ export function NotificationProvider({ children }) {
     return DEFAULT_SEEDS;
   });
 
+  // Owner Staff-Mode Sound Alert preference (saved per device/browser)
+  const [ownerSoundAlerts, setOwnerSoundAlerts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_owner_sound_alerts');
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleOwnerSoundAlerts = useCallback((enabled) => {
+    setOwnerSoundAlerts(prev => {
+      const next = typeof enabled === 'boolean' ? enabled : !prev;
+      try {
+        localStorage.setItem('foody_owner_sound_alerts', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   // When user is a guest with no placed orders, sanitize away any leaked foreign order notifications
   useEffect(() => {
     const isGuest = !user || user.isAnonymous || !userData?.isLoggedInUser;
@@ -307,13 +327,15 @@ export function NotificationProvider({ children }) {
   const userRoleRef = useRef(userRole);
   const addNotificationRef = useRef(addNotification);
   const isOrderRelatedToUserRef = useRef(isOrderRelatedToUser);
+  const ownerSoundAlertsRef = useRef(ownerSoundAlerts);
 
   useEffect(() => {
     userRef.current = user;
     userRoleRef.current = userRole;
     addNotificationRef.current = addNotification;
     isOrderRelatedToUserRef.current = isOrderRelatedToUser;
-  }, [user, userRole, addNotification, isOrderRelatedToUser]);
+    ownerSoundAlertsRef.current = ownerSoundAlerts;
+  }, [user, userRole, addNotification, isOrderRelatedToUser, ownerSoundAlerts]);
 
   // Subscribe to Cloud Notifications targeted specifically to this authenticated user
   useEffect(() => {
@@ -369,6 +391,13 @@ export function NotificationProvider({ children }) {
           msg = `${itemSummary} queued for cooking`;
           statusTag = 'New';
           nativeNotify.notifyKitchenNewOrder(orderData);
+        } else if (activeRole === 'owner') {
+          title = `New Order: ${customerName}`;
+          msg = `${itemSummary} (₹${orderData.total_amount || orderData.totalAmount || 0})`;
+          statusTag = 'New';
+          if (ownerSoundAlertsRef.current) {
+            nativeNotify.notifyOwnerNewOrder(orderData);
+          }
         } else {
           title = `Confirmed: ${itemSummary}`;
           msg = `Accepted by ${shopName}`;
@@ -379,7 +408,7 @@ export function NotificationProvider({ children }) {
         title = `Cooking: ${itemSummary}`;
         msg = activeRole === 'kitchen' ? `In preparation for ${customerName}` : `Fresh preparation in progress`;
         statusTag = 'Cooking';
-        if (activeRole !== 'kitchen') {
+        if (activeRole !== 'kitchen' && activeRole !== 'owner') {
           nativeNotify.notifyCustomerOrderUpdate(orderData, 'Cooking');
         }
       } else if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
@@ -392,7 +421,9 @@ export function NotificationProvider({ children }) {
           title = `Packed & Ready: ${itemSummary}`;
           msg = `Packed & awaiting courier dispatch`;
           statusTag = 'Ready';
-          nativeNotify.notifyCustomerOrderUpdate(orderData, 'Ready');
+          if (activeRole !== 'owner' && activeRole !== 'kitchen') {
+            nativeNotify.notifyCustomerOrderUpdate(orderData, 'Ready');
+          }
         }
       } else if (orderData.status === 'out_for_delivery') {
         if (activeRole === 'delivery') {
@@ -403,7 +434,9 @@ export function NotificationProvider({ children }) {
           title = `On The Way: ${itemSummary}`;
           msg = `${riderName} is heading to your address`;
           statusTag = 'On Way';
-          nativeNotify.notifyCustomerOrderUpdate(orderData, 'On The Way');
+          if (activeRole !== 'owner' && activeRole !== 'kitchen') {
+            nativeNotify.notifyCustomerOrderUpdate(orderData, 'On The Way');
+          }
         }
       } else if (orderData.status === 'completed') {
         if (activeRole === 'kitchen' || activeRole === 'owner') {
@@ -485,6 +518,8 @@ export function NotificationProvider({ children }) {
     <NotificationContext.Provider value={{
       notifications,
       unreadCount,
+      ownerSoundAlerts,
+      toggleOwnerSoundAlerts,
       systemNotificationPermission,
       requestSystemNotificationPermission,
       sendOSNotification,

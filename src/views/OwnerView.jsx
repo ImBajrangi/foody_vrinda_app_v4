@@ -20,6 +20,7 @@ import {
   isShopCurrentlyOpen
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
@@ -101,7 +102,9 @@ import {
   Maximize2,
   Minimize2,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Bell,
+  BellOff
 } from 'lucide-react';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -119,6 +122,7 @@ ChartJS.register(
 
 export default function OwnerView() {
   const { allShops = [], currentUserShopId, refreshShops, updateUserRole, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { ownerSoundAlerts, toggleOwnerSoundAlerts } = useNotifications();
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
 
   // Resolved Active Kitchen
@@ -938,34 +942,63 @@ export default function OwnerView() {
         </div>
 
         {/* Top Minimal Bar */}
-        <div className="flex items-center justify-between gap-3 relative z-10">
+        <div className="flex items-center justify-between gap-3 relative z-10 flex-wrap">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-300/60 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-semibold text-amber-700 dark:text-[#E0FF33]">
             <Store className="w-3.5 h-3.5" />
             <span>Store Owner Console</span>
           </div>
 
-          {/* Sound Alarm Quick Trigger */}
-          <button
-            type="button"
-            onClick={() => {
-              if (isPlaying) {
-                stopAlarm();
-              } else {
-                warmUpAudio();
-                playRoleAlarm('owner', { title: 'TEST ADMIN BELL', orderId: 'test-admin-tone' }, false);
-                setToast({ message: 'Store Owner Bell triggered! Tap again to silence.', type: 'info' });
-              }
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
-              isPlaying
-                ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/50 animate-pulse'
-                : 'bg-stone-100 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-[#E0FF33]/30 hover:bg-stone-200 dark:hover:bg-white/10'
-            }`}
-            title="Test or silence Store Owner Alarm"
-          >
-            {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />}
-            <span>{isPlaying ? 'Silence Sound' : 'Test Alarm'}</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Staff Mode / Sound Alert Toggle Switch */}
+            <button
+              type="button"
+              onClick={() => {
+                toggleOwnerSoundAlerts();
+                setToast({
+                  message: !ownerSoundAlerts
+                    ? '🔔 Staff Sound Alerts Enabled: Phone will ring on new incoming orders.'
+                    : '🔕 Staff Sound Alerts Silenced: Order ringing turned off (silent dashboard mode).',
+                  type: 'info'
+                });
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+                ownerSoundAlerts
+                  ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/30 hover:bg-amber-500/25'
+                  : 'bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
+              }`}
+              title={ownerSoundAlerts ? 'Rings phone with custom sound when orders arrive. Click to silence.' : 'Ringtone silenced. Click to enable staff order alerts.'}
+            >
+              {ownerSoundAlerts ? (
+                <Bell className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+              ) : (
+                <BellOff className="w-3.5 h-3.5 text-stone-500 dark:text-neutral-400" />
+              )}
+              <span>{ownerSoundAlerts ? 'Order Sound: ON' : 'Order Sound: OFF'}</span>
+            </button>
+
+            {/* Sound Alarm Quick Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isPlaying) {
+                  stopAlarm();
+                } else {
+                  warmUpAudio();
+                  playRoleAlarm('owner', { title: 'TEST ADMIN BELL', orderId: 'test-admin-tone' }, false);
+                  setToast({ message: 'Store Owner Bell triggered! Tap again to silence.', type: 'info' });
+                }
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+                isPlaying
+                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/50 animate-pulse'
+                  : 'bg-stone-100 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-[#E0FF33]/30 hover:bg-stone-200 dark:hover:bg-white/10'
+              }`}
+              title="Test or silence Store Owner Alarm"
+            >
+              {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />}
+              <span>{isPlaying ? 'Silence Sound' : 'Test Sound'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Title & Live Status Group */}
