@@ -281,17 +281,14 @@ export function NotificationProvider({ children }) {
       const permission = await Notification.requestPermission();
       setSystemNotificationPermission(permission);
       if (permission === 'granted') {
-        sendOSNotification('Foody Vrinda Notifications Enabled', {
-          body: 'Real-time Prasad preparation & dispatch updates will be delivered directly to your device.',
-          tag: 'foody-os-enabled'
-        });
+        nativeNotify.notifyWelcomeIfFirstTime();
       }
       return permission;
     } catch (err) {
       console.warn('System Notification permission request note:', err);
       return 'denied';
     }
-  }, [sendOSNotification]);
+  }, []);
 
   // Add a new notification
   const addNotification = useCallback((notif) => {

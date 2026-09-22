@@ -996,130 +996,151 @@ class RealtimeMultiplexer {
   ensureSubscribed() {
     if (this.isSubscribed || this.channel) return;
 
-    this.channel = supabase
-      .channel('foody-global-multiplex')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_orders' },
-        (payload) => {
-          const raw = payload.new || payload.old;
-          if (!raw) return;
+    // Reuse existing channel if already registered on Supabase client
+    try {
+      const existingChannels = typeof supabase.getChannels === 'function' ? supabase.getChannels() : [];
+      const existing = existingChannels.find(c => c && (c.topic === 'realtime:foody-global-multiplex' || c.topic === 'foody-global-multiplex'));
+      if (existing) {
+        this.channel = existing;
+        if (existing.state === 'joined') {
+          this.isSubscribed = true;
+        }
+        return;
+      }
+    } catch (e) { }
 
-          const normalized = {
-            id: raw.id,
-            ...raw,
-            shopId: raw.shop_id,
-            customerName: raw.customer_name,
-            customerPhone: raw.customer_phone,
-            customerAddress: raw.customer_address,
-            deliveryAddress: raw.delivery_address,
-            deliveryCoordinates: raw.delivery_coordinates,
-            totalAmount: raw.total_amount,
-            paymentMethod: raw.payment_method,
-            cashStatus: raw.cash_status,
-            cookingNotes: raw.cooking_notes,
-            riderId: raw.rider_id,
-            riderName: raw.rider_name,
-            riderPhone: raw.rider_phone,
-            createdAt: raw.created_at
-          };
+    try {
+      this.channel = supabase
+        .channel('foody-global-multiplex')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_orders' },
+          (payload) => {
+            const raw = payload.new || payload.old;
+            if (!raw) return;
 
-          // Synchronize memory and local caches so subsequent views read updated data with 0 egress
-          try {
-            ['all', raw.shop_id].filter(Boolean).forEach(k => {
-              const currentList = getCachedItem('orders', k) || [];
-              if (payload.eventType === 'DELETE') {
-                setCachedItem('orders', k, currentList.filter(o => o.id !== raw.id));
-              } else {
-                const idx = currentList.findIndex(o => o.id === raw.id);
-                if (idx >= 0) {
-                  const copy = [...currentList];
-                  copy[idx] = { ...copy[idx], ...normalized };
-                  setCachedItem('orders', k, copy);
+            const normalized = {
+              id: raw.id,
+              ...raw,
+              shopId: raw.shop_id,
+              customerName: raw.customer_name,
+              customerPhone: raw.customer_phone,
+              customerAddress: raw.customer_address,
+              deliveryAddress: raw.delivery_address,
+              deliveryCoordinates: raw.delivery_coordinates,
+              totalAmount: raw.total_amount,
+              paymentMethod: raw.payment_method,
+              cashStatus: raw.cash_status,
+              cookingNotes: raw.cooking_notes,
+              riderId: raw.rider_id,
+              riderName: raw.rider_name,
+              riderPhone: raw.rider_phone,
+              createdAt: raw.created_at
+            };
+
+            // Synchronize memory and local caches so subsequent views read updated data with 0 egress
+            try {
+              ['all', raw.shop_id].filter(Boolean).forEach(k => {
+                const currentList = getCachedItem('orders', k) || [];
+                if (payload.eventType === 'DELETE') {
+                  setCachedItem('orders', k, currentList.filter(o => o.id !== raw.id));
                 } else {
-                  setCachedItem('orders', k, [normalized, ...currentList]);
+                  const idx = currentList.findIndex(o => o.id === raw.id);
+                  if (idx >= 0) {
+                    const copy = [...currentList];
+                    copy[idx] = { ...copy[idx], ...normalized };
+                    setCachedItem('orders', k, copy);
+                  } else {
+                    setCachedItem('orders', k, [normalized, ...currentList]);
+                  }
                 }
+              });
+            } catch (e) { }
+
+            // Broadcast to desk listeners
+            this.orderListeners.forEach(listener => {
+              try {
+                if (!listener.shopId || listener.shopId === 'all' || listener.shopId === raw.shop_id) {
+                  listener.callback(normalized, payload.eventType);
+                }
+              } catch (e) {
+                console.error('Order listener error:', e);
               }
             });
-          } catch (e) { }
 
-          // Broadcast to desk listeners
-          this.orderListeners.forEach(listener => {
-            try {
-              if (!listener.shopId || listener.shopId === 'all' || listener.shopId === raw.shop_id) {
-                listener.callback(normalized, payload.eventType);
-              }
-            } catch (e) {
-              console.error('Order listener error:', e);
+            // Broadcast to customer single-order listeners
+            const singleListeners = this.singleOrderListeners.get(raw.id);
+            if (singleListeners) {
+              singleListeners.forEach(cb => {
+                try {
+                  cb(normalized);
+                } catch (e) { }
+              });
             }
-          });
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'foody_notifications' },
+          (payload) => {
+            if (!payload.new) return;
+            const notif = {
+              id: payload.new.id,
+              userId: payload.new.user_id,
+              role: payload.new.role,
+              shopId: payload.new.shop_id,
+              orderId: payload.new.order_id,
+              message: payload.new.message,
+              read: payload.new.read,
+              createdAt: payload.new.created_at
+            };
 
-          // Broadcast to customer single-order listeners
-          const singleListeners = this.singleOrderListeners.get(raw.id);
-          if (singleListeners) {
-            singleListeners.forEach(cb => {
+            this.notificationListeners.forEach(listener => {
               try {
-                cb(normalized);
+                if (!listener.userId || listener.userId === notif.userId) {
+                  listener.callback(notif);
+                }
               } catch (e) { }
             });
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'foody_notifications' },
-        (payload) => {
-          if (!payload.new) return;
-          const notif = {
-            id: payload.new.id,
-            userId: payload.new.user_id,
-            role: payload.new.role,
-            shopId: payload.new.shop_id,
-            orderId: payload.new.order_id,
-            message: payload.new.message,
-            read: payload.new.read,
-            createdAt: payload.new.created_at
-          };
-
-          this.notificationListeners.forEach(listener => {
-            try {
-              if (!listener.userId || listener.userId === notif.userId) {
-                listener.callback(notif);
-              }
-            } catch (e) { }
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_logged_users' },
-        (payload) => this.handleUserChangePayload(payload)
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_users' },
-        (payload) => this.handleUserChangePayload(payload)
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_menus' },
-        (payload) => this.handleMenuChangePayload(payload)
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_shops' },
-        (payload) => this.handleShopChangePayload(payload)
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'foody_offers' },
-        (payload) => this.handleOfferChangePayload(payload)
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          this.isSubscribed = true;
-        }
-      });
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_logged_users' },
+          (payload) => this.handleUserChangePayload(payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_users' },
+          (payload) => this.handleUserChangePayload(payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_menus' },
+          (payload) => this.handleMenuChangePayload(payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_shops' },
+          (payload) => this.handleShopChangePayload(payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_offers' },
+          (payload) => this.handleOfferChangePayload(payload)
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            this.isSubscribed = true;
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            this.isSubscribed = false;
+            this.channel = null;
+          }
+        });
+    } catch (err) {
+      this.isSubscribed = false;
+      this.channel = null;
+    }
   }
 
   handleMenuChangePayload(payload) {
@@ -2513,6 +2534,7 @@ export async function getCloudUsers(forceRefresh = false) {
 }
 
 // Fetch single user live role & profile directly from Supabase with zero egress overhead
+// Fetch single user live role & profile directly from Supabase with zero egress overhead
 export async function getLiveUserRoleAndProfile(userId, email, phone) {
   const cleanId = String(userId || '').trim();
   const cleanEmail = (email || '').toLowerCase().trim();
@@ -2520,16 +2542,20 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
 
   if (!cleanId && !cleanEmail && !cleanPhone) return null;
 
+  const filters = [];
+  if (cleanId) filters.push(`id.eq.${cleanId}`);
+  if (cleanEmail) filters.push(`email.eq.${cleanEmail}`);
+  if (cleanPhone && cleanPhone.length >= 10) filters.push(`phone.eq.${cleanPhone}`);
+
   try {
     let query = supabase.from('foody_logged_users').select('*');
-    if (cleanId) {
-      query = query.eq('id', cleanId);
-    } else if (cleanEmail) {
-      query = query.eq('email', cleanEmail);
-    } else if (cleanPhone && cleanPhone.length >= 10) {
-      query = query.eq('phone', cleanPhone);
+    if (filters.length === 1) {
+      const parts = filters[0].split('.eq.');
+      query = query.eq(parts[0], parts[1]);
+    } else if (filters.length > 1) {
+      query = query.or(filters.join(','));
     }
-    const { data, error } = await query.maybeSingle();
+    const { data, error } = await query.limit(1).maybeSingle();
     if (!error && data) {
       return {
         id: data.id,
@@ -2551,14 +2577,13 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
   // Fallback check on public.foody_users
   try {
     let uQuery = supabase.from('foody_users').select('*');
-    if (cleanId) {
-      uQuery = uQuery.eq('id', cleanId);
-    } else if (cleanEmail) {
-      uQuery = uQuery.eq('email', cleanEmail);
-    } else if (cleanPhone && cleanPhone.length >= 10) {
-      uQuery = uQuery.eq('phone', cleanPhone);
+    if (filters.length === 1) {
+      const parts = filters[0].split('.eq.');
+      uQuery = uQuery.eq(parts[0], parts[1]);
+    } else if (filters.length > 1) {
+      uQuery = uQuery.or(filters.join(','));
     }
-    const { data: uData, error: uErr } = await uQuery.maybeSingle();
+    const { data: uData, error: uErr } = await uQuery.limit(1).maybeSingle();
     if (!uErr && uData) {
       return {
         id: uData.id,

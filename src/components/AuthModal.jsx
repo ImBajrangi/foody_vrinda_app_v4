@@ -91,6 +91,8 @@ export default function AuthModal({ isOpen, onClose }) {
     user,
     userData,
     userRole,
+    actualRole,
+    isGrandAdmin,
     isAuthorizedAdmin,
     isAuthorizedDeveloper,
     currentShopName,
@@ -626,18 +628,26 @@ export default function AuthModal({ isOpen, onClose }) {
 
                 {/* Role Badge */}
                 <div className="shrink-0">
-                  <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${
-                    userRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                      userRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
-                        userRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
-                          userRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
-                            'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
-                  }`}>
-                    {userRole === 'kitchen' ? 'Kitchen Chef' :
-                      userRole === 'delivery' ? 'Rider Sarathi' :
-                        userRole === 'owner' ? 'Store Owner' :
-                          userRole === 'developer' ? 'Developer' : 'Satvik Devotee'}
-                  </span>
+                  {(() => {
+                    const effectiveDisplayRole = actualRole || userData?.role || userRole;
+                    const isMasterAdmin = effectiveDisplayRole === 'grand_admin' || isGrandAdmin;
+                    return (
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${
+                        isMasterAdmin ? 'bg-amber-500/20 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/40 dark:border-amber-400/40' :
+                          effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                            effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
+                              effectiveDisplayRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
+                                effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                  'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
+                      }`}>
+                        {isMasterAdmin ? '👑 Grand Admin' :
+                          effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
+                            effectiveDisplayRole === 'delivery' ? 'Rider Sarathi' :
+                              effectiveDisplayRole === 'owner' ? 'Store Owner' :
+                                effectiveDisplayRole === 'developer' ? 'Master Developer' : 'Satvik Devotee'}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
 

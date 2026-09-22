@@ -136,43 +136,49 @@ export function useAudioAlarm() {
       ctx.resume().catch(() => {});
     }
 
-    const now = ctx.currentTime;
-    const vol = volumeRef.current;
-    
-    // Dual Oscillator for piercing kitchen-grade acoustic cut
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    const vol = Math.max(0, Math.min(1, volumeRef.current));
+    if (vol <= 0.01) return; // Silent if volume is muted / zero
 
-    osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(880, now); // A5
-    osc1.frequency.setValueAtTime(1174, now + 0.12); // D6
+    try {
+      const now = ctx.currentTime;
+      
+      // Dual Oscillator for piercing kitchen-grade acoustic cut
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(880, now);
-    osc2.frequency.setValueAtTime(1174, now + 0.12);
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(880, now); // A5
+      osc1.frequency.setValueAtTime(1174, now + 0.12); // D6
 
-    // Punchy envelope scaled by volume
-    gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.35 * vol, now + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.2 * vol, now + 0.12);
-    gainNode.gain.exponentialRampToValueAtTime(0.4 * vol, now + 0.14);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880, now);
+      osc2.frequency.setValueAtTime(1174, now + 0.12);
 
-    osc1.connect(gainNode);
-    osc2.connect(gainNode);
-    gainNode.connect(ctx.destination);
+      // Punchy envelope scaled by volume (guaranteed > 0 to prevent RangeError)
+      gainNode.gain.setValueAtTime(0.001, now);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.35 * vol), now + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.2 * vol), now + 0.12);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.4 * vol), now + 0.14);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
 
-    osc1.start(now);
-    osc2.start(now);
-    osc1.stop(now + 0.4);
-    osc2.stop(now + 0.4);
+      osc1.connect(gainNode);
+      osc2.connect(gainNode);
+      gainNode.connect(ctx.destination);
 
-    // Haptic vibration on mobile
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try {
-        navigator.vibrate([200, 100, 200, 100, 300]);
-      } catch (e) {}
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.4);
+      osc2.stop(now + 0.4);
+
+      // Haptic vibration on mobile
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          navigator.vibrate([200, 100, 200, 100, 300]);
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Audio buzzer note:', err);
     }
   }, []);
 
@@ -184,33 +190,39 @@ export function useAudioAlarm() {
       ctx.resume().catch(() => {});
     }
 
-    const now = ctx.currentTime;
-    const vol = volumeRef.current;
-    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5 -> E5 -> G5 -> C6
+    const vol = Math.max(0, Math.min(1, volumeRef.current));
+    if (vol <= 0.01) return;
 
-    freqs.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const noteTime = now + (idx * 0.1);
+    try {
+      const now = ctx.currentTime;
+      const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5 -> E5 -> G5 -> C6
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, noteTime);
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const noteTime = now + (idx * 0.1);
 
-      gainNode.gain.setValueAtTime(0.001, noteTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.3 * vol, noteTime + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.28);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, noteTime);
 
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
+        gainNode.gain.setValueAtTime(0.001, noteTime);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.3 * vol), noteTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.28);
 
-      osc.start(noteTime);
-      osc.stop(noteTime + 0.3);
-    });
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
 
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try {
-        navigator.vibrate([150, 100, 250]);
-      } catch (e) {}
+        osc.start(noteTime);
+        osc.stop(noteTime + 0.3);
+      });
+
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          navigator.vibrate([150, 100, 250]);
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Audio delivery tone note:', err);
     }
   }, []);
 
@@ -222,24 +234,30 @@ export function useAudioAlarm() {
       ctx.resume().catch(() => {});
     }
 
-    const now = ctx.currentTime;
-    const vol = volumeRef.current;
-    const osc = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    const vol = Math.max(0, Math.min(1, volumeRef.current));
+    if (vol <= 0.01) return;
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1046.50, now);
-    osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.08);
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-    gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.35 * vol, now + 0.03);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1046.50, now);
+      osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.08);
 
-    osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
+      gainNode.gain.setValueAtTime(0.001, now);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.35 * vol), now + 0.03);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
 
-    osc.start(now);
-    osc.stop(now + 0.9);
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.9);
+    } catch (err) {
+      console.warn('Audio owner tone note:', err);
+    }
   }, []);
 
   // 4. Synthesize Customer Blessing Prasad Bell
@@ -250,26 +268,32 @@ export function useAudioAlarm() {
       ctx.resume().catch(() => {});
     }
 
-    const now = ctx.currentTime;
-    const vol = volumeRef.current;
-    [528, 660].forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const t = now + (i * 0.12);
+    const vol = Math.max(0, Math.min(1, volumeRef.current));
+    if (vol <= 0.01) return;
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(f, t);
+    try {
+      const now = ctx.currentTime;
+      [528, 660].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const t = now + (i * 0.12);
 
-      gainNode.gain.setValueAtTime(0.001, t);
-      gainNode.gain.exponentialRampToValueAtTime(0.25 * vol, t + 0.03);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t);
 
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
+        gainNode.gain.setValueAtTime(0.001, t);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.25 * vol), t + 0.03);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
 
-      osc.start(t);
-      osc.stop(t + 0.75);
-    });
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.75);
+      });
+    } catch (err) {
+      console.warn('Audio customer tone note:', err);
+    }
   }, []);
 
   // Stop Active Alarm

@@ -1034,14 +1034,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Global Shop Offline / Closed Warning Indicator */}
         {!isShopOpen && (
-          <div className="p-3 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-3 text-red-700 dark:text-red-300 text-xs shadow-sm">
-            <div className="flex items-center gap-2">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-2 sm:gap-3 text-red-700 dark:text-red-300 text-xs shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <span className="font-bold truncate">
-                {activeShop?.name || 'Kitchen'} is currently Offline / Closed
+              <span className="font-bold truncate text-[11px] sm:text-xs">
+                {activeShop?.name || 'Kitchen'} is currently Closed
               </span>
             </div>
-            <span className="text-[10px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2 py-0.5 rounded-full border border-red-500/25 shrink-0">
+            <span className="text-[10px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2 py-0.5 rounded-full border border-red-500/25 shrink-0 whitespace-nowrap">
               {activeShop?.openingTime || '08:00'} – {activeShop?.closingTime || '22:30'}
             </span>
           </div>

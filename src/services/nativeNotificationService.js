@@ -188,6 +188,9 @@ class NativeNotificationService {
         try {
           const localPerm = await LocalNotifications.requestPermissions();
           console.log('System notification permissions:', localPerm);
+          if (localPerm?.display === 'granted') {
+            this.notifyWelcomeIfFirstTime();
+          }
         } catch (e) {
           console.warn('Notification permission request error:', e);
         }
@@ -210,6 +213,107 @@ class NativeNotificationService {
       this.initialized = true;
     } catch (err) {
       console.warn('Native notification initialization error:', err);
+    }
+  }
+
+  /**
+   * First-time welcome notification trigger upon permission grant
+   */
+  async notifyWelcomeIfFirstTime() {
+    try {
+      if (typeof window !== 'undefined') {
+        const alreadySent = localStorage.getItem('foody_welcome_system_notif_sent');
+        if (alreadySent) return;
+        localStorage.setItem('foody_welcome_system_notif_sent', 'true');
+      }
+      await this.notifyWelcome();
+    } catch (e) {
+      console.warn('Welcome notification check error:', e);
+    }
+  }
+
+  /**
+   * Welcome notification (System OS + Sound + Haptics)
+   */
+  async notifyWelcome() {
+    await this.hapticImpact(ImpactStyle.Light);
+    this.playChime('customer');
+
+    const title = '🙏 Welcome to Foody Vrinda!';
+    const body = '100% Pure Satvik Desi Ghee Prasad & Vedic Delicacies delivered fresh in Sri Dham Vrindavan. Radhe Radhe! 🌸';
+
+    if (this.isNative) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: 10801,
+              channelId: 'system_alerts',
+              smallIcon: 'ic_stat_notification',
+              largeIcon: 'splash_icon',
+              iconColor: '#E0FF33',
+              sound: 'customer_ping.wav',
+              extra: { type: 'welcome' },
+            },
+          ],
+        });
+      } catch (e) {
+        console.warn('Failed to schedule welcome notification on native:', e);
+      }
+    } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: '/foody-vrinda-logo.webp',
+          badge: '/pwa-192x192.webp',
+          tag: 'foody-welcome',
+        });
+      } catch (e) {}
+    }
+  }
+
+  /**
+   * User login success notification (System OS + Sound + Haptics)
+   */
+  async notifyLogin(userName) {
+    await this.hapticNotification(NotificationType.Success);
+    this.playChime('customer');
+
+    const cleanName = (userName || 'Devotee').trim();
+    const title = `🌸 Welcome Back, ${cleanName}!`;
+    const body = 'Signed in to Foody Vrinda. Savor authentic Vedic prasad prepared with devotion.';
+
+    if (this.isNative) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: Math.floor(Date.now() % 100000),
+              channelId: 'system_alerts',
+              smallIcon: 'ic_stat_notification',
+              largeIcon: 'splash_icon',
+              iconColor: '#E0FF33',
+              sound: 'customer_ping.wav',
+              extra: { type: 'login' },
+            },
+          ],
+        });
+      } catch (e) {
+        console.warn('Failed to schedule login notification on native:', e);
+      }
+    } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: '/foody-vrinda-logo.webp',
+          badge: '/pwa-192x192.webp',
+          tag: `foody-login-${Date.now()}`,
+        });
+      } catch (e) {}
     }
   }
 
@@ -252,10 +356,13 @@ class NativeNotificationService {
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `🔔 NEW BHOG ORDER #${orderId}`,
-            body: `${itemCount} items (₹${total}) received! Tap to start cooking.`,
+            title: `🔔 NEW BHOG ORDER #${orderId} · ₹${total}`,
+            body: `${itemCount} items received! Tap to start cooking with pure Desi Ghee.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'kitchen_urgent',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#E0FF33',
             sound: 'kitchen_alert.wav',
             extra: { orderId: order.id, type: 'kitchen' },
           },
@@ -284,9 +391,12 @@ class NativeNotificationService {
         notifications: [
           {
             title: `💰 NEW ORDER #${orderId} · ₹${total}`,
-            body: `${customerName} ordered ${itemCount} items. Tap to view details.`,
+            body: `${customerName} ordered ${itemCount} items. Tap to view live order stream.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'owner_urgent',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#E0FF33',
             sound: 'owner_alert.wav',
             extra: { orderId: order.id, type: 'owner' },
           },
@@ -313,9 +423,12 @@ class NativeNotificationService {
         notifications: [
           {
             title: `🛵 ORDER #${orderId} READY FOR PICKUP`,
-            body: `Freshly packed for delivery to ${address}. Tap to navigate.`,
+            body: `Freshly packed for express delivery to ${address}. Tap to navigate.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'driver_dispatch',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#E0FF33',
             sound: 'delivery_alert.wav',
             extra: { orderId: order.id, type: 'driver' },
           },
@@ -343,22 +456,22 @@ class NativeNotificationService {
         case 'cooking':
         case 'preparing':
           title = `🔥 Kitchen Simmering #${orderId}`;
-          body = `Your prasad is being cooked in pure Desi Ghee!`;
+          body = `Your prasad is being freshly cooked in pure Desi Ghee with devotion.`;
           break;
         case 'ready':
         case 'ready_for_pickup':
-          title = `✨ Prasad Blessed & Packed #${orderId}`;
-          body = `Awaiting Sarathi express pickup.`;
+          title = `✨ Prasad Packed & Blessed #${orderId}`;
+          body = `Awaiting express Sarathi express pickup from the sacred kitchen.`;
           break;
         case 'out_for_delivery':
         case 'dispatched':
-          title = `🛵 Sarathi On The Way #${orderId}`;
-          body = `Your sacred prasad is en route with express GPS.`;
+          title = `🛵 Sarathi En Route #${orderId}`;
+          body = `Your sacred prasad is on its way with live GPS express tracking.`;
           break;
         case 'delivered':
         case 'completed':
-          title = `🙏 Prasad Delivered Safely #${orderId}`;
-          body = `Enjoy your divine meal. Radhe Radhe!`;
+          title = `🌸 Prasad Delivered Safely #${orderId}`;
+          body = `Savor the divine blessings of Sri Dham Vrindavan. Radhe Radhe! 🙏`;
           break;
       }
 
@@ -369,6 +482,9 @@ class NativeNotificationService {
             body,
             id: Math.floor(Date.now() % 100000),
             channelId: 'order_updates',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#E0FF33',
             sound: 'customer_ping.wav',
             extra: { orderId: order.id, status },
           },
@@ -395,6 +511,9 @@ class NativeNotificationService {
             body: message,
             id: Math.floor(Date.now() % 100000),
             channelId: 'system_alerts',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#E0FF33',
             sound: 'owner_alert.wav',
           },
         ],

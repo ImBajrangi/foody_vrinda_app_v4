@@ -16,32 +16,34 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { nativeNotify } from '../services/nativeNotificationService';
 
 const AuthContext = createContext(null);
 
-// Whitelist of authorized developer & administrator emails
+// Authorized developer & administrator emails (driven exclusively by environment configuration and database roles)
 export const AUTHORIZED_DEV_EMAILS = (
-  import.meta.env.VITE_DEVELOPER_EMAILS ||
-  'developer@foodyvrinda.com,dev@foodyvrinda.com,admin@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
-).split(',').map(e => e.trim().toLowerCase());
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEVELOPER_EMAILS) || ''
+).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 export const AUTHORIZED_ADMIN_EMAILS = (
-  import.meta.env.VITE_ADMIN_EMAILS ||
-  'admin@foodyvrinda.com,owner@foodyvrinda.com,manager@foodyvrinda.com,developer@foodyvrinda.com,dev@foodyvrinda.com,imbajrangi@gmail.com,sakhi@foodyvrinda.com'
-).split(',').map(e => e.trim().toLowerCase());
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAILS) || ''
+).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 export const isDeveloperUser = (email = '', role = '') => {
   if (role === 'developer' || role === 'grand_admin') return true;
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  return AUTHORIZED_DEV_EMAILS.includes(clean) || clean.startsWith('dev@') || clean.includes('+dev@');
+  return AUTHORIZED_DEV_EMAILS.length > 0 && AUTHORIZED_DEV_EMAILS.includes(clean);
 };
 
 export const isAdminUser = (email = '', role = '') => {
   if (role === 'owner' || role === 'developer' || role === 'grand_admin') return true;
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  return AUTHORIZED_ADMIN_EMAILS.includes(clean) || isDeveloperUser(clean, role);
+  return (
+    (AUTHORIZED_ADMIN_EMAILS.length > 0 && AUTHORIZED_ADMIN_EMAILS.includes(clean)) ||
+    isDeveloperUser(clean, role)
+  );
 };
 
 export function AuthProvider({ children }) {
@@ -90,8 +92,24 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Impersonation states for developer & quick desk switches (allowed only for verified admins)
-  const [impersonatedShopId, setImpersonatedShopId] = useState(null);
-  const [impersonatedRole, setImpersonatedRole] = useState(null);
+  const [impersonatedShopId, setImpersonatedShopId] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = sessionStorage.getItem('foody_dev_impersonation');
+        if (saved) return JSON.parse(saved)?.shopId || null;
+      }
+    } catch (_) {}
+    return null;
+  });
+  const [impersonatedRole, setImpersonatedRole] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = sessionStorage.getItem('foody_dev_impersonation');
+        if (saved) return JSON.parse(saved)?.role || null;
+      }
+    } catch (_) {}
+    return null;
+  });
 
   // Helper to compare shop arrays to avoid redundant state updates & flickering
   const areShopsEqual = (prev = [], next = []) => {
@@ -500,6 +518,10 @@ export function AuthProvider({ children }) {
         localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
         syncUserToCloudList(userProfile);
 
+        if (_event === 'SIGNED_IN') {
+          nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
+        }
+
         // If phone or address is missing for a newly logged-in customer, prompt profile completion
         if (!userPhone || !userAddr) {
           setTimeout(() => {
@@ -728,6 +750,7 @@ export function AuthProvider({ children }) {
       setCurrentShopName(resolveShopName(userProfile.shopId) || null);
       localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
       await recordLoggedInUser(userProfile).catch(() => { });
+      nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
       return userProfile;
     }
 
@@ -753,6 +776,7 @@ export function AuthProvider({ children }) {
     setCurrentShopName(null);
     localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
     await recordLoggedInUser(userProfile).catch(() => { });
+    nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
     return userProfile;
   };
 
@@ -864,7 +888,7 @@ export function AuthProvider({ children }) {
     )
   );
 
-  // Developer impersonation control helper (available only to authenticated developers/admins)
+  // Developer impersonation control helper (isolated purely in-memory / session storage to NEVER corrupt permanent user profile)
   const impersonate = (shopId, role) => {
     if (!isAuthorizedDeveloper && !isAuthorizedAdmin) {
       console.warn("Unauthorized attempt to impersonate privileged role:", role);
@@ -873,14 +897,12 @@ export function AuthProvider({ children }) {
     setImpersonatedShopId(shopId);
     setImpersonatedRole(role);
     try {
-      const saved = localStorage.getItem('foody_user_data');
-      const base = saved ? JSON.parse(saved) : (userData || {});
-      const updated = { ...base, role, shopId: shopId || base.shopId };
-      setUserData(updated);
-      localStorage.setItem('foody_user_data', JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
+      if (role) {
+        sessionStorage.setItem('foody_dev_impersonation', JSON.stringify({ shopId, role }));
+      } else {
+        sessionStorage.removeItem('foody_dev_impersonation');
+      }
+    } catch (_) { }
     return true;
   };
 

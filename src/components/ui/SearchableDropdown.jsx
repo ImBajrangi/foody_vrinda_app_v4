@@ -33,6 +33,16 @@ export default function SearchableDropdown({
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
+  // Normalize options to objects: { value, label, sublabel, icon, badge, badgeColor, group }
+  const normalizedOptions = useMemo(() => {
+    return (options || []).map(opt => {
+      if (typeof opt === 'string' || typeof opt === 'number') {
+        return { value: opt, label: String(opt) };
+      }
+      return opt;
+    });
+  }, [options]);
+
   // Auto focus search input when opened ONLY on desktop devices with large lists
   useEffect(() => {
     if (isOpen && normalizedOptions.length > 5) {
@@ -45,16 +55,6 @@ export default function SearchableDropdown({
       }
     }
   }, [isOpen, normalizedOptions.length]);
-
-  // Normalize options to objects: { value, label, sublabel, icon, badge, badgeColor, group }
-  const normalizedOptions = useMemo(() => {
-    return options.map(opt => {
-      if (typeof opt === 'string' || typeof opt === 'number') {
-        return { value: opt, label: String(opt) };
-      }
-      return opt;
-    });
-  }, [options]);
 
   // Find currently selected item
   const selectedOption = useMemo(() => {
