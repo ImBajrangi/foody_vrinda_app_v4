@@ -1073,155 +1073,155 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           )}
         </div>
 
-        {/* Dynamic Shops Modal (Portaled to prevent any background layout shift or document scroll height expansion) */}
+        {/* Kitchen Branch Switcher — Minimal Premium Modal */}
         {showShopSwitcher && allShops.length > 1 && createPortal(
           <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 apple-overlay ${isShopClosing ? 'closing' : ''}`}
+            className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center apple-overlay ${isShopClosing ? 'closing' : ''}`}
             onClick={handleCloseShopSwitcher}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Switch kitchen branch"
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-xl max-h-[88vh] flex flex-col bg-white dark:bg-[#242021] border border-stone-200 dark:border-white/10 rounded-[32px] sm:rounded-[36px] shadow-2xl apple-modal-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
+              className={`w-full sm:max-w-md max-h-[85vh] flex flex-col bg-white/95 dark:bg-[#1E1B1C]/98 backdrop-blur-2xl border border-stone-200/50 dark:border-white/[.07] rounded-t-[28px] sm:rounded-[28px] shadow-2xl apple-modal-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
+              style={{ backdropFilter: 'blur(40px) saturate(180%)' }}
             >
-              {/* Header */}
-              <div className="p-4 sm:p-5 pb-3 border-b border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-inner">
-                    <Store size={18} strokeWidth={2.5} />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] uppercase tracking-wide truncate">
-                      Select Kitchen Branch
-                    </h3>
-                    <p className="text-[11px] font-medium text-stone-500 dark:text-zinc-400">
-                      {allShops.length} Cloud Kitchens in Vrindavan Dham
-                    </p>
-                  </div>
-                </div>
+              {/* Drag Handle (mobile) */}
+              <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+                <div className="w-9 h-[3px] rounded-full bg-stone-300 dark:bg-white/15" />
+              </div>
 
+              {/* Header — Single clean line */}
+              <div className="px-5 pt-3 sm:pt-5 pb-3 flex items-center justify-between">
+                <h3 className="text-[15px] sm:text-base font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                  Switch Kitchen
+                </h3>
                 <button
                   onClick={handleCloseShopSwitcher}
-                  className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 flex items-center justify-center text-stone-700 dark:text-zinc-300 cursor-pointer apple-tap-target transition-colors shrink-0"
-                  title="Close branch selector"
+                  className="w-7 h-7 rounded-full bg-stone-100 dark:bg-white/[.08] hover:bg-stone-200 dark:hover:bg-white/[.14] flex items-center justify-center text-stone-500 dark:text-zinc-400 cursor-pointer transition-colors shrink-0"
+                  aria-label="Close"
                 >
-                  <X size={15} strokeWidth={2.5} />
+                  <X size={14} strokeWidth={2.5} />
                 </button>
               </div>
 
-              {/* Integrated Search Bar inside Modal */}
-              <div className="p-3 sm:px-5 sm:py-3.5 bg-stone-50/80 dark:bg-[#1E1B1C]/80 border-b border-stone-200/60 dark:border-white/5 space-y-2">
-                <div className="relative w-full">
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={shopSearch}
-                    onChange={(e) => setShopSearch(e.target.value)}
-                    placeholder="Search kitchen branch by name, area or temple..."
-                    className="w-full h-10 bg-white dark:bg-[#2D292A] border border-stone-300 dark:border-white/10 focus:border-amber-600 dark:focus:border-[#E0FF33] rounded-full pl-9 pr-9 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all shadow-inner font-medium"
-                    autoFocus
-                  />
-                  {shopSearch && (
-                    <button
-                      onClick={() => setShopSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-200 dark:bg-white/20 flex items-center justify-center text-stone-700 dark:text-white cursor-pointer active:scale-90"
-                      title="Clear search"
-                    >
-                      <X size={12} strokeWidth={2.5} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Filter count & quick stats */}
-                <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400 px-1">
-                  <span>
-                    {shopSearch ? (
-                      <>Found <strong className="text-stone-800 dark:text-[#E0FF33]">{filteredShops.length}</strong> of {allShops.length} kitchens</>
-                    ) : (
-                      <>Showing all <strong>{allShops.length}</strong> available kitchens</>
+              {/* Search — only when 3+ shops */}
+              {allShops.length > 2 && (
+                <div className="px-5 pb-3">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={shopSearch}
+                      onChange={(e) => setShopSearch(e.target.value)}
+                      placeholder="Search by name or area…"
+                      className="w-full h-9 bg-stone-100/80 dark:bg-white/[.05] border border-transparent focus:border-stone-300 dark:focus:border-white/[.12] rounded-xl pl-8 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium"
+                      autoFocus
+                    />
+                    {shopSearch && (
+                      <button
+                        onClick={() => setShopSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-200 dark:bg-white/15 flex items-center justify-center text-stone-600 dark:text-white cursor-pointer active:scale-90"
+                        aria-label="Clear search"
+                      >
+                        <X size={10} strokeWidth={3} />
+                      </button>
                     )}
-                  </span>
-                  {activeShop && (
-                    <span className="truncate max-w-[180px] text-right">
-                      Active: <strong className="text-amber-600 dark:text-[#E0FF33]">{activeShop.name}</strong>
-                    </span>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Scrollable Shop List */}
-              <div className="p-3 sm:p-5 flex-1 overflow-y-auto no-scrollbar space-y-2.5 max-h-[380px] sm:max-h-[420px]">
+              {/* Kitchen List */}
+              <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-4 pb-4 sm:pb-5">
                 {filteredShops.length === 0 ? (
-                  <div className="py-10 px-4 text-center flex flex-col items-center justify-center space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-400 dark:text-zinc-500">
-                      <Store size={22} />
+                  <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
+                    <div className="w-11 h-11 rounded-full bg-stone-100 dark:bg-white/[.05] flex items-center justify-center text-stone-400 dark:text-zinc-500">
+                      <Search size={18} />
                     </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-bold text-stone-800 dark:text-zinc-200">
-                        No kitchen found matching &ldquo;{shopSearch}&rdquo;
-                      </p>
-                      <p className="text-[11px] text-stone-500 dark:text-zinc-400 mt-0.5">
-                        Try searching with a different temple name or location
-                      </p>
-                    </div>
+                    <p className="text-[13px] text-stone-500 dark:text-zinc-400">
+                      No results for "<span className="font-semibold text-stone-700 dark:text-zinc-200">{shopSearch}</span>"
+                    </p>
                     <button
                       onClick={() => setShopSearch('')}
-                      className="px-4 py-2 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-stone-950 font-bold text-xs shadow-sm hover:scale-102 active:scale-95 transition-all cursor-pointer"
+                      className="text-xs font-semibold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
                     >
-                      Show All Branches
+                      Clear search
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-1.5">
                     {filteredShops.map(s => {
                       const isSelected = s.id === selectedShopId;
                       const isOpen = isShopCurrentlyOpen(s);
 
                       return (
-                        <div
+                        <button
                           key={s.id}
                           onClick={() => {
                             setSelectedShopId(s.id);
                             handleCloseShopSwitcher();
                             showToast(s.name, 'info');
                           }}
-                          className={`p-3.5 rounded-2xl flex flex-col justify-between gap-2.5 cursor-pointer transition-all apple-tap-target border relative ${
+                          className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
                             isSelected
-                              ? 'bg-amber-500/10 border-amber-600 dark:bg-[#E0FF33]/10 dark:border-[#E0FF33] shadow-md ring-1 ring-amber-500/30 dark:ring-[#E0FF33]/30'
-                              : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-800 dark:text-white hover:bg-stone-100 dark:hover:bg-[#282526] border-stone-200 dark:border-white/10 shadow-xs'
+                              ? 'bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
+                              : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
                           }`}
+                          aria-pressed={isSelected}
+                          aria-label={`${s.name}${isOpen ? '' : ' — closed'}${isSelected ? ' — currently active' : ''}`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`w-2 h-2 rounded-full shrink-0 ${isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-                                <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate">
-                                  {s.name}
-                                </p>
-                              </div>
-                              <p className="text-[11px] text-stone-500 dark:text-zinc-400 mt-1 line-clamp-1 flex items-center gap-1">
-                                <MapPin size={11} className="shrink-0 text-stone-400 dark:text-zinc-500" />
-                                <span className="truncate">{s.address || 'Sri Vrindavan Dham'}</span>
+                          {/* Radio Indicator */}
+                          <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${
+                            isSelected
+                              ? 'border-white dark:border-[#E0FF33] bg-white/20 dark:bg-[#E0FF33]/20'
+                              : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
+                          }`}>
+                            <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-white dark:bg-[#E0FF33] scale-100'
+                                : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
+                            }`} />
+                          </div>
+
+                          {/* Kitchen Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <p className={`text-[13px] sm:text-sm font-semibold truncate transition-colors ${
+                                isSelected
+                                  ? 'text-white dark:text-[#E0FF33]'
+                                  : 'text-stone-800 dark:text-zinc-100'
+                              }`}>
+                                {s.name}
                               </p>
                             </div>
-
-                            {isSelected && (
-                              <span className="text-[10px] font-black bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-stone-950 px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0 shadow-xs">
-                                <Check size={11} strokeWidth={3} />
-                                <span>Active</span>
-                              </span>
+                            {s.address && (
+                              <p className={`text-[11px] mt-0.5 truncate transition-colors ${
+                                isSelected
+                                  ? 'text-white/60 dark:text-[#E0FF33]/50'
+                                  : 'text-stone-400 dark:text-zinc-500'
+                              }`}>
+                                {s.address}
+                              </p>
                             )}
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-stone-200/60 dark:border-white/5 text-stone-500 dark:text-zinc-400">
-                            <span className="flex items-center gap-1 font-medium">
-                              <Clock size={11} className="text-amber-500 dark:text-[#E0FF33]" />
-                              {s.estimatedWaitTime ? `${s.estimatedWaitTime} min prep` : '15-20 min prep'}
-                            </span>
-                            <span className={`font-semibold px-2 py-0.5 rounded-full ${isOpen ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
-                              {isOpen ? 'Accepting Orders' : 'Currently Closed'}
-                            </span>
+                          {/* Status Dot */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {!isOpen && (
+                              <span className={`text-[10px] font-medium ${
+                                isSelected ? 'text-white/50 dark:text-[#E0FF33]/40' : 'text-red-400 dark:text-red-400/80'
+                              }`}>
+                                Closed
+                              </span>
+                            )}
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${
+                              isOpen
+                                ? (isSelected ? 'bg-emerald-400 dark:bg-emerald-400' : 'bg-emerald-500')
+                                : 'bg-red-400/60 dark:bg-red-400/50'
+                            } ${isOpen ? 'animate-pulse' : ''}`} />
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
