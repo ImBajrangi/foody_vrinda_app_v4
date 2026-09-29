@@ -576,51 +576,24 @@ export default function AuthModal({ isOpen, onClose }) {
               {/* Top: Devotee Name, Role Badge & Email */}
               <div className="flex items-start justify-between gap-3 relative z-10">
                 <div className="space-y-1 min-w-0 flex-1">
-                  {/* Name + Inline Edit */}
-                  {isEditingName ? (
-                    <div className="flex items-center gap-1.5 py-0.5">
-                      <input
-                        type="text"
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        className="bg-white dark:bg-[#221F20] text-stone-900 dark:text-white text-xs px-2.5 py-1 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] w-full font-['Plus_Jakarta_Sans'] font-semibold"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSaveName}
-                        className="p-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black hover:opacity-90 cursor-pointer shrink-0"
-                        title="Save Name"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingName(false)}
-                        className="p-1 rounded-lg bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white cursor-pointer shrink-0"
-                        title="Cancel"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit'] tracking-tight">
-                        {userData?.displayName || user.displayName || 'Customer'}
-                      </h4>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit'] tracking-tight">
+                      {userData?.displayName || user.displayName || 'Customer'}
+                    </h4>
+                    {!isEditingName && (
                       <button
                         type="button"
                         onClick={() => {
                           setNameInput(userData?.displayName || user.displayName || '');
                           setIsEditingName(true);
                         }}
-                        className="text-stone-400 hover:text-amber-600 dark:text-zinc-500 dark:hover:text-[#E0FF33] transition-colors p-0.5 cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-stone-200/70 hover:bg-stone-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-stone-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-[#E0FF33] flex items-center justify-center transition-colors cursor-pointer"
                         title="Edit Name"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Email */}
                   {user.email && (
@@ -655,45 +628,110 @@ export default function AuthModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Mid: Contact & Address Quick Pills */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-stone-200 dark:border-white/5 relative z-10">
-                {/* Phone Pill / Editor */}
-                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/5 flex flex-col justify-center min-h-[52px] shadow-sm">
-                  {isEditingPhone ? (
-                    <div className="flex items-center gap-1.5">
+              {/* Dedicated Full-Width Name Editor (Shown when editing name) */}
+              {isEditingName && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#E0FF33]/40 shadow-sm space-y-3 animate-fade-in relative z-10 w-full">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
+                      <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                      Update Devotee Name
+                    </span>
+                    <span className="text-[11px] text-stone-400 dark:text-zinc-500 font-medium">Public profile name</span>
+                  </div>
+
+                  {/* Full-width Roomy Input */}
+                  <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#E0FF33] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 px-3.5 shadow-inner">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      placeholder="Enter your full name"
+                      className="bg-transparent text-stone-900 dark:text-white text-base font-bold w-full focus:outline-none placeholder:text-stone-400 dark:placeholder:text-zinc-500 font-['Plus_Jakarta_Sans']"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="flex items-center justify-end gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingName(false)}
+                      className="h-10 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300 font-bold text-xs cursor-pointer transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveName}
+                      disabled={!nameInput.trim()}
+                      className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>Save Name</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Mid: Contact & Address Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1.5 border-t border-stone-200 dark:border-white/5 relative z-10">
+                {/* Phone: Full-Width Editor OR Collapsed Quick Pill */}
+                {isEditingPhone ? (
+                  <div className="col-span-1 sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#E0FF33]/40 shadow-sm space-y-3 animate-fade-in w-full">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
+                        <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                        Update Mobile Number
+                      </span>
+                      <span className="text-[11px] font-mono text-stone-400 dark:text-zinc-500">10 digits required</span>
+                    </div>
+
+                    {/* Full-width Phone Input */}
+                    <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#E0FF33] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 px-3.5 shadow-inner">
+                      <span className="text-sm font-black text-stone-900 dark:text-[#E0FF33] pr-3 mr-3 border-r border-stone-300 dark:border-white/15 select-none font-['Outfit']">
+                        +91
+                      </span>
                       <input
                         type="tel"
                         maxLength={10}
                         value={phoneEditInput}
                         onChange={(e) => setPhoneEditInput(e.target.value.replace(/\D/g, ''))}
-                        placeholder="10-digit mobile"
-                        className="bg-stone-50 dark:bg-[#282526] text-stone-900 dark:text-white text-xs px-2 py-1 rounded-lg border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] w-full font-mono font-semibold"
+                        placeholder="Enter 10-digit mobile number"
+                        className="bg-transparent text-stone-900 dark:text-white text-base font-mono font-bold tracking-wider w-full focus:outline-none placeholder:text-stone-400 dark:placeholder:text-zinc-500"
                         autoFocus
                       />
-                      <button
-                        type="button"
-                        onClick={handleSavePhone}
-                        className="p-1 rounded-md bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black hover:opacity-90 cursor-pointer shrink-0"
-                        title="Save Phone"
-                      >
-                        <Check className="w-3 h-3" />
-                      </button>
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    <div className="flex items-center justify-end gap-2 pt-0.5">
                       <button
                         type="button"
                         onClick={() => setIsEditingPhone(false)}
-                        className="p-1 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white cursor-pointer shrink-0"
-                        title="Cancel"
+                        className="h-10 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300 font-bold text-xs cursor-pointer transition-colors"
                       >
-                        <X className="w-3 h-3" />
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSavePhone}
+                        disabled={phoneEditInput.length < 10}
+                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Save Phone</span>
                       </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-1.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                          <Phone className="w-4 h-4" />
+                        </div>
                         <div className="min-w-0">
-                          <span className="text-[9px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
-                          <span className={`text-xs font-mono font-semibold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#E0FF33]/90 font-medium'}`}>
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
+                          <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#E0FF33] font-semibold'}`}>
                             {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : '+ Add phone'}
                           </span>
                         </div>
@@ -704,89 +742,113 @@ export default function AuthModal({ isOpen, onClose }) {
                           setPhoneEditInput(cleanMob.slice(-10));
                           setIsEditingPhone(true);
                         }}
-                        className="text-[10px] font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] dark:hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] cursor-pointer shrink-0 transition-colors"
                       >
                         {hasValidPhone ? 'Edit' : '+ Add'}
                       </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Address Pill / Editor Toggle */}
-                <div className="p-2.5 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[52px] shadow-sm">
-                  <div className="flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0" />
-                      <div className="min-w-0">
-                        <span className="text-[9px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
-                        <span className={`text-xs font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#E0FF33]/90 font-medium'}`}>
-                          {hasValidAddress ? userAddress : '+ Set address'}
-                        </span>
+                {/* Address: Full-Width In-Place Editor OR Collapsed Quick Pill */}
+                {isEditingAddress ? (
+                  <div className="col-span-1 sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-amber-500/50 dark:border-[#E0FF33]/40 space-y-3.5 relative z-10 animate-fade-in shadow-md w-full">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
+                        <MapPin className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                        Delivery Address in Vrindavan Dham
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingAddress(false)}
+                        className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-500 dark:text-zinc-400 flex items-center justify-center cursor-pointer transition-colors"
+                        title="Close editor"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <textarea
+                      rows={3}
+                      value={addressInput}
+                      onChange={(e) => setAddressInput(e.target.value)}
+                      placeholder="House/Room No., Building, Street, Ashram, or Landmark in Vrindavan..."
+                      className="w-full min-h-[92px] bg-stone-50 dark:bg-[#141213] text-sm sm:text-base text-stone-900 dark:text-white p-3.5 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-500 leading-relaxed shadow-inner"
+                      autoFocus
+                    />
+
+                    {/* Quick Landmark Chips */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">
+                        Quick Landmarks:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          'Near ISKCON Temple, Raman Reti',
+                          'Prem Mandir Area',
+                          'Parikrama Marg',
+                          'Chhatikara Road'
+                        ].map((loc) => (
+                          <button
+                            key={loc}
+                            type="button"
+                            onClick={() => setAddressInput(loc)}
+                            className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/15 text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-95"
+                          >
+                            + {loc}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAddressInput(userData?.address || userData?.customerAddress || '');
-                        setIsEditingAddress(prev => !prev);
-                      }}
-                      className="text-[10px] font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] dark:hover:underline cursor-pointer shrink-0 px-1.5 py-0.5"
-                    >
-                      {hasValidAddress ? (isEditingAddress ? 'Close' : 'Edit') : (isEditingAddress ? 'Close' : '+ Add')}
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              {/* Inline Address Form */}
-              {isEditingAddress && (
-                <div className="p-3 rounded-xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/15 space-y-2.5 relative z-10 animate-fade-in shadow-sm">
-                  <textarea
-                    rows={2}
-                    value={addressInput}
-                    onChange={(e) => setAddressInput(e.target.value)}
-                    placeholder="Enter delivery address in Vrindavan..."
-                    className="w-full bg-stone-50 dark:bg-[#141213] text-xs text-stone-900 dark:text-white p-2.5 rounded-lg border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-400"
-                    autoFocus
-                  />
-
-                  {/* Quick Landmark Chips */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      'Near ISKCON Temple, Raman Reti',
-                      'Prem Mandir Area',
-                      'Parikrama Marg',
-                      'Chhatikara Road'
-                    ].map((loc) => (
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-1">
                       <button
-                        key={loc}
                         type="button"
-                        onClick={() => setAddressInput(loc)}
-                        className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/15 text-[10px] font-semibold cursor-pointer transition-all shadow-xs"
+                        onClick={() => setIsEditingAddress(false)}
+                        className="h-10 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white text-xs font-bold cursor-pointer transition-colors"
                       >
-                        + {loc}
+                        Cancel
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={handleSaveAddress}
+                        disabled={!addressInput.trim()}
+                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Save Address</span>
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingAddress(false)}
-                      className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white text-xs font-bold cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveAddress}
-                      className="px-3 py-1 rounded-lg bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider hover:opacity-90 cursor-pointer shadow-sm"
-                    >
-                      Save Address
-                    </button>
+                ) : (
+                  <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                          <MapPin className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
+                          <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#E0FF33] font-semibold'}`}>
+                            {hasValidAddress ? userAddress : '+ Set address'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddressInput(userData?.address || userData?.customerAddress || '');
+                          setIsEditingAddress(true);
+                        }}
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] cursor-pointer shrink-0 transition-colors"
+                      >
+                        {hasValidAddress ? 'Edit' : '+ Add'}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Bottom: Integrated Prasad Rewards Strip */}
               <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
@@ -971,32 +1033,32 @@ export default function AuthModal({ isOpen, onClose }) {
             )}
 
             {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out */}
-            <div className="p-1.5 rounded-2xl bg-stone-100 dark:bg-[#181617] border border-stone-200 dark:border-white/10 grid grid-cols-2 gap-2 shadow-sm mt-1">
+            <div className="grid grid-cols-2 gap-2.5 mt-1">
               <button
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="group p-2.5 rounded-xl bg-amber-50/90 dark:bg-amber-500/[0.04] hover:bg-amber-100/90 dark:hover:bg-amber-500/20 border border-amber-200/90 dark:border-amber-500/15 hover:border-amber-300 dark:hover:border-amber-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="group p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-stone-50 dark:hover:bg-[#252223] border border-stone-200 dark:border-white/10 hover:border-amber-400/50 dark:hover:border-[#E0FF33]/30 transition-all duration-200 flex items-center gap-3 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-500/15 group-hover:bg-amber-500 text-amber-700 dark:text-amber-300 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 group-hover:bg-amber-500 group-hover:text-white dark:group-hover:bg-[#E0FF33] dark:group-hover:text-black text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 transition-all shadow-xs">
                   <LogIn className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-black text-amber-900 dark:text-amber-200 group-hover:text-amber-950 dark:group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
-                  <div className="text-[10px] text-amber-700/80 dark:text-amber-400/60 group-hover:text-amber-900 dark:group-hover:text-amber-200 font-medium truncate">Change profile</div>
+                  <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">Switch Account</div>
+                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">Change profile</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="group p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/[0.04] hover:bg-rose-100/90 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/15 hover:border-rose-300 dark:hover:border-rose-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="group p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/50 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center gap-3 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-500/10 group-hover:bg-rose-500 text-rose-600 dark:text-rose-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-rose-500 text-stone-600 dark:text-zinc-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
                   <LogOut className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-black text-rose-800 dark:text-rose-300 group-hover:text-rose-950 dark:group-hover:text-rose-100 font-['Outfit'] truncate">Sign Out</div>
-                  <div className="text-[10px] text-rose-600/80 dark:text-rose-400/60 group-hover:text-rose-800 dark:group-hover:text-rose-200 font-medium truncate">End session</div>
+                  <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] truncate">Sign Out</div>
+                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">End session</div>
                 </div>
               </button>
             </div>

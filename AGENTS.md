@@ -27,4 +27,12 @@
 
 When switching app major versions or working across versioned submodules (e.g., v3 to v4), always automatically verify that the local repository's `origin` points to the active target repository, branch upstream is set to `origin/main`, and parent `.gitmodules` entries are synchronized before committing.
 
+Rule: Minimum Mobile Touch Target Guidelines (WCAG 2.5.5):
+
+"All mobile interactive elements (inputs, action pills, steppers, and buttons) must maintain a minimum height of 44px–48px (h-11 or h-12) and minimum padding of px-3 py-2. Never allow editable form inputs or inline editors to render smaller than text-sm (14px) on mobile viewports."
+
+Rule: Automatic Dual-Target Build Verification:
+
+"Whenever changes touch UI components, state management, or assets, automatically execute both npm run build and ./gradlew assembleRelease (or assembleDebug) before concluding the task to guarantee zero runtime and zero packaging failures."
+
 

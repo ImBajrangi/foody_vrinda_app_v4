@@ -1252,7 +1252,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Integrated Clean Search Bar */}
         <div className="relative w-full">
-          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-400 pointer-events-none" />
+          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search pure delicacies & prasad..."
@@ -1261,15 +1261,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
-            className="w-full h-11 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-10 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
+            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-11 text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
           />
           {menuSearch && (
             <button
               onClick={() => setMenuSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-stone-300 dark:bg-white/20 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer active:scale-90"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-stone-300 dark:bg-white/20 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer active:scale-90"
               title="Clear search"
             >
-              <X size={13} strokeWidth={2.5} />
+              <X size={14} strokeWidth={2.5} />
             </button>
           )}
         </div>
