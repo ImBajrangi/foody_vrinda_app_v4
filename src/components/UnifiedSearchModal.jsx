@@ -44,7 +44,10 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       setExpandedDish(null);
       setExpandedShop(null);
       setExpandedOrder(null);
-      setTimeout(() => searchInputRef.current?.focus(), 100);
+      // Only auto-focus on desktop devices with mouse (prevent mobile keyboard popup)
+      if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768) {
+        setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
     } else if (!isOpen) {
       setSearchTerm('');
       setResults({ shops: [], menuItems: [], orders: [] });

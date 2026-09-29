@@ -1,5 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 const CartContext = createContext(null);
 
@@ -94,7 +93,7 @@ export function CartProvider({ children }) {
     };
   }, [paymentSettings]);
 
-  const addToCart = (item, shopId) => {
+  const addToCart = useCallback((item, shopId) => {
     const targetShopId = shopId || item.shopId || selectedShopId;
     
     // Check if user is attempting to add item from a different kitchen while having items in cart
@@ -125,9 +124,9 @@ export function CartProvider({ children }) {
       setSelectedShopId(targetShopId);
       setCart([{ ...item, quantity: 1, shopId: targetShopId }]);
     }
-  };
+  }, [selectedShopId, cart.length]);
 
-  const updateQuantity = (itemId, delta) => {
+  const updateQuantity = useCallback((itemId, delta) => {
     setCart(prevCart => {
       const updated = prevCart.map(i => {
         if (i.id === itemId) {
@@ -139,9 +138,9 @@ export function CartProvider({ children }) {
 
       return updated;
     });
-  };
+  }, []);
 
-  const setExactQuantity = (itemId, exactQty, itemObj = null) => {
+  const setExactQuantity = useCallback((itemId, exactQty, itemObj = null) => {
     setCart(prevCart => {
       if (exactQty <= 0) {
         return prevCart.filter(i => i.id !== itemId);
@@ -157,20 +156,20 @@ export function CartProvider({ children }) {
       }
       return prevCart;
     });
-  };
+  }, [selectedShopId]);
 
-  const removeFromCart = (itemId) => {
+  const removeFromCart = useCallback((itemId) => {
     setCart(prevCart => {
       return prevCart.filter(i => i.id !== itemId);
     });
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
   // Helper to load Razorpay checkout script dynamically
-  const loadRazorpay = () => {
+  const loadRazorpay = useCallback(() => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
         return resolve(true);
@@ -182,9 +181,9 @@ export function CartProvider({ children }) {
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     cart,
     selectedShopId,
     setSelectedShopId,
@@ -197,7 +196,19 @@ export function CartProvider({ children }) {
     removeFromCart,
     clearCart,
     loadRazorpay
-  };
+  }), [
+    cart,
+    selectedShopId,
+    paymentSettings,
+    updateGlobalPaymentConfig,
+    resolveShopPaymentOptions,
+    addToCart,
+    updateQuantity,
+    setExactQuantity,
+    removeFromCart,
+    clearCart,
+    loadRazorpay
+  ]);
 
   return (
     <CartContext.Provider value={value}>

@@ -25,6 +25,7 @@ export default function QuantityPickerSheet({
       const initialQty = item.quantity || 1;
       setSelectedQty(initialQty);
       setDragOffsetY(0);
+      setIsClosing(false);
 
       // Center wheel on open
       setTimeout(() => {
@@ -69,13 +70,18 @@ export default function QuantityPickerSheet({
 
   if (!isOpen && !isClosing) return null;
 
-  const handleClose = () => {
+  const handleClose = (isImmediate = false) => {
+    if (isImmediate) {
+      setIsClosing(false);
+      onClose();
+      return;
+    }
     if (isClosing) return;
     setIsClosing(true);
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-    }, 180);
+    }, 120);
   };
 
   const handleConfirm = () => {
@@ -86,23 +92,14 @@ export default function QuantityPickerSheet({
         onUpdateQuantity(item.id, selectedQty);
       }
     }
-    handleClose();
+    handleClose(true);
   };
 
   const handleRemove = () => {
     if (item) {
       onRemoveItem(item.id);
     }
-    handleClose();
-  };
-
-  const handleScroll = (e) => {
-    const scrollTop = e.target.scrollTop;
-    const index = Math.round(scrollTop / ITEM_HEIGHT);
-    const clampedQty = Math.max(1, Math.min(QUANTITIES.length, index + 1));
-    if (clampedQty !== selectedQty) {
-      setSelectedQty(clampedQty);
-    }
+    handleClose(true);
   };
 
   const scrollToQty = (qty) => {
@@ -115,59 +112,66 @@ export default function QuantityPickerSheet({
     }
   };
 
-  // Sheet Drag-down to dismiss handler with instant response
+  // Sheet Drag-down to dismiss handler on grab handle
   const handleSheetPointerDown = (e) => {
     isDraggingSheet.current = true;
-    sheetStartY.current = e.clientY || e.touches?.[0]?.clientY || 0;
-  };
+    sheetStartY.current = e.clientY || 0;
 
-  const handleSheetPointerMove = (e) => {
-    if (!isDraggingSheet.current) return;
-    const currentY = e.clientY || e.touches?.[0]?.clientY || 0;
-    const delta = currentY - sheetStartY.current;
-    if (delta > 0) {
-      setDragOffsetY(delta);
-    }
-  };
+    const onMove = (moveEvt) => {
+      if (!isDraggingSheet.current) return;
+      const currentY = moveEvt.clientY || 0;
+      const delta = currentY - sheetStartY.current;
+      if (delta > 0) {
+        setDragOffsetY(delta);
+      }
+    };
 
-  const handleSheetPointerUp = () => {
-    if (!isDraggingSheet.current) return;
-    isDraggingSheet.current = false;
-    if (dragOffsetY > 45) {
-      handleClose();
-    } else {
-      setDragOffsetY(0);
-    }
+    const onUp = () => {
+      if (!isDraggingSheet.current) return;
+      isDraggingSheet.current = false;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+
+      if (dragOffsetY > 40) {
+        handleClose(true); // Instant dismiss on swipe down
+      } else {
+        setDragOffsetY(0);
+      }
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp, { passive: true });
+    window.addEventListener('pointercancel', onUp, { passive: true });
   };
 
   const itemImgSrc = resolveDishCutout(item?.image || item?.imageUrl, item?.name, item?.category);
 
   return (
     <div
-      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'
-        }`}
-      onClick={handleClose}
-      onPointerMove={handleSheetPointerMove}
-      onPointerUp={handleSheetPointerUp}
-      onTouchMove={handleSheetPointerMove}
-      onTouchEnd={handleSheetPointerUp}
+      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 transition-opacity duration-150 ${
+        isClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
     >
       <div
         style={{
-          transform: dragOffsetY > 0 ? `translateY(${dragOffsetY}px)` : undefined,
-          transition: dragOffsetY > 0 ? 'none' : 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,
+          transition: dragOffsetY > 0 ? 'none' : 'transform 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        className={`w-full sm:max-w-[400px] bg-stone-50 dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-200 select-none ${isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0' : 'translate-y-0 sm:scale-100 sm:opacity-100'
-          }`}
+        className={`w-full sm:max-w-[400px] bg-stone-50 dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-150 select-none ${
+          isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0 pointer-events-none' : 'translate-y-0 sm:scale-100 sm:opacity-100'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Apple Pull / Drag Handle */}
         <div
           onPointerDown={handleSheetPointerDown}
-          onTouchStart={handleSheetPointerDown}
-          className="w-full py-2 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
+          className="w-full py-2.5 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none"
         >
-          <div className="w-10 h-1.5 rounded-full bg-stone-300 dark:bg-zinc-600/80 transition-colors hover:bg-stone-400 dark:hover:bg-zinc-500" />
+          <div className="w-11 h-1.5 rounded-full bg-stone-300 dark:bg-zinc-600/80 transition-colors hover:bg-stone-400 dark:hover:bg-zinc-500" />
         </div>
 
         {/* Dish Summary Info with Image and discreet Actions */}
@@ -207,7 +211,7 @@ export default function QuantityPickerSheet({
             </button>
             <button
               type="button"
-              onClick={handleClose}
+              onClick={() => handleClose()}
               className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-stone-600 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-all cursor-pointer apple-tap-target"
               title="Close"
             >
@@ -225,10 +229,11 @@ export default function QuantityPickerSheet({
                 key={num}
                 type="button"
                 onClick={() => scrollToQty(num)}
-                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${selectedQty === num
+                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
+                  selectedQty === num
                     ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
                     : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
-                  }`}
+                }`}
               >
                 {num}
               </button>
@@ -240,10 +245,11 @@ export default function QuantityPickerSheet({
                 key={num}
                 type="button"
                 onClick={() => scrollToQty(num)}
-                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${selectedQty === num
+                className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
+                  selectedQty === num
                     ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
                     : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
-                  }`}
+                }`}
               >
                 {num}
               </button>

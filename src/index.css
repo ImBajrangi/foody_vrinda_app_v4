@@ -1707,8 +1707,11 @@
   -webkit-backdrop-filter: none !important;
 }
 
-.apple-overlay.closing {
-  animation: appleOverlayOut 0.20s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
+.apple-overlay.closing,
+.apple-overlay.closing *,
+.apple-overlay.sheet-dismissing,
+.apple-overlay.sheet-dismissing * {
+  animation: appleOverlayOut 0.16s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
   pointer-events: none !important;
 }
 
@@ -1739,9 +1742,10 @@
   will-change: transform, opacity;
 }
 
-.apple-modal-spring.closing {
-  animation: appleModalSpringOut 0.20s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-  pointer-events: none;
+.apple-modal-spring.closing,
+.apple-modal-spring.closing * {
+  animation: appleModalSpringOut 0.16s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  pointer-events: none !important;
 }
 
 @keyframes appleModalSpringIn {
@@ -1791,6 +1795,16 @@
   touch-action: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+
+.sheet-dismissing,
+.sheet-dismissing * {
+  pointer-events: none !important;
+}
+
+.apple-overlay.sheet-dismissing,
+.apple-overlay.sheet-dismissing * {
+  pointer-events: none !important;
 }
 
 .sheet-dragging {
@@ -1889,10 +1903,13 @@
 
 .apple-card-interactive {
   transition: box-shadow 0.15s ease-out, border-color 0.12s ease-out, background-color 0.12s ease-out, transform 0.12s cubic-bezier(0, 0, 0.2, 1) !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.apple-card-interactive:hover {
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(224, 255, 51, 0.08) !important;
+@media (hover: hover) {
+  .apple-card-interactive:hover {
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(224, 255, 51, 0.08) !important;
+  }
 }
 
 .apple-card-interactive:active {
@@ -2254,6 +2271,7 @@ path.casing-parabolic-dots,
       opacity: 0;
       transform: translateY(18px) scale(0.96);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0) scale(1);
@@ -2273,6 +2291,7 @@ path.casing-parabolic-dots,
 
 /* Mobile & Touch Devices: Instant Zero-Lag Rendering (No Sticky Hovers, No Unnecessary Animations) */
 @media (hover: none) or (pointer: coarse) or (max-width: 768px) {
+
   /* 1. Neutralize sticky hover transforms and hovering states on touch */
   button:hover:not(:active),
   a:hover:not(:active),

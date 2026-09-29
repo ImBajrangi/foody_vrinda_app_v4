@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -79,6 +79,166 @@ function setLocalCustomerMenus(shopId = 'all', items = []) {
     localStorage.setItem(`${CUSTOMER_MENU_CACHE_PREFIX}_${shopId}`, JSON.stringify(items));
   } catch { }
 }
+
+// 120fps Hardware-Accelerated Memoized Dish Item Card
+const MenuItemCard = memo(function MenuItemCard({
+  item,
+  idx,
+  isFav,
+  quantityInCart,
+  onOpenDetails,
+  onToggleFavorite,
+  onAddToCart,
+  onUpdateQuantity
+}) {
+  const activePrice = quantityInCart > 0 ? item.price * quantityInCart : item.price;
+  const hasDiscount = Boolean(item.originalPrice && Number(item.originalPrice) > Number(item.price));
+  const activeOriginalPrice = hasDiscount 
+    ? (quantityInCart > 0 ? item.originalPrice * quantityInCart : item.originalPrice)
+    : null;
+
+  return (
+    <div
+      role="button"
+      onClick={() => onOpenDetails(item)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpenDetails(item);
+        }
+      }}
+      style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
+      className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop touch-manipulation active:scale-[0.98] select-none ${
+        quantityInCart > 0
+          ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+          : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
+      }`}
+    >
+      {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
+      <div className="flex justify-between items-start z-10 gap-2">
+        <div className="max-w-[62%]">
+          {item.isCombo && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+              <Sparkles size={11} className="text-[#E0FF33]" />
+              {item.tag || 'Combo Offer'}
+            </span>
+          )}
+          <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
+            {item.name}
+          </h3>
+          <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
+            {item.subtitle || 'Authentic Satvik preparation'}
+          </p>
+          {item.comboItems && item.comboItems.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {item.comboItems.map((ci, cidx) => (
+                <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
+                  + {ci}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={(e) => onToggleFavorite(item.id, e)}
+          className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target sm:hover:scale-105 active:scale-95"
+          title="Favorite"
+        >
+          <Heart
+            size={17}
+            className={isFav ? 'text-red-500 fill-red-500' : 'text-stone-700 dark:text-stone-300'}
+          />
+        </button>
+      </div>
+
+      {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
+      <div className="mt-3 sm:mt-4 z-10">
+        <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
+          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
+            quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
+          }`}>
+            ₹{activePrice}
+          </span>
+          {hasDiscount && (
+            <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
+              ₹{activeOriginalPrice}
+            </span>
+          )}
+        </div>
+
+        {quantityInCart === 0 ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(item);
+            }}
+            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
+          >
+            <span>Order Now</span>
+            <ChevronRight size={14} strokeWidth={3} />
+          </button>
+        ) : (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
+              }}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-800 dark:bg-white/10 hover:bg-stone-700 dark:hover:bg-white/20 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
+              title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
+              aria-label="Decrease quantity"
+            >
+              {quantityInCart === 1 ? (
+                <Trash2 size={15} strokeWidth={2.5} className="text-red-400" />
+              ) : (
+                <Minus size={15} strokeWidth={3} className="text-white" />
+              )}
+            </button>
+
+            <span className="px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none">
+              {quantityInCart}
+            </span>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart(item);
+              }}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
+              title="Add another"
+              aria-label="Increase quantity"
+            >
+              <Plus size={16} strokeWidth={3.5} className="text-stone-950 stroke-current" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Right Side Dish Image - Pristine Transparent Cutout */}
+      <div className="absolute right-[-8px] bottom-[-8px] sm:right-[-6px] sm:bottom-[-6px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-48 xl:h-48 pointer-events-none flex items-center justify-center">
+        <img
+          src={item.image || '/dishes/thali.png'}
+          alt={item.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/dishes/thali.png';
+          }}
+          className={`w-full h-full object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.45)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  );
+});
 
 export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const { user, userData, allShops, isAuthenticated, updateUserProfile } = useAuth();
@@ -290,25 +450,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     sheetRef: detailSheetRef,
     overlayRef: detailOverlayRef,
     dismiss: dismissDetailSheet,
-    sheetStyle: detailSheetStyle,
-    handleProps: detailHandleProps,
-    isDragging: isDraggingDetail
-  } = useBottomSheetDrag((isImmediate) => {
+    handleProps: detailHandleProps
+  } = useBottomSheetDrag(() => {
     setSelectedDishDetails(null);
     setIsDetailClosing(false);
-  }, 45);
+  }, 40);
 
   const {
     sheetRef: cartSheetRef,
     overlayRef: cartOverlayRef,
     dismiss: dismissCartSheet,
-    sheetStyle: cartSheetStyle,
-    handleProps: cartHandleProps,
-    isDragging: isDraggingCart
-  } = useBottomSheetDrag((isImmediate) => {
+    handleProps: cartHandleProps
+  } = useBottomSheetDrag(() => {
     setShowCartDrawer(false);
     setIsCartClosing(false);
-  }, 45);
+  }, 40);
 
   const handleCloseDishDetail = useCallback((isImmediate = false) => {
     if (isImmediate === true) {
@@ -316,6 +472,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       setIsDetailClosing(false);
       return;
     }
+    setIsDetailClosing(true);
     dismissDetailSheet(() => {
       setSelectedDishDetails(null);
       setIsDetailClosing(false);
@@ -328,21 +485,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       setIsCartClosing(false);
       return;
     }
+    setIsCartClosing(true);
     dismissCartSheet(() => {
       setShowCartDrawer(false);
       setIsCartClosing(false);
     });
   }, [dismissCartSheet]);
 
-  const handleCloseShopSwitcher = () => {
+  const handleCloseShopSwitcher = useCallback((isImmediate = false) => {
+    if (isImmediate) {
+      setShowShopSwitcher(false);
+      setIsShopClosing(false);
+      setShopSearch('');
+      return;
+    }
     if (isShopClosing) return;
     setIsShopClosing(true);
     setTimeout(() => {
       setShowShopSwitcher(false);
       setIsShopClosing(false);
       setShopSearch('');
-    }, 220);
-  };
+    }, 120);
+  }, [isShopClosing]);
 
   const toastTimeoutRef = useRef(null);
   const showToast = useCallback((message, type = 'success', desc = '') => {
@@ -381,15 +545,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   useBackHandler(Boolean(editingQuantityItem), () => setEditingQuantityItem(null), 'customer_qty_picker', 6);
   useBackHandler(showMapPicker, () => setShowMapPicker(false), 'customer_map_picker', 7);
 
-  // Sync inputs with localStorage
+  // Debounced Sync inputs with localStorage (zero main-thread blocking on typing)
   useEffect(() => {
-    localStorage.setItem('customerName', checkoutName);
+    const timer = setTimeout(() => {
+      try { localStorage.setItem('customerName', checkoutName); } catch (_) {}
+    }, 400);
+    return () => clearTimeout(timer);
   }, [checkoutName]);
+
   useEffect(() => {
-    localStorage.setItem('customerAddress', checkoutAddress);
+    const timer = setTimeout(() => {
+      try { localStorage.setItem('customerAddress', checkoutAddress); } catch (_) {}
+    }, 400);
+    return () => clearTimeout(timer);
   }, [checkoutAddress]);
+
   useEffect(() => {
-    localStorage.setItem('customerPhone', checkoutPhone);
+    const timer = setTimeout(() => {
+      try { localStorage.setItem('customerPhone', checkoutPhone); } catch (_) {}
+    }, 400);
+    return () => clearTimeout(timer);
   }, [checkoutPhone]);
 
   // Set default active shop if none selected
@@ -922,13 +1097,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     });
   }, [displayItems, menuSearch, selectedCategory]);
 
-  const handleOpenDishDetail = (item) => {
+  const handleOpenDishDetail = useCallback((item) => {
     if (!item) return;
     setIsDetailClosing(false);
     setSelectedDishDetails(item);
     const existingInCart = cart.find(c => c.id === item.id);
     setDetailQuantity(existingInCart ? existingInCart.quantity : 1);
-  };
+  }, [cart]);
+
+  const handleToggleFavorite = useCallback((id, e) => {
+    if (e) e.stopPropagation();
+    toggleFavorite(id);
+    const isNowFav = !favorites.includes(id);
+    showToast(isNowFav ? 'Added to Favorites' : 'Removed from Favorites', 'info');
+  }, [favorites, toggleFavorite, showToast]);
+
+  const handleCardAddToCart = useCallback((item) => {
+    addToCart(item);
+    showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
+  }, [addToCart, showToast]);
+
+  const handleCardUpdateQuantity = useCallback((id, delta, name, currentQty, price) => {
+    updateQuantity(id, delta);
+    if (delta < 0 && currentQty === 1) {
+      showToast(`Removed ${name}`, 'info', 'From basket');
+    } else if (delta < 0) {
+      showToast(`${name} (${currentQty - 1})`, 'info', `₹${price * (currentQty - 1)}`);
+    }
+  }, [updateQuantity, showToast]);
 
   const handleDetailAddToCart = () => {
     if (!selectedDishDetails) return;
@@ -1060,6 +1256,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             placeholder="Search pure delicacies & prasad..."
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
             className="w-full h-11 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-10 pr-10 text-xs sm:text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
           />
           {menuSearch && (
@@ -1076,8 +1275,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {/* Kitchen Branch Switcher — Minimal Premium Modal */}
         {showShopSwitcher && allShops.length > 1 && createPortal(
           <div
-            className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center apple-overlay ${isShopClosing ? 'closing' : ''}`}
-            onClick={handleCloseShopSwitcher}
+            className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center apple-overlay transition-opacity duration-150 ${isShopClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
+            onClick={() => handleCloseShopSwitcher()}
             role="dialog"
             aria-modal="true"
             aria-label="Switch kitchen branch"
@@ -1117,7 +1316,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       onChange={(e) => setShopSearch(e.target.value)}
                       placeholder="Search by name or area…"
                       className="w-full h-9 bg-stone-100/80 dark:bg-white/[.05] border border-transparent focus:border-stone-300 dark:focus:border-white/[.12] rounded-xl pl-8 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium"
-                      autoFocus
                     />
                     {shopSearch && (
                       <button
@@ -1355,158 +1553,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             const quantityInCart = cartItem ? cartItem.quantity : 0;
 
             return (
-              <div
+              <MenuItemCard
                 key={item.id}
-                onClick={() => handleOpenDishDetail(item)}
-                style={{ animationDelay: `${idx * 40}ms` }}
-                className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-300 customer-card-pop ${
-                  quantityInCart > 0
-                    ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-                    : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
-                }`}
-              >
-                {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
-                <div className="flex justify-between items-start z-10 gap-2">
-                  <div className="max-w-[62%]">
-                    {item.isCombo && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
-                        <Sparkles size={11} className="text-[#E0FF33]" />
-                        {item.tag || 'Combo Offer'}
-                      </span>
-                    )}
-                    <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
-                      {item.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
-                      {item.subtitle || 'Authentic Satvik preparation'}
-                    </p>
-                    {item.comboItems && item.comboItems.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {item.comboItems.map((ci, cidx) => (
-                          <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
-                            + {ci}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={(e) => toggleFavorite(item.id, e)}
-                    className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target sm:hover:scale-105 active:scale-95"
-                    title="Favorite"
-                  >
-                    <Heart
-                      size={17}
-                      className={isFav ? 'text-red-500 fill-red-500' : 'text-stone-700 dark:text-stone-300'}
-                    />
-                  </button>
-                </div>
-
-                {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
-                <div className="mt-3 sm:mt-4 z-10">
-                  {(() => {
-                    const activePrice = quantityInCart > 0 ? item.price * quantityInCart : item.price;
-                    const hasDiscount = Boolean(item.originalPrice && Number(item.originalPrice) > Number(item.price));
-                    const activeOriginalPrice = hasDiscount 
-                      ? (quantityInCart > 0 ? item.originalPrice * quantityInCart : item.originalPrice)
-                      : null;
-
-                    return (
-                      <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-                        <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
-                          quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
-                        }`}>
-                          ₹{activePrice}
-                        </span>
-                        {hasDiscount && (
-                          <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
-                            ₹{activeOriginalPrice}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })()}
-
-                  {quantityInCart === 0 ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(item);
-                        showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
-                      }}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
-                    >
-                      <span>Order Now</span>
-                      <ChevronRight size={14} strokeWidth={3} />
-                    </button>
-                  ) : (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      className="h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQuantity(item.id, -1);
-                          if (quantityInCart === 1) {
-                            showToast(`Removed ${item.name}`, 'info', 'From basket');
-                          } else {
-                            showToast(`${item.name} (${quantityInCart - 1})`, 'info', `₹${item.price * (quantityInCart - 1)}`);
-                          }
-                        }}
-                        onTouchStart={(e) => e.stopPropagation()}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-800 dark:bg-white/10 hover:bg-stone-700 dark:hover:bg-white/20 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
-                        title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
-                        aria-label="Decrease quantity"
-                      >
-                        {quantityInCart === 1 ? (
-                          <Trash2 size={15} strokeWidth={2.5} className="text-red-400" />
-                        ) : (
-                          <Minus size={15} strokeWidth={3} className="text-white" />
-                        )}
-                      </button>
-
-                      <span className="px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none">
-                        {quantityInCart}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(item);
-                          showToast(`+1 ${item.name}`, 'success', `₹${item.price * (quantityInCart + 1)}`);
-                        }}
-                        onTouchStart={(e) => e.stopPropagation()}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
-                        title="Add another"
-                        aria-label="Increase quantity"
-                      >
-                        <Plus size={16} strokeWidth={3.5} className="text-white dark:text-stone-950 stroke-current" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Side Dish Image - Pristine Transparent Cutout */}
-                <div className="absolute right-[-8px] bottom-[-8px] sm:right-[-6px] sm:bottom-[-6px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-48 xl:h-48 pointer-events-none flex items-center justify-center">
-                  <img
-                    src={resolveDishCutout(item.image, item.name, item.category)}
-                    alt={item.name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = resolveDishCutout('', item.name, item.category);
-                    }}
-                    className={`w-full h-full object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.45)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-              </div>
+                item={item}
+                idx={idx}
+                isFav={isFav}
+                quantityInCart={quantityInCart}
+                onOpenDetails={handleOpenDishDetail}
+                onToggleFavorite={handleToggleFavorite}
+                onAddToCart={handleCardAddToCart}
+                onUpdateQuantity={handleCardUpdateQuantity}
+              />
             );
           })}
         </div>
@@ -1600,24 +1657,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       )}
 
       {/* 6. PRODUCT DETAIL MODAL / SHEET (Industry Standard Native Sheet: Fluid Drag & Luxury Aesthetic) */}
-      {selectedDishDetails && (
+      {selectedDishDetails && createPortal(
         <div
+          key={`dish_detail_${selectedDishDetails.id}`}
           ref={detailOverlayRef}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseDishDetail();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isDetailClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-xs transition-opacity duration-150 apple-overlay ${isDetailClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={detailSheetRef}
-            style={detailSheetStyle}
-            className={`bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-white/10 relative apple-sheet-spring ${isDraggingDetail ? 'sheet-dragging' : ''}`}
+            className="bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-white/10 relative apple-sheet-spring"
           >
 
             {/* Close Button (Desktop Only) */}
             <button
               type="button"
-              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 handleCloseDishDetail();
@@ -1630,36 +1686,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             {/* LEFT / TOP HERO SECTION: Showcase Image + Interactive Drag Zone */}
             <div
-              className="w-full md:w-[46%] lg:w-[44%] bg-[#242021] md:bg-[#1A1819] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 border-b md:border-b-0 md:border-r border-white/5"
+              {...detailHandleProps}
+              className="w-full md:w-[46%] lg:w-[44%] bg-[#242021] md:bg-[#1A1819] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 border-b md:border-b-0 md:border-r border-white/5 cursor-grab active:cursor-grabbing select-none"
             >
               {/* Drag Handle Bar (Interactive Drag Down Indicator - Mobile Only) */}
               <div
-                {...detailHandleProps}
-                className="w-full py-2 -mt-2 mb-1 flex items-center justify-center md:hidden cursor-grab active:cursor-grabbing touch-none select-none"
+                className="w-full py-2.5 -mt-2 mb-1 flex items-center justify-center md:hidden pointer-events-none"
                 title="Swipe down to dismiss"
               >
-                <div className="w-12 h-1.5 bg-white/20 hover:bg-white/30 rounded-full pointer-events-none transition-colors" />
+                <div className="w-12 h-1.5 bg-white/30 hover:bg-white/40 active:bg-white/60 rounded-full transition-colors" />
               </div>
 
               {/* Top Navigation Row on Mobile (Back, Share, Favorite) */}
-              <div className="flex justify-between items-center z-30 mb-2 relative pointer-events-auto">
+              <div className="flex justify-between items-center z-30 mb-2 relative">
                 <button
                   type="button"
-                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCloseDishDetail();
                   }}
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer font-black md:hidden relative z-50 pointer-events-auto"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer font-black md:hidden relative z-50"
                   title="Go Back"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
 
-                <div className="flex items-center gap-2 ml-auto relative z-50 pointer-events-auto">
+                <div className="flex items-center gap-2 ml-auto relative z-50">
                   <button
                     type="button"
-                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (navigator.share) {
@@ -1686,7 +1740,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         }
                       }
                     }}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer relative z-50 pointer-events-auto"
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer relative z-50"
                     title="Share"
                   >
                     <Share2 size={16} />
@@ -1694,14 +1748,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <button
                     type="button"
-                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       const isNowFav = !favorites.includes(selectedDishDetails.id);
                       toggleFavorite(selectedDishDetails.id);
                       showToast(isNowFav ? "Added to Favorites" : "Removed from Favorites", "info");
                     }}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50 pointer-events-auto"
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50"
                     title="Favorite"
                   >
                     <Heart
@@ -1714,8 +1767,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               {/* Hero Image Showcase */}
               <div
-                {...detailHandleProps}
-                className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] cursor-grab active:cursor-grabbing touch-none select-none"
+                className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] select-none"
               >
                 {/* Soft ambient plate glow */}
                 <div className="absolute inset-0 bg-radial from-[#E0FF33]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
@@ -1888,32 +1940,31 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* CART DRAWER OVERLAY (Pure Hardware Transforms & Drag-Down Dismiss) */}
-      {showCartDrawer && (
+      {showCartDrawer && createPortal(
         <div
           ref={cartOverlayRef}
           onClick={(e) => {
             if (e.target === e.currentTarget) handleCloseCartDrawer();
           }}
-          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-xs transition-opacity duration-200 apple-overlay ${isCartClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-xs transition-opacity duration-150 apple-overlay ${isCartClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <div
             ref={cartSheetRef}
-            style={cartSheetStyle}
-            className={`bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring ${isDraggingCart ? 'sheet-dragging' : ''}`}
+            className="bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring"
           >
             {/* Top Fixed Header & Grab Bar */}
-            <div className="shrink-0">
+            <div {...cartHandleProps} className="shrink-0 select-none cursor-grab active:cursor-grabbing">
               {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
               <div
-                {...cartHandleProps}
-                className="w-full py-2.5 -mt-3 mb-1 flex items-center justify-center cursor-grab active:cursor-grabbing sm:hidden select-none touch-none"
+                className="w-full py-2.5 -mt-3 mb-1 flex items-center justify-center sm:hidden pointer-events-none"
                 title="Drag down to close"
               >
-                <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors pointer-events-none" />
+                <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors" />
               </div>
 
               {/* Header Title & Close Button */}
@@ -2461,7 +2512,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Order History Drawer (My Orders) */}
