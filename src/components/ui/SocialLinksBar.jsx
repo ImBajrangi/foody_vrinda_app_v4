@@ -69,7 +69,7 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
               title={`${item.label} (${item.handle})`}
               className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border transition-all duration-200 cursor-pointer select-none active:scale-90 relative group shadow-2xs ${
                 isHovered
-                  ? 'bg-white dark:bg-[#322E30] border-stone-400 dark:border-white/30 shadow-md -translate-y-0.5'
+                  ? 'bg-white dark:bg-[#322E30] border-stone-400 dark:border-white/30 shadow-md'
                   : 'bg-stone-100 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 border-stone-300/80 dark:border-white/10 text-stone-700 dark:text-zinc-300'
               }`}
             >

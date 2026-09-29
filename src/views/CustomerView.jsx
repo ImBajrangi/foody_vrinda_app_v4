@@ -1363,7 +1363,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           }}
                           className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
                             isSelected
-                              ? 'bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
+                              ? 'btn-dark-active bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
                               : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
                           }`}
                           aria-pressed={isSelected}
@@ -1441,11 +1441,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
-                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs scale-[1.02]'
+                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
                     : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
                   }`}
               >
-                {cat}
+                <span className={isSelected ? 'text-white dark:text-[#121011]' : ''}>{cat}</span>
               </button>
             );
           })}
@@ -1668,7 +1668,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         >
           <div
             ref={detailSheetRef}
-            className="bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-white/10 relative apple-sheet-spring"
+            className="bg-white dark:bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-stone-200 dark:border-white/10 relative apple-sheet-spring"
           >
 
             {/* Close Button (Desktop Only) */}
@@ -1678,7 +1678,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 e.stopPropagation();
                 handleCloseDishDetail();
               }}
-              className="hidden md:flex absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 text-zinc-400 hover:text-white items-center justify-center transition-all cursor-pointer border border-white/10 shadow-md"
+              className="hidden md:flex absolute top-5 right-5 z-30 w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] active:scale-95 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white items-center justify-center transition-all cursor-pointer border border-stone-200 dark:border-white/10 shadow-md"
               title="Close (Esc)"
             >
               <X size={17} />
@@ -1687,14 +1687,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             {/* LEFT / TOP HERO SECTION: Showcase Image + Interactive Drag Zone */}
             <div
               {...detailHandleProps}
-              className="w-full md:w-[46%] lg:w-[44%] bg-[#242021] md:bg-[#1A1819] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 border-b md:border-b-0 md:border-r border-white/5 cursor-grab active:cursor-grabbing select-none"
+              className="w-full md:w-[46%] lg:w-[44%] bg-stone-50 dark:bg-[#242021] md:dark:bg-[#1A1819] p-4 sm:p-6 flex flex-col justify-between relative flex-shrink-0 border-b md:border-b-0 md:border-r border-stone-200 dark:border-white/5 cursor-grab active:cursor-grabbing select-none"
             >
               {/* Drag Handle Bar (Interactive Drag Down Indicator - Mobile Only) */}
               <div
                 className="w-full py-2.5 -mt-2 mb-1 flex items-center justify-center md:hidden pointer-events-none"
                 title="Swipe down to dismiss"
               >
-                <div className="w-12 h-1.5 bg-white/30 hover:bg-white/40 active:bg-white/60 rounded-full transition-colors" />
+                <div className="w-12 h-1.5 bg-stone-300 dark:bg-white/30 hover:bg-stone-400 dark:hover:bg-white/40 active:bg-stone-500 dark:active:bg-white/60 rounded-full transition-colors" />
               </div>
 
               {/* Top Navigation Row on Mobile (Back, Share, Favorite) */}
@@ -1705,7 +1705,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     handleCloseDishDetail();
                   }}
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer font-black md:hidden relative z-50"
+                  className="w-9 h-9 rounded-full bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white transition-all cursor-pointer border border-stone-200/80 dark:border-transparent font-black md:hidden relative z-50"
                   title="Go Back"
                 >
                   <ChevronLeft size={20} strokeWidth={2.5} />
@@ -1740,7 +1740,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         }
                       }
                     }}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-zinc-200 hover:text-white transition-all cursor-pointer relative z-50"
+                    className="w-9 h-9 rounded-full bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white transition-all cursor-pointer border border-stone-200/80 dark:border-transparent relative z-50"
                     title="Share"
                   >
                     <Share2 size={16} />
@@ -1754,12 +1754,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       toggleFavorite(selectedDishDetails.id);
                       showToast(isNowFav ? "Added to Favorites" : "Removed from Favorites", "info");
                     }}
-                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer relative z-50"
+                    className="w-9 h-9 rounded-full bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 active:scale-90 shadow-sm flex items-center justify-center transition-all cursor-pointer border border-stone-200/80 dark:border-transparent relative z-50"
                     title="Favorite"
                   >
                     <Heart
                       size={17}
-                      className={favorites.includes(selectedDishDetails.id) ? 'text-red-500 fill-red-500' : 'text-zinc-300'}
+                      className={favorites.includes(selectedDishDetails.id) ? 'text-red-500 fill-red-500' : 'text-stone-400 dark:text-zinc-300'}
                     />
                   </button>
                 </div>
@@ -1770,7 +1770,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] select-none"
               >
                 {/* Soft ambient plate glow */}
-                <div className="absolute inset-0 bg-radial from-[#E0FF33]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
+                <div className="absolute inset-0 bg-radial from-amber-500/10 dark:from-[#E0FF33]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
 
                 <div className="w-40 h-36 xs:w-48 xs:h-40 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
                   <img
@@ -1780,7 +1780,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       e.target.onerror = null;
                       e.target.src = resolveDishCutout('', selectedDishDetails.name, selectedDishDetails.category);
                     }}
-                    className="w-full h-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.5)] select-none pointer-events-none"
+                    className="w-full h-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_16px_24px_rgba(0,0,0,0.5)] select-none pointer-events-none"
                     loading="lazy"
                     decoding="async"
                   />
@@ -1788,8 +1788,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Floating Tag Pill */}
                 <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
-                  <span className="bg-[#282526] text-[#E0FF33] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-[#E0FF33]/20 flex items-center gap-1">
-                    <Sparkles size={11} className="shrink-0" />
+                  <span className="bg-white/95 dark:bg-[#282526] text-stone-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-stone-200 dark:border-[#E0FF33]/20 flex items-center gap-1 backdrop-blur-sm">
+                    <Sparkles size={11} className="shrink-0 text-amber-600 dark:text-[#E0FF33]" />
                     <span>{selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik')}</span>
                   </span>
                 </div>
@@ -1797,7 +1797,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </div>
 
             {/* RIGHT / BOTTOM CONTENT & ACTION DOCK */}
-            <div className="w-full md:w-[54%] lg:w-[56%] bg-[#1E1B1C] text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
+            <div className="w-full md:w-[54%] lg:w-[56%] bg-white dark:bg-[#1E1B1C] text-stone-900 dark:text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
               
               {/* Scrollable Information Body */}
               <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
@@ -1805,64 +1805,64 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Dish Header: Category + Live In-Basket pill */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[#E0FF33] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-[#E0FF33]/20">
+                    <span className="text-amber-800 dark:text-[#E0FF33] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-amber-500/25 dark:border-[#E0FF33]/20">
                       {selectedDishDetails.category || "Vrinda Meal"}
                     </span>
-                    <span className="text-zinc-500 text-xs">•</span>
-                    <span className="text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
+                    <span className="text-stone-400 dark:text-zinc-500 text-xs">•</span>
+                    <span className="text-stone-500 dark:text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
                   </div>
 
                   {cart.find(c => c.id === selectedDishDetails.id)?.quantity > 0 && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[11px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                       {cart.find(c => c.id === selectedDishDetails.id).quantity} in basket
                     </span>
                   )}
                 </div>
 
                 {/* Dish Name */}
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight font-['Outfit']">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-stone-900 dark:text-white tracking-tight leading-tight font-['Outfit']">
                   {selectedDishDetails.name}
                 </h2>
 
                 {/* Price & Clean Energy Row */}
-                <div className="flex justify-between items-center py-1 border-y border-white/5">
+                <div className="flex justify-between items-center py-1 border-y border-stone-200/80 dark:border-white/5">
                   <div className="flex items-baseline gap-2">
-                    <div className="text-2xl sm:text-3xl font-black text-[#E0FF33] font-['Outfit']">
+                    <div className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit']">
                       ₹{selectedDishDetails.price}
                     </div>
                     {selectedDishDetails.originalPrice && selectedDishDetails.originalPrice > selectedDishDetails.price && (
-                      <span className="text-sm font-bold text-zinc-500 line-through">
+                      <span className="text-sm font-bold text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
                         ₹{selectedDishDetails.originalPrice}
                       </span>
                     )}
                   </div>
 
                   {/* Clean, Non-Exaggerated Nutrition Indicator */}
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[11px] sm:text-xs font-bold text-amber-400">
-                    <Flame size={13} className="text-amber-400 fill-amber-400/20" />
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-white/5 border border-amber-200 dark:border-white/5 text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400">
+                    <Flame size={13} className="text-amber-600 dark:text-amber-400 fill-amber-400/20" />
                     <span>Pure Desi Ghee</span>
                   </div>
                 </div>
 
                 {/* Bundled Combo Items Breakdown (if combo) */}
                 {selectedDishDetails.comboItems && selectedDishDetails.comboItems.length > 0 && (
-                  <div className="bg-[#242021] border border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
+                  <div className="bg-stone-50 dark:bg-[#242021] border border-amber-500/25 dark:border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] sm:text-xs font-black uppercase text-[#E0FF33] tracking-wider flex items-center gap-1.5">
+                      <span className="text-[10px] sm:text-xs font-black uppercase text-amber-800 dark:text-[#E0FF33] tracking-wider flex items-center gap-1.5 font-['Outfit']">
                         <Sparkles size={12} />
                         Included in this Combo Pack
                       </span>
                       {selectedDishDetails.tag && (
-                        <span className="text-[9px] font-bold bg-[#E0FF33]/15 text-[#E0FF33] px-2 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] px-2 py-0.5 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20">
                           {selectedDishDetails.tag}
                         </span>
                       )}
                     </div>
                     <div className="grid grid-cols-1 gap-1.5 pt-1">
                       {selectedDishDetails.comboItems.map((ci, cidx) => (
-                        <div key={cidx} className="flex items-center gap-2 text-xs text-neutral-200 bg-white/5 px-2.5 py-1.5 rounded-xl border border-white/5">
-                          <Check size={12} className="text-[#E0FF33] shrink-0 stroke-[3]" />
+                        <div key={cidx} className="flex items-center gap-2 text-xs text-stone-800 dark:text-neutral-200 bg-white dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
+                          <Check size={12} className="text-emerald-600 dark:text-[#E0FF33] shrink-0 stroke-[3]" />
                           <span className="font-semibold">{ci}</span>
                         </div>
                       ))}
@@ -1872,15 +1872,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Description */}
                 <div>
-                  <h4 className="text-[10px] sm:text-xs font-black uppercase text-zinc-400 tracking-wider mb-1">Description</h4>
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal">
+                  <h4 className="text-[10px] sm:text-xs font-black uppercase text-stone-500 dark:text-zinc-400 tracking-wider mb-1 font-['Outfit']">Description</h4>
+                  <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 leading-relaxed font-normal">
                     {selectedDishDetails.description || "Prepared fresh with pure desi ghee, sacred spices, and 100% Satvik ingredients. Free from onion and garlic."}
                   </p>
                 </div>
 
                 {/* Vrinda Satvik Guarantee Banner */}
-                <div className="flex items-center gap-2 bg-[#282526] px-3 py-2 rounded-xl border border-white/5 text-[11px] sm:text-xs text-zinc-300">
-                  <span className="text-[#E0FF33] font-bold">✓</span>
+                <div className="flex items-center gap-2 bg-stone-100 dark:bg-[#282526] px-3 py-2 rounded-xl border border-stone-200/80 dark:border-white/5 text-[11px] sm:text-xs text-stone-700 dark:text-zinc-300">
+                  <span className="text-emerald-600 dark:text-[#E0FF33] font-bold">✓</span>
                   <span className="truncate">100% Pure Satvik · Pure Desi Ghee · No Onion, No Garlic</span>
                 </div>
               </div>
@@ -1891,30 +1891,30 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 const inBasketQty = currentInBasket ? currentInBasket.quantity : 0;
 
                 return (
-                  <div className="bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-5 border-t border-white/10 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)]">
+                  <div className="bg-white/95 dark:bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-5 border-t border-stone-200/80 dark:border-white/10 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)]">
                     {/* Quantity Stepper */}
-                    <div className="bg-[#282526] text-white rounded-full p-1 sm:p-1.5 border border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0">
+                    <div className="bg-stone-100 dark:bg-[#282526] text-stone-900 dark:text-white rounded-full p-1 sm:p-1.5 border border-stone-200 dark:border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => setDetailQuantity(Math.max(1, detailQuantity - 1))}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all apple-tap-target disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all apple-tap-target disabled:opacity-30 disabled:cursor-not-allowed"
                         disabled={detailQuantity <= 1}
                         aria-label="Decrease quantity"
                         title="Decrease quantity"
                       >
                         <Minus size={14} strokeWidth={2.5} />
                       </button>
-                      <span className="min-w-[24px] sm:min-w-[28px] text-center font-black text-sm sm:text-base text-[#E0FF33] font-['Outfit'] select-none">
+                      <span className="min-w-[24px] sm:min-w-[28px] text-center font-black text-sm sm:text-base text-stone-900 dark:text-[#E0FF33] font-['Outfit'] select-none">
                         {detailQuantity}
                       </span>
                       <button
                         type="button"
                         onClick={() => setDetailQuantity(detailQuantity + 1)}
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
                         aria-label="Increase quantity"
                         title="Increase quantity"
                       >
-                        <Plus size={15} strokeWidth={3.5} className="text-[#1E1B1C] stroke-current" />
+                        <Plus size={15} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
                       </button>
                     </div>
 
@@ -1922,9 +1922,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <button
                       type="button"
                       onClick={handleDetailAddToCart}
-                      className="flex-1 min-w-0 h-11 sm:h-12 bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
+                      className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
                     >
-                      <ShoppingBag size={17} className="text-[#1E1B1C] flex-shrink-0" />
+                      <ShoppingBag size={17} className="text-white dark:text-[#1E1B1C] flex-shrink-0" />
                       <span className="text-xs sm:text-sm font-black whitespace-nowrap">
                         {inBasketQty > 0
                           ? (detailQuantity === inBasketQty
@@ -1932,7 +1932,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             : `Update Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`)
                           : `Add to Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`}
                       </span>
-                      <ChevronRight size={14} strokeWidth={3} className="text-[#1E1B1C] flex-shrink-0" />
+                      <ChevronRight size={14} strokeWidth={3} className="text-white dark:text-[#1E1B1C] flex-shrink-0" />
                     </button>
                   </div>
                 );
@@ -1955,7 +1955,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         >
           <div
             ref={cartSheetRef}
-            className="bg-[#1E1B1C] border border-white/10 text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring"
+            className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.18)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring"
           >
             {/* Top Fixed Header & Grab Bar */}
             <div {...cartHandleProps} className="shrink-0 select-none cursor-grab active:cursor-grabbing">
@@ -1964,14 +1964,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 className="w-full py-2.5 -mt-3 mb-1 flex items-center justify-center sm:hidden pointer-events-none"
                 title="Drag down to close"
               >
-                <div className="w-12 h-1.5 bg-zinc-600 hover:bg-zinc-500 active:bg-zinc-400 rounded-full transition-colors" />
+                <div className="w-12 h-1.5 bg-stone-300 dark:bg-zinc-600 hover:bg-stone-400 dark:hover:bg-zinc-500 active:bg-stone-500 dark:active:bg-zinc-400 rounded-full transition-colors" />
               </div>
 
               {/* Header Title & Close Button */}
-              <div className="flex justify-between items-center pb-3 border-b border-white/10 select-none">
+              <div className="flex justify-between items-center pb-3 border-b border-stone-200 dark:border-white/10 select-none">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag size={20} className="text-[#E0FF33]" />
-                  <h3 className="text-xl sm:text-2xl font-black text-white font-['Outfit']">Your Basket</h3>
+                  <ShoppingBag size={20} className="text-amber-600 dark:text-[#E0FF33]" />
+                  <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit']">Your Basket</h3>
                 </div>
                 <button
                   type="button"
@@ -1979,7 +1979,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     handleCloseCartDrawer();
                   }}
-                  className="w-9 h-9 rounded-full bg-[#282526] hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-white cursor-pointer transition-all border border-white/10 relative z-30 shadow-md"
+                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] active:scale-95 flex items-center justify-center text-stone-600 hover:text-stone-950 dark:text-white cursor-pointer transition-all border border-stone-200 dark:border-white/10 relative z-30 shadow-md"
                   title="Close Basket"
                 >
                   <X size={16} />
@@ -1990,12 +1990,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             {/* Middle Scrollable Content (Items + Bill + Delivery Details Form + Payment) */}
             <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar pr-0.5 space-y-4 my-2.5">
               {/* Items List */}
-              <div className="divide-y divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
+              <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
                 {cart.map(item => (
                   <div key={item.id} className="py-3 flex justify-between items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm text-white truncate">{item.name}</p>
-                      <p className="text-xs text-zinc-400 mt-0.5">₹{item.price} each</p>
+                      <p className="font-bold text-sm text-stone-900 dark:text-white truncate">{item.name}</p>
+                      <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">₹{item.price} each</p>
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -2003,25 +2003,25 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setEditingQuantityItem(item)}
-                        className="h-8 sm:h-9 px-3 rounded-full bg-[#1E1B1C] hover:bg-[#282526] border border-white/10 hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
+                        className="h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
                         title="Change quantity"
                       >
-                        <span className="text-zinc-400 font-medium">Qty</span>
-                        <span className="font-black text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
-                        <ChevronDown size={13} className="text-zinc-400" />
+                        <span className="text-stone-500 dark:text-zinc-400 font-medium">Qty</span>
+                        <span className="font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
+                        <ChevronDown size={13} className="text-stone-500 dark:text-zinc-400" />
                       </button>
 
                       {/* Quick Stepper Buttons */}
-                      <div className="flex items-center gap-1 bg-[#1E1B1C] rounded-full p-1 border border-white/10 shadow-inner">
+                      <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1E1B1C] rounded-full p-1 border border-stone-200 dark:border-white/10 shadow-inner">
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, -1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
                           aria-label="Decrease quantity"
                           title={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
                         >
                           {item.quantity === 1 ? (
-                            <Trash2 size={13} className="text-red-400" />
+                            <Trash2 size={13} className="text-red-500" />
                           ) : (
                             <Minus size={13} strokeWidth={2.5} />
                           )}
@@ -2029,7 +2029,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
@@ -2140,24 +2140,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
 
               {/* Bill Details */}
-              <div className="bg-[#151314] rounded-2xl p-4 space-y-2 text-xs text-zinc-400 border border-white/5">
+              <div className="bg-stone-50 dark:bg-[#151314] rounded-2xl p-4 space-y-2 text-xs text-stone-600 dark:text-zinc-400 border border-stone-200/80 dark:border-white/5">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="text-white font-bold">₹{subtotal}</span>
+                  <span className="text-stone-900 dark:text-white font-bold">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>GST ({gstPct}%)</span>
-                  <span className="text-white font-bold">₹{gstAmount}</span>
+                  <span className="text-stone-900 dark:text-white font-bold">₹{gstAmount}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Charge</span>
-                  <span className={`font-bold ${deliveryCharge === 0 ? 'text-[#E0FF33]' : 'text-white'}`}>
+                  <span className={`font-bold ${deliveryCharge === 0 ? 'text-emerald-700 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'}`}>
                     {deliveryCharge === 0 ? 'FREE (Pickup)' : `₹${deliveryCharge}`}
                   </span>
                 </div>
-                <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10 font-['Outfit']">
+                <div className="flex justify-between text-base font-black text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
                   <span>Total</span>
-                  <span className="text-[#E0FF33]">₹{totalAmount}</span>
+                  <span className="text-stone-950 dark:text-[#E0FF33]">₹{totalAmount}</span>
                 </div>
               </div>
 
@@ -2484,18 +2484,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             {/* Bottom Fixed Action Footer */}
             <div className="shrink-0 pt-2 pb-6 sm:pb-2 border-t border-stone-200/80 dark:border-white/5 space-y-2 safe-area-bottom">
               {/* Seamless Trust & Live Tracking Micro-Indicator */}
-              <div className="flex items-center justify-between text-[11px] text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
-                <div className="flex items-center gap-1.5 text-[#E0FF33]">
-                  <Zap size={13} className="text-[#E0FF33]" />
-                  <span className="font-bold text-neutral-300">Live GPS tracking included</span>
+              <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
+                <div className="flex items-center gap-1.5 text-amber-700 dark:text-[#E0FF33]">
+                  <Zap size={13} className="text-amber-600 dark:text-[#E0FF33]" />
+                  <span className="font-bold text-stone-700 dark:text-neutral-300">Live GPS tracking included</span>
                 </div>
-                <span className="text-[10px] text-neutral-500 font-medium">Vrinda Cloud Kitchen</span>
+                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Vrinda Cloud Kitchen</span>
               </div>
 
               <button
                 onClick={handlePlaceOrder}
                 disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (isRetailShop && onlineRidersCount === 0)}
-                className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B1C] font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
               >
                 <span className="font-black">
                   {!isShopOpen
@@ -2506,7 +2506,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ? 'Kitchen Payments Disabled'
                         : 'Proceed to Place Order'))}
                 </span>
-                <span className="px-3 py-1 rounded-full bg-[#1E1B1C] text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
+                <span className="px-3 py-1 rounded-full bg-stone-800 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
                   ₹{totalAmount}
                 </span>
               </button>

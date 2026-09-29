@@ -70,13 +70,13 @@ const StyledWrapper = styled.div`
     font-weight: 600;
   }
   .reward-btn:hover .IconContainer .box-top {
-    transform: translateY(-5px);
+    transform: none;
   }
   .reward-btn:hover {
     background-color: #202531;
   }
   .reward-btn:hover .coin {
-    transform: translateY(-5px);
+    transform: none;
     transition-delay: 0.2s;
   }
   .coin {
