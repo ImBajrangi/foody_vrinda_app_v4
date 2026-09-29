@@ -25,3 +25,6 @@
 [Mobile Stepper Ergonomics & Gesture Isolation]:
 "All quantity steppers and inline action bars on food cards must maintain a minimum 40px touch height (h-10 sm:h-11), minimum 36px interactive button targets with apple-tap-target, touch-manipulation, and must bind onTouchStart={(e) => e.stopPropagation()} alongside onClick to strictly isolate stepper events from parent card click gestures."
 
+When switching app major versions or working across versioned submodules (e.g., v3 to v4), always automatically verify that the local repository's `origin` points to the active target repository, branch upstream is set to `origin/main`, and parent `.gitmodules` entries are synchronized before committing.
+
+
