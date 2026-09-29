@@ -1304,10 +1304,16 @@
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4) !important;
 }
 
-.card-premium-product:hover {
+.light .card-premium-product:hover {
   background-color: white !important;
   box-shadow: 0 16px 36px -10px rgba(139, 92, 26, 0.08) !important;
   border-color: rgba(217, 119, 6, 0.25) !important;
+}
+
+.dark .card-premium-product:hover {
+  background-color: #2C2829 !important;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(224, 255, 51, 0.25) !important;
 }
 
 .card-premium-image-wrapper {
@@ -2505,19 +2511,19 @@ path.casing-parabolic-dots,
 }
 
 /* 4. Translucent Containers & Secondary Buttons in Light Mode */
-.light [class*="bg-white/5"]:not(button):not(a),
-.light [class*="bg-white/10"]:not(button):not(a),
-.light [class*="bg-white/15"]:not(button):not(a),
-.light [class*="bg-white/20"]:not(button):not(a) {
+.light [class*="bg-white/5"]:not(button):not(a):not(button *):not([role="button"] *),
+.light [class*="bg-white/10"]:not(button):not(a):not(button *):not([role="button"] *),
+.light [class*="bg-white/15"]:not(button):not(a):not(button *):not([role="button"] *),
+.light [class*="bg-white/20"]:not(button):not(a):not(button *):not([role="button"] *) {
   background-color: #EDE7DD !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
   color: #181617 !important;
 }
 
-.light button[class*="bg-white/5"],
-.light button[class*="bg-white/10"],
-.light a[class*="bg-white/5"],
-.light a[class*="bg-white/10"] {
+.light button[class*="bg-white/5"]:not(.btn-dark *),
+.light button[class*="bg-white/10"]:not(.btn-dark *),
+.light a[class*="bg-white/5"]:not(.btn-dark *),
+.light a[class*="bg-white/10"]:not(.btn-dark *) {
   background-color: #EDE7DD !important;
   color: #181617 !important;
   border-color: rgba(28, 25, 23, 0.12) !important;
@@ -2543,15 +2549,8 @@ path.casing-parabolic-dots,
 
 /* Ensure nested badges & counters always have clear dark text on white badges in light mode */
 .light [class*="bg-white"] .badge-count,
-.light [class*="bg-white"] span.badge-count,
-.light button [class*="bg-white"],
-.light button [class*="bg-white"] * {
+.light [class*="bg-white"] span.badge-count {
   color: #181617 !important;
-}
-
-.dark button [class*="bg-black"],
-.dark button [class*="bg-black"] * {
-  color: #E0FF33 !important;
 }
 
 /* Eliminate unnecessary heavy/dirty dark shadows in Light Mode */
@@ -2729,7 +2728,7 @@ path.casing-parabolic-dots,
 /* 10. Badges & Chips */
 .light .bg-zinc-800,
 .light .bg-neutral-800,
-.light .bg-stone-800 {
+.light .bg-stone-800:not(.stepper-capsule *):not(.stepper-btn-minus):not(button[class*="bg-stone-800"]) {
   background-color: #EDE7DD !important;
   color: #1C1917 !important;
 }
@@ -2742,7 +2741,7 @@ path.casing-parabolic-dots,
 
 /* 10b. Platform-Wide Light Mode Visibility Guardians (Zero Washed-Out Contrast) */
 
-/* A. High-Contrast Obsidian Enforcement for Dark Buttons & Pills in Light Mode */
+/* A. High-Contrast Obsidian Enforcement for Dark Elements in Light Mode */
 .category-pill-active,
 .light .category-pill-active,
 [data-theme="light"] .category-pill-active,
@@ -2766,55 +2765,124 @@ path.casing-parabolic-dots,
   border-color: #E0FF33 !important;
 }
 
-/* Ensure all buttons, controls, and active items with dark backgrounds have pure white text in Light Mode */
-.light button[class*="bg-stone-900"],
-.light button[class*="bg-stone-950"],
-.light button[class*="bg-black"],
-.light button[class*="bg-[#181617]"],
-.light button[class*="bg-[#1E1B1C]"],
-.light button[class*="bg-amber-600"],
-.light button[class*="bg-emerald-600"],
-.light [role="button"][class*="bg-stone-900"],
-.light [role="button"][class*="bg-stone-950"],
-.light [role="button"][class*="bg-black"],
+/* Guaranteed High-Contrast Text for Dark CTAs in Light Mode (Without breaking light surfaces) */
+.light button[class~="bg-stone-900"]:not(.payment-method-unselected):not(.qty-picker-pill):not([class*="bg-stone-100"]):not([class*="bg-stone-200"]),
+.light button[class~="bg-stone-950"]:not(.payment-method-unselected):not(.qty-picker-pill):not([class*="bg-stone-100"]):not([class*="bg-stone-200"]),
+.light button[class~="bg-black"]:not(.payment-method-unselected):not(.qty-picker-pill):not([class*="bg-stone-100"]):not([class*="bg-stone-200"]),
 .light .btn-dark-active {
   color: #FFFFFF !important;
 }
 
-.light button[class*="bg-stone-900"] *,
-.light button[class*="bg-stone-950"] *,
-.light button[class*="bg-black"] *,
-.light button[class*="bg-[#181617]"] *,
-.light button[class*="bg-[#1E1B1C]"] *,
-.light button[class*="bg-amber-600"] *,
-.light button[class*="bg-emerald-600"] *,
-.light [role="button"][class*="bg-stone-900"] *,
-.light [role="button"][class*="bg-stone-950"] *,
-.light [role="button"][class*="bg-black"] *,
-.light .btn-dark-active * {
-  color: #FFFFFF !important;
-}
-
 /* Secondary address / detail text inside dark buttons in Light Mode */
-.light button[class*="bg-stone-900"] [class*="text-white/"],
-.light button[class*="bg-stone-900"] [class*="text-stone-400"],
-.light button[class*="bg-stone-900"] [class*="text-stone-300"],
-.light button[class*="bg-black"] [class*="text-white/"],
-.light [role="button"][class*="bg-stone-900"] [class*="text-white/"],
+.light button[class~="bg-stone-900"] [class*="text-white/"],
+.light button[class~="bg-stone-900"] [class*="text-stone-400"],
+.light button[class~="bg-stone-900"] [class*="text-stone-300"],
+.light button[class~="bg-black"] [class*="text-white/"],
 .light .btn-dark-active [class*="text-white/"],
-.light .btn-dark-active [class*="text-stone-400"] {
-  color: rgba(255, 255, 255, 0.72) !important;
+.light .btn-dark-active [class*="text-stone-400"],
+.light .btn-dark-active [class*="text-stone-300"] {
+  color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* SVGs inside dark buttons */
-.light button[class*="bg-stone-900"] svg,
-.light button[class*="bg-stone-950"] svg,
-.light button[class*="bg-black"] svg,
-.light [role="button"][class*="bg-stone-900"] svg,
-.light [role="button"][class*="bg-black"] svg,
+/* SVGs inside dark buttons in Light Mode */
+.light button[class~="bg-stone-900"]:not(.payment-method-unselected):not(.qty-picker-pill) svg:not(.text-red-400):not(.text-red-500),
+.light button[class~="bg-stone-950"] svg,
+.light button[class~="bg-black"] svg,
 .light .category-pill-active svg {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
+}
+
+/* 10c. Protected Light Mode Surface Controls (Never Inherit White Text) */
+.light .payment-method-unselected,
+.light [role="button"].payment-method-unselected {
+  background-color: #F7F3EC !important;
+  border-color: rgba(28, 25, 23, 0.14) !important;
+  color: #1C1917 !important;
+}
+.light .payment-method-unselected *,
+.light .payment-method-unselected div,
+.light .payment-method-unselected p,
+.light .payment-method-unselected span {
+  color: #1C1917 !important;
+}
+.light .payment-method-unselected .payment-sub,
+.light .payment-method-unselected p[class*="text-stone"] {
+  color: #57534E !important;
+}
+
+.light .qty-picker-pill {
+  background-color: #EDE7DD !important;
+  border-color: rgba(28, 25, 23, 0.12) !important;
+  color: #1C1917 !important;
+}
+.light .qty-picker-pill * {
+  color: #1C1917 !important;
+}
+.light .qty-picker-pill .qty-label {
+  color: #57534E !important;
+}
+.light .qty-picker-pill .qty-num {
+  color: #1C1917 !important;
+  font-weight: 900 !important;
+}
+.light .qty-picker-pill svg {
+  color: #57534E !important;
+  stroke: #57534E !important;
+}
+
+/* Live Map Track Banner Button: High contrast in both Light & Dark modes */
+.btn-map-track {
+  transition: transform 0.1s ease-out, opacity 0.12s ease-out !important;
+}
+.light .btn-map-track {
+  background-color: #1C1917 !important;
+  color: #FFFFFF !important;
+}
+.light .btn-map-track span,
+.light .btn-map-track svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+.dark .btn-map-track {
+  background-color: #E0FF33 !important;
+  color: #121011 !important;
+}
+.dark .btn-map-track span,
+.dark .btn-map-track svg {
+  color: #121011 !important;
+  stroke: #121011 !important;
+  fill: #121011 !important;
+}
+
+/* Dedicated Stepper Capsule Styling in Light Mode */
+.stepper-capsule,
+.light .stepper-capsule {
+  background-color: #1C1917 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.stepper-capsule .stepper-btn-minus,
+.light .stepper-capsule .stepper-btn-minus {
+  background-color: #292524 !important; /* stone-800 */
+}
+
+.stepper-capsule .stepper-btn-plus,
+.light .stepper-capsule .stepper-btn-plus {
+  background-color: #F59E0B !important; /* amber-500 */
+  color: #1C1917 !important;
+}
+
+.stepper-capsule .stepper-btn-plus *,
+.light .stepper-capsule .stepper-btn-plus * {
+  color: #1C1917 !important;
+  stroke: #1C1917 !important;
+}
+
+.stepper-capsule .stepper-qty,
+.light .stepper-capsule .stepper-qty {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
 }
 
 /* B. Non-Button High-Contrast Text Mapping for Light Mode Containers */
@@ -2823,78 +2891,16 @@ path.casing-parabolic-dots,
 .light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.preserve-dark) h2[class*="text-white"],
 .light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.preserve-dark) h3[class*="text-white"],
 .light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.preserve-dark) h4[class*="text-white"],
-.light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.preserve-dark) p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *),
+.light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.preserve-dark) p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *):not(.btn-dark-active *),
 .light [class*="bg-[#FAF7F2]"] h1[class*="text-white"],
 .light [class*="bg-[#FAF7F2]"] h2[class*="text-white"],
 .light [class*="bg-[#FAF7F2]"] h3[class*="text-white"],
-.light [class*="bg-[#FAF7F2]"] p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *),
+.light [class*="bg-[#FAF7F2]"] p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *):not(.btn-dark-active *),
 .light [class*="bg-white"] h1[class*="text-white"],
 .light [class*="bg-white"] h2[class*="text-white"],
 .light [class*="bg-white"] h3[class*="text-white"],
-.light [class*="bg-white"] p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *) {
+.light [class*="bg-white"] p[class*="text-white"]:not(button *):not([role="button"] *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *):not(.btn-dark-active *) {
   color: #1C1917 !important;
-}
-
-/* C. Neon Lime (#E0FF33) Visibility Protection in Light Mode (Surface Elements Only) */
-.light [class*="text-[#E0FF33]"]:not(.otp-code-pill):not(.otp-code-pill *):not(.preserve-lime):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not([role="button"][class*="bg-stone-900"] *):not([role="button"][class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *) {
-  color: #1C1917 !important;
-}
-
-.light span[class*="text-[#E0FF33]"]:not(.otp-code-pill):not(.otp-code-pill *):not(.preserve-lime):not([class*="font-black"]):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *),
-.light p[class*="text-[#E0FF33]"]:not(.otp-code-pill):not(.otp-code-pill *):not(.preserve-lime):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *),
-.light a[class*="text-[#E0FF33]"]:not(.otp-code-pill):not(.otp-code-pill *):not(.preserve-lime):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *) {
-  color: #B45309 !important;
-}
-
-/* SVG Icons with text-[#E0FF33] in Light Mode on light surfaces */
-.light svg[class*="text-[#E0FF33]"]:not(.otp-code-pill *):not(.preserve-lime):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *):not([class*="bg-stone-900"] *):not([class*="bg-black"] *) {
-  color: #B45309 !important;
-  stroke: #B45309 !important;
-}
-
-/* SVG Fill with #E0FF33 (e.g. Star Ratings in ReviewModal) -> Rich Gold/Amber */
-.light [class*="fill-[#E0FF33]"]:not(.otp-code-pill *):not(.preserve-lime):not(button[class*="bg-stone-900"] *):not(button[class*="bg-black"] *):not(.category-pill-active *):not(.btn-dark-active *) {
-  fill: #F59E0B !important;
-}
-
-/* Badges & Chips with bg-[#E0FF33]/... -> Warm Saffron Amber with Dark Amber Text */
-.light [class*="bg-[#E0FF33]/"]:not(button):not([role="button"]):not(.preserve-lime):not(.category-pill-active):not(.btn-dark-active) {
-  background-color: rgba(245, 158, 11, 0.14) !important;
-  color: #92400E !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
-}
-
-.light [class*="bg-[#E0FF33]/"]:not(button):not([role="button"]):not(.preserve-lime):not(.category-pill-active):not(.btn-dark-active) * {
-  color: #92400E !important;
-}
-
-.light [class*="bg-[#E0FF33]/"]:not(button):not([role="button"]):not(.preserve-lime):not(.category-pill-active):not(.btn-dark-active) svg {
-  stroke: #92400E !important;
-}
-
-/* Neon Lime Buttons in Light Mode -> Obsidian Apple Luxury Standard */
-.light button[class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn),
-.light [role="button"][class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn) {
-  background-color: #181617 !important;
-  color: #FFFFFF !important;
-  border-color: #181617 !important;
-}
-
-.light button[class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn):hover,
-.light [role="button"][class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn):hover {
-  background-color: #000000 !important;
-  color: #FFFFFF !important;
-}
-
-.light button[class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn) *,
-.light [role="button"][class*="bg-[#E0FF33]"]:not(.preserve-lime):not(.preserve-btn) * {
-  color: #FFFFFF !important;
-  stroke: #FFFFFF !important;
-}
-
-/* Neon Lime Borders in Light Mode -> Warm Subtle Borders */
-.light [class*="border-[#E0FF33]"]:not(.otp-code-pill):not(.preserve-lime) {
-  border-color: rgba(217, 119, 6, 0.3) !important;
 }
 
 /* D. Platform-Wide Hover Displacement Neutralizer (Eliminates jarring vertical jumps and translateY across cards, buttons, badges) */
@@ -2904,11 +2910,24 @@ path.casing-parabolic-dots,
 .apple-card-interactive:hover,
 .apple-card:hover,
 .dev-stat-card:hover,
-button:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]),
-a:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]),
-[role="button"]:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]),
-.apple-tap-target:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]) {
-  transform: none !important;
+button:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]):not([class*="-translate-x-1/2"]):not(:active),
+a:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]):not([class*="-translate-x-1/2"]):not(:active),
+[role="button"]:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]):not([class*="-translate-x-1/2"]):not(:active),
+.apple-tap-target:hover:not([class*="-translate-y-1/2"]):not([class*="top-1/2"]):not([class*="-translate-x-1/2"]):not(:active) {
+  transform: none;
+}
+
+/* E. Eliminate Browser Default Focus Rings & Blue Tap Highlight Across Platform */
+button:focus,
+button:focus-visible,
+[role="button"]:focus,
+[role="button"]:focus-visible,
+a:focus,
+a:focus-visible,
+input:focus:not([type="text"]):not([type="tel"]):not([type="email"]):not([type="password"]):not([type="search"]) {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 /* 11. Instant & Crisp Hover Micro-Interactions (Zero Perceived Delay) */

@@ -3,11 +3,59 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
+export const NOTIFICATION_TRIALS = [
+  {
+    id: 'trial1',
+    name: 'Zen Glass Tap',
+    description: 'Crisp, minimalist glass micro-ping • Ultra-clean & subtle',
+    duration: '120ms',
+    soundSrc: '/sounds/trials/trial1_zen_glass.wav',
+    vibe: 'Modern Minimalist (Apple/iOS style)'
+  },
+  {
+    id: 'trial2',
+    name: 'Celestial Marimba',
+    description: 'Warm dual acoustic chime (E5 → B5) • Soft & friendly',
+    duration: '260ms',
+    soundSrc: '/sounds/trials/trial2_celestial_marimba.wav',
+    vibe: 'Warm Acoustic (Slack/Airbnb style)'
+  },
+  {
+    id: 'trial3',
+    name: 'Vedic Singing Bowl',
+    description: 'Calming 432 Hz bronze bowl harmonic shimmer • Sacred peace',
+    duration: '500ms',
+    soundSrc: '/sounds/trials/trial3_vedic_singing_bowl.wav',
+    vibe: 'Sacred Spiritual (Vedic Temple tone)'
+  },
+  {
+    id: 'trial4',
+    name: 'Air Breeze Ripple',
+    description: 'Modern 3-tone ethereal ascending droplet • Feathered soft',
+    duration: '250ms',
+    soundSrc: '/sounds/trials/trial4_air_ripple.wav',
+    vibe: 'Ethereal Breeze (macOS style)'
+  }
+];
+
 class NativeNotificationService {
   constructor() {
     this.isNative = Capacitor.isNativePlatform();
     this.initialized = false;
     this.audioCtx = null;
+  }
+
+  getActiveTrial() {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('foody_notification_sound_trial') || 'trial1';
+    }
+    return 'trial1';
+  }
+
+  setActiveTrial(trialId) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('foody_notification_sound_trial', trialId);
+    }
   }
 
   getAudioContext() {
@@ -25,26 +73,52 @@ class NativeNotificationService {
   }
 
   /**
-   * Play real-time alert audio (HTML5 audio / Web Audio)
+   * Preview a specific notification sound trial
+   */
+  playTrialSound(trialId = 'trial1') {
+    const trial = NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
+    try {
+      if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
+        const audio = new Audio(trial.soundSrc);
+        audio.volume = 0.8;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            this._playSynthesizedTrial(trialId);
+          });
+          return;
+        }
+      }
+    } catch {
+      // fallback to synthesized
+    }
+    this._playSynthesizedTrial(trialId);
+  }
+
+  /**
+   * Play real-time alert audio (HTML5 audio / Web Audio) using active trial
    */
   playChime(type = 'customer') {
     try {
+      const activeTrialId = this.getActiveTrial();
+      const activeTrial = NOTIFICATION_TRIALS.find(t => t.id === activeTrialId) || NOTIFICATION_TRIALS[0];
+
       const soundMap = {
         kitchen: '/sounds/kitchen_alert.wav',
         owner: '/sounds/owner_alert.wav',
         delivery: '/sounds/delivery_alert.wav',
-        customer: '/sounds/customer_ping.wav',
+        customer: activeTrial.soundSrc,
       };
-      const soundSrc = soundMap[type] || soundMap.customer;
+      const soundSrc = soundMap[type] || activeTrial.soundSrc;
 
       // Try playing audio file first
       if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
         const audio = new Audio(soundSrc);
-        audio.volume = type === 'kitchen' ? 1.0 : 0.85;
+        audio.volume = 0.8;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
-            this._playSynthesizedChime(type);
+            this._playSynthesizedTrial(activeTrialId);
           });
           return;
         }
@@ -52,10 +126,10 @@ class NativeNotificationService {
     } catch {
       // fallback to synthesized chime
     }
-    this._playSynthesizedChime(type);
+    this._playSynthesizedTrial(this.getActiveTrial());
   }
 
-  _playSynthesizedChime(type) {
+  _playSynthesizedTrial(trialId = 'trial1') {
     try {
       const ctx = this.getAudioContext();
       if (!ctx) return;
@@ -64,53 +138,75 @@ class NativeNotificationService {
       }
 
       const now = ctx.currentTime;
-      if (type === 'kitchen' || type === 'owner') {
+
+      if (trialId === 'trial1') {
+        // Zen Glass Tap: 1760Hz with soft exponential decay
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.setValueAtTime(1174, now + 0.12);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1760, now);
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.3, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.38);
-      } else if (type === 'delivery') {
-        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+        osc.stop(now + 0.15);
+      } else if (trialId === 'trial2') {
+        // Celestial Marimba: E5 -> B5 warm triangle notes
+        [659.25, 987.77].forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          const t = now + idx * 0.09;
+          const t = now + (idx * 0.09);
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, t);
           gain.gain.setValueAtTime(0.001, t);
-          gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+          gain.gain.exponentialRampToValueAtTime(0.22, t + 0.006);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start(t);
-          osc.stop(t + 0.26);
+          osc.stop(t + 0.24);
         });
-      } else {
-        [528, 660].forEach((freq, idx) => {
+      } else if (trialId === 'trial3') {
+        // Vedic Temple Sing: 432Hz + 435.5Hz beating warmth
+        [432.0, 435.5].forEach((freq) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          const t = now + idx * 0.1;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.55);
+        });
+      } else {
+        // Air Breeze Ripple: C6 -> E6 -> G6 soft ascent
+        [1046.5, 1318.5, 1568.0].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = now + (idx * 0.07);
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, t);
           gain.gain.setValueAtTime(0.001, t);
-          gain.gain.exponentialRampToValueAtTime(0.2, t + 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+          gain.gain.exponentialRampToValueAtTime(0.16, t + 0.005);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start(t);
-          osc.stop(t + 0.65);
+          osc.stop(t + 0.2);
         });
       }
     } catch {
       // ignore
     }
+  }
+
+  _playSynthesizedChime(type) {
+    this._playSynthesizedTrial(this.getActiveTrial());
   }
 
   /**

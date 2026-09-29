@@ -131,7 +131,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
     const onMove = (ev) => {
       const currentY = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0]?.clientY) || 0;
       const diff = currentY - startY;
-      if (Math.abs(diff) > 3) {
+      if (Math.abs(diff) > 10) {
         hasMovedRef.current = true;
         setDragY(diff);
       }
@@ -151,11 +151,11 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
       const currentY = ev.clientY !== undefined ? ev.clientY : (ev.changedTouches && ev.changedTouches[0]?.clientY) || (dragStartYRef.current + dragY);
       const finalDiff = currentY - dragStartYRef.current;
 
-      if (finalDiff < -15) {
+      if (finalDiff < -18) {
         // Swiped UP -> Open Live Map Tracking smoothly
         setDragY(0);
         if (onClick) onClick();
-      } else if (finalDiff > 20) {
+      } else if (finalDiff > 22) {
         // Swiped DOWN -> Hide capsule
         setIsDismissing(true);
         setTimeout(() => {
@@ -178,7 +178,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
   };
 
   const handleClick = (e) => {
-    if (hasMovedRef.current || isDismissing) {
+    if ((hasMovedRef.current && Math.abs(dragY) > 8) || isDismissing) {
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -190,7 +190,6 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
     <div
       onClick={handleClick}
       onPointerDown={handlePointerDown}
-      onTouchStart={handlePointerDown}
       role="button"
       tabIndex={0}
       title="Swipe up or tap to open live map tracking • Swipe down to hide"

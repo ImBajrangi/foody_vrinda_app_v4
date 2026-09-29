@@ -33,10 +33,13 @@ import {
   Headphones,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  Volume2
 } from 'lucide-react';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
+import SoundTrialsModal from './SoundTrialsModal';
+import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
 
 const DESK_CONFIG = {
   customer: {
@@ -141,6 +144,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [showLoginView, setShowLoginView] = useState(false);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [isReminderDismissed, setIsReminderDismissed] = useState(false);
+  const [showSoundTrials, setShowSoundTrials] = useState(false);
 
   // Sync profile editing inputs when userData changes
   useEffect(() => {
@@ -828,30 +832,46 @@ export default function AuthModal({ isOpen, onClose }) {
                   )}
                   <span>App Theme</span>
                 </div>
-                <div className="flex items-center gap-1 bg-stone-200/90 dark:bg-[#252223] p-1 rounded-full border border-stone-300 dark:border-white/15">
+                <div className="flex items-center gap-1 bg-stone-200/80 dark:bg-[#252223] p-1 rounded-full border border-stone-300/80 dark:border-white/15">
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
                     className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isLight 
-                        ? 'bg-stone-900 text-white shadow-sm font-black' 
-                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white'
+                        ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black' 
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
-                    Divine Light
+                    <span>Divine Light</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
                     className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
                       isDark 
-                        ? 'bg-[#E0FF33] text-black shadow-sm font-black' 
-                        : 'text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white'
+                        ? 'bg-[#E0FF33] text-black shadow-xs font-black' 
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
-                    Dark Obsidian
+                    <span>Dark Obsidian</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Notification Chime Preference Row */}
+              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
+                <div className="flex items-center gap-2.5">
+                  <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#E0FF33] shrink-0" />
+                  <span>Notification Sound</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSoundTrials(true)}
+                  className="px-3 py-1 rounded-full text-[10px] font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <span>{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
+                  <span className="text-[9px] text-amber-600 dark:text-[#E0FF33] font-black">Trials &gt;</span>
+                </button>
               </div>
 
               <button
@@ -955,14 +975,14 @@ export default function AuthModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="group p-2.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-amber-50 dark:hover:bg-[#E0FF33]/15 border border-stone-200/80 dark:border-white/5 hover:border-amber-400/40 dark:hover:border-[#E0FF33]/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="group p-2.5 rounded-xl bg-amber-50/90 dark:bg-amber-500/[0.04] hover:bg-amber-100/90 dark:hover:bg-amber-500/20 border border-amber-200/90 dark:border-amber-500/15 hover:border-amber-300 dark:hover:border-amber-500/40 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-amber-500 dark:group-hover:bg-[#E0FF33] text-amber-600 dark:text-[#E0FF33] group-hover:text-white dark:group-hover:text-black flex items-center justify-center shrink-0 transition-all shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-500/15 group-hover:bg-amber-500 text-amber-700 dark:text-amber-300 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
                   <LogIn className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-black text-stone-800 dark:text-zinc-200 group-hover:text-stone-950 dark:group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
-                  <div className="text-[10px] text-stone-500 dark:text-zinc-500 group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] font-medium truncate">Change profile</div>
+                  <div className="text-xs font-black text-amber-900 dark:text-amber-200 group-hover:text-amber-950 dark:group-hover:text-white font-['Outfit'] truncate">Switch Account</div>
+                  <div className="text-[10px] text-amber-700/80 dark:text-amber-400/60 group-hover:text-amber-900 dark:group-hover:text-amber-200 font-medium truncate">Change profile</div>
                 </div>
               </button>
 
@@ -1446,6 +1466,12 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
         )}
       </div>
+
+      {/* Sound Trials Modal */}
+      <SoundTrialsModal
+        isOpen={showSoundTrials}
+        onClose={() => setShowSoundTrials(false)}
+      />
     </div>
   );
 }

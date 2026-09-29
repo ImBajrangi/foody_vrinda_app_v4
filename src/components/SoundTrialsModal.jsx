@@ -1,0 +1,146 @@
+import { useState, useCallback } from 'react';
+import { Volume2, Play, Check, X, Sparkles, Music, Waves, BellRing } from 'lucide-react';
+import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
+
+export default function SoundTrialsModal({ isOpen, onClose }) {
+  const [activeTrial, setActiveTrial] = useState(() => {
+    return nativeNotify.getActiveTrial();
+  });
+  const [playingId, setPlayingId] = useState(null);
+
+  const handlePlayTrial = useCallback((trialId, e) => {
+    if (e) e.stopPropagation();
+    setPlayingId(trialId);
+    nativeNotify.playTrialSound(trialId);
+    setTimeout(() => {
+      setPlayingId((curr) => (curr === trialId ? null : curr));
+    }, 700);
+  }, []);
+
+  const handleSelectTrial = useCallback((trialId) => {
+    nativeNotify.setActiveTrial(trialId);
+    setActiveTrial(trialId);
+    nativeNotify.playTrialSound(trialId);
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-[100000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs animate-fade-in"
+    >
+      <div className="w-full max-w-lg bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/10 pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+              <Volume2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                Notification Sound Trials
+              </h3>
+              <p className="text-xs text-stone-500 dark:text-zinc-400">
+                Modern, lite & soft acoustic tones for order updates
+              </p>
+            </div>
+          </div>
+          <button 
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-950 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Trials List */}
+        <div className="space-y-2.5">
+          {NOTIFICATION_TRIALS.map((trial) => {
+            const isSelected = activeTrial === trial.id;
+            const isCurrentlyPlaying = playingId === trial.id;
+
+            return (
+              <div
+                key={trial.id}
+                onClick={() => handleSelectTrial(trial.id)}
+                className={`p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] ${
+                  isSelected
+                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-amber-500/40 dark:border-[#E0FF33]/40 shadow-xs'
+                    : 'bg-stone-50/80 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] border-stone-200/80 dark:border-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Radio Indicator */}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                    isSelected
+                      ? 'border-amber-600 dark:border-[#E0FF33] bg-amber-500/20 dark:bg-[#E0FF33]/20'
+                      : 'border-stone-300 dark:border-white/20'
+                  }`}>
+                    {isSelected && (
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-[#E0FF33]" />
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-black font-['Outfit'] truncate ${
+                        isSelected
+                          ? 'text-amber-950 dark:text-[#E0FF33]'
+                          : 'text-stone-900 dark:text-white'
+                      }`}>
+                        {trial.name}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-white/10 text-stone-600 dark:text-zinc-300 shrink-0">
+                        {trial.duration}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-500 dark:text-zinc-400 mt-0.5 truncate">
+                      {trial.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions: Test Play Button */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={(e) => handlePlayTrial(trial.id, e)}
+                    className={`h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                      isCurrentlyPlaying
+                        ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black font-black animate-pulse'
+                        : 'bg-white dark:bg-white/10 hover:bg-amber-50 dark:hover:bg-white/15 text-stone-800 dark:text-zinc-200 border border-stone-200/80 dark:border-white/10'
+                    }`}
+                    title="Play sound preview"
+                  >
+                    <Play size={12} className={isCurrentlyPlaying ? 'fill-current' : ''} />
+                    <span>{isCurrentlyPlaying ? 'Playing' : 'Test'}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Quick Footer Info */}
+        <div className="pt-2 border-t border-stone-200/70 dark:border-white/5 flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={13} className="text-amber-500 dark:text-[#E0FF33]" />
+            <span>Tap "Test" to listen, tap card to choose</span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

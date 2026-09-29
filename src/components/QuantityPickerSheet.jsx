@@ -204,10 +204,10 @@ export default function QuantityPickerSheet({
             <button
               type="button"
               onClick={handleRemove}
-              className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 dark:hover:bg-red-500/20 flex items-center justify-center text-stone-600 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-red-400 transition-all cursor-pointer apple-tap-target"
+              className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 dark:hover:bg-red-500/20 flex items-center justify-center text-rose-600 dark:text-red-400 transition-all cursor-pointer apple-tap-target"
               title="Remove item"
             >
-              <Trash2 size={15} />
+              <Trash2 size={15} style={{ color: '#E11D48', stroke: '#E11D48' }} />
             </button>
             <button
               type="button"

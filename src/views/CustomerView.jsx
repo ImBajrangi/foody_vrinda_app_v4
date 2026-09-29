@@ -181,7 +181,7 @@ const MenuItemCard = memo(function MenuItemCard({
         ) : (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
+            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
           >
             <button
               type="button"
@@ -189,18 +189,22 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
               }}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-800 dark:bg-white/10 hover:bg-stone-700 dark:hover:bg-white/20 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
+              style={{ backgroundColor: '#292524' }}
+              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-stone-700 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
               title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
               aria-label="Decrease quantity"
             >
               {quantityInCart === 1 ? (
-                <Trash2 size={15} strokeWidth={2.5} className="text-red-400" />
+                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" style={{ color: '#F87171', stroke: '#F87171' }} />
               ) : (
                 <Minus size={15} strokeWidth={3} className="text-white" />
               )}
             </button>
 
-            <span className="px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none">
+            <span 
+              className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
+              style={{ color: '#FFFFFF' }}
+            >
               {quantityInCart}
             </span>
 
@@ -210,11 +214,11 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
               title="Add another"
               aria-label="Increase quantity"
             >
-              <Plus size={16} strokeWidth={3.5} className="text-stone-950 stroke-current" />
+              <Plus size={16} strokeWidth={3.5} className="text-stone-950 stroke-current" style={{ stroke: '#1C1917' }} />
             </button>
           </div>
         )}
@@ -1368,11 +1372,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         >
                           {/* Radio Indicator */}
                           <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected
-                              ? 'border-white dark:border-[#E0FF33] bg-white/20 dark:bg-[#E0FF33]/20'
+                              ? 'border-amber-400 dark:border-[#E0FF33] bg-amber-400/20 dark:bg-[#E0FF33]/20'
                               : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
                             }`}>
                             <div className={`w-2 h-2 rounded-full transition-all duration-200 ${isSelected
-                                ? 'bg-white dark:bg-[#E0FF33] scale-100'
+                                ? 'bg-amber-400 dark:bg-[#E0FF33] scale-100'
                                 : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
                               }`} />
                           </div>
@@ -1380,18 +1384,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           {/* Kitchen Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className={`text-[13px] sm:text-sm font-semibold truncate transition-colors ${isSelected
-                                  ? 'text-white dark:text-[#E0FF33]'
+                              <p 
+                                className={`text-[13px] sm:text-sm font-bold truncate transition-colors ${isSelected
+                                  ? '!text-white dark:text-[#E0FF33]'
                                   : 'text-stone-800 dark:text-zinc-100'
-                                }`}>
+                                }`}
+                                style={isSelected ? { color: '#FFFFFF' } : undefined}
+                              >
                                 {s.name}
                               </p>
                             </div>
                             {s.address && (
-                              <p className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
-                                  ? 'text-white/60 dark:text-[#E0FF33]/50'
+                              <p 
+                                className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
+                                  ? 'text-stone-300 dark:text-[#E0FF33]/70'
                                   : 'text-stone-400 dark:text-zinc-500'
-                                }`}>
+                                }`}
+                                style={isSelected ? { color: 'rgba(255, 255, 255, 0.8)' } : undefined}
+                              >
                                 {s.address}
                               </p>
                             )}
@@ -1500,7 +1510,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
               >
                 <span className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
                   <Navigation className="w-3 h-3 text-white dark:text-[#121011] fill-current" />
@@ -1994,11 +2004,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setEditingQuantityItem(item)}
-                        className="h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
+                        className="qty-picker-pill h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
                         title="Change quantity"
                       >
-                        <span className="text-stone-500 dark:text-zinc-400 font-medium">Qty</span>
-                        <span className="font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
+                        <span className="qty-label text-stone-600 dark:text-zinc-400 font-semibold">Qty</span>
+                        <span className="qty-num font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
                         <ChevronDown size={13} className="text-stone-500 dark:text-zinc-400" />
                       </button>
 
@@ -2007,14 +2017,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, -1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
                           aria-label="Decrease quantity"
                           title={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
                         >
                           {item.quantity === 1 ? (
-                            <Trash2 size={13} className="text-red-500" />
+                            <Trash2 size={13} className="text-red-500 stroke-red-500" style={{ color: '#EF4444', stroke: '#EF4444' }} />
                           ) : (
-                            <Minus size={13} strokeWidth={2.5} />
+                            <Minus size={13} strokeWidth={2.5} className="text-stone-700 dark:text-zinc-200" style={{ stroke: 'currentColor' }} />
                           )}
                         </button>
                         <button
@@ -2391,6 +2401,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <div className="grid grid-cols-2 gap-2.5">
                     {/* Online Pay Option */}
+                    {/* Online Pay Option */}
                     <button
                       type="button"
                       disabled={!onlineAvailable}
@@ -2399,13 +2410,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
                         : paymentMethod === 'online'
                           ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                          : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
+                          : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
                         }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'online'
                           ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                          : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
+                          : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
@@ -2417,10 +2428,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className="text-sm font-black font-['Outfit'] tracking-tight">
+                        <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
                           Online Pay
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'online'
+                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'online'
                           ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
                           : 'text-stone-600 dark:text-zinc-400'
                           }`}>
@@ -2438,13 +2449,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
                         : paymentMethod === 'cash'
                           ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                          : 'bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
+                          : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
                         }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'cash'
                           ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                          : 'bg-amber-500/15 text-amber-700 dark:bg-white/10 dark:text-zinc-200'
+                          : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                           }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
@@ -2456,10 +2467,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className="text-sm font-black font-['Outfit'] tracking-tight">
+                        <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 ${paymentMethod === 'cash'
+                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'cash'
                           ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
                           : 'text-stone-600 dark:text-zinc-400'
                           }`}>

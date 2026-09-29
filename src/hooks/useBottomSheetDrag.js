@@ -107,6 +107,9 @@ export function useBottomSheetDrag(param1, param2) {
   const handleTouchStart = useCallback((e) => {
     if (isDismissingRef.current || isDraggingRef.current) return;
 
+    // Prevent duplicate triggers if browser fires both touchstart and pointerdown
+    if (e.type === 'pointerdown' && e.pointerType === 'touch') return;
+
     // Never intercept buttons or inputs
     const target = e.target;
     if (target && target.closest && target.closest('button, input, textarea, select, a, [role="button"], label')) {
@@ -176,6 +179,11 @@ export function useBottomSheetDrag(param1, param2) {
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+
+      // Cleanly reset hasMovedRef shortly after touch release
+      setTimeout(() => {
+        hasMovedRef.current = false;
+      }, 60);
 
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);

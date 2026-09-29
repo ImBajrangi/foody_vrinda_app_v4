@@ -528,14 +528,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     }
   };
 
-  // 120fps GPU synchronized drag-to-dismiss gesture hook (Vrinda Tours Standard)
+  // 120fps GPU synchronized drag-to-dismiss gesture hook (Unified Single-Swipe Dismissal)
   const {
     sheetRef: modalSheetRef,
     isDragging: isModalDragging,
     sheetStyle: modalSheetStyle,
     handleProps: modalHandleProps,
     hasMoved: modalHasMoved
-  } = useBottomSheetDrag(handleAnimatedClose, 35);
+  } = useBottomSheetDrag(handleAnimatedClose, 30);
 
   // Register Tracking Modal with Back Handler Stack (Collapses if expanded, or closes)
   useBackHandler(Boolean(order), () => {
@@ -554,21 +554,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       modalSheetRef.current.style.transition = '';
     }
   }, [order]);
-
-  // Bottom drawer gesture hook for smooth collapse to peek mode
-  const {
-    sheetRef: drawerSheetRef,
-    isDragging: isDrawerDragging,
-    sheetStyle: drawerSheetStyle,
-    handleProps: drawerHandleProps,
-    hasMoved: drawerHasMoved
-  } = useBottomSheetDrag(() => {
-    if (isExpanded) {
-      setIsExpanded(false);
-    } else {
-      handleAnimatedClose();
-    }
-  }, 25);
 
   const isStep4 = status === 'completed';
 
@@ -643,14 +628,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         className={`w-full max-w-[440px] bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
       >
 
-        {/* Top Header Grab Bar (Drag down center top to shrink to floating capsule) */}
-        <div className="absolute top-0 inset-x-0 h-7 z-[500] flex items-center justify-center pointer-events-none select-none">
+        {/* Top Header Grab Bar (Drag down to shrink to floating capsule) */}
+        <div className="absolute top-0 inset-x-0 h-11 z-[500] flex items-center justify-center pointer-events-none select-none">
           <div
             {...modalHandleProps}
-            className="w-24 h-7 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
-            title="Drag down to shrink to floating capsule"
+            className="w-48 h-11 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
+            title="Drag down to close"
           >
-            <div className="w-10 h-1 bg-black/25 dark:bg-white/35 hover:bg-black/40 dark:hover:bg-white/60 rounded-full transition-colors" />
+            <div className="w-12 h-1.5 bg-black/35 dark:bg-white/45 hover:bg-black/50 dark:hover:bg-white/70 rounded-full transition-colors shadow-sm" />
           </div>
         </div>
 
@@ -720,23 +705,21 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
         {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
         <div
-          ref={drawerSheetRef}
-          style={drawerSheetStyle}
           className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'min-h-[92px]'
             } no-scrollbar`}
         >
 
           {/* Interactive Drag Handle Header */}
           <div
-            {...drawerHandleProps}
+            {...modalHandleProps}
             onClick={() => {
-              if (drawerHasMoved && drawerHasMoved()) return;
+              if (modalHasMoved && modalHasMoved()) return;
               setIsExpanded(!isExpanded);
             }}
             className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none"
-            title="Tap to toggle • Swipe down to collapse"
+            title="Tap to toggle • Drag down to close"
           >
-            <div className="w-10 h-1 bg-stone-300 dark:bg-white/30 hover:bg-stone-400 dark:hover:bg-white/60 rounded-full mb-1 transition-colors" />
+            <div className="w-12 h-1.5 bg-stone-400/80 dark:bg-white/40 hover:bg-stone-300 dark:hover:bg-white/60 rounded-full mb-1.5 transition-colors" />
             <div className="w-full flex items-center justify-between text-stone-500 dark:text-neutral-400 text-[11px] font-bold">
               <span className="flex items-center gap-1.5 text-stone-900 dark:text-white">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-[#E0FF33] animate-pulse" />
@@ -745,7 +728,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </span>
               </span>
               <span className="flex items-center gap-1 text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white transition-colors text-[10px]">
-                {isExpanded ? 'Drag down to minimize' : 'Tap to expand details'}
+                {isExpanded ? 'Drag down to close' : 'Tap to expand details'}
                 {isExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
               </span>
             </div>
@@ -754,13 +737,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           {/* Collapsed Peek Mode Summary Bar */}
           {!isExpanded && (
             <div
-              {...drawerHandleProps}
+              {...modalHandleProps}
               onClick={() => {
-                if (drawerHasMoved && drawerHasMoved()) return;
+                if (modalHasMoved && modalHasMoved()) return;
                 setIsExpanded(true);
               }}
               className="px-4 pb-3 flex items-center justify-between cursor-pointer select-none touch-none"
-              title="Tap to expand details • Swipe down to minimize"
+              title="Tap to expand details • Drag down to close"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#E0FF33]">
