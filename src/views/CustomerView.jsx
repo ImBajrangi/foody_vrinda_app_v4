@@ -93,7 +93,7 @@ const MenuItemCard = memo(function MenuItemCard({
 }) {
   const activePrice = quantityInCart > 0 ? item.price * quantityInCart : item.price;
   const hasDiscount = Boolean(item.originalPrice && Number(item.originalPrice) > Number(item.price));
-  const activeOriginalPrice = hasDiscount 
+  const activeOriginalPrice = hasDiscount
     ? (quantityInCart > 0 ? item.originalPrice * quantityInCart : item.originalPrice)
     : null;
 
@@ -108,11 +108,10 @@ const MenuItemCard = memo(function MenuItemCard({
         }
       }}
       style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
-      className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop touch-manipulation active:scale-[0.98] select-none ${
-        quantityInCart > 0
+      className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop touch-manipulation active:scale-[0.98] select-none ${quantityInCart > 0
           ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
           : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
-      }`}
+        }`}
     >
       {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
       <div className="flex justify-between items-start z-10 gap-2">
@@ -156,9 +155,8 @@ const MenuItemCard = memo(function MenuItemCard({
       {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
       <div className="mt-3 sm:mt-4 z-10">
         <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
-            quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
-          }`}>
+          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
+            }`}>
             ₹{activePrice}
           </span>
           {hasDiscount && (
@@ -548,21 +546,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   // Debounced Sync inputs with localStorage (zero main-thread blocking on typing)
   useEffect(() => {
     const timer = setTimeout(() => {
-      try { localStorage.setItem('customerName', checkoutName); } catch (_) {}
+      try { localStorage.setItem('customerName', checkoutName); } catch (_) { }
     }, 400);
     return () => clearTimeout(timer);
   }, [checkoutName]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      try { localStorage.setItem('customerAddress', checkoutAddress); } catch (_) {}
+      try { localStorage.setItem('customerAddress', checkoutAddress); } catch (_) { }
     }, 400);
     return () => clearTimeout(timer);
   }, [checkoutAddress]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      try { localStorage.setItem('customerPhone', checkoutPhone); } catch (_) {}
+      try { localStorage.setItem('customerPhone', checkoutPhone); } catch (_) { }
     }, 400);
     return () => clearTimeout(timer);
   }, [checkoutPhone]);
@@ -1077,9 +1075,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   ], [displayItems]);
 
   // Ensure we always have pleasant category chips
-  const categories = useMemo(() => 
+  const categories = useMemo(() =>
     dynamicCategories.length > 1 ? dynamicCategories : ['All', 'Snacks', 'Thali & Meals', 'Sweets & Prasad', 'Beverages']
-  , [dynamicCategories]);
+    , [dynamicCategories]);
 
   // Filter menu items (instant sub-millisecond filtering)
   const filteredMenuItems = useMemo(() => {
@@ -1361,44 +1359,39 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             handleCloseShopSwitcher();
                             showToast(s.name, 'info');
                           }}
-                          className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
-                            isSelected
+                          className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${isSelected
                               ? 'btn-dark-active bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
                               : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
-                          }`}
+                            }`}
                           aria-pressed={isSelected}
                           aria-label={`${s.name}${isOpen ? '' : ' — closed'}${isSelected ? ' — currently active' : ''}`}
                         >
                           {/* Radio Indicator */}
-                          <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${
-                            isSelected
+                          <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected
                               ? 'border-white dark:border-[#E0FF33] bg-white/20 dark:bg-[#E0FF33]/20'
                               : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
-                          }`}>
-                            <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                              isSelected
+                            }`}>
+                            <div className={`w-2 h-2 rounded-full transition-all duration-200 ${isSelected
                                 ? 'bg-white dark:bg-[#E0FF33] scale-100'
                                 : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
-                            }`} />
+                              }`} />
                           </div>
 
                           {/* Kitchen Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className={`text-[13px] sm:text-sm font-semibold truncate transition-colors ${
-                                isSelected
+                              <p className={`text-[13px] sm:text-sm font-semibold truncate transition-colors ${isSelected
                                   ? 'text-white dark:text-[#E0FF33]'
                                   : 'text-stone-800 dark:text-zinc-100'
-                              }`}>
+                                }`}>
                                 {s.name}
                               </p>
                             </div>
                             {s.address && (
-                              <p className={`text-[11px] mt-0.5 truncate transition-colors ${
-                                isSelected
+                              <p className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
                                   ? 'text-white/60 dark:text-[#E0FF33]/50'
                                   : 'text-stone-400 dark:text-zinc-500'
-                              }`}>
+                                }`}>
                                 {s.address}
                               </p>
                             )}
@@ -1407,17 +1400,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           {/* Status Dot */}
                           <div className="flex items-center gap-1.5 shrink-0">
                             {!isOpen && (
-                              <span className={`text-[10px] font-medium ${
-                                isSelected ? 'text-white/50 dark:text-[#E0FF33]/40' : 'text-red-400 dark:text-red-400/80'
-                              }`}>
+                              <span className={`text-[10px] font-medium ${isSelected ? 'text-white/50 dark:text-[#E0FF33]/40' : 'text-red-400 dark:text-red-400/80'
+                                }`}>
                                 Closed
                               </span>
                             )}
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${
-                              isOpen
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isOpen
                                 ? (isSelected ? 'bg-emerald-400 dark:bg-emerald-400' : 'bg-emerald-500')
                                 : 'bg-red-400/60 dark:bg-red-400/50'
-                            } ${isOpen ? 'animate-pulse' : ''}`} />
+                              } ${isOpen ? 'animate-pulse' : ''}`} />
                           </div>
                         </button>
                       );
@@ -1441,8 +1432,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
-                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
-                    : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
+                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
+                  : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
                   }`}
               >
                 <span className={isSelected ? 'text-white dark:text-[#121011]' : ''}>{cat}</span>
@@ -1798,10 +1789,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             {/* RIGHT / BOTTOM CONTENT & ACTION DOCK */}
             <div className="w-full md:w-[54%] lg:w-[56%] bg-white dark:bg-[#1E1B1C] text-stone-900 dark:text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
-              
+
               {/* Scrollable Information Body */}
               <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
-                
+
                 {/* Dish Header: Category + Live In-Basket pill */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -2200,7 +2191,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         if (shakeField === 'name') setShakeField(null);
                       }}
                       maxLength={40}
-                      placeholder="e.g. Rahul"
+                      placeholder="e.g. Haridas"
                       className="w-full text-base sm:text-lg font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-tight"
                     />
                   </div>
