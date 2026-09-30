@@ -5,12 +5,60 @@ import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 export const NOTIFICATION_TRIALS = [
   {
-    id: 'trial1',
-    name: 'Zen Glass Tap',
-    description: 'Crisp, minimalist glass micro-ping • Ultra-clean & subtle',
-    duration: '120ms',
-    soundSrc: '/sounds/trials/trial1_zen_glass.wav',
-    vibe: 'Modern Minimalist (Apple/iOS style)'
+    id: 'natural_water_drop',
+    name: 'Natural Water Droplet',
+    description: 'Organic fluid droplet with soft capillary ripple • Pure, calming & effortless',
+    duration: '220ms',
+    soundSrc: '/sounds/trials/natural_water_drop.wav',
+    vibe: 'Organic Fluid (Velvety Smooth)'
+  },
+  {
+    id: 'soft_pulse',
+    name: 'Soft Pulse (Warm Piano)',
+    description: 'Warm electric piano with smooth low-pass (A4 → C#5) • Subtle & polished',
+    duration: '180ms',
+    soundSrc: '/sounds/trials/soft_pulse.wav',
+    vibe: 'Warm Electric Piano (Smooth & Polished)'
+  },
+  {
+    id: 'warm_wood_kalimba',
+    name: 'Warm Wood Kalimba',
+    description: 'Handcrafted acoustic thumb piano tine • Warm wooden resonance, zero harshness',
+    duration: '260ms',
+    soundSrc: '/sounds/trials/warm_wood_kalimba.wav',
+    vibe: 'Acoustic Wood (Soft & Cozy)'
+  },
+  {
+    id: 'soft_felt_piano',
+    name: 'Soft Felt Piano Dew',
+    description: 'Intimate felt-damped acoustic piano key • Elegant, warm & understated',
+    duration: '280ms',
+    soundSrc: '/sounds/trials/soft_felt_piano.wav',
+    vibe: 'Felt Acoustic Piano (Natural Grace)'
+  },
+  {
+    id: 'silk_morning_chime',
+    name: 'Silk Morning Chime',
+    description: 'Floating harmonic dyad with soft air decay • Gentle sunrise feeling',
+    duration: '300ms',
+    soundSrc: '/sounds/trials/silk_morning_chime.wav',
+    vibe: 'Airy Acoustic (Silky Smooth)'
+  },
+  {
+    id: 'bamboo_zen_tap',
+    name: 'Bamboo Zen Tap',
+    description: 'Hollow organic bamboo wood tap • Earthy, natural & quiet',
+    duration: '180ms',
+    soundSrc: '/sounds/trials/bamboo_zen_tap.wav',
+    vibe: 'Zen Nature (Earthy Hollow Tap)'
+  },
+  {
+    id: 'trial3',
+    name: 'Vedic Singing Bowl (432 Hz)',
+    description: 'Calming 432 Hz bronze bowl harmonic shimmer • Sacred peace',
+    duration: '550ms',
+    soundSrc: '/sounds/trials/trial3_vedic_singing_bowl.wav',
+    vibe: 'Sacred Spiritual (Vedic Temple tone)'
   },
   {
     id: 'trial2',
@@ -21,20 +69,12 @@ export const NOTIFICATION_TRIALS = [
     vibe: 'Warm Acoustic (Slack/Airbnb style)'
   },
   {
-    id: 'trial3',
-    name: 'Vedic Singing Bowl',
-    description: 'Calming 432 Hz bronze bowl harmonic shimmer • Sacred peace',
-    duration: '500ms',
-    soundSrc: '/sounds/trials/trial3_vedic_singing_bowl.wav',
-    vibe: 'Sacred Spiritual (Vedic Temple tone)'
-  },
-  {
-    id: 'trial4',
-    name: 'Air Breeze Ripple',
-    description: 'Modern 3-tone ethereal ascending droplet • Feathered soft',
-    duration: '250ms',
-    soundSrc: '/sounds/trials/trial4_air_ripple.wav',
-    vibe: 'Ethereal Breeze (macOS style)'
+    id: 'google_sprout',
+    name: 'Pixel Sprout / Soft Drop',
+    description: 'Subtle rounded wood-drop tap • Warm, quiet & focused',
+    duration: '130ms',
+    soundSrc: '/sounds/trials/google_sprout.wav',
+    vibe: 'Google Pixel (Soft Acoustic)'
   }
 ];
 
@@ -47,14 +87,39 @@ class NativeNotificationService {
 
   getActiveTrial() {
     if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('foody_notification_sound_trial') || 'trial1';
+      return localStorage.getItem('foody_notification_sound_trial') || 'natural_water_drop';
     }
-    return 'trial1';
+    return 'natural_water_drop';
   }
 
-  setActiveTrial(trialId) {
+  getActiveTrialSoundFile() {
+    const trialId = this.getActiveTrial();
+    const trial = NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
+    return trial?.soundSrc ? trial.soundSrc.split('/').pop() : 'natural_water_drop.wav';
+  }
+
+  async setActiveTrial(trialId) {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('foody_notification_sound_trial', trialId);
+    }
+    const trial = NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
+    const soundFileName = trial?.soundSrc ? trial.soundSrc.split('/').pop() : 'natural_water_drop.wav';
+
+    // Directly reconfigure Android notification channel on native phone system
+    if (this.isNative && Capacitor.getPlatform() === 'android') {
+      try {
+        await LocalNotifications.createChannel({
+          id: 'order_updates',
+          name: 'Customer Order Status',
+          description: 'Live milestone updates on prasad preparation and delivery',
+          importance: 4,
+          visibility: 1,
+          vibration: true,
+          sound: soundFileName,
+        });
+      } catch (e) {
+        console.warn('Channel sound update error:', e);
+      }
     }
   }
 
@@ -75,7 +140,7 @@ class NativeNotificationService {
   /**
    * Preview a specific notification sound trial
    */
-  playTrialSound(trialId = 'trial1') {
+  playTrialSound(trialId = 'natural_water_drop') {
     const trial = NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
     try {
       if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
@@ -129,7 +194,7 @@ class NativeNotificationService {
     this._playSynthesizedTrial(this.getActiveTrial());
   }
 
-  _playSynthesizedTrial(trialId = 'trial1') {
+  _playSynthesizedTrial(trialId = 'natural_water_drop') {
     try {
       const ctx = this.getAudioContext();
       if (!ctx) return;
@@ -139,19 +204,160 @@ class NativeNotificationService {
 
       const now = ctx.currentTime;
 
-      if (trialId === 'trial1') {
-        // Zen Glass Tap: 1760Hz with soft exponential decay
+      if (trialId === 'natural_water_drop') {
+        // Natural Water Droplet: 1050Hz downward swoop to 720Hz + 380Hz low bubble body
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, now);
+
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(1760, now);
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.004);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-        osc.connect(gain);
+        osc.frequency.setValueAtTime(1050, now);
+        osc.frequency.exponentialRampToValueAtTime(720, now + 0.12);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.24, now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + 0.23);
+      } else if (trialId === 'soft_pulse') {
+        // Soft Pulse (A4 -> C#5, warm electric piano triangle wave with 3200Hz lowpass filter)
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3200, now);
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        
+        osc.frequency.setValueAtTime(440, now); // A4
+        osc.frequency.setValueAtTime(554.37, now + 0.035); // C#5
+
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } else if (trialId === 'warm_wood_kalimba') {
+        // Kalimba: F#5 (740Hz) with 185Hz wood resonance
+        [
+          { freq: 739.99, gVal: 0.22, decay: 0.24, type: 'sine' },
+          { freq: 185.00, gVal: 0.15, decay: 0.16, type: 'sine' }
+        ].forEach(({ freq, gVal, decay, type }) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(2000, now);
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(gVal, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + decay + 0.02);
+        });
+      } else if (trialId === 'soft_felt_piano') {
+        // Soft Felt Piano: E5 (659Hz) + G#5 (830Hz)
+        [
+          { freq: 659.25, gVal: 0.20, decay: 0.26 },
+          { freq: 830.61, gVal: 0.12, decay: 0.22 }
+        ].forEach(({ freq, gVal, decay }) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1600, now);
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(gVal, now + 0.018);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + decay + 0.02);
+        });
+      } else if (trialId === 'silk_morning_chime') {
+        // Silk Morning: A5 (880Hz) + F#6 (1480Hz)
+        [
+          { freq: 880.00, gVal: 0.18, offset: 0, decay: 0.28 },
+          { freq: 1479.98, gVal: 0.14, offset: 0.03, decay: 0.26 }
+        ].forEach(({ freq, gVal, offset, decay }) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(2200, now);
+
+          const t = now + offset;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.linearRampToValueAtTime(gVal, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + decay + 0.02);
+        });
+      } else if (trialId === 'bamboo_zen_tap') {
+        // Bamboo Zen: 850Hz cylinder + 425Hz cavity
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1500, now);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(850, now);
+        osc.frequency.exponentialRampToValueAtTime(425, now + 0.08);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.22, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.19);
+      } else if (trialId === 'trial3') {
+        // Vedic Temple Sing: 432Hz + 435.5Hz beating warmth
+        [432.0, 435.5].forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.55);
+        });
       } else if (trialId === 'trial2') {
         // Celestial Marimba: E5 -> B5 warm triangle notes
         [659.25, 987.77].forEach((freq, idx) => {
@@ -168,37 +374,32 @@ class NativeNotificationService {
           osc.start(t);
           osc.stop(t + 0.24);
         });
-      } else if (trialId === 'trial3') {
-        // Vedic Temple Sing: 432Hz + 435.5Hz beating warmth
-        [432.0, 435.5].forEach((freq) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.55);
-        });
+      } else if (trialId === 'google_sprout') {
+        // Pixel Sprout: 1046Hz soft rounded wood tap
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1046.5, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.004);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.14);
       } else {
-        // Air Breeze Ripple: C6 -> E6 -> G6 soft ascent
-        [1046.5, 1318.5, 1568.0].forEach((freq, idx) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          const t = now + (idx * 0.07);
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.001, t);
-          gain.gain.exponentialRampToValueAtTime(0.16, t + 0.005);
-          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.2);
-        });
+        // Fallback default: Natural Water Droplet
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.20, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
       }
     } catch {
       // ignore
@@ -258,7 +459,8 @@ class NativeNotificationService {
             sound: 'delivery_alert.wav',
           });
 
-          // Customer Order Updates Channel
+          // Customer Order Updates Channel (plays selected natural/acoustic sound)
+          const activeCustomerSound = this.getActiveTrialSoundFile();
           await LocalNotifications.createChannel({
             id: 'order_updates',
             name: 'Customer Order Status',
@@ -266,7 +468,7 @@ class NativeNotificationService {
             importance: 4,
             visibility: 1,
             vibration: true,
-            sound: 'customer_ping.wav',
+            sound: activeCustomerSound,
           });
 
           // System Management Alerts
@@ -276,7 +478,7 @@ class NativeNotificationService {
             description: 'Important platform and store management notifications',
             importance: 4,
             visibility: 1,
-            sound: 'owner_alert.wav',
+            sound: activeCustomerSound,
           });
         }
 
@@ -347,7 +549,7 @@ class NativeNotificationService {
               smallIcon: 'ic_stat_notification',
               largeIcon: 'splash_icon',
               iconColor: '#E0FF33',
-              sound: 'customer_ping.wav',
+              sound: this.getActiveTrialSoundFile(),
               extra: { type: 'welcome' },
             },
           ],
@@ -390,7 +592,7 @@ class NativeNotificationService {
               smallIcon: 'ic_stat_notification',
               largeIcon: 'splash_icon',
               iconColor: '#E0FF33',
-              sound: 'customer_ping.wav',
+              sound: this.getActiveTrialSoundFile(),
               extra: { type: 'login' },
             },
           ],
@@ -578,7 +780,7 @@ class NativeNotificationService {
             smallIcon: 'ic_stat_notification',
             largeIcon: 'splash_icon',
             iconColor: '#E0FF33',
-            sound: 'customer_ping.wav',
+            sound: this.getActiveTrialSoundFile(),
             extra: { orderId: order.id, status },
           },
         ],
