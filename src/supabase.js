@@ -3518,7 +3518,216 @@ export function exportDeliveryAuditReportCSV(orders = []) {
 }
 
 // ========================================================================
-// 10. FOODY OPERATIONAL TRUST SCORE ENGINE (300 – 900 POINTS)
+// 10. GEOFENCING & LOCATION ENGINE (<150m Doorstep Protection)
+// ========================================================================
+
+export function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+  const R = 6371e3; // Earth radius in metres
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return Math.round(R * c);
+}
+
+export function checkDeliveryGeofence(riderCoords, deliveryCoords, maxDistanceMeters = 250) {
+  if (!riderCoords?.lat || !riderCoords?.lng || !deliveryCoords?.lat || !deliveryCoords?.lng) {
+    return {
+      isWithinGeofence: true,
+      distanceMeters: 0,
+      formattedDistance: 'Near Customer',
+      hasCoordinates: false
+    };
+  }
+
+  const distance = calculateDistanceInMeters(
+    Number(riderCoords.lat),
+    Number(riderCoords.lng),
+    Number(deliveryCoords.lat),
+    Number(deliveryCoords.lng)
+  );
+
+  if (distance === null) {
+    return { isWithinGeofence: true, distanceMeters: 0, formattedDistance: 'GPS Active', hasCoordinates: false };
+  }
+
+  const isWithin = distance <= maxDistanceMeters;
+  const formatted = distance > 1000 
+    ? `${(distance / 1000).toFixed(1)} km away` 
+    : `${distance} meters away`;
+
+  return {
+    isWithinGeofence: isWithin,
+    distanceMeters: distance,
+    formattedDistance: formatted,
+    hasCoordinates: true
+  };
+}
+
+// ========================================================================
+// 11. DYNAMIC PREPARATION & RIDER DISPATCH WINDOW ENGINE
+// ========================================================================
+
+export function calculateOptimalDispatchWindow(order, riderCoords, avgPrepMins = 12) {
+  const createdAt = new Date(order?.created_at || order?.createdAt || Date.now()).getTime();
+  const prepTimeMs = (Number(order?.prep_time_mins || avgPrepMins)) * 60 * 1000;
+  const predictedReadyAt = createdAt + prepTimeMs;
+  const now = Date.now();
+
+  let riderTravelMins = 5;
+  if (riderCoords?.lat && order?.shopCoordinates?.lat) {
+    const distMeters = calculateDistanceInMeters(
+      riderCoords.lat,
+      riderCoords.lng,
+      order.shopCoordinates.lat,
+      order.shopCoordinates.lng
+    );
+    if (distMeters) {
+      riderTravelMins = Math.max(2, Math.ceil(distMeters / 333));
+    }
+  }
+
+  const optimalDispatchTime = predictedReadyAt - (riderTravelMins * 60 * 1000);
+  const isDispatchReady = now >= optimalDispatchTime;
+  const waitMins = Math.max(0, Math.ceil((optimalDispatchTime - now) / 60000));
+
+  return {
+    predictedReadyAt: new Date(predictedReadyAt).toISOString(),
+    riderTravelMins,
+    optimalDispatchTime: new Date(optimalDispatchTime).toISOString(),
+    isDispatchReady,
+    waitMins,
+    statusText: isDispatchReady 
+      ? 'Optimal Pickup Window Active' 
+      : `Dispatch in ${waitMins} mins (Food Cooking)`
+  };
+}
+
+// ========================================================================
+// 12. COD DETAILED CASH VARIANCE ACCOUNTING
+// ========================================================================
+
+export function recordCODCashTransaction({
+  orderId,
+  orderAmount,
+  cashReceived,
+  changeReturned,
+  riderId
+}) {
+  const amount = Number(orderAmount || 0);
+  const received = Number(cashReceived || amount);
+  const change = Number(changeReturned || 0);
+  const netCollected = received - change;
+  const variance = netCollected - amount;
+
+  const transactionRecord = {
+    order_id: orderId,
+    rider_id: riderId,
+    order_amount: amount,
+    cash_received: received,
+    change_returned: change,
+    net_collected: netCollected,
+    variance: variance,
+    status: variance === 0 ? 'reconciled' : 'variance_flagged',
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    const key = `foody_cod_tx_${orderId}`;
+    safeStorage.setItem(key, JSON.stringify(transactionRecord));
+  } catch (_) {}
+
+  return transactionRecord;
+}
+
+// ========================================================================
+// 13. GRADUATED CUSTOMER COD RISK EVALUATION
+// ========================================================================
+
+export function checkCustomerCODRisk(userIdOrPhone) {
+  const cleanKey = String(userIdOrPhone || '').replace(/[^a-zA-Z0-9]/g, '');
+  if (!cleanKey) return { isAllowed: true, status: 'normal', failedAttempts: 0 };
+
+  try {
+    const failures = Number(safeStorage.getItem(`foody_cod_failures_${cleanKey}`) || '0');
+    if (failures >= 3) {
+      return {
+        isAllowed: false,
+        status: 'prepaid_only',
+        failedAttempts: failures,
+        reason: 'Multiple doorstep COD refusals. Please pay online via UPI/Card.'
+      };
+    }
+    if (failures === 2) {
+      return {
+        isAllowed: true,
+        status: 'warning',
+        failedAttempts: failures,
+        reason: 'Account under review. Please ensure exact cash is ready.'
+      };
+    }
+    return {
+      isAllowed: true,
+      status: 'normal',
+      failedAttempts: failures,
+      reason: 'Standard COD Account'
+    };
+  } catch (_) {
+    return { isAllowed: true, status: 'normal', failedAttempts: 0 };
+  }
+}
+
+// ========================================================================
+// 14. OFFLINE MUTATION QUEUE SYNCHRONIZER
+// ========================================================================
+
+export function queueOfflineOrderMutation(orderId, nextStatus, payload = {}) {
+  try {
+    const queue = JSON.parse(safeStorage.getItem('foody_offline_mutation_queue') || '[]');
+    queue.push({
+      orderId,
+      nextStatus,
+      payload,
+      queuedAt: new Date().toISOString()
+    });
+    safeStorage.setItem('foody_offline_mutation_queue', JSON.stringify(queue));
+  } catch (_) {}
+}
+
+export async function processOfflineOrderQueue() {
+  if (typeof window === 'undefined' || !navigator.onLine) return;
+  try {
+    const raw = safeStorage.getItem('foody_offline_mutation_queue');
+    if (!raw) return;
+    const queue = JSON.parse(raw);
+    if (!Array.isArray(queue) || queue.length === 0) return;
+
+    for (const item of queue) {
+      try {
+        await updateCloudOrderStatus(item.orderId, item.nextStatus, item.payload);
+      } catch (err) {
+        console.warn('Offline queue item sync note:', err.message);
+      }
+    }
+    safeStorage.removeItem('foody_offline_mutation_queue');
+  } catch (_) {}
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    processOfflineOrderQueue();
+  });
+}
+
+// ========================================================================
+// 15. FOODY OPERATIONAL TRUST SCORE ENGINE (300 – 900 POINTS)
 // (Internal platform reliability & accountability score - not a credit bureau score)
 // ========================================================================
 

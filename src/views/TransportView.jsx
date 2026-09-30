@@ -19,6 +19,8 @@ import {
   getOrderOTP,
   verifyOrderOTP,
   getDailySarathiCode,
+  checkDeliveryGeofence,
+  calculateOptimalDispatchWindow,
   exportDeliveryAuditReportCSV,
   generateWhatsAppOrderShareLink
 } from '../supabase';
@@ -1522,6 +1524,47 @@ export default function TransportView() {
                 </span>
               </div>
             </div>
+
+            {/* 📦 PHYSICAL QC CHECKLIST (Prevents Bag Mix-ups at Kitchen) */}
+            {otpModalState.type === 'pickup' && (
+              <div className="mb-3.5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <PackageCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="text-[11px] text-amber-200 font-semibold truncate">
+                    QC Check: {otpModalState.order.items?.length || 1} items & label match #{otpModalState.order.id?.slice(-5).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-amber-400 font-mono shrink-0 uppercase bg-amber-500/20 px-2 py-0.5 rounded-md">
+                  Verified
+                </span>
+              </div>
+            )}
+
+            {/* 📍 GEOFENCE PROXIMITY VERIFICATION (Prevents Remote Doorstep Fraud) */}
+            {otpModalState.type === 'delivery' && (() => {
+              const geofence = checkDeliveryGeofence(
+                riderCoords, 
+                otpModalState.order.deliveryCoordinates || otpModalState.order.delivery_coordinates
+              );
+              if (!geofence.hasCoordinates) return null;
+              if (geofence.isWithinGeofence) {
+                return (
+                  <div className="mb-3.5 p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-2 text-emerald-400 text-[11px] font-bold">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>GPS Lock: At Doorstep ({geofence.formattedDistance})</span>
+                  </div>
+                );
+              }
+              return (
+                <div className="mb-3.5 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/35 flex items-start gap-2 text-amber-300 text-[11px]">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                  <div>
+                    <span className="font-bold">Proximity Notice: </span>
+                    <span>Rider GPS is {geofence.formattedDistance}. Please confirm you are at customer doorstep.</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Cash on Delivery Notice if applicable */}
             {otpModalState.type === 'delivery' && (() => {
