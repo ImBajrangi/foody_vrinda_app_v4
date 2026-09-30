@@ -1,22 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary } from '../supabase';
-import { Sparkles, Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, Flame, Clock, MapPin, Plus, Minus, Tag } from 'lucide-react';
+import { 
+  Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, 
+  Flame, Clock, MapPin, Plus, Minus, Tag, TrendingUp, RotateCcw, 
+  ArrowRight, Sparkles, Check
+} from 'lucide-react';
 import { HitSoochiService } from '../services/hitSoochiService';
 import DynamicToast from './ui/DynamicToast';
+
+const POPULAR_CATEGORIES = [
+  { name: 'Thalis & Meals', keyword: 'thali', icon: '🍛', color: 'from-amber-500/15 to-orange-500/10' },
+  { name: 'Satvik Pizza', keyword: 'pizza', icon: '🍕', color: 'from-red-500/15 to-orange-500/10' },
+  { name: 'Burgers & Wraps', keyword: 'burger', icon: '🍔', color: 'from-yellow-500/15 to-amber-500/10' },
+  { name: 'Sweets & Bhog', keyword: 'kheer', icon: '🍧', color: 'from-pink-500/15 to-rose-500/10' },
+  { name: 'Paneer Specials', keyword: 'paneer', icon: '🧀', color: 'from-emerald-500/15 to-teal-500/10' },
+  { name: 'Drinks & Shakes', keyword: 'shake', icon: '🥤', color: 'from-blue-500/15 to-cyan-500/10' },
+];
+
+const RECENT_SEARCHES_KEY = 'foody_vrinda_recent_searches_v2';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
   const { user, userData, userRole, currentUserShopId, allShops } = useAuth();
   const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
   const [results, setResults] = useState({ shops: [], menuItems: [], orders: [] });
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
   const searchInputRef = useRef(null);
 
-  // Inline detail expansion states
+  // Detail expansion & cart interaction states
   const [expandedDish, setExpandedDish] = useState(null);
   const [expandedShop, setExpandedShop] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
@@ -24,6 +40,37 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
   const [shopMenuItems, setShopMenuItems] = useState([]);
   const [loadingShopMenu, setLoadingShopMenu] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
+  const [addedItemIds, setAddedItemIds] = useState({});
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]');
+      if (Array.isArray(stored)) {
+        setRecentSearches(stored.slice(0, 6));
+      }
+    } catch {
+      setRecentSearches([]);
+    }
+  }, [isOpen]);
+
+  const saveRecentSearch = (term) => {
+    const clean = term?.trim();
+    if (!clean || clean.length < 2) return;
+    try {
+      const existing = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]');
+      const updated = [clean, ...existing.filter(item => item.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
+      localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      setRecentSearches(updated);
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const clearRecentSearches = () => {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+    setRecentSearches([]);
+  };
 
   const handleAnimatedClose = useCallback(() => {
     if (closing) return;
@@ -34,28 +81,27 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       setExpandedShop(null);
       setExpandedOrder(null);
       onClose();
-    }, 220);
+    }, 200);
   }, [closing, onClose]);
 
   // Focus input on mount
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
+    if (isOpen) {
       setClosing(false);
       setExpandedDish(null);
       setExpandedShop(null);
       setExpandedOrder(null);
-      // Only auto-focus on desktop devices with mouse (prevent mobile keyboard popup)
-      if (typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768) {
-        setTimeout(() => searchInputRef.current?.focus(), 100);
-      }
-    } else if (!isOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 80);
+    } else {
       setSearchTerm('');
       setResults({ shops: [], menuItems: [], orders: [] });
       setClosing(false);
     }
   }, [isOpen]);
 
-  // Keyboard shortcut listener
+  // Escape key handler
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -81,12 +127,20 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
   }, [toastMsg]);
 
   const performSearch = useCallback(async (term) => {
+    if (!term || !term.trim()) {
+      setResults({ shops: [], menuItems: [], orders: [] });
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
+      const cleanTerm = term.toLowerCase().trim();
+
       // 1. Search Shops (Local filter)
       const matchedShops = allShops.filter(shop =>
-        shop.name?.toLowerCase().includes(term) ||
-        shop.address?.toLowerCase().includes(term)
+        shop.name?.toLowerCase().includes(cleanTerm) ||
+        shop.address?.toLowerCase().includes(cleanTerm)
       );
 
       // 2. Search Menu Items (Supabase cloud fetch with HitSoochi ranking)
@@ -95,14 +149,15 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         const shop = allShops.find(s => s.id === item.shopId);
         item.shopName = shop ? shop.name : "Satvik Kitchen";
         return (
-          item.name?.toLowerCase().includes(term) ||
-          item.description?.toLowerCase().includes(term) ||
-          item.shopName?.toLowerCase().includes(term)
+          item.name?.toLowerCase().includes(cleanTerm) ||
+          item.description?.toLowerCase().includes(cleanTerm) ||
+          item.category?.toLowerCase().includes(cleanTerm) ||
+          item.shopName?.toLowerCase().includes(cleanTerm)
         );
       });
 
       // Semantic ranking with Vedic ontology weights
-      matchedMenuItems = HitSoochiService.rankItems(matchedMenuItems, term);
+      matchedMenuItems = HitSoochiService.rankItems(matchedMenuItems, cleanTerm);
 
       // 3. Search Orders (Role-based & strictly user-isolated)
       let matchedOrders = [];
@@ -119,16 +174,14 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           }
         })();
 
-        let queryBuilder = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(25);
+        let queryBuilder = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
 
         if (['kitchen', 'owner', 'delivery'].includes(userRole) && currentUserShopId) {
-          // Kitchen/Delivery/Shop owner: search only orders from their shop
           queryBuilder = queryBuilder.eq('shop_id', currentUserShopId);
         } else if (['admin', 'master_admin', 'developer'].includes(userRole)) {
-          // Admins can search across orders
-          // Keep base queryBuilder
+          // Admins search across orders
         } else {
-          // Customers / Guests: STRICTLY isolate to their own placed orders only!
+          // Customer / Guest isolation
           if (currentUserId && cleanPhone && cleanPhone.length >= 10) {
             queryBuilder = queryBuilder.or(`user_id.eq.${currentUserId},customer_phone.eq.${cleanPhone}`);
           } else if (currentUserId) {
@@ -138,7 +191,6 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           } else if (sessionOrderIds.length > 0) {
             queryBuilder = queryBuilder.in('id', sessionOrderIds);
           } else {
-            // Guest or customer with zero known orders -> strictly show 0 orders (do not leak foreign orders!)
             queryBuilder = null;
           }
         }
@@ -152,10 +204,10 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               const custName = (order.customer_name || order.customerName || '').toLowerCase();
               const custPhone = (order.customer_phone || order.customerPhone || '');
               return (
-                orderId.includes(term) ||
-                custName.includes(term) ||
-                custPhone.includes(term) ||
-                itemsString.includes(term)
+                orderId.includes(cleanTerm) ||
+                custName.includes(cleanTerm) ||
+                custPhone.includes(cleanTerm) ||
+                itemsString.includes(cleanTerm)
               );
             });
           }
@@ -165,9 +217,9 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       }
 
       setResults({
-        shops: matchedShops.slice(0, 6),
-        menuItems: matchedMenuItems.slice(0, 8),
-        orders: matchedOrders.slice(0, 5)
+        shops: matchedShops.slice(0, 8),
+        menuItems: matchedMenuItems.slice(0, 15),
+        orders: matchedOrders.slice(0, 6)
       });
     } catch (e) {
       console.error("Unified search error:", e);
@@ -178,16 +230,24 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
   // Handle live search matching
   useEffect(() => {
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim()) {
+      setResults({ shops: [], menuItems: [], orders: [] });
+      return;
+    }
 
     const delayDebounceFn = setTimeout(() => {
-      performSearch(searchTerm.toLowerCase().trim());
-    }, 250);
+      performSearch(searchTerm);
+    }, 200);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, performSearch]);
 
-  // Load shop menu items when expanding a kitchen
+  const handleSelectSuggestion = (keyword) => {
+    setSearchTerm(keyword);
+    saveRecentSearch(keyword);
+    performSearch(keyword);
+  };
+
   const handleExpandShop = async (shop) => {
     if (expandedShop?.id === shop.id) {
       setExpandedShop(null);
@@ -228,7 +288,17 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     setExpandedDish(null);
   };
 
-  const handleAddDishToCart = (item, qty = 1) => {
+  const handleDirectAddToCart = (e, item) => {
+    e.stopPropagation();
+    addToCart(item);
+    setAddedItemIds(prev => ({ ...prev, [item.id]: true }));
+    setTimeout(() => {
+      setAddedItemIds(prev => ({ ...prev, [item.id]: false }));
+    }, 1200);
+    setToastMsg(`+1 ${item.name} added (₹${item.price})`);
+  };
+
+  const handleAddDishWithQty = (item, qty = 1) => {
     for (let i = 0; i < qty; i++) {
       addToCart(item);
     }
@@ -237,16 +307,18 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
   const getStatusColor = (status) => {
     const map = {
-      'pending': 'bg-amber-500/20 text-amber-400',
-      'in_kitchen': 'bg-orange-500/20 text-orange-400',
-      'preparing': 'bg-orange-500/20 text-orange-400',
-      'ready': 'bg-emerald-500/20 text-emerald-400',
-      'picked_up': 'bg-violet-500/20 text-violet-400',
-      'delivered': 'bg-green-500/20 text-green-400',
-      'cancelled': 'bg-red-500/20 text-red-400'
+      'pending': 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/30',
+      'in_kitchen': 'bg-orange-500/20 text-orange-500 dark:text-orange-400 border border-orange-500/30',
+      'preparing': 'bg-orange-500/20 text-orange-500 dark:text-orange-400 border border-orange-500/30',
+      'ready': 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+      'picked_up': 'bg-violet-500/20 text-violet-600 dark:text-violet-400 border border-violet-500/30',
+      'delivered': 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+      'cancelled': 'bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/30'
     };
-    return map[status] || 'bg-white/10 text-white';
+    return map[status] || 'bg-stone-500/20 text-stone-600 dark:text-zinc-300';
   };
+
+  const totalResultsCount = results.shops.length + results.menuItems.length + results.orders.length;
 
   if (!isOpen) return null;
 
@@ -256,18 +328,29 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         onClick={(e) => {
           if (e.target === e.currentTarget) handleAnimatedClose();
         }}
-        className={`fixed inset-0 z-50 flex items-start justify-center p-3 pt-14 sm:pt-20 bg-black/60 dark:bg-black/80 backdrop-blur-xs apple-overlay ${closing ? 'closing' : ''}`}
+        className={`fixed inset-0 z-50 flex items-end sm:items-start justify-center p-0 sm:p-4 pt-0 sm:pt-14 md:pt-20 bg-black/60 dark:bg-black/80 backdrop-blur-xs apple-overlay ${closing ? 'closing' : ''}`}
       >
-        <div className={`w-full max-w-2xl bg-white dark:bg-[#242021] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-[32px] sm:rounded-[40px] shadow-[0_20px_50px_rgba(28,25,23,0.12)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.7)] relative flex flex-col max-h-[85vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}>
+        <div className={`w-full max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[28px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}>
 
-          {/* Search Input Area */}
-          <div className="p-3.5 sm:p-5 border-b border-stone-200 dark:border-white/10 flex items-center gap-2.5 sm:gap-3 bg-stone-50/80 dark:bg-[#1E1B1C]">
-            <Search size={19} className="text-amber-600 dark:text-[#E0FF33] flex-shrink-0" strokeWidth={2.5} />
+          {/* Top Grabber Indicator for Mobile */}
+          <div className="w-12 h-1.5 bg-stone-300 dark:bg-zinc-700 rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0"></div>
+
+          {/* Search Input Bar (Sticky, High Contrast, Ergonomic) */}
+          <div className="p-3 sm:p-4 border-b border-stone-200 dark:border-white/10 flex items-center gap-2.5 bg-white/90 dark:bg-[#282526]/90 backdrop-blur-md shrink-0">
+            <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center shrink-0">
+              <Search size={18} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
+            </div>
+
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search dishes, kitchens, orders..."
+              placeholder="Search dishes, kitchens, cravings, orders..."
               value={searchTerm}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchTerm.trim()) {
+                  saveRecentSearch(searchTerm);
+                }
+              }}
               onChange={(e) => {
                 const val = e.target.value;
                 setSearchTerm(val);
@@ -278,286 +361,395 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                   setExpandedOrder(null);
                 }
               }}
-              className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-1 placeholder-stone-500 dark:placeholder-zinc-400 text-stone-900 dark:text-white font-bold"
+              className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold"
             />
+
+            {/* Clear Input CTA */}
+            {searchTerm.trim().length > 0 && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setResults({ shops: [], menuItems: [], orders: [] });
+                  searchInputRef.current?.focus();
+                }}
+                className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-600 dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                title="Clear input"
+              >
+                <X size={13} />
+              </button>
+            )}
+
+            {/* Close Modal CTA */}
             <button
               onClick={handleAnimatedClose}
-              className="flex-shrink-0 w-8 h-8 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#332E30] text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-stone-300/80 dark:border-white/15 active:scale-95"
-              title="Close"
+              className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              title="Close search"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
 
-          {/* Results Container */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 no-scrollbar bg-white dark:bg-[#242021]">
+          {/* Results / Discovery Content Area */}
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5 no-scrollbar bg-[#FAF7F2] dark:bg-[#1E1B1C]">
+            
+            {/* Loading Indicator */}
             {loading && (
-              <div className="text-center py-10 flex flex-col items-center gap-2">
-                <div className="w-5 h-5 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-stone-600 dark:text-zinc-300 text-xs font-semibold">Searching cloud kitchens network...</p>
+              <div className="text-center py-10 flex flex-col items-center gap-2.5">
+                <div className="w-6 h-6 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-stone-500 dark:text-zinc-400 text-xs font-semibold">Searching freshly prepared satvik dishes & kitchens...</p>
               </div>
             )}
 
+            {/* ─── DEFAULT DISCOVERY DASHBOARD (When search input is empty) ─── */}
             {!loading && !searchTerm.trim() && (
-              <div className="py-4 space-y-6">
-                <div className="text-center">
-                  <Sparkles className="w-8 h-8 text-amber-600 dark:text-[#E0FF33] mx-auto mb-2 opacity-90" />
-                  <h3 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">Foody Discovery</h3>
-                  <p className="text-xs text-stone-600 dark:text-zinc-300 mt-1">Explore divine Taste, sacred meals, and pure kitchens</p>
-                </div>
-
-                {/* Quick Intent Pills */}
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-zinc-300 mb-2.5 flex items-center gap-1.5">
-                    <Tag size={12} className="text-amber-600 dark:text-[#E0FF33]" /> Popular Vedic Cravings
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {HitSoochiService.getCuratedSuggestions().map((sugg, i) => (
+              <div className="space-y-5 py-1">
+                
+                {/* Recent Searches (If Any) */}
+                {recentSearches.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 font-['Outfit']">
+                        <Clock size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                        Recent Searches
+                      </p>
                       <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          setSearchTerm(sugg.keyword);
-                          performSearch(sugg.keyword.toLowerCase());
-                        }}
-                        className="px-3.5 py-2 rounded-2xl bg-stone-100 hover:bg-amber-50/80 dark:bg-[#1E1B1C] dark:hover:bg-[#2A2627] border border-stone-200/80 hover:border-amber-500/40 dark:border-white/10 dark:hover:border-[#E0FF33]/40 text-xs font-bold text-stone-800 hover:text-amber-900 dark:text-zinc-200 dark:hover:text-white transition-all flex items-center gap-2 group cursor-pointer shadow-2xs"
+                        onClick={clearRecentSearches}
+                        className="text-[10px] font-bold text-stone-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
                       >
-                        <Utensils size={12} className="text-amber-600 dark:text-[#E0FF33] transition-colors" />
-                        <span>{sugg.title}</span>
+                        <RotateCcw size={10} /> Clear
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                      {recentSearches.map((term, i) => (
+                        <button
+                          key={i}
+                          onClick={() => handleSelectSuggestion(term)}
+                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#282526] hover:bg-amber-500/10 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-800 dark:text-zinc-200 hover:text-amber-700 dark:hover:text-[#E0FF33] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Search size={11} className="text-stone-400 dark:text-zinc-500" />
+                          <span>{term}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Category Grid (Full Width, Zero Blank Spaces) */}
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                    <Tag size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                    Explore by Category
+                  </p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {POPULAR_CATEGORIES.map((cat, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectSuggestion(cat.keyword)}
+                        className={`p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br ${cat.color} bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-2.5 transition-all cursor-pointer group shadow-2xs active:scale-[0.98] text-left`}
+                      >
+                        <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform shrink-0">{cat.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-black text-stone-900 dark:text-white truncate font-['Outfit']">{cat.name}</p>
+                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-semibold flex items-center gap-0.5">
+                            Search now <ArrowRight size={9} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </p>
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Trending Vedic Cravings (Balanced 2-Column Responsive Grid) */}
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                    <Flame size={13} className="text-amber-600 dark:text-orange-500" />
+                    Trending Satvik Cravings
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {HitSoochiService.getCuratedSuggestions().map((sugg, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(sugg.keyword)}
+                        className="p-2.5 rounded-2xl bg-white dark:bg-[#282526] hover:bg-amber-500/5 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center justify-between text-left transition-all cursor-pointer group shadow-2xs active:scale-[0.98]"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                            <Utensils size={13} />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-stone-900 dark:text-white block truncate">{sugg.title}</span>
+                            <span className="text-[10px] text-stone-500 dark:text-zinc-400 capitalize font-medium">{sugg.type || 'Pure satvik'}</span>
+                          </div>
+                        </div>
+                        <TrendingUp size={14} className="text-stone-400 group-hover:text-amber-600 dark:text-zinc-600 dark:group-hover:text-[#E0FF33] shrink-0 ml-2 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             )}
 
-            {!loading && searchTerm.trim() &&
-              results.shops.length === 0 &&
-              results.menuItems.length === 0 &&
-              results.orders.length === 0 && (
-                <p className="text-center text-stone-600 dark:text-zinc-300 py-10 text-xs font-medium">No matches found for &ldquo;{searchTerm}&rdquo;.</p>
-              )}
-
-            {/* ─── KITCHENS SECTION ─── */}
-            {!loading && results.shops.length > 0 && (
-              <div>
-                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Store size={14} /> Cloud Kitchens
-                  <span className="text-stone-500 dark:text-zinc-400 font-semibold normal-case tracking-normal ml-1">({results.shops.length})</span>
-                </h4>
-                <div className="space-y-2">
-                  {results.shops.map(shop => (
-                    <div key={shop.id} className="bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200/80 dark:border-white/10 overflow-hidden transition-all duration-300">
-                      {/* Kitchen Row */}
-                      <div
-                        onClick={() => handleExpandShop(shop)}
-                        className="p-3 sm:p-3.5 flex justify-between items-center cursor-pointer hover:bg-stone-100/80 dark:hover:bg-white/[0.05] transition-colors apple-tap-target"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/10 dark:bg-white/10 border border-amber-500/20 dark:border-white/15 shrink-0 flex items-center justify-center">
-                            <Store size={18} className="text-amber-600 dark:text-[#E0FF33]" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate">{shop.name}</p>
-                            <p className="text-[10px] sm:text-[11px] text-stone-600 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
-                              <MapPin size={10} className="shrink-0" />
-                              {shop.address || 'Vrindavan Dham'}
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronRight size={16} className={`text-stone-500 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${expandedShop?.id === shop.id ? 'rotate-90' : ''}`} />
-                      </div>
-
-                      {/* Expanded Kitchen Detail */}
-                      {expandedShop?.id === shop.id && (
-                        <div className="border-t border-stone-200/80 dark:border-white/5 px-3 sm:px-4 pb-3 sm:pb-4 animate-fade-in bg-white/50 dark:bg-transparent">
-                          {/* Quick Action */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectShop(shop.id, shop.name);
-                              handleAnimatedClose();
-                            }}
-                            className="mt-3 w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
-                          >
-                            <Utensils size={13} />
-                            View Full Menu
-                          </button>
-
-                          {/* Inline Menu Items Preview */}
-                          <div className="mt-3">
-                            {loadingShopMenu ? (
-                              <div className="flex items-center justify-center py-4">
-                                <div className="w-4 h-4 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
-                              </div>
-                            ) : shopMenuItems.length > 0 ? (
-                              <div className="space-y-1">
-                                <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-semibold uppercase tracking-wider mb-2">Menu Preview</p>
-                                {shopMenuItems.slice(0, 4).map((menuItem, idx) => (
-                                  <div
-                                    key={menuItem.id || idx}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleExpandDish({ ...menuItem, shopName: shop.name, shopId: shop.id });
-                                    }}
-                                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 cursor-pointer transition-colors"
-                                  >
-                                    <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-0.5">
-                                      <img
-                                        src={resolveDishCutout(menuItem.image || menuItem.imageUrl, menuItem.name, menuItem.category)}
-                                        alt={menuItem.name}
-                                        className="w-full h-full object-contain drop-shadow-sm"
-                                        loading="lazy"
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-[11px] sm:text-xs font-bold text-stone-900 dark:text-white truncate">{menuItem.name}</p>
-                                      <p className="text-[10px] text-stone-500 dark:text-zinc-500 truncate">{menuItem.category || 'Satvik'}</p>
-                                    </div>
-                                    <span className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] shrink-0">₹{menuItem.price}</span>
-                                  </div>
-                                ))}
-                                {shopMenuItems.length > 4 && (
-                                  <p className="text-[10px] text-stone-500 dark:text-zinc-500 text-center pt-1">+{shopMenuItems.length - 4} more items</p>
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-[10px] text-stone-500 dark:text-zinc-500 text-center py-3">No items listed yet</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+            {/* ─── EMPTY STATE (When no results found) ─── */}
+            {!loading && searchTerm.trim() && totalResultsCount === 0 && (
+              <div className="py-12 text-center space-y-3">
+                <div className="w-14 h-14 mx-auto rounded-full bg-stone-200 dark:bg-white/5 flex items-center justify-center text-stone-400 dark:text-zinc-500">
+                  <Search size={24} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-stone-900 dark:text-white">No exact dishes or kitchens found</h4>
+                  <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
+                    Try searching for &quot;Thali&quot;, &quot;Paneer&quot;, &quot;Kheer&quot;, &quot;Pizza&quot; or check spelling.
+                  </p>
+                </div>
+                <div className="pt-2 flex justify-center gap-2">
+                  <button
+                    onClick={() => handleSelectSuggestion('thali')}
+                    className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#E0FF33] text-xs font-bold border border-amber-500/20"
+                  >
+                    🍛 Try Thalis
+                  </button>
+                  <button
+                    onClick={() => handleSelectSuggestion('paneer')}
+                    className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#E0FF33] text-xs font-bold border border-amber-500/20"
+                  >
+                    🧀 Try Paneer
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ─── DISHES SECTION ─── */}
+            {/* ─── DISHES SECTION (With 1-Tap Quick Add Button!) ─── */}
             {!loading && results.menuItems.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Utensils size={14} /> Satvik Dishes
-                  <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.menuItems.length})</span>
-                </h4>
-                <div className="space-y-2">
-                  {results.menuItems.map(item => (
-                    <div key={item.id} className="bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200/80 dark:border-white/5 overflow-hidden transition-all duration-300">
-                      {/* Dish Row */}
-                      <div
-                        onClick={() => handleExpandDish(item)}
-                        className="p-2.5 sm:p-3 flex items-center gap-3 cursor-pointer hover:bg-stone-100/80 dark:hover:bg-white/[0.03] transition-colors apple-tap-target"
-                      >
-                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-0.5">
-                          <img
-                            src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
-                            alt={item.name}
-                            className="w-full h-full object-contain drop-shadow-sm"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate">{item.name}</p>
-                          <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-zinc-500 truncate">{item.shopName || 'Satvik Kitchen'}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-sm sm:text-base font-black text-amber-700 dark:text-[#E0FF33]">₹{item.price}</span>
-                          <ChevronRight size={14} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedDish?.id === item.id ? 'rotate-90' : ''}`} />
-                        </div>
-                      </div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                    <Utensils size={13} />
+                    Dishes & Prasad
+                    <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.menuItems.length})</span>
+                  </h4>
+                  <span className="text-[10px] font-bold text-stone-400 dark:text-zinc-500">Tap item for details</span>
+                </div>
 
-                      {/* Expanded Dish Detail */}
-                      {expandedDish?.id === item.id && (
-                        <div className="border-t border-stone-200/80 dark:border-white/5 animate-fade-in bg-white/50 dark:bg-transparent">
-                          {/* Hero Image Band */}
-                          <div className="bg-gradient-to-b from-stone-100 to-stone-50 dark:from-[#282526] dark:to-[#1E1B1C] flex items-center justify-center py-4 sm:py-6 relative">
-                            <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center">
-                              <img
-                                src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
-                                alt={item.name}
-                                className="w-full h-full object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_14px_20px_rgba(0,0,0,0.25)] select-none"
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            </div>
-                            {/* Tag Pill */}
-                            {item.tag && (
-                              <span className="absolute bottom-2 left-3 bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] text-[9px] sm:text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20">
-                                {item.tag}
-                              </span>
-                            )}
+                <div className="space-y-2">
+                  {results.menuItems.map(item => {
+                    const isAdded = !!addedItemIds[item.id];
+                    return (
+                      <div key={item.id} className="bg-white dark:bg-[#282526] rounded-2xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-2xs transition-all">
+                        {/* Dish Card Row */}
+                        <div
+                          onClick={() => handleExpandDish(item)}
+                          className="p-2.5 sm:p-3 flex items-center gap-3 cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
+                        >
+                          {/* Dish Image */}
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-1 relative overflow-hidden">
+                            <img
+                              src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                              alt={item.name}
+                              className="w-full h-full object-contain drop-shadow-sm select-none"
+                              loading="lazy"
+                            />
                           </div>
 
-                          {/* Info Body */}
-                          <div className="px-3.5 sm:px-4 pb-3.5 sm:pb-4 space-y-3">
-                            {/* Category & Kitchen */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider">{item.category || 'Satvik'}</span>
-                              <span className="text-stone-300 dark:text-zinc-600 text-[10px]">•</span>
-                              <span className="text-[10px] font-semibold text-stone-500 dark:text-zinc-500">{item.shopName}</span>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">{item.name}</p>
+                            <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-zinc-400 truncate flex items-center gap-1">
+                              <span>{item.shopName || 'Satvik Kitchen'}</span>
+                              {item.category && (
+                                <>
+                                  <span className="text-stone-300 dark:text-zinc-600">•</span>
+                                  <span className="text-amber-700 dark:text-[#E0FF33] font-medium">{item.category}</span>
+                                </>
+                              )}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33]">₹{item.price}</span>
+                              {item.kcal && (
+                                <span className="text-[9px] font-bold text-stone-400 dark:text-zinc-500 flex items-center gap-0.5">
+                                  <Flame size={9} />{item.kcal} kcal
+                                </span>
+                              )}
                             </div>
+                          </div>
 
-                            {/* Description */}
+                          {/* Direct Quick-Add Button (Zero Friction UX) */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={(e) => handleDirectAddToCart(e, item)}
+                              className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
+                                isAdded 
+                                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-black' 
+                                  : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] dark:text-[#121011]'
+                              }`}
+                              title="Quick add to basket"
+                            >
+                              {isAdded ? (
+                                <>
+                                  <Check size={12} strokeWidth={3} />
+                                  <span>Added</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus size={13} strokeWidth={3} />
+                                  <span>Add</span>
+                                </>
+                              )}
+                            </button>
+
+                            <ChevronRight size={14} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedDish?.id === item.id ? 'rotate-90' : ''}`} />
+                          </div>
+                        </div>
+
+                        {/* Expanded Dish Details */}
+                        {expandedDish?.id === item.id && (
+                          <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-3 animate-fade-in">
                             {item.description && (
-                              <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 leading-relaxed line-clamp-3">{item.description}</p>
+                              <p className="text-xs text-stone-600 dark:text-zinc-300 leading-relaxed">{item.description}</p>
                             )}
 
-                            {/* Nutrition Pills */}
+                            {/* Macro Badges */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {item.kcal && (
-                                <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">
-                                  <Flame size={10} />{item.kcal}
+                                <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                                  🔥 {item.kcal} kcal
                                 </span>
                               )}
                               {item.protein && (
-                                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                                  P {item.protein}
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                                  Protein: {item.protein}
                                 </span>
                               )}
                               {item.carbs && (
-                                <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">
-                                  C {item.carbs}
-                                </span>
-                              )}
-                              {item.fat && (
-                                <span className="text-[9px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                  F {item.fat}
+                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                                  Carbs: {item.carbs}
                                 </span>
                               )}
                             </div>
 
-                            {/* Quantity + Add to Cart Row */}
+                            {/* Quantity Stepper + Add Button */}
                             <div className="flex items-center justify-between gap-3 pt-1">
-                              {/* Quantity Stepper */}
-                              <div className="flex items-center gap-0 bg-stone-100 dark:bg-[#282526] rounded-full border border-stone-200 dark:border-white/10 h-9 sm:h-10">
+                              <div className="flex items-center bg-white dark:bg-[#282526] rounded-full border border-stone-200 dark:border-white/10 h-9">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setDishQty(q => Math.max(1, q - 1)); }}
-                                  className="w-9 sm:w-10 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-200 dark:hover:bg-white/10 rounded-l-full transition-colors cursor-pointer"
+                                  className="w-9 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 rounded-l-full cursor-pointer"
                                 >
-                                  <Minus size={14} />
+                                  <Minus size={13} />
                                 </button>
-                                <span className="w-7 text-center text-xs sm:text-sm font-black text-stone-900 dark:text-white select-none">{dishQty}</span>
+                                <span className="w-7 text-center text-xs font-black text-stone-900 dark:text-white">{dishQty}</span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setDishQty(q => Math.min(10, q + 1)); }}
-                                  className="w-9 sm:w-10 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-200 dark:hover:bg-white/10 rounded-r-full transition-colors cursor-pointer"
+                                  className="w-9 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 rounded-r-full cursor-pointer"
                                 >
-                                  <Plus size={14} />
+                                  <Plus size={13} />
                                 </button>
                               </div>
 
-                              {/* Add to Cart CTA */}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleAddDishToCart(item, dishQty);
+                                  handleAddDishWithQty(item, dishQty);
                                 }}
-                                className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs sm:text-sm font-black px-4 py-2.5 sm:py-3 rounded-full transition-all cursor-pointer shadow-md"
+                                className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] text-white dark:text-[#121011] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
                               >
                                 <ShoppingBag size={14} />
-                                Add · ₹{item.price * dishQty}
+                                Add {dishQty > 1 ? `${dishQty} items` : ''} · ₹{item.price * dishQty}
                               </button>
                             </div>
                           </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ─── KITCHENS SECTION ─── */}
+            {!loading && results.shops.length > 0 && (
+              <div>
+                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                  <Store size={13} />
+                  Kitchens & Outlets
+                  <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.shops.length})</span>
+                </h4>
+
+                <div className="space-y-2">
+                  {results.shops.map(shop => (
+                    <div key={shop.id} className="bg-white dark:bg-[#282526] rounded-2xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-2xs transition-all">
+                      <div
+                        onClick={() => handleExpandShop(shop)}
+                        className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 shrink-0 flex items-center justify-center">
+                            <Store size={18} className="text-amber-600 dark:text-[#E0FF33]" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">{shop.name}</p>
+                            <p className="text-[10px] text-stone-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
+                              <MapPin size={10} className="shrink-0" />
+                              {shop.address || 'Sri Vrindavan Dham'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              saveRecentSearch(shop.name);
+                              onSelectShop(shop.id, shop.name);
+                              handleAnimatedClose();
+                            }}
+                            className="px-3 py-1.5 bg-stone-100 dark:bg-white/10 hover:bg-amber-600 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black rounded-full text-xs font-bold text-stone-700 dark:text-zinc-200 transition-all cursor-pointer"
+                          >
+                            Open Menu
+                          </button>
+                          <ChevronRight size={15} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedShop?.id === shop.id ? 'rotate-90' : ''}`} />
+                        </div>
+                      </div>
+
+                      {/* Expanded Kitchen Preview */}
+                      {expandedShop?.id === shop.id && (
+                        <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-2.5 animate-fade-in">
+                          {loadingShopMenu ? (
+                            <div className="flex items-center justify-center py-4">
+                              <div className="w-5 h-5 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          ) : shopMenuItems.length > 0 ? (
+                            <div className="space-y-1.5">
+                              <p className="text-[10px] text-stone-400 dark:text-zinc-500 font-bold uppercase tracking-wider">Top Items from this kitchen</p>
+                              {shopMenuItems.slice(0, 4).map((menuItem, idx) => (
+                                <div
+                                  key={menuItem.id || idx}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleExpandDish({ ...menuItem, shopName: shop.name, shopId: shop.id });
+                                  }}
+                                  className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-[#282526] hover:bg-stone-100 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-[#1E1B1C] p-0.5 shrink-0 flex items-center justify-center">
+                                      <img
+                                        src={resolveDishCutout(menuItem.image || menuItem.imageUrl, menuItem.name, menuItem.category)}
+                                        alt={menuItem.name}
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                    <span className="text-xs font-bold text-stone-900 dark:text-white truncate">{menuItem.name}</span>
+                                  </div>
+                                  <span className="text-xs font-black text-amber-700 dark:text-[#E0FF33] shrink-0 ml-2">₹{menuItem.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-stone-500 dark:text-zinc-400 text-center py-2">No menu items published yet.</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -569,33 +761,35 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* ─── ORDERS SECTION ─── */}
             {!loading && results.orders.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <Receipt size={14} /> Orders
+                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                  <Receipt size={13} />
+                  Matched Orders
                   <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.orders.length})</span>
                 </h4>
+
                 <div className="space-y-2">
                   {results.orders.map(order => (
-                    <div key={order.id} className="bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200/80 dark:border-white/5 overflow-hidden transition-all duration-300">
-                      {/* Order Row */}
+                    <div key={order.id} className="bg-white dark:bg-[#282526] rounded-2xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-2xs transition-all">
                       <div
                         onClick={() => handleExpandOrder(order)}
-                        className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-100/80 dark:hover:bg-white/[0.03] transition-colors apple-tap-target"
+                        className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
                       >
                         <div className="min-w-0 flex-1 mr-2">
-                          <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate">
+                          <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">
                             {getOrderItemSummary(order) || `Order #${order.id.slice(-6).toUpperCase()}`}
                           </p>
-                          <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5">
-                            <Clock size={10} className="shrink-0 text-stone-400 dark:text-zinc-500" />
+                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5 font-medium">
+                            <Clock size={10} className="shrink-0" />
                             <span>{order.items?.length || 0} items</span>
-                            <span className="text-stone-300 dark:text-zinc-600">·</span>
+                            <span>•</span>
                             <span className="font-bold text-amber-700 dark:text-[#E0FF33]">₹{order.total_amount || order.totalAmount || 0}</span>
-                            <span className="text-stone-300 dark:text-zinc-600">·</span>
-                            <span className="text-stone-400 dark:text-zinc-500 font-mono">#{order.id.slice(-5).toUpperCase()}</span>
+                            <span>•</span>
+                            <span className="font-mono">#{order.id.slice(-5).toUpperCase()}</span>
                           </p>
                         </div>
+
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
+                          <span className={`text-[9.5px] font-black px-2.5 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
                             {order.status?.replace(/_/g, ' ')}
                           </span>
                           <ChevronRight size={14} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedOrder?.id === order.id ? 'rotate-90' : ''}`} />
@@ -604,53 +798,28 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
                       {/* Expanded Order Detail */}
                       {expandedOrder?.id === order.id && (
-                        <div className="border-t border-stone-200/80 dark:border-white/5 px-3.5 sm:px-4 py-3 sm:py-4 space-y-3 animate-fade-in bg-white/50 dark:bg-transparent">
-                          {/* Customer Info */}
-                          <div className="flex items-center justify-between">
+                        <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-3 animate-fade-in">
+                          <div className="flex items-center justify-between text-xs">
                             <div>
-                              <p className="text-[10px] text-stone-500 dark:text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">Customer</p>
-                              <p className="text-xs font-bold text-stone-900 dark:text-white">{order.customer_name || order.customerName || 'Guest'}</p>
-                              {(order.customer_phone || order.customerPhone) && (
-                                <p className="text-[10px] text-stone-500 dark:text-zinc-500">{order.customer_phone || order.customerPhone}</p>
-                              )}
+                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Customer</p>
+                              <p className="font-bold text-stone-900 dark:text-white">{order.customer_name || order.customerName || 'Guest'}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] text-stone-500 dark:text-zinc-500 uppercase tracking-wider font-semibold mb-0.5">Total</p>
-                              <p className="text-base font-black text-amber-700 dark:text-[#E0FF33]">₹{order.total_amount || order.totalAmount || 0}</p>
+                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Order Total</p>
+                              <p className="font-black text-amber-700 dark:text-[#E0FF33] text-sm">₹{order.total_amount || order.totalAmount || 0}</p>
                             </div>
                           </div>
 
-                          {/* Items List */}
-                          {order.items && order.items.length > 0 && (
-                            <div>
-                              <p className="text-[10px] text-stone-500 dark:text-zinc-500 uppercase tracking-wider font-semibold mb-2">Items</p>
-                              <div className="space-y-1.5">
-                                {order.items.map((item, idx) => (
-                                  <div key={idx} className="flex items-center justify-between text-[11px] sm:text-xs">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <span className="w-5 h-5 rounded-md bg-stone-100 dark:bg-[#282526] text-[9px] font-black text-stone-600 dark:text-zinc-400 flex items-center justify-center shrink-0">
-                                        {item.quantity || 1}×
-                                      </span>
-                                      <span className="text-stone-900 dark:text-white font-semibold truncate">{item.name}</span>
-                                    </div>
-                                    <span className="text-stone-600 dark:text-zinc-400 font-bold shrink-0">₹{(item.price || 0) * (item.quantity || 1)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Track Order CTA */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               onSelectOrder(order.id, order);
                               handleAnimatedClose();
                             }}
-                            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
+                            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] text-white dark:text-[#121011] text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
                           >
                             <Receipt size={13} />
-                            {['delivered', 'cancelled'].includes(order.status) ? 'View Details' : 'Track Order'}
+                            {['delivered', 'cancelled'].includes(order.status) ? 'View Order Summary' : 'Live Track Order'}
                           </button>
                         </div>
                       )}
@@ -659,6 +828,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>
