@@ -608,6 +608,46 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // Listen for FCM Push Registration Token and sync with Supabase User Profile
+  useEffect(() => {
+    const handleFCMToken = (e) => {
+      const token = e?.detail?.token;
+      if (token && user?.id) {
+        console.log('🔄 Syncing FCM Token with Supabase user profile:', token.slice(0, 15) + '...');
+        recordLoggedInUser({
+          id: user.id,
+          email: user.email,
+          phone: userData?.phone,
+          displayName: userData?.displayName || user.displayName,
+          role: userRole || userData?.role || 'customer',
+          fcm_token: token
+        }).catch(() => { });
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('foody:fcm-token-received', handleFCMToken);
+      // If token is already present in localStorage, sync it immediately
+      const existingToken = localStorage.getItem('foody_fcm_token');
+      if (existingToken && user?.id) {
+        recordLoggedInUser({
+          id: user.id,
+          email: user.email,
+          phone: userData?.phone,
+          displayName: userData?.displayName || user.displayName,
+          role: userRole || userData?.role || 'customer',
+          fcm_token: existingToken
+        }).catch(() => { });
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('foody:fcm-token-received', handleFCMToken);
+      }
+    };
+  }, [user?.id, user?.email, userData?.phone, userData?.displayName, userRole]);
+
   // Update user profile fields (Name, Phone, Default Address) and sync to cache & Supabase
   const updateUserProfile = useCallback(async ({ displayName, phone, address, customerAddress }) => {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(0, 10);

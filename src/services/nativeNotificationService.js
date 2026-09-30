@@ -482,15 +482,59 @@ class NativeNotificationService {
           });
         }
 
-        // 2. Request System Notification Permissions
+        // 2. Request System Notification & Push Permissions
         try {
           const localPerm = await LocalNotifications.requestPermissions();
-          console.log('System notification permissions:', localPerm);
+          console.log('System local notification permissions:', localPerm);
         } catch (e) {
-          console.warn('Notification permission request error:', e);
+          console.warn('Local notification permission request error:', e);
         }
 
-        // 3. Register tap action listener on local notifications
+        // 3. Register Push Notifications (FCM)
+        try {
+          const pushPerm = await PushNotifications.requestPermissions();
+          console.log('System push notification permissions:', pushPerm);
+          if (pushPerm.receive === 'granted') {
+            await PushNotifications.register();
+          }
+        } catch (e) {
+          console.warn('Push notification permission/register error:', e);
+        }
+
+        // 4. Register FCM Token & Push Event Listeners
+        try {
+          await PushNotifications.addListener('registration', (token) => {
+            console.log('✅ FCM Push Registration Token received:', token?.value);
+            if (token?.value && typeof window !== 'undefined') {
+              localStorage.setItem('foody_fcm_token', token.value);
+              window.dispatchEvent(new CustomEvent('foody:fcm-token-received', { detail: { token: token.value } }));
+            }
+          });
+
+          await PushNotifications.addListener('registrationError', (err) => {
+            console.warn('❌ FCM Push Registration Error:', err);
+          });
+
+          await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            console.log('📥 Push notification received in foreground:', notification);
+            this.playChime('customer');
+            this.hapticNotification(NotificationType.Success);
+          });
+
+          await PushNotifications.addListener('pushNotificationActionPerformed', (notificationAction) => {
+            console.log('👆 Push notification tapped:', notificationAction);
+            const data = notificationAction?.notification?.data;
+            if (data?.orderId && typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('foody:open-notification-order', {
+                detail: { orderId: data.orderId, type: data.type || 'order' }
+              }));
+            }
+          });
+        } catch (e) {
+          console.warn('Push notification listener setup error:', e);
+        }
+
+        // 5. Register tap action listener on local notifications
         try {
           LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
             const extra = notificationAction?.notification?.extra;
@@ -509,6 +553,16 @@ class NativeNotificationService {
     } catch (err) {
       console.warn('Native notification initialization error:', err);
     }
+  }
+
+  /**
+   * Get current stored FCM Push Token
+   */
+  getFCMToken() {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('foody_fcm_token') || null;
+    }
+    return null;
   }
 
   /**

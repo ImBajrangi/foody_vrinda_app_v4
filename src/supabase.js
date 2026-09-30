@@ -2725,6 +2725,8 @@ export async function recordLoggedInUser(userProfile) {
   const finalShops = userProfile.shopIds || existingUser?.shopIds || cleanShops;
   const nowIso = new Date().toISOString();
 
+  const fcmToken = userProfile.fcm_token || userProfile.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || existingUser?.fcm_token || null;
+
   const loggedUsersPayload = {
     id: cleanId,
     display_name: cleanName,
@@ -2738,6 +2740,7 @@ export async function recordLoggedInUser(userProfile) {
     dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     login_method: loginMethod,
     is_active: true,
+    fcm_token: fcmToken,
     last_login_at: nowIso,
     updated_at: nowIso
   };
@@ -2754,6 +2757,7 @@ export async function recordLoggedInUser(userProfile) {
     shop_ids: finalShops,
     dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     is_active: true,
+    fcm_token: fcmToken,
     last_seen_at: nowIso,
     updated_at: nowIso
   };
