@@ -1,30 +1,33 @@
 =======================================================
-🌟 FOODY VRINDA - COMPLETE SYSTEM AT A GLANCE
+🌟 FOODY VRINDA - COMPLETE SYSTEM AT A GLANCE (v4.2)
 =======================================================
 
 1. 🛒 CUSTOMER (Order & Live Tracking)
 • No fake orders: Must login (Google / Phone) before checkout.
 • One-time save: Phone number and address save once, pre-fill forever.
-• Live tracking: Real-time map tracking with live food cooking status.
-• 4-Digit Delivery OTP: Customer shares secret OTP with Rider at doorstep to confirm delivery.
+• Live tracking: Real-time map tracking with live food cooking & courier route.
+• 4-Digit Doorstep Delivery OTP: Customer shares secret OTP shown in their app with Rider at doorstep to confirm delivery.
 
 
-2. 🍳 KITCHEN (Cooking & Hot Food Innovation)
+2. 🍳 KITCHEN & STAFF (Cooking, Packaging & Handover)
 • Scoped Screen: Each kitchen only sees dishes for their branch.
-• HOT FOOD GUARANTEE (Parallel Dispatch): The moment chef clicks "Start Cooking", the nearest rider is alerted immediately. While food cooks (10-15m), rider reaches the shop. Food is picked up burning hot!
-• Pickup OTP: Kitchen verifies rider with a 4-digit code before handing over parcel.
+• HOT FOOD GUARANTEE (Parallel Dispatch): The moment chef clicks "Start Cooking", nearby riders are alerted immediately. While food cooks (10-15m), rider reaches the shop. Food is picked up burning hot!
+• Packing & Ready State: When packed, order stays in "Awaiting Sarathi Pickup" state with the 4-Digit Rider Pickup OTP.
+• Handover Verification: When Rider arrives, staff provides the 4-digit Pickup OTP. Rider enters it to lock order dispatch (0% wrong parcel handover).
 • 15m/30m Safety: If kitchen ignores an order for 15 mins, Owner gets alarm. At 30 mins, COD orders auto-cancel.
 
 
-3. 🛵 DELIVERY SARATHI (Rider Flow)
+3. 🛵 DELIVERY SARATHI (Rider Flow & Daily Security Badge)
 • Nearest radar: Closest active rider gets the order ping.
-• 2-Step OTP Security:
-  - Step 1: Tells Pickup OTP to Kitchen.
-  - Step 2: Collects Delivery OTP from Customer at doorstep.
+• Daily Rotating Sarathi Token: Har Sarathi ka 24h rotating digital badge hota hai (e.g. SR-8921) jo unki verified identity confirm karta hai.
+• 2-Step OTP Security & Instant Locking:
+  - Step 1 (Pickup Lock): Rider counter par aakar Kitchen screen ka 4-Digit Pickup OTP enter karta hai. OTP match hote hi order usi Rider ke naam lock ho jata hai.
+  - Step 2 (Delivery Handover): Customer ke doorstep par Customer ka 4-Digit Delivery OTP enter karke delivery finish hoti hai.
+• 1-Click Audit Report Download: Rider / Admin CSV audit report download kar sakte hain jisme timing, routes, aur OTP records hote hain.
 
 
 4. 💰 COD CASH SETTLEMENT (Evening Handover)
-• Rider collects cash all day -> System tracks exact total.
+• Rider collects cash all day -> System tracks exact total in digital wallet.
 • Full Settlement (100%): Account cleared to Rs.0, Rider gets +15 Trust Points.
 • Partial Settlement (Shortage): Balance stays as debt, 24h grace period, late penalty applies, and -20 Trust points deducted.
 • Excess: Saved in rider's advance wallet.
@@ -42,6 +45,15 @@ Customer gives separate 1-5 star ratings:
 • Rider Rating: Speed & Polite Behavior.
 5-star ratings give bonus Trust Points directly to that staff!
 
+
+7. 🛡️ FULL CHAIN-OF-CUSTODY AUDIT TRAIL
+Har order ka complete digital record available rehta hai:
+• Chef Name & Exact Packing Timestamp (packed_at)
+• Rider Name, Phone, Daily Token (SR-XXXX) & Pickup Timestamp (picked_up_at)
+• Realtime GPS Broadcast Transit History
+• Customer Delivery Timestamp (delivered_at) & Cash Status
+• 1-Click Export to CSV / Excel for Admin and Owner.
+
 =======================================================
-Foody Vrinda Ecosystem • Simple Business Summary
+Foody Vrinda Ecosystem • Simple Business Summary v4.2
 =======================================================

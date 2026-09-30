@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foody Vrinda - How It Works (Simple 2-Minute Guide)</title>
+  <title>Foody Vrinda - System Architecture & Two-Stage Delivery Verification</title>
   <style>
     :root {
       --bg: #0C0A09;
@@ -15,6 +15,7 @@
       --muted: #A1A1AA;
       --green: #10B981;
       --orange: #F97316;
+      --amber: #F59E0B;
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
 
@@ -33,11 +34,10 @@
     }
 
     .container {
-      max-width: 780px;
+      max-width: 820px;
       margin: 0 auto;
     }
 
-    /* Header */
     .hero {
       text-align: center;
       padding: 30px 16px 24px;
@@ -70,7 +70,6 @@
       font-size: 14px;
     }
 
-    /* Big Story Steps */
     .step-card {
       background: var(--card);
       border: 1px solid var(--card-border);
@@ -145,7 +144,17 @@
       color: var(--accent);
     }
 
-    /* Comparison Table */
+    .flow-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-weight: 900;
+      font-size: 11px;
+      background: rgba(224, 255, 51, 0.2);
+      color: var(--accent);
+    }
+
     .table-box {
       overflow-x: auto;
       margin-top: 10px;
@@ -186,9 +195,9 @@
   <div class="container">
 
     <div class="hero">
-      <div class="tag">Welcoming You • Foody Vrinda</div>
-      <h1>Foody Vrinda: How The Entire System Works</h1>
-      <p class="hero-sub">From placing an order to cooking, delivery, cash settlement & ratings.</p>
+      <div class="tag">System Architecture v4.2 • Foody Vrinda</div>
+      <h1>Foody Vrinda: Two-Stage Verification & Chain-of-Custody</h1>
+      <p class="hero-sub">Complete guide to Kitchen Handover, Rider Selection, Daily Security Tokens & Audit Reports.</p>
     </div>
 
     <!-- 1. CUSTOMER -->
@@ -196,18 +205,15 @@
       <div class="step-header">
         <div class="step-icon">🛒</div>
         <div>
-          <div class="step-title">1. The Customer (Order & Tracking)</div>
-          <div class="step-sub">Simple, fast, and no repetitive typing</div>
+          <div class="step-title">1. The Customer (Order & Live Tracking)</div>
+          <div class="step-sub">Pre-authenticated, instant checkout & doorstep delivery verification</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Must Login First</strong>: Nobody can place fake guest orders. One tap via Google or Phone.</li>
-        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and delivery address are saved on the first
-          order. Next time, it's 1-tap checkout.</li>
-        <li><strong>Live Map Tracking</strong>: Customer sees real-time preparation status and delivery rider moving on
-          the live map.</li>
-        <li><strong>Delivery OTP</strong>: Customer gets a 4-digit secret code on screen. Rider only gets "Order
-          Completed" when customer shares this code.</li>
+        <li><strong>Must Login First</strong>: Zero fake guest orders. 1-tap Google/Phone authentication.</li>
+        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and address persist seamlessly across orders.</li>
+        <li><strong>Live Map Tracking</strong>: Live GPS courier location, cooking status, and ETA.</li>
+        <li><strong>Doorstep Delivery OTP</strong>: Customer has a secret 4-digit code (<span class="flow-badge">XXXX</span>) on screen. Rider marks delivery complete only when customer confirms receipt.</li>
       </ul>
     </div>
 
@@ -216,23 +222,18 @@
       <div class="step-header">
         <div class="step-icon">🍳</div>
         <div>
-          <div class="step-title">2. The Kitchen (Cooking & Hot Food Magic)</div>
-          <div class="step-sub">Why food NEVER gets delivered cold</div>
+          <div class="step-title">2. The Kitchen (Cooking, Hot Food & Handover)</div>
+          <div class="step-sub">Zero-error pickup queue & dispatch protection</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Only Their Own Orders</strong>: Each kitchen screen only sees dishes for their branch.</li>
-        <li><strong>Hot Food Innovation (Parallel Dispatch)</strong>: The moment chef clicks <em>"Start Cooking"</em>,
-          the system alerts the nearest rider right away. While the chef is frying/packing, the rider is driving to the
-          shop. When food is ready, rider is already at the gate!</li>
-        <li><strong>Pickup OTP</strong>: Kitchen screen shows a 4-digit code. Rider must tell this code to pick up the
-          parcel (0% wrong parcel delivery).</li>
-        <li><strong>Auto-Close</strong>: If kitchen staff goes offline or store closes, orders are automatically blocked
-          so customers don't wait.</li>
+        <li><strong>Parallel Dispatch</strong>: The moment chef clicks <em>"Start Cooking"</em>, active riders are alerted. Rider arrives right when food is packed hot.</li>
+        <li><strong>Awaiting Sarathi Pickup Queue</strong>: When food is packed, order stays in the kitchen queue displaying <span class="flow-badge">Rider Pickup OTP: XXXX</span> until the Sarathi physically enters the code.</li>
+        <li><strong>Zero Parcel Mix-ups</strong>: Rider cannot dispatch without the exact 4-digit Pickup OTP shown on the kitchen screen.</li>
+        <li><strong>Auto-Clear</strong>: The instant Rider verifies the OTP, Supabase Realtime removes the order from Kitchen Screen into active transit.</li>
       </ul>
       <div class="callout">
-        <strong>⚡ 15-Min Urgency Alert:</strong> If kitchen ignores an order for 15 minutes, Owner gets an emergency
-        alarm. At 30 minutes, COD orders auto-cancel so customer isn't kept waiting.
+        <strong>⚡ 15-Min Urgency Alarm:</strong> If kitchen neglects an order for 15 minutes, Owner receives an emergency audio alarm. At 30 minutes, COD orders auto-cancel.
       </div>
     </div>
 
@@ -241,14 +242,15 @@
       <div class="step-header">
         <div class="step-icon">🛵</div>
         <div>
-          <div class="step-title">3. Delivery Sarathi (The Rider)</div>
-          <div class="step-sub">Nearest radar assignment + 2-step security</div>
+          <div class="step-title">3. Delivery Sarathi (Rider Selection & Daily Token)</div>
+          <div class="step-sub">First-arrival physical OTP locking & daily rotating security badge</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Nearest Rider Alert</strong>: The closest active rider gets the order ping first.</li>
-        <li><strong>Step 1 (Pickup)</strong>: Gives Pickup code to Kitchen staff to collect parcel.</li>
-        <li><strong>Step 2 (Delivery)</strong>: Takes Delivery code from Customer at doorstep to finish order.</li>
+        <li><strong>Daily Rotating Sarathi Token</strong>: Each rider receives a 24-hour rotating badge (<span class="flow-badge">SR-XXXX</span>) verifying their identity for staff and customers.</li>
+        <li><strong>Stage 1 (Kitchen Pickup Lock)</strong>: First Sarathi to arrive enters Kitchen screen's 4-digit Pickup OTP in their interactive modal. Order instantly locks to that Sarathi's name, phone, and wallet.</li>
+        <li><strong>Stage 2 (Doorstep Customer Delivery)</strong>: Sarathi reaches doorstep, takes the 4-digit Delivery OTP from the customer, collects COD cash (if applicable), and completes the order.</li>
+        <li><strong>Audit Export</strong>: Sarathi & Admin can export the full delivery audit report to CSV with a single tap.</li>
       </ul>
     </div>
 
@@ -258,18 +260,15 @@
         <div class="step-icon">💰</div>
         <div>
           <div class="step-title">4. Cash on Delivery (Evening Settlement)</div>
-          <div class="step-sub">Clear daily cash accounting without disputes</div>
+          <div class="step-sub">Daily digital cash ledger without reconciliation discrepancies</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Daily Digital Wallet</strong>: Rider collects cash from customers all day. System tracks exact
-          total.</li>
+        <li><strong>Digital Wallet</strong>: Tracks daily COD cash collection in real-time.</li>
         <li><strong>Evening Handover to Shopkeeper</strong>:
-          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust
-            Points</strong>.
-          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period, late
-          penalty applies, and <strong>-20 Trust Points</strong> deducted.
-          <br>• <strong>Paid Extra</strong>: Extra money is saved in Rider's advance wallet.
+          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust Points</strong>.
+          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period applies, with <strong>-20 Trust Points</strong> deducted.
+          <br>• <strong>Paid Extra</strong>: Stored in rider's advance wallet.
         </li>
       </ul>
     </div>
@@ -280,37 +279,37 @@
         <div class="step-icon">📊</div>
         <div>
           <div class="step-title">5. CIBIL Trust Score (300 to 900 Points)</div>
-          <div class="step-sub">Good workers get rewarded, bad habits get stopped</div>
+          <div class="step-sub">Incentivizes excellence, blocks fraudulent behavior</div>
         </div>
       </div>
       <div class="table-box">
         <table>
           <thead>
             <tr>
-              <th>Who?</th>
-              <th>How Score Goes UP? 📈</th>
-              <th>How Score Goes DOWN? 📉</th>
-              <th>If Score Drops Too Low</th>
+              <th>Role</th>
+              <th>Score Increases 📈</th>
+              <th>Score Decreases 📉</th>
+              <th>Penalty for Low Score</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>🛵 Rider</strong></td>
-              <td>Fast delivery, timely evening cash deposit</td>
-              <td>Short cash deposit, cancelling accepted orders</td>
+              <td>Fast delivery, timely cash deposits</td>
+              <td>Short cash deposits, dropping active trips</td>
               <td>High-value COD orders blocked</td>
             </tr>
             <tr>
               <td><strong>🍳 Chef</strong></td>
-              <td>Accepts in &lt;5 mins, 5⭐ hot food reviews</td>
-              <td>Late cooking, 15-min alerts, food complaints</td>
-              <td>Performance bonus cut, Owner audit</td>
+              <td>Accepts in &lt;5 mins, 5⭐ reviews</td>
+              <td>Late cooking, 15-min alerts, food issues</td>
+              <td>Bonus deductions, Owner review</td>
             </tr>
             <tr>
               <td><strong>👤 Customer</strong></td>
-              <td>Smooth order acceptance, online payments</td>
-              <td>Refusing COD order at doorstep, fake orders</td>
-              <td><strong>COD permanently banned</strong> (Prepaid only)</td>
+              <td>Smooth order acceptance, online pay</td>
+              <td>Refusing COD at doorstep, fake bookings</td>
+              <td><strong>COD permanently banned</strong></td>
             </tr>
           </tbody>
         </table>
@@ -323,20 +322,62 @@
         <div class="step-icon">⭐</div>
         <div>
           <div class="step-title">6. Separate Ratings for Chef & Rider</div>
-          <div class="step-sub">Fair credit where it's due</div>
+          <div class="step-sub">Fair credit for kitchen taste vs delivery behavior</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Chef Rating (1–5 ⭐)</strong>: Rate the taste, freshness & packing. (e.g. <em>Piping Hot, Pure Desi
-            Ghee</em>)</li>
-        <li><strong>Rider Rating (1–5 ⭐)</strong>: Rate the delivery speed & behavior. (e.g. <em>Super Fast, Polite &
-            Humble</em>)</li>
-        <li><strong>Direct Impact</strong>: 5-star ratings give bonus Trust points directly to that Chef and Rider!</li>
+        <li><strong>Chef Rating (1–5 ⭐)</strong>: Taste, freshness, packaging & hot food quality.</li>
+        <li><strong>Rider Rating (1–5 ⭐)</strong>: Delivery speed, polite communication & punctuality.</li>
+        <li><strong>Real Impact</strong>: 5-star ratings directly award bonus Trust points to that individual staff member.</li>
       </ul>
     </div>
 
+    <!-- 7. AUDIT TRAIL -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">🛡️</div>
+        <div>
+          <div class="step-title">7. Chain-of-Custody Digital Audit Trail</div>
+          <div class="step-sub">End-to-end transparency recorded in database (foody_orders)</div>
+        </div>
+      </div>
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Milestone</th>
+              <th>Recorded Fields</th>
+              <th>Verification Method</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Kitchen Packing</strong></td>
+              <td><code>chef_id</code>, <code>chef_name</code>, <code>packed_at</code></td>
+              <td>Chef marks "Food Packed & Ready"</td>
+            </tr>
+            <tr>
+              <td><strong>Rider Pickup</strong></td>
+              <td><code>rider_id</code>, <code>rider_name</code>, <code>sarathi_code</code>, <code>picked_up_at</code></td>
+              <td>Verified via 4-Digit Kitchen Pickup OTP</td>
+            </tr>
+            <tr>
+              <td><strong>Live Transit</strong></td>
+              <td>Realtime GPS latitude & longitude broadcast</td>
+              <td>Background Leaflet/GPS Broadcaster</td>
+            </tr>
+            <tr>
+              <td><strong>Doorstep Handover</strong></td>
+              <td><code>delivered_at</code>, <code>cash_status</code></td>
+              <td>Verified via 4-Digit Customer Delivery OTP</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <footer>
-      Foody Vrinda Ecosystem &bull; Simple Business Guide
+      Foody Vrinda Ecosystem &bull; System Architecture v4.2
     </footer>
 
   </div>
