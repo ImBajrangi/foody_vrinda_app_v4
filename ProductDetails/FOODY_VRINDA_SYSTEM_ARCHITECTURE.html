@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foody Vrinda - System Architecture & Two-Stage Delivery Verification</title>
+  <title>Foody Vrinda - System Architecture v5.0 (Production-Grade Framework)</title>
   <style>
     :root {
       --bg: #0C0A09;
@@ -16,6 +16,8 @@
       --green: #10B981;
       --orange: #F97316;
       --amber: #F59E0B;
+      --blue: #38BDF8;
+      --purple: #C084FC;
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
 
@@ -30,19 +32,19 @@
       color: var(--text);
       font-family: var(--font);
       line-height: 1.5;
-      padding: 24px 16px;
+      padding: 28px 16px;
     }
 
     .container {
-      max-width: 820px;
+      max-width: 860px;
       margin: 0 auto;
     }
 
     .hero {
       text-align: center;
-      padding: 30px 16px 24px;
+      padding: 32px 16px 28px;
       border-bottom: 1px solid var(--card-border);
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
 
     .tag {
@@ -51,56 +53,58 @@
       color: #000;
       font-size: 11px;
       font-weight: 900;
-      padding: 4px 12px;
+      padding: 4px 14px;
       border-radius: 99px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 900;
       letter-spacing: -0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .hero-sub {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 14.5px;
+      max-width: 680px;
+      margin: 0 auto;
     }
 
     .step-card {
       background: var(--card);
       border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 18px;
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 20px;
       position: relative;
     }
 
     .step-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 14px;
+      margin-bottom: 14px;
     }
 
     .step-icon {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 14px;
       background: rgba(224, 255, 51, 0.12);
       color: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
       flex-shrink: 0;
     }
 
     .step-title {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 900;
     }
 
@@ -113,12 +117,12 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
     }
 
     .points li {
       position: relative;
-      padding-left: 24px;
+      padding-left: 26px;
       font-size: 13.5px;
       color: #E4E4E7;
     }
@@ -133,10 +137,10 @@
     .callout {
       background: rgba(255, 255, 255, 0.03);
       border-left: 3px solid var(--accent);
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-top: 12px;
-      font-size: 12.5px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-top: 14px;
+      font-size: 13px;
       color: #D4D4D8;
     }
 
@@ -157,35 +161,67 @@
 
     .table-box {
       overflow-x: auto;
-      margin-top: 10px;
+      margin-top: 12px;
+      border-radius: 12px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12.5px;
+      font-size: 13px;
     }
 
     th,
     td {
       border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 10px 12px;
+      padding: 11px 14px;
       text-align: left;
     }
 
     th {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--accent);
       font-weight: 800;
     }
 
+    .state-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .state-item {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #F4F4F5;
+    }
+
+    .state-item.active {
+      background: rgba(224, 255, 51, 0.15);
+      color: var(--accent);
+      border-color: rgba(224, 255, 51, 0.4);
+    }
+
+    .state-item.done {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
     footer {
       text-align: center;
-      padding: 24px 0;
+      padding: 28px 0;
       font-size: 12px;
       color: var(--muted);
       border-top: 1px solid var(--card-border);
-      margin-top: 30px;
+      margin-top: 36px;
     }
   </style>
 </head>
@@ -195,9 +231,9 @@
   <div class="container">
 
     <div class="hero">
-      <div class="tag">System Architecture v4.2 • Foody Vrinda</div>
-      <h1>Foody Vrinda: Two-Stage Verification & Chain-of-Custody</h1>
-      <p class="hero-sub">Complete guide to Kitchen Handover, Rider Selection, Daily Security Tokens & Audit Reports.</p>
+      <div class="tag">Production Architecture v5.0 • Foody Vrinda</div>
+      <h1>Foody Vrinda: Operational & Technical Architecture</h1>
+      <p class="hero-sub">Comprehensive specifications for Order State Machines, ETA-Matched Dispatch, Physical Handover Controls, Cash Reconciliation, and Immutable Audit Trails.</p>
     </div>
 
     <!-- 1. CUSTOMER -->
@@ -205,16 +241,23 @@
       <div class="step-header">
         <div class="step-icon">🛒</div>
         <div>
-          <div class="step-title">1. The Customer (Order & Live Tracking)</div>
-          <div class="step-sub">Pre-authenticated, instant checkout & doorstep delivery verification</div>
+          <div class="step-title">1. Customer Lifecycle & Dynamic Address Management</div>
+          <div class="step-sub">Verified authentication, multi-address selection & geofenced doorstep OTP</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Must Login First</strong>: Zero fake guest orders. 1-tap Google/Phone authentication.</li>
-        <li><strong>Saved Once, Pre-filled Forever</strong>: Phone number and address persist seamlessly across orders.</li>
-        <li><strong>Live Map Tracking</strong>: Live GPS courier location, cooking status, and ETA.</li>
-        <li><strong>Doorstep Delivery OTP</strong>: Customer has a secret 4-digit code (<span class="flow-badge">XXXX</span>) on screen. Rider marks delivery complete only when customer confirms receipt.</li>
+        <li><strong>Pre-Authentication</strong>: All orders require Google / Phone verification session tokens. Zero guest checkout fraud.</li>
+        <li><strong>Saved Address Portfolio</strong>: Customers manage multiple addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions selectable per order.</li>
+        <li><strong>Single-Kitchen Integrity</strong>: Enforced 1 order = 1 kitchen = 1 rider constraint to prevent cross-town multi-stop food cooling.</li>
+        <li><strong>Geofenced Delivery Verification</strong>: Rider must be within 150m of the delivery location + submit customer's 4-digit OTP to complete trip. Eliminates remote false-delivery abuse.</li>
       </ul>
+      <div class="state-flow">
+        <span class="state-item">PLACED</span> ➔
+        <span class="state-item">PREPARING</span> ➔
+        <span class="state-item">PACKED</span> ➔
+        <span class="state-item active">OUT_FOR_DELIVERY</span> ➔
+        <span class="state-item done">DELIVERED</span>
+      </div>
     </div>
 
     <!-- 2. KITCHEN -->
@@ -222,15 +265,15 @@
       <div class="step-header">
         <div class="step-icon">🍳</div>
         <div>
-          <div class="step-title">2. The Kitchen (Cooking, Hot Food & Handover)</div>
-          <div class="step-sub">Zero-error pickup queue & dispatch protection</div>
+          <div class="step-title">2. Kitchen Operations & Dynamic ETA Dispatch Window</div>
+          <div class="step-sub">Intelligent prep timing matching, physical checklist & FSSAI thermal safety</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Parallel Dispatch</strong>: The moment chef clicks <em>"Start Cooking"</em>, active riders are alerted. Rider arrives right when food is packed hot.</li>
-        <li><strong>Awaiting Sarathi Pickup Queue</strong>: When food is packed, order stays in the kitchen queue displaying <span class="flow-badge">Rider Pickup OTP: XXXX</span> until the Sarathi physically enters the code.</li>
-        <li><strong>Zero Parcel Mix-ups</strong>: Rider cannot dispatch without the exact 4-digit Pickup OTP shown on the kitchen screen.</li>
-        <li><strong>Auto-Clear</strong>: The instant Rider verifies the OTP, Supabase Realtime removes the order from Kitchen Screen into active transit.</li>
+        <li><strong>Dynamic Prep & Rider ETA Matching</strong>: System predicts kitchen prep time (<code>predicted_ready_at</code>) and calculates rider travel time (<code>rider_arrival_eta</code>). Rider is dispatched at the optimal time window so food is packed right as rider arrives.</li>
+        <li><strong>Physical Package Multi-Check</strong>: Prevents packet mix-ups via 4-Digit Pickup OTP + Order Short Code + Customer Name + Item checklist validation before handover.</li>
+        <li><strong>Food Safety & Thermal Standards (FSSAI Aligned)</strong>: Tracks timestamps across <code>cooked_at</code>, <code>packed_at</code>, <code>picked_up_at</code>, and <code>delivered_at</code> ensuring hot holding (>65°C) and fresh transit.</li>
+        <li><strong>Awaiting Pickup Queue</strong>: Packed orders remain in kitchen view showing <span class="flow-badge">Rider Pickup OTP: XXXX</span> until the Sarathi physically enters the code.</li>
       </ul>
       <div class="callout">
         <strong>⚡ 15-Min Urgency Alarm:</strong> If kitchen neglects an order for 15 minutes, Owner receives an emergency audio alarm. At 30 minutes, COD orders auto-cancel.
@@ -242,15 +285,15 @@
       <div class="step-header">
         <div class="step-icon">🛵</div>
         <div>
-          <div class="step-title">3. Delivery Sarathi (Rider Selection & Daily Token)</div>
-          <div class="step-sub">First-arrival physical OTP locking & daily rotating security badge</div>
+          <div class="step-title">3. Delivery Sarathi Workflow & Daily Security Tokens</div>
+          <div class="step-sub">Atomic first-arrival claiming, 24h rotating badges & offline resilience</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Daily Rotating Sarathi Token</strong>: Each rider receives a 24-hour rotating badge (<span class="flow-badge">SR-XXXX</span>) verifying their identity for staff and customers.</li>
-        <li><strong>Stage 1 (Kitchen Pickup Lock)</strong>: First Sarathi to arrive enters Kitchen screen's 4-digit Pickup OTP in their interactive modal. Order instantly locks to that Sarathi's name, phone, and wallet.</li>
-        <li><strong>Stage 2 (Doorstep Customer Delivery)</strong>: Sarathi reaches doorstep, takes the 4-digit Delivery OTP from the customer, collects COD cash (if applicable), and completes the order.</li>
-        <li><strong>Audit Export</strong>: Sarathi & Admin can export the full delivery audit report to CSV with a single tap.</li>
+        <li><strong>Atomic First-Arrival Claiming</strong>: Multiple nearby riders receive early alerts. First rider at the counter enters the 4-digit Pickup OTP, instantly executing an atomic lock on <code>rider_id</code>, <code>rider_name</code>, and <code>picked_up_at</code>.</li>
+        <li><strong>Daily Rotating Sarathi Token</strong>: 24-hour rotating badge (<span class="flow-badge">SR-XXXX</span>) verifying partner identity for staff and customers.</li>
+        <li><strong>Expanded Rider States</strong>: <code>OFFLINE</code>, <code>AVAILABLE</code>, <code>ASSIGNED</code>, <code>NAVIGATING_TO_KITCHEN</code>, <code>WAITING_AT_KITCHEN</code>, <code>OUT_FOR_DELIVERY</code>, <code>DELIVERED</code>.</li>
+        <li><strong>Offline Resilient Queue</strong>: Local state caching with timestamped verification tokens that synchronize automatically when network recovers.</li>
       </ul>
     </div>
 
@@ -259,28 +302,30 @@
       <div class="step-header">
         <div class="step-icon">💰</div>
         <div>
-          <div class="step-title">4. Cash on Delivery (Evening Settlement)</div>
-          <div class="step-sub">Daily digital cash ledger without reconciliation discrepancies</div>
+          <div class="step-title">4. Cash on Delivery Reconciliation & Dispute Management</div>
+          <div class="step-sub">Full cash variance tracking and dual-confirmation deposit protocol</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Digital Wallet</strong>: Tracks daily COD cash collection in real-time.</li>
-        <li><strong>Evening Handover to Shopkeeper</strong>:
-          <br>• <strong>Paid in Full (100%)</strong>: Account cleared to ₹0. Rider gets <strong>+15 Trust Points</strong>.
-          <br>• <strong>Paid Partial (Shortage)</strong>: Remaining balance stays as debt. 24h grace period applies, with <strong>-20 Trust Points</strong> deducted.
-          <br>• <strong>Paid Extra</strong>: Stored in rider's advance wallet.
+        <li><strong>Full Ledger Accounting</strong>: Tracks <code>cash_collected</code>, <code>cash_returned</code>, <code>net_cash</code>, <code>cash_expected</code>, <code>cash_settled</code>, and <code>cash_variance</code>.</li>
+        <li><strong>Dual-Confirmation Evening Handover</strong>:
+          <br>• Rider deposits cash ➔ Cashier enters amount ➔ System verifies match.
+          <br>• If discrepancy occurs, flagged as <code>DISPUTED</code> with settlement ID, cashier timestamp, and optional receipt upload for fair manager review.
         </li>
       </ul>
     </div>
 
-    <!-- 5. CIBIL TRUST SCORE -->
+    <!-- 5. TRUST SCORE -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">📊</div>
         <div>
-          <div class="step-title">5. CIBIL Trust Score (300 to 900 Points)</div>
-          <div class="step-sub">Incentivizes excellence, blocks fraudulent behavior</div>
+          <div class="step-title">5. Foody Operational Trust Score (300 to 900 Points)</div>
+          <div class="step-sub">Context-aware delay attribution & graduated COD failure handling</div>
         </div>
+      </div>
+      <div class="callout" style="margin-top: 0; margin-bottom: 12px;">
+        <strong>ℹ️ Clarification:</strong> This is an internal Foody Vrinda operational reliability score and is <strong>not a credit bureau score</strong>.
       </div>
       <div class="table-box">
         <table>
@@ -288,96 +333,52 @@
             <tr>
               <th>Role</th>
               <th>Score Increases 📈</th>
-              <th>Score Decreases 📉</th>
-              <th>Penalty for Low Score</th>
+              <th>Contextual Penalties 📉</th>
+              <th>Protection & Thresholds</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>🛵 Rider</strong></td>
-              <td>Fast delivery, timely cash deposits</td>
-              <td>Short cash deposits, dropping active trips</td>
-              <td>High-value COD orders blocked</td>
+              <td>Punctual deliveries, accurate cash deposits</td>
+              <td>Unexplained trip cancellations (exempts traffic/rain)</td>
+              <td>High-value COD held if trust score drops &lt; 500</td>
             </tr>
             <tr>
               <td><strong>🍳 Chef</strong></td>
-              <td>Accepts in &lt;5 mins, 5⭐ reviews</td>
-              <td>Late cooking, 15-min alerts, food issues</td>
-              <td>Bonus deductions, Owner review</td>
+              <td>Consistent &lt;15m prep, 5⭐ reviews</td>
+              <td>Unjustified kitchen delays (exempts rush hours)</td>
+              <td>Performance review & supervisor audit</td>
             </tr>
             <tr>
               <td><strong>👤 Customer</strong></td>
-              <td>Smooth order acceptance, online pay</td>
-              <td>Refusing COD at doorstep, fake bookings</td>
-              <td><strong>COD permanently banned</strong></td>
+              <td>Smooth handovers, digital payments</td>
+              <td>Unjustified doorstep COD refusals</td>
+              <td>1st warning ➔ 2nd review ➔ Prepaid only mode</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 6. DUAL REVIEWS -->
-    <div class="step-card">
-      <div class="step-header">
-        <div class="step-icon">⭐</div>
-        <div>
-          <div class="step-title">6. Separate Ratings for Chef & Rider</div>
-          <div class="step-sub">Fair credit for kitchen taste vs delivery behavior</div>
-        </div>
-      </div>
-      <ul class="points">
-        <li><strong>Chef Rating (1–5 ⭐)</strong>: Taste, freshness, packaging & hot food quality.</li>
-        <li><strong>Rider Rating (1–5 ⭐)</strong>: Delivery speed, polite communication & punctuality.</li>
-        <li><strong>Real Impact</strong>: 5-star ratings directly award bonus Trust points to that individual staff member.</li>
-      </ul>
-    </div>
-
-    <!-- 7. AUDIT TRAIL -->
+    <!-- 6. AUDIT & PRIVACY -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">🛡️</div>
         <div>
-          <div class="step-title">7. Chain-of-Custody Digital Audit Trail</div>
-          <div class="step-sub">End-to-end transparency recorded in database (foody_orders)</div>
+          <div class="step-title">6. Privacy, Security & Immutable Audit Reporting</div>
+          <div class="step-sub">Ephemeral customer tracking, immutable event logging & 1-tap CSV export</div>
         </div>
       </div>
-      <div class="table-box">
-        <table>
-          <thead>
-            <tr>
-              <th>Milestone</th>
-              <th>Recorded Fields</th>
-              <th>Verification Method</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Kitchen Packing</strong></td>
-              <td><code>chef_id</code>, <code>chef_name</code>, <code>packed_at</code></td>
-              <td>Chef marks "Food Packed & Ready"</td>
-            </tr>
-            <tr>
-              <td><strong>Rider Pickup</strong></td>
-              <td><code>rider_id</code>, <code>rider_name</code>, <code>sarathi_code</code>, <code>picked_up_at</code></td>
-              <td>Verified via 4-Digit Kitchen Pickup OTP</td>
-            </tr>
-            <tr>
-              <td><strong>Live Transit</strong></td>
-              <td>Realtime GPS latitude & longitude broadcast</td>
-              <td>Background Leaflet/GPS Broadcaster</td>
-            </tr>
-            <tr>
-              <td><strong>Doorstep Handover</strong></td>
-              <td><code>delivered_at</code>, <code>cash_status</code></td>
-              <td>Verified via 4-Digit Customer Delivery OTP</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <ul class="points">
+        <li><strong>Ephemeral GPS Tracking</strong>: Customers only receive live GPS updates while the rider is actively delivering. Long-term customer location history is strictly restricted.</li>
+        <li><strong>Immutable Append-Only Audit Trail</strong>: Every milestone (<code>ORDER_CREATED</code>, <code>COOKING_STARTED</code>, <code>PACKED</code>, <code>PICKUP_VERIFIED</code>, <code>OUT_FOR_DELIVERY</code>, <code>DELIVERY_VERIFIED</code>) is recorded with immutable server timestamps.</li>
+        <li><strong>One-Click CSV / Excel Export</strong>: Dashboard provides <code>exportDeliveryAuditReportCSV</code> generating a complete audit trail of order IDs, chef packing times, Sarathi pickup codes, delivery durations, and COD settlement status.</li>
+      </ul>
     </div>
 
     <footer>
-      Foody Vrinda Ecosystem &bull; System Architecture v4.2
+      Foody Vrinda Ecosystem &bull; Production Architecture v5.0
     </footer>
 
   </div>

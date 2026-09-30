@@ -1,59 +1,76 @@
-=======================================================
-🌟 FOODY VRINDA - COMPLETE SYSTEM AT A GLANCE (v4.2)
-=======================================================
+================================================================================
+🌟 FOODY VRINDA - PRODUCTION-GRADE SYSTEM ARCHITECTURE & OPERATIONAL GUIDE (v5.0)
+================================================================================
 
-1. 🛒 CUSTOMER (Order & Live Tracking)
-• No fake orders: Must login (Google / Phone) before checkout.
-• One-time save: Phone number and address save once, pre-fill forever.
-• Live tracking: Real-time map tracking with live food cooking & courier route.
-• 4-Digit Doorstep Delivery OTP: Customer shares secret OTP shown in their app with Rider at doorstep to confirm delivery.
-
-
-2. 🍳 KITCHEN & STAFF (Cooking, Packaging & Handover)
-• Scoped Screen: Each kitchen only sees dishes for their branch.
-• HOT FOOD GUARANTEE (Parallel Dispatch): The moment chef clicks "Start Cooking", nearby riders are alerted immediately. While food cooks (10-15m), rider reaches the shop. Food is picked up burning hot!
-• Packing & Ready State: When packed, order stays in "Awaiting Sarathi Pickup" state with the 4-Digit Rider Pickup OTP.
-• Handover Verification: When Rider arrives, staff provides the 4-digit Pickup OTP. Rider enters it to lock order dispatch (0% wrong parcel handover).
-• 15m/30m Safety: If kitchen ignores an order for 15 mins, Owner gets alarm. At 30 mins, COD orders auto-cancel.
+1. 🛒 CUSTOMER (Order Lifecycle, Multi-Address & Secure Verification)
+• Authentication: 1-Tap Google / Phone login with verified session tokens. Zero unverified guest orders.
+• Dynamic Address Management: Multiple saved addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions. Address can be switched per order.
+• Single-Kitchen Policy: Enforced 1 order = 1 kitchen = 1 rider to prevent multi-hop cross-city food spoilage.
+• Real-Time Order Milestones:
+  [CREATED] ➔ [PREPARING] ➔ [PACKED] ➔ [OUT_FOR_DELIVERY] ➔ [DELIVERED]
+• Doorstep OTP & Geofence Protection:
+  - Customer receives a 4-Digit Delivery OTP on the tracking screen.
+  - Delivery completion requires Rider to be within the delivery geofence (<150m) + valid OTP entry to eliminate premature delivery abuse.
 
 
-3. 🛵 DELIVERY SARATHI (Rider Flow & Daily Security Badge)
-• Nearest radar: Closest active rider gets the order ping.
-• Daily Rotating Sarathi Token: Har Sarathi ka 24h rotating digital badge hota hai (e.g. SR-8921) jo unki verified identity confirm karta hai.
-• 2-Step OTP Security & Instant Locking:
-  - Step 1 (Pickup Lock): Rider counter par aakar Kitchen screen ka 4-Digit Pickup OTP enter karta hai. OTP match hote hi order usi Rider ke naam lock ho jata hai.
-  - Step 2 (Delivery Handover): Customer ke doorstep par Customer ka 4-Digit Delivery OTP enter karke delivery finish hoti hai.
-• 1-Click Audit Report Download: Rider / Admin CSV audit report download kar sakte hain jisme timing, routes, aur OTP records hote hain.
+2. 🍳 KITCHEN & FOOD SAFETY (Dynamic Prep Timing, Packaging & Physical QC)
+• Scoped Kitchen Screen: Each kitchen strictly accesses orders for their specific branch.
+• Intelligent Dynamic Dispatch Window:
+  - Replaces naive parallel dispatch.
+  - System dynamically matches Kitchen Prep ETA (`predicted_ready_at`) with Rider Travel ETA (`rider_arrival_eta`).
+  - Rider is dispatched only at the optimal window (`dispatch_at`) so the rider arrives exactly when the food is freshly packed.
+• Physical Package Multi-Factor Verification:
+  - Kitchen card displays 4-Digit Pickup OTP, Order Short Code, Customer Name, and Item Checklist.
+  - Staff verifies dish checklist and package label before handover.
+• Food Safety & Temperature Retention (FSSAI Aligned):
+  - Hot food holding standards (>65°C) and thermal transport compliance.
+  - Timestamps recorded: `cooked_at`, `packed_at`, `picked_up_at`, `delivered_at`.
+• Urgency Safety Timers: 15-minute kitchen inactivity alarm to Owner; automatic escalation if kitchen response stalls.
 
 
-4. 💰 COD CASH SETTLEMENT (Evening Handover)
-• Rider collects cash all day -> System tracks exact total in digital wallet.
-• Full Settlement (100%): Account cleared to Rs.0, Rider gets +15 Trust Points.
-• Partial Settlement (Shortage): Balance stays as debt, 24h grace period, late penalty applies, and -20 Trust points deducted.
-• Excess: Saved in rider's advance wallet.
+3. 🛵 DELIVERY SARATHI (Rider Flow, Daily Security Badge & Atomic Claiming)
+• Comprehensive Rider Availability States:
+  [OFFLINE] ➔ [AVAILABLE] ➔ [ASSIGNED] ➔ [NAVIGATING_TO_KITCHEN] ➔ [WAITING_AT_KITCHEN] ➔ [OUT_FOR_DELIVERY] ➔ [DELIVERED]
+• Atomic First-Arrival Claiming:
+  - Multiple nearby riders receive early route alerts.
+  - First rider at the counter verifies the Kitchen Pickup OTP; database executes an atomic lock binding `rider_id`, `rider_name`, `rider_phone`, and `picked_up_at`. Zero double-assignment race conditions.
+• Daily Rotating Sarathi Token:
+  - Daily display identifier (`SR-XXXX`, e.g. `SR-8921`) rotating every 24h for quick visual verification by staff and customers.
+• Offline Resilience Strategy:
+  - Local state caching, optimistic UI updates, and signed timestamp tokens that reconcile automatically when network connectivity resumes.
 
 
-5. 📊 CIBIL TRUST SCORE (300 to 900 Points)
-• Rider: Good deposits & fast delivery boost score. Short cash cuts score & blocks COD orders.
-• Chef: Fast cooking & 5-star ratings boost score. 15-min delays cut score.
-• Customer: Refusing COD orders at doorstep permanently BANS Cash on Delivery (Prepaid only).
+4. 💰 COD CASH RECONCILIATION & DISPUTE MECHANISM
+• Real-World Cash Accounting Ledger:
+  - Tracks `cash_collected`, `cash_returned`, `net_cash`, `cash_expected`, `cash_settled`, `cash_variance`.
+• Evening Settlement Dual-Confirmation Workflow:
+  - Rider initiates deposit ➔ Cashier enters received amount ➔ Dual-confirmation match.
+  - If variance occurs: System flags as `DISPUTED` with settlement ID, cashier ID, timestamp, and optional receipt upload for fair manager review (no instant unfair penalty).
 
 
-6. ⭐ SEPARATE REVIEWS FOR CHEF & RIDER
-Customer gives separate 1-5 star ratings:
-• Chef Rating: Taste, Hot Food & Packaging.
-• Rider Rating: Speed & Polite Behavior.
-5-star ratings give bonus Trust Points directly to that staff!
+5. 📊 FOODY OPERATIONAL TRUST SCORE (300 – 900 Points)
+*Note: This is an internal platform reliability score and is NOT a credit bureau score.*
+• Context-Aware Delay Attribution:
+  - Scores are adjusted ONLY when delay responsibility is verified (`KITCHEN_DELAY`, `RIDER_DELAY`, `TRAFFIC_DELAY`, `WEATHER_DELAY`, `CUSTOMER_DELAY`).
+  - Heavy traffic, rain, or kitchen backlogs do not penalize innocent delivery sarathis.
+• Graduated Customer COD Policy:
+  - 1st failed/unreachable delivery: Warning & customer support callback.
+  - 2nd failure: Temporary COD hold with review.
+  - Chronic fraud/refusal: Transition to Prepaid-only mode (No harsh 1-strike bans).
 
 
-7. 🛡️ FULL CHAIN-OF-CUSTODY AUDIT TRAIL
-Har order ka complete digital record available rehta hai:
-• Chef Name & Exact Packing Timestamp (packed_at)
-• Rider Name, Phone, Daily Token (SR-XXXX) & Pickup Timestamp (picked_up_at)
-• Realtime GPS Broadcast Transit History
-• Customer Delivery Timestamp (delivered_at) & Cash Status
-• 1-Click Export to CSV / Excel for Admin and Owner.
+6. 🔒 PRIVACY, SECURITY & DATA RETENTION
+• Ephemeral Live Tracking: Customers see live rider position only while an order is actively in transit.
+• Data Minimization: Customer location history is kept confidential and separated from long-term public query logs.
+• OTP Security: Rate-limited verification (max 5 attempts), short-lived expiry, and one-time invalidation.
 
-=======================================================
-Foody Vrinda Ecosystem • Simple Business Summary v4.2
-=======================================================
+
+7. 🛡️ IMMUTABLE CHAIN-OF-CUSTODY & AUDIT REPORTING
+• Append-Only Lifecycle Events:
+  - Order milestones (`ORDER_CREATED`, `COOKING_STARTED`, `PACKED`, `PICKUP_VERIFIED`, `OUT_FOR_DELIVERY`, `DELIVERY_VERIFIED`) recorded with immutable server timestamps.
+• 1-Click CSV/Excel Audit Export:
+  - Available on dashboard for Owners and Admins to audit timings, route durations, OTP logs, and cash settlement status.
+
+================================================================================
+Foody Vrinda Ecosystem • Production-Ready v5.0 Specification
+================================================================================

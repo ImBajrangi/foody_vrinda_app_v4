@@ -3518,7 +3518,8 @@ export function exportDeliveryAuditReportCSV(orders = []) {
 }
 
 // ========================================================================
-// 10. UNIVERSAL ROLE CIBIL / TRUST SCORE ENGINE (300 – 900 POINTS)
+// 10. FOODY OPERATIONAL TRUST SCORE ENGINE (300 – 900 POINTS)
+// (Internal platform reliability & accountability score - not a credit bureau score)
 // ========================================================================
 
 export function getUserTrustScore(userIdOrUser) {
