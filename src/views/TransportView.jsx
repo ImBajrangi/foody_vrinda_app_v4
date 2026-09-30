@@ -18,6 +18,7 @@ import {
   getUserTrustScore,
   getOrderOTP,
   verifyOrderOTP,
+  getDailySarathiCode,
   generateWhatsAppOrderShareLink
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -640,11 +641,15 @@ export default function TransportView() {
   const handleStartDelivery = async (orderId, orderData) => {
     stopAlarm();
     try {
+      const dailyCode = getDailySarathiCode(activeUser);
       const riderPayload = {
+        rider_id: activeUser?.id || activeUser?.email || 'sarathi_rider',
         rider_name: activeUser?.name || 'Govind Das (Sarathi)',
         rider_phone: activeUser?.phone || '+91 98765 43210',
         rider_rating: '4.95',
-        rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+        rider_avatar: activeUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
+        sarathi_code: dailyCode,
+        picked_up_at: new Date().toISOString()
       };
 
       await updateCloudOrderStatus(orderId, 'out_for_delivery', riderPayload);
@@ -690,7 +695,8 @@ export default function TransportView() {
       const rawMethod = String(orderData?.payment_method || orderData?.paymentMethod || '').toLowerCase().trim();
       const isCash = rawMethod === 'cash' || rawMethod === 'cod';
       await updateCloudOrderStatus(orderId, 'completed', {
-        cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none')
+        cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
+        delivered_at: new Date().toISOString()
       });
       setOrders(prev => prev.filter(o => o.id !== orderId));
 

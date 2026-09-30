@@ -275,7 +275,11 @@ export default function KitchenView() {
   const handleOrderReady = async (orderId, orderData) => {
     stopAlarm();
     try {
-      await updateCloudOrderStatus(orderId, 'ready_for_pickup');
+      await updateCloudOrderStatus(orderId, 'ready_for_pickup', {
+        chef_id: user?.uid || user?.id || 'kitchen_staff',
+        chef_name: user?.name || user?.email || 'Kitchen Staff',
+        packed_at: new Date().toISOString()
+      });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'ready_for_pickup' } : o));
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';

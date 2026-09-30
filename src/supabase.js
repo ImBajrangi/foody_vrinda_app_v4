@@ -3409,6 +3409,26 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   return true;
 }
 
+/**
+ * Generates a unique daily rotating Sarathi verification badge/token
+ * Formatted as SR-XXXX (e.g. SR-8921) changing automatically every 24 hours.
+ */
+export function getDailySarathiCode(riderIdOrUser) {
+  const riderId = typeof riderIdOrUser === 'string' 
+    ? riderIdOrUser 
+    : (riderIdOrUser?.id || riderIdOrUser?.email || 'sarathi_rider');
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  let hash = 0;
+  const combined = `${riderId}_${todayStr}_sarathi_token`;
+  for (let i = 0; i < combined.length; i++) {
+    hash = ((hash << 5) - hash) + combined.charCodeAt(i);
+    hash |= 0;
+  }
+  const positive = Math.abs(hash);
+  const code = (1000 + (positive % 9000)).toString();
+  return `SR-${code}`;
+}
+
 // ========================================================================
 // 10. UNIVERSAL ROLE CIBIL / TRUST SCORE ENGINE (300 – 900 POINTS)
 // ========================================================================
