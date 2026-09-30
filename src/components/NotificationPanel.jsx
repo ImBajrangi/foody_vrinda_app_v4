@@ -2,8 +2,6 @@ import { useState, useCallback, useMemo, useRef } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
-import SoundTrialsModal from './SoundTrialsModal';
-import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
 import { 
   Bell, 
   BellRing,
@@ -18,9 +16,7 @@ import {
   Utensils, 
   Bike, 
   ShoppingBag,
-  Gift,
-  Volume2,
-  Play
+  Gift
 } from 'lucide-react';
 
 export default function NotificationPanel({ isOpen, onClose, onNotificationClick }) {
@@ -38,13 +34,8 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
   const { isLight } = useTheme();
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'unread' | 'read'
   const [closing, setClosing] = useState(false);
-  const [showSoundTrials, setShowSoundTrials] = useState(false);
   const closeTimeoutRef = useRef(null);
 
-  const activeTrialObj = useMemo(() => {
-    const trialId = nativeNotify.getActiveTrial();
-    return NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
-  }, [showSoundTrials]);
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
     if (closeTimeoutRef.current) {
@@ -216,31 +207,6 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
             aria-label="Close notifications"
           >
             <X size={17} />
-          </button>
-        </div>
-
-        {/* Sound Trials Quick Bar */}
-        <div className="px-5 pb-2 pt-0.5 bg-[#FAF7F2] dark:bg-[#1E1B1C] flex items-center justify-between gap-2 border-b border-stone-200/60 dark:border-white/5">
-          <button
-            type="button"
-            onClick={() => setShowSoundTrials(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 hover:bg-amber-500/20 dark:bg-white/10 dark:hover:bg-white/15 text-amber-800 dark:text-[#E0FF33] border border-amber-500/25 dark:border-white/15 transition-all cursor-pointer shadow-xs active:scale-95"
-            title="Preview and choose notification sounds"
-          >
-            <Volume2 size={12} className="stroke-[2.5]" />
-            <span>Sound Trials: <strong className="font-extrabold">{activeTrialObj?.name || 'Zen Glass Tap'}</strong></span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              nativeNotify.playTrialSound(nativeNotify.getActiveTrial());
-            }}
-            className="text-[11px] font-bold text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-full bg-stone-200/80 hover:bg-stone-300/80 dark:bg-white/5 dark:hover:bg-white/10 transition-all cursor-pointer shadow-xs active:scale-95"
-            title="Test active sound"
-          >
-            <Play size={10} className="fill-current text-amber-600 dark:text-[#E0FF33]" />
-            <span>Test</span>
           </button>
         </div>
 
@@ -449,13 +415,8 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
           </div>
         )}
       </div>
-
-      {/* Sound Trials Modal */}
-      <SoundTrialsModal
-        isOpen={showSoundTrials}
-        onClose={() => setShowSoundTrials(false)}
-      />
     </div>
   );
 }
+
 
