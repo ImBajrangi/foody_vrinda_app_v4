@@ -19,6 +19,7 @@ import {
   getOrderOTP,
   verifyOrderOTP,
   getDailySarathiCode,
+  exportDeliveryAuditReportCSV,
   generateWhatsAppOrderShareLink
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -58,7 +59,8 @@ import {
   KeyRound,
   Lock,
   Unlock,
-  ShieldAlert
+  ShieldAlert,
+  Download
 } from 'lucide-react';
 
 export default function TransportView() {
@@ -976,6 +978,24 @@ export default function TransportView() {
               <span className="whitespace-nowrap font-['Outfit']">Carto HUD</span>
             </button>
           </div>
+
+          {/* Download Full Delivery Audit Report CSV */}
+          <button
+            type="button"
+            onClick={() => {
+              const success = exportDeliveryAuditReportCSV(orders);
+              if (success) {
+                setToast({ message: 'Delivery Audit Report downloaded!', type: 'success' });
+              } else {
+                setToast({ message: 'No orders available to export', type: 'info' });
+              }
+            }}
+            className="h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 transition-all cursor-pointer apple-tap-target shrink-0 shadow-xs"
+            title="Download CSV Delivery Audit Trail Report"
+          >
+            <Download size={14} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
+            <span className="whitespace-nowrap font-['Outfit']">Export Audit CSV</span>
+          </button>
         </div>
       </div>
 

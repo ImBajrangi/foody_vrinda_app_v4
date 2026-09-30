@@ -3429,6 +3429,94 @@ export function getDailySarathiCode(riderIdOrUser) {
   return `SR-${code}`;
 }
 
+/**
+ * Downloads a comprehensive CSV / Excel audit report of delivery orders
+ */
+export function exportDeliveryAuditReportCSV(orders = []) {
+  if (!orders || orders.length === 0) return false;
+
+  const headers = [
+    'Order ID',
+    'Created At',
+    'Status',
+    'Shop / Kitchen',
+    'Customer Name',
+    'Customer Phone',
+    'Delivery Address',
+    'Items Summary',
+    'Total Amount (INR)',
+    'Payment Method',
+    'Cash Collection Status',
+    'Chef / Kitchen Staff',
+    'Packed At',
+    'Delivery Sarathi Name',
+    'Sarathi Code',
+    'Sarathi Phone',
+    'Picked Up At',
+    'Kitchen Pickup OTP',
+    'Delivered At',
+    'Customer Delivery OTP',
+    'Delivery Duration (Mins)'
+  ];
+
+  const escapeCSV = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const rows = orders.map(o => {
+    const createdDate = o.created_at || o.createdAt;
+    const packedDate = o.packed_at || o.packedAt;
+    const pickedDate = o.picked_up_at || o.pickedUpAt;
+    const deliveredDate = o.delivered_at || o.deliveredAt;
+
+    let durationMins = 'N/A';
+    if (pickedDate && deliveredDate) {
+      try {
+        const diffMs = new Date(deliveredDate) - new Date(pickedDate);
+        durationMins = Math.max(1, Math.round(diffMs / (1000 * 60))).toString();
+      } catch (_) {}
+    }
+
+    return [
+      escapeCSV(o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase() : 'N/A'),
+      escapeCSV(createdDate ? new Date(createdDate).toLocaleString('en-IN') : 'N/A'),
+      escapeCSV(o.status || 'N/A'),
+      escapeCSV(o.shop_name || o.shopName || o.shop_id || o.shopId || 'Vrindavan Kitchen'),
+      escapeCSV(o.customer_name || o.customerName || 'Customer'),
+      escapeCSV(o.customer_phone || o.customerPhone || 'N/A'),
+      escapeCSV(o.delivery_address || o.deliveryAddress || o.customer_address || o.customerAddress || 'Vrindavan'),
+      escapeCSV(getOrderItemSummary(o) || 'Satvik Meal'),
+      escapeCSV(o.total_amount || o.totalAmount || 0),
+      escapeCSV(o.payment_method || o.paymentMethod || 'online'),
+      escapeCSV(o.cash_status || o.cashStatus || 'none'),
+      escapeCSV(o.chef_name || o.chefName || 'Kitchen Staff'),
+      escapeCSV(packedDate ? new Date(packedDate).toLocaleTimeString('en-IN') : 'N/A'),
+      escapeCSV(o.rider_name || o.riderName || 'Govind Das (Sarathi)'),
+      escapeCSV(o.sarathi_code || o.sarathiCode || getDailySarathiCode(o.rider_id || 'sarathi')),
+      escapeCSV(o.rider_phone || o.riderPhone || '+91 98765 43210'),
+      escapeCSV(pickedDate ? new Date(pickedDate).toLocaleTimeString('en-IN') : 'N/A'),
+      escapeCSV(getOrderOTP(o, 'pickup')),
+      escapeCSV(deliveredDate ? new Date(deliveredDate).toLocaleTimeString('en-IN') : 'N/A'),
+      escapeCSV(getOrderOTP(o, 'delivery')),
+      escapeCSV(durationMins)
+    ].join(',');
+  });
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `foody_vrinda_delivery_report_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  return true;
+}
+
 // ========================================================================
 // 10. UNIVERSAL ROLE CIBIL / TRUST SCORE ENGINE (300 – 900 POINTS)
 // ========================================================================
@@ -3848,6 +3936,12 @@ ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_name TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_phone TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_rating TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_avatar TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS sarathi_code TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS chef_id TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS chef_name TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS packed_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS picked_up_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cooking_notes TEXT;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cash_status TEXT DEFAULT 'pending';
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;
