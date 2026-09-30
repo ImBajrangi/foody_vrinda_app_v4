@@ -394,6 +394,118 @@
   mask-image: none;
 }
 
+/* ==========================================================================
+   FOOD STAGE & FLOATING CTA ENGINE (Apple & Swiggy Gold Standard)
+   ========================================================================== */
+.food-stage-visual {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .food-stage-visual {
+    width: 136px;
+    height: 136px;
+  }
+}
+
+.food-stage-halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 72%);
+  pointer-events: none;
+}
+
+.light .food-stage-halo {
+  background: radial-gradient(circle at center, rgba(217, 119, 6, 0.08) 0%, rgba(0, 0, 0, 0.02) 50%, transparent 72%);
+}
+
+/* Floating Action Pill (Centered directly on food stage bottom) */
+.floating-action-pill {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.16s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.16s ease;
+  white-space: nowrap;
+  z-index: 10;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+
+.light .floating-action-pill {
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+}
+
+.floating-action-pill:active {
+  transform: translateX(-50%) scale(0.94);
+}
+
+/* Floating iOS Stepper Pill */
+.floating-stepper-pill {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 36px;
+  min-width: 98px;
+  padding: 2px 4px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1A1718;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+.light .floating-stepper-pill {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.stepper-btn-ios {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.stepper-btn-ios:active {
+  transform: scale(0.88);
+}
+
 /* --- 3. Status Badges & OTP --- */
 .fv-badge-otp {
   font-family: monospace;

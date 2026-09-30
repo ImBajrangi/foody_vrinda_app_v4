@@ -80,7 +80,7 @@ function setLocalCustomerMenus(shopId = 'all', items = []) {
   } catch { }
 }
 
-// 120fps Hardware-Accelerated Memoized Dish Item Card (Original Heroic Food Layout + Auto-Blend Mask)
+// 120fps Hardware-Accelerated Food Stage Card (Zero-Jitter iOS Haptics + Floating Action Pill)
 const MenuItemCard = memo(function MenuItemCard({
   item,
   idx,
@@ -108,64 +108,99 @@ const MenuItemCard = memo(function MenuItemCard({
         }
       }}
       style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
-      className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop touch-manipulation active:scale-[0.98] select-none ${quantityInCart > 0
-        ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-        : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
-        }`}
+      className={`bg-white dark:bg-[#282526] border rounded-[28px] p-4 sm:p-5 relative cursor-pointer flex items-center justify-between gap-3 sm:gap-4 transition-all duration-200 select-none ${
+        quantityInCart > 0
+          ? 'border-amber-500/40 dark:border-[#E0FF33]/30 bg-stone-50/80 dark:bg-[#2c282a] shadow-md dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)]'
+          : 'border-stone-200/90 dark:border-white/10 shadow-xs dark:shadow-lg hover:border-stone-300 dark:hover:border-white/20'
+      }`}
     >
-      {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
-      <div className="flex justify-between items-start z-10 gap-2">
-        <div className="max-w-[62%]">
+      {/* Left Column: Dish Details & Pricing (60% Width) */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between py-1 pr-1">
+        <div>
+          {/* Header Row: Combo Tag */}
           {item.isCombo && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
-              <Sparkles size={11} className="text-[#E0FF33]" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[9.5px] font-black uppercase tracking-wider mb-1.5 shadow-xs">
+              <Sparkles size={10} className="text-[#E0FF33]" />
               {item.tag || 'Combo Offer'}
             </span>
           )}
-          <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
+
+          {/* Dish Title */}
+          <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white leading-snug tracking-tight truncate font-['Outfit']">
             {item.name}
           </h3>
-          <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
-            {item.subtitle || 'Authentic Satvik preparation'}
+
+          {/* Subtitle / Description */}
+          <p className="text-xs font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
+            {item.subtitle || 'Authentic Satvik preparation in pure desi ghee'}
           </p>
+
+          {/* Combo Items Pill */}
           {item.comboItems && item.comboItems.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {item.comboItems.map((ci, cidx) => (
-                <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
+            <div className="mt-2 flex flex-wrap gap-1">
+              {item.comboItems.slice(0, 2).map((ci, cidx) => (
+                <span key={cidx} className="text-[10px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
                   + {ci}
                 </span>
               ))}
+              {item.comboItems.length > 2 && (
+                <span className="text-[10px] font-semibold text-stone-400 dark:text-zinc-500 self-center">
+                  +{item.comboItems.length - 2} more
+                </span>
+              )}
             </div>
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => onToggleFavorite(item.id, e)}
-          className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800/90 border border-stone-200/60 dark:border-white/10 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer apple-tap-target sm:hover:scale-105 active:scale-95"
-          title="Favorite"
-        >
-          <Heart
-            size={17}
-            className={isFav ? 'text-red-500 fill-red-500' : 'text-stone-700 dark:text-stone-300'}
-          />
-        </button>
-      </div>
-
-      {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
-      <div className="mt-3 sm:mt-4 z-10">
-        <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
-            }`}>
+        {/* Price Row */}
+        <div className="mt-4 flex items-baseline gap-1.5">
+          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
+            quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
+          }`}>
             ₹{activePrice}
           </span>
           {hasDiscount && (
-            <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
+            <span className="text-xs font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
               ₹{activeOriginalPrice}
             </span>
           )}
         </div>
+      </div>
 
+      {/* Right Column: 3D Food Stage + Overlapping Action Pill (40% Width) */}
+      <div className="food-stage-visual">
+        <div className="food-stage-halo" />
+
+        {/* Dish Visual (Supports both transparent PNGs & white photo vignette) */}
+        <div className="w-full h-full p-2 flex items-center justify-center">
+          <img
+            src={item.image || '/dishes/thali.png'}
+            alt={item.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/dishes/thali.png';
+            }}
+            className="dish-blend-mask w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)]"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        {/* Favorite Heart Button (Top-Right Floating) */}
+        <button
+          type="button"
+          onClick={(e) => onToggleFavorite(item.id, e)}
+          className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-black/35 dark:bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center transition-transform cursor-pointer apple-tap-target hover:scale-110 active:scale-90 text-white shadow-sm z-10"
+          title="Favorite"
+          aria-label="Favorite"
+        >
+          <Heart
+            size={14}
+            className={isFav ? 'text-red-500 fill-red-500' : 'text-white'}
+          />
+        </button>
+
+        {/* Overlapping Bottom Action Pill */}
         {quantityInCart === 0 ? (
           <button
             type="button"
@@ -173,15 +208,15 @@ const MenuItemCard = memo(function MenuItemCard({
               e.stopPropagation();
               onAddToCart(item);
             }}
-            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
+            className="floating-action-pill"
           >
-            <span>Order Now</span>
-            <ChevronRight size={14} strokeWidth={3} />
+            <span>ADD</span>
+            <Plus size={13} strokeWidth={3.5} />
           </button>
         ) : (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
+            className="floating-stepper-pill"
           >
             <button
               type="button"
@@ -189,21 +224,18 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
               }}
-              style={{ backgroundColor: '#292524' }}
-              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-stone-700 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-ios bg-stone-800 dark:bg-[#272425] text-white hover:bg-stone-700 active:bg-red-500/25"
               title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
               aria-label="Decrease quantity"
             >
               {quantityInCart === 1 ? (
-                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" />
+                <Trash2 size={12} className="text-red-400 stroke-red-400" />
               ) : (
-                <Minus size={15} strokeWidth={3} className="text-white" />
+                <Minus size={12} strokeWidth={3} className="text-white" />
               )}
             </button>
 
-            <span
-              className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
-            >
+            <span className="stepper-qty px-1.5 text-xs font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit'] min-w-[20px] text-center select-none">
               {quantityInCart}
             </span>
 
@@ -213,29 +245,14 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-ios bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-stone-950 font-black shadow-xs"
               title="Add another"
               aria-label="Increase quantity"
             >
-              <Plus size={16} strokeWidth={3.5} />
+              <Plus size={13} strokeWidth={3.5} className="text-stone-950 stroke-current" />
             </button>
           </div>
         )}
-      </div>
-
-      {/* Right Side Dish Image - Seamless Vignette Blend */}
-      <div className="absolute right-[-6px] bottom-[-6px] sm:right-[-4px] sm:bottom-[-4px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 pointer-events-none flex items-center justify-center overflow-hidden rounded-3xl">
-        <img
-          src={item.image || '/dishes/thali.png'}
-          alt={item.name}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/dishes/thali.png';
-          }}
-          className={`dish-blend-mask w-full h-full object-contain select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
-          loading="lazy"
-          decoding="async"
-        />
       </div>
     </div>
   );
