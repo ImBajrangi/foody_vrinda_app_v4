@@ -3374,23 +3374,25 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
   }
 }
 
-export function verifyOrderOTP(orderId, type, enteredOtp) {
-  if (!orderId || !enteredOtp) return false;
+export function verifyOrderOTP(orderOrId, type, enteredOtp) {
+  if (!orderOrId || !enteredOtp) return false;
   const cleanEntered = String(enteredOtp).trim();
+  const orderId = typeof orderOrId === 'string' ? orderOrId : (orderOrId?.id || String(orderOrId));
+  if (!orderId) return false;
 
-  // Attempt rate-limiting protection (max 3 attempts)
+  // Attempt rate-limiting protection (max 5 attempts for user friendliness while maintaining security)
   const attemptKey = `foody_otp_attempts_${orderId}_${type}`;
   let attempts = 0;
   try {
     attempts = parseInt(safeStorage.getItem(attemptKey) || '0', 10);
   } catch (_) {}
 
-  if (attempts >= 3) {
-    console.warn(`[Security] Maximum OTP attempts (3/3) exceeded for order ${orderId}`);
+  if (attempts >= 5) {
+    console.warn(`[Security] Maximum OTP attempts (5/5) exceeded for order ${orderId}`);
     return false;
   }
 
-  const expectedOtp = getOrderOTP(orderId, type);
+  const expectedOtp = getOrderOTP(orderOrId, type);
   const isMatch = cleanEntered === expectedOtp;
 
   if (!isMatch) {

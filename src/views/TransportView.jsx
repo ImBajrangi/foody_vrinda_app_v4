@@ -52,7 +52,12 @@ import {
   Check,
   Star,
   User,
-  CreditCard
+  CreditCard,
+  X,
+  KeyRound,
+  Lock,
+  Unlock,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function TransportView() {
@@ -84,6 +89,19 @@ export default function TransportView() {
   });
 
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
+
+  // Two-Stage OTP Verification Modal State (Pickup from Kitchen & Doorstep Delivery)
+  const [otpModalState, setOtpModalState] = useState({
+    isOpen: false,
+    order: null,
+    type: 'pickup', // 'pickup' | 'delivery'
+    digits: ['', '', '', ''],
+    error: '',
+    isSuccess: false,
+    isSubmitting: false,
+    shake: false
+  });
+  const otpInputRefs = useRef([]);
 
   // Live Realtime GPS Broadcaster for Delivery Sarathis (throttled to avoid redundant egress)
   useEffect(() => {
@@ -477,23 +495,169 @@ export default function TransportView() {
     };
   }, [viewMode, activeOrder?.id, activeShop?.id]);
 
+  // Focus the first OTP box when verification modal opens
+  useEffect(() => {
+    if (otpModalState.isOpen) {
+      const timer = setTimeout(() => {
+        otpInputRefs.current[0]?.focus();
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [otpModalState.isOpen]);
+
+  const handleInitiatePickup = (order) => {
+    stopAlarm();
+    if (!order) return;
+    setOtpModalState({
+      isOpen: true,
+      order,
+      type: 'pickup',
+      digits: ['', '', '', ''],
+      error: '',
+      isSuccess: false,
+      isSubmitting: false,
+      shake: false
+    });
+  };
+
+  const handleInitiateDelivery = (order) => {
+    stopAlarm();
+    if (!order) return;
+    setOtpModalState({
+      isOpen: true,
+      order,
+      type: 'delivery',
+      digits: ['', '', '', ''],
+      error: '',
+      isSuccess: false,
+      isSubmitting: false,
+      shake: false
+    });
+  };
+
+  const closeOtpModal = () => {
+    setOtpModalState(prev => ({
+      ...prev,
+      isOpen: false,
+      isSubmitting: false,
+      error: '',
+      shake: false
+    }));
+  };
+
+  const handleOtpDigitChange = (index, value) => {
+    const cleanVal = value.replace(/\D/g, '');
+    if (cleanVal.length > 1) {
+      // User pasted multi-digit code
+      const pasted = cleanVal.slice(0, 4).split('');
+      const newDigits = [...otpModalState.digits];
+      pasted.forEach((d, i) => {
+        newDigits[i] = d;
+      });
+      setOtpModalState(prev => ({ ...prev, digits: newDigits, error: '', shake: false }));
+      if (pasted.length === 4) {
+        verifyAndSubmitOtp(newDigits.join(''));
+      } else {
+        const nextIdx = Math.min(pasted.length, 3);
+        otpInputRefs.current[nextIdx]?.focus();
+      }
+      return;
+    }
+
+    const singleDigit = cleanVal.slice(-1);
+    const newDigits = [...otpModalState.digits];
+    newDigits[index] = singleDigit;
+    setOtpModalState(prev => ({ ...prev, digits: newDigits, error: '', shake: false }));
+
+    if (singleDigit && index < 3) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+
+    // Automatically verify when all 4 digits are entered
+    if (newDigits.every(d => d.trim() !== '') && singleDigit) {
+      verifyAndSubmitOtp(newDigits.join(''));
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!otpModalState.digits[index] && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'Enter') {
+      const code = otpModalState.digits.join('');
+      if (code.length === 4) {
+        verifyAndSubmitOtp(code);
+      }
+    }
+  };
+
+  const verifyAndSubmitOtp = async (codeToVerify) => {
+    const entered = (codeToVerify || otpModalState.digits.join('')).trim();
+    if (entered.length < 4) {
+      setOtpModalState(prev => ({ ...prev, error: 'Please enter all 4 digits', shake: true }));
+      setTimeout(() => setOtpModalState(prev => ({ ...prev, shake: false })), 600);
+      return;
+    }
+
+    const currentOrder = otpModalState.order;
+    const currentType = otpModalState.type;
+    if (!currentOrder) return;
+
+    const isValid = verifyOrderOTP(currentOrder, currentType, entered);
+
+    if (!isValid) {
+      setOtpModalState(prev => ({
+        ...prev,
+        error: currentType === 'pickup' 
+          ? 'Invalid Kitchen Pickup OTP. Check screen with staff.' 
+          : 'Invalid Customer Delivery OTP. Check with customer.',
+        shake: true
+      }));
+      setTimeout(() => setOtpModalState(prev => ({ ...prev, shake: false })), 600);
+      return;
+    }
+
+    // Mark success feedback state
+    setOtpModalState(prev => ({ ...prev, isSuccess: true, isSubmitting: true, error: '' }));
+
+    // Haptic/audio feedback delay before executing cloud update
+    setTimeout(async () => {
+      try {
+        if (currentType === 'pickup') {
+          await handleStartDelivery(currentOrder.id, currentOrder);
+        } else {
+          await handleCompleteDelivery(currentOrder.id, currentOrder);
+        }
+        closeOtpModal();
+      } catch (err) {
+        console.error(err);
+        setOtpModalState(prev => ({ ...prev, isSubmitting: false, error: 'Network error. Please retry.' }));
+      }
+    }, 600);
+  };
+
   const handleStartDelivery = async (orderId, orderData) => {
     stopAlarm();
     try {
-      await updateCloudOrderStatus(orderId, 'out_for_delivery', {
-        rider_name: 'Govind Das (Sarathi)',
-        rider_phone: '+91 98765 43210',
+      const riderPayload = {
+        rider_name: activeUser?.name || 'Govind Das (Sarathi)',
+        rider_phone: activeUser?.phone || '+91 98765 43210',
         rider_rating: '4.95',
         rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
-      });
+      };
+
+      await updateCloudOrderStatus(orderId, 'out_for_delivery', riderPayload);
+      
       setOrders(prev => prev.map(o => o.id === orderId ? {
         ...o,
         status: 'out_for_delivery',
-        rider_name: 'Govind Das (Sarathi)',
-        rider_phone: '+91 98765 43210',
-        rider_rating: '4.95',
-        rider_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+        ...riderPayload
       } : o));
+
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, status: 'out_for_delivery', ...riderPayload } : null);
+      }
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
@@ -502,7 +666,7 @@ export default function TransportView() {
         await createCloudNotification({
           userId: orderData.userId,
           title: `On The Way: ${itemSummary}`,
-          message: `${itemSummary} is on the way with ${orderData?.rider_name || 'Govind Das'}.`,
+          message: `${itemSummary} is on the way with ${riderPayload.rider_name}.`,
           orderId
         });
       }
@@ -529,6 +693,10 @@ export default function TransportView() {
         cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none')
       });
       setOrders(prev => prev.filter(o => o.id !== orderId));
+
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(null);
+      }
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
@@ -1037,7 +1205,7 @@ export default function TransportView() {
 
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
-                    onClick={() => handleStartDelivery(activeOrder.id, activeOrder)}
+                    onClick={() => handleInitiatePickup(activeOrder)}
                     className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <span>Pick Up & Start Delivery</span>
@@ -1045,7 +1213,7 @@ export default function TransportView() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleCompleteDelivery(activeOrder.id, activeOrder)}
+                    onClick={() => handleInitiateDelivery(activeOrder)}
                     className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5] shrink-0" />
@@ -1230,7 +1398,7 @@ export default function TransportView() {
 
                       {isReady ? (
                         <button
-                          onClick={() => handleStartDelivery(order.id, order)}
+                          onClick={() => handleInitiatePickup(order)}
                           className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
                         >
                           <span>Start Ride</span>
@@ -1238,7 +1406,7 @@ export default function TransportView() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleCompleteDelivery(order.id, order)}
+                          onClick={() => handleInitiateDelivery(order)}
                           className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
@@ -1251,6 +1419,193 @@ export default function TransportView() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 🔐 TWO-STAGE OTP VERIFICATION MODAL (Pickup from Kitchen & Doorstep Delivery) */}
+      {otpModalState.isOpen && otpModalState.order && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !otpModalState.isSubmitting) {
+              closeOtpModal();
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md apple-overlay"
+        >
+          <div
+            className={`w-full max-w-md bg-stone-900 border border-white/10 text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${
+              otpModalState.shake ? 'animate-shake' : ''
+            }`}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                    otpModalState.type === 'pickup'
+                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                      : 'bg-[#E0FF33]/15 border-[#E0FF33]/30 text-[#E0FF33]'
+                  }`}
+                >
+                  {otpModalState.type === 'pickup' ? (
+                    <Store className="w-6 h-6" />
+                  ) : (
+                    <Sparkles className="w-6 h-6" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        otpModalState.type === 'pickup'
+                          ? 'bg-amber-500/20 text-amber-300'
+                          : 'bg-[#E0FF33]/20 text-[#E0FF33]'
+                      }`}
+                    >
+                      {otpModalState.type === 'pickup' ? 'Stage 1: Kitchen Pickup' : 'Stage 2: Customer Handover'}
+                    </span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-white font-['Outfit'] mt-0.5">
+                    {otpModalState.type === 'pickup'
+                      ? 'Kitchen Pickup OTP'
+                      : 'Doorstep Delivery OTP'}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                onClick={closeOtpModal}
+                disabled={otpModalState.isSubmitting}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-stone-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Subtitle / Instructions */}
+            <div className="my-4 p-3.5 rounded-2xl bg-white/[0.04] border border-white/5 space-y-1.5">
+              <p className="text-xs text-stone-300">
+                {otpModalState.type === 'pickup'
+                  ? 'Ask kitchen chef or staff for the 4-digit Pickup OTP shown on their screen.'
+                  : `Ask customer ${getOrderCustomerName(otpModalState.order)} for the 4-digit code in their app.`}
+              </p>
+              <div className="flex items-center justify-between text-[11px] text-stone-400 font-mono pt-1 border-t border-white/5">
+                <span>Order #{otpModalState.order.id ? otpModalState.order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}</span>
+                <span className="text-stone-300 font-semibold truncate max-w-[180px]">
+                  {getOrderItemSummary(otpModalState.order)}
+                </span>
+              </div>
+            </div>
+
+            {/* Cash on Delivery Notice if applicable */}
+            {otpModalState.type === 'delivery' && (() => {
+              const rawMethod = String(otpModalState.order?.payment_method || otpModalState.order?.paymentMethod || '').toLowerCase().trim();
+              const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+              if (!isCash) return null;
+              return (
+                <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-amber-300 text-xs">
+                  <div className="flex items-center gap-2 font-bold">
+                    <Banknote className="w-4 h-4 text-amber-400" />
+                    <span>Collect Cash Payment</span>
+                  </div>
+                  <span className="font-black text-sm text-amber-300 font-['Outfit']">
+                    ₹{otpModalState.order.totalAmount || otpModalState.order.total_amount || 0}
+                  </span>
+                </div>
+              );
+            })()}
+
+            {/* 4-Digit PIN Boxes */}
+            <div className="py-2">
+              <label className="block text-center text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-3">
+                Enter 4-Digit Verification Code
+              </label>
+
+              <div className="flex justify-center items-center gap-3">
+                {otpModalState.digits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => (otpInputRefs.current[index] = el)}
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
+                    autoComplete="one-time-code"
+                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${
+                      otpModalState.isSuccess
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                        : digit
+                        ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                        : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Error Message */}
+              {otpModalState.error && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-rose-400 text-xs font-bold animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{otpModalState.error}</span>
+                </div>
+              )}
+
+              {/* Success Feedback */}
+              {otpModalState.isSuccess && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-bold animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Verified successfully! Updating order...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-5 space-y-2 font-['Plus_Jakarta_Sans']">
+              <button
+                type="button"
+                onClick={() => verifyAndSubmitOtp()}
+                disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
+                className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${
+                  otpModalState.type === 'pickup'
+                    ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
+                    : 'bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] shadow-[#E0FF33]/20'
+                }`}
+              >
+                {otpModalState.isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Verifying...</span>
+                  </>
+                ) : otpModalState.isSuccess ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Verified</span>
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="w-4 h-4" />
+                    <span>
+                      {otpModalState.type === 'pickup'
+                        ? 'Confirm Pickup & Start Ride'
+                        : 'Confirm Delivery Complete'}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={closeOtpModal}
+                disabled={otpModalState.isSubmitting}
+                className="w-full py-2.5 px-4 rounded-2xl text-stone-400 hover:text-white text-xs font-bold transition-all text-center cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
