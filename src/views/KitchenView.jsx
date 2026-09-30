@@ -39,7 +39,8 @@ import {
   Search,
   Minus,
   Trash2,
-  Store
+  Store,
+  PackageCheck
 } from 'lucide-react';
 
 export default function KitchenView() {
@@ -121,7 +122,7 @@ export default function KitchenView() {
           .from('foody_orders')
           .select('*')
           .eq('shop_id', currentUserShopId)
-          .in('status', ['new', 'preparing'])
+          .in('status', ['new', 'preparing', 'ready_for_pickup', 'ready'])
           .order('created_at', { ascending: true });
 
         if (!error && data) {
@@ -275,7 +276,7 @@ export default function KitchenView() {
     stopAlarm();
     try {
       await updateCloudOrderStatus(orderId, 'ready_for_pickup');
-      setOrders(prev => prev.filter(o => o.id !== orderId));
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'ready_for_pickup' } : o));
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
@@ -523,12 +524,27 @@ export default function KitchenView() {
                       </p>
                     </div>
 
-                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
-                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
-                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${
+                        isNew
+                          ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
+                          : ['ready_for_pickup', 'ready'].includes(order.status)
+                          ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
+                          : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                       }`}>
-                      {isNew ? <Flame size={11} className="fill-current" /> : <Clock size={11} />}
-                      <span>{order.status}</span>
+                      {isNew ? (
+                        <Flame size={11} className="fill-current" />
+                      ) : ['ready_for_pickup', 'ready'].includes(order.status) ? (
+                        <PackageCheck size={11} />
+                      ) : (
+                        <Clock size={11} />
+                      )}
+                      <span>
+                        {isNew
+                          ? 'New Order'
+                          : ['ready_for_pickup', 'ready'].includes(order.status)
+                          ? 'Ready For Pickup'
+                          : 'Preparing'}
+                      </span>
                     </span>
                   </div>
 
@@ -659,7 +675,17 @@ export default function KitchenView() {
 
                 {/* Status Update Action Button */}
                 <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">
-                  {isNew ? (
+                  {['ready_for_pickup', 'ready'].includes(order.status) ? (
+                    <div className="w-full bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/30 rounded-2xl p-3 text-center space-y-1">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-700 dark:text-[#E0FF33] font-black text-xs uppercase tracking-wider">
+                        <PackageCheck size={15} />
+                        <span>Awaiting Sarathi Pickup</span>
+                      </div>
+                      <p className="text-[11px] text-stone-600 dark:text-zinc-400">
+                        Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#E0FF33] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#E0FF33]/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                      </p>
+                    </div>
+                  ) : isNew ? (
                     <button
                       onClick={() => handleAcceptOrder(order.id)}
                       className="fv-btn-primary w-full"
@@ -673,7 +699,7 @@ export default function KitchenView() {
                       className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
                     >
                       <CheckCircle2 size={16} strokeWidth={2.5} />
-                      <span>Order Ready for Dispatch</span>
+                      <span>Food Packed & Ready for Pickup</span>
                     </button>
                   )}
                 </div>
