@@ -17,7 +17,7 @@ export default function Header({
   currentTab,
   setCurrentTab 
 }) {
-  const { user, userData, userRole, isAuthorizedAdmin, isAuthorizedDeveloper, isStaff } = useAuth();
+  const { user, userData, userRole, isAuthorizedAdmin, isAuthorizedDeveloper, isStaff, allShops = [], currentUserShopId } = useAuth();
   const { unreadCount } = useNotifications();
   const { cart, totalAmount } = useCart();
   const { isLight, toggleTheme } = useTheme();
@@ -33,6 +33,27 @@ export default function Header({
     if (user && user.displayName) return user.displayName;
     if (user && user.email) return user.email.split('@')[0];
     return 'Guest';
+  };
+
+  const getLocationLabel = () => {
+    // 1. Check user custom location / delivery address if saved
+    const savedAddress = userData?.address || userData?.delivery_address || userData?.city || '';
+    if (savedAddress && typeof savedAddress === 'string' && savedAddress.trim().length > 0) {
+      const parts = savedAddress.split(',')[0].trim();
+      if (parts.length > 0) return parts;
+    }
+
+    // 2. Check active/selected shop name or area
+    const activeShop = allShops?.find(s => s.id === currentUserShopId) || allShops?.[0];
+    if (activeShop?.address) {
+      const parts = activeShop.address.split(',')[0].trim();
+      if (parts.length > 0) return parts;
+    }
+    if (activeShop?.name) {
+      return activeShop.name.replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').trim() || activeShop.name;
+    }
+
+    return 'Sri Vrindavan Dham';
   };
 
   const [headerAvatarError, setHeaderAvatarError] = useState(false);
@@ -93,7 +114,7 @@ export default function Header({
               </span>
               <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
               <span className="text-[11px] font-semibold text-stone-500 dark:text-zinc-400 truncate">
-                Sri Vrindavan Dham
+                {getLocationLabel()}
               </span>
             </div>
             <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-['Outfit'] truncate">
@@ -172,14 +193,15 @@ export default function Header({
 
         {/* Right: Actions Cluster (Responsive & Ergonomic) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Desktop Search Button */}
+          {/* Universal Search Button (Available on both Mobile & Desktop) */}
           <button
             onClick={onToggleSearch}
-            className="hidden md:flex h-10 px-3.5 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center gap-2 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95"
-            title="Search"
+            className="w-9 h-9 sm:w-auto sm:h-10 px-0 sm:px-3.5 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center gap-1.5 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95"
+            title="Search dishes, menus & shops"
+            aria-label="Search"
           >
             <Search size={16} className="text-amber-600 dark:text-[#E0FF33]" />
-            <span className="text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
+            <span className="hidden sm:inline text-xs font-bold text-stone-800 dark:text-zinc-300">Search</span>
           </button>
 
           {/* Quick Cart Trigger (Uniform Circular Button with floating badge) */}
@@ -200,7 +222,7 @@ export default function Header({
           <button
             onClick={toggleTheme}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
-            title={isLight ? "Switch to Obsidian Dark Mode" : "Switch to Divine Light Mode"}
+            title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
             aria-label="Toggle Theme"
           >
             {isLight ? (
@@ -225,14 +247,14 @@ export default function Header({
         </div>
       </header>
 
-      {/* Mobile Dedicated Operational View Switcher (Horizontal Smooth Touch Strip) */}
+      {/* Mobile Dedicated Operational View Switcher (Full-Width Flexible Grid with balanced touch targets) */}
       {hasStaffOrSpecialRole && (
-        <div className="flex md:hidden items-center justify-start overflow-x-auto no-scrollbar gap-1.5 bg-stone-200/90 dark:bg-[#282526] p-1 rounded-2xl border border-stone-300 dark:border-white/10 shadow-sm mt-1 mb-2 w-full">
+        <div className="grid grid-flow-col auto-cols-fr md:hidden bg-stone-200/90 dark:bg-[#282526] p-1 rounded-2xl border border-stone-300 dark:border-white/10 shadow-sm mt-1.5 mb-2.5 w-full gap-1">
           <button 
             onClick={() => setCurrentTab('customer')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+            className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
               currentTab === 'customer' 
-                ? 'bg-stone-900 text-white dark:bg-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
                 : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
             }`}
           >
@@ -242,9 +264,9 @@ export default function Header({
           {(['kitchen'].includes(userRole) || isAuthorizedAdmin || isAuthorizedDeveloper) && (
             <button 
               onClick={() => setCurrentTab('kitchen')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'kitchen' 
-                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-sm' 
+                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -255,9 +277,9 @@ export default function Header({
           {(['delivery'].includes(userRole) || isAuthorizedAdmin || isAuthorizedDeveloper) && (
             <button 
               onClick={() => setCurrentTab('delivery')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'delivery' 
-                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black shadow-sm' 
+                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -268,9 +290,9 @@ export default function Header({
           {isAuthorizedAdmin && (
             <button 
               onClick={() => setCurrentTab('owner')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'owner' 
-                  ? 'bg-purple-600 text-white font-black shadow-sm' 
+                  ? 'bg-purple-600 text-white dark:bg-[#A855F7] dark:text-white font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -281,9 +303,9 @@ export default function Header({
           {isAuthorizedDeveloper && (
             <button 
               onClick={() => setCurrentTab('developer')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+              className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'developer' 
-                  ? 'bg-emerald-600 text-white font-black shadow-sm' 
+                  ? 'bg-emerald-600 text-white dark:bg-[#10B981] dark:text-white font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
