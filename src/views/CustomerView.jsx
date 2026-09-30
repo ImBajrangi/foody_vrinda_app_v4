@@ -2428,7 +2428,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
+                          paymentMethod === 'online'
+                            ? 'text-stone-950 dark:text-[#121011]'
+                            : 'text-stone-950 dark:text-white'
+                        }`}>
                           Online Pay
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'online'
@@ -2467,7 +2471,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
+                          paymentMethod === 'cash'
+                            ? 'text-stone-950 dark:text-[#121011]'
+                            : 'text-stone-950 dark:text-white'
+                        }`}>
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'cash'
