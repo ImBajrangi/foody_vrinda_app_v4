@@ -478,10 +478,11 @@ export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders =
 export function isShopCurrentlyOpen(shop) {
   if (!shop) return false;
   if (shop.isOpen === false || shop.is_open === false) return false;
-  if (shop.isOnline === false || shop.is_online === false || shop.isStaffOnline === false) return false;
+  if (shop.isOnline === false || shop.is_online === false) return false;
 
-  const openTime = shop.openingTime || shop.opening_time;
-  const closeTime = shop.closingTime || shop.closing_time;
+  const openTime = shop.openingTime || shop.opening_time || shop.operating_hours?.openTime || shop.payment_settings?.openingTime || '08:00';
+  const closeTime = shop.closingTime || shop.closing_time || shop.operating_hours?.closeTime || shop.payment_settings?.closingTime || '22:30';
+
   if (openTime && closeTime) {
     const now = new Date();
     const currentTotalMins = now.getHours() * 60 + now.getMinutes();
@@ -767,6 +768,55 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
     totalAmount,
     verifiedItems
   };
+}
+
+/**
+ * Validates whether a kitchen is currently open based on operating schedule and manual online status
+ */
+export function checkShopOperatingStatus(shop) {
+  if (!shop) return { isOpen: true, reason: 'ok' };
+
+  // 1. Manual switch check
+  if (shop.is_open === false || shop.isOpen === false || shop.is_online === false || shop.isOnline === false) {
+    return {
+      isOpen: false,
+      reason: 'manual_closed',
+      message: 'Kitchen is currently taking a break'
+    };
+  }
+
+  // 2. Schedule Operating Hours Check
+  const openTime = shop.operating_hours?.openTime || shop.payment_settings?.openingTime || shop.openingTime || '08:00';
+  const closeTime = shop.operating_hours?.closeTime || shop.payment_settings?.closingTime || shop.closingTime || '22:30';
+
+  const now = new Date();
+  const istFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false
+  });
+  const parts = istFormatter.formatToParts(now);
+  const curHour = parseInt(parts.find(p => p.type === 'hour')?.value || String(now.getHours()), 10);
+  const curMin = parseInt(parts.find(p => p.type === 'minute')?.value || String(now.getMinutes()), 10);
+  const curTotalMinutes = curHour * 60 + curMin;
+
+  const [openH, openM] = openTime.split(':').map(Number);
+  const [closeH, closeM] = closeTime.split(':').map(Number);
+  const openTotalMinutes = (openH || 8) * 60 + (openM || 0);
+  const closeTotalMinutes = (closeH || 22) * 60 + (closeM || 30);
+
+  if (curTotalMinutes < openTotalMinutes || curTotalMinutes > closeTotalMinutes) {
+    return {
+      isOpen: false,
+      reason: 'outside_hours',
+      message: `Kitchen closed. Opens daily at ${openTime}`,
+      openingTime: openTime,
+      closingTime: closeTime
+    };
+  }
+
+  return { isOpen: true, reason: 'ok', openingTime: openTime, closingTime: closeTime };
 }
 
 export async function createCloudOrder(orderData) {

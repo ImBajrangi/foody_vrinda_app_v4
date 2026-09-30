@@ -212,8 +212,8 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 6. Developer Console: Does not receive customer/kitchen sound alarms unless they placed the order
-    if (userRole === 'developer' || isAuthorizedDeveloper) {
+    // 6. Developer & Admin Master Consoles: Do not receive customer/kitchen sound alarms unless they placed the order
+    if (userRole === 'developer' || isAuthorizedDeveloper || userRole === 'grand_admin') {
       return false;
     }
 

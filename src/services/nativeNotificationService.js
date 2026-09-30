@@ -695,6 +695,24 @@ class NativeNotificationService {
   }
 
   /**
+   * Helper to get personalized item summary and customer name
+   */
+  _getOrderDetails(order) {
+    const items = Array.isArray(order?.items)
+      ? order.items
+      : (typeof order?.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch (_) { return []; } })() : []);
+    const firstItem = items[0]?.name || items[0]?.title || 'Vedic Prasad';
+    const extra = items.length > 1 
+      ? ` (+${items.length - 1} more)` 
+      : (items[0]?.quantity > 1 ? ` (x${items[0].quantity})` : '');
+    const itemsSummary = `${firstItem}${extra}`;
+    const customerFullName = (order?.customer_name || order?.customerName || order?.user_name || order?.userName || order?.delivery_address?.name || 'Bhakta').trim();
+    const customerFirstName = customerFullName.split(' ')[0] || 'Bhakta';
+    const total = order?.total_amount || order?.totalAmount || 0;
+    return { itemsSummary, customerFullName, customerFirstName, total };
+  }
+
+  /**
    * Kitchen Staff: Alert when a new order is received
    */
   async notifyKitchenNewOrder(order) {
@@ -703,15 +721,13 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const orderId = order.id ? String(order.id).slice(-4).toUpperCase() : '108';
-      const itemCount = order.items ? order.items.length : 1;
-      const total = order.total_amount || order.totalAmount || 0;
+      const { itemsSummary, customerFullName, total } = this._getOrderDetails(order);
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `🔔 NEW BHOG ORDER #${orderId} · ₹${total}`,
-            body: `${itemCount} items received! Tap to start cooking with pure Desi Ghee.`,
+            title: `🔔 NEW BHOG: ${itemsSummary} · ₹${total}`,
+            body: `Ordered by ${customerFullName}. Tap to start cooking with pure Desi Ghee!`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'kitchen_urgent',
             smallIcon: 'ic_stat_notification',
@@ -736,16 +752,13 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const orderId = order.id ? String(order.id).slice(-4).toUpperCase() : '108';
-      const itemCount = order.items ? order.items.length : 1;
-      const total = order.total_amount || order.totalAmount || 0;
-      const customerName = order.customer_name || order.customerName || 'Devotee';
+      const { itemsSummary, customerFullName, total } = this._getOrderDetails(order);
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `💰 NEW ORDER #${orderId} · ₹${total}`,
-            body: `${customerName} ordered ${itemCount} items. Tap to view live order stream.`,
+            title: `💰 NEW ORDER: ${itemsSummary} · ₹${total}`,
+            body: `Placed by ${customerFullName}. Tap to view live order stream.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'owner_urgent',
             smallIcon: 'ic_stat_notification',
@@ -770,14 +783,13 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const orderId = order.id ? String(order.id).slice(-4).toUpperCase() : '108';
-      const address = order.delivery_address || 'Vrindavan Dham';
+      const { itemsSummary, customerFullName } = this._getOrderDetails(order);
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `🛵 ORDER #${orderId} READY FOR PICKUP`,
-            body: `Freshly packed for express delivery to ${address}. Tap to navigate.`,
+            title: `✨ READY FOR PICKUP: ${itemsSummary}`,
+            body: `Order for ${customerFullName} is packed & hot. Tap to view navigation.`,
             id: Math.floor(Date.now() % 100000),
             channelId: 'driver_dispatch',
             smallIcon: 'ic_stat_notification',
@@ -802,30 +814,30 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const orderId = order.id ? String(order.id).slice(-4).toUpperCase() : '108';
-      let title = `🍛 Order #${orderId} Update`;
+      const { itemsSummary, customerFirstName } = this._getOrderDetails(order);
+      let title = `🍛 ${itemsSummary} Update`;
       let body = `Your order status changed to ${status}`;
 
       switch (status?.toLowerCase()) {
         case 'cooking':
         case 'preparing':
-          title = `🔥 Kitchen Simmering #${orderId}`;
+          title = `🔥 Cooking: ${itemsSummary}`;
           body = `Your prasad is being freshly cooked in pure Desi Ghee with devotion.`;
           break;
         case 'ready':
         case 'ready_for_pickup':
-          title = `✨ Prasad Packed & Blessed #${orderId}`;
-          body = `Awaiting express Sarathi express pickup from the sacred kitchen.`;
+          title = `✨ ${itemsSummary} Packed & Blessed`;
+          body = `Packed hot and ready for express Sarathi delivery, ${customerFirstName}!`;
           break;
         case 'out_for_delivery':
         case 'dispatched':
-          title = `🛵 Sarathi En Route #${orderId}`;
+          title = `🛵 Sarathi En Route with ${itemsSummary}`;
           body = `Your sacred prasad is on its way with live GPS express tracking.`;
           break;
         case 'delivered':
         case 'completed':
-          title = `🌸 Prasad Delivered Safely #${orderId}`;
-          body = `Savor the divine blessings of Sri Dham Vrindavan. Radhe Radhe! 🙏`;
+          title = `🌸 ${itemsSummary} Delivered!`;
+          body = `Savor the divine blessings of Sri Dham Vrindavan, ${customerFirstName}. Radhe Radhe! 🙏`;
           break;
       }
 
