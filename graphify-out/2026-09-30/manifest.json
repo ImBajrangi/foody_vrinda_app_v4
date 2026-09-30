@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1790691443.6094043,
-    "ast_hash": "9ff07c34fd6195e7fd76a22f634de597",
+    "mtime": 1790761109.7961798,
+    "ast_hash": "84d663d950b4b35ef9d3e40dc3f9b4ae",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
@@ -15,8 +15,8 @@
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
-    "mtime": 1790698575.3887236,
-    "ast_hash": "619ebdbd6b33a00f33183cb65a8692b9",
+    "mtime": 1790765554.9368653,
+    "ast_hash": "27774244f3e7a8e2c298cbab52c81fab",
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "src/components/ReviewModal.jsx": {
-    "mtime": 1790694826.4731755,
-    "ast_hash": "9b7030fbad1be5941919b23c6824b8ab",
+    "mtime": 1790765578.4701657,
+    "ast_hash": "ff8b9d0914ff78d71ec4b7629237b28f",
     "semantic_hash": ""
   },
   "src/components/RewardsModal.jsx": {
@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "src/context/NotificationContext.jsx": {
-    "mtime": 1790089322.6532605,
-    "ast_hash": "37dc8bb3870c5f40b10562514edf7f9d",
+    "mtime": 1790764531.753285,
+    "ast_hash": "d5fe24264b3bb11ce1ee45c56d68fd08",
     "semantic_hash": ""
   },
   "src/firebase.js": {
@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "src/hooks/useAudioAlarm.js": {
-    "mtime": 1790086420.0766072,
-    "ast_hash": "a5cad01c0881187ae5beaf9c72e07bc3",
+    "mtime": 1790762247.206326,
+    "ast_hash": "d2ac777f1177010fab1af2b69b378a3a",
     "semantic_hash": ""
   },
   "src/hooks/useFastNotify.js": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1790759005.2250168,
-    "ast_hash": "53e145ba8426650fcf4e8e7a74c506f0",
+    "mtime": 1790764516.9952502,
+    "ast_hash": "999cbc124a1dba662b6fd6796b61cffc",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -180,23 +180,23 @@
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1790083327.7790184,
-    "ast_hash": "73d22f1c7d9763c55d83cf852fda0637",
+    "mtime": 1790765479.900986,
+    "ast_hash": "e60be866dc8808b3dac09bac9bad1321",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1790093117.5241222,
-    "ast_hash": "9549694fe11359bb4181adacb8076ec3",
+    "mtime": 1790765467.6606226,
+    "ast_hash": "d4f8a5a040bef4aa55c32bb18650e815",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
-    "mtime": 1790093133.4150002,
-    "ast_hash": "10ec21b7b05d20a2a8040ee2f4157b2c",
+    "mtime": 1790765533.6193721,
+    "ast_hash": "f0ef537ce361f0652b17b8c4bc4faf85",
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1790093710.2774906,
-    "ast_hash": "33a17bda219c91adf877781e843cd6d3",
+    "mtime": 1790765566.5279162,
+    "ast_hash": "268ed76f92e2dfaec058c8e9a52e8941",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -265,13 +265,13 @@
     "semantic_hash": ""
   },
   "src/services/nativeNotificationService.js": {
-    "mtime": 1790758989.3077142,
-    "ast_hash": "ce0f9291ffe0280bb1ec3d5002bd1319",
+    "mtime": 1790765318.2309713,
+    "ast_hash": "99e819d1820f767ab9461310ce2f0db9",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1790698355.5352786,
-    "ast_hash": "4042e81cfb8782b179e288769fc82037",
+    "mtime": 1790763413.6574962,
+    "ast_hash": "13b8928371fbb9ae73a4dc33e145199a",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -330,13 +330,28 @@
     "semantic_hash": ""
   },
   "src/components/SoundTrialsModal.jsx": {
-    "mtime": 1790696699.7779253,
-    "ast_hash": "533529bbd477ed1682286ac421ab0542",
+    "mtime": 1790765447.3809457,
+    "ast_hash": "63b73174b9e9220d5481a9bfea7066ae",
     "semantic_hash": ""
   },
   "supabase/functions/order-push-notification/index.ts": {
-    "mtime": 1790759170.6596386,
-    "ast_hash": "596371d0bb200b460ba83253205bbfd2",
+    "mtime": 1790765285.3462396,
+    "ast_hash": "44038f4b03286999b4c7330fa7ed6e49",
+    "semantic_hash": ""
+  },
+  "scripts/test_push_workflow.mjs": {
+    "mtime": 1790760084.4856935,
+    "ast_hash": "36cfdfdc40698e521a45fef6187bb7bf",
+    "semantic_hash": ""
+  },
+  "src/components/AppUpdateModal.jsx": {
+    "mtime": 1790761063.7510877,
+    "ast_hash": "c154e29d597e8b05d4ede35553284bd2",
+    "semantic_hash": ""
+  },
+  "src/services/appUpdateService.js": {
+    "mtime": 1790765589.5181923,
+    "ast_hash": "e6b809456c6a22a3455915b539a436b2",
     "semantic_hash": ""
   }
 }

@@ -92,6 +92,22 @@ class NativeNotificationService {
     return 'natural_water_drop';
   }
 
+  getDevotionalTone() {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('foody_devotional_notifications') === 'true';
+    }
+    return false; // Professional & direct by default
+  }
+
+  setDevotionalTone(enabled) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('foody_devotional_notifications', enabled ? 'true' : 'false');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('foody:devotional-tone-changed', { detail: { enabled } }));
+      }
+    }
+  }
+
   getActiveTrialSoundFile() {
     const trialId = this.getActiveTrial();
     const trial = NOTIFICATION_TRIALS.find(t => t.id === trialId) || NOTIFICATION_TRIALS[0];
@@ -698,18 +714,20 @@ class NativeNotificationService {
    * Helper to get personalized item summary and customer name
    */
   _getOrderDetails(order) {
+    const isDevotional = order?.devotional_mode ?? this.getDevotionalTone();
     const items = Array.isArray(order?.items)
       ? order.items
       : (typeof order?.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch (_) { return []; } })() : []);
-    const firstItem = items[0]?.name || items[0]?.title || 'Vedic Prasad';
+    const defaultItem = isDevotional ? 'Vedic Prasad' : 'Food Order';
+    const firstItem = items[0]?.name || items[0]?.title || defaultItem;
     const extra = items.length > 1 
       ? ` (+${items.length - 1} more)` 
       : (items[0]?.quantity > 1 ? ` (x${items[0].quantity})` : '');
     const itemsSummary = `${firstItem}${extra}`;
-    const customerFullName = (order?.customer_name || order?.customerName || order?.user_name || order?.userName || order?.delivery_address?.name || 'Bhakta').trim();
-    const customerFirstName = customerFullName.split(' ')[0] || 'Bhakta';
+    const customerFullName = (order?.customer_name || order?.customerName || order?.user_name || order?.userName || order?.delivery_address?.name || (isDevotional ? 'Bhakta' : 'Customer')).trim();
+    const customerFirstName = customerFullName.split(' ')[0] || (isDevotional ? 'Bhakta' : 'Customer');
     const total = order?.total_amount || order?.totalAmount || 0;
-    return { itemsSummary, customerFullName, customerFirstName, total };
+    return { itemsSummary, customerFullName, customerFirstName, total, isDevotional };
   }
 
   /**
@@ -721,13 +739,19 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const { itemsSummary, customerFullName, total } = this._getOrderDetails(order);
+      const { itemsSummary, customerFullName, total, isDevotional } = this._getOrderDetails(order);
+      const title = isDevotional 
+        ? `🔔 NEW BHOG: ${itemsSummary} · ₹${total}` 
+        : `🔔 New Order: ${itemsSummary} · ₹${total}`;
+      const body = isDevotional 
+        ? `Ordered by ${customerFullName}. Tap to start cooking with pure Desi Ghee!`
+        : `Customer: ${customerFullName} · Tap to accept & start preparation.`;
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `🔔 NEW BHOG: ${itemsSummary} · ₹${total}`,
-            body: `Ordered by ${customerFullName}. Tap to start cooking with pure Desi Ghee!`,
+            title,
+            body,
             id: Math.floor(Date.now() % 100000),
             channelId: 'kitchen_urgent',
             smallIcon: 'ic_stat_notification',
@@ -752,13 +776,19 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const { itemsSummary, customerFullName, total } = this._getOrderDetails(order);
+      const { itemsSummary, customerFullName, total, isDevotional } = this._getOrderDetails(order);
+      const title = isDevotional 
+        ? `💰 NEW ORDER: ${itemsSummary} · ₹${total}` 
+        : `💰 New Order: ${itemsSummary} · ₹${total}`;
+      const body = isDevotional 
+        ? `Placed by ${customerFullName}. Tap to view live order stream.`
+        : `Order received from ${customerFullName} · Total ₹${total}. Tap to view.`;
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `💰 NEW ORDER: ${itemsSummary} · ₹${total}`,
-            body: `Placed by ${customerFullName}. Tap to view live order stream.`,
+            title,
+            body,
             id: Math.floor(Date.now() % 100000),
             channelId: 'owner_urgent',
             smallIcon: 'ic_stat_notification',
@@ -783,13 +813,19 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const { itemsSummary, customerFullName } = this._getOrderDetails(order);
+      const { itemsSummary, customerFullName, isDevotional } = this._getOrderDetails(order);
+      const title = isDevotional 
+        ? `✨ READY FOR PICKUP: ${itemsSummary}` 
+        : `🛵 Ready for Pickup: ${itemsSummary}`;
+      const body = isDevotional 
+        ? `Order for ${customerFullName} is packed & hot. Tap to view navigation.`
+        : `Order for ${customerFullName} is packed & ready on counter. Tap to navigate.`;
 
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `✨ READY FOR PICKUP: ${itemsSummary}`,
-            body: `Order for ${customerFullName} is packed & hot. Tap to view navigation.`,
+            title,
+            body,
             id: Math.floor(Date.now() % 100000),
             channelId: 'driver_dispatch',
             smallIcon: 'ic_stat_notification',
@@ -814,30 +850,44 @@ class NativeNotificationService {
     if (!this.isNative) return;
 
     try {
-      const { itemsSummary, customerFirstName } = this._getOrderDetails(order);
-      let title = `🍛 ${itemsSummary} Update`;
+      const { itemsSummary, customerFirstName, isDevotional } = this._getOrderDetails(order);
+      let title = isDevotional ? `🍛 ${itemsSummary} Update` : `Order Update: ${itemsSummary}`;
       let body = `Your order status changed to ${status}`;
 
       switch (status?.toLowerCase()) {
+        case 'new':
+          title = isDevotional ? `🙏 ${itemsSummary} Confirmed!` : `Order Confirmed: ${itemsSummary}`;
+          body = isDevotional 
+            ? `Thank you ${customerFirstName}! Freshly prepared with pure Desi Ghee.`
+            : `Thank you ${customerFirstName}! Your order has been placed and sent to the kitchen.`;
+          break;
         case 'cooking':
         case 'preparing':
-          title = `🔥 Cooking: ${itemsSummary}`;
-          body = `Your prasad is being freshly cooked in pure Desi Ghee with devotion.`;
+          title = isDevotional ? `🔥 Cooking: ${itemsSummary}` : `Preparing: ${itemsSummary}`;
+          body = isDevotional 
+            ? `Your prasad is being freshly cooked in pure Desi Ghee with devotion.`
+            : `The kitchen has started preparing your fresh food.`;
           break;
         case 'ready':
         case 'ready_for_pickup':
-          title = `✨ ${itemsSummary} Packed & Blessed`;
-          body = `Packed hot and ready for express Sarathi delivery, ${customerFirstName}!`;
+          title = isDevotional ? `✨ ${itemsSummary} Packed & Blessed` : `Order Ready: ${itemsSummary}`;
+          body = isDevotional 
+            ? `Packed hot and ready for express Sarathi delivery, ${customerFirstName}!`
+            : `Your order is packed and ready for delivery pickup, ${customerFirstName}.`;
           break;
         case 'out_for_delivery':
         case 'dispatched':
-          title = `🛵 Sarathi En Route with ${itemsSummary}`;
-          body = `Your sacred prasad is on its way with live GPS express tracking.`;
+          title = isDevotional ? `🛵 Sarathi En Route with ${itemsSummary}` : `Out for Delivery: ${itemsSummary}`;
+          body = isDevotional 
+            ? `Your sacred prasad is on its way with live GPS express tracking.`
+            : `Your order is on the way with delivery partner. Track live on map.`;
           break;
         case 'delivered':
         case 'completed':
-          title = `🌸 ${itemsSummary} Delivered!`;
-          body = `Savor the divine blessings of Sri Dham Vrindavan, ${customerFirstName}. Radhe Radhe! 🙏`;
+          title = isDevotional ? `🌸 ${itemsSummary} Delivered!` : `Order Delivered: ${itemsSummary}`;
+          body = isDevotional 
+            ? `Savor the divine blessings of Sri Dham Vrindavan, ${customerFirstName}. Radhe Radhe! 🙏`
+            : `Enjoy your meal, ${customerFirstName}! Thank you for ordering with Foody Vrinda.`;
           break;
       }
 

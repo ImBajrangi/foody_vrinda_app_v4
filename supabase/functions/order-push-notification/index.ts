@@ -212,7 +212,7 @@ serve(async (req: Request) => {
     try {
       const { data: shopData } = await supabase
         .from("foody_shops")
-        .select("id, name, alarm_settings, payment_settings")
+        .select("id, name, alarm_settings, payment_settings, devotional_mode")
         .eq("id", orderShopId)
         .limit(1)
         .maybeSingle();
@@ -221,6 +221,38 @@ serve(async (req: Request) => {
 
     const isSelfChef = Boolean(shopSettings?.payment_settings?.self_chef_mode || shopSettings?.alarm_settings?.kitchenNew);
     const isSelfDelivery = Boolean(shopSettings?.payment_settings?.self_delivery_mode);
+    const isDevotional = Boolean(
+      order.devotional_mode || 
+      order.devotionalMode || 
+      payload.devotional_mode || 
+      shopSettings?.devotional_mode || 
+      shopSettings?.payment_settings?.devotional_notifications
+    );
+
+    // Extract items summary & customer name (clean & informative)
+    const itemsList = Array.isArray(order.items)
+      ? order.items
+      : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch (_) { return []; } })() : []);
+    const defaultItem = isDevotional ? "Vedic Prasad" : "Food Order";
+    const firstItemName = itemsList[0]?.name || itemsList[0]?.title || defaultItem;
+    const extraItemsCount = itemsList.length > 1 
+      ? ` (+${itemsList.length - 1} more)` 
+      : (itemsList[0]?.quantity > 1 ? ` (x${itemsList[0].quantity})` : "");
+    const itemsSummary = `${firstItemName}${extraItemsCount}`;
+
+    const customerFullName = (order.customer_name || order.customerName || order.user_name || order.userName || order.delivery_address?.name || (isDevotional ? "Bhakta" : "Customer")).trim();
+    const customerFirstName = customerFullName.split(" ")[0] || (isDevotional ? "Bhakta" : "Customer");
+
+    // Skip if status didn't change on UPDATE
+    if (type === "UPDATE" && status === oldStatus) {
+      return new Response(
+        JSON.stringify({ message: "Status unchanged, skipping push" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const googleAccessToken = await getGoogleAccessToken(serviceAccount);
+    const results = [];
 
     // --- ESCALATION 1: UNRESPONSIVE KITCHEN WARNING (3-Minute Alert to Developer) ---
     if (type === "UNRESPONSIVE_ALERT") {
@@ -260,13 +292,18 @@ serve(async (req: Request) => {
     if (type === "AUTO_CANCEL_UNRESPONSIVE" || status === "auto_cancelled_unresponsive") {
       // Notify Customer (Clear communication: Shop is currently not responding)
       if (customerToken) {
+        const title = isDevotional ? `⚠️ Order Not Accepted · ${itemsSummary}` : `⚠️ Order Cancelled · ${itemsSummary}`;
+        const bodyMsg = isDevotional
+          ? `Kshama karein ${customerFirstName}! Currently shop respond nahi kar rahi hai. Kripya thodi der baad try karein ya kisi dusri shop se order karein.`
+          : `We apologize ${customerFirstName}! The shop did not respond in time. Order has been cancelled. Please try again or select another restaurant.`;
+
         const res = await sendFCMMessage(
           projectId,
           googleAccessToken,
           customerToken,
           {
-            title: `⚠️ Order Not Accepted · ${itemsSummary}`,
-            body: `Kshama karein ${customerFirstName}! Currently shop respond nahi kar rahi hai. Kripya thodi der baad try karein ya kisi dusri shop se order karein.`
+            title,
+            body: bodyMsg
           },
           "order_updates",
           customerSound,
@@ -307,26 +344,36 @@ serve(async (req: Request) => {
       );
     }
 
-    // 1. Customer Notification Dispatch
+    // 1. Customer Notification Dispatch (Professional by default / Devotional when enabled)
     if (customerToken) {
-      let title = `🍛 ${itemsSummary} Update`;
+      let title = isDevotional ? `🍛 ${itemsSummary} Update` : `Order Update: ${itemsSummary}`;
       let text = `Your order status changed to ${status}`;
 
       if (type === "INSERT" || status === "new") {
-        title = `🙏 ${itemsSummary} Confirmed!`;
-        text = `Thank you ${customerFirstName}! Freshly prepared with pure Desi Ghee.`;
+        title = isDevotional ? `🙏 ${itemsSummary} Confirmed!` : `Order Confirmed: ${itemsSummary}`;
+        text = isDevotional
+          ? `Thank you ${customerFirstName}! Freshly prepared with pure Desi Ghee.`
+          : `Thank you ${customerFirstName}! Your order has been placed and sent to the kitchen.`;
       } else if (status === "cooking" || status === "preparing") {
-        title = `🔥 Cooking: ${itemsSummary}`;
-        text = `Your prasad is simmering with devotion in the sacred kitchen.`;
+        title = isDevotional ? `🔥 Cooking: ${itemsSummary}` : `Preparing: ${itemsSummary}`;
+        text = isDevotional
+          ? `Your prasad is simmering with devotion in the sacred kitchen.`
+          : `The kitchen has started preparing your fresh food.`;
       } else if (status === "ready" || status === "ready_for_pickup") {
-        title = `✨ ${itemsSummary} Packed & Blessed`;
-        text = `Packed hot and ready for express Sarathi delivery, ${customerFirstName}!`;
+        title = isDevotional ? `✨ ${itemsSummary} Packed & Blessed` : `Order Ready: ${itemsSummary}`;
+        text = isDevotional
+          ? `Packed hot and ready for express Sarathi delivery, ${customerFirstName}!`
+          : `Your order is packed and ready for delivery pickup, ${customerFirstName}.`;
       } else if (status === "out_for_delivery" || status === "dispatched") {
-        title = `🛵 Sarathi En Route with ${itemsSummary}`;
-        text = `Your sacred prasad is on its way with live GPS tracking.`;
+        title = isDevotional ? `🛵 Sarathi En Route with ${itemsSummary}` : `Out for Delivery: ${itemsSummary}`;
+        text = isDevotional
+          ? `Your sacred prasad is on its way with live GPS tracking.`
+          : `Your order is on the way with your delivery partner. Track live on map.`;
       } else if (status === "delivered" || status === "completed") {
-        title = `🌸 ${itemsSummary} Delivered!`;
-        text = `Savor the divine blessings of Sri Dham Vrindavan, ${customerFirstName}. Radhe Radhe! 🙏`;
+        title = isDevotional ? `🌸 ${itemsSummary} Delivered!` : `Order Delivered: ${itemsSummary}`;
+        text = isDevotional
+          ? `Savor the divine blessings of Sri Dham Vrindavan, ${customerFirstName}. Radhe Radhe! 🙏`
+          : `Enjoy your meal, ${customerFirstName}! Thank you for ordering with Foody Vrinda.`;
       }
 
       const res = await sendFCMMessage(
@@ -366,8 +413,12 @@ serve(async (req: Request) => {
         if (!staff.fcm_token || seenTokens.has(staff.fcm_token)) continue;
         seenTokens.add(staff.fcm_token);
 
-        const title = `🔔 NEW BHOG: ${itemsSummary} · ₹${order.total_amount || 0}`;
-        const bodyMsg = `Ordered by ${customerFullName}. Tap to accept & start cooking!`;
+        const title = isDevotional 
+          ? `🔔 NEW BHOG: ${itemsSummary} · ₹${order.total_amount || 0}`
+          : `🔔 New Order: ${itemsSummary} · ₹${order.total_amount || 0}`;
+        const bodyMsg = isDevotional
+          ? `Ordered by ${customerFullName}. Tap to accept & start cooking!`
+          : `Customer: ${customerFullName} · Tap to accept & start preparation.`;
 
         const res = await sendFCMMessage(
           projectId,
@@ -410,8 +461,12 @@ serve(async (req: Request) => {
         if (rider.is_online === false || rider.duty_status === "off_duty") continue;
         seenRiderTokens.add(rider.fcm_token);
 
-        const title = `🛵 Early Pickup: ${itemsSummary} · ₹${order.total_amount || 0}`;
-        const bodyMsg = `Cooking for ${customerFullName} (~10m ready). Tap to claim delivery!`;
+        const title = isDevotional 
+          ? `🛵 Early Pickup: ${itemsSummary} · ₹${order.total_amount || 0}`
+          : `🛵 Upcoming Pickup: ${itemsSummary} · ₹${order.total_amount || 0}`;
+        const bodyMsg = isDevotional
+          ? `Cooking for ${customerFullName} (~10m ready). Tap to claim delivery!`
+          : `Kitchen is preparing order for ${customerFullName} (~10m ready). Tap to accept pickup!`;
 
         const res = await sendFCMMessage(
           projectId,
@@ -444,8 +499,10 @@ serve(async (req: Request) => {
       }
 
       if (targetRiderToken) {
-        const title = `✨ Ready for Pickup: ${itemsSummary}`;
-        const bodyMsg = `Order for ${customerFullName} is packed & hot on counter. Show OTP to collect!`;
+        const title = isDevotional ? `✨ Ready for Pickup: ${itemsSummary}` : `✨ Ready for Pickup: ${itemsSummary}`;
+        const bodyMsg = isDevotional
+          ? `Order for ${customerFullName} is packed & hot on counter. Show OTP to collect!`
+          : `Order for ${customerFullName} is packed and ready on counter. Collect with OTP.`;
 
         const res = await sendFCMMessage(
           projectId,
@@ -472,8 +529,12 @@ serve(async (req: Request) => {
         for (const owner of ownerProfiles) {
           if (!owner.fcm_token) continue;
           const payMode = (order.payment_method || "cash").toUpperCase();
-          const title = `💰 ₹${order.total_amount || 0} Received · ${itemsSummary}`;
-          const bodyMsg = `Delivered to ${customerFullName} via Sarathi. Method: ${payMode}.`;
+          const title = isDevotional 
+            ? `💰 ₹${order.total_amount || 0} Received · ${itemsSummary}`
+            : `💰 Payment Received: ₹${order.total_amount || 0} · ${itemsSummary}`;
+          const bodyMsg = isDevotional
+            ? `Delivered to ${customerFullName} via Sarathi. Method: ${payMode}.`
+            : `Order delivered to ${customerFullName}. Method: ${payMode}.`;
 
           const res = await sendFCMMessage(
             projectId,

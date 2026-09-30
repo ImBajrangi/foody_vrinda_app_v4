@@ -691,7 +691,7 @@ export default function TransportView() {
                 <span className={`text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap ${
                   trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
                 }`}>
-                  {trustScore >= 750 ? 'Top Sarathi 🏆' : 'Active Partner'}
+                  {trustScore >= 750 ? 'Top Sarathi' : 'Active Partner'}
                 </span>
               </div>
 

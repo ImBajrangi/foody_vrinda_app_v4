@@ -34,16 +34,20 @@ export default function App() {
   const { audioUnlocked, enableAudio } = useAudioAlarm();
   const { isLight, theme } = useTheme();
 
-  // Native Android & iOS Status Bar + Splash Screen Lifecycle Management
+  // Instant Native Splash Dismissal on Initial React Mount (Zero Startup Latency)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
+    // Immediately dismiss splash screen as soon as JavaScript boots
+    requestAnimationFrame(async () => {
+      try {
+        await SplashScreen.hide();
+      } catch (_) {}
+    });
+
     const setupNativeUI = async () => {
       try {
-        // Prevent WebView from sliding behind the Android system status bar / camera notch
         await StatusBar.setOverlaysWebView({ overlay: false });
-        
-        // Sync status bar theme with application light / dark palette
         if (isLight) {
           await StatusBar.setStyle({ style: Style.Light });
           await StatusBar.setBackgroundColor({ color: '#FAF7F2' });
@@ -54,11 +58,6 @@ export default function App() {
       } catch (err) {
         console.warn('Native status bar sync error:', err);
       }
-
-      try {
-        // Smoothly dismiss native splash screen once React UI has fully mounted
-        await SplashScreen.hide();
-      } catch (_) {}
     };
 
     setupNativeUI();
@@ -101,7 +100,7 @@ export default function App() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
 
-  // Background Auto-Update Checker (100% Seamless OTA & In-App Update Engine)
+  // Background Auto-Update Engine (Checks Supabase Cloud for new APK release)
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
@@ -113,9 +112,24 @@ export default function App() {
       } catch (err) {
         console.warn('Auto update check notice:', err);
       }
-    }, 2500);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    const handleManualCheck = async () => {
+      try {
+        const info = await appUpdateService.checkForUpdates();
+        if (info?.hasUpdate) {
+          setUpdateInfo(info);
+          setIsUpdateOpen(true);
+        }
+      } catch (_) {}
+    };
+
+    window.addEventListener('foody:check-app-update', handleManualCheck);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('foody:check-app-update', handleManualCheck);
+    };
   }, []);
 
   // Active Customer Tracking Order ID (persisted across reloads)

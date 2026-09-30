@@ -258,7 +258,7 @@ export default function KitchenView() {
         await createCloudNotification({
           role: 'delivery',
           shopId: currentUserShopId,
-          title: `⚡ Food in Preparation: Head to Kitchen`,
+          title: `Food in Preparation: Head to Kitchen`,
           message: `Chef started cooking Order #${orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}. Head to kitchen for instant hot pickup!`,
           orderId
         });
@@ -432,7 +432,7 @@ export default function KitchenView() {
               type="button"
               onClick={() => {
                 setIsRushMode(prev => !prev);
-                showToast(!isRushMode ? "🔥 Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
+                showToast(!isRushMode ? "Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
               }}
               className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${
                 isRushMode

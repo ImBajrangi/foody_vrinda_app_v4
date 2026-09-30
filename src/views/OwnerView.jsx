@@ -961,8 +961,8 @@ export default function OwnerView() {
                 toggleOwnerSoundAlerts();
                 setToast({
                   message: !ownerSoundAlerts
-                    ? '🔔 Staff Sound Alerts Enabled: Phone will ring on new incoming orders.'
-                    : '🔕 Staff Sound Alerts Silenced: Order ringing turned off (silent dashboard mode).',
+                    ? 'Staff Sound Alerts Enabled: Phone will ring on new incoming orders.'
+                    : 'Staff Sound Alerts Silenced: Order ringing turned off (silent dashboard mode).',
                   type: 'info'
                 });
               }}
@@ -2450,7 +2450,7 @@ export default function OwnerView() {
                     className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33]/25 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
                   >
                     <Upload className="w-4 h-4 shrink-0" />
-                    <span>{imageUploadLoading ? 'Optimizing AI Photo...' : '📁 Upload Photo / AI Image from Device'}</span>
+                    <span>{imageUploadLoading ? 'Optimizing AI Photo...' : 'Upload Photo / AI Image from Device'}</span>
                   </button>
 
                   {menuForm.imageUrl && (
@@ -3722,7 +3722,7 @@ export default function OwnerView() {
                                       )}
                                     </div>
                                     <p className="text-[10px] text-stone-500 dark:text-neutral-400">
-                                      📍 ~{rider.distanceKm || 0.5} km away • {activeCount} active orders • ~{eta} min ETA
+                                      ~{rider.distanceKm || 0.5} km away • {activeCount} active orders • ~{eta} min ETA
                                     </p>
                                   </div>
                                 </div>
@@ -3757,7 +3757,7 @@ export default function OwnerView() {
                         </div>
                       ) : (
                         <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-400/10 p-2.5 rounded-xl border border-amber-400/20">
-                          ⚠️ No online delivery riders active nearby. Customer will be offered Self-Pickup.
+                          No online delivery riders active nearby. Customer will be offered Self-Pickup.
                         </p>
                       )}
                     </div>

@@ -3,21 +3,21 @@ import { Star, Sparkles, X, Check, ChefHat, Truck, ThumbsUp, Heart, Award } from
 import { recordMultiStaffReview } from '../supabase';
 
 const CHEF_TAGS = [
-  '🔥 Piping Hot & Fresh',
-  '🌸 Authentic Vedic Taste',
-  '🌿 Pure Desi Ghee',
-  '📦 Spill-Proof Packaging',
-  '✨ Divine Aroma',
-  '🥗 Perfect Spices'
+  'Piping Hot & Fresh',
+  'Authentic Taste',
+  'Pure Desi Ghee',
+  'Spill-Proof Packaging',
+  'Fresh Aroma',
+  'Perfect Spices'
 ];
 
 const RIDER_TAGS = [
-  '⚡ Super Fast Delivery',
-  '🙏 Humble & Polite',
-  '🛡️ Safe & Contactless',
-  '📍 Found Address Easily',
-  '🛵 Handled with Care',
-  '⭐ 5-Star Sarathi'
+  'Fast Delivery',
+  'Humble & Polite',
+  'Safe & Contactless',
+  'Found Address Easily',
+  'Handled with Care',
+  '5-Star Sarathi Service'
 ];
 
 export default function ReviewModal({ 

@@ -7,6 +7,15 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
     return nativeNotify.getActiveTrial();
   });
   const [playingId, setPlayingId] = useState(null);
+  const [isDevotional, setIsDevotional] = useState(() => {
+    return nativeNotify.getDevotionalTone();
+  });
+
+  const handleToggleDevotional = useCallback(() => {
+    const nextVal = !isDevotional;
+    setIsDevotional(nextVal);
+    nativeNotify.setDevotionalTone(nextVal);
+  }, [isDevotional]);
 
   const handlePlayTrial = useCallback((trialId, e) => {
     if (e) e.stopPropagation();
@@ -40,10 +49,10 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                Notification Sound Trials
+                Notifications & Tone Settings
               </h3>
               <p className="text-xs text-stone-500 dark:text-zinc-400">
-                Modern, lite & soft acoustic tones for order updates
+                Acoustic sound trials & personalized messaging style
               </p>
             </div>
           </div>
@@ -55,6 +64,49 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Messaging Tone Selector (Clean / Devotional) */}
+        <div className="p-3.5 rounded-2xl bg-stone-100/80 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400">
+                Messaging Tone
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                isDevotional 
+                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]' 
+                  : 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
+              }`}>
+                {isDevotional ? 'Devotional Tone' : 'Professional Tone'}
+              </span>
+            </div>
+            <p className="text-xs text-stone-600 dark:text-zinc-300 mt-0.5 font-medium">
+              {isDevotional 
+                ? 'Spiritual Vedic phrasing, temple blessings & sacred greetings' 
+                : 'Clean, direct, and informative updates for fast food & general orders'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleDevotional}
+            className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
+              isDevotional ? 'bg-amber-600 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-zinc-700'
+            }`}
+            title="Toggle devotional notification tone"
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-black transition-transform shadow-xs ${
+              isDevotional ? 'translate-x-6' : 'translate-x-0'
+            }`} />
+          </button>
+        </div>
+
+        {/* Section Label */}
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-xs font-black uppercase tracking-wider text-stone-400 dark:text-zinc-500">
+            Select Notification Sound Trial
+          </span>
         </div>
 
         {/* Trials List */}
@@ -137,7 +189,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                 return;
               }
               try {
-                alert("🚀 Test push dispatched! Lock your screen or swipe app away now to verify sound.");
+                alert("Test push dispatched. Lock your screen or swipe app away now to verify sound.");
                 await fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },

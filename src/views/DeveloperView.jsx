@@ -91,6 +91,7 @@ import {
   broadcastAlarmEvent
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
+import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
 
 export default function DeveloperView({ setCurrentTab }) {
   const {
@@ -237,6 +238,38 @@ export default function DeveloperView({ setCurrentTab }) {
     }));
   };
 
+  // --- APP RELEASES / AUTO-UPDATE STATE ---
+  const [releaseVersionName, setReleaseVersionName] = useState('1.1.3');
+  const [releaseVersionCode, setReleaseVersionCode] = useState(14);
+  const [releaseApkUrl, setReleaseApkUrl] = useState('https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk');
+  const [releaseNotes, setReleaseNotes] = useState('Fast instantaneous app startup with zero splash delay.\nOptimized real-time notifications with personalized dish summaries.\nDual messaging mode: Professional & Devotional tone toggle.');
+  const [releaseMandatory, setReleaseMandatory] = useState(false);
+  const [isPublishingRelease, setIsPublishingRelease] = useState(false);
+
+  const handlePublishRemoteRelease = async (e) => {
+    if (e) e.preventDefault();
+    setIsPublishingRelease(true);
+    try {
+      const res = await appUpdateService.publishRelease({
+        versionCode: releaseVersionCode,
+        versionName: releaseVersionName,
+        apkUrl: releaseApkUrl,
+        releaseNotes: releaseNotes,
+        isMandatory: releaseMandatory
+      });
+      if (res.success) {
+        setToast({ message: `Release v${releaseVersionName} (Build ${releaseVersionCode}) published to cloud!`, type: 'success' });
+        logActivity(`Published remote app update v${releaseVersionName} (Build ${releaseVersionCode})`, 'success');
+      } else {
+        setToast({ message: res.error || 'Failed to publish release', type: 'error' });
+      }
+    } catch (err) {
+      setToast({ message: err.message, type: 'error' });
+    } finally {
+      setIsPublishingRelease(false);
+    }
+  };
+
   const collapseAll = () => {
     setCollapsedSections({
       impersonation: true,
@@ -247,7 +280,8 @@ export default function DeveloperView({ setCurrentTab }) {
       payments: true,
       simulator: true,
       users: true,
-      alarm: true
+      alarm: true,
+      updates: true
     });
   };
 
@@ -261,7 +295,8 @@ export default function DeveloperView({ setCurrentTab }) {
       payments: false,
       simulator: false,
       users: false,
-      alarm: false
+      alarm: false,
+      updates: false
     });
   };
 
@@ -1370,7 +1405,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
                             }`}
                         >
-                          🍽️ Hotel / Restaurant
+                          Hotel / Restaurant
                         </button>
                         <button
                           type="button"
@@ -1378,7 +1413,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
                             }`}
                         >
-                          🏪 Shop / Retail Stall
+                          Shop / Retail Stall
                         </button>
                       </div>
                     </div>
@@ -3331,6 +3366,128 @@ export default function DeveloperView({ setCurrentTab }) {
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* 10. Live App Updates & Remote Release Manager */}
+        {(activeDevTab === 'all' || activeDevTab === 'updates' || activeDevTab === 'alarm') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('updates')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                      Live App Update & Release Engine
+                    </h3>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30">
+                      Installed: v{CURRENT_APP_VERSION.versionName} (b{CURRENT_APP_VERSION.versionCode})
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
+                    Publish remote OTA app updates to all customer, rider & staff phones without manual sharing.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'updates' || !collapsedSections.updates) ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </button>
+
+            {(activeDevTab === 'updates' || !collapsedSections.updates) && (
+              <form onSubmit={handlePublishRemoteRelease} className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Version Name</label>
+                    <input
+                      type="text"
+                      value={releaseVersionName}
+                      onChange={e => setReleaseVersionName(e.target.value)}
+                      placeholder="e.g. 1.1.3"
+                      required
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Version Code</label>
+                    <input
+                      type="number"
+                      value={releaseVersionCode}
+                      onChange={e => setReleaseVersionCode(parseInt(e.target.value, 10))}
+                      placeholder="e.g. 14"
+                      required
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={releaseMandatory}
+                        onChange={e => setReleaseMandatory(e.target.checked)}
+                        className="w-4 h-4 rounded accent-amber-600 dark:accent-[#E0FF33]"
+                      />
+                      <span className="text-xs font-bold text-stone-800 dark:text-zinc-200">Mandatory (Block old versions)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct APK Download Link (GitHub Releases / Cloud CDN)</label>
+                  <input
+                    type="url"
+                    value={releaseApkUrl}
+                    onChange={e => setReleaseApkUrl(e.target.value)}
+                    placeholder="https://github.com/.../Foody-Vrinda-Latest.apk"
+                    required
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Release Notes (Line by line)</label>
+                  <textarea
+                    value={releaseNotes}
+                    onChange={e => setReleaseNotes(e.target.value)}
+                    rows={3}
+                    required
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33] custom-scrollbar"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('foody:check-app-update'));
+                    }}
+                    className="px-4 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                  >
+                    <RefreshCw size={13} />
+                    <span>Test In-App Update Prompt</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isPublishingRelease}
+                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#CCFF00] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    {isPublishingRelease ? 'Publishing to Cloud...' : 'Publish Update to All Devices'}
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         )}

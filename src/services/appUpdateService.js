@@ -42,9 +42,9 @@ class AppUpdateService {
           minSupportedVersionCode: 10,
           apkUrl: 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk',
           releaseNotes: [
-            '✨ Real-time background push notifications with soft acoustic chimes.',
-            '🚀 3x faster app loading and memory optimization.',
-            '🔒 Enhanced security and permanent root protection.'
+            'Real-time background push notifications with soft acoustic chimes.',
+            '3x faster app loading and memory optimization.',
+            'Enhanced security and permanent root protection.'
           ],
           isMandatory: false,
           publishedAt: new Date().toISOString()

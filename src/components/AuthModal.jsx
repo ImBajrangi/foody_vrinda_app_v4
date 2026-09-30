@@ -617,11 +617,11 @@ export default function AuthModal({ isOpen, onClose }) {
                                 effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
                                   'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
                       }`}>
-                        {isMasterAdmin ? '👑 Grand Admin' :
+                        {isMasterAdmin ? 'Grand Admin' :
                           effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
                             effectiveDisplayRole === 'delivery' ? 'Rider Sarathi' :
                               effectiveDisplayRole === 'owner' ? 'Store Owner' :
-                                effectiveDisplayRole === 'developer' ? 'Master Developer' : 'Satvik Devotee'}
+                                effectiveDisplayRole === 'developer' ? 'Master Developer' : 'Customer'}
                       </span>
                     );
                   })()}
@@ -1095,7 +1095,7 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
 
               <div className="text-[10px] text-stone-600 dark:text-zinc-400 font-mono">
-                Foody Vrinda v3.2.0 • Sri Vrindavan Dham 🙏
+                Foody Vrinda v3.2.0 • Sri Vrindavan Dham
               </div>
             </div>
           </div>
