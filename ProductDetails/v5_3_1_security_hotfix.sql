@@ -11,8 +11,17 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Step 2: Schema Migrations
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_hash TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_hash TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_expires_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_expires_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_attempts INT DEFAULT 0;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_attempts INT DEFAULT 0;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_used_at TIMESTAMPTZ;
 ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_used_at TIMESTAMPTZ;
+-- Transitional plaintext fallback columns (scheduled for removal in v5.4)
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp TEXT;
 ALTER TABLE public.foody_order_events ADD COLUMN IF NOT EXISTS event_sequence INT;
 
 -- Recreate COD difference as stored generated column

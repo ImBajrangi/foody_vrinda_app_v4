@@ -505,12 +505,12 @@ export function getCachedShops() {
     if (raw !== null && raw !== undefined) {
       const parsed = JSON.parse(raw);
       const list = Array.isArray(parsed) ? parsed : parsed?.data;
-      if (Array.isArray(list)) {
+      if (Array.isArray(list) && list.length > 0) {
         return list.map(normalizeShop);
       }
     }
   } catch (e) { }
-  return [];
+  return (SEED_SHOPS || []).map(normalizeShop);
 }
 
 export function saveCachedShops(shopsList) {
@@ -585,7 +585,7 @@ export function invalidateCache(type, key) {
 // 2. SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
 // ========================================================================
 export async function getCloudShops() {
-  if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data)) {
+  if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data) && memoryCache.shops.data.length > 0) {
     return memoryCache.shops.data;
   }
 
@@ -596,13 +596,12 @@ export async function getCloudShops() {
 
   const promise = (async () => {
     try {
-      // First try the security-barrier public_shop_catalog view, fallback to foody_shops
-      let res = await supabase.from('public_shop_catalog').select('*').order('name');
-      if (res.error) {
-        res = await supabase.from('foody_shops').select('*').order('name');
+      let res = await supabase.from('foody_shops').select('*').order('name');
+      if (res.error || !res.data || res.data.length === 0) {
+        res = await supabase.from('public_shop_catalog').select('*').order('name');
       }
 
-      if (!res.error && Array.isArray(res.data)) {
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
         const activeOnly = res.data.filter(d => d.is_active !== false && d.is_deleted !== true);
         const normalized = activeOnly.map(d => normalizeShop(d));
         const finalShops = saveCachedShops(normalized);
@@ -833,7 +832,11 @@ export async function createCloudOrder(orderData) {
     const generatedDeliveryOtp = generateSecureOrderOTP();
     const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || null;
+    // 🔐 Compute SHA-256 cryptographic hashes for atomic database verification
+    const pickupOtpHash = await computeSha256Hex(generatedPickupOtp);
+    const deliveryOtpHash = await computeSha256Hex(generatedDeliveryOtp);
+
+    const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null) || null;
 
     const orderPayload = {
       id: orderId,
@@ -857,6 +860,14 @@ export async function createCloudOrder(orderData) {
       cooking_notes: orderData.cookingNotes || orderData.cooking_notes || '',
       created_by: orderData.createdBy || orderData.created_by || orderData.customerName || 'Customer',
       fulfillment_type: fulfillmentType,
+      // 🛡️ v5.3.1 Cryptographic OTP System: Primary SHA-256 Hashes
+      pickup_otp_hash: pickupOtpHash,
+      delivery_otp_hash: deliveryOtpHash,
+      pickup_otp_expires_at: otpExpiresAt,
+      delivery_otp_expires_at: otpExpiresAt,
+      pickup_otp_attempts: 0,
+      delivery_otp_attempts: 0,
+      // Transitional plaintext fallback fields (scheduled for deprecation in v5.4)
       pickup_otp: generatedPickupOtp,
       delivery_otp: generatedDeliveryOtp,
       fcm_token: activeFcmToken,
@@ -885,6 +896,12 @@ export async function createCloudOrder(orderData) {
       cookingNotes: orderPayload.cooking_notes,
       pickupOtp: generatedPickupOtp,
       deliveryOtp: generatedDeliveryOtp,
+      pickupOtpHash,
+      deliveryOtpHash,
+      pickupOtpExpiresAt: otpExpiresAt,
+      deliveryOtpExpiresAt: otpExpiresAt,
+      pickupOtpAttempts: 0,
+      deliveryOtpAttempts: 0,
       createdAt: orderPayload.created_at
     };
 
@@ -902,7 +919,9 @@ export async function createCloudOrder(orderData) {
       'delivery_address', 'delivery_coordinates', 'items', 'subtotal', 'delivery_charge',
       'gst_amount', 'total_amount', 'status', 'payment_method', 'payment_id', 'cash_status',
       'cooking_notes', 'created_by', 'created_at', 'updated_at', 'fulfillment_type',
-      'pickup_otp', 'delivery_otp', 'rider_id', 'rider_name', 'rider_phone', 'chef_id', 'chef_name'
+      'pickup_otp', 'delivery_otp', 'pickup_otp_hash', 'delivery_otp_hash',
+      'pickup_otp_expires_at', 'delivery_otp_expires_at', 'pickup_otp_attempts', 'delivery_otp_attempts',
+      'rider_id', 'rider_name', 'rider_phone', 'chef_id', 'chef_name'
     ]);
 
     const dbPayload = {};
@@ -913,11 +932,25 @@ export async function createCloudOrder(orderData) {
     }
 
     // Persist to Supabase foody_orders table
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('foody_orders')
       .upsert([dbPayload], { onConflict: 'id' })
       .select()
       .single();
+
+    if (error && (error.message?.includes('delivery_otp') || error.message?.includes('pickup_otp'))) {
+      // Fallback: If DB schema has already migrated to hash-only (or plaintext columns not yet defined in DB), retry without plaintext columns
+      const hashOnlyPayload = { ...dbPayload };
+      delete hashOnlyPayload.pickup_otp;
+      delete hashOnlyPayload.delivery_otp;
+      const retry = await supabase
+        .from('foody_orders')
+        .upsert([hashOnlyPayload], { onConflict: 'id' })
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       console.warn('Supabase upsert order note:', error.message);
@@ -994,6 +1027,18 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       pickup_otp: 'pickup_otp',
       deliveryOtp: 'delivery_otp',
       delivery_otp: 'delivery_otp',
+      pickupOtpHash: 'pickup_otp_hash',
+      pickup_otp_hash: 'pickup_otp_hash',
+      deliveryOtpHash: 'delivery_otp_hash',
+      delivery_otp_hash: 'delivery_otp_hash',
+      pickupOtpExpiresAt: 'pickup_otp_expires_at',
+      pickup_otp_expires_at: 'pickup_otp_expires_at',
+      deliveryOtpExpiresAt: 'delivery_otp_expires_at',
+      delivery_otp_expires_at: 'delivery_otp_expires_at',
+      pickupOtpAttempts: 'pickup_otp_attempts',
+      pickup_otp_attempts: 'pickup_otp_attempts',
+      deliveryOtpAttempts: 'delivery_otp_attempts',
+      delivery_otp_attempts: 'delivery_otp_attempts',
       riderId: 'rider_id',
       rider_id: 'rider_id',
       riderName: 'rider_name',
@@ -3424,6 +3469,112 @@ export async function getCloudReviews(shopId = 'all') {
 // 9. ORDER OTP SECURITY SYSTEM (PICKUP OTP & DELIVERY OTP)
 // ========================================================================
 
+/**
+ * Pure JavaScript SHA-256 implementation producing 64-character lowercase hex string.
+ * Completely standalone, works synchronously across all runtimes (browsers, Node, WebWorkers).
+ */
+export function sha256PureJs(ascii) {
+  function rightRotate(value, amount) {
+    return (value >>> amount) | (value << (32 - amount));
+  }
+  const mathPow = Math.pow;
+  const maxWord = mathPow(2, 32);
+  let lengthProperty = 'length';
+  let i, j;
+  let result = '';
+
+  const words = [];
+  const asciiBitLength = (ascii || '')[lengthProperty] * 8;
+
+  let hash = [];
+  const k = [];
+  let primeCounter = 0;
+
+  const isComposite = {};
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) {
+        isComposite[i] = candidate;
+      }
+      hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+    }
+  }
+
+  let str = (ascii || '') + '\x80';
+  while ((str[lengthProperty] % 64) - 56) str += '\x00';
+  for (i = 0; i < str[lengthProperty]; i++) {
+    j = str.charCodeAt(i);
+    if (j >> 8) return ''; // Non-ASCII fallback
+    words[i >> 2] |= j << (((3 - i) % 4) * 8);
+  }
+  words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+  words[words[lengthProperty]] = asciiBitLength;
+
+  for (j = 0; j < words[lengthProperty]; ) {
+    const w = words.slice(j, (j += 16));
+    const oldHash = hash;
+    hash = hash.slice(0, 8);
+
+    for (i = 0; i < 64; i++) {
+      const w15 = w[i - 15],
+        w2 = w[i - 2];
+
+      const a = hash[0],
+        e = hash[4];
+      const temp1 =
+        hash[7] +
+        (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) +
+        ((e & hash[5]) ^ (~e & hash[6])) +
+        k[i] +
+        (w[i] =
+          i < 16
+            ? w[i]
+            : (w[i - 16] +
+                (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+                w[i - 7] +
+                (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
+              0);
+      const temp2 =
+        (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
+        ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+
+    for (i = 0; i < 8; i++) {
+      hash[i] = (hash[i] + oldHash[i]) | 0;
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j >= 0; j--) {
+      const b = (hash[i] >> (8 * j)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+/**
+ * 🔐 Cryptographic SHA-256 Hash Computation in Hexadecimal
+ * Uses native Web Crypto API (crypto.subtle) when available with pure JS fallback.
+ */
+export async function computeSha256Hex(text) {
+  const str = String(text ?? '');
+  try {
+    const subtle = typeof crypto !== 'undefined' ? crypto?.subtle : (typeof globalThis !== 'undefined' ? globalThis.crypto?.subtle : null);
+    if (subtle?.digest) {
+      const msgUint8 = new TextEncoder().encode(str);
+      const hashBuffer = await subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (_) {}
+  return sha256PureJs(str);
+}
+
 export function generateSecureOrderOTP() {
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     const array = new Uint32Array(1);
@@ -3486,7 +3637,17 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   }
 
   const expectedOtp = getOrderOTP(orderOrId, type);
-  const isMatch = cleanEntered === expectedOtp;
+  let isMatch = cleanEntered === expectedOtp;
+
+  // Hash-first fallback check if order object contains SHA-256 hash
+  if (!isMatch && typeof orderOrId === 'object' && orderOrId !== null) {
+    const hashCol = type === 'pickup' 
+      ? (orderOrId.pickupOtpHash || orderOrId.pickup_otp_hash) 
+      : (orderOrId.deliveryOtpHash || orderOrId.delivery_otp_hash);
+    if (hashCol) {
+      isMatch = sha256PureJs(cleanEntered) === hashCol;
+    }
+  }
 
   if (!isMatch) {
     try {

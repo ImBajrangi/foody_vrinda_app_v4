@@ -1,12 +1,11 @@
-# 🛡️ Foody Vrinda v5.3.1 — Production Hardening & Security Audit Final Report
+# 🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete
 
 **System:** Foody Vrinda Enterprise Delivery Platform  
 **Target Environment:** Supabase Production (PostgreSQL 15+)  
 **Schema Release:** v5.3.1 Hardened  
 **Audit Date:** 30 September 2026  
 **Auditor:** DeepMind Antigravity Security Engineering  
-**Current Assessment Status:** **v5.3.1: Core hardening, RLS consolidation, multi-tenant isolation, and two-connection concurrency race serialization are fully verified with live empirical evidence on Supabase production. Schema finality pending v5.4 plaintext OTP removal.**  
-*All multi-tenant adversarial scenarios (ADV-01 through ADV-09), direct negative authorization tests (NEG-01 through NEG-03), and live dual-connection race conditions (FOR UPDATE serialization) have successfully passed with empirical evidence captured directly from PostgreSQL.*
+**Certification Statement:** All currently targeted v5.3.1 security controls have passed their defined empirical tests. Plaintext OTP storage remains an explicitly documented transitional control scheduled for v5.4.
 
 ---
 
@@ -246,7 +245,11 @@ sequenceDiagram
   - **Forensic Best Practice:** True non-repudiation requires asynchronously streaming audit events to external write-once storage (e.g., AWS S3 Object Lock, GCP Cloud Storage with bucket locks) outside the PostgreSQL database boundary.
 
 ### 5.5 Plaintext OTP Storage & v5.4 Migration Plan
-* **Current State in v5.3.1:** The database supports `pickup_otp_hash` / `delivery_otp_hash` as the primary verification mechanism, while retaining `pickup_otp` / `delivery_otp` columns as a fallback to prevent operational disruption during ongoing orders.
+* **Current State in v5.3.1 Software & Database:** 
+  - **Software Implementation (`src/supabase.js`):** In `createCloudOrder()`, cryptographic SHA-256 hashes (`pickup_otp_hash`, `delivery_otp_hash`) are computed asynchronously on order creation via native Web Crypto API (`computeSha256Hex`, with pure JS fallback `sha256PureJs`). Order payloads actively transmit these hashes along with expiration timestamps (`pickup_otp_expires_at`, `delivery_otp_expires_at`) and rate-limiting attempt counters.
+  - **Transitional Fallback Retained:** The software continues to provide `pickup_otp` and `delivery_otp` in `orderPayload`, local state cache, and `safeStorage` to ensure uninterrupted rider/kitchen handover during transitional rollouts.
+  - **Database RPC Verification:** Both `claim_order_pickup_atomic()` and `verify_delivery_otp_atomic()` evaluate `pickup_otp_hash` / `delivery_otp_hash` first using PostgreSQL `encode(digest(p_otp_input, 'sha256'), 'hex')`, falling back to `pickup_otp` / `delivery_otp` only if the hash column is null.
+  - **Client Verification:** `verifyOrderOTP()` executes synchronous cryptographic hash comparison if hash fields are available, with safeStorage rate-limiting (max 5 attempts).
 * **Target Architecture (v5.4):**
   Once all active delivery cycles complete:
   ```sql
@@ -257,7 +260,7 @@ sequenceDiagram
   -- Step 2: Enforce hash-only verification in RPCs
   -- Remove ELSIF v_order.pickup_otp IS NOT NULL fallback branch
   ```
-  Following this migration, OTP secrets will exist exclusively as one-way SHA-256 hashes.
+  Following this migration, OTP secrets will exist exclusively as one-way SHA-256 hashes across both database and API boundaries. Plaintext OTP storage remains an explicitly documented transitional control scheduled for v5.4.
 
 ---
 
@@ -520,5 +523,5 @@ Simultaneous two-connection execution empirically demonstrated that exactly one 
 | **Secret Exclusivity** | 🟡 **TRANSITIONAL** | Dual verification active; plaintext columns scheduled for drop in v5.4 migration. |
 
 **Official Audit Recommendation:**  
-v5.3.1 has now achieved **full production-ready validation across all core security, concurrency, and authorization dimensions**. With RLS consolidation confirmed in the live catalog, 9/9 multi-tenant attack scenarios blocked, and simultaneous two-connection concurrency serialization empirically demonstrated, the platform is certified for production operations. The only remaining roadmap item is the v5.4 schema migration to drop legacy plaintext OTP columns.
+All currently targeted v5.3.1 security controls have passed their defined empirical tests. Plaintext OTP storage remains an explicitly documented transitional control scheduled for v5.4.
 

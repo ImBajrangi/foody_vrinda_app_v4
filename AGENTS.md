@@ -81,6 +81,12 @@ Never consider RLS migration or consolidation tasks complete until a live query 
 preserve-exact-catalog-evidence-in-reports
 Whenever a report or documentation marks a security property or RLS configuration as "Live Catalog Verified", the exact raw SQL query and verbatim catalog output (e.g. pg_policies query results) must be embedded directly within the report alongside the specification to serve as auditable primary evidence.
 
-Recommended Rule:
+supabase-jwt-uuid-and-non-recursive-rls
 When generating PostgreSQL test harnesses or simulating JWT contexts for Supabase, always format simulated actor IDs as canonical UUID v4 strings (e.g. 11111111-1111-1111-1111-111111111111), and avoid direct subqueries on tables with active RLS inside their own policies by wrapping tenant lookups in SECURITY DEFINER helper functions to prevent ERROR 22P02 and ERROR 42P17.
+
+rule-transitional-otp-v5.4:
+“In v5.4, execute complete removal of pickup_otp and delivery_otp from software payloads and drop ELSIF v_order.pickup_otp IS NOT NULL fallback branches from claim_order_pickup_atomic and verify_delivery_otp_atomic.”
+rule-zero-drift-schema-resilience:
+“All database upserts in src/supabase.js must maintain resilience against missing transitional schema columns by intercepting PostgREST 400 column errors and retrying with strict canonical payloads.”
+
 

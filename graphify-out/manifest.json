@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1790764516.9952502,
-    "ast_hash": "999cbc124a1dba662b6fd6796b61cffc",
+    "mtime": 1790782534.560151,
+    "ast_hash": "e78fdd14c22efa10edf1e6d4ed5183e6",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1790768164.9473758,
-    "ast_hash": "1dcd6505f0c526b2653c80b3410509d9",
+    "mtime": 1790771845.2781858,
+    "ast_hash": "272087fc7b4036a7306c7e8fe9a36700",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1790767429.8097389,
-    "ast_hash": "98507559ff25e498173931853376bd5d",
+    "mtime": 1790779532.6376147,
+    "ast_hash": "0321acd63392588502263eeaa59bd5b2",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1790763413.6574962,
-    "ast_hash": "13b8928371fbb9ae73a4dc33e145199a",
+    "mtime": 1790782011.9919138,
+    "ast_hash": "734f7dc6379daa593e97679e05b641f3",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -320,13 +320,13 @@
     "semantic_hash": ""
   },
   "ProductDetails/FOODY_VRINDA_SYSTEM_ARCHITECTURE.html": {
-    "mtime": 1789828099.955349,
-    "ast_hash": "364f5c5ad6adaee1c652515e3b2dfef5",
+    "mtime": 1790773628.5121822,
+    "ast_hash": "243d7c470ca8586337aa23cbb3b5e690",
     "semantic_hash": ""
   },
   "ProductDetails/FOODY_VRINDA_SYSTEM_GUIDE.txt": {
-    "mtime": 1789828113.4940987,
-    "ast_hash": "bf33f9afbd472a21266c42992402598c",
+    "mtime": 1790773612.6259525,
+    "ast_hash": "ebad4221dcb335925b353e2798f3cae3",
     "semantic_hash": ""
   },
   "src/components/SoundTrialsModal.jsx": {
@@ -357,6 +357,81 @@
   "DESIGN.md": {
     "mtime": 1790767872.510308,
     "ast_hash": "9b6b40b834d401c430b7a263721cf2ad",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_2_deploy_rpcs.sql": {
+    "mtime": 1790776694.477354,
+    "ast_hash": "0ac2bde130ccbc49df9f0dd662b129f1",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_2_hardening_test_suite.sql": {
+    "mtime": 1790777440.8471146,
+    "ast_hash": "4034a2439e562a17f5c8d31b260238b2",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_2_pre_test_fix.sql": {
+    "mtime": 1790774673.6276274,
+    "ast_hash": "729f00a76e6c0a5fae33c069f0f47fea",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_1_security_hotfix.sql": {
+    "mtime": 1790781934.1094272,
+    "ast_hash": "d61acf6cf83d4d50f49172ae0cbf6371",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_2_plain_otp_and_grants_sync.sql": {
+    "mtime": 1790782062.7728179,
+    "ast_hash": "1ca5ec375a59831ea08c679187304bfb",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_3_restore_application_database.sql": {
+    "mtime": 1790783129.901411,
+    "ast_hash": "55006fd6c6f62cacc3b6401edd7ddd82",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_4_production_secure_sync.sql": {
+    "mtime": 1790783243.4366693,
+    "ast_hash": "1a6272c9fc7cc680a20e09d14823cc4b",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_concurrency_race_protocol.sql": {
+    "mtime": 1790780456.2930784,
+    "ast_hash": "8def789b5c78d8f021fe2154b795614c",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_multitenant_adversarial_suite.sql": {
+    "mtime": 1790780873.1167421,
+    "ast_hash": "0b71170d1077a2a2071536b2d1ff93a5",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_negative_authorization_test.sql": {
+    "mtime": 1790779779.8441296,
+    "ast_hash": "1a764be1bbccabf3ed78b80576878a6b",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_security_deployment.sql": {
+    "mtime": 1790780710.3086193,
+    "ast_hash": "90eb084e51fd6505ab9ee4f0176d54c7",
+    "semantic_hash": ""
+  },
+  "ProductDetails/FOODY_VRINDA_V5_3_SECURITY_REPORT.md": {
+    "mtime": 1790781950.642727,
+    "ast_hash": "143843f58963a2ee852f3501a5daf6c2",
+    "semantic_hash": ""
+  },
+  "ProductDetails/foody_vrinda_system_updates_and_audit_spec.md": {
+    "mtime": 1790772281.4091537,
+    "ast_hash": "47af69d6b9fa798bab3156488868a44f",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_5_seed_production_menus.sql": {
+    "mtime": 1790783644.9901264,
+    "ast_hash": "a36fe70bbf55c3fd57e10ce5671d4894",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_6_production_fresh_start.sql": {
+    "mtime": 1790784134.2096698,
+    "ast_hash": "c035ea411ae8f1e2c00cbd4a6ce1b389",
     "semantic_hash": ""
   }
 }
