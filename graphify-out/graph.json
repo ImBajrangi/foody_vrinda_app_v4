@@ -323,7 +323,7 @@
       "_origin": "ast",
       "id": "src_app",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "app.jsx"
     },
     {
@@ -334,7 +334,7 @@
       "_origin": "ast",
       "id": "src_app_kitchenview",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "kitchenview"
     },
     {
@@ -345,7 +345,7 @@
       "_origin": "ast",
       "id": "src_app_transportview",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "transportview"
     },
     {
@@ -356,7 +356,7 @@
       "_origin": "ast",
       "id": "src_app_ownerview",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "ownerview"
     },
     {
@@ -367,7 +367,7 @@
       "_origin": "ast",
       "id": "src_app_developerview",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "developerview"
     },
     {
@@ -379,7 +379,7 @@
       "_origin": "ast",
       "id": "src_app_app",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "app()"
     },
     {
@@ -389,7 +389,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordercapsule",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule.jsx"
     },
@@ -401,7 +401,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordercapsule_activeordercapsule",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule()"
     },
@@ -412,8 +412,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal.jsx"
     },
     {
@@ -424,8 +424,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal_activeordertrackingmodal",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal()"
     },
     {
@@ -435,8 +435,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_appupdatemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 9,
+      "community_name": "appUpdateService.js",
       "norm_label": "appupdatemodal.jsx"
     },
     {
@@ -447,8 +447,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_appupdatemodal_appupdatemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 9,
+      "community_name": "appUpdateService.js",
       "norm_label": "appupdatemodal()"
     },
     {
@@ -458,8 +458,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_authmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "authmodal.jsx"
     },
     {
@@ -469,8 +469,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "desk_config"
     },
     {
@@ -481,8 +481,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "authmodal()"
     },
     {
@@ -492,8 +492,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -504,8 +504,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -599,8 +599,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_header",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "header.jsx"
     },
     {
@@ -611,8 +611,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_header_header",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "header()"
     },
     {
@@ -656,8 +656,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mappicker",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "mappicker.jsx"
     },
     {
@@ -668,8 +668,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_mappicker_mappicker",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "mappicker()"
     },
     {
@@ -679,8 +679,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_notificationpanel",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "notificationpanel.jsx"
     },
     {
@@ -691,8 +691,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_notificationpanel_notificationpanel",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "notificationpanel()"
     },
     {
@@ -702,8 +702,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -714,8 +714,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -725,7 +725,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet.jsx"
     },
@@ -736,7 +736,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantities",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantities"
     },
@@ -748,7 +748,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantitypickersheet",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet()"
     },
@@ -805,7 +805,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "rewardsmodal.jsx"
     },
     {
@@ -817,7 +817,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal_rewardsmodal",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "rewardsmodal()"
     },
     {
@@ -851,7 +851,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "unauthorizedaccessscreen.jsx"
     },
     {
@@ -863,7 +863,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen_unauthorizedaccessscreen",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "unauthorizedaccessscreen()"
     },
     {
@@ -873,8 +873,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "unifiedsearchmodal.jsx"
     },
     {
@@ -884,8 +884,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_popular_categories",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "popular_categories"
     },
     {
@@ -896,8 +896,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_unifiedsearchmodal",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "unifiedsearchmodal()"
     },
     {
@@ -964,7 +964,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader.jsx"
     },
@@ -976,7 +976,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_bouncingloader",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader()"
     },
@@ -987,7 +987,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_styledwrapper",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "styledwrapper"
     },
@@ -1305,8 +1305,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinksbar.jsx"
     },
     {
@@ -1317,8 +1317,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_socialicon",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "socialicon()"
     },
     {
@@ -1329,8 +1329,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_sociallinksbar",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinksbar()"
     },
     {
@@ -1374,8 +1374,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_constants_sociallinks",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinks.js"
     },
     {
@@ -1385,8 +1385,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_links",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "social_links"
     },
     {
@@ -1396,8 +1396,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_channels",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "social_channels"
     },
     {
@@ -1488,8 +1488,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -1499,8 +1499,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_cartcontext",
-      "community": 31,
-      "community_name": "CartContext.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "cartcontext.jsx"
     },
     {
@@ -1510,8 +1510,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_context_cartcontext_cartcontext",
-      "community": 31,
-      "community_name": "CartContext.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "cartcontext"
     },
     {
@@ -1522,8 +1522,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_cartprovider",
-      "community": 31,
-      "community_name": "CartContext.jsx",
+      "community": 2,
+      "community_name": "AuthContext.jsx",
       "norm_label": "cartprovider()"
     },
     {
@@ -1534,8 +1534,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_usecart",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usecart()"
     },
     {
@@ -1591,8 +1591,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_notificationcontext_usenotifications",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usenotifications()"
     },
     {
@@ -1602,8 +1602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_themecontext",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "themecontext.jsx"
     },
     {
@@ -1613,8 +1613,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_context_themecontext_themecontext",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "themecontext"
     },
     {
@@ -1625,8 +1625,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_themeprovider",
-      "community": 31,
-      "community_name": "CartContext.jsx",
+      "community": 2,
+      "community_name": "AuthContext.jsx",
       "norm_label": "themeprovider()"
     },
     {
@@ -1637,8 +1637,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_usetheme",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usetheme()"
     },
     {
@@ -1728,7 +1728,7 @@
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler.js"
     },
     {
@@ -1740,7 +1740,7 @@
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler()"
     },
     {
@@ -1750,8 +1750,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag.js"
     },
     {
@@ -1762,8 +1762,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
-      "community": 28,
-      "community_name": "useBottomSheetDrag",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag()"
     },
     {
@@ -1796,7 +1796,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usegeolocation",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation.js"
     },
@@ -1808,7 +1808,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usegeolocation_usegeolocation",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation()"
     },
@@ -1819,8 +1819,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_main",
-      "community": 31,
-      "community_name": "CartContext.jsx",
+      "community": 2,
+      "community_name": "AuthContext.jsx",
       "norm_label": "main.jsx"
     },
     {
@@ -1830,8 +1830,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
     {
@@ -1842,8 +1842,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
     {
@@ -1854,8 +1854,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
     {
@@ -1866,8 +1866,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 30,
-      "community_name": "fetchAddressSuggestions",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -1961,7 +1961,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
@@ -1972,7 +1972,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "backhandlers"
     },
     {
@@ -1984,7 +1984,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "registerbackhandler()"
     },
     {
@@ -1996,7 +1996,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "unregisterbackhandler()"
     },
     {
@@ -2008,7 +2008,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
@@ -2020,7 +2020,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_executetopbackhandler",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "executetopbackhandler()"
     },
     {
@@ -2032,7 +2032,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_shouldallowappexit",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "shouldallowappexit()"
     },
     {
@@ -2044,7 +2044,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
       "community": 25,
-      "community_name": "App.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -2054,8 +2054,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "hitsoochiservice.js"
     },
     {
@@ -2065,8 +2065,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_local_satvik_ontology",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "local_satvik_ontology"
     },
     {
@@ -2078,8 +2078,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": "hitsoochiservice"
     },
     {
@@ -2090,8 +2090,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getcuratedsuggestions",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": ".getcuratedsuggestions()"
     },
     {
@@ -2102,8 +2102,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_rankitems",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": ".rankitems()"
     },
     {
@@ -2114,8 +2114,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_optimizequery",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": ".optimizequery()"
     },
     {
@@ -2126,8 +2126,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getsuggestions",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "CustomerView.jsx",
       "norm_label": ".getsuggestions()"
     },
     {
@@ -2611,7 +2611,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "resolvedishcutout()"
     },
@@ -2738,7 +2738,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isshopcurrentlyopen",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "isshopcurrentlyopen()"
     },
@@ -2774,8 +2774,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_setcacheditem",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "AuthContext.jsx",
       "norm_label": "setcacheditem()"
     },
     {
@@ -2954,8 +2954,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2990,8 +2990,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleuserchangepayload",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 2,
+      "community_name": "AuthContext.jsx",
       "norm_label": ".handleuserchangepayload()"
     },
     {
@@ -3109,7 +3109,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribesinglecloudorder",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribesinglecloudorder()"
     },
@@ -3133,7 +3133,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudmenus",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribecloudmenus()"
     },
@@ -3348,8 +3348,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_markcloudordercashcollected",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "markcloudordercashcollected()"
     },
     {
@@ -3750,7 +3750,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_customerview",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview.jsx"
     },
@@ -3762,7 +3762,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_getlocalcustomermenus",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcustomermenus()"
     },
@@ -3774,7 +3774,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_setlocalcustomermenus",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcustomermenus()"
     },
@@ -3785,7 +3785,7 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "src_views_customerview_menuitemcard",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "menuitemcard"
     },
@@ -3793,11 +3793,11 @@
       "label": "CustomerView()",
       "file_type": "code",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L245",
+      "source_location": "L244",
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_customerview",
-      "community": 4,
+      "community": 25,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview()"
     },
@@ -3866,8 +3866,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "ownerview()"
     },
     {
@@ -4094,136 +4094,202 @@
       "norm_label": "2.1 css semantic tokens definition"
     },
     {
-      "label": "3. UI Component Standards & Guidelines",
+      "label": "3. Comprehensive Sizing, Spacing & Dimension Matrix",
       "file_type": "document",
       "source_file": "DESIGN.md",
       "source_location": "L152",
       "_origin": "ast",
-      "id": "design_3_ui_component_standards_guidelines",
+      "id": "design_3_comprehensive_sizing_spacing_dimension_matrix",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3. ui component standards & guidelines"
+      "norm_label": "3. comprehensive sizing, spacing & dimension matrix"
     },
     {
-      "label": "3.1 Button Hierarchy",
+      "label": "3.1 Typography Scale & Weights",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L154",
+      "source_location": "L156",
       "_origin": "ast",
-      "id": "design_3_1_button_hierarchy",
+      "id": "design_3_1_typography_scale_weights",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3.1 button hierarchy"
+      "norm_label": "3.1 typography scale & weights"
     },
     {
-      "label": "3.2 Live Maps, GPS Tracking & Pins (Sarathi / Rider)",
+      "label": "3.2 Spacing & Padding Scale",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L165",
+      "source_location": "L170",
       "_origin": "ast",
-      "id": "design_3_2_live_maps_gps_tracking_pins_sarathi_rider",
+      "id": "design_3_2_spacing_padding_scale",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3.2 live maps, gps tracking & pins (sarathi / rider)"
+      "norm_label": "3.2 spacing & padding scale"
     },
     {
-      "label": "3.3 Role Switcher & Header Navigation",
+      "label": "3.3 Component Dimensions & Touch Targets",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L190",
+      "source_location": "L183",
       "_origin": "ast",
-      "id": "design_3_3_role_switcher_header_navigation",
+      "id": "design_3_3_component_dimensions_touch_targets",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3.3 role switcher & header navigation"
+      "norm_label": "3.3 component dimensions & touch targets"
     },
     {
-      "label": "3.4 Modal Dialogs & Bottom Sheets",
+      "label": "3.4 Iconography Sizing Matrix",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L204",
+      "source_location": "L196",
       "_origin": "ast",
-      "id": "design_3_4_modal_dialogs_bottom_sheets",
+      "id": "design_3_4_iconography_sizing_matrix",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3.4 modal dialogs & bottom sheets"
+      "norm_label": "3.4 iconography sizing matrix"
     },
     {
-      "label": "3.5 Status Badges & Lifecycle States",
+      "label": "4. Accessibility (a11y) & WCAG 2.1 AA Compliance",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L221",
+      "source_location": "L209",
       "_origin": "ast",
-      "id": "design_3_5_status_badges_lifecycle_states",
+      "id": "design_4_accessibility_a11y_wcag_2_1_aa_compliance",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "3.5 status badges & lifecycle states"
+      "norm_label": "4. accessibility (a11y) & wcag 2.1 aa compliance"
     },
     {
-      "label": "4. Specific View Audit & Normalization Plan",
+      "label": "5. UI Component Standards & Guidelines",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L234",
+      "source_location": "L230",
       "_origin": "ast",
-      "id": "design_4_specific_view_audit_normalization_plan",
+      "id": "design_5_ui_component_standards_guidelines",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "4. specific view audit & normalization plan"
+      "norm_label": "5. ui component standards & guidelines"
     },
     {
-      "label": "4.1 Kitchen Desk (`KitchenView.jsx`)",
+      "label": "5.1 Button Hierarchy",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L236",
+      "source_location": "L232",
       "_origin": "ast",
-      "id": "design_4_1_kitchen_desk_kitchenview_jsx",
+      "id": "design_5_1_button_hierarchy",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "4.1 kitchen desk (`kitchenview.jsx`)"
+      "norm_label": "5.1 button hierarchy"
     },
     {
-      "label": "4.2 Transport / Rider Desk (`TransportView.jsx`)",
+      "label": "5.2 Live Maps, GPS Tracking & Pins (Sarathi / Rider)",
       "file_type": "document",
       "source_file": "DESIGN.md",
       "source_location": "L243",
       "_origin": "ast",
-      "id": "design_4_2_transport_rider_desk_transportview_jsx",
+      "id": "design_5_2_live_maps_gps_tracking_pins_sarathi_rider",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "4.2 transport / rider desk (`transportview.jsx`)"
+      "norm_label": "5.2 live maps, gps tracking & pins (sarathi / rider)"
     },
     {
-      "label": "4.3 Owner Desk (`OwnerView.jsx`) & Developer Desk (`DeveloperView.jsx`)",
+      "label": "5.3 Role Switcher & Header Navigation",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L249",
+      "source_location": "L268",
       "_origin": "ast",
-      "id": "design_4_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
+      "id": "design_5_3_role_switcher_header_navigation",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "4.3 owner desk (`ownerview.jsx`) & developer desk (`developerview.jsx`)"
+      "norm_label": "5.3 role switcher & header navigation"
     },
     {
-      "label": "5. Mobile & Touch Ergonomics Rules",
+      "label": "5.4 Modal Dialogs & Bottom Sheets",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L256",
+      "source_location": "L282",
       "_origin": "ast",
-      "id": "design_5_mobile_touch_ergonomics_rules",
+      "id": "design_5_4_modal_dialogs_bottom_sheets",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "5. mobile & touch ergonomics rules"
+      "norm_label": "5.4 modal dialogs & bottom sheets"
     },
     {
-      "label": "6. Implementation Checklist & Phasing (Awaiting User Sign-Off)",
+      "label": "5.5 Status Badges & Lifecycle States",
       "file_type": "document",
       "source_file": "DESIGN.md",
-      "source_location": "L265",
+      "source_location": "L299",
       "_origin": "ast",
-      "id": "design_6_implementation_checklist_phasing_awaiting_user_sign_off",
+      "id": "design_5_5_status_badges_lifecycle_states",
       "community": 27,
       "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
-      "norm_label": "6. implementation checklist & phasing (awaiting user sign-off)"
+      "norm_label": "5.5 status badges & lifecycle states"
+    },
+    {
+      "label": "6. Specific View Audit & Normalization Plan",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L312",
+      "_origin": "ast",
+      "id": "design_6_specific_view_audit_normalization_plan",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "6. specific view audit & normalization plan"
+    },
+    {
+      "label": "6.1 Kitchen Desk (`KitchenView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L314",
+      "_origin": "ast",
+      "id": "design_6_1_kitchen_desk_kitchenview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "6.1 kitchen desk (`kitchenview.jsx`)"
+    },
+    {
+      "label": "6.2 Transport / Rider Desk (`TransportView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L321",
+      "_origin": "ast",
+      "id": "design_6_2_transport_rider_desk_transportview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "6.2 transport / rider desk (`transportview.jsx`)"
+    },
+    {
+      "label": "6.3 Owner Desk (`OwnerView.jsx`) & Developer Desk (`DeveloperView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L327",
+      "_origin": "ast",
+      "id": "design_6_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "6.3 owner desk (`ownerview.jsx`) & developer desk (`developerview.jsx`)"
+    },
+    {
+      "label": "7. Mobile & Touch Ergonomics Rules",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L334",
+      "_origin": "ast",
+      "id": "design_7_mobile_touch_ergonomics_rules",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "7. mobile & touch ergonomics rules"
+    },
+    {
+      "label": "8. Implementation Checklist & Phasing (Awaiting User Sign-Off)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L343",
+      "_origin": "ast",
+      "id": "design_8_implementation_checklist_phasing_awaiting_user_sign_off",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "8. implementation checklist & phasing (awaiting user sign-off)"
     },
     {
       "label": "README.md",
@@ -5952,7 +6018,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L546",
+      "source_location": "L556",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5964,7 +6030,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L543",
+      "source_location": "L553",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5976,7 +6042,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L865",
+      "source_location": "L875",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5988,7 +6054,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L982",
+      "source_location": "L992",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -8987,7 +9053,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L246",
+      "source_location": "L245",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9176,7 +9242,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L267",
+      "source_location": "L266",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9472,7 +9538,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L247",
+      "source_location": "L246",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9871,7 +9937,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L542",
+      "source_location": "L552",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9918,7 +9984,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L456",
+      "source_location": "L455",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -10120,7 +10186,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L270",
+      "source_location": "L269",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -10225,7 +10291,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L439",
+      "source_location": "L438",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -12833,7 +12899,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L1058",
+      "source_location": "L1068",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -13397,7 +13463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L802",
+      "source_location": "L812",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -13973,7 +14039,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L937",
+      "source_location": "L947",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14668,7 +14734,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L753",
+      "source_location": "L763",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14692,7 +14758,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L610",
+      "source_location": "L620",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -15364,7 +15430,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L776",
+      "source_location": "L786",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16214,7 +16280,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L245",
+      "source_location": "L244",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview",
@@ -16259,7 +16325,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L276",
+      "source_location": "L275",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16271,7 +16337,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L625",
+      "source_location": "L635",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16462,40 +16528,62 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "design_foody_vrinda_design_system_theme_architecture_specification",
-      "target": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_comprehensive_sizing_spacing_dimension_matrix",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L234",
+      "source_location": "L209",
       "weight": 1.0,
       "_origin": "ast",
       "source": "design_foody_vrinda_design_system_theme_architecture_specification",
-      "target": "design_4_specific_view_audit_normalization_plan",
+      "target": "design_4_accessibility_a11y_wcag_2_1_aa_compliance",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L256",
+      "source_location": "L230",
       "weight": 1.0,
       "_origin": "ast",
       "source": "design_foody_vrinda_design_system_theme_architecture_specification",
-      "target": "design_5_mobile_touch_ergonomics_rules",
+      "target": "design_5_ui_component_standards_guidelines",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L265",
+      "source_location": "L312",
       "weight": 1.0,
       "_origin": "ast",
       "source": "design_foody_vrinda_design_system_theme_architecture_specification",
-      "target": "design_6_implementation_checklist_phasing_awaiting_user_sign_off",
+      "target": "design_6_specific_view_audit_normalization_plan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L334",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_7_mobile_touch_ergonomics_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L343",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_8_implementation_checklist_phasing_awaiting_user_sign_off",
       "confidence_score": 1.0
     },
     {
@@ -16524,66 +16612,55 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L154",
+      "source_location": "L156",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_3_ui_component_standards_guidelines",
-      "target": "design_3_1_button_hierarchy",
+      "source": "design_3_comprehensive_sizing_spacing_dimension_matrix",
+      "target": "design_3_1_typography_scale_weights",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L165",
+      "source_location": "L170",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_3_ui_component_standards_guidelines",
-      "target": "design_3_2_live_maps_gps_tracking_pins_sarathi_rider",
+      "source": "design_3_comprehensive_sizing_spacing_dimension_matrix",
+      "target": "design_3_2_spacing_padding_scale",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L190",
+      "source_location": "L183",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_3_ui_component_standards_guidelines",
-      "target": "design_3_3_role_switcher_header_navigation",
+      "source": "design_3_comprehensive_sizing_spacing_dimension_matrix",
+      "target": "design_3_3_component_dimensions_touch_targets",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L204",
+      "source_location": "L196",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_3_ui_component_standards_guidelines",
-      "target": "design_3_4_modal_dialogs_bottom_sheets",
+      "source": "design_3_comprehensive_sizing_spacing_dimension_matrix",
+      "target": "design_3_4_iconography_sizing_matrix",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L221",
+      "source_location": "L232",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_3_ui_component_standards_guidelines",
-      "target": "design_3_5_status_badges_lifecycle_states",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DESIGN.md",
-      "source_location": "L236",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "design_4_specific_view_audit_normalization_plan",
-      "target": "design_4_1_kitchen_desk_kitchenview_jsx",
+      "source": "design_5_ui_component_standards_guidelines",
+      "target": "design_5_1_button_hierarchy",
       "confidence_score": 1.0
     },
     {
@@ -16593,19 +16670,74 @@
       "source_location": "L243",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_4_specific_view_audit_normalization_plan",
-      "target": "design_4_2_transport_rider_desk_transportview_jsx",
+      "source": "design_5_ui_component_standards_guidelines",
+      "target": "design_5_2_live_maps_gps_tracking_pins_sarathi_rider",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DESIGN.md",
-      "source_location": "L249",
+      "source_location": "L268",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "design_4_specific_view_audit_normalization_plan",
-      "target": "design_4_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
+      "source": "design_5_ui_component_standards_guidelines",
+      "target": "design_5_3_role_switcher_header_navigation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L282",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_5_ui_component_standards_guidelines",
+      "target": "design_5_4_modal_dialogs_bottom_sheets",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L299",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_5_ui_component_standards_guidelines",
+      "target": "design_5_5_status_badges_lifecycle_states",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L314",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_6_specific_view_audit_normalization_plan",
+      "target": "design_6_1_kitchen_desk_kitchenview_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L321",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_6_specific_view_audit_normalization_plan",
+      "target": "design_6_2_transport_rider_desk_transportview_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L327",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_6_specific_view_audit_normalization_plan",
+      "target": "design_6_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
       "confidence_score": 1.0
     },
     {
@@ -16654,5 +16786,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "19137072ae2beb1789189c40177711a766526cfb"
+  "built_at_commit": "786985a960e456d52e9a637a10a2b6837ea7bef6"
 }

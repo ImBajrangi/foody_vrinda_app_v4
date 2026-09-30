@@ -140,10 +140,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       attributionControl: false
     });
 
+    const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+    const primaryThemeColor = isDark ? '#E0FF33' : '#D97706';
+    const pinBg = isDark ? '#181617' : '#FFFFFF';
+    const pinBorder = isDark ? '#E0FF33' : '#D97706';
+
     const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
     const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
+    const mapTileUrl = isDark
+      ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoSuffix}`
+      : `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${cartoSuffix}`;
+
     L.tileLayer(
-      `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoSuffix}`,
+      mapTileUrl,
       {
         maxZoom: 20,
         minZoom: 3,
@@ -162,15 +171,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
         <div style="
           width: 36px;
           height: 36px;
-          background: #181617;
-          border: 2.5px solid #E0FF33;
+          background: ${pinBg};
+          border: 2.5px solid ${pinBorder};
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         ">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${pinBorder}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
             <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
@@ -321,9 +331,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       [destLat, destLng]
     ];
 
-    // Road Casing (Crisp Solid Dark Underlay)
+    // Road Casing (Crisp Solid Underlay)
     const roadCasing = L.polyline(currentRouteCoords, {
-      color: '#181617',
+      color: isDark ? '#181617' : '#FFFFFF',
       weight: 5.5,
       opacity: 0.95,
       lineCap: 'round',
@@ -331,9 +341,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadCasing);
 
-    // Vibrant Solid Neon Delivery Route Line
+    // Vibrant Solid Delivery Route Line (Neon Lime in Dark, Royal Saffron in Light)
     const roadLine = L.polyline(currentRouteCoords, {
-      color: '#E0FF33',
+      color: primaryThemeColor,
       weight: 3.5,
       opacity: 1,
       lineCap: 'round',
@@ -343,7 +353,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     // Clean Walking / Connector Arcs
     const startConnector = L.polyline([], {
-      color: '#E0FF33',
+      color: primaryThemeColor,
       weight: 2.5,
       dashArray: '4, 6',
       opacity: 0.9,
@@ -353,7 +363,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     group.addLayer(startConnector);
 
     const walkingConnector = L.polyline([], {
-      color: '#E0FF33',
+      color: primaryThemeColor,
       weight: 2.5,
       dashArray: '4, 6',
       opacity: 0.9,
@@ -365,8 +375,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     // Road Drop-off Terminus Dot (Where vehicle stops and walking begins)
     const dropOffStopDot = L.circleMarker([destLat, destLng], {
       radius: 4.5,
-      color: '#181617',
-      fillColor: '#E0FF33',
+      color: isDark ? '#181617' : '#FFFFFF',
+      fillColor: primaryThemeColor,
       fillOpacity: 1,
       weight: 2
     });
@@ -1031,7 +1041,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     if (onRateOrder) onRateOrder(currentOrder);
                     else onClose();
                   }}
-                  className="w-full py-3 px-4 rounded-full bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
+                  className="w-full py-3 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Rate & Review This Prasad Order</span>

@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1790766850.9081655,
-    "ast_hash": "8c89a72a5cae11a89786d73542d4136e",
+    "mtime": 1790768051.1276906,
+    "ast_hash": "d543958b29a22749a5166915db556e1f",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1790767410.9797106,
-    "ast_hash": "97ce6fdc1978079e6f90876f71ea1f15",
+    "mtime": 1790768676.4968257,
+    "ast_hash": "2e21f7a4bccfac90b4c05cac88255339",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1790765467.6606226,
-    "ast_hash": "d4f8a5a040bef4aa55c32bb18650e815",
+    "mtime": 1790768164.9473758,
+    "ast_hash": "1dcd6505f0c526b2653c80b3410509d9",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -355,8 +355,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1790767620.5977786,
-    "ast_hash": "2f3c1f7e308d238b6f930c33c7bc4878",
+    "mtime": 1790767872.510308,
+    "ast_hash": "9b6b40b834d401c430b7a263721cf2ad",
     "semantic_hash": ""
   }
 }

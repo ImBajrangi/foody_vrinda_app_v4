@@ -3,7 +3,6 @@
   "1": "run-android.js",
   "2": "AuthContext.jsx",
   "3": "index.ts",
-  "4": "CustomerView.jsx",
   "5": "OwnerView.jsx",
   "6": "Foody Vrinda (v3)",
   "7": "eslint.config.js",
@@ -24,6 +23,8 @@
   "22": "supabase.js",
   "23": "firebase.js",
   "24": "Active Engineering Rules",
-  "25": "App.jsx",
-  "26": "test_push_workflow.mjs"
+  "25": "CustomerView.jsx",
+  "26": "test_push_workflow.mjs",
+  "27": "Foody Vrinda — Design System & Theme Architecture Specification",
+  "29": "ErrorBoundary"
 }

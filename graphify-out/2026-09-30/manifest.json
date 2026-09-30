@@ -10,18 +10,18 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1790697522.8748696,
-    "ast_hash": "37ca7868c6adf93a62ddc202c2485286",
+    "mtime": 1790768051.1276906,
+    "ast_hash": "d543958b29a22749a5166915db556e1f",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
-    "mtime": 1790765554.9368653,
-    "ast_hash": "27774244f3e7a8e2c298cbab52c81fab",
+    "mtime": 1790767179.2353356,
+    "ast_hash": "ebf8e05ef8d51477c37de0130f89231b",
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
-    "mtime": 1790081552.6323707,
-    "ast_hash": "7e473f127c8b3fad688176f41598a51b",
+    "mtime": 1790767664.510802,
+    "ast_hash": "d2f97c0bc8e67339edf8173bece93953",
     "semantic_hash": ""
   },
   "src/components/Loader.jsx": {
@@ -35,8 +35,8 @@
     "semantic_hash": ""
   },
   "src/components/NotificationPanel.jsx": {
-    "mtime": 1790696977.5142283,
-    "ast_hash": "200caf2a131960ed4b72aa879e8d0468",
+    "mtime": 1790766433.6039438,
+    "ast_hash": "1835ceac48ac707b718b902c6cb4f2f7",
     "semantic_hash": ""
   },
   "src/components/OrderHistoryDrawer.jsx": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "src/components/UnifiedSearchModal.jsx": {
-    "mtime": 1790688965.1601627,
-    "ast_hash": "e7cd3249140df6a91c7fc20a68bea0c5",
+    "mtime": 1790767563.8490717,
+    "ast_hash": "2d4b6df3d4e5182c83a31263035e2466",
     "semantic_hash": ""
   },
   "src/components/ui/AMPMToggle.jsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1790756421.701262,
-    "ast_hash": "8b07e822682133924ec96ff7eae2054e",
+    "mtime": 1790768475.9811347,
+    "ast_hash": "cc6bd2b35f7e3c97b09d856f69f2bc0f",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1790765467.6606226,
-    "ast_hash": "d4f8a5a040bef4aa55c32bb18650e815",
+    "mtime": 1790768164.9473758,
+    "ast_hash": "1dcd6505f0c526b2653c80b3410509d9",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1790765566.5279162,
-    "ast_hash": "268ed76f92e2dfaec058c8e9a52e8941",
+    "mtime": 1790767429.8097389,
+    "ast_hash": "98507559ff25e498173931853376bd5d",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -225,13 +225,13 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderCapsule.jsx": {
-    "mtime": 1790697449.5753763,
-    "ast_hash": "17f35f45e2d756e2c46a40dabd5c9750",
+    "mtime": 1790767306.8383012,
+    "ast_hash": "6ddf391203b281ecef2a1595892a1096",
     "semantic_hash": ""
   },
   "src/components/CompleteProfileModal.jsx": {
-    "mtime": 1790756908.1896966,
-    "ast_hash": "bb9afd7cc7ce205127daac29caea397c",
+    "mtime": 1790767195.843034,
+    "ast_hash": "ac64780d12a1213d2bc8ef008730e91a",
     "semantic_hash": ""
   },
   "src/components/ErrorBoundary.jsx": {
@@ -352,6 +352,11 @@
   "src/services/appUpdateService.js": {
     "mtime": 1790765589.5181923,
     "ast_hash": "e6b809456c6a22a3455915b539a436b2",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1790767872.510308,
+    "ast_hash": "9b6b40b834d401c430b7a263721cf2ad",
     "semantic_hash": ""
   }
 }

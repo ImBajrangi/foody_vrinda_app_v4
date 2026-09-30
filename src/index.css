@@ -290,12 +290,129 @@
   }
 }
 
+/* ==========================================================================
+   FOODY VRINDA — CORE COMPONENT CSS SYSTEM
+   Centralized styling for buttons, cards, badges, and controls.
+   Eliminates long Tailwind strings and makes updates straightforward.
+   ========================================================================== */
+
+/* --- 1. Buttons --- */
+.fv-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0.025em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border: none;
+}
+.fv-btn-primary:active {
+  transform: scale(0.96);
+}
+.fv-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.fv-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 9999px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s ease;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-app);
+}
+.fv-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+.fv-btn-icon-circle {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-app);
+  color: var(--text-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.fv-btn-icon-circle:active {
+  transform: scale(0.92);
+}
+
+/* --- 2. Cards & Containers --- */
+.fv-card-surface {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-app);
+  color: var(--text-primary);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-card);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.fv-card-elevated {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-app);
+  color: var(--text-primary);
+  border-radius: 2rem;
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Dish Hero Image Auto-Blend System (Blends photos with white/light backgrounds naturally) */
+.dish-blend-mask {
+  -webkit-mask-image: radial-gradient(circle at center, black 56%, rgba(0, 0, 0, 0.85) 74%, transparent 98%);
+  mask-image: radial-gradient(circle at center, black 56%, rgba(0, 0, 0, 0.85) 74%, transparent 98%);
+}
+
+.light .dish-blend-mask {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* --- 3. Status Badges & OTP --- */
+.fv-badge-otp {
+  font-family: monospace;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  background-color: var(--bg-elevated);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-app);
+}
+
 /* Custom UI styling & components */
 .card {
-  background: #1C1C20 !important;
+  background: var(--bg-card) !important;
   border-radius: 28px !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.45) !important;
+  border: 1px solid var(--border-app) !important;
+  box-shadow: var(--shadow-card) !important;
   overflow: hidden;
   transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, border-color 0.12s ease-out !important;
 }
@@ -2862,32 +2979,32 @@ path.casing-parabolic-dots,
   fill: #121011 !important;
 }
 
-/* Dedicated Stepper Capsule Styling in Light Mode */
-.stepper-capsule,
-.light .stepper-capsule {
+/* Dedicated Stepper Capsule Styling (Theme-Adaptive CSS) */
+.stepper-capsule {
   background-color: #1C1917 !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.stepper-capsule .stepper-btn-minus,
-.light .stepper-capsule .stepper-btn-minus {
-  background-color: #292524 !important; /* stone-800 */
+.light .stepper-capsule {
+  background-color: #1C1917 !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
 }
 
-.stepper-capsule .stepper-btn-plus,
-.light .stepper-capsule .stepper-btn-plus {
-  background-color: #F59E0B !important; /* amber-500 */
-  color: #1C1917 !important;
+.stepper-capsule .stepper-btn-minus {
+  background-color: #292524 !important;
 }
 
-.stepper-capsule .stepper-btn-plus *,
-.light .stepper-capsule .stepper-btn-plus * {
-  color: #1C1917 !important;
-  stroke: #1C1917 !important;
+.stepper-capsule .stepper-btn-plus {
+  background-color: var(--accent-primary) !important;
+  color: var(--accent-text) !important;
 }
 
-.stepper-capsule .stepper-qty,
-.light .stepper-capsule .stepper-qty {
+.stepper-capsule .stepper-btn-plus * {
+  color: var(--accent-text) !important;
+  stroke: var(--accent-text) !important;
+}
+
+.stepper-capsule .stepper-qty {
   color: #FFFFFF !important;
   font-weight: 800 !important;
 }

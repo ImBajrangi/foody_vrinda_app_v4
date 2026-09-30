@@ -1,16 +1,16 @@
 # Graph Report - foody_vrinda_v3  (2026-09-30)
 
 ## Corpus Check
-- 66 files · ~131,826 words
+- 66 files · ~132,747 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 369 nodes · 1056 edges · 32 communities (18 shown, 14 thin omitted)
+- 375 nodes · 1062 edges · 28 communities (15 shown, 13 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `19137072`
+- Built from commit: `786985a9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,7 +19,6 @@
 - run-android.js
 - AuthContext.jsx
 - index.ts
-- CustomerView.jsx
 - OwnerView.jsx
 - Foody Vrinda (v3)
 - appUpdateService.js
@@ -38,13 +37,10 @@
 - supabase.js
 - firebase.js
 - Active Engineering Rules
-- App.jsx
+- CustomerView.jsx
 - test_push_workflow.mjs
 - Foody Vrinda — Design System & Theme Architecture Specification
-- useBottomSheetDrag
 - ErrorBoundary
-- fetchAddressSuggestions
-- CartContext.jsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `DeveloperView()` - 30 edges
@@ -61,19 +57,19 @@
 ## Surprising Connections (you probably didn't know these)
 - `runTestSuite()` --calls--> `getOrderOTP()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
+- `runTestSuite()` --calls--> `markCloudOrderCashCollected()`  [EXTRACTED]
+  scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `resolveDishCutout()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `updateCloudOrderStatus()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `verifyOrderOTP()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
-- `runAdversarialTestSuite()` --calls--> `calculateAuthoritativeOrderTotals()`  [EXTRACTED]
-  scripts/test-adversarial-security.js → src/supabase.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (32 total, 14 thin omitted)
+## Communities (28 total, 13 thin omitted)
 
 ### Community 0 - "ReviewModal.jsx"
 Cohesion: 0.40
@@ -84,32 +80,32 @@ Cohesion: 0.27
 Nodes (10): ANDROID_DIR, APK_PATH, __dirname, ensureDeviceReady(), __filename, getConnectedDevices(), log(), main() (+2 more)
 
 ### Community 2 - "AuthContext.jsx"
-Cohesion: 0.28
-Nodes (19): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), createCloudUser(), deleteCloudUser() (+11 more)
-
-### Community 4 - "CustomerView.jsx"
-Cohesion: 0.18
-Nodes (15): ActiveOrderCapsule(), MapPicker(), QUANTITIES, QuantityPickerSheet(), BouncingLoader(), StyledWrapper, useGeolocation(), isShopCurrentlyOpen() (+7 more)
+Cohesion: 0.22
+Nodes (21): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), CartProvider(), ThemeProvider() (+13 more)
 
 ### Community 5 - "OwnerView.jsx"
-Cohesion: 0.12
-Nodes (32): ActiveAlarmBanner(), DynamicToast(), NativeTimePicker(), SearchableDropdown(), POPULAR_CATEGORIES, UnifiedSearchModal(), useAuth(), DEFAULT_SEEDS (+24 more)
+Cohesion: 0.15
+Nodes (30): MapPicker(), ActiveAlarmBanner(), DynamicToast(), NativeTimePicker(), SearchableDropdown(), DEFAULT_SEEDS, NotificationContext, NotificationProvider() (+22 more)
 
 ### Community 6 - "Foody Vrinda (v3)"
 Cohesion: 0.40
 Nodes (4): ⚡ Architecture & Tech Stack, 🚀 Development & Build, 🔐 Emergency Master Access & Lockout Prevention System, Foody Vrinda (v3)
+
+### Community 9 - "appUpdateService.js"
+Cohesion: 0.22
+Nodes (3): AppUpdateModal(), AppUpdateService, CURRENT_APP_VERSION
 
 ### Community 20 - "RealtimeMultiplexer"
 Cohesion: 0.26
 Nodes (3): RealtimeMultiplexer, subscribeCloudOffers(), subscribeCloudShops()
 
 ### Community 21 - "NativeNotificationService"
-Cohesion: 0.12
-Nodes (9): AuthModal(), DESK_CONFIG, SoundTrialsModal(), SocialLinksBar(), SOCIAL_CHANNELS, SOCIAL_LINKS, NativeNotificationService, nativeNotify (+1 more)
+Cohesion: 0.16
+Nodes (4): SoundTrialsModal(), NativeNotificationService, nativeNotify, NOTIFICATION_TRIALS
 
 ### Community 22 - "supabase.js"
 Cohesion: 0.08
-Nodes (61): COLORS, runAdversarialTestSuite(), section(), COLORS, pass(), runTestSuite(), section(), ALLOWED_ORDER_TRANSITIONS (+53 more)
+Nodes (59): COLORS, runAdversarialTestSuite(), section(), COLORS, pass(), runTestSuite(), section(), ALLOWED_ORDER_TRANSITIONS (+51 more)
 
 ### Community 23 - "firebase.js"
 Cohesion: 0.50
@@ -119,43 +115,33 @@ Nodes (3): app, auth, db
 Cohesion: 0.29
 Nodes (6): Active Engineering Rules, Commands, Foody Vrinda v3 — Project Commands & Rules, Rule [GPU Budget Guard]:, Rule [Mobile Touch-First Standard]:, Rule [Native Bottom Sheet Invariant]:
 
-### Community 25 - "App.jsx"
-Cohesion: 0.15
-Nodes (14): App(), DeveloperView, KitchenView, OwnerView, TransportView, AppUpdateModal(), RewardsModal(), UnauthorizedAccessScreen() (+6 more)
+### Community 25 - "CustomerView.jsx"
+Cohesion: 0.06
+Nodes (51): App(), DeveloperView, KitchenView, OwnerView, TransportView, ActiveOrderCapsule(), ActiveOrderTrackingModal(), AuthModal() (+43 more)
 
 ### Community 27 - "Foody Vrinda — Design System & Theme Architecture Specification"
-Cohesion: 0.11
-Nodes (17): 1. Executive Summary & Philosophy, 2.1 CSS Semantic Tokens Definition, 2. Global Semantic Color Token Matrix, 3.1 Button Hierarchy, 3.2 Live Maps, GPS Tracking & Pins (Sarathi / Rider), 3.3 Role Switcher & Header Navigation, 3.4 Modal Dialogs & Bottom Sheets, 3.5 Status Badges & Lifecycle States (+9 more)
-
-### Community 28 - "useBottomSheetDrag"
-Cohesion: 0.33
-Nodes (9): ActiveOrderTrackingModal(), Header(), NotificationPanel(), OrderHistoryDrawer(), useCart(), useNotifications(), ThemeContext, useTheme() (+1 more)
-
-### Community 30 - "fetchAddressSuggestions"
-Cohesion: 0.67
-Nodes (4): CompleteProfileModal(), fetchAddressSuggestions(), getLocalCache(), setLocalCache()
-
-### Community 31 - "CartContext.jsx"
-Cohesion: 0.50
-Nodes (3): CartContext, CartProvider(), ThemeProvider()
+Cohesion: 0.08
+Nodes (23): 1. Executive Summary & Philosophy, 2.1 CSS Semantic Tokens Definition, 2. Global Semantic Color Token Matrix, 3.1 Typography Scale & Weights, 3.2 Spacing & Padding Scale, 3.3 Component Dimensions & Touch Targets, 3.4 Iconography Sizing Matrix, 3. Comprehensive Sizing, Spacing & Dimension Matrix (+15 more)
 
 ## Knowledge Gaps
-- **70 isolated node(s):** `__filename`, `__dirname`, `ROOT_DIR`, `ANDROID_DIR`, `APK_PATH` (+65 more)
+- **75 isolated node(s):** `__filename`, `__dirname`, `ROOT_DIR`, `ANDROID_DIR`, `APK_PATH` (+70 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `ErrorBoundary` connect `ErrorBoundary` to `App.jsx`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `NOTIFICATION_TRIALS` connect `NativeNotificationService` to `CustomerView.jsx`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `ErrorBoundary` connect `ErrorBoundary` to `CustomerView.jsx`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **What connects `__filename`, `__dirname`, `ROOT_DIR` to the rest of the system?**
-  _70 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _75 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `OwnerView.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.12056737588652482 - nodes in this community are weakly interconnected._
-- **Should `NativeNotificationService` be split into smaller, more focused modules?**
-  _Cohesion score 0.11740890688259109 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1475609756097561 - nodes in this community are weakly interconnected._
 - **Should `supabase.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.07964912280701754 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08105022831050228 - nodes in this community are weakly interconnected._
+- **Should `CustomerView.jsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.06413730803974707 - nodes in this community are weakly interconnected._
 - **Should `Foody Vrinda — Design System & Theme Architecture Specification` be split into smaller, more focused modules?**
-  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._

@@ -598,7 +598,7 @@ export default function KitchenView() {
                         <CheckCircle2 size={11} />
                         <span>Rider Pickup OTP</span>
                       </span>
-                      <span className="text-xs font-mono font-black tracking-widest bg-stone-900 text-[#E0FF33] px-2 py-0.5 rounded-md border border-[#E0FF33]/30">
+                      <span className="fv-badge-otp">
                         {getOrderOTP(order.id, 'pickup')}
                       </span>
                     </div>
@@ -658,13 +658,13 @@ export default function KitchenView() {
                 </div>
 
                 {/* Status Update Action Button */}
-                <div className="pt-3 border-t border-white/5">
+                <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">
                   {isNew ? (
                     <button
                       onClick={() => handleAcceptOrder(order.id)}
-                      className="w-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
+                      className="fv-btn-primary w-full"
                     >
-                      <Flame size={15} className="fill-[#1E1B1C]" />
+                      <Flame size={15} />
                       <span>Accept & Start Cooking</span>
                     </button>
                   ) : (

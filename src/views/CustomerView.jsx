@@ -80,7 +80,7 @@ function setLocalCustomerMenus(shopId = 'all', items = []) {
   } catch { }
 }
 
-// 120fps Hardware-Accelerated Memoized Dish Item Card
+// 120fps Hardware-Accelerated Memoized Dish Item Card (Original Heroic Food Layout + Auto-Blend Mask)
 const MenuItemCard = memo(function MenuItemCard({
   item,
   idx,
@@ -195,7 +195,7 @@ const MenuItemCard = memo(function MenuItemCard({
               aria-label="Decrease quantity"
             >
               {quantityInCart === 1 ? (
-                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" style={{ color: '#F87171', stroke: '#F87171' }} />
+                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" />
               ) : (
                 <Minus size={15} strokeWidth={3} className="text-white" />
               )}
@@ -203,7 +203,6 @@ const MenuItemCard = memo(function MenuItemCard({
 
             <span
               className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
-              style={{ color: '#FFFFFF' }}
             >
               {quantityInCart}
             </span>
@@ -214,18 +213,18 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
               title="Add another"
               aria-label="Increase quantity"
             >
-              <Plus size={16} strokeWidth={3.5} className="text-stone-950 stroke-current" style={{ stroke: '#1C1917' }} />
+              <Plus size={16} strokeWidth={3.5} />
             </button>
           </div>
         )}
       </div>
 
-      {/* Right Side Dish Image - Pristine Transparent Cutout */}
-      <div className="absolute right-[-8px] bottom-[-8px] sm:right-[-6px] sm:bottom-[-6px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-48 xl:h-48 pointer-events-none flex items-center justify-center">
+      {/* Right Side Dish Image - Seamless Vignette Blend */}
+      <div className="absolute right-[-6px] bottom-[-6px] sm:right-[-4px] sm:bottom-[-4px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 pointer-events-none flex items-center justify-center overflow-hidden rounded-3xl">
         <img
           src={item.image || '/dishes/thali.png'}
           alt={item.name}
@@ -233,7 +232,7 @@ const MenuItemCard = memo(function MenuItemCard({
             e.target.onerror = null;
             e.target.src = '/dishes/thali.png';
           }}
-          className={`w-full h-full object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_12px_20px_rgba(0,0,0,0.45)] select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
+          className={`dish-blend-mask w-full h-full object-contain select-none pointer-events-none transition-transform duration-300 ${quantityInCart > 0 ? 'scale-110 sm:scale-115' : 'scale-105 sm:scale-110'}`}
           loading="lazy"
           decoding="async"
         />
@@ -468,6 +467,17 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     setIsCartClosing(false);
   }, 40);
 
+  const {
+    sheetRef: shopSheetRef,
+    overlayRef: shopOverlayRef,
+    dismiss: dismissShopSheet,
+    handleProps: shopHandleProps
+  } = useBottomSheetDrag(() => {
+    setShowShopSwitcher(false);
+    setIsShopClosing(false);
+    setShopSearch('');
+  }, 40);
+
   const handleCloseDishDetail = useCallback((isImmediate = false) => {
     if (isImmediate === true) {
       setSelectedDishDetails(null);
@@ -503,12 +513,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
     if (isShopClosing) return;
     setIsShopClosing(true);
-    setTimeout(() => {
+    dismissShopSheet(() => {
       setShowShopSwitcher(false);
       setIsShopClosing(false);
       setShopSearch('');
-    }, 120);
-  }, [isShopClosing]);
+    });
+  }, [isShopClosing, dismissShopSheet]);
 
   const toastTimeoutRef = useRef(null);
   const showToast = useCallback((message, type = 'success', desc = '') => {
@@ -1277,6 +1287,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {/* Kitchen Branch Switcher — Minimal Premium Modal */}
         {showShopSwitcher && allShops.length > 1 && createPortal(
           <div
+            ref={shopOverlayRef}
             className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center apple-overlay transition-opacity duration-150 ${isShopClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
             onClick={() => handleCloseShopSwitcher()}
             role="dialog"
@@ -1284,27 +1295,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             aria-label="Switch kitchen branch"
           >
             <div
+              ref={shopSheetRef}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full sm:max-w-md max-h-[85vh] flex flex-col bg-white/95 dark:bg-[#1E1B1C]/98 backdrop-blur-2xl border border-stone-200/50 dark:border-white/[.07] rounded-t-[28px] sm:rounded-[28px] shadow-2xl apple-modal-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
+              className={`w-full sm:max-w-md max-h-[85vh] flex flex-col bg-white/95 dark:bg-[#1E1B1C]/98 backdrop-blur-2xl border border-stone-200/50 dark:border-white/[.07] rounded-t-[28px] sm:rounded-[28px] shadow-2xl apple-sheet-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
               style={{ backdropFilter: 'blur(40px) saturate(180%)' }}
             >
-              {/* Drag Handle (mobile) */}
-              <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
-                <div className="w-9 h-[3px] rounded-full bg-stone-300 dark:bg-white/15" />
-              </div>
+              {/* Drag Handle & Header (Gesture handle for 120fps swipe-down) */}
+              <div 
+                {...shopHandleProps}
+                className="cursor-grab active:cursor-grabbing touch-none select-none"
+              >
+                {/* Drag Handle (mobile) */}
+                <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-stone-300 dark:bg-white/20" />
+                </div>
 
-              {/* Header — Single clean line */}
-              <div className="px-5 pt-3 sm:pt-5 pb-3 flex items-center justify-between">
-                <h3 className="text-[15px] sm:text-base font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                  Switch Kitchen
-                </h3>
-                <button
-                  onClick={handleCloseShopSwitcher}
-                  className="w-7 h-7 rounded-full bg-stone-100 dark:bg-white/[.08] hover:bg-stone-200 dark:hover:bg-white/[.14] flex items-center justify-center text-stone-500 dark:text-zinc-400 cursor-pointer transition-colors shrink-0"
-                  aria-label="Close"
-                >
-                  <X size={14} strokeWidth={2.5} />
-                </button>
+                {/* Header — Single clean line */}
+                <div className="px-5 pt-2 sm:pt-4 pb-3 flex items-center justify-between">
+                  <h3 className="text-[15px] sm:text-base font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                    Switch Kitchen
+                  </h3>
+                  <button
+                    onClick={() => handleCloseShopSwitcher()}
+                    className="w-7 h-7 rounded-full bg-stone-100 dark:bg-white/[.08] hover:bg-stone-200 dark:hover:bg-white/[.14] flex items-center justify-center text-stone-500 dark:text-zinc-400 cursor-pointer transition-colors shrink-0"
+                    aria-label="Close"
+                  >
+                    <X size={14} strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
 
               {/* Search — only when 3+ shops */}
