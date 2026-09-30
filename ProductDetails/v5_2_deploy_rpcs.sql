@@ -53,6 +53,7 @@ CREATE OR REPLACE FUNCTION public.claim_order_pickup_atomic(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_order RECORD;
@@ -126,6 +127,7 @@ CREATE OR REPLACE FUNCTION public.verify_delivery_otp_atomic(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_order RECORD;
@@ -199,6 +201,7 @@ CREATE OR REPLACE FUNCTION public.verify_order_hash_chain(p_order_id TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_event RECORD;

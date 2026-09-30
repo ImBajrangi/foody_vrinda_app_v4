@@ -37,3 +37,50 @@ Rule: Automatic Dual-Target Build Verification:
 
 Ensure all cloud edge function calls use supabase.functions.invoke() with standard CORS preflight headers, and ensure mobile notification payloads always set priority to PRIORITY_MAX with high-importance channels for background delivery."
 
+Idempotent PostgreSQL Migrations:
+"All PostgreSQL migration scripts modifying RLS policies, triggers, indexes, or functions must be idempotent: always include DROP POLICY IF EXISTS, DROP TRIGGER IF EXISTS, CREATE INDEX IF NOT EXISTS, and CREATE OR REPLACE FUNCTION."
+
+Automated Error Reproduction & Isolation:
+"When SQL errors occur during batch executions, provide both the isolated single-statement fix and the fully updated idempotent file to allow immediate resumption without resetting state."
+
+never-overclaim-security-evidence
+
+When generating security or audit reports, always strictly distinguish between (1) properties verified by automated test suites, (2) architectural mechanisms present in DDL/code, and (3) properties requiring multi-session/multi-tenant adversarial validation. Never claim 100% security proof if tests run in a single-connection harness.
+
+clean-sequential-test-numbering
+
+All test suites and audit matrices must use strictly sequential, unpadded integer IDs (e.g., T01 through T22) with zero alphanumeric sub-indices (e.g., avoid T07a/T07b), ensuring test counts match the matrix row count exactly.
+
+database-superuser-boundary-clarity
+
+Never document PostgreSQL triggers or RLS policies as immutable against database superusers (postgres, supabase_admin). Always scope immutability guarantees to application-level SQL and specify external write-once replication for forensic non-repudiation.
+
+detect-permissive-rls-or-conflicts
+
+When auditing or creating Row-Level Security policies, check for multiple permissive policies on the same table and command. Since PostgreSQL evaluates permissive policies using logical OR, a broader policy will silently undermine a more restrictive policy.
+
+enforce-rpc-only-state-mutations
+
+For core workflow tables (e.g., orders, transactions) where state transitions are governed by atomic SECURITY DEFINER RPCs, do not grant client UPDATE or INSERT privileges via RLS. Restrict client table access to SELECT, ensuring all mutations route through audited, locked RPC pipelines.
+
+require-negative-authorization-tests
+When claiming write-blocking or RLS default-deny security properties, always provide an executable negative test case demonstrating that an unauthorized caller explicitly triggers SQLSTATE 42501 (insufficient_privilege). Never infer permission denial purely from the absence of a policy.
+
+mandatory-idempotent-ddl-statements
+All PostgreSQL DDL statements provided in migration scripts, hotfixes, or audit reports must be unconditionally idempotent. Specifically, every CREATE POLICY must be directly preceded by DROP POLICY IF EXISTS, every CREATE TRIGGER by DROP TRIGGER IF EXISTS, and every index creation must include IF NOT EXISTS to guarantee error-free re-runs (SQLSTATE 42710 prevention).
+
+never-recreate-deprecated-policies
+When a migration or hotfix script drops deprecated or overly-permissive RLS policies (e.g., Shop-scoped update orders), verify that the same script does not accidentally recreate them in subsequent statements. Always cross-check the final DDL block against the architectural specification to ensure dropped policies remain dropped.
+
+rely-on-rls-default-deny-for-mutations
+When designing tables with RPC-only mutations, do not create explicit dummy policies like WITH CHECK (null) or USING (false). Prefer total policy omission for INSERT, UPDATE, and DELETE on the authenticated role. This cleanly enforces PostgreSQL's native default-deny (SQLSTATE 42501) and avoids cluttering the pg_policies catalog.
+
+verify-live-catalog-after-rls-changes
+Never consider RLS migration or consolidation tasks complete until a live query against pg_policies is executed and inspected. The live catalog output is the sole source of truth for confirming policy names, command scopes, and the complete elimination of unwanted permissive policies.
+
+preserve-exact-catalog-evidence-in-reports
+Whenever a report or documentation marks a security property or RLS configuration as "Live Catalog Verified", the exact raw SQL query and verbatim catalog output (e.g. pg_policies query results) must be embedded directly within the report alongside the specification to serve as auditable primary evidence.
+
+Recommended Rule:
+When generating PostgreSQL test harnesses or simulating JWT contexts for Supabase, always format simulated actor IDs as canonical UUID v4 strings (e.g. 11111111-1111-1111-1111-111111111111), and avoid direct subqueries on tables with active RLS inside their own policies by wrapping tenant lookups in SECURITY DEFINER helper functions to prevent ERROR 22P02 and ERROR 42P17.
+

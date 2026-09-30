@@ -12,26 +12,39 @@ CREATE TEMP TABLE _test_results (
   detail TEXT
 );
 
+SET search_path = public, extensions, pg_temp;
+
 -- Ensure extensions & triggers exist
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ALTER TABLE public.foody_order_events ADD COLUMN IF NOT EXISTS id TEXT;
+ALTER TABLE public.foody_order_events ADD COLUMN IF NOT EXISTS event_sequence INT;
 ALTER TABLE public.foody_order_events ADD COLUMN IF NOT EXISTS previous_event_hash TEXT;
 ALTER TABLE public.foody_order_events ADD COLUMN IF NOT EXISTS event_hash TEXT DEFAULT 'pending';
 
 -- Recreate triggers (idempotent)
 CREATE OR REPLACE FUNCTION public.compute_event_hash_chain()
-RETURNS TRIGGER AS $$
-DECLARE prev_hash TEXT; payload TEXT;
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
+DECLARE
+    prev_hash TEXT;
+    prev_seq INT;
+    payload TEXT;
 BEGIN
     PERFORM 1 FROM public.foody_orders WHERE id = NEW.order_id FOR UPDATE;
-    SELECT event_hash INTO prev_hash FROM public.foody_order_events
-    WHERE order_id = NEW.order_id AND ctid != NEW.ctid ORDER BY created_at DESC LIMIT 1;
-    IF prev_hash IS NULL THEN prev_hash := 'GENESIS_' || NEW.order_id; END IF;
+    SELECT event_hash, COALESCE(event_sequence, 0) INTO prev_hash, prev_seq
+    FROM public.foody_order_events
+    WHERE order_id = NEW.order_id AND ctid != NEW.ctid
+    ORDER BY COALESCE(event_sequence, 0) DESC, created_at DESC LIMIT 1;
+    IF prev_hash IS NULL THEN prev_hash := 'GENESIS_' || NEW.order_id; prev_seq := 0; END IF;
+    NEW.event_sequence := prev_seq + 1;
     NEW.previous_event_hash := prev_hash;
     payload := NEW.order_id || '|' || NEW.actor_id || '|' || NEW.actor_role || '|' || NEW.event_type || '|' || COALESCE(NEW.metadata::text, '{}') || '|' || NEW.created_at::text || '|' || prev_hash;
     NEW.event_hash := encode(digest(payload, 'sha256'), 'hex');
     RETURN NEW;
-END; $$ LANGUAGE plpgsql;
+END; $$;
 DROP TRIGGER IF EXISTS trg_compute_event_hash ON public.foody_order_events;
 CREATE TRIGGER trg_compute_event_hash BEFORE INSERT ON public.foody_order_events FOR EACH ROW EXECUTE FUNCTION public.compute_event_hash_chain();
 
@@ -203,7 +216,7 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 -- ========================================================================
--- TEST 07a: Audit UPDATE blocked
+-- TEST 07: Audit UPDATE blocked
 -- ========================================================================
 DO $$
 DECLARE tid TEXT := 'tst07-' || substr(md5(random()::text),1,8); em TEXT;
@@ -212,32 +225,15 @@ BEGIN
   INSERT INTO public.foody_order_events (order_id,actor_id,actor_role,event_type) VALUES (tid,'test-kitchen-1','kitchen','EVT_T07');
   BEGIN
     UPDATE public.foody_order_events SET event_type='TAMPERED' WHERE order_id=tid AND event_type='EVT_T07';
-    INSERT INTO _test_results VALUES ('T07a','Audit UPDATE blocked','❌ FAIL','Update allowed');
+    INSERT INTO _test_results VALUES ('T07','Audit UPDATE blocked','❌ FAIL','Update allowed');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T07a','Audit UPDATE blocked','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T07','Audit UPDATE blocked','✅ PASS', em);
   END;
 END $$;
 
 -- ========================================================================
--- TEST 07b: Audit DELETE blocked
--- ========================================================================
-DO $$
-DECLARE tid TEXT := 'tst07b-' || substr(md5(random()::text),1,8); em TEXT;
-BEGIN
-  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100);
-  INSERT INTO public.foody_order_events (order_id,actor_id,actor_role,event_type) VALUES (tid,'test-kitchen-1','kitchen','EVT_T07B');
-  BEGIN
-    DELETE FROM public.foody_order_events WHERE order_id=tid AND event_type='EVT_T07B';
-    INSERT INTO _test_results VALUES ('T07b','Audit DELETE blocked','❌ FAIL','Delete allowed');
-  EXCEPTION WHEN OTHERS THEN
-    GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T07b','Audit DELETE blocked','✅ PASS', em);
-  END;
-END $$;
-
--- ========================================================================
--- TEST 08: FK RESTRICT — order deletion blocked
+-- TEST 08: Audit DELETE blocked
 -- ========================================================================
 DO $$
 DECLARE tid TEXT := 'tst08-' || substr(md5(random()::text),1,8); em TEXT;
@@ -245,237 +241,265 @@ BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100);
   INSERT INTO public.foody_order_events (order_id,actor_id,actor_role,event_type) VALUES (tid,'test-kitchen-1','kitchen','EVT_T08');
   BEGIN
-    DELETE FROM public.foody_orders WHERE id=tid;
-    INSERT INTO _test_results VALUES ('T08','FK RESTRICT order delete','❌ FAIL','Order deleted despite events');
+    DELETE FROM public.foody_order_events WHERE order_id=tid AND event_type='EVT_T08';
+    INSERT INTO _test_results VALUES ('T08','Audit DELETE blocked','❌ FAIL','Delete allowed');
   EXCEPTION WHEN OTHERS THEN
-    INSERT INTO _test_results VALUES ('T08','FK RESTRICT order delete','✅ PASS','Blocked by FK');
+    GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
+    INSERT INTO _test_results VALUES ('T08','Audit DELETE blocked','✅ PASS', em);
   END;
 END $$;
 
 -- ========================================================================
--- TEST 09: Wrong pickup OTP rejected
+-- TEST 09: FK RESTRICT — order deletion blocked
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst09-' || substr(md5(random()::text),1,8); em TEXT; att INT;
+DECLARE tid TEXT := 'tst09-' || substr(md5(random()::text),1,8); em TEXT;
+BEGIN
+  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100);
+  INSERT INTO public.foody_order_events (order_id,actor_id,actor_role,event_type) VALUES (tid,'test-kitchen-1','kitchen','EVT_T09');
+  BEGIN
+    DELETE FROM public.foody_orders WHERE id=tid;
+    INSERT INTO _test_results VALUES ('T09','FK RESTRICT order delete','❌ FAIL','Order deleted despite events');
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO _test_results VALUES ('T09','FK RESTRICT order delete','✅ PASS','Blocked by FK');
+  END;
+END $$;
+
+-- ========================================================================
+-- TEST 10: Wrong pickup OTP rejected
+-- ========================================================================
+DO $$
+DECLARE tid TEXT := 'tst10-' || substr(md5(random()::text),1,8); em TEXT; att INT;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'123456',NOW()+INTERVAL '30 min');
   BEGIN
     PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','WRONG');
-    INSERT INTO _test_results VALUES ('T09','Wrong pickup OTP','❌ FAIL','Accepted');
+    INSERT INTO _test_results VALUES ('T10','Wrong pickup OTP','❌ FAIL','Accepted');
   EXCEPTION WHEN OTHERS THEN
     SELECT pickup_otp_attempts INTO att FROM public.foody_orders WHERE id=tid;
-    INSERT INTO _test_results VALUES ('T09','Wrong pickup OTP','✅ PASS','Rejected, attempts='||COALESCE(att::text,'?'));
+    INSERT INTO _test_results VALUES ('T10','Wrong pickup OTP','✅ PASS','Rejected, attempts='||COALESCE(att::text,'?'));
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T09','Wrong pickup OTP','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T10','Wrong pickup OTP','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 10: Correct pickup OTP accepted
+-- TEST 11: Correct pickup OTP accepted
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst10-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT;
+DECLARE tid TEXT := 'tst11-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'654321',NOW()+INTERVAL '30 min');
   SELECT public.claim_order_pickup_atomic(tid,'test-rider-A','654321') INTO result;
   SELECT status INTO fs FROM public.foody_orders WHERE id=tid;
   IF fs='picked_up' THEN
-    INSERT INTO _test_results VALUES ('T10','Correct pickup OTP','✅ PASS','→ picked_up');
+    INSERT INTO _test_results VALUES ('T11','Correct pickup OTP','✅ PASS','→ picked_up');
   ELSE
-    INSERT INTO _test_results VALUES ('T10','Correct pickup OTP','❌ FAIL','Status='||COALESCE(fs,'NULL'));
+    INSERT INTO _test_results VALUES ('T11','Correct pickup OTP','❌ FAIL','Status='||COALESCE(fs,'NULL'));
   END IF;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T10','Correct pickup OTP','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T11','Correct pickup OTP','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 11: Expired OTP blocked
--- ========================================================================
-DO $$
-DECLARE tid TEXT := 'tst11-' || substr(md5(random()::text),1,8); em TEXT;
-BEGIN
-  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'111111',NOW()-INTERVAL '1 hour');
-  BEGIN
-    PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','111111');
-    INSERT INTO _test_results VALUES ('T11','Expired OTP','❌ FAIL','Accepted');
-  EXCEPTION WHEN OTHERS THEN
-    GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T11','Expired OTP','✅ PASS', em);
-  END;
-  DELETE FROM public.foody_orders WHERE id=tid;
-END $$;
-
--- ========================================================================
--- TEST 12: OTP rate limit (5+ attempts)
+-- TEST 12: Expired OTP blocked
 -- ========================================================================
 DO $$
 DECLARE tid TEXT := 'tst12-' || substr(md5(random()::text),1,8); em TEXT;
 BEGIN
-  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_attempts,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'999999',5,NOW()+INTERVAL '30 min');
+  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'111111',NOW()-INTERVAL '1 hour');
   BEGIN
-    PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','999999');
-    INSERT INTO _test_results VALUES ('T12','OTP rate limit','❌ FAIL','Accepted at 5 attempts');
+    PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','111111');
+    INSERT INTO _test_results VALUES ('T12','Expired OTP','❌ FAIL','Accepted');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T12','OTP rate limit','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T12','Expired OTP','✅ PASS', em);
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 END $$;
 
 -- ========================================================================
--- TEST 13: Wrong rider delivery blocked
+-- TEST 13: OTP rate limit (5+ attempts)
 -- ========================================================================
 DO $$
 DECLARE tid TEXT := 'tst13-' || substr(md5(random()::text),1,8); em TEXT;
 BEGIN
-  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,rider_id,delivery_otp,delivery_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','out_for_delivery','[{"n":"t"}]'::jsonb,100,'test-rider-A','777777',NOW()+INTERVAL '30 min');
+  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_attempts,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'999999',5,NOW()+INTERVAL '30 min');
   BEGIN
-    PERFORM public.verify_delivery_otp_atomic(tid,'test-rider-B','777777');
-    INSERT INTO _test_results VALUES ('T13','Wrong rider delivery','❌ FAIL','Wrong rider accepted');
+    PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','999999');
+    INSERT INTO _test_results VALUES ('T13','OTP rate limit','❌ FAIL','Accepted at 5 attempts');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T13','Wrong rider delivery','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T13','OTP rate limit','✅ PASS', em);
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 END $$;
 
 -- ========================================================================
--- TEST 14: Correct delivery OTP → delivered
+-- TEST 14: Wrong rider delivery blocked
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst14-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT;
+DECLARE tid TEXT := 'tst14-' || substr(md5(random()::text),1,8); em TEXT;
+BEGIN
+  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,rider_id,delivery_otp,delivery_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','out_for_delivery','[{"n":"t"}]'::jsonb,100,'test-rider-A','777777',NOW()+INTERVAL '30 min');
+  BEGIN
+    PERFORM public.verify_delivery_otp_atomic(tid,'test-rider-B','777777');
+    INSERT INTO _test_results VALUES ('T14','Wrong rider delivery','❌ FAIL','Wrong rider accepted');
+  EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
+    INSERT INTO _test_results VALUES ('T14','Wrong rider delivery','✅ PASS', em);
+  END;
+  DELETE FROM public.foody_orders WHERE id=tid;
+END $$;
+
+-- ========================================================================
+-- TEST 15: Correct delivery OTP → delivered
+-- ========================================================================
+DO $$
+DECLARE tid TEXT := 'tst15-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,rider_id,delivery_otp,delivery_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','out_for_delivery','[{"n":"t"}]'::jsonb,100,'test-rider-A','888888',NOW()+INTERVAL '30 min');
   SELECT public.verify_delivery_otp_atomic(tid,'test-rider-A','888888') INTO result;
   SELECT status INTO fs FROM public.foody_orders WHERE id=tid;
   IF fs='delivered' THEN
-    INSERT INTO _test_results VALUES ('T14','Correct delivery OTP','✅ PASS','→ delivered');
+    INSERT INTO _test_results VALUES ('T15','Correct delivery OTP','✅ PASS','→ delivered');
   ELSE
-    INSERT INTO _test_results VALUES ('T14','Correct delivery OTP','❌ FAIL','Status='||COALESCE(fs,'NULL'));
+    INSERT INTO _test_results VALUES ('T15','Correct delivery OTP','❌ FAIL','Status='||COALESCE(fs,'NULL'));
   END IF;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T14','Correct delivery OTP','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T15','Correct delivery OTP','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 15: Pickup from wrong state (cooking)
+-- TEST 16: Pickup from wrong state (cooking)
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst15-' || substr(md5(random()::text),1,8); em TEXT;
+DECLARE tid TEXT := 'tst16-' || substr(md5(random()::text),1,8); em TEXT;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100,'555555',NOW()+INTERVAL '30 min');
   UPDATE public.foody_orders SET status='confirmed' WHERE id=tid;
   UPDATE public.foody_orders SET status='cooking' WHERE id=tid;
   BEGIN
     PERFORM public.claim_order_pickup_atomic(tid,'test-rider-A','555555');
-    INSERT INTO _test_results VALUES ('T15','Pickup from cooking','❌ FAIL','Allowed');
+    INSERT INTO _test_results VALUES ('T16','Pickup from cooking','❌ FAIL','Allowed');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T15','Pickup from cooking','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T16','Pickup from cooking','✅ PASS', em);
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T15','Pickup from cooking','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T16','Pickup from cooking','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 16: Delivery verify from wrong state
+-- TEST 17: Delivery verify from wrong state
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst16-' || substr(md5(random()::text),1,8); em TEXT;
+DECLARE tid TEXT := 'tst17-' || substr(md5(random()::text),1,8); em TEXT;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,rider_id,delivery_otp,delivery_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,'test-rider-A','444444',NOW()+INTERVAL '30 min');
   BEGIN
     PERFORM public.verify_delivery_otp_atomic(tid,'test-rider-A','444444');
-    INSERT INTO _test_results VALUES ('T16','Delivery from wrong state','❌ FAIL','Allowed');
+    INSERT INTO _test_results VALUES ('T17','Delivery from wrong state','❌ FAIL','Allowed');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T16','Delivery from wrong state','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T17','Delivery from wrong state','✅ PASS', em);
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 END $$;
 
 -- ========================================================================
--- TEST 17: Invalid role assignment
+-- TEST 18: Invalid role assignment
 -- ========================================================================
 DO $$
 DECLARE em TEXT;
 BEGIN
   BEGIN
     PERFORM public.set_user_role('test-rider-A','superadmin_fake');
-    INSERT INTO _test_results VALUES ('T17','Invalid role assignment','❌ FAIL','Accepted');
+    INSERT INTO _test_results VALUES ('T18','Invalid role assignment','❌ FAIL','Accepted');
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS em = MESSAGE_TEXT;
-    INSERT INTO _test_results VALUES ('T17','Invalid role assignment','✅ PASS', em);
+    INSERT INTO _test_results VALUES ('T18','Invalid role assignment','✅ PASS', em);
   END;
 END $$;
 
 -- ========================================================================
--- TEST 18: COD computed columns
+-- TEST 19: COD computed columns
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst18-' || substr(md5(random()::text),1,8); cn NUMERIC; cd NUMERIC; sid UUID;
+DECLARE tid TEXT := 'tst19-' || substr(md5(random()::text),1,8); cn NUMERIC; cd NUMERIC; sid UUID;
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,250);
   INSERT INTO public.foody_cash_settlements (order_id,shop_id,rider_id,expected_amount,rider_declared_amount,cashier_received_amount,cash_received_from_customer,change_returned_to_customer,declared_by)
   VALUES (tid,'test-shop-hardening','test-rider-A',250,240,230,300,50,'test-rider-A') RETURNING id INTO sid;
   SELECT net_collected, difference INTO cn, cd FROM public.foody_cash_settlements WHERE id=sid;
   IF cn=250 AND cd=-10 THEN
-    INSERT INTO _test_results VALUES ('T18','COD computed columns','✅ PASS','net='||cn||' diff='||cd);
+    INSERT INTO _test_results VALUES ('T19','COD computed columns','✅ PASS','net='||cn||' diff='||cd);
   ELSE
-    INSERT INTO _test_results VALUES ('T18','COD computed columns','❌ FAIL','net='||COALESCE(cn::text,'NULL')||' diff='||COALESCE(cd::text,'NULL'));
+    INSERT INTO _test_results VALUES ('T19','COD computed columns','❌ FAIL','net='||COALESCE(cn::text,'NULL')||' diff='||COALESCE(cd::text,'NULL'));
   END IF;
   DELETE FROM public.foody_cash_settlements WHERE id=sid;
   DELETE FROM public.foody_orders WHERE id=tid;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T18','COD computed columns','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T19','COD computed columns','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 19: Cancel/refund race
+-- TEST 20: Cancel idempotency (no-op)
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst19-' || substr(md5(random()::text),1,8); em TEXT;
+DECLARE tid TEXT := 'tst20-' || substr(md5(random()::text),1,8);
 BEGIN
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100);
   UPDATE public.foody_orders SET status='cancelled' WHERE id=tid;
-  -- Same-state no-op
   BEGIN
     UPDATE public.foody_orders SET status='cancelled' WHERE id=tid;
-    INSERT INTO _test_results VALUES ('T19a','Cancel no-op','✅ PASS','Same-state accepted');
+    INSERT INTO _test_results VALUES ('T20','Cancel no-op','✅ PASS','Same-state accepted');
   EXCEPTION WHEN OTHERS THEN
-    INSERT INTO _test_results VALUES ('T19a','Cancel no-op','⚠️ INFO','Same-state blocked');
-  END;
-  -- Reversal blocked
-  BEGIN
-    UPDATE public.foody_orders SET status='new' WHERE id=tid;
-    INSERT INTO _test_results VALUES ('T19b','Cancel reversal','❌ FAIL','cancelled→new allowed');
-  EXCEPTION WHEN OTHERS THEN
-    INSERT INTO _test_results VALUES ('T19b','Cancel reversal','✅ PASS','cancelled→new blocked');
+    INSERT INTO _test_results VALUES ('T20','Cancel no-op','⚠️ INFO','Same-state blocked');
   END;
   DELETE FROM public.foody_orders WHERE id=tid;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T19','Cancel race','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T20','Cancel no-op','⚠️ ERROR', SQLERRM);
 END $$;
 
 -- ========================================================================
--- TEST 20: SHA-256 hashed OTP verification
+-- TEST 21: Cancel reversal blocked
 -- ========================================================================
 DO $$
-DECLARE tid TEXT := 'tst20-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT; oh TEXT;
+DECLARE tid TEXT := 'tst21-' || substr(md5(random()::text),1,8);
+BEGIN
+  INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount) VALUES (tid,'test-shop-hardening','T','9','A','new','[{"n":"t"}]'::jsonb,100);
+  UPDATE public.foody_orders SET status='cancelled' WHERE id=tid;
+  BEGIN
+    UPDATE public.foody_orders SET status='new' WHERE id=tid;
+    INSERT INTO _test_results VALUES ('T21','Cancel reversal','❌ FAIL','cancelled→new allowed');
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO _test_results VALUES ('T21','Cancel reversal','✅ PASS','cancelled→new blocked');
+  END;
+  DELETE FROM public.foody_orders WHERE id=tid;
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO _test_results VALUES ('T21','Cancel reversal','⚠️ ERROR', SQLERRM);
+END $$;
+
+-- ========================================================================
+-- TEST 22: SHA-256 hashed OTP verification
+-- ========================================================================
+DO $$
+DECLARE tid TEXT := 'tst22-' || substr(md5(random()::text),1,8); result JSONB; fs TEXT; oh TEXT;
 BEGIN
   oh := encode(digest('314159','sha256'),'hex');
   INSERT INTO public.foody_orders (id,shop_id,customer_name,customer_phone,customer_address,status,items,total_amount,pickup_otp_hash,pickup_otp_expires_at) VALUES (tid,'test-shop-hardening','T','9','A','ready_for_pickup','[{"n":"t"}]'::jsonb,100,oh,NOW()+INTERVAL '30 min');
   SELECT public.claim_order_pickup_atomic(tid,'test-rider-A','314159') INTO result;
   SELECT status INTO fs FROM public.foody_orders WHERE id=tid;
   IF fs='picked_up' THEN
-    INSERT INTO _test_results VALUES ('T20','SHA-256 OTP verify','✅ PASS','Hash-only → picked_up');
+    INSERT INTO _test_results VALUES ('T22','SHA-256 OTP verify','✅ PASS','Hash-only → picked_up');
   ELSE
-    INSERT INTO _test_results VALUES ('T20','SHA-256 OTP verify','❌ FAIL','Status='||COALESCE(fs,'NULL'));
+    INSERT INTO _test_results VALUES ('T22','SHA-256 OTP verify','❌ FAIL','Status='||COALESCE(fs,'NULL'));
   END IF;
 EXCEPTION WHEN OTHERS THEN
-  INSERT INTO _test_results VALUES ('T20','SHA-256 OTP verify','⚠️ ERROR', SQLERRM);
+  INSERT INTO _test_results VALUES ('T22','SHA-256 OTP verify','⚠️ ERROR', SQLERRM);
 END $$;
 
 

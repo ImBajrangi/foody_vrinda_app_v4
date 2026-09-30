@@ -6,6 +6,8 @@ import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { 
   supabase, 
   updateCloudOrderStatus, 
+  claimOrderPickupAtomic,
+  verifyDeliveryOtpAtomic,
   subscribeCloudOrders, 
   createCloudNotification, 
   getOrderItemSummary, 
@@ -630,9 +632,9 @@ export default function TransportView() {
     setTimeout(async () => {
       try {
         if (currentType === 'pickup') {
-          await handleStartDelivery(currentOrder.id, currentOrder);
+          await handleStartDelivery(currentOrder.id, currentOrder, entered);
         } else {
-          await handleCompleteDelivery(currentOrder.id, currentOrder);
+          await handleCompleteDelivery(currentOrder.id, currentOrder, entered);
         }
         closeOtpModal();
       } catch (err) {
@@ -642,12 +644,13 @@ export default function TransportView() {
     }, 600);
   };
 
-  const handleStartDelivery = async (orderId, orderData) => {
+  const handleStartDelivery = async (orderId, orderData, enteredOtp = null) => {
     stopAlarm();
     try {
       const dailyCode = getDailySarathiCode(activeUser);
+      const riderId = activeUser?.id || activeUser?.email || 'sarathi_rider';
       const riderPayload = {
-        rider_id: activeUser?.id || activeUser?.email || 'sarathi_rider',
+        rider_id: riderId,
         rider_name: activeUser?.name || 'Govind Das (Sarathi)',
         rider_phone: activeUser?.phone || '+91 98765 43210',
         rider_rating: '4.95',
@@ -656,6 +659,10 @@ export default function TransportView() {
         picked_up_at: new Date().toISOString()
       };
 
+      if (enteredOtp) {
+        // Invoke atomic database RPC with row locking & rate limiting
+        await claimOrderPickupAtomic(orderId, riderId, enteredOtp);
+      }
       await updateCloudOrderStatus(orderId, 'out_for_delivery', riderPayload);
       
       setOrders(prev => prev.map(o => o.id === orderId ? {
@@ -693,11 +700,17 @@ export default function TransportView() {
     }
   };
 
-  const handleCompleteDelivery = async (orderId, orderData) => {
+  const handleCompleteDelivery = async (orderId, orderData, enteredOtp = null) => {
     stopAlarm();
     try {
+      const riderId = activeUser?.id || activeUser?.email || 'sarathi_rider';
       const rawMethod = String(orderData?.payment_method || orderData?.paymentMethod || '').toLowerCase().trim();
       const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+
+      if (enteredOtp) {
+        // Invoke atomic database RPC with row locking & cryptographic hash check
+        await verifyDeliveryOtpAtomic(orderId, riderId, enteredOtp);
+      }
       await updateCloudOrderStatus(orderId, 'completed', {
         cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
         delivered_at: new Date().toISOString()

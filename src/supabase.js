@@ -1045,7 +1045,11 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
     } catch (_) {}
 
     if (error) {
-      console.warn('updateCloudOrderStatus note:', error.message);
+      if (error.code === '42501' || error.message?.includes('row-level security')) {
+        console.info('updateCloudOrderStatus: Direct mutation restricted by RLS (RPC-only state machine active). Code:', error.code);
+      } else {
+        console.warn('updateCloudOrderStatus note:', error.message);
+      }
     }
     return data;
   } catch (err) {
@@ -1053,6 +1057,95 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
     return null;
   }
 }
+
+/**
+ * 🔐 Atomic Order Pickup Claim (Concurrency-Safe & Verified)
+ * Invokes PostgreSQL RPC claim_order_pickup_atomic with FOR UPDATE row lock and OTP rate limiting
+ */
+export async function claimOrderPickupAtomic(orderId, riderId, otpInput) {
+  try {
+    const { data, error } = await supabase.rpc('claim_order_pickup_atomic', {
+      p_order_id: orderId,
+      p_rider_id: riderId,
+      p_otp_input: String(otpInput).trim()
+    });
+
+    if (error) {
+      console.error('claimOrderPickupAtomic RPC failed:', error.message);
+      return { success: false, error: error.message, code: error.code };
+    }
+
+    // Invalidate local cache and sync updated order
+    ['all', data?.shop_id].filter(Boolean).forEach(sKey => {
+      const cached = getCachedItem('orders', sKey);
+      if (cached && Array.isArray(cached)) {
+        const updated = cached.map(o => o.id === orderId ? { ...o, ...data } : o);
+        setCachedItem('orders', sKey, updated);
+      }
+    });
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('claimOrderPickupAtomic exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * 🔐 Atomic Delivery OTP Verification (Concurrency-Safe & Cryptographic)
+ * Invokes PostgreSQL RPC verify_delivery_otp_atomic with FOR UPDATE row lock and hash verification
+ */
+export async function verifyDeliveryOtpAtomic(orderId, riderId, otpInput) {
+  try {
+    const { data, error } = await supabase.rpc('verify_delivery_otp_atomic', {
+      p_order_id: orderId,
+      p_rider_id: riderId,
+      p_otp_input: String(otpInput).trim()
+    });
+
+    if (error) {
+      console.error('verifyDeliveryOtpAtomic RPC failed:', error.message);
+      return { success: false, error: error.message, code: error.code };
+    }
+
+    // Invalidate local cache and sync updated order
+    ['all', data?.shop_id].filter(Boolean).forEach(sKey => {
+      const cached = getCachedItem('orders', sKey);
+      if (cached && Array.isArray(cached)) {
+        const updated = cached.map(o => o.id === orderId ? { ...o, ...data } : o);
+        setCachedItem('orders', sKey, updated);
+      }
+    });
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('verifyDeliveryOtpAtomic exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * 🛡️ Verify Order Hash Chain Integrity (Audit Crawler)
+ * Invokes PostgreSQL RPC verify_order_hash_chain
+ */
+export async function verifyOrderHashChain(orderId) {
+  try {
+    const { data, error } = await supabase.rpc('verify_order_hash_chain', {
+      p_order_id: orderId
+    });
+
+    if (error) {
+      console.error('verifyOrderHashChain RPC failed:', error.message);
+      return { success: false, error: error.message, code: error.code };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('verifyOrderHashChain exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 
 export async function getCloudOrders(shopId = 'all') {
   const cached = getCachedItem('orders', shopId);
@@ -4324,26 +4417,34 @@ CREATE TRIGGER trg_prevent_audit_tamper
 -- 4B. SERVER-SIDE CRYPTOGRAPHIC HASH CHAINING TRIGGER
 -- Computes SHA-256 hash chain on INSERT with FOR UPDATE row lock to prevent forking
 CREATE OR REPLACE FUNCTION public.compute_event_hash_chain()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
     prev_hash TEXT;
+    prev_seq INT;
     payload TEXT;
 BEGIN
     -- Acquire exclusive lock on the parent order row to serialize event stream
     PERFORM 1 FROM public.foody_orders WHERE id = NEW.order_id FOR UPDATE;
 
-    -- Get the hash of the most recent event for this order
-    SELECT event_hash INTO prev_hash
+    -- Get previous event hash AND sequence (deterministic ordering)
+    SELECT event_hash, COALESCE(event_sequence, 0) INTO prev_hash, prev_seq
     FROM public.foody_order_events
-    WHERE order_id = NEW.order_id AND id != NEW.id
-    ORDER BY created_at DESC
+    WHERE order_id = NEW.order_id
+      AND ctid != NEW.ctid
+    ORDER BY COALESCE(event_sequence, 0) DESC, created_at DESC
     LIMIT 1;
 
     -- If no previous event, use genesis sentinel
     IF prev_hash IS NULL THEN
         prev_hash := 'GENESIS_' || NEW.order_id;
+        prev_seq := 0;
     END IF;
 
+    NEW.event_sequence := prev_seq + 1;
     NEW.previous_event_hash := prev_hash;
 
     -- Build deterministic payload for hashing
@@ -4354,7 +4455,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_compute_event_hash ON public.foody_order_events;
 CREATE TRIGGER trg_compute_event_hash
@@ -4862,11 +4963,25 @@ CREATE OR REPLACE FUNCTION public.claim_order_pickup_atomic(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_order RECORD;
     v_result JSONB;
+    v_caller_id TEXT;
 BEGIN
+    -- Strict caller identity binding: reject unauthenticated impersonation
+    IF auth.uid() IS NOT NULL THEN
+        IF auth.uid()::text IS DISTINCT FROM p_rider_id THEN
+            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id;
+        END IF;
+        v_caller_id := auth.uid()::text;
+    ELSIF current_user IN ('postgres', 'supabase_admin') OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+        v_caller_id := p_rider_id;
+    ELSE
+        RAISE EXCEPTION 'Authentication required: Anonymous clients cannot execute rider operations.';
+    END IF;
+
     -- Lock the order row exclusively
     SELECT * INTO v_order FROM public.foody_orders WHERE id = p_order_id FOR UPDATE;
     
@@ -4879,6 +4994,11 @@ BEGIN
         RAISE EXCEPTION 'Order % is in state "%" — cannot claim for pickup.', p_order_id, v_order.status;
     END IF;
 
+    -- Enforce OTP one-time use
+    IF v_order.pickup_otp_used_at IS NOT NULL THEN
+        RAISE EXCEPTION 'Pickup OTP has already been used for order %.', p_order_id;
+    END IF;
+
     -- Rate limit: max 5 OTP attempts
     IF v_order.pickup_otp_attempts >= 5 THEN
         RAISE EXCEPTION 'OTP rate limit exceeded for order %. Contact admin.', p_order_id;
@@ -4889,26 +5009,30 @@ BEGIN
         RAISE EXCEPTION 'Pickup OTP has expired for order %.', p_order_id;
     END IF;
 
-    -- Verify OTP: compare hash if hash exists, otherwise compare plaintext
+    -- Verify OTP: hash-first, deprecated plaintext fallback
     IF v_order.pickup_otp_hash IS NOT NULL THEN
         IF encode(digest(p_otp_input, 'sha256'), 'hex') != v_order.pickup_otp_hash THEN
             UPDATE public.foody_orders SET pickup_otp_attempts = pickup_otp_attempts + 1 WHERE id = p_order_id;
             RAISE EXCEPTION 'Invalid pickup OTP for order %.', p_order_id;
         END IF;
     ELSIF v_order.pickup_otp IS NOT NULL THEN
+        -- DEPRECATED: Legacy plaintext fallback — scheduled for removal in v5.4
         IF p_otp_input != v_order.pickup_otp THEN
             UPDATE public.foody_orders SET pickup_otp_attempts = pickup_otp_attempts + 1 WHERE id = p_order_id;
             RAISE EXCEPTION 'Invalid pickup OTP for order %.', p_order_id;
         END IF;
+    ELSE
+        RAISE EXCEPTION 'No OTP configured for order %. Cannot verify pickup.', p_order_id;
     END IF;
 
     -- Claim successful: update order atomically
     UPDATE public.foody_orders
     SET 
         status = 'picked_up',
-        rider_id = p_rider_id,
+        rider_id = v_caller_id,
         picked_up_at = NOW(),
         pickup_otp_attempts = 0,
+        pickup_otp_used_at = NOW(),
         otp_used_at = NOW(),
         updated_at = NOW()
     WHERE id = p_order_id
@@ -4916,7 +5040,8 @@ BEGIN
 
     -- Log audit event
     INSERT INTO public.foody_order_events (order_id, actor_id, actor_role, event_type, metadata)
-    VALUES (p_order_id, p_rider_id, 'delivery', 'PICKUP_CLAIMED', jsonb_build_object('verified_by', 'otp', 'claimed_at', NOW()::text));
+    VALUES (p_order_id, v_caller_id, 'delivery', 'PICKUP_CLAIMED',
+            jsonb_build_object('verified_by', 'otp', 'claimed_at', NOW()::text));
 
     RETURN v_result;
 END;
@@ -4934,11 +5059,25 @@ CREATE OR REPLACE FUNCTION public.verify_delivery_otp_atomic(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_order RECORD;
     v_result JSONB;
+    v_caller_id TEXT;
 BEGIN
+    -- Strict caller identity binding: reject unauthenticated impersonation
+    IF auth.uid() IS NOT NULL THEN
+        IF auth.uid()::text IS DISTINCT FROM p_rider_id THEN
+            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id;
+        END IF;
+        v_caller_id := auth.uid()::text;
+    ELSIF current_user IN ('postgres', 'supabase_admin') OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+        v_caller_id := p_rider_id;
+    ELSE
+        RAISE EXCEPTION 'Authentication required: Anonymous clients cannot execute rider operations.';
+    END IF;
+
     -- Lock the order row exclusively
     SELECT * INTO v_order FROM public.foody_orders WHERE id = p_order_id FOR UPDATE;
     
@@ -4947,13 +5086,18 @@ BEGIN
     END IF;
 
     -- Verify rider owns this delivery
-    IF v_order.rider_id IS NOT NULL AND v_order.rider_id != p_rider_id THEN
-        RAISE EXCEPTION 'Rider % is not assigned to order %.', p_rider_id, p_order_id;
+    IF v_order.rider_id IS NOT NULL AND v_order.rider_id != v_caller_id THEN
+        RAISE EXCEPTION 'Rider % is not assigned to order %.', v_caller_id, p_order_id;
     END IF;
 
     -- Check order is in correct state for delivery
     IF v_order.status NOT IN ('out_for_delivery') THEN
         RAISE EXCEPTION 'Order % is in state "%" — cannot verify delivery.', p_order_id, v_order.status;
+    END IF;
+
+    -- Enforce OTP one-time use
+    IF v_order.delivery_otp_used_at IS NOT NULL THEN
+        RAISE EXCEPTION 'Delivery OTP has already been used for order %.', p_order_id;
     END IF;
 
     -- Rate limit: max 5 OTP attempts
@@ -4966,17 +5110,20 @@ BEGIN
         RAISE EXCEPTION 'Delivery OTP has expired for order %.', p_order_id;
     END IF;
 
-    -- Verify OTP: compare hash if hash exists, otherwise compare plaintext
+    -- Verify OTP: hash-first, deprecated plaintext fallback
     IF v_order.delivery_otp_hash IS NOT NULL THEN
         IF encode(digest(p_otp_input, 'sha256'), 'hex') != v_order.delivery_otp_hash THEN
             UPDATE public.foody_orders SET delivery_otp_attempts = delivery_otp_attempts + 1 WHERE id = p_order_id;
             RAISE EXCEPTION 'Invalid delivery OTP for order %.', p_order_id;
         END IF;
     ELSIF v_order.delivery_otp IS NOT NULL THEN
+        -- DEPRECATED: Legacy plaintext fallback — scheduled for removal in v5.4
         IF p_otp_input != v_order.delivery_otp THEN
             UPDATE public.foody_orders SET delivery_otp_attempts = delivery_otp_attempts + 1 WHERE id = p_order_id;
             RAISE EXCEPTION 'Invalid delivery OTP for order %.', p_order_id;
         END IF;
+    ELSE
+        RAISE EXCEPTION 'No OTP configured for order %. Cannot verify delivery.', p_order_id;
     END IF;
 
     -- Delivery confirmed: update order atomically
@@ -4985,6 +5132,7 @@ BEGIN
         status = 'delivered',
         delivered_at = NOW(),
         delivery_otp_attempts = 0,
+        delivery_otp_used_at = NOW(),
         otp_used_at = NOW(),
         updated_at = NOW()
     WHERE id = p_order_id
@@ -4992,7 +5140,7 @@ BEGIN
 
     -- Log audit event
     INSERT INTO public.foody_order_events (order_id, actor_id, actor_role, event_type, metadata)
-    VALUES (p_order_id, p_rider_id, 'delivery', 'DELIVERY_VERIFIED', jsonb_build_object('verified_by', 'otp', 'delivered_at', NOW()::text));
+    VALUES (p_order_id, v_caller_id, 'delivery', 'DELIVERY_VERIFIED', jsonb_build_object('verified_by', 'otp', 'delivered_at', NOW()::text));
 
     RETURN v_result;
 END;
@@ -5006,6 +5154,7 @@ CREATE OR REPLACE FUNCTION public.verify_order_hash_chain(p_order_id TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
     v_event RECORD;
@@ -5020,7 +5169,7 @@ BEGIN
     FOR v_event IN
         SELECT * FROM public.foody_order_events
         WHERE order_id = p_order_id
-        ORDER BY created_at ASC
+        ORDER BY COALESCE(event_sequence, 0) ASC, created_at ASC
     LOOP
         v_count := v_count + 1;
 
