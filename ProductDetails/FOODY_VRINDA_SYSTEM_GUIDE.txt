@@ -1,30 +1,33 @@
 ================================================================================
-🌟 FOODY VRINDA - PRODUCTION-GRADE SYSTEM ARCHITECTURE & OPERATIONAL GUIDE (v5.0)
+🌟 FOODY VRINDA - PRODUCTION-GRADE SYSTEM ARCHITECTURE & RISK MITIGATION BLUEPRINT (v5.1)
 ================================================================================
 
-1. 🛒 CUSTOMER (Order Lifecycle, Multi-Address & Secure Verification)
-• Authentication: 1-Tap Google / Phone login with verified session tokens. Zero unverified guest orders.
-• Dynamic Address Management: Multiple saved addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions. Address can be switched per order.
+1. 🛒 CUSTOMER (Order Lifecycle, Authentication & Privacy Protections)
+• Strict Pre-Authentication: Orders require verified user session tokens (user_id NOT NULL). Zero anonymous/guest orders to eliminate fake order spam.
+• Dynamic Address Management: Multiple saved addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions. Selectable per checkout.
 • Single-Kitchen Policy: Enforced 1 order = 1 kitchen = 1 rider to prevent multi-hop cross-city food spoilage.
-• Real-Time Order Milestones:
-  [CREATED] ➔ [PREPARING] ➔ [PACKED] ➔ [OUT_FOR_DELIVERY] ➔ [DELIVERED]
-• Doorstep OTP & Geofence Protection:
+• Real-Time 16-State Lifecycle:
+  [NEW] ➔ [PAYMENT_PENDING] ➔ [CONFIRMED] ➔ [ACCEPTED] ➔ [COOKING] ➔ [READY_FOR_PICKUP] ➔ [RIDER_ASSIGNED] ➔ [RIDER_ARRIVING] ➔ [PICKED_UP] ➔ [OUT_FOR_DELIVERY] ➔ [DELIVERED]
+  (Failure paths: [DELIVERY_ATTEMPTED_FAILED], [DISPUTED], [CANCELLED], [REFUND_PENDING], [REFUNDED])
+• Rider Contact Privacy: Rider phone numbers are proxy/masked via in-app calling channel.
+• Doorstep OTP & Tri-Tier Geofence Protection:
   - Customer receives a 4-Digit Delivery OTP on the tracking screen.
-  - Delivery completion requires Rider to be within the delivery geofence (<150m) + valid OTP entry to eliminate premature delivery abuse.
+  - Geofence Tiers:
+    • < 100m: Normal doorstep verification.
+    • 100m – 250m: Proximity alert & customer location confirmation prompt.
+    • > 250m: Delivery lock. Requires controlled support override with an audit event.
 
 
 2. 🍳 KITCHEN & FOOD SAFETY (Dynamic Prep Timing, Packaging & Physical QC)
-• Scoped Kitchen Screen: Each kitchen strictly accesses orders for their specific branch.
-• Intelligent Dynamic Dispatch Window:
-  - Replaces naive parallel dispatch.
-  - System dynamically matches Kitchen Prep ETA (`predicted_ready_at`) with Rider Travel ETA (`rider_arrival_eta`).
-  - Rider is dispatched only at the optimal window (`dispatch_at`) so the rider arrives exactly when the food is freshly packed.
-• Physical Package Multi-Factor Verification:
-  - Kitchen card displays 4-Digit Pickup OTP, Order Short Code, Customer Name, and Item Checklist.
-  - Staff verifies dish checklist and package label before handover.
-• Food Safety & Temperature Retention (FSSAI Aligned):
-  - Hot food holding standards (>65°C) and thermal transport compliance.
-  - Timestamps recorded: `cooked_at`, `packed_at`, `picked_up_at`, `delivered_at`.
+• Scoped Kitchen Screen: Each kitchen strictly accesses orders for their specific branch (shop_id).
+• Dynamic Prep & Continuous ETA Recalculation:
+  - Kitchen preparation time (predicted_ready_at) is continuously matched against rider travel ETA (predicted_rider_arrival_at) with an eta_confidence_score.
+  - Rider is dispatched at the optimal dispatch window (dispatch_at) so the rider arrives exactly when the dish is freshly packed.
+  - Structured Kitchen Delays: Delays require explicit reason codes (e.g., INGREDIENT_DELAY, RUSH_HOUR_SURGE, POWER_FLUCTUATION) rather than arbitrary unmonitored clicks.
+• Quality-Control Transit Threshold:
+  - Transit time alerts (35-45 mins context-aware) flag thermal quality degradation without oversimplifying biological food safety.
+• Machine-Verifiable Physical Handover:
+  - Handover requires a 4-factor check: Package QR/Barcode + Order Short Code + 4-Digit Pickup OTP + Staff item checklist.
 • Urgency Safety Timers: 15-minute kitchen inactivity alarm to Owner; automatic escalation if kitchen response stalls.
 
 
@@ -33,25 +36,30 @@
   [OFFLINE] ➔ [AVAILABLE] ➔ [ASSIGNED] ➔ [NAVIGATING_TO_KITCHEN] ➔ [WAITING_AT_KITCHEN] ➔ [OUT_FOR_DELIVERY] ➔ [DELIVERED]
 • Atomic First-Arrival Claiming:
   - Multiple nearby riders receive early route alerts.
-  - First rider at the counter verifies the Kitchen Pickup OTP; database executes an atomic lock binding `rider_id`, `rider_name`, `rider_phone`, and `picked_up_at`. Zero double-assignment race conditions.
+  - First rider at the counter verifies the Kitchen Pickup OTP; database executes an atomic lock binding rider_id, rider_name, rider_phone, and picked_up_at. Zero double-assignment race conditions.
 • Daily Rotating Sarathi Token:
-  - Daily display identifier (`SR-XXXX`, e.g. `SR-8921`) rotating every 24h for quick visual verification by staff and customers.
-• Offline Resilience Strategy:
-  - Local state caching, optimistic UI updates, and signed timestamp tokens that reconcile automatically when network connectivity resumes.
+  - Daily display identifier (SR-XXXX, e.g. SR-8921) rotating every 24h for quick visual verification by staff and customers.
+• Offline Resilience Strategy & Action Partitioning:
+  - Safe to queue locally: ARRIVED_AT_KITCHEN, NAVIGATION_STARTED, CUSTOMER_CONTACT_ATTEMPTED.
+  - Require online server verification: PICKUP_VERIFIED, DELIVERY_OTP_VERIFIED, CASH_SETTLED, ORDER_DELIVERED.
+• Doorstep Proof & Photo Privacy:
+  - For failed delivery attempts, rider captures in-app camera proof (stored in private cloud bucket, never personal phone gallery, auto-purged after 7 days).
 
 
-4. 💰 COD CASH RECONCILIATION & DISPUTE MECHANISM
-• Real-World Cash Accounting Ledger:
-  - Tracks `cash_collected`, `cash_returned`, `net_cash`, `cash_expected`, `cash_settled`, `cash_variance`.
-• Evening Settlement Dual-Confirmation Workflow:
-  - Rider initiates deposit ➔ Cashier enters received amount ➔ Dual-confirmation match.
-  - If variance occurs: System flags as `DISPUTED` with settlement ID, cashier ID, timestamp, and optional receipt upload for fair manager review (no instant unfair penalty).
+4. 💰 COD MULTI-ACTOR CASH RECONCILIATION LEDGER
+• Real-World Cash Accounting:
+  - Captures: cash_received_from_customer, change_returned_to_customer, net_collected, expected_amount, variance.
+• Multi-Actor Dual Confirmation Handover:
+  - Rider declares amount (rider_declared_amount, declared_by).
+  - Cashier enters received amount (cashier_received_amount, received_by).
+  - Manager approves (approved_by).
+  - Mismatch triggers DISPUTED settlement status with audit event, cashier ID, timestamp, and receipt image.
 
 
 5. 📊 FOODY OPERATIONAL TRUST SCORE (300 – 900 Points)
 *Note: This is an internal platform reliability score and is NOT a credit bureau score.*
 • Context-Aware Delay Attribution:
-  - Scores are adjusted ONLY when delay responsibility is verified (`KITCHEN_DELAY`, `RIDER_DELAY`, `TRAFFIC_DELAY`, `WEATHER_DELAY`, `CUSTOMER_DELAY`).
+  - Scores are adjusted ONLY when delay responsibility is verified (KITCHEN_DELAY, RIDER_DELAY, TRAFFIC_DELAY, WEATHER_DELAY, CUSTOMER_DELAY).
   - Heavy traffic, rain, or kitchen backlogs do not penalize innocent delivery sarathis.
 • Graduated Customer COD Policy:
   - 1st failed/unreachable delivery: Warning & customer support callback.
@@ -59,18 +67,22 @@
   - Chronic fraud/refusal: Transition to Prepaid-only mode (No harsh 1-strike bans).
 
 
-6. 🔒 PRIVACY, SECURITY & DATA RETENTION
-• Ephemeral Live Tracking: Customers see live rider position only while an order is actively in transit.
-• Data Minimization: Customer location history is kept confidential and separated from long-term public query logs.
-• OTP Security: Rate-limited verification (max 5 attempts), short-lived expiry, and one-time invalidation.
-
-
-7. 🛡️ IMMUTABLE CHAIN-OF-CUSTODY & AUDIT REPORTING
-• Append-Only Lifecycle Events:
-  - Order milestones (`ORDER_CREATED`, `COOKING_STARTED`, `PACKED`, `PICKUP_VERIFIED`, `OUT_FOR_DELIVERY`, `DELIVERY_VERIFIED`) recorded with immutable server timestamps.
+6. 🔒 DATA INTEGRITY, IMMUTABLE LEDGER & RLS ACCESS CONTROL
+• Cryptographic Hash Chaining on Audit Events (foody_order_events):
+  - Schema contains previous_event_hash and event_hash.
+  - Foreign key uses ON DELETE RESTRICT (order cancellation != database deletion; audit logs never disappear).
+  - PostgreSQL trigger trg_prevent_audit_tamper blocks all UPDATE and DELETE operations.
+• Zero-Plaintext Hashed OTPs:
+  - pickup_otp_hash and delivery_otp_hash with pickup_otp_expires_at, delivery_otp_expires_at, and attempt rate-limiting counters.
+• Row-Level Security (RLS) Strict Policies:
+  - Customer: Own orders and active live transit only.
+  - Kitchen/Chef: Assigned branch orders only.
+  - Rider: Available orders in area & assigned delivery tasks.
+  - Owner: Complete shop-scoped records & financial ledgers.
+  - Admin: Full system telemetry and audit reports.
 • 1-Click CSV/Excel Audit Export:
-  - Available on dashboard for Owners and Admins to audit timings, route durations, OTP logs, and cash settlement status.
+  - Instant generation of order lifecycle audit logs, timestamps, pickup codes, durations, and settlement records.
 
 ================================================================================
-Foody Vrinda Ecosystem • Production-Ready v5.0 Specification
+Foody Vrinda Ecosystem • Production Risk Mitigation Blueprint v5.1
 ================================================================================

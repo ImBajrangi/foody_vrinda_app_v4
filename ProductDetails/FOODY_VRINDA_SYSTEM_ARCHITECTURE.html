@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foody Vrinda - System Architecture v5.0 (Production-Grade Framework)</title>
+  <title>Foody Vrinda - Production Risk Mitigation Blueprint (Architecture v5.1)</title>
   <style>
     :root {
       --bg: #0C0A09;
@@ -18,6 +18,7 @@
       --amber: #F59E0B;
       --blue: #38BDF8;
       --purple: #C084FC;
+      --red: #EF4444;
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
 
@@ -36,7 +37,7 @@
     }
 
     .container {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -70,7 +71,7 @@
     .hero-sub {
       color: var(--muted);
       font-size: 14.5px;
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
     }
 
@@ -215,6 +216,17 @@
       border-color: rgba(16, 185, 129, 0.4);
     }
 
+    .hash-chain {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px dashed rgba(224, 255, 51, 0.4);
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #D4D4D8;
+    }
+
     footer {
       text-align: center;
       padding: 28px 0;
@@ -231,154 +243,178 @@
   <div class="container">
 
     <div class="hero">
-      <div class="tag">Production Architecture v5.0 • Foody Vrinda</div>
-      <h1>Foody Vrinda: Operational & Technical Architecture</h1>
-      <p class="hero-sub">Comprehensive specifications for Order State Machines, ETA-Matched Dispatch, Physical Handover Controls, Cash Reconciliation, and Immutable Audit Trails.</p>
+      <div class="tag">Production Architecture v5.1 • Foody Vrinda</div>
+      <h1>Foody Vrinda: Enterprise Risk Mitigation Blueprint</h1>
+      <p class="hero-sub">Production-grade specifications covering Hash-Chained Append-Only Ledgers, Multi-Actor Cash Reconciliation, Tri-Tier Geofencing, Continuous ETA Recalculation, and Row-Level Security.</p>
     </div>
 
-    <!-- 1. CUSTOMER -->
+    <!-- 1. CUSTOMER & SECURITY -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">🛒</div>
         <div>
-          <div class="step-title">1. Customer Lifecycle & Dynamic Address Management</div>
-          <div class="step-sub">Verified authentication, multi-address selection & geofenced doorstep OTP</div>
+          <div class="step-title">1. Customer Lifecycle, Tri-Tier Geofence & Privacy</div>
+          <div class="step-sub">Verified identity, non-nullable user_id, caller ID masking & 16 explicit states</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Pre-Authentication</strong>: All orders require Google / Phone verification session tokens. Zero guest checkout fraud.</li>
-        <li><strong>Saved Address Portfolio</strong>: Customers manage multiple addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions selectable per order.</li>
-        <li><strong>Single-Kitchen Integrity</strong>: Enforced 1 order = 1 kitchen = 1 rider constraint to prevent cross-town multi-stop food cooling.</li>
-        <li><strong>Geofenced Delivery Verification</strong>: Rider must be within 150m of the delivery location + submit customer's 4-digit OTP to complete trip. Eliminates remote false-delivery abuse.</li>
+        <li><strong>Strict Pre-Authentication</strong>: All orders require verified session tokens (<code>user_id NOT NULL</code>). Eliminates ghost orders and anonymous checkout abuse.</li>
+        <li><strong>Saved Address Portfolio</strong>: Customers manage multiple addresses (Home 🏠, Work 🏢, Ashram/Hostel 📍) with precise Landmark, Unit/Floor, and Delivery Instructions.</li>
+        <li><strong>Tri-Tier Geofence Verification</strong>:
+          <br>• <code>&lt; 100m</code>: Normal doorstep verification.
+          <br>• <code>100m – 250m</code>: Proximity warning + customer doorstep confirmation prompt.
+          <br>• <code>&gt; 250m</code>: Delivery lock. Requires controlled supervisor override logged with an audit event.
+        </li>
+        <li><strong>Caller ID Masking</strong>: Sarathi phone numbers are routed through proxy/in-app channels rather than exposing personal numbers.</li>
       </ul>
       <div class="state-flow">
-        <span class="state-item">PLACED</span> ➔
-        <span class="state-item">PREPARING</span> ➔
-        <span class="state-item">PACKED</span> ➔
+        <span class="state-item">NEW</span> ➔
+        <span class="state-item">CONFIRMED</span> ➔
+        <span class="state-item">COOKING</span> ➔
+        <span class="state-item">READY_FOR_PICKUP</span> ➔
+        <span class="state-item">RIDER_ASSIGNED</span> ➔
         <span class="state-item active">OUT_FOR_DELIVERY</span> ➔
         <span class="state-item done">DELIVERED</span>
       </div>
     </div>
 
-    <!-- 2. KITCHEN -->
+    <!-- 2. KITCHEN & MACHINE QC -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">🍳</div>
         <div>
-          <div class="step-title">2. Kitchen Operations & Dynamic ETA Dispatch Window</div>
-          <div class="step-sub">Intelligent prep timing matching, physical checklist & FSSAI thermal safety</div>
+          <div class="step-title">2. Kitchen Engine, Dynamic ETA & Physical Machine QC</div>
+          <div class="step-sub">Continuous ETA matching, structured delay reasons & barcode/QR package validation</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Dynamic Prep & Rider ETA Matching</strong>: System predicts kitchen prep time (<code>predicted_ready_at</code>) and calculates rider travel time (<code>rider_arrival_eta</code>). Rider is dispatched at the optimal time window so food is packed right as rider arrives.</li>
-        <li><strong>Physical Package Multi-Check</strong>: Prevents packet mix-ups via 4-Digit Pickup OTP + Order Short Code + Customer Name + Item checklist validation before handover.</li>
-        <li><strong>Food Safety & Thermal Standards (FSSAI Aligned)</strong>: Tracks timestamps across <code>cooked_at</code>, <code>packed_at</code>, <code>picked_up_at</code>, and <code>delivered_at</code> ensuring hot holding (>65°C) and fresh transit.</li>
-        <li><strong>Awaiting Pickup Queue</strong>: Packed orders remain in kitchen view showing <span class="flow-badge">Rider Pickup OTP: XXXX</span> until the Sarathi physically enters the code.</li>
+        <li><strong>Continuous ETA Recalculation</strong>: Matches <code>predicted_ready_at</code> against <code>predicted_rider_arrival_at</code> with an <code>eta_confidence_score</code>, continuously recalculating to dispatch riders at the precise moment food is bagged.</li>
+        <li><strong>Structured Kitchen Delay Attribution</strong>: Delays require explicit reason codes (<code>INGREDIENT_DELAY</code>, <code>KITCHEN_RUSH</code>, <code>EQUIPMENT_CHECK</code>) rather than arbitrary unmonitored clicks.</li>
+        <li><strong>Quality-Control Transit Threshold</strong>: 35-45 min context-aware thermal alerts monitor food temperature and fresh transit without simplistic biological food safety assertions.</li>
+        <li><strong>Machine-Verifiable Handover</strong>: Staff and Rider perform a 4-point verification: Package Barcode/QR scan + Order Short Code + 4-Digit Pickup OTP + Item checklist.</li>
       </ul>
       <div class="callout">
-        <strong>⚡ 15-Min Urgency Alarm:</strong> If kitchen neglects an order for 15 minutes, Owner receives an emergency audio alarm. At 30 minutes, COD orders auto-cancel.
+        <strong>⚡ Inactivity Escalation:</strong> Orders unattended for &gt;15 minutes trigger an automated audio alarm on the Store Owner dashboard.
       </div>
     </div>
 
-    <!-- 3. RIDER -->
+    <!-- 3. RIDER & OFFLINE RESILIENCE -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">🛵</div>
         <div>
-          <div class="step-title">3. Delivery Sarathi Workflow & Daily Security Tokens</div>
-          <div class="step-sub">Atomic first-arrival claiming, 24h rotating badges & offline resilience</div>
+          <div class="step-title">3. Sarathi Fleet Engine & Offline State Partitioning</div>
+          <div class="step-sub">Atomic first-arrival claiming, rotating tokens & online/offline action separation</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Atomic First-Arrival Claiming</strong>: Multiple nearby riders receive early alerts. First rider at the counter enters the 4-digit Pickup OTP, instantly executing an atomic lock on <code>rider_id</code>, <code>rider_name</code>, and <code>picked_up_at</code>.</li>
-        <li><strong>Daily Rotating Sarathi Token</strong>: 24-hour rotating badge (<span class="flow-badge">SR-XXXX</span>) verifying partner identity for staff and customers.</li>
-        <li><strong>Expanded Rider States</strong>: <code>OFFLINE</code>, <code>AVAILABLE</code>, <code>ASSIGNED</code>, <code>NAVIGATING_TO_KITCHEN</code>, <code>WAITING_AT_KITCHEN</code>, <code>OUT_FOR_DELIVERY</code>, <code>DELIVERED</code>.</li>
-        <li><strong>Offline Resilient Queue</strong>: Local state caching with timestamped verification tokens that synchronize automatically when network recovers.</li>
+        <li><strong>Atomic Pickup Claiming</strong>: First rider at the counter entering the pickup OTP locks <code>rider_id</code>, <code>rider_name</code>, and <code>picked_up_at</code> in an atomic database transaction.</li>
+        <li><strong>Daily Rotating Sarathi Token</strong>: 24-hour rotating token (<span class="flow-badge">SR-XXXX</span>) for visual verification by kitchen staff and customers.</li>
+        <li><strong>Offline Action Partitioning</strong>:
+          <br>• <em>Safe to queue locally</em>: <code>ARRIVED_AT_KITCHEN</code>, <code>NAVIGATION_STARTED</code>, <code>CUSTOMER_CONTACT_ATTEMPTED</code>.
+          <br>• <em>Requires online server verification</em>: <code>PICKUP_VERIFIED</code>, <code>DELIVERY_OTP_VERIFIED</code>, <code>CASH_SETTLED</code>, <code>ORDER_DELIVERED</code>.
+        </li>
+        <li><strong>Doorstep Photo Privacy</strong>: Failed delivery proof photos are captured exclusively via in-app camera into a private secured bucket and auto-purged after 7 days (never stored in rider's personal gallery).</li>
       </ul>
     </div>
 
-    <!-- 4. CASH SETTLEMENT -->
+    <!-- 4. MULTI-ACTOR CASH RECONCILIATION -->
     <div class="step-card">
       <div class="step-header">
         <div class="step-icon">💰</div>
         <div>
-          <div class="step-title">4. Cash on Delivery Reconciliation & Dispute Management</div>
-          <div class="step-sub">Full cash variance tracking and dual-confirmation deposit protocol</div>
+          <div class="step-title">4. Multi-Actor COD Cash Reconciliation Ledger</div>
+          <div class="step-sub">Granular transaction accounting & dual-confirmation settlement chain</div>
         </div>
       </div>
       <ul class="points">
-        <li><strong>Full Ledger Accounting</strong>: Tracks <code>cash_collected</code>, <code>cash_returned</code>, <code>net_cash</code>, <code>cash_expected</code>, <code>cash_settled</code>, and <code>cash_variance</code>.</li>
-        <li><strong>Dual-Confirmation Evening Handover</strong>:
-          <br>• Rider deposits cash ➔ Cashier enters amount ➔ System verifies match.
-          <br>• If discrepancy occurs, flagged as <code>DISPUTED</code> with settlement ID, cashier timestamp, and optional receipt upload for fair manager review.
+        <li><strong>True Cash Transaction Breakdown</strong>:
+          <br><code>cash_received_from_customer</code> (₹500) - <code>change_returned_to_customer</code> (₹250) = <code>net_collected</code> (₹250).
+        </li>
+        <li><strong>Multi-Actor Settlement Chain</strong>:
+          <br>• Rider deposits cash (<code>rider_declared_amount</code>, <code>declared_by</code>).
+          <br>• Cashier counts cash (<code>cashier_received_amount</code>, <code>received_by</code>).
+          <br>• Manager signs off (<code>approved_by</code>).
+          <br>• If mismatch occurs: Flagged as <code>DISPUTED</code> with settlement ID, cashier ID, timestamp, and receipt image.
         </li>
       </ul>
     </div>
 
-    <!-- 5. TRUST SCORE -->
+    <!-- 5. IMMUTABLE AUDIT & HASH CHAINING -->
     <div class="step-card">
       <div class="step-header">
-        <div class="step-icon">📊</div>
+        <div class="step-icon">🛡️</div>
         <div>
-          <div class="step-title">5. Foody Operational Trust Score (300 to 900 Points)</div>
-          <div class="step-sub">Context-aware delay attribution & graduated COD failure handling</div>
+          <div class="step-title">5. Cryptographic Hash Chaining & Database Integrity</div>
+          <div class="step-sub">ON DELETE RESTRICT, tamper-proof audit trigger & zero plaintext OTPs</div>
         </div>
       </div>
-      <div class="callout" style="margin-top: 0; margin-bottom: 12px;">
-        <strong>ℹ️ Clarification:</strong> This is an internal Foody Vrinda operational reliability score and is <strong>not a credit bureau score</strong>.
+      <ul class="points">
+        <li><strong>Tamper-Proof Audit Stream (<code>foody_order_events</code>)</strong>:
+          <br>• Foreign key uses <code>ON DELETE RESTRICT</code>. Order cancellation != database deletion; historical audit events can never be cascade-deleted.
+          <br>• Enforced by PostgreSQL trigger <code>trg_prevent_audit_tamper</code> blocking all UPDATE and DELETE actions.
+        </li>
+        <li><strong>Cryptographic Hash Chaining</strong>: Each event hashes its content and binds to the <code>previous_event_hash</code>, making historical tampering immediately detectable.</li>
+      </ul>
+      <div class="hash-chain">
+        Event 1 [ORDER_CREATED] ──(SHA256)──➔ Event 2 [COOKING_STARTED] ──(SHA256)──➔ Event 3 [PICKUP_VERIFIED] ──(SHA256)──➔ Event 4 [DELIVERY_VERIFIED]
+      </div>
+      <ul class="points" style="margin-top: 12px;">
+        <li><strong>Hashed OTP Security</strong>: OTPs are stored exclusively as salted hashes (<code>pickup_otp_hash</code>, <code>delivery_otp_hash</code>) with attempt counters and short expiration windows.</li>
+      </ul>
+    </div>
+
+    <!-- 6. RLS MATRIX -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-icon">🔒</div>
+        <div>
+          <div class="step-title">6. Supabase Row-Level Security (RLS) Policy Matrix</div>
+          <div class="step-sub">Database-level enforcement preventing data leakage across stakeholders</div>
+        </div>
       </div>
       <div class="table-box">
         <table>
           <thead>
             <tr>
               <th>Role</th>
-              <th>Score Increases 📈</th>
-              <th>Contextual Penalties 📉</th>
-              <th>Protection & Thresholds</th>
+              <th>Orders Access</th>
+              <th>Menu / Shop Access</th>
+              <th>Cash & Audit Access</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>🛵 Rider</strong></td>
-              <td>Punctual deliveries, accurate cash deposits</td>
-              <td>Unexplained trip cancellations (exempts traffic/rain)</td>
-              <td>High-value COD held if trust score drops &lt; 500</td>
-            </tr>
-            <tr>
-              <td><strong>🍳 Chef</strong></td>
-              <td>Consistent &lt;15m prep, 5⭐ reviews</td>
-              <td>Unjustified kitchen delays (exempts rush hours)</td>
-              <td>Performance review & supervisor audit</td>
-            </tr>
-            <tr>
               <td><strong>👤 Customer</strong></td>
-              <td>Smooth handovers, digital payments</td>
-              <td>Unjustified doorstep COD refusals</td>
-              <td>1st warning ➔ 2nd review ➔ Prepaid only mode</td>
+              <td>Own orders & live transit stream only</td>
+              <td>Public active menus</td>
+              <td>Own receipts</td>
+            </tr>
+            <tr>
+              <td><strong>🍳 Kitchen Staff</strong></td>
+              <td>Assigned <code>shop_id</code> orders</td>
+              <td>Manage dish availability</td>
+              <td>Pickup OTP verification logs</td>
+            </tr>
+            <tr>
+              <td><strong>🛵 Delivery Sarathi</strong></td>
+              <td>Available radius & assigned deliveries</td>
+              <td>Read shop pickup coordinates</td>
+              <td>Personal cash-in-hand ledger</td>
+            </tr>
+            <tr>
+              <td><strong>🛡️ Store Owner</strong></td>
+              <td>All branch orders & staff assignments</td>
+              <td>Full menu & pricing CRUD</td>
+              <td>Evening cash settlements & disputes</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 6. AUDIT & PRIVACY -->
-    <div class="step-card">
-      <div class="step-header">
-        <div class="step-icon">🛡️</div>
-        <div>
-          <div class="step-title">6. Privacy, Security & Immutable Audit Reporting</div>
-          <div class="step-sub">Ephemeral customer tracking, immutable event logging & 1-tap CSV export</div>
-        </div>
-      </div>
-      <ul class="points">
-        <li><strong>Ephemeral GPS Tracking</strong>: Customers only receive live GPS updates while the rider is actively delivering. Long-term customer location history is strictly restricted.</li>
-        <li><strong>Immutable Append-Only Audit Trail</strong>: Every milestone (<code>ORDER_CREATED</code>, <code>COOKING_STARTED</code>, <code>PACKED</code>, <code>PICKUP_VERIFIED</code>, <code>OUT_FOR_DELIVERY</code>, <code>DELIVERY_VERIFIED</code>) is recorded with immutable server timestamps.</li>
-        <li><strong>One-Click CSV / Excel Export</strong>: Dashboard provides <code>exportDeliveryAuditReportCSV</code> generating a complete audit trail of order IDs, chef packing times, Sarathi pickup codes, delivery durations, and COD settlement status.</li>
-      </ul>
-    </div>
-
     <footer>
-      Foody Vrinda Ecosystem &bull; Production Architecture v5.0
+      Foody Vrinda Ecosystem &bull; Production Risk Mitigation Blueprint v5.1
     </footer>
 
   </div>

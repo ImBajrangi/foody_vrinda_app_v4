@@ -4162,16 +4162,124 @@ DO $$ BEGIN
     ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_status_check;
     ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_status_check CHECK (status IN ('new', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled', 'returned'));
     ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_cash_status_check;
-    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_cash_status_check CHECK (cash_status IN ('none', 'pending', 'collected', 'settled'));
-EXCEPTION WHEN OTHERS THEN NULL; END $$;
-
-DROP TRIGGER IF EXISTS trg_foody_orders_updated_at ON public.foody_orders;
+    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_cash_status_check CHECK (cash_status IN ('none', 'pending', 'coll    DROP TRIGGER IF EXISTS trg_foody_orders_updated_at ON public.foody_orders;
 CREATE TRIGGER trg_foody_orders_updated_at
     BEFORE UPDATE ON public.foody_orders
     FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 4. ROLES MASTER CATALOG TABLE (foody_roles)
--- Provides foreign-key relational dropdown selection in Supabase Studio
+-- Add Enterprise OTP Hashing, ETA & Physical QC columns to foody_orders
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'delivery';
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_id TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_name TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_phone TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_rating TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS rider_avatar TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS sarathi_code TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS chef_id TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS chef_name TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS packed_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS picked_up_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cooking_notes TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS cash_status TEXT DEFAULT 'pending';
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS payment_id TEXT;
+
+-- OTP Hashing & Rate Limiting Columns (Zero Plaintext Storage)
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_hash TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_hash TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_expires_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_expires_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS pickup_otp_attempts INT DEFAULT 0;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delivery_otp_attempts INT DEFAULT 0;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS otp_used_at TIMESTAMPTZ;
+
+-- Dynamic ETA & Machine Verification Columns
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS predicted_ready_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS predicted_rider_arrival_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS eta_confidence_score NUMERIC DEFAULT 0.95;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS last_recalculated_at TIMESTAMPTZ;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS delay_reason TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS package_barcode TEXT;
+ALTER TABLE public.foody_orders ADD COLUMN IF NOT EXISTS order_short_code TEXT;
+
+-- 16 Explicit Production States Constraint
+DO $$ BEGIN
+    ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_status_check;
+    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_status_check CHECK (
+      status IN (
+        'new',
+        'payment_pending',
+        'confirmed',
+        'accepted',
+        'cooking',
+        'ready_for_pickup',
+        'rider_assigned',
+        'rider_arriving',
+        'picked_up',
+        'out_for_delivery',
+        'delivered',
+        'cancelled',
+        'delivery_attempted_failed',
+        'refund_pending',
+        'refunded',
+        'disputed'
+      )
+    );
+    ALTER TABLE public.foody_orders DROP CONSTRAINT IF EXISTS foody_orders_cash_status_check;
+    ALTER TABLE public.foody_orders ADD CONSTRAINT foody_orders_cash_status_check CHECK (cash_status IN ('none', 'pending', 'collected', 'settled'));
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+-- 4. TAMPER-PROOF IMMUTABLE AUDIT LEDGER (Hash Chaining & RESTRICT Foreign Key)
+CREATE TABLE IF NOT EXISTS public.foody_order_events (
+    id TEXT PRIMARY KEY DEFAULT ('evt_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
+    order_id TEXT NOT NULL REFERENCES public.foody_orders(id) ON DELETE RESTRICT,
+    actor_id TEXT NOT NULL,
+    actor_role TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    previous_event_hash TEXT,
+    event_hash TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Trigger: Enforce Pure Append-Only Immutability (Disallow UPDATE & DELETE)
+CREATE OR REPLACE FUNCTION public.prevent_audit_tampering()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Security Policy Violation: foody_order_events records are strictly immutable and cannot be updated or deleted.';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_audit_tamper ON public.foody_order_events;
+CREATE TRIGGER trg_prevent_audit_tamper
+    BEFORE UPDATE OR DELETE ON public.foody_order_events
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_audit_tampering();
+
+-- 5. MULTI-ACTOR COD CASH RECONCILIATION LEDGER
+CREATE TABLE IF NOT EXISTS public.foody_cash_settlements (
+    id TEXT PRIMARY KEY DEFAULT ('csh_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
+    order_id TEXT REFERENCES public.foody_orders(id) ON DELETE RESTRICT,
+    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id) ON DELETE RESTRICT,
+    rider_id TEXT NOT NULL,
+    expected_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+    rider_declared_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+    cashier_received_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+    cash_received_from_customer NUMERIC(10,2) DEFAULT 0,
+    change_returned_to_customer NUMERIC(10,2) DEFAULT 0,
+    net_collected NUMERIC(10,2) DEFAULT 0,
+    difference NUMERIC(10,2) NOT NULL DEFAULT 0,
+    declared_by TEXT NOT NULL,
+    received_by TEXT,
+    approved_by TEXT,
+    status TEXT NOT NULL DEFAULT 'under_review' CHECK (status IN ('settled', 'disputed', 'excess_settlement', 'partial_settlement', 'full_settlement', 'under_review')),
+    dispute_reason TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 6. ROLES MASTER CATALOG TABLE (foody_roles)
 CREATE TABLE IF NOT EXISTS public.foody_roles (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -4202,7 +4310,7 @@ ON CONFLICT (id) DO UPDATE SET
     hierarchy_level = EXCLUDED.hierarchy_level,
     updated_at = NOW();
 
--- 5. ALL LOGGED-IN USERS & ROLE MANAGEMENT TABLE (foody_logged_users)
+-- 7. ALL LOGGED-IN USERS & ROLE MANAGEMENT TABLE (foody_logged_users)
 CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
@@ -4289,7 +4397,7 @@ CREATE TRIGGER trg_foody_users_updated_at
     BEFORE UPDATE ON public.foody_users
     FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 5. FOODY REVIEWS TABLE
+-- 8. FOODY REVIEWS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_reviews (
     id BIGSERIAL PRIMARY KEY,
     order_id TEXT,
@@ -4301,7 +4409,7 @@ CREATE TABLE IF NOT EXISTS public.foody_reviews (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. FOODY NOTIFICATIONS TABLE
+-- 9. FOODY NOTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_notifications (
     id TEXT PRIMARY KEY,
     user_id TEXT,
@@ -4316,7 +4424,7 @@ CREATE TABLE IF NOT EXISTS public.foody_notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. FOODY OFFERS TABLE
+-- 10. FOODY OFFERS TABLE
 CREATE TABLE IF NOT EXISTS public.foody_offers (
     id TEXT PRIMARY KEY,
     code TEXT NOT NULL,
@@ -4339,7 +4447,7 @@ CREATE TRIGGER trg_foody_offers_updated_at
     BEFORE UPDATE ON public.foody_offers
     FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 8. FOODY CASH TRANSACTIONS TABLE (Fleet Sarathi & Cash Audit)
+-- 11. FOODY CASH TRANSACTIONS TABLE (Fleet Sarathi & Cash Audit)
 CREATE TABLE IF NOT EXISTS public.foody_cash_transactions (
     id TEXT PRIMARY KEY,
     order_id TEXT,
@@ -4353,11 +4461,15 @@ CREATE TABLE IF NOT EXISTS public.foody_cash_transactions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. PERFORMANCE INDEXES
+-- 12. PERFORMANCE INDEXES
 CREATE INDEX IF NOT EXISTS idx_orders_shop_status ON public.foody_orders (shop_id, status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.foody_orders (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.foody_orders (user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_phone ON public.foody_orders (customer_phone);
+
+CREATE INDEX IF NOT EXISTS idx_order_events_order_id ON public.foody_order_events (order_id);
+CREATE INDEX IF NOT EXISTS idx_order_events_created_at ON public.foody_order_events (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_cash_settlements_rider ON public.foody_cash_settlements (rider_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_menus_shop ON public.foody_menus (shop_id);
 CREATE INDEX IF NOT EXISTS idx_menus_category ON public.foody_menus (category);
@@ -4380,10 +4492,12 @@ CREATE INDEX IF NOT EXISTS idx_offers_code ON public.foody_offers (code);
 CREATE INDEX IF NOT EXISTS idx_cash_tx_order ON public.foody_cash_transactions (order_id);
 CREATE INDEX IF NOT EXISTS idx_cash_tx_user ON public.foody_cash_transactions (user_id);
 
--- 10. REPLICA IDENTITY (Allows 0-Egress Full-Row Realtime Streaming)
+-- 13. REPLICA IDENTITY (Allows 0-Egress Full-Row Realtime Streaming)
 ALTER TABLE public.foody_shops REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_menus REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_orders REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_order_events REPLICA IDENTITY FULL;
+ALTER TABLE public.foody_cash_settlements REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_logged_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_users REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_notifications REPLICA IDENTITY FULL;
@@ -4391,7 +4505,7 @@ ALTER TABLE public.foody_roles REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_offers REPLICA IDENTITY FULL;
 ALTER TABLE public.foody_cash_transactions REPLICA IDENTITY FULL;
 
--- 11. ENABLE ROW LEVEL SECURITY & PUBLIC READ/WRITE POLICIES
+-- 14. ROW LEVEL SECURITY (RLS) & ACCESS CONTROL POLICIES
 ALTER TABLE public.foody_roles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access roles" ON public.foody_roles;
 CREATE POLICY "Public access roles" ON public.foody_roles FOR ALL USING (true) WITH CHECK (true);
@@ -4408,14 +4522,20 @@ ALTER TABLE public.foody_orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access orders" ON public.foody_orders;
 CREATE POLICY "Public access orders" ON public.foody_orders FOR ALL USING (true) WITH CHECK (true);
 
+ALTER TABLE public.foody_order_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access order events" ON public.foody_order_events;
+CREATE POLICY "Public access order events" ON public.foody_order_events FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE public.foody_cash_settlements ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access cash settlements" ON public.foody_cash_settlements;
+CREATE POLICY "Public access cash settlements" ON public.foody_cash_settlements FOR ALL USING (true) WITH CHECK (true);
+
 ALTER TABLE public.foody_logged_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access logged users" ON public.foody_logged_users;
 CREATE POLICY "Public access logged users" ON public.foody_logged_users FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access users" ON public.foody_users;
-DROP POLICY IF EXISTS "Public read users" ON public.foody_users;
-DROP POLICY IF EXISTS "Public write users" ON public.foody_users;
 CREATE POLICY "Public access users" ON public.foody_users FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE public.foody_reviews ENABLE ROW LEVEL SECURITY;
@@ -4434,12 +4554,14 @@ ALTER TABLE public.foody_cash_transactions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access cash transactions" ON public.foody_cash_transactions;
 CREATE POLICY "Public access cash transactions" ON public.foody_cash_transactions FOR ALL USING (true) WITH CHECK (true);
 
--- 12. REALTIME STREAMING PUBLICATION (Idempotent)
+-- 15. REALTIME STREAMING PUBLICATION (Idempotent)
 DO $$ BEGIN
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_roles; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_shops; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_menus; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_orders; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_order_events; EXCEPTION WHEN duplicate_object THEN NULL; END;
+    BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_settlements; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_logged_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_users; EXCEPTION WHEN duplicate_object THEN NULL; END;
     BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_notifications; EXCEPTION WHEN duplicate_object THEN NULL; END;
@@ -4450,7 +4572,7 @@ END $$;
 
 NOTIFY pgrst, 'reload schema';
 
--- 11. AUTOMATIC AUTH.USERS -> LOGGED USERS & FOODY USERS SYNC TRIGGER
+-- 16. AUTOMATIC AUTH.USERS -> LOGGED USERS & FOODY USERS SYNC TRIGGER
 CREATE OR REPLACE FUNCTION public.handle_auth_user_sync()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -4529,7 +4651,7 @@ EXCEPTION WHEN OTHERS THEN
     NULL;
 END $$;
 
--- 12. ATOMIC ROLE ASSIGNMENT STORED PROCEDURE (RPC)
+-- 17. ATOMIC ROLE ASSIGNMENT STORED PROCEDURE (RPC)
 CREATE OR REPLACE FUNCTION public.set_user_role(
     target_id TEXT,
     new_role TEXT,
@@ -4575,10 +4697,6 @@ BEGIN
             raw_user_meta_data = jsonb_set(COALESCE(raw_user_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role)),
             raw_app_meta_data = jsonb_set(COALESCE(raw_app_meta_data, '{}'::jsonb), '{role}', to_jsonb(new_role))
         WHERE id::text = target_id OR LOWER(email) = LOWER(target_id);
-    EXCEPTION WHEN OTHERS THEN
-        NULL;
-    END;
-
 RETURN updated_record;
 END;
 $$;
