@@ -35,4 +35,5 @@ Rule: Automatic Dual-Target Build Verification:
 
 "Whenever changes touch UI components, state management, or assets, automatically execute both npm run build and ./gradlew assembleRelease (or assembleDebug) before concluding the task to guarantee zero runtime and zero packaging failures."
 
+Ensure all cloud edge function calls use supabase.functions.invoke() with standard CORS preflight headers, and ensure mobile notification payloads always set priority to PRIORITY_MAX with high-importance channels for background delivery."
 

@@ -212,9 +212,9 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 6. Developer Master Console: Full telemetry overview
+    // 6. Developer Console: Does not receive customer/kitchen sound alarms unless they placed the order
     if (userRole === 'developer' || isAuthorizedDeveloper) {
-      return true;
+      return false;
     }
 
     // Default: Never show strangers' orders
@@ -277,12 +277,15 @@ export function NotificationProvider({ children }) {
     if (typeof window === 'undefined' || !('Notification' in window)) {
       return 'unsupported';
     }
+    if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+      setSystemNotificationPermission(Notification.permission);
+      return Notification.permission;
+    }
     try {
       const permission = await Notification.requestPermission();
       setSystemNotificationPermission(permission);
       return permission;
-    } catch (err) {
-      console.warn('System Notification permission request note:', err);
+    } catch (_err) {
       return 'denied';
     }
   }, []);

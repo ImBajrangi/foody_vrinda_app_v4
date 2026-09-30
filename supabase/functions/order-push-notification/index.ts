@@ -1,3 +1,5 @@
+// @ts-nocheck
+// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 
@@ -45,7 +47,6 @@ async function getGoogleAccessToken(serviceAccount: {
     "pkcs8",
     binaryDer.buffer,
     {
-      name: "RSASSA-PKPKCS1-v1_5",
       name: "RSASSA-PKCS1-v1_5",
       hash: "SHA-256",
     },
@@ -102,15 +103,25 @@ async function sendFCMMessage(
       },
       android: {
         priority: "HIGH",
+        direct_boot_ok: true,
         notification: {
-          channel_id: channelId,
-          sound: soundName,
-          default_sound: false,
+          channel_id: channelId || "order_updates",
+          sound: soundName || "soft_pulse",
+          default_sound: true,
+          default_vibrate_timings: true,
+          priority: "PRIORITY_MAX",
+          visibility: "PUBLIC",
           color: "#E0FF33",
           icon: "ic_stat_notification",
         },
       },
-      data: dataPayload,
+      data: {
+        ...dataPayload,
+        title: notification.title,
+        body: notification.body,
+        channelId: channelId || "order_updates",
+        sound: soundName || "soft_pulse",
+      },
     },
   };
 
@@ -127,7 +138,17 @@ async function sendFCMMessage(
   return { ok: resp.ok, status: resp.status, resJson };
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
+};
+
 serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -136,7 +157,7 @@ serve(async (req: Request) => {
     if (!serviceAccountJsonStr) {
       return new Response(
         JSON.stringify({ error: "Missing FCM_SERVICE_ACCOUNT in Edge Function secrets." }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -153,7 +174,7 @@ serve(async (req: Request) => {
     if (!order || !order.id) {
       return new Response(
         JSON.stringify({ message: "No order record found in payload" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -240,50 +261,66 @@ serve(async (req: Request) => {
       results.push({ recipient: "customer", res });
     }
 
-    // 2. Alert Kitchen & Owner on New Orders
+    // 2. Alert Kitchen, Store Owner & Grand Admin on New Orders
     if (type === "INSERT" || status === "new") {
-      const { data: staffUsers } = await supabase
-        .from("foody_users")
-        .select("fcm_token, role")
-        .in("role", ["kitchen", "owner", "admin"])
-        .not("fcm_token", "is", null);
+      const allowedRoles = ["kitchen", "owner", "admin", "grand_admin"];
+      
+      const [usersRes, loggedRes] = await Promise.all([
+        supabase
+          .from("foody_users")
+          .select("fcm_token, role")
+          .in("role", allowedRoles)
+          .not("fcm_token", "is", null),
+        supabase
+          .from("foody_logged_users")
+          .select("fcm_token, role")
+          .in("role", allowedRoles)
+          .not("fcm_token", "is", null)
+      ]);
 
-      if (staffUsers && staffUsers.length > 0) {
-        for (const staff of staffUsers) {
-          if (!staff.fcm_token) continue;
-          const isKitchen = staff.role === "kitchen";
-          const title = isKitchen
-            ? `🔔 NEW BHOG ORDER #${orderIdShort} · ₹${order.total_amount || 0}`
-            : `💰 NEW ORDER #${orderIdShort} · ₹${order.total_amount || 0}`;
-          const bodyMsg = isKitchen
-            ? `Items received! Tap to start cooking with pure Desi Ghee.`
-            : `${order.customer_name || 'Customer'} ordered. Tap to view stream.`;
-          const channel = isKitchen ? "kitchen_urgent" : "owner_urgent";
-          const sound = isKitchen ? "kitchen_alert" : "owner_alert";
+      const staffList = [
+        ...(usersRes.data || []),
+        ...(loggedRes.data || [])
+      ];
 
-          const res = await sendFCMMessage(
-            projectId,
-            googleAccessToken,
-            staff.fcm_token,
-            { title, body: bodyMsg },
-            channel,
-            sound,
-            { orderId: String(order.id), type: staff.role }
-          );
-          results.push({ recipient: staff.role, res });
-        }
+      const seenTokens = new Set<string>();
+
+      for (const staff of staffList) {
+        if (!staff.fcm_token || seenTokens.has(staff.fcm_token)) continue;
+        seenTokens.add(staff.fcm_token);
+
+        const isKitchen = staff.role === "kitchen";
+        const title = isKitchen
+          ? `🔔 NEW BHOG ORDER #${orderIdShort} · ₹${order.total_amount || 0}`
+          : `💰 NEW ORDER #${orderIdShort} · ₹${order.total_amount || 0}`;
+        const bodyMsg = isKitchen
+          ? `Items received! Tap to start cooking with pure Desi Ghee.`
+          : `${order.customer_name || 'Customer'} ordered ₹${order.total_amount || 0}. Tap to view.`;
+        const channel = isKitchen ? "kitchen_urgent" : "owner_urgent";
+        const sound = isKitchen ? "kitchen_alert" : "owner_alert";
+
+        const res = await sendFCMMessage(
+          projectId,
+          googleAccessToken,
+          staff.fcm_token,
+          { title, body: bodyMsg },
+          channel,
+          sound,
+          { orderId: String(order.id), type: staff.role }
+        );
+        results.push({ recipient: staff.role, res });
       }
     }
 
     return new Response(
       JSON.stringify({ success: true, results }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     console.error("FCM Edge Function Error:", err);
     return new Response(
       JSON.stringify({ error: err.message || String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

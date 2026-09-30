@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 
 export const CURRENT_APP_VERSION = {
   versionCode: 13,
@@ -18,23 +18,23 @@ class AppUpdateService {
    */
   async checkForUpdates() {
     try {
-      // 1. Fetch latest version record from Supabase table or app metadata
+      // 1. Fetch remote release descriptor from Supabase Cloud
       let latestConfig = null;
       try {
         const { data, error } = await supabase
-          .from('foody_app_config')
-          .select('*')
-          .eq('key', 'latest_app_release')
+          .from('foody_shops')
+          .select('payment_settings')
+          .limit(1)
           .maybeSingle();
 
-        if (!error && data?.value) {
-          latestConfig = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+        if (!error && data?.payment_settings?.app_release) {
+          latestConfig = data.payment_settings.app_release;
         }
       } catch (e) {
-        console.warn('AppUpdateService Supabase query notice:', e);
+        console.warn('AppUpdateService remote sync note:', e);
       }
 
-      // Default fallback release descriptor if table is empty
+      // Default fallback release descriptor
       if (!latestConfig) {
         latestConfig = {
           versionCode: CURRENT_APP_VERSION.versionCode,
@@ -97,26 +97,35 @@ class AppUpdateService {
   }
 
   /**
-   * Publish new version descriptor (from Developer Panel)
+   * Publish new version descriptor (from Developer Panel / Supabase)
    */
   async publishRelease({ versionCode, versionName, apkUrl, releaseNotes, isMandatory }) {
     try {
-      const payload = {
-        key: 'latest_app_release',
-        value: {
+      const { data: shop } = await supabase
+        .from('foody_shops')
+        .select('id, payment_settings')
+        .limit(1)
+        .maybeSingle();
+
+      if (!shop?.id) throw new Error('No shop configuration found in Supabase');
+
+      const existingSettings = shop.payment_settings || {};
+      const updatedSettings = {
+        ...existingSettings,
+        app_release: {
           versionCode: parseInt(versionCode, 10),
           versionName: String(versionName).trim(),
           apkUrl: String(apkUrl).trim(),
           releaseNotes: Array.isArray(releaseNotes) ? releaseNotes : releaseNotes.split('\n').filter(Boolean),
           isMandatory: Boolean(isMandatory),
           publishedAt: new Date().toISOString()
-        },
-        updated_at: new Date().toISOString()
+        }
       };
 
       const { error } = await supabase
-        .from('foody_app_config')
-        .upsert(payload, { onConflict: 'key' });
+        .from('foody_shops')
+        .update({ payment_settings: updatedSettings, updated_at: new Date().toISOString() })
+        .eq('id', shop.id);
 
       if (error) throw error;
       return { success: true };

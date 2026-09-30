@@ -846,25 +846,26 @@ export async function createCloudOrder(orderData) {
       setCachedItem('orders', orderPayload.shop_id, [normalizedCreated, ...shopOrders.filter(o => o.id !== orderId)]);
     }
 
-    // Attempt authoritative execution via secure Postgres RPC first
-    try {
-      const { data: rpcData, error: rpcError } = await supabase.rpc('create_verified_order', {
-        order_data: orderPayload
-      });
-      if (!rpcError && rpcData) {
-        return { ...normalizedCreated, ...rpcData };
+    // Valid columns in foody_orders table
+    const VALID_ORDER_COLUMNS = new Set([
+      'id', 'shop_id', 'user_id', 'customer_name', 'customer_phone', 'customer_address',
+      'delivery_address', 'delivery_coordinates', 'items', 'subtotal', 'delivery_charge',
+      'gst_amount', 'total_amount', 'status', 'payment_method', 'payment_id', 'cash_status',
+      'cooking_notes', 'created_by', 'created_at', 'updated_at', 'fulfillment_type',
+      'pickup_otp', 'delivery_otp', 'rider_id', 'rider_name', 'rider_phone', 'chef_id', 'chef_name'
+    ]);
+
+    const dbPayload = {};
+    for (const [key, val] of Object.entries(orderPayload)) {
+      if (VALID_ORDER_COLUMNS.has(key)) {
+        dbPayload[key] = val;
       }
-      if (rpcError) {
-        console.warn('create_verified_order RPC note:', rpcError.message);
-      }
-    } catch (rpcEx) {
-      console.warn('create_verified_order RPC exception:', rpcEx.message);
     }
 
-    // Graceful fallback for local development/offline mock
+    // Persist to Supabase foody_orders table
     const { data, error } = await supabase
       .from('foody_orders')
-      .upsert([orderPayload], { onConflict: 'id' })
+      .upsert([dbPayload], { onConflict: 'id' })
       .select()
       .single();
 
@@ -872,6 +873,18 @@ export async function createCloudOrder(orderData) {
       console.warn('Supabase upsert order note:', error.message);
       return normalizedCreated;
     }
+
+    // Direct fail-safe push trigger using official Supabase functions client
+    try {
+      supabase.functions.invoke('order-push-notification', {
+        body: {
+          type: 'INSERT',
+          fcm_token: activeFcmToken,
+          order: { ...normalizedCreated, ...data }
+        }
+      }).catch(() => {});
+    } catch (_) {}
+
     return { ...normalizedCreated, ...data };
   } catch (err) {
     console.warn('createCloudOrder exception:', err.message);
@@ -964,41 +977,20 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       }
     });
 
-    // Attempt authoritative state transition via secure Postgres RPC first
-    if (payload.status) {
-      try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc('transition_order_status', {
-          target_order_id: orderId,
-          new_status: payload.status,
-          extra_payload: payload
-        });
-        if (!rpcError && rpcData) {
-          return rpcData;
-        }
-        if (rpcError) {
-          console.warn('transition_order_status RPC note:', rpcError.message);
-        }
-      } catch (rpcEx) {
-        console.warn('transition_order_status RPC exception:', rpcEx.message);
-      }
-    }
 
-    // Graceful fallback for direct updates if allowed
     const { data, error } = await supabase
       .from('foody_orders')
       .update(payload)
       .eq('id', orderId)
       .select();
 
-    // Direct fail-safe push trigger (guarantees instant delivery even if DB webhook is delayed)
+    // Direct fail-safe push trigger using official Supabase functions client
     try {
-      fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      supabase.functions.invoke('order-push-notification', {
+        body: {
           type: 'UPDATE',
           record: { id: orderId, status: payload.status, ...payload }
-        })
+        }
       }).catch(() => {});
     } catch (_) {}
 

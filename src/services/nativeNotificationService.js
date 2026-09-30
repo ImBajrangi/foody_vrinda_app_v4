@@ -465,9 +465,11 @@ class NativeNotificationService {
             id: 'order_updates',
             name: 'Customer Order Status',
             description: 'Live milestone updates on prasad preparation and delivery',
-            importance: 4,
+            importance: 5,
             visibility: 1,
             vibration: true,
+            lights: true,
+            lightColor: '#E0FF33',
             sound: activeCustomerSound,
           });
 

@@ -352,7 +352,7 @@ export function useAudioAlarm() {
     }
 
     if (loop) {
-      const intervalMs = role === 'kitchen' ? 1400 : 2200;
+      const intervalMs = role === 'kitchen' ? 1500 : 2200;
       loopTimerRef.current = setInterval(() => {
         if (isPlayingRef.current) {
           playTone();
@@ -361,15 +361,8 @@ export function useAudioAlarm() {
           loopTimerRef.current = null;
         }
       }, intervalMs);
-
-      // Auto-timeout after 45 seconds to prevent runaway ringing if staff is away
-      setTimeout(() => {
-        if (isPlayingRef.current) {
-          stopAlarm();
-        }
-      }, 45000);
     }
-  }, [synthesizeKitchenTone, synthesizeDeliveryTone, synthesizeOwnerTone, synthesizeCustomerTone, stopAlarm]);
+  }, [synthesizeKitchenTone, synthesizeDeliveryTone, synthesizeOwnerTone, synthesizeCustomerTone]);
 
   // Backward compatibility wrapper
   const playAlarm = useCallback(() => {
