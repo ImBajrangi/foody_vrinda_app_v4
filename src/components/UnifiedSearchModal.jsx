@@ -332,61 +332,64 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       >
         <div className={`w-full max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[28px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}>
 
-          {/* Top Grabber Indicator for Mobile */}
-          <div className="w-12 h-1.5 bg-stone-300 dark:bg-zinc-700 rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0"></div>
+          {/* Top Sticky Header (Unified Seamless Container with Consistent Theme) */}
+          <div className="bg-white dark:bg-[#282526] border-b border-stone-200 dark:border-white/10 shrink-0">
+            {/* Top Grabber Indicator for Mobile (Integrated) */}
+            <div className="w-12 h-1.5 bg-stone-300 dark:bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5 sm:hidden"></div>
 
-          {/* Search Input Bar (Sticky, High Contrast, Ergonomic) */}
-          <div className="p-3 sm:p-4 border-b border-stone-200 dark:border-white/10 flex items-center gap-2.5 bg-white/90 dark:bg-[#282526]/90 backdrop-blur-md shrink-0">
-            <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center shrink-0">
-              <Search size={18} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
-            </div>
+            {/* Search Input Bar */}
+            <div className="p-3 sm:p-4 pt-1 sm:pt-4 flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center shrink-0">
+                <Search size={18} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
+              </div>
 
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search dishes, kitchens, cravings, orders..."
-              value={searchTerm}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && searchTerm.trim()) {
-                  saveRecentSearch(searchTerm);
-                }
-              }}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearchTerm(val);
-                if (!val.trim()) {
-                  setResults({ shops: [], menuItems: [], orders: [] });
-                  setExpandedDish(null);
-                  setExpandedShop(null);
-                  setExpandedOrder(null);
-                }
-              }}
-              className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold"
-            />
-
-            {/* Clear Input CTA */}
-            {searchTerm.trim().length > 0 && (
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setResults({ shops: [], menuItems: [], orders: [] });
-                  searchInputRef.current?.focus();
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search dishes, kitchens, cravings, orders..."
+                value={searchTerm}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchTerm.trim()) {
+                    saveRecentSearch(searchTerm);
+                  }
                 }}
-                className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-600 dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
-                title="Clear input"
-              >
-                <X size={13} />
-              </button>
-            )}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSearchTerm(val);
+                  if (!val.trim()) {
+                    setResults({ shops: [], menuItems: [], orders: [] });
+                    setExpandedDish(null);
+                    setExpandedShop(null);
+                    setExpandedOrder(null);
+                  }
+                }}
+                className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold"
+              />
 
-            {/* Close Modal CTA */}
-            <button
-              onClick={handleAnimatedClose}
-              className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-95 shrink-0"
-              title="Close search"
-            >
-              <X size={16} />
-            </button>
+              {/* Clear Input CTA */}
+              {searchTerm.trim().length > 0 && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setResults({ shops: [], menuItems: [], orders: [] });
+                    searchInputRef.current?.focus();
+                  }}
+                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-600 dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                  title="Clear input"
+                >
+                  <X size={13} />
+                </button>
+              )}
+
+              {/* Close Modal CTA */}
+              <button
+                onClick={handleAnimatedClose}
+                className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                title="Close search"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Results / Discovery Content Area */}
