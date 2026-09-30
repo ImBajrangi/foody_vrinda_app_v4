@@ -777,36 +777,37 @@ export default function AuthModal({ isOpen, onClose }) {
                       autoFocus
                     />
 
-                    {/* Quick Landmark Chips */}
+                    {/* Quick Landmark Chips (Balanced 2-Column Grid) */}
                     <div className="space-y-1.5">
                       <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">
                         Quick Landmarks:
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5 w-full">
                         {[
-                          'Near ISKCON Temple, Raman Reti',
-                          'Prem Mandir Area',
-                          'Parikrama Marg',
-                          'Chhatikara Road'
-                        ].map((loc) => (
+                          { label: 'Raman Reti (ISKCON)', value: 'Near ISKCON Temple, Raman Reti' },
+                          { label: 'Prem Mandir Area', value: 'Prem Mandir Area, Vrindavan' },
+                          { label: 'Parikrama Marg', value: 'Parikrama Marg, Vrindavan' },
+                          { label: 'Chhatikara Road', value: 'Chhatikara Road, Vrindavan' }
+                        ].map((loc, i) => (
                           <button
-                            key={loc}
+                            key={i}
                             type="button"
-                            onClick={() => setAddressInput(loc)}
-                            className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/15 text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-95"
+                            onClick={() => setAddressInput(loc.value)}
+                            className="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-95 text-left flex items-center gap-1.5 truncate"
                           >
-                            + {loc}
+                            <span className="text-amber-600 dark:text-[#E0FF33] text-xs font-black shrink-0">+</span>
+                            <span className="truncate">{loc.label}</span>
                           </button>
                         ))}
                       </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         type="button"
                         onClick={() => setIsEditingAddress(false)}
-                        className="h-10 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white text-xs font-bold cursor-pointer transition-colors"
+                        className="h-11 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white text-xs font-bold cursor-pointer transition-colors flex items-center justify-center"
                       >
                         Cancel
                       </button>
@@ -814,7 +815,7 @@ export default function AuthModal({ isOpen, onClose }) {
                         type="button"
                         onClick={handleSaveAddress}
                         disabled={!addressInput.trim()}
-                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                        className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>Save Address</span>
@@ -1368,25 +1369,26 @@ export default function AuthModal({ isOpen, onClose }) {
                       />
                     </div>
 
-                    {/* Quick Vrinda Landmark Chips */}
+                    {/* Quick Vrinda Landmark Chips (Balanced 2-Column Grid) */}
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-wider block">
-                        Quick Vrindavan Landmarks
+                      <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">
+                        Quick Landmarks
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5 w-full">
                         {[
-                          'Near ISKCON Temple, Raman Reti',
-                          'Prem Mandir Road',
-                          'Bankey Bihari Parikrama Marg',
-                          'Chhatikara Road, Vrindavan'
-                        ].map((loc) => (
+                          { label: 'Raman Reti (ISKCON)', value: 'Near ISKCON Temple, Raman Reti' },
+                          { label: 'Prem Mandir Area', value: 'Prem Mandir Road, Vrindavan' },
+                          { label: 'Parikrama Marg', value: 'Bankey Bihari Parikrama Marg' },
+                          { label: 'Chhatikara Road', value: 'Chhatikara Road, Vrindavan' }
+                        ].map((loc, i) => (
                           <button
-                            key={loc}
+                            key={i}
                             type="button"
-                            onClick={() => setSignupAddress(loc)}
-                            className="px-2.5 py-1 rounded-xl bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-950 border border-stone-200 hover:border-stone-300 dark:bg-white/5 dark:hover:bg-[#E0FF33]/15 dark:hover:text-[#E0FF33] dark:border-white/5 dark:hover:border-[#E0FF33]/30 text-[10px] font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs"
+                            onClick={() => setSignupAddress(loc.value)}
+                            className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-800 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-[#E0FF33]/15 dark:hover:text-[#E0FF33] dark:border-white/10 dark:hover:border-[#E0FF33]/30 text-xs font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs truncate text-left flex items-center gap-1.5"
                           >
-                            + {loc}
+                            <span className="text-amber-600 dark:text-[#E0FF33] text-xs font-black shrink-0">+</span>
+                            <span className="truncate">{loc.label}</span>
                           </button>
                         ))}
                       </div>
