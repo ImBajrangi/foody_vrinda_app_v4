@@ -177,10 +177,10 @@ serve(async (req: Request) => {
     const customerPhone = order.customer_phone || order.phone;
     const customerEmail = order.customer_email || order.email;
 
-    let customerToken = null;
+    let customerToken = body.fcm_token || order.fcm_token || null;
     let customerSound = "soft_pulse"; // Default refined sound
 
-    if (customerId || customerPhone || customerEmail) {
+    if (!customerToken && (customerId || customerPhone || customerEmail)) {
       const { data: userProfile } = await supabase
         .from("foody_users")
         .select("fcm_token, id, email, phone")
@@ -191,6 +191,19 @@ serve(async (req: Request) => {
         .maybeSingle();
 
       customerToken = userProfile?.fcm_token;
+
+      if (!customerToken) {
+        const { data: loggedProfile } = await supabase
+          .from("foody_logged_users")
+          .select("fcm_token, id, email, phone")
+          .or(`id.eq.${customerId || "00000000-0000-0000-0000-000000000000"},email.eq.${customerEmail || "none"},phone.eq.${customerPhone || "0"}`)
+          .not("fcm_token", "is", null)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        customerToken = loggedProfile?.fcm_token;
+      }
     }
 
     // Determine Customer Notification Message

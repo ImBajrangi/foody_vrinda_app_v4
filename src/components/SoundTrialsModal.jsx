@@ -126,16 +126,44 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           })}
         </div>
 
-        {/* Quick Footer Info */}
-        <div className="pt-2 border-t border-stone-200/70 dark:border-white/5 flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400">
-          <div className="flex items-center gap-1.5">
-            <Sparkles size={13} className="text-amber-500 dark:text-[#E0FF33]" />
-            <span>Tap "Test" to listen, tap card to choose</span>
-          </div>
+        {/* Quick Footer Info & OS Push Test */}
+        <div className="pt-2 border-t border-stone-200/70 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-stone-500 dark:text-zinc-400">
+          <button
+            type="button"
+            onClick={async () => {
+              const token = nativeNotify.getFCMToken();
+              if (!token) {
+                alert("Push notification token not yet registered. Make sure notification permission is allowed!");
+                return;
+              }
+              try {
+                alert("🚀 Test push dispatched! Lock your screen or swipe app away now to verify sound.");
+                await fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'INSERT',
+                    fcm_token: token,
+                    record: {
+                      id: 'TEST-108',
+                      status: 'cooking',
+                      total_amount: 108
+                    }
+                  })
+                });
+              } catch (e) {
+                alert('Test push error: ' + e.message);
+              }
+            }}
+            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-200 border border-amber-500/30 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+          >
+            <BellRing size={13} className="text-amber-600 dark:text-[#E0FF33]" />
+            <span>Test OS Push on Device</span>
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer text-center"
           >
             Done
           </button>

@@ -10,6 +10,8 @@ import CustomerView from './views/CustomerView';
 import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import CompleteProfileModal from './components/CompleteProfileModal';
+import AppUpdateModal from './components/AppUpdateModal';
+import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Code-split heavy views to reduce customer boot payload by >60%
@@ -96,6 +98,25 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+
+  // Background Auto-Update Checker (100% Seamless OTA & In-App Update Engine)
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        const info = await appUpdateService.checkForUpdates();
+        if (info?.hasUpdate) {
+          setUpdateInfo(info);
+          setIsUpdateOpen(true);
+        }
+      } catch (err) {
+        console.warn('Auto update check notice:', err);
+      }
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Active Customer Tracking Order ID (persisted across reloads)
   const [trackingOrderId, setTrackingOrderId] = useState(() => {
@@ -414,6 +435,12 @@ export default function App() {
           setCurrentTab('customer');
         }}
         onSelectOrder={handleSearchOrderSelect}
+      />
+
+      <AppUpdateModal
+        isOpen={isUpdateOpen}
+        updateInfo={updateInfo}
+        onClose={() => setIsUpdateOpen(false)}
       />
     </div>
   );

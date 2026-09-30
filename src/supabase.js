@@ -783,12 +783,15 @@ export async function createCloudOrder(orderData) {
     const generatedDeliveryOtp = generateSecureOrderOTP();
     const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
+    const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || null;
+
     const orderPayload = {
       id: orderId,
       shop_id: shopId,
       user_id: orderData.userId || orderData.user_id || null,
       customer_name: orderData.customerName || orderData.customer_name || 'Customer',
       customer_phone: orderData.customerPhone || orderData.customer_phone || '9876543210',
+      customer_email: orderData.customerEmail || orderData.customer_email || orderData.email || '',
       customer_address: orderData.customerAddress || orderData.customer_address || 'Vrindavan Dham',
       delivery_address: orderData.deliveryAddress || orderData.delivery_address || orderData.customerAddress || 'Vrindavan Dham',
       delivery_coordinates: orderData.deliveryCoordinates || orderData.delivery_coordinates || { lat: 27.5706, lng: 77.6593 },
@@ -806,6 +809,7 @@ export async function createCloudOrder(orderData) {
       fulfillment_type: fulfillmentType,
       pickup_otp: generatedPickupOtp,
       delivery_otp: generatedDeliveryOtp,
+      fcm_token: activeFcmToken,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -985,6 +989,18 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       .update(payload)
       .eq('id', orderId)
       .select();
+
+    // Direct fail-safe push trigger (guarantees instant delivery even if DB webhook is delayed)
+    try {
+      fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'UPDATE',
+          record: { id: orderId, status: payload.status, ...payload }
+        })
+      }).catch(() => {});
+    } catch (_) {}
 
     if (error) {
       console.warn('updateCloudOrderStatus note:', error.message);
@@ -2554,21 +2570,59 @@ export async function getCloudUsers(forceRefresh = false) {
         console.warn("getCloudUsers foody_users notice:", e);
       }
 
-      // 3. Merge & deduplicate across cache, foody_users, and foody_logged_users
-      const userMap = new Map();
+      // 3. Merge & deduplicate across cache, foody_users, and foody_logged_users by ID, Email, and Phone
+      const deduplicatedUsers = [];
+
+      const addOrMergeUser = (userCandidate) => {
+        if (!userCandidate) return;
+        const cleanId = String(userCandidate.id || '').trim();
+        const cleanEmail = (userCandidate.email || '').toLowerCase().trim();
+        const cleanPhone = (userCandidate.phone || '').replace(/\D/g, '');
+
+        if (!cleanId && !cleanEmail && !cleanPhone) return;
+
+        const existingIdx = deduplicatedUsers.findIndex(u =>
+          (cleanId && u.id && String(u.id).trim() === cleanId) ||
+          (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
+          (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
+        );
+
+        if (existingIdx >= 0) {
+          // Merge with higher priority record
+          const prev = deduplicatedUsers[existingIdx];
+          const bestRole = (prev.role === 'grand_admin' || userCandidate.role === 'grand_admin') ? 'grand_admin' :
+                           (prev.role === 'developer' || userCandidate.role === 'developer') ? 'developer' :
+                           (prev.role === 'owner' || userCandidate.role === 'owner') ? 'owner' :
+                           (prev.role === 'kitchen' || userCandidate.role === 'kitchen') ? 'kitchen' :
+                           (prev.role === 'delivery' || userCandidate.role === 'delivery') ? 'delivery' :
+                           (userCandidate.role || prev.role || 'customer');
+
+          deduplicatedUsers[existingIdx] = {
+            ...prev,
+            ...userCandidate,
+            id: cleanId || prev.id,
+            displayName: userCandidate.displayName || prev.displayName,
+            email: cleanEmail || prev.email,
+            phone: userCandidate.phone || prev.phone,
+            role: bestRole,
+            shopId: userCandidate.shopId || prev.shopId || 'shop-vrinda-main',
+            shopIds: userCandidate.shopIds?.length ? userCandidate.shopIds : (prev.shopIds || ['shop-vrinda-main'])
+          };
+        } else {
+          deduplicatedUsers.push(userCandidate);
+        }
+      };
 
       // Only fallback to cache if remote database returned nothing
       if (loggedData.length === 0 && usersData.length === 0) {
-        (cached || []).forEach(u => {
-          if (u && u.id) userMap.set(String(u.id).trim(), u);
-        });
+        (cached || []).forEach(addOrMergeUser);
       }
 
       // Overlay foody_users
       usersData.forEach(u => {
-        if (!u || !u.id) return;
-        const cleanId = String(u.id).trim();
-        const mapped = {
+        if (!u) return;
+        const cleanId = String(u.id || '').trim();
+        addOrMergeUser({
           id: cleanId,
           displayName: u.display_name || u.displayName || u.email?.split('@')[0] || `User (${cleanId.slice(0, 6)})`,
           email: u.email || '',
@@ -2583,15 +2637,14 @@ export async function getCloudUsers(forceRefresh = false) {
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
-        };
-        userMap.set(cleanId, mapped);
+        });
       });
 
       // Overlay foody_logged_users (active login table takes highest priority)
       loggedData.forEach(u => {
-        if (!u || !u.id) return;
-        const cleanId = String(u.id).trim();
-        const mapped = {
+        if (!u) return;
+        const cleanId = String(u.id || '').trim();
+        addOrMergeUser({
           id: cleanId,
           displayName: u.display_name || u.displayName || u.email?.split('@')[0] || `User (${cleanId.slice(0, 6)})`,
           email: u.email || '',
@@ -2606,11 +2659,10 @@ export async function getCloudUsers(forceRefresh = false) {
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
-        };
-        userMap.set(cleanId, mapped);
+        });
       });
 
-      const merged = Array.from(userMap.values());
+      const merged = deduplicatedUsers;
       saveCachedUsers(merged);
       setCachedItem('users', 'all', merged);
       return merged;

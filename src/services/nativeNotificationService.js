@@ -482,26 +482,7 @@ class NativeNotificationService {
           });
         }
 
-        // 2. Request System Notification & Push Permissions
-        try {
-          const localPerm = await LocalNotifications.requestPermissions();
-          console.log('System local notification permissions:', localPerm);
-        } catch (e) {
-          console.warn('Local notification permission request error:', e);
-        }
-
-        // 3. Register Push Notifications (FCM)
-        try {
-          const pushPerm = await PushNotifications.requestPermissions();
-          console.log('System push notification permissions:', pushPerm);
-          if (pushPerm.receive === 'granted') {
-            await PushNotifications.register();
-          }
-        } catch (e) {
-          console.warn('Push notification permission/register error:', e);
-        }
-
-        // 4. Register FCM Token & Push Event Listeners
+        // 2. Attach Push Event Listeners FIRST (before register to never miss token)
         try {
           await PushNotifications.addListener('registration', (token) => {
             console.log('✅ FCM Push Registration Token received:', token?.value);
@@ -532,6 +513,28 @@ class NativeNotificationService {
           });
         } catch (e) {
           console.warn('Push notification listener setup error:', e);
+        }
+
+        // 3. Request Permissions and Register FCM
+        try {
+          let pushPerm = await PushNotifications.checkPermissions();
+          if (pushPerm.receive !== 'granted') {
+            pushPerm = await PushNotifications.requestPermissions();
+          }
+          console.log('System push notification permissions:', pushPerm);
+          if (pushPerm.receive === 'granted') {
+            await PushNotifications.register();
+          }
+        } catch (e) {
+          console.warn('Push notification permission/register error:', e);
+        }
+
+        // 4. Request System Local Notification Permissions
+        try {
+          const localPerm = await LocalNotifications.requestPermissions();
+          console.log('System local notification permissions:', localPerm);
+        } catch (e) {
+          console.warn('Local notification permission request error:', e);
         }
 
         // 5. Register tap action listener on local notifications

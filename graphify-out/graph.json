@@ -148,7 +148,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "test-adversarial-security.js"
     },
     {
@@ -159,7 +159,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_colors",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "colors"
     },
     {
@@ -171,7 +171,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_pass",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "pass()"
     },
     {
@@ -183,7 +183,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_fail",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "fail()"
     },
     {
@@ -195,7 +195,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_section",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "section()"
     },
     {
@@ -207,7 +207,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_runadversarialtestsuite",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "runadversarialtestsuite()"
     },
     {
@@ -217,8 +217,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_database_sync",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "test-database-sync.js"
     },
     {
@@ -228,8 +228,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "scripts_test_database_sync_colors",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "colors"
     },
     {
@@ -240,8 +240,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_pass",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "pass()"
     },
     {
@@ -252,8 +252,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_fail",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "fail()"
     },
     {
@@ -264,8 +264,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_section",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "section()"
     },
     {
@@ -276,8 +276,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_runtestsuite",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "runtestsuite()"
     },
     {
@@ -434,8 +434,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -446,8 +446,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -457,8 +457,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_errorboundary",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "errorboundary.jsx"
     },
     {
@@ -470,8 +470,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "errorboundary"
     },
     {
@@ -482,8 +482,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_constructor",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".constructor()"
     },
     {
@@ -494,8 +494,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_getderivedstatefromerror",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -506,8 +506,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_componentdidcatch",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".componentdidcatch()"
     },
     {
@@ -518,8 +518,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_handlereset",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".handlereset()"
     },
     {
@@ -530,8 +530,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_render",
-      "community": 3,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".render()"
     },
     {
@@ -644,8 +644,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -656,8 +656,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -701,8 +701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_reviewmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
@@ -712,8 +712,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_reviewmodal_chef_tags",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "chef_tags"
     },
     {
@@ -723,8 +723,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_reviewmodal_rider_tags",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "rider_tags"
     },
     {
@@ -735,8 +735,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -873,7 +873,7 @@
       "_origin": "ast",
       "id": "src_components_ui_activealarmbanner",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "activealarmbanner.jsx"
     },
     {
@@ -885,7 +885,7 @@
       "_origin": "ast",
       "id": "src_components_ui_activealarmbanner_activealarmbanner",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "activealarmbanner()"
     },
     {
@@ -964,7 +964,7 @@
       "_origin": "ast",
       "id": "src_components_ui_dynamictoast",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "dynamictoast.jsx"
     },
     {
@@ -976,7 +976,7 @@
       "_origin": "ast",
       "id": "src_components_ui_dynamictoast_dynamictoast",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "dynamictoast()"
     },
     {
@@ -1020,8 +1020,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "nativetimepicker.jsx"
     },
     {
@@ -1032,8 +1032,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker_nativetimepicker",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "nativetimepicker()"
     },
     {
@@ -1213,8 +1213,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "searchabledropdown.jsx"
     },
     {
@@ -1225,8 +1225,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown_searchabledropdown",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "searchabledropdown()"
     },
     {
@@ -1338,8 +1338,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_authcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authcontext.jsx"
     },
     {
@@ -1349,8 +1349,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_context_authcontext_authcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authcontext"
     },
     {
@@ -1360,8 +1360,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_dev_emails",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authorized_dev_emails"
     },
     {
@@ -1371,8 +1371,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_admin_emails",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authorized_admin_emails"
     },
     {
@@ -1383,8 +1383,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isdeveloperuser",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "isdeveloperuser()"
     },
     {
@@ -1395,8 +1395,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isadminuser",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "isadminuser()"
     },
     {
@@ -1408,14 +1408,14 @@
       "_origin": "ast",
       "id": "src_context_authcontext_authprovider",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authprovider()"
     },
     {
       "label": "useAuth()",
       "file_type": "code",
       "source_file": "src/context/AuthContext.jsx",
-      "source_location": "L961",
+      "source_location": "L1001",
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
@@ -1476,8 +1476,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_notificationcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "notificationcontext.jsx"
     },
     {
@@ -1487,8 +1487,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_context_notificationcontext_notificationcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "notificationcontext"
     },
     {
@@ -1498,8 +1498,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_context_notificationcontext_default_seeds",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "default_seeds"
     },
     {
@@ -1511,7 +1511,7 @@
       "_origin": "ast",
       "id": "src_context_notificationcontext_notificationprovider",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "notificationprovider()"
     },
     {
@@ -1623,8 +1623,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "useaudioalarm.js"
     },
     {
@@ -1635,8 +1635,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_getaudiocontext",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getaudiocontext()"
     },
     {
@@ -1647,8 +1647,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_useaudioalarm",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "useaudioalarm()"
     },
     {
@@ -1681,8 +1681,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "usebottomsheetdrag.js"
     },
     {
@@ -1693,8 +1693,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "usebottomsheetdrag()"
     },
     {
@@ -1705,7 +1705,7 @@
       "_origin": "ast",
       "id": "src_hooks_usefastnotify",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "usefastnotify.js"
     },
     {
@@ -1717,7 +1717,7 @@
       "_origin": "ast",
       "id": "src_hooks_usefastnotify_usefastnotify",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "usefastnotify()"
     },
     {
@@ -1761,8 +1761,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
     {
@@ -1773,8 +1773,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
     {
@@ -1785,8 +1785,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
     {
@@ -1797,8 +1797,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -2134,10 +2134,22 @@
       "norm_label": ".init()"
     },
     {
+      "label": ".getFCMToken()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L561",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_getfcmtoken",
+      "community": 21,
+      "community_name": "NativeNotificationService",
+      "norm_label": ".getfcmtoken()"
+    },
+    {
       "label": ".notifyWelcomeIfFirstTime()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L517",
+      "source_location": "L571",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifywelcomeiffirsttime",
@@ -2149,7 +2161,7 @@
       "label": ".notifyWelcome()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L533",
+      "source_location": "L587",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -2161,7 +2173,7 @@
       "label": ".notifyLogin()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L575",
+      "source_location": "L629",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -2173,7 +2185,7 @@
       "label": ".hapticImpact()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L618",
+      "source_location": "L672",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_hapticimpact",
@@ -2185,7 +2197,7 @@
       "label": ".hapticNotification()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L628",
+      "source_location": "L682",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_hapticnotification",
@@ -2197,7 +2209,7 @@
       "label": ".notifyKitchenNewOrder()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L641",
+      "source_location": "L695",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -2209,7 +2221,7 @@
       "label": ".notifyOwnerNewOrder()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L674",
+      "source_location": "L728",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -2221,7 +2233,7 @@
       "label": ".notifyDriverOrderReady()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L708",
+      "source_location": "L762",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -2233,7 +2245,7 @@
       "label": ".notifyCustomerOrderUpdate()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L740",
+      "source_location": "L794",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -2245,7 +2257,7 @@
       "label": ".notifyOwnerAlert()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L796",
+      "source_location": "L850",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -2257,7 +2269,7 @@
       "label": "nativeNotify",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L822",
+      "source_location": "L876",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotify",
       "community": 25,
@@ -2271,7 +2283,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_supabase",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "supabase.js"
     },
@@ -2283,7 +2295,7 @@
       "_origin": "ast",
       "id": "src_supabase_supabase",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "supabase"
     },
     {
@@ -2293,7 +2305,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_supabase_missingtables",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "_missingtables"
     },
@@ -2306,7 +2318,7 @@
       "_origin": "ast",
       "id": "src_supabase_istablemissing",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "istablemissing()"
     },
     {
@@ -2318,7 +2330,7 @@
       "_origin": "ast",
       "id": "src_supabase_marktablemissing",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "marktablemissing()"
     },
     {
@@ -2330,7 +2342,7 @@
       "_origin": "ast",
       "id": "src_supabase_istableerror",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "istableerror()"
     },
     {
@@ -2340,7 +2352,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "src_supabase_forbiddenwritetables",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "_forbiddenwritetables"
     },
@@ -2353,7 +2365,7 @@
       "_origin": "ast",
       "id": "src_supabase_istablewriteforbidden",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "istablewriteforbidden()"
     },
     {
@@ -2365,7 +2377,7 @@
       "_origin": "ast",
       "id": "src_supabase_marktablewriteforbidden",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "marktablewriteforbidden()"
     },
     {
@@ -2376,7 +2388,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resetforbiddentables",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "resetforbiddentables()"
     },
@@ -2389,7 +2401,7 @@
       "_origin": "ast",
       "id": "src_supabase_isforbiddenerror",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "isforbiddenerror()"
     },
     {
@@ -2399,7 +2411,7 @@
       "source_location": "L124",
       "_origin": "ast",
       "id": "src_supabase_seed_shops",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "seed_shops"
     },
@@ -2411,8 +2423,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "resolvedishcutout()"
     },
     {
@@ -2422,7 +2434,7 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "src_supabase_cache_ttl_ms",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "cache_ttl_ms"
     },
@@ -2433,7 +2445,7 @@
       "source_location": "L219",
       "_origin": "ast",
       "id": "src_supabase_memorycache",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "memorycache"
     },
@@ -2444,7 +2456,7 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "src_supabase_pendingrequests",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "pendingrequests"
     },
@@ -2455,7 +2467,7 @@
       "source_location": "L230",
       "_origin": "ast",
       "id": "src_supabase_memorystore",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "memorystore"
     },
@@ -2466,7 +2478,7 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "src_supabase_safestorage",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "safestorage"
     },
@@ -2479,7 +2491,7 @@
       "_origin": "ast",
       "id": "src_supabase_dispatchsafeevent",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "dispatchsafeevent()"
     },
     {
@@ -2490,8 +2502,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcacheditem",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcacheditem()"
     },
     {
@@ -2503,7 +2515,7 @@
       "_origin": "ast",
       "id": "src_supabase_normalizeshop",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "normalizeshop()"
     },
     {
@@ -2514,7 +2526,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculatedistancekm",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "calculatedistancekm()"
     },
@@ -2527,7 +2539,7 @@
       "_origin": "ast",
       "id": "src_supabase_getrecommendedriders",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getrecommendedriders()"
     },
     {
@@ -2551,7 +2563,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedshops",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcachedshops()"
     },
     {
@@ -2563,7 +2575,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedshops",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "savecachedshops()"
     },
     {
@@ -2574,8 +2586,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_setcacheditem",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "setcacheditem()"
     },
     {
@@ -2587,7 +2599,7 @@
       "_origin": "ast",
       "id": "src_supabase_invalidatecache",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "invalidatecache()"
     },
     {
@@ -2599,7 +2611,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudshops",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudshops()"
     },
     {
@@ -2610,8 +2622,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudmenus",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudmenus()"
     },
     {
@@ -2622,7 +2634,7 @@
       "_origin": "ast",
       "id": "src_supabase_allowed_order_transitions",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "allowed_order_transitions"
     },
     {
@@ -2634,7 +2646,7 @@
       "_origin": "ast",
       "id": "src_supabase_isvalidstatustransition",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "isvalidstatustransition()"
     },
     {
@@ -2645,8 +2657,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculateauthoritativeordertotals",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "calculateauthoritativeordertotals()"
     },
     {
@@ -2657,8 +2669,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudorder",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createcloudorder()"
     },
     {
@@ -2669,8 +2681,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updatecloudorderstatus",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updatecloudorderstatus()"
     },
     {
@@ -2681,8 +2693,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudorders",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudorders()"
     },
     {
@@ -2694,7 +2706,7 @@
       "_origin": "ast",
       "id": "src_supabase_broadcastalarmevent",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "broadcastalarmevent()"
     },
     {
@@ -2742,8 +2754,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2755,7 +2767,7 @@
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleshopchangepayload",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": ".handleshopchangepayload()"
     },
     {
@@ -2767,7 +2779,7 @@
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleofferchangepayload",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": ".handleofferchangepayload()"
     },
     {
@@ -2779,7 +2791,7 @@
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleuserchangepayload",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": ".handleuserchangepayload()"
     },
     {
@@ -2873,7 +2885,7 @@
       "source_location": "L1499",
       "_origin": "ast",
       "id": "src_supabase_multiplexer",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "multiplexer"
     },
@@ -2886,7 +2898,7 @@
       "_origin": "ast",
       "id": "src_supabase_subscribecloudorders",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "subscribecloudorders()"
     },
     {
@@ -2909,8 +2921,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudnotifications",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "subscribecloudnotifications()"
     },
     {
@@ -2958,7 +2970,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudnotification",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "createcloudnotification()"
     },
     {
@@ -2970,7 +2982,7 @@
       "_origin": "ast",
       "id": "src_supabase_markcloudnotificationread",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "markcloudnotificationread()"
     },
     {
@@ -2980,7 +2992,7 @@
       "source_location": "L1572",
       "_origin": "ast",
       "id": "src_supabase_default_offers",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "default_offers"
     },
@@ -2993,7 +3005,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedoffers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcachedoffers()"
     },
     {
@@ -3005,7 +3017,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedoffers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "savecachedoffers()"
     },
     {
@@ -3017,7 +3029,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudoffers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudoffers()"
     },
     {
@@ -3029,7 +3041,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudoffer",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createcloudoffer()"
     },
     {
@@ -3041,7 +3053,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudoffer",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updatecloudoffer()"
     },
     {
@@ -3053,7 +3065,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudoffer",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "deletecloudoffer()"
     },
     {
@@ -3065,7 +3077,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudmenuitem",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createcloudmenuitem()"
     },
     {
@@ -3077,7 +3089,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudmenuitem",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updatecloudmenuitem()"
     },
     {
@@ -3089,7 +3101,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudmenuitem",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "deletecloudmenuitem()"
     },
     {
@@ -3101,7 +3113,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudshop",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createcloudshop()"
     },
     {
@@ -3113,7 +3125,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudshop",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updatecloudshop()"
     },
     {
@@ -3125,7 +3137,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudshop",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "deletecloudshop()"
     },
     {
@@ -3136,8 +3148,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_markcloudordercashcollected",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "markcloudordercashcollected()"
     },
     {
@@ -3147,7 +3159,7 @@
       "source_location": "L2250",
       "_origin": "ast",
       "id": "src_supabase_seed_users",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "seed_users"
     },
@@ -3160,7 +3172,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedusers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcachedusers()"
     },
     {
@@ -3172,7 +3184,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedusers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "savecachedusers()"
     },
     {
@@ -3183,7 +3195,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_checkuserstablestatus",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "checkuserstablestatus()"
     },
@@ -3194,7 +3206,7 @@
       "source_location": "L2313",
       "_origin": "ast",
       "id": "src_supabase_users_table_sql_schema",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "users_table_sql_schema"
     },
@@ -3205,7 +3217,7 @@
       "source_location": "L2490",
       "_origin": "ast",
       "id": "src_supabase_default_roles",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "default_roles"
     },
@@ -3217,8 +3229,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudroles",
-      "community": 2,
-      "community_name": "test-database-sync.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudroles()"
     },
     {
@@ -3230,7 +3242,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudusers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getcloudusers()"
     },
     {
@@ -3242,7 +3254,7 @@
       "_origin": "ast",
       "id": "src_supabase_getliveuserroleandprofile",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getliveuserroleandprofile()"
     },
     {
@@ -3254,90 +3266,90 @@
       "_origin": "ast",
       "id": "src_supabase_recordloggedinuser",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "recordloggedinuser()"
     },
     {
       "label": "createCloudUser()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L2822",
+      "source_location": "L2826",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createclouduser",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createclouduser()"
     },
     {
       "label": "updateCloudUser()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L2924",
+      "source_location": "L2928",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updateclouduser",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updateclouduser()"
     },
     {
       "label": "updateUserOnlineStatus()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3086",
+      "source_location": "L3090",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updateuseronlinestatus",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "updateuseronlinestatus()"
     },
     {
       "label": "deleteCloudUser()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3097",
+      "source_location": "L3101",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deleteclouduser",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "deleteclouduser()"
     },
     {
       "label": "subscribeCloudUsers()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3143",
+      "source_location": "L3147",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudusers",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "subscribecloudusers()"
     },
     {
       "label": "createCloudReview()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3170",
+      "source_location": "L3174",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "createcloudreview()"
     },
     {
       "label": "getCloudReviews()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3207",
+      "source_location": "L3211",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudreviews",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "getcloudreviews()"
     },
@@ -3345,59 +3357,59 @@
       "label": "generateSecureOrderOTP()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3236",
+      "source_location": "L3240",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_generatesecureorderotp",
       "community": 2,
-      "community_name": "test-database-sync.js",
+      "community_name": "test-adversarial-security.js",
       "norm_label": "generatesecureorderotp()"
     },
     {
       "label": "getOrderOTP()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3245",
+      "source_location": "L3249",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getorderotp",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getorderotp()"
     },
     {
       "label": "verifyOrderOTP()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3279",
+      "source_location": "L3283",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_verifyorderotp",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "verifyorderotp()"
     },
     {
       "label": "getUserTrustScore()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3316",
+      "source_location": "L3320",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getusertrustscore",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getusertrustscore()"
     },
     {
       "label": "updateUserTrustScore()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3331",
+      "source_location": "L3335",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updateusertrustscore",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "updateusertrustscore()"
     },
@@ -3405,23 +3417,23 @@
       "label": "getRiderCashLedger()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3367",
+      "source_location": "L3371",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getridercashledger",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getridercashledger()"
     },
     {
       "label": "recordCashSettlement()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3381",
+      "source_location": "L3385",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_recordcashsettlement",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "recordcashsettlement()"
     },
@@ -3429,46 +3441,46 @@
       "label": "recordMultiStaffReview()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3462",
+      "source_location": "L3466",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_recordmultistaffreview",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 0,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "recordmultistaffreview()"
     },
     {
       "label": "RIDER_MAX_CASH_LIMIT",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3511",
+      "source_location": "L3515",
       "_origin": "ast",
       "id": "src_supabase_rider_max_cash_limit",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "rider_max_cash_limit"
     },
     {
       "label": "isRiderCashLimitExceeded()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3513",
+      "source_location": "L3517",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isridercashlimitexceeded",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "isridercashlimitexceeded()"
     },
     {
       "label": "calculateDynamicDeliveryFee()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3528",
+      "source_location": "L3532",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculatedynamicdeliveryfee",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "calculatedynamicdeliveryfee()"
     },
@@ -3476,34 +3488,34 @@
       "label": "generateWhatsAppOrderShareLink()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3542",
+      "source_location": "L3546",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_generatewhatsappordersharelink",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "generatewhatsappordersharelink()"
     },
     {
       "label": "getNextWaterfallRider()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3580",
+      "source_location": "L3584",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getnextwaterfallrider",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getnextwaterfallrider()"
     },
     {
       "label": "COMPLETE_FOODY_DATABASE_SCHEMA_SQL",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L3610",
+      "source_location": "L3614",
       "_origin": "ast",
       "id": "src_supabase_complete_foody_database_schema_sql",
-      "community": 22,
+      "community": 5,
       "community_name": "supabase.js",
       "norm_label": "complete_foody_database_schema_sql"
     },
@@ -3511,24 +3523,24 @@
       "label": "getOrderItemSummary()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L4167",
+      "source_location": "L4171",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getorderitemsummary",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getorderitemsummary()"
     },
     {
       "label": "getOrderCustomerName()",
       "file_type": "code",
       "source_file": "src/supabase.js",
-      "source_location": "L4193",
+      "source_location": "L4197",
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getordercustomername",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getordercustomername()"
     },
     {
@@ -3597,7 +3609,7 @@
       "_origin": "ast",
       "id": "src_views_developerview",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "developerview.jsx"
     },
     {
@@ -3609,7 +3621,7 @@
       "_origin": "ast",
       "id": "src_views_developerview_developerview",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "developerview()"
     },
     {
@@ -3620,7 +3632,7 @@
       "_origin": "ast",
       "id": "src_views_kitchenview",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "kitchenview.jsx"
     },
     {
@@ -3632,7 +3644,7 @@
       "_origin": "ast",
       "id": "src_views_kitchenview_kitchenview",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "kitchenview()"
     },
     {
@@ -3642,8 +3654,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_ownerview",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "ownerview.jsx"
     },
     {
@@ -3655,7 +3667,7 @@
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
       "community": 22,
-      "community_name": "supabase.js",
+      "community_name": "DeveloperView.jsx",
       "norm_label": "ownerview()"
     },
     {
@@ -3666,7 +3678,7 @@
       "_origin": "ast",
       "id": "src_views_transportview",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "transportview.jsx"
     },
     {
@@ -3678,8 +3690,43 @@
       "_origin": "ast",
       "id": "src_views_transportview_transportview",
       "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "transportview()"
+    },
+    {
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "supabase/functions/order-push-notification/index.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "supabase_functions_order_push_notification_index",
+      "community": 3,
+      "community_name": "index.ts",
+      "norm_label": "index.ts"
+    },
+    {
+      "label": "getGoogleAccessToken()",
+      "file_type": "code",
+      "source_file": "supabase/functions/order-push-notification/index.ts",
+      "source_location": "L5",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "supabase_functions_order_push_notification_index_getgoogleaccesstoken",
+      "community": 3,
+      "community_name": "index.ts",
+      "norm_label": "getgoogleaccesstoken()"
+    },
+    {
+      "label": "sendFCMMessage()",
+      "file_type": "code",
+      "source_file": "supabase/functions/order-push-notification/index.ts",
+      "source_location": "L84",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "supabase_functions_order_push_notification_index_sendfcmmessage",
+      "community": 3,
+      "community_name": "index.ts",
+      "norm_label": "sendfcmmessage()"
     },
     {
       "label": "vite.config.js",
@@ -7946,7 +7993,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/context/AuthContext.jsx",
-      "source_location": "L961",
+      "source_location": "L1001",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_authcontext",
@@ -8295,7 +8342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/context/AuthContext.jsx",
-      "source_location": "L694",
+      "source_location": "L734",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_authcontext_authprovider",
@@ -8403,7 +8450,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/context/AuthContext.jsx",
-      "source_location": "L634",
+      "source_location": "L674",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_authcontext_authprovider",
@@ -9865,7 +9912,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L822",
+      "source_location": "L876",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice",
@@ -9979,7 +10026,18 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L618",
+      "source_location": "L561",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getfcmtoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L672",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9990,7 +10048,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L628",
+      "source_location": "L682",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10012,7 +10070,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L740",
+      "source_location": "L794",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10023,7 +10081,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L708",
+      "source_location": "L762",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10034,7 +10092,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L641",
+      "source_location": "L695",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10045,7 +10103,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L575",
+      "source_location": "L629",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10056,7 +10114,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L796",
+      "source_location": "L850",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10067,7 +10125,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L674",
+      "source_location": "L728",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10078,7 +10136,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L533",
+      "source_location": "L587",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10089,7 +10147,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L517",
+      "source_location": "L571",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -10204,7 +10262,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L783",
+      "source_location": "L837",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -10216,7 +10274,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L595",
+      "source_location": "L649",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -10228,7 +10286,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L552",
+      "source_location": "L606",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -10264,7 +10322,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L742",
+      "source_location": "L520",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_init",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playchime",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L796",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -10276,7 +10346,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L710",
+      "source_location": "L764",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -10288,7 +10358,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L643",
+      "source_location": "L697",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -10300,7 +10370,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L577",
+      "source_location": "L631",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -10312,7 +10382,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L798",
+      "source_location": "L852",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -10324,7 +10394,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L676",
+      "source_location": "L730",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -10336,7 +10406,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L535",
+      "source_location": "L589",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -10372,7 +10442,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L524",
+      "source_location": "L521",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_init",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_hapticnotification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L578",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcomeiffirsttime",
@@ -10384,7 +10466,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L534",
+      "source_location": "L588",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -10396,7 +10478,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L576",
+      "source_location": "L630",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -10408,7 +10490,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L741",
+      "source_location": "L795",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -10420,7 +10502,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L709",
+      "source_location": "L763",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -10432,7 +10514,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L642",
+      "source_location": "L696",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -10444,7 +10526,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L797",
+      "source_location": "L851",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -10456,7 +10538,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L675",
+      "source_location": "L729",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -10522,7 +10604,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3528",
+      "source_location": "L3532",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10544,7 +10626,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3610",
+      "source_location": "L3614",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10599,7 +10681,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3170",
+      "source_location": "L3174",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10621,7 +10703,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2822",
+      "source_location": "L2826",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10687,7 +10769,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3097",
+      "source_location": "L3101",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10720,7 +10802,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3236",
+      "source_location": "L3240",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10731,7 +10813,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3542",
+      "source_location": "L3546",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10819,7 +10901,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3207",
+      "source_location": "L3211",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10874,7 +10956,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3580",
+      "source_location": "L3584",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10885,7 +10967,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L4193",
+      "source_location": "L4197",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10896,7 +10978,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L4167",
+      "source_location": "L4171",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10907,7 +10989,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3245",
+      "source_location": "L3249",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10929,7 +11011,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3367",
+      "source_location": "L3371",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10940,7 +11022,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3316",
+      "source_location": "L3320",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -10973,7 +11055,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3513",
+      "source_location": "L3517",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11160,7 +11242,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3381",
+      "source_location": "L3385",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11182,7 +11264,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3462",
+      "source_location": "L3466",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11215,7 +11297,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3511",
+      "source_location": "L3515",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11358,7 +11440,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3143",
+      "source_location": "L3147",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11435,7 +11517,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2924",
+      "source_location": "L2928",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11446,7 +11528,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3086",
+      "source_location": "L3090",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11457,7 +11539,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3331",
+      "source_location": "L3335",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11479,7 +11561,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3279",
+      "source_location": "L3283",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase",
@@ -11815,7 +11897,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2881",
+      "source_location": "L2885",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -11839,7 +11921,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3104",
+      "source_location": "L3108",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -11851,7 +11933,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2779",
+      "source_location": "L2783",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -11863,7 +11945,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3040",
+      "source_location": "L3044",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -11875,7 +11957,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2886",
+      "source_location": "L2890",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -11899,7 +11981,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3109",
+      "source_location": "L3113",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -11911,7 +11993,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2784",
+      "source_location": "L2788",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -11923,7 +12005,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3045",
+      "source_location": "L3049",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -11935,7 +12017,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2885",
+      "source_location": "L2889",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -11959,7 +12041,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3108",
+      "source_location": "L3112",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -11971,7 +12053,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2783",
+      "source_location": "L2787",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -11983,7 +12065,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3044",
+      "source_location": "L3048",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -12127,7 +12209,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3176",
+      "source_location": "L3180",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createcloudreview",
@@ -12151,7 +12233,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2846",
+      "source_location": "L2850",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -12199,7 +12281,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3102",
+      "source_location": "L3106",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -12259,7 +12341,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3454",
+      "source_location": "L3458",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordcashsettlement",
@@ -12271,7 +12353,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2776",
+      "source_location": "L2780",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -12319,7 +12401,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2992",
+      "source_location": "L2996",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -12331,7 +12413,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3359",
+      "source_location": "L3363",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateusertrustscore",
@@ -12427,7 +12509,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3259",
+      "source_location": "L3263",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_getorderotp",
@@ -12847,7 +12929,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2845",
+      "source_location": "L2849",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -12859,7 +12941,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3101",
+      "source_location": "L3105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -12955,7 +13037,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2775",
+      "source_location": "L2779",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -12979,7 +13061,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2990",
+      "source_location": "L2994",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -13758,7 +13840,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3145",
+      "source_location": "L3149",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_subscribecloudusers",
@@ -14514,7 +14596,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2823",
+      "source_location": "L2827",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -14526,7 +14608,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3098",
+      "source_location": "L3102",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -14562,7 +14644,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2936",
+      "source_location": "L2940",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -14634,7 +14716,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2844",
+      "source_location": "L2848",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_createclouduser",
@@ -14646,7 +14728,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3100",
+      "source_location": "L3104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_deleteclouduser",
@@ -14670,7 +14752,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2774",
+      "source_location": "L2778",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordloggedinuser",
@@ -14682,7 +14764,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L2989",
+      "source_location": "L2993",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateclouduser",
@@ -14838,7 +14920,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3448",
+      "source_location": "L3452",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordcashsettlement",
@@ -14850,7 +14932,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3094",
+      "source_location": "L3098",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateuseronlinestatus",
@@ -14862,7 +14944,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3352",
+      "source_location": "L3356",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateusertrustscore",
@@ -15054,7 +15136,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3504",
+      "source_location": "L3508",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordmultistaffreview",
@@ -15066,7 +15148,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3271",
+      "source_location": "L3275",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_getorderotp",
@@ -15078,7 +15160,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3553",
+      "source_location": "L3557",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_generatewhatsappordersharelink",
@@ -15090,7 +15172,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3295",
+      "source_location": "L3299",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_verifyorderotp",
@@ -15150,7 +15232,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3334",
+      "source_location": "L3338",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_updateusertrustscore",
@@ -15186,7 +15268,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3446",
+      "source_location": "L3450",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordcashsettlement",
@@ -15198,7 +15280,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3482",
+      "source_location": "L3486",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordmultistaffreview",
@@ -15210,7 +15292,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3514",
+      "source_location": "L3518",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_isridercashlimitexceeded",
@@ -15222,7 +15304,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3402",
+      "source_location": "L3406",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_recordcashsettlement",
@@ -15270,7 +15352,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/supabase.js",
-      "source_location": "L3587",
+      "source_location": "L3591",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_supabase_getnextwaterfallrider",
@@ -15548,6 +15630,28 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "supabase/functions/order-push-notification/index.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "supabase_functions_order_push_notification_index",
+      "target": "supabase_functions_order_push_notification_index_getgoogleaccesstoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "supabase/functions/order-push-notification/index.ts",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "supabase_functions_order_push_notification_index",
+      "target": "supabase_functions_order_push_notification_index_sendfcmmessage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "AGENTS.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -15657,5 +15761,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a0a5545e385bda65b79b9f673f6948e4db059be3"
+  "built_at_commit": "15ad8f2782ee818f76c546152ec1fd0a171a6734"
 }

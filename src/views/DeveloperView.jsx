@@ -2792,15 +2792,20 @@ export default function DeveloperView({ setCurrentTab }) {
 
               {/* Quick Stats Grid & Effective Directory List Computation */}
               {(() => {
-                let effectiveList = [...usersList];
+                const uniqueMap = new Map();
+                usersList.forEach(u => {
+                  if (!u) return;
+                  const key = (u.email || '').toLowerCase().trim() || String(u.id || '').trim();
+                  if (key && !uniqueMap.has(key)) {
+                    uniqueMap.set(key, u);
+                  }
+                });
+
                 if (user && (user.email || user.id)) {
                   const cleanEmail = (user.email || '').toLowerCase().trim();
-                  const exists = effectiveList.some(u =>
-                    u.id === user.id ||
-                    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
-                  );
-                  if (!exists) {
-                    effectiveList.unshift({
+                  const key = cleanEmail || String(user.id || '').trim();
+                  if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, {
                       id: user.id,
                       displayName: userData?.displayName || user.user_metadata?.displayName || user.email?.split('@')[0] || 'Logged In User',
                       email: user.email || '',
@@ -2812,6 +2817,8 @@ export default function DeveloperView({ setCurrentTab }) {
                     });
                   }
                 }
+
+                let effectiveList = Array.from(uniqueMap.values());
 
                 const grandAdminCount = effectiveList.filter(u => u.role === 'grand_admin').length;
                 const developerCount = effectiveList.filter(u => u.role === 'developer').length;

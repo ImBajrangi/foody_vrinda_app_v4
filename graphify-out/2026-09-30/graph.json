@@ -148,7 +148,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "test-adversarial-security.js"
     },
     {
@@ -159,7 +159,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_colors",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "colors"
     },
     {
@@ -171,7 +171,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_pass",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "pass()"
     },
     {
@@ -183,7 +183,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_fail",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "fail()"
     },
     {
@@ -195,7 +195,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_section",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "section()"
     },
     {
@@ -207,7 +207,7 @@
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_runadversarialtestsuite",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "runadversarialtestsuite()"
     },
     {
@@ -218,7 +218,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "test-database-sync.js"
     },
     {
@@ -229,7 +229,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync_colors",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "colors"
     },
     {
@@ -241,7 +241,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync_pass",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "pass()"
     },
     {
@@ -253,7 +253,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync_fail",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "fail()"
     },
     {
@@ -265,7 +265,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync_section",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "section()"
     },
     {
@@ -277,7 +277,7 @@
       "_origin": "ast",
       "id": "scripts_test_database_sync_runtestsuite",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "runtestsuite()"
     },
     {
@@ -292,10 +292,54 @@
       "norm_label": "app.jsx"
     },
     {
+      "label": "KitchenView",
+      "file_type": "code",
+      "source_file": "src/App.jsx",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_app_kitchenview",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "kitchenview"
+    },
+    {
+      "label": "TransportView",
+      "file_type": "code",
+      "source_file": "src/App.jsx",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "src_app_transportview",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "transportview"
+    },
+    {
+      "label": "OwnerView",
+      "file_type": "code",
+      "source_file": "src/App.jsx",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "src_app_ownerview",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "ownerview"
+    },
+    {
+      "label": "DeveloperView",
+      "file_type": "code",
+      "source_file": "src/App.jsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "src_app_developerview",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "developerview"
+    },
+    {
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L26",
+      "source_location": "L28",
       "_callable": true,
       "_origin": "ast",
       "id": "src_app_app",
@@ -364,7 +408,7 @@
       "label": "DESK_CONFIG",
       "file_type": "code",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L41",
+      "source_location": "L44",
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
       "community": 25,
@@ -375,7 +419,7 @@
       "label": "AuthModal()",
       "file_type": "code",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L89",
+      "source_location": "L92",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
@@ -390,8 +434,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -402,8 +446,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -585,7 +629,7 @@
       "label": "NotificationPanel()",
       "file_type": "code",
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L22",
+      "source_location": "L26",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_notificationpanel_notificationpanel",
@@ -600,8 +644,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -612,8 +656,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -657,8 +701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_reviewmodal",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
@@ -668,8 +712,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_reviewmodal_chef_tags",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "chef_tags"
     },
     {
@@ -679,8 +723,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_reviewmodal_rider_tags",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "rider_tags"
     },
     {
@@ -691,8 +735,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -717,6 +761,29 @@
       "community": 25,
       "community_name": "App.jsx",
       "norm_label": "rewardsmodal()"
+    },
+    {
+      "label": "SoundTrialsModal.jsx",
+      "file_type": "code",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_components_soundtrialsmodal",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "soundtrialsmodal.jsx"
+    },
+    {
+      "label": "SoundTrialsModal()",
+      "file_type": "code",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L5",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_components_soundtrialsmodal_soundtrialsmodal",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "soundtrialsmodal()"
     },
     {
       "label": "UnauthorizedAccessScreen.jsx",
@@ -1146,8 +1213,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "searchabledropdown.jsx"
     },
     {
@@ -1158,8 +1225,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown_searchabledropdown",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "searchabledropdown()"
     },
     {
@@ -1271,8 +1338,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_authcontext",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "authcontext.jsx"
     },
     {
@@ -1282,8 +1349,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_context_authcontext_authcontext",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "authcontext"
     },
     {
@@ -1293,8 +1360,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_dev_emails",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "authorized_dev_emails"
     },
     {
@@ -1304,8 +1371,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_admin_emails",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "authorized_admin_emails"
     },
     {
@@ -1316,8 +1383,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isdeveloperuser",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "isdeveloperuser()"
     },
     {
@@ -1328,8 +1395,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isadminuser",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "isadminuser()"
     },
     {
@@ -1341,7 +1408,7 @@
       "_origin": "ast",
       "id": "src_context_authcontext_authprovider",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "authprovider()"
     },
     {
@@ -1371,7 +1438,7 @@
       "label": "CartContext",
       "file_type": "code",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L4",
+      "source_location": "L3",
       "_origin": "ast",
       "id": "src_context_cartcontext_cartcontext",
       "community": 25,
@@ -1382,7 +1449,7 @@
       "label": "CartProvider()",
       "file_type": "code",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_cartprovider",
@@ -1394,7 +1461,7 @@
       "label": "useCart()",
       "file_type": "code",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L209",
+      "source_location": "L220",
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_usecart",
@@ -1409,8 +1476,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_notificationcontext",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "notificationcontext.jsx"
     },
     {
@@ -1420,8 +1487,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_context_notificationcontext_notificationcontext",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "notificationcontext"
     },
     {
@@ -1431,8 +1498,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_context_notificationcontext_default_seeds",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "default_seeds"
     },
     {
@@ -1497,7 +1564,7 @@
       "label": "useTheme()",
       "file_type": "code",
       "source_file": "src/context/ThemeContext.jsx",
-      "source_location": "L87",
+      "source_location": "L89",
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_usetheme",
@@ -1614,20 +1681,20 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag.js"
     },
     {
       "label": "useBottomSheetDrag()",
       "file_type": "code",
       "source_file": "src/hooks/useBottomSheetDrag.js",
-      "source_location": "L12",
+      "source_location": "L13",
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag()"
     },
     {
@@ -1694,8 +1761,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "addressservice.js"
     },
     {
@@ -1706,8 +1773,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "getlocalcache()"
     },
     {
@@ -1718,8 +1785,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "setlocalcache()"
     },
     {
@@ -1730,8 +1797,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -1918,15 +1985,26 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "nativenotificationservice.js"
+    },
+    {
+      "label": "NOTIFICATION_TRIALS",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_notification_trials",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "notification_trials"
     },
     {
       "label": "NativeNotificationService",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L6",
+      "source_location": "L81",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -1939,7 +2017,7 @@
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L7",
+      "source_location": "L82",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_constructor",
@@ -1948,10 +2026,46 @@
       "norm_label": ".constructor()"
     },
     {
+      "label": ".getActiveTrial()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L88",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_getactivetrial",
+      "community": 21,
+      "community_name": "NativeNotificationService",
+      "norm_label": ".getactivetrial()"
+    },
+    {
+      "label": ".getActiveTrialSoundFile()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L95",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "community": 21,
+      "community_name": "NativeNotificationService",
+      "norm_label": ".getactivetrialsoundfile()"
+    },
+    {
+      "label": ".setActiveTrial()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L101",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": ".setactivetrial()"
+    },
+    {
       "label": ".getAudioContext()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L13",
+      "source_location": "L126",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_getaudiocontext",
@@ -1960,10 +2074,22 @@
       "norm_label": ".getaudiocontext()"
     },
     {
+      "label": ".playTrialSound()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L143",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_playtrialsound",
+      "community": 21,
+      "community_name": "NativeNotificationService",
+      "norm_label": ".playtrialsound()"
+    },
+    {
       "label": ".playChime()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L30",
+      "source_location": "L166",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_playchime",
@@ -1972,10 +2098,22 @@
       "norm_label": ".playchime()"
     },
     {
+      "label": "._playSynthesizedTrial()",
+      "file_type": "code",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L197",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
+      "community": 21,
+      "community_name": "NativeNotificationService",
+      "norm_label": "._playsynthesizedtrial()"
+    },
+    {
       "label": "._playSynthesizedChime()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L58",
+      "source_location": "L409",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedchime",
@@ -1987,7 +2125,7 @@
       "label": ".init()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L119",
+      "source_location": "L416",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_init",
@@ -1999,7 +2137,7 @@
       "label": ".notifyWelcomeIfFirstTime()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L219",
+      "source_location": "L517",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifywelcomeiffirsttime",
@@ -2011,7 +2149,7 @@
       "label": ".notifyWelcome()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L235",
+      "source_location": "L533",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -2023,7 +2161,7 @@
       "label": ".notifyLogin()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L277",
+      "source_location": "L575",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -2035,7 +2173,7 @@
       "label": ".hapticImpact()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L320",
+      "source_location": "L618",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_hapticimpact",
@@ -2047,7 +2185,7 @@
       "label": ".hapticNotification()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L330",
+      "source_location": "L628",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_hapticnotification",
@@ -2059,7 +2197,7 @@
       "label": ".notifyKitchenNewOrder()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L343",
+      "source_location": "L641",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -2071,7 +2209,7 @@
       "label": ".notifyOwnerNewOrder()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L376",
+      "source_location": "L674",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -2083,7 +2221,7 @@
       "label": ".notifyDriverOrderReady()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L410",
+      "source_location": "L708",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -2095,7 +2233,7 @@
       "label": ".notifyCustomerOrderUpdate()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L442",
+      "source_location": "L740",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -2107,7 +2245,7 @@
       "label": ".notifyOwnerAlert()",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L498",
+      "source_location": "L796",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -2119,11 +2257,11 @@
       "label": "nativeNotify",
       "file_type": "code",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L524",
+      "source_location": "L822",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotify",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "nativenotify"
     },
     {
@@ -2133,7 +2271,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_supabase",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "supabase.js"
     },
@@ -2155,7 +2293,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_supabase_missingtables",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "_missingtables"
     },
@@ -2167,7 +2305,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_istablemissing",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "istablemissing()"
     },
@@ -2179,7 +2317,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_marktablemissing",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "marktablemissing()"
     },
@@ -2191,7 +2329,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_istableerror",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "istableerror()"
     },
@@ -2202,7 +2340,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "src_supabase_forbiddenwritetables",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "_forbiddenwritetables"
     },
@@ -2215,7 +2353,7 @@
       "_origin": "ast",
       "id": "src_supabase_istablewriteforbidden",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "istablewriteforbidden()"
     },
     {
@@ -2227,7 +2365,7 @@
       "_origin": "ast",
       "id": "src_supabase_marktablewriteforbidden",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "marktablewriteforbidden()"
     },
     {
@@ -2238,7 +2376,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resetforbiddentables",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "resetforbiddentables()"
     },
@@ -2251,7 +2389,7 @@
       "_origin": "ast",
       "id": "src_supabase_isforbiddenerror",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "isforbiddenerror()"
     },
     {
@@ -2261,7 +2399,7 @@
       "source_location": "L124",
       "_origin": "ast",
       "id": "src_supabase_seed_shops",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "seed_shops"
     },
@@ -2273,8 +2411,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 2,
-      "community_name": "supabase.js",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
       "norm_label": "resolvedishcutout()"
     },
     {
@@ -2284,7 +2422,7 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "src_supabase_cache_ttl_ms",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "cache_ttl_ms"
     },
@@ -2295,7 +2433,7 @@
       "source_location": "L219",
       "_origin": "ast",
       "id": "src_supabase_memorycache",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "memorycache"
     },
@@ -2306,7 +2444,7 @@
       "source_location": "L227",
       "_origin": "ast",
       "id": "src_supabase_pendingrequests",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "pendingrequests"
     },
@@ -2317,7 +2455,7 @@
       "source_location": "L230",
       "_origin": "ast",
       "id": "src_supabase_memorystore",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "memorystore"
     },
@@ -2328,7 +2466,7 @@
       "source_location": "L231",
       "_origin": "ast",
       "id": "src_supabase_safestorage",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "safestorage"
     },
@@ -2341,7 +2479,7 @@
       "_origin": "ast",
       "id": "src_supabase_dispatchsafeevent",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "dispatchsafeevent()"
     },
     {
@@ -2353,7 +2491,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcacheditem",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "getcacheditem()"
     },
     {
@@ -2365,7 +2503,7 @@
       "_origin": "ast",
       "id": "src_supabase_normalizeshop",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "normalizeshop()"
     },
     {
@@ -2376,7 +2514,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculatedistancekm",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "calculatedistancekm()"
     },
@@ -2388,7 +2526,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getrecommendedriders",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "getrecommendedriders()"
     },
@@ -2413,7 +2551,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedshops",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcachedshops()"
     },
     {
@@ -2425,7 +2563,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedshops",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "savecachedshops()"
     },
     {
@@ -2436,8 +2574,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_setcacheditem",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 2,
+      "community_name": "test-database-sync.js",
       "norm_label": "setcacheditem()"
     },
     {
@@ -2448,7 +2586,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_invalidatecache",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "invalidatecache()"
     },
@@ -2461,7 +2599,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudshops",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcloudshops()"
     },
     {
@@ -2473,7 +2611,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudmenus",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "getcloudmenus()"
     },
     {
@@ -2484,7 +2622,7 @@
       "_origin": "ast",
       "id": "src_supabase_allowed_order_transitions",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "allowed_order_transitions"
     },
     {
@@ -2496,7 +2634,7 @@
       "_origin": "ast",
       "id": "src_supabase_isvalidstatustransition",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "isvalidstatustransition()"
     },
     {
@@ -2508,7 +2646,7 @@
       "_origin": "ast",
       "id": "src_supabase_calculateauthoritativeordertotals",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "calculateauthoritativeordertotals()"
     },
     {
@@ -2520,7 +2658,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudorder",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "createcloudorder()"
     },
     {
@@ -2532,7 +2670,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudorderstatus",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "updatecloudorderstatus()"
     },
     {
@@ -2543,8 +2681,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudorders",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 2,
+      "community_name": "test-database-sync.js",
       "norm_label": "getcloudorders()"
     },
     {
@@ -2556,7 +2694,7 @@
       "_origin": "ast",
       "id": "src_supabase_broadcastalarmevent",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "broadcastalarmevent()"
     },
     {
@@ -2604,8 +2742,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 2,
-      "community_name": "supabase.js",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2617,7 +2755,7 @@
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleshopchangepayload",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": ".handleshopchangepayload()"
     },
     {
@@ -2629,7 +2767,7 @@
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleofferchangepayload",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": ".handleofferchangepayload()"
     },
     {
@@ -2640,8 +2778,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleuserchangepayload",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": ".handleuserchangepayload()"
     },
     {
@@ -2735,7 +2873,7 @@
       "source_location": "L1499",
       "_origin": "ast",
       "id": "src_supabase_multiplexer",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "multiplexer"
     },
@@ -2771,8 +2909,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudnotifications",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": "subscribecloudnotifications()"
     },
     {
@@ -2842,7 +2980,7 @@
       "source_location": "L1572",
       "_origin": "ast",
       "id": "src_supabase_default_offers",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "default_offers"
     },
@@ -2855,7 +2993,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedoffers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcachedoffers()"
     },
     {
@@ -2867,7 +3005,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedoffers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "savecachedoffers()"
     },
     {
@@ -2879,7 +3017,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudoffers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcloudoffers()"
     },
     {
@@ -2891,7 +3029,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudoffer",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "createcloudoffer()"
     },
     {
@@ -2903,7 +3041,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudoffer",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "updatecloudoffer()"
     },
     {
@@ -2915,7 +3053,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudoffer",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "deletecloudoffer()"
     },
     {
@@ -2926,7 +3064,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudmenuitem",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "createcloudmenuitem()"
     },
@@ -2938,7 +3076,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updatecloudmenuitem",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "updatecloudmenuitem()"
     },
@@ -2950,7 +3088,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deletecloudmenuitem",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "deletecloudmenuitem()"
     },
@@ -2963,7 +3101,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudshop",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "createcloudshop()"
     },
     {
@@ -2975,7 +3113,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudshop",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "updatecloudshop()"
     },
     {
@@ -2987,7 +3125,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudshop",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "deletecloudshop()"
     },
     {
@@ -2999,7 +3137,7 @@
       "_origin": "ast",
       "id": "src_supabase_markcloudordercashcollected",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "markcloudordercashcollected()"
     },
     {
@@ -3009,7 +3147,7 @@
       "source_location": "L2250",
       "_origin": "ast",
       "id": "src_supabase_seed_users",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "seed_users"
     },
@@ -3022,7 +3160,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedusers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcachedusers()"
     },
     {
@@ -3034,7 +3172,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedusers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "savecachedusers()"
     },
     {
@@ -3045,7 +3183,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_checkuserstablestatus",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "checkuserstablestatus()"
     },
@@ -3056,7 +3194,7 @@
       "source_location": "L2313",
       "_origin": "ast",
       "id": "src_supabase_users_table_sql_schema",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "users_table_sql_schema"
     },
@@ -3067,7 +3205,7 @@
       "source_location": "L2490",
       "_origin": "ast",
       "id": "src_supabase_default_roles",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "default_roles"
     },
@@ -3080,7 +3218,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudroles",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "getcloudroles()"
     },
     {
@@ -3092,7 +3230,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudusers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getcloudusers()"
     },
     {
@@ -3104,7 +3242,7 @@
       "_origin": "ast",
       "id": "src_supabase_getliveuserroleandprofile",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "getliveuserroleandprofile()"
     },
     {
@@ -3116,7 +3254,7 @@
       "_origin": "ast",
       "id": "src_supabase_recordloggedinuser",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "recordloggedinuser()"
     },
     {
@@ -3128,7 +3266,7 @@
       "_origin": "ast",
       "id": "src_supabase_createclouduser",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "createclouduser()"
     },
     {
@@ -3140,7 +3278,7 @@
       "_origin": "ast",
       "id": "src_supabase_updateclouduser",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "updateclouduser()"
     },
     {
@@ -3164,7 +3302,7 @@
       "_origin": "ast",
       "id": "src_supabase_deleteclouduser",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "deleteclouduser()"
     },
     {
@@ -3176,7 +3314,7 @@
       "_origin": "ast",
       "id": "src_supabase_subscribecloudusers",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "subscribecloudusers()"
     },
     {
@@ -3187,8 +3325,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "createcloudreview()"
     },
     {
@@ -3199,7 +3337,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudreviews",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "getcloudreviews()"
     },
@@ -3212,7 +3350,7 @@
       "_origin": "ast",
       "id": "src_supabase_generatesecureorderotp",
       "community": 2,
-      "community_name": "supabase.js",
+      "community_name": "test-database-sync.js",
       "norm_label": "generatesecureorderotp()"
     },
     {
@@ -3260,7 +3398,7 @@
       "_origin": "ast",
       "id": "src_supabase_updateusertrustscore",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "updateusertrustscore()"
     },
     {
@@ -3284,7 +3422,7 @@
       "_origin": "ast",
       "id": "src_supabase_recordcashsettlement",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "recordcashsettlement()"
     },
     {
@@ -3295,8 +3433,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_recordmultistaffreview",
-      "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "recordmultistaffreview()"
     },
     {
@@ -3306,8 +3444,8 @@
       "source_location": "L3511",
       "_origin": "ast",
       "id": "src_supabase_rider_max_cash_limit",
-      "community": 2,
-      "community_name": "supabase.js",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "rider_max_cash_limit"
     },
     {
@@ -3330,7 +3468,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculatedynamicdeliveryfee",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "calculatedynamicdeliveryfee()"
     },
@@ -3354,8 +3492,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getnextwaterfallrider",
-      "community": 2,
-      "community_name": "supabase.js",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "getnextwaterfallrider()"
     },
     {
@@ -3365,7 +3503,7 @@
       "source_location": "L3610",
       "_origin": "ast",
       "id": "src_supabase_complete_foody_database_schema_sql",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "complete_foody_database_schema_sql"
     },
@@ -3429,10 +3567,21 @@
       "norm_label": "setlocalcustomermenus()"
     },
     {
+      "label": "MenuItemCard",
+      "file_type": "code",
+      "source_file": "src/views/CustomerView.jsx",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "src_views_customerview_menuitemcard",
+      "community": 4,
+      "community_name": "CustomerView.jsx",
+      "norm_label": "menuitemcard"
+    },
+    {
       "label": "CustomerView()",
       "file_type": "code",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L83",
+      "source_location": "L245",
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_customerview",
@@ -3448,7 +3597,7 @@
       "_origin": "ast",
       "id": "src_views_developerview",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "developerview.jsx"
     },
     {
@@ -3460,7 +3609,7 @@
       "_origin": "ast",
       "id": "src_views_developerview_developerview",
       "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community_name": "supabase.js",
       "norm_label": "developerview()"
     },
     {
@@ -3505,7 +3654,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
-      "community": 2,
+      "community": 22,
       "community_name": "supabase.js",
       "norm_label": "ownerview()"
     },
@@ -4514,11 +4663,55 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L26",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
       "target": "src_app_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app",
+      "target": "src_app_developerview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app",
+      "target": "src_app_kitchenview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app",
+      "target": "src_app_ownerview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app",
+      "target": "src_app_transportview",
       "confidence_score": 1.0
     },
     {
@@ -4550,7 +4743,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L16",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4562,7 +4755,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L16",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4574,7 +4767,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L17",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4586,7 +4779,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L17",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4646,7 +4839,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L14",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4658,7 +4851,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L14",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4670,7 +4863,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L15",
+      "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4682,7 +4875,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L15",
+      "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4766,7 +4959,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L18",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4778,7 +4971,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L18",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4814,7 +5007,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L19",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4826,7 +5019,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L19",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4838,7 +5031,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L20",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4850,7 +5043,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L20",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4862,7 +5055,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L20",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
@@ -4897,102 +5090,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_developerview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_developerview_developerview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L10",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_kitchenview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L10",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_kitchenview_kitchenview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_ownerview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L12",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_ownerview_ownerview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_transportview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/App.jsx",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_app",
-      "target": "src_views_transportview_transportview",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "src/main.jsx",
       "source_location": "L5",
       "weight": 1.0,
@@ -5007,7 +5104,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L28",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5019,7 +5116,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L29",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5031,7 +5128,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L31",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5043,7 +5140,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L30",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5055,7 +5152,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5067,7 +5164,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L205",
+      "source_location": "L207",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5079,7 +5176,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L216",
+      "source_location": "L218",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5353,7 +5450,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L877",
+      "source_location": "L860",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5365,7 +5462,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L994",
+      "source_location": "L977",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5399,7 +5496,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L89",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5410,7 +5507,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L41",
+      "source_location": "L44",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5422,7 +5519,31 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L39",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal",
+      "target": "src_components_soundtrialsmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal",
+      "target": "src_components_soundtrialsmodal_soundtrialsmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5434,7 +5555,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5446,7 +5567,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5458,7 +5579,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal",
@@ -5566,6 +5687,42 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal",
+      "target": "src_services_nativenotificationservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal",
+      "target": "src_services_nativenotificationservice_nativenotify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal",
+      "target": "src_services_nativenotificationservice_notification_trials",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthModal.jsx",
       "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
@@ -5591,7 +5748,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L107",
+      "source_location": "L110",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
@@ -5603,7 +5760,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L110",
+      "source_location": "L113",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
@@ -5615,7 +5772,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L109",
+      "source_location": "L112",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
@@ -5627,11 +5784,23 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L233",
+      "source_location": "L237",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
       "target": "src_hooks_usebottomsheetdrag_usebottomsheetdrag"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/AuthModal.jsx",
+      "source_location": "L934",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_authmodal_authmodal",
+      "target": "src_services_nativenotificationservice_notification_trials"
     },
     {
       "relation": "calls",
@@ -5639,7 +5808,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L364",
+      "source_location": "L368",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
@@ -6034,11 +6203,35 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L22",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel",
       "target": "src_components_notificationpanel_notificationpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel",
+      "target": "src_components_soundtrialsmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel",
+      "target": "src_components_soundtrialsmodal_soundtrialsmodal",
       "confidence_score": 1.0
     },
     {
@@ -6114,12 +6307,48 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel",
+      "target": "src_services_nativenotificationservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel",
+      "target": "src_services_nativenotificationservice_nativenotify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel",
+      "target": "src_services_nativenotificationservice_notification_trials",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L32",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
@@ -6131,7 +6360,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L34",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
@@ -6143,11 +6372,23 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L62",
+      "source_location": "L72",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
       "target": "src_hooks_usebottomsheetdrag_usebottomsheetdrag"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NotificationPanel.jsx",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_notificationpanel_notificationpanel",
+      "target": "src_services_nativenotificationservice_notification_trials"
     },
     {
       "relation": "contains",
@@ -6428,7 +6669,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/QuantityPickerSheet.jsx",
-      "source_location": "L223",
+      "source_location": "L227",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_quantitypickersheet_quantitypickersheet",
@@ -6440,7 +6681,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/QuantityPickerSheet.jsx",
-      "source_location": "L143",
+      "source_location": "L148",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_quantitypickersheet_quantitypickersheet",
@@ -6561,6 +6802,65 @@
       "source": "src_components_rewardsmodal",
       "target": "src_components_rewardsmodal_rewardsmodal",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_soundtrialsmodal",
+      "target": "src_components_soundtrialsmodal_soundtrialsmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_soundtrialsmodal",
+      "target": "src_services_nativenotificationservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_soundtrialsmodal",
+      "target": "src_services_nativenotificationservice_nativenotify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_soundtrialsmodal",
+      "target": "src_services_nativenotificationservice_notification_trials",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/SoundTrialsModal.jsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_soundtrialsmodal_soundtrialsmodal",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial"
     },
     {
       "relation": "contains",
@@ -8163,7 +8463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L84",
+      "source_location": "L246",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -8269,7 +8569,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_cartcontext",
@@ -8280,7 +8580,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_cartcontext",
@@ -8291,7 +8591,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/context/CartContext.jsx",
-      "source_location": "L209",
+      "source_location": "L220",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_cartcontext",
@@ -8352,7 +8652,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L105",
+      "source_location": "L267",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -8648,7 +8948,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L85",
+      "source_location": "L247",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -8704,7 +9004,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/context/ThemeContext.jsx",
-      "source_location": "L87",
+      "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_context_themecontext",
@@ -9047,7 +9347,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L378",
+      "source_location": "L542",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9057,7 +9357,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/hooks/useBottomSheetDrag.js",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_hooks_usebottomsheetdrag",
@@ -9094,7 +9394,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L296",
+      "source_location": "L456",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9296,7 +9596,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L108",
+      "source_location": "L270",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9401,7 +9701,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L277",
+      "source_location": "L439",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9554,7 +9854,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L6",
+      "source_location": "L81",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice",
@@ -9565,7 +9865,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L524",
+      "source_location": "L822",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice",
@@ -9573,10 +9873,69 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_notification_trials",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "target": "src_services_nativenotificationservice_notification_trials"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L169",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playchime",
+      "target": "src_services_nativenotificationservice_notification_trials"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L144",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playtrialsound",
+      "target": "src_services_nativenotificationservice_notification_trials"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial",
+      "target": "src_services_nativenotificationservice_notification_trials"
+    },
+    {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L7",
+      "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9587,7 +9946,29 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L13",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L95",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L126",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9598,7 +9979,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L320",
+      "source_location": "L618",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9609,7 +9990,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L330",
+      "source_location": "L628",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9620,7 +10001,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L119",
+      "source_location": "L416",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9631,7 +10012,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L442",
+      "source_location": "L740",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9642,7 +10023,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L410",
+      "source_location": "L708",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9653,7 +10034,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L343",
+      "source_location": "L641",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9664,7 +10045,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L277",
+      "source_location": "L575",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9675,7 +10056,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L498",
+      "source_location": "L796",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9686,7 +10067,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L376",
+      "source_location": "L674",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9697,7 +10078,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L235",
+      "source_location": "L533",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9708,7 +10089,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L219",
+      "source_location": "L517",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9719,7 +10100,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L30",
+      "source_location": "L166",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9730,7 +10111,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L58",
+      "source_location": "L409",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice",
@@ -9738,14 +10119,131 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L197",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L143",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playtrialsound",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L60",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L168",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playchime",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L410",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedchime",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L463",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_init",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L783",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L595",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L552",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_getactivetrialsoundfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
       "target": "src_services_nativenotificationservice_nativenotificationservice_getaudiocontext",
       "confidence_score": 1.0
     },
@@ -9754,7 +10252,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L444",
+      "source_location": "L152",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playtrialsound",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L742",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -9766,7 +10276,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L412",
+      "source_location": "L710",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -9778,7 +10288,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L345",
+      "source_location": "L643",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -9790,7 +10300,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L279",
+      "source_location": "L577",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -9802,7 +10312,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L500",
+      "source_location": "L798",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -9814,7 +10324,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L378",
+      "source_location": "L676",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -9826,7 +10336,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L237",
+      "source_location": "L535",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -9838,11 +10348,11 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L47",
+      "source_location": "L186",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_playchime",
-      "target": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedchime",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
       "confidence_score": 1.0
     },
     {
@@ -9850,7 +10360,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L226",
+      "source_location": "L410",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedchime",
+      "target": "src_services_nativenotificationservice_nativenotificationservice_playsynthesizedtrial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/nativeNotificationService.js",
+      "source_location": "L524",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcomeiffirsttime",
@@ -9862,7 +10384,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L236",
+      "source_location": "L534",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifywelcome",
@@ -9874,7 +10396,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L278",
+      "source_location": "L576",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifylogin",
@@ -9886,7 +10408,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L443",
+      "source_location": "L741",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifycustomerorderupdate",
@@ -9898,7 +10420,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L411",
+      "source_location": "L709",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifydriverorderready",
@@ -9910,7 +10432,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L344",
+      "source_location": "L642",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifykitchenneworder",
@@ -9922,7 +10444,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L499",
+      "source_location": "L797",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyowneralert",
@@ -9934,7 +10456,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/nativeNotificationService.js",
-      "source_location": "L377",
+      "source_location": "L675",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_nativenotificationservice_nativenotificationservice_notifyownerneworder",
@@ -11534,7 +12056,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L883",
+      "source_location": "L1058",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -12098,7 +12620,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L627",
+      "source_location": "L802",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -12674,7 +13196,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L762",
+      "source_location": "L937",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -13369,7 +13891,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L578",
+      "source_location": "L753",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -13393,7 +13915,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L435",
+      "source_location": "L610",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14065,7 +14587,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L601",
+      "source_location": "L776",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14915,7 +15437,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L83",
+      "source_location": "L245",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview",
@@ -14937,6 +15459,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_views_customerview",
+      "target": "src_views_customerview_menuitemcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/views/CustomerView.jsx",
       "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
@@ -14949,7 +15482,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L114",
+      "source_location": "L276",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14961,7 +15494,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L450",
+      "source_location": "L625",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -15124,5 +15657,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "0c1272008589fa6c51e274fe2ece634a3dac3740"
+  "built_at_commit": "a0a5545e385bda65b79b9f673f6948e4db059be3"
 }
