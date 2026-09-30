@@ -354,8 +354,18 @@ export default function TransportView() {
       const riderIcon = L.divIcon({
         className: 'custom-rider-pin',
         html: `
-          <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+            <div class="radar-ping-circle" style="
+              position: absolute;
+              width: 36px;
+              height: 36px;
+              border-radius: 50%;
+              border: 1.5px solid #E0FF33;
+              background: rgba(224, 255, 51, 0.12);
+              pointer-events: none;
+            "></div>
             <div style="
+              position: relative;
               width: 36px;
               height: 36px;
               background: #181617;
@@ -364,7 +374,7 @@ export default function TransportView() {
               display: flex;
               align-items: center;
               justify-content: center;
-              box-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 0 16px rgba(224,255,51,0.4);
+              box-shadow: 0 4px 14px rgba(0,0,0,0.45);
               cursor: pointer;
             ">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -377,8 +387,8 @@ export default function TransportView() {
             </div>
           </div>
         `,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19]
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
       const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
       riderMarker.bindTooltip('Sarathi Rider (Live GPS)', { permanent: false, direction: 'top', offset: [0, -22] });
@@ -399,30 +409,16 @@ export default function TransportView() {
     const routeCasing = L.polyline(currentRouteCoords, {
       color: '#181617',
       weight: 5.5,
-      opacity: 0.9,
+      opacity: 0.95,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(routeCasing);
 
-    // Parabolic Dots Road Overlay (Animated Dot Markers Along Route)
-    const routeDots = L.polyline(currentRouteCoords, {
-      color: '#121011',
-      weight: 8,
-      opacity: 0.98,
-      dashArray: '1, 16',
-      lineCap: 'round',
-      lineJoin: 'round',
-      className: 'casing-parabolic-dots'
-    });
-    group.addLayer(routeDots);
-
-    // Glowing Neon Driving Road Line
+    // Glowing Solid Neon Driving Road Line
     const routeLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
       weight: 3.5,
-      dashArray: '6, 8',
-      className: 'animated-delivery-route',
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
@@ -442,7 +438,6 @@ export default function TransportView() {
             ];
 
             routeCasing.setLatLngs(fullRoute);
-            routeDots.setLatLngs(fullRoute);
             routeLine.setLatLngs(fullRoute);
 
             if (mapInstanceRef.current && routeGroupRef.current) {

@@ -221,7 +221,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(destMarker);
 
-    // 4. Live Rider Pin (Modern Navigational Vehicle Puck)
+    // 4. Live Rider Pin (Modern Navigational Vehicle Puck with clean radar ping)
     const assignedRiderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.rider?.name;
     const hasLiveRiderInfo = (status === 'out_for_delivery') && Boolean(assignedRiderName || currentOrder?.rider_phone || currentOrder?.riderPhone || currentOrder?.rider_id);
 
@@ -230,17 +230,27 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       const riderIcon = L.divIcon({
         className: 'custom-rider-pin',
         html: `
-          <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+            <div class="radar-ping-circle" style="
+              position: absolute;
+              width: 36px;
+              height: 36px;
+              border-radius: 50%;
+              border: 1.5px solid #E0FF33;
+              background: rgba(224, 255, 51, 0.12);
+              pointer-events: none;
+            "></div>
             <div style="
+              position: relative;
               width: 36px;
               height: 36px;
               background: #181617;
-              border: 2px solid #E0FF33;
+              border: 2.5px solid #E0FF33;
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
-              box-shadow: 0 6px 20px rgba(0,0,0,0.65), 0 0 16px rgba(224,255,51,0.4);
+              box-shadow: 0 4px 14px rgba(0,0,0,0.45);
               cursor: pointer;
             ">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -253,13 +263,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             </div>
           </div>
         `,
-        iconSize: [38, 38],
-        iconAnchor: [19, 19]
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
       });
 
       const initialRiderPos = [midLat, midLng];
       riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
-      riderMarker.bindTooltip(`${assignedRiderName || 'Sarathi Rider'} (Live Delivery)`, { permanent: false, direction: 'top', offset: [0, -20] });
+      riderMarker.bindTooltip(`${assignedRiderName || 'Sarathi Rider'} (Live Delivery)`, { permanent: false, direction: 'top', offset: [0, -22] });
       riderMarker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
         riderMarker.toggleTooltip();
@@ -283,7 +293,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       let normLat = -dLng / dist;
       let normLng = dLat / dist;
 
-      // Ensure the parabolic arc always inclines upwards mostly
       if (normLat < 0) {
         normLat = -normLat;
         normLng = -normLng;
@@ -312,51 +321,46 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       [destLat, destLng]
     ];
 
-    // Road Casing (Dark Contrast Underlay)
+    // Road Casing (Crisp Solid Dark Underlay)
     const roadCasing = L.polyline(currentRouteCoords, {
       color: '#181617',
-      weight: 6,
+      weight: 5.5,
       opacity: 0.95,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(roadCasing);
 
-    // Glowing Animated Neon Delivery Route Dashes
+    // Vibrant Solid Neon Delivery Route Line
     const roadLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
-      weight: 3.2,
-      dashArray: '6, 8',
-      className: 'animated-delivery-route',
+      weight: 3.5,
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(roadLine);
 
-    // Start Connector Casing & Parabolic Obsidian Beads (Kitchen -> Road Start)
-    const startConnectorCasing = L.polyline([], {
-      color: '#121011',
-      weight: 8,
-      dashArray: '1, 16',
-      className: 'casing-parabolic-dots',
-      opacity: 0.98,
+    // Clean Walking / Connector Arcs
+    const startConnector = L.polyline([], {
+      color: '#E0FF33',
+      weight: 2.5,
+      dashArray: '4, 6',
+      opacity: 0.9,
       lineCap: 'round',
       lineJoin: 'round'
     });
-    group.addLayer(startConnectorCasing);
+    group.addLayer(startConnector);
 
-    // End Connector Casing & Parabolic Obsidian Beads (Road End -> Doorstep)
-    const walkingConnectorCasing = L.polyline([], {
-      color: '#121011',
-      weight: 8,
-      dashArray: '1, 16',
-      className: 'casing-parabolic-dots',
-      opacity: 0.98,
+    const walkingConnector = L.polyline([], {
+      color: '#E0FF33',
+      weight: 2.5,
+      dashArray: '4, 6',
+      opacity: 0.9,
       lineCap: 'round',
       lineJoin: 'round'
     });
-    group.addLayer(walkingConnectorCasing);
+    group.addLayer(walkingConnector);
 
     // Road Drop-off Terminus Dot (Where vehicle stops and walking begins)
     const dropOffStopDot = L.circleMarker([destLat, destLng], {
@@ -394,18 +398,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             roadCasing.setLatLngs(rawLatLngs);
             roadLine.setLatLngs(rawLatLngs);
 
-            // Connect Kitchen -> Road Start with parabolic obsidian dots
+            // Connect Kitchen -> Road Start with walking connector
             const isStartOffset = Math.hypot(roadStart[0] - shopLat, roadStart[1] - shopLng) > 0.0001;
             if (isStartOffset) {
               const startArc = generateParabolicArc([shopLat, shopLng], roadStart, 50, 0.22);
-              startConnectorCasing.setLatLngs(startArc);
+              startConnector.setLatLngs(startArc);
             } else {
-              startConnectorCasing.setLatLngs([]);
+              startConnector.setLatLngs([]);
             }
 
-            // Connect Road End -> Doorstep Pin with parabolic obsidian dots
+            // Connect Road End -> Doorstep Pin with walking connector
             const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 50, 0.22);
-            walkingConnectorCasing.setLatLngs(walkingArc);
+            walkingConnector.setLatLngs(walkingArc);
+
 
             // Show drop-off stop dot at road terminus if destination is offset
             const isEndOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
