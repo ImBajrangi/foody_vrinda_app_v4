@@ -412,8 +412,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "activeordertrackingmodal.jsx"
     },
     {
@@ -424,8 +424,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal_activeordertrackingmodal",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "activeordertrackingmodal()"
     },
     {
@@ -458,8 +458,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_authmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "authmodal.jsx"
     },
     {
@@ -469,8 +469,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "desk_config"
     },
     {
@@ -481,8 +481,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "authmodal()"
     },
     {
@@ -492,8 +492,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -504,8 +504,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -515,8 +515,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_errorboundary",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": "errorboundary.jsx"
     },
     {
@@ -528,8 +528,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": "errorboundary"
     },
     {
@@ -540,8 +540,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_constructor",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": ".constructor()"
     },
     {
@@ -552,8 +552,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_getderivedstatefromerror",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -564,8 +564,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_componentdidcatch",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": ".componentdidcatch()"
     },
     {
@@ -576,8 +576,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_handlereset",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": ".handlereset()"
     },
     {
@@ -588,8 +588,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_render",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 29,
+      "community_name": "ErrorBoundary",
       "norm_label": ".render()"
     },
     {
@@ -599,8 +599,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_header",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "header.jsx"
     },
     {
@@ -611,8 +611,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_header_header",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "header()"
     },
     {
@@ -679,20 +679,20 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_notificationpanel",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "notificationpanel.jsx"
     },
     {
       "label": "NotificationPanel()",
       "file_type": "code",
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L26",
+      "source_location": "L22",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_notificationpanel_notificationpanel",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "notificationpanel()"
     },
     {
@@ -702,8 +702,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -714,8 +714,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -827,8 +827,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_soundtrialsmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "soundtrialsmodal.jsx"
     },
     {
@@ -839,8 +839,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_soundtrialsmodal_soundtrialsmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "soundtrialsmodal()"
     },
     {
@@ -873,20 +873,31 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "unifiedsearchmodal.jsx"
+    },
+    {
+      "label": "POPULAR_CATEGORIES",
+      "file_type": "code",
+      "source_file": "src/components/UnifiedSearchModal.jsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_components_unifiedsearchmodal_popular_categories",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
+      "norm_label": "popular_categories"
     },
     {
       "label": "UnifiedSearchModal()",
       "file_type": "code",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L10",
+      "source_location": "L25",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_unifiedsearchmodal",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "unifiedsearchmodal()"
     },
     {
@@ -1294,8 +1305,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "sociallinksbar.jsx"
     },
     {
@@ -1306,8 +1317,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_socialicon",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "socialicon()"
     },
     {
@@ -1318,8 +1329,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_sociallinksbar",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "sociallinksbar()"
     },
     {
@@ -1363,8 +1374,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_constants_sociallinks",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "sociallinks.js"
     },
     {
@@ -1374,8 +1385,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_links",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "social_links"
     },
     {
@@ -1385,8 +1396,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_channels",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "social_channels"
     },
     {
@@ -1477,8 +1488,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -1488,8 +1499,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_cartcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 31,
+      "community_name": "CartContext.jsx",
       "norm_label": "cartcontext.jsx"
     },
     {
@@ -1499,8 +1510,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_context_cartcontext_cartcontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 31,
+      "community_name": "CartContext.jsx",
       "norm_label": "cartcontext"
     },
     {
@@ -1511,8 +1522,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_cartprovider",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 31,
+      "community_name": "CartContext.jsx",
       "norm_label": "cartprovider()"
     },
     {
@@ -1523,8 +1534,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_usecart",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "usecart()"
     },
     {
@@ -1580,8 +1591,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_notificationcontext_usenotifications",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "usenotifications()"
     },
     {
@@ -1591,8 +1602,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_themecontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "themecontext.jsx"
     },
     {
@@ -1602,8 +1613,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_context_themecontext_themecontext",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "themecontext"
     },
     {
@@ -1614,8 +1625,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_themeprovider",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 31,
+      "community_name": "CartContext.jsx",
       "norm_label": "themeprovider()"
     },
     {
@@ -1626,8 +1637,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_usetheme",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "usetheme()"
     },
     {
@@ -1716,8 +1727,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "usebackhandler.js"
     },
     {
@@ -1728,8 +1739,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "usebackhandler()"
     },
     {
@@ -1739,8 +1750,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "usebottomsheetdrag.js"
     },
     {
@@ -1751,8 +1762,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 28,
+      "community_name": "useBottomSheetDrag",
       "norm_label": "usebottomsheetdrag()"
     },
     {
@@ -1808,8 +1819,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_main",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 31,
+      "community_name": "CartContext.jsx",
       "norm_label": "main.jsx"
     },
     {
@@ -1819,8 +1830,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "addressservice.js"
     },
     {
@@ -1831,8 +1842,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "getlocalcache()"
     },
     {
@@ -1843,8 +1854,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "setlocalcache()"
     },
     {
@@ -1855,8 +1866,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 30,
+      "community_name": "fetchAddressSuggestions",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -1949,8 +1960,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
@@ -1960,8 +1971,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "backhandlers"
     },
     {
@@ -1972,8 +1983,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "registerbackhandler()"
     },
     {
@@ -1984,8 +1995,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "unregisterbackhandler()"
     },
     {
@@ -1996,8 +2007,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
@@ -2032,8 +2043,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
-      "community": 4,
-      "community_name": "CustomerView.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -2043,8 +2054,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "hitsoochiservice.js"
     },
     {
@@ -2054,8 +2065,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_local_satvik_ontology",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "local_satvik_ontology"
     },
     {
@@ -2067,8 +2078,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": "hitsoochiservice"
     },
     {
@@ -2079,8 +2090,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getcuratedsuggestions",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".getcuratedsuggestions()"
     },
     {
@@ -2091,8 +2102,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_rankitems",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".rankitems()"
     },
     {
@@ -2103,8 +2114,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_optimizequery",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".optimizequery()"
     },
     {
@@ -2115,8 +2126,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getsuggestions",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "OwnerView.jsx",
       "norm_label": ".getsuggestions()"
     },
     {
@@ -2126,8 +2137,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "nativenotificationservice.js"
     },
     {
@@ -2137,8 +2148,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_notification_trials",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "notification_trials"
     },
     {
@@ -2222,8 +2233,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": ".setactivetrial()"
     },
     {
@@ -2449,8 +2460,8 @@
       "source_location": "L943",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotify",
-      "community": 25,
-      "community_name": "App.jsx",
+      "community": 21,
+      "community_name": "NativeNotificationService",
       "norm_label": "nativenotify"
     },
     {
@@ -2763,8 +2774,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_setcacheditem",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "setcacheditem()"
     },
     {
@@ -2943,8 +2954,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2979,8 +2990,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleuserchangepayload",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".handleuserchangepayload()"
     },
     {
@@ -3325,8 +3336,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deletecloudshop",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "deletecloudshop()"
     },
     {
@@ -4015,6 +4026,204 @@
       "community": 24,
       "community_name": "Active Engineering Rules",
       "norm_label": "rule [gpu budget guard]:"
+    },
+    {
+      "label": "DESIGN.md",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "design.md"
+    },
+    {
+      "label": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "foody vrinda \u2014 design system & theme architecture specification"
+    },
+    {
+      "label": "1. Executive Summary & Philosophy",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "design_1_executive_summary_philosophy",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "1. executive summary & philosophy"
+    },
+    {
+      "label": "The Core Theme Duality",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "design_the_core_theme_duality",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "the core theme duality"
+    },
+    {
+      "label": "2. Global Semantic Color Token Matrix",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "design_2_global_semantic_color_token_matrix",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "2. global semantic color token matrix"
+    },
+    {
+      "label": "2.1 CSS Semantic Tokens Definition",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "design_2_1_css_semantic_tokens_definition",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "2.1 css semantic tokens definition"
+    },
+    {
+      "label": "3. UI Component Standards & Guidelines",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "design_3_ui_component_standards_guidelines",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3. ui component standards & guidelines"
+    },
+    {
+      "label": "3.1 Button Hierarchy",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L154",
+      "_origin": "ast",
+      "id": "design_3_1_button_hierarchy",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3.1 button hierarchy"
+    },
+    {
+      "label": "3.2 Live Maps, GPS Tracking & Pins (Sarathi / Rider)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "design_3_2_live_maps_gps_tracking_pins_sarathi_rider",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3.2 live maps, gps tracking & pins (sarathi / rider)"
+    },
+    {
+      "label": "3.3 Role Switcher & Header Navigation",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L190",
+      "_origin": "ast",
+      "id": "design_3_3_role_switcher_header_navigation",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3.3 role switcher & header navigation"
+    },
+    {
+      "label": "3.4 Modal Dialogs & Bottom Sheets",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L204",
+      "_origin": "ast",
+      "id": "design_3_4_modal_dialogs_bottom_sheets",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3.4 modal dialogs & bottom sheets"
+    },
+    {
+      "label": "3.5 Status Badges & Lifecycle States",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L221",
+      "_origin": "ast",
+      "id": "design_3_5_status_badges_lifecycle_states",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "3.5 status badges & lifecycle states"
+    },
+    {
+      "label": "4. Specific View Audit & Normalization Plan",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L234",
+      "_origin": "ast",
+      "id": "design_4_specific_view_audit_normalization_plan",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "4. specific view audit & normalization plan"
+    },
+    {
+      "label": "4.1 Kitchen Desk (`KitchenView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L236",
+      "_origin": "ast",
+      "id": "design_4_1_kitchen_desk_kitchenview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "4.1 kitchen desk (`kitchenview.jsx`)"
+    },
+    {
+      "label": "4.2 Transport / Rider Desk (`TransportView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L243",
+      "_origin": "ast",
+      "id": "design_4_2_transport_rider_desk_transportview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "4.2 transport / rider desk (`transportview.jsx`)"
+    },
+    {
+      "label": "4.3 Owner Desk (`OwnerView.jsx`) & Developer Desk (`DeveloperView.jsx`)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L249",
+      "_origin": "ast",
+      "id": "design_4_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "4.3 owner desk (`ownerview.jsx`) & developer desk (`developerview.jsx`)"
+    },
+    {
+      "label": "5. Mobile & Touch Ergonomics Rules",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L256",
+      "_origin": "ast",
+      "id": "design_5_mobile_touch_ergonomics_rules",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "5. mobile & touch ergonomics rules"
+    },
+    {
+      "label": "6. Implementation Checklist & Phasing (Awaiting User Sign-Off)",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L265",
+      "_origin": "ast",
+      "id": "design_6_implementation_checklist_phasing_awaiting_user_sign_off",
+      "community": 27,
+      "community_name": "Foody Vrinda \u2014 Design System & Theme Architecture Specification",
+      "norm_label": "6. implementation checklist & phasing (awaiting user sign-off)"
     },
     {
       "label": "README.md",
@@ -5743,7 +5952,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L541",
+      "source_location": "L546",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5755,7 +5964,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L538",
+      "source_location": "L543",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5767,7 +5976,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L860",
+      "source_location": "L865",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -5779,7 +5988,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/ActiveOrderTrackingModal.jsx",
-      "source_location": "L977",
+      "source_location": "L982",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_activeordertrackingmodal_activeordertrackingmodal",
@@ -6136,7 +6345,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AuthModal.jsx",
-      "source_location": "L934",
+      "source_location": "L944",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_authmodal_authmodal",
@@ -6231,7 +6440,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/CompleteProfileModal.jsx",
-      "source_location": "L63",
+      "source_location": "L66",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_completeprofilemodal_completeprofilemodal",
@@ -6543,35 +6752,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L26",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel",
       "target": "src_components_notificationpanel_notificationpanel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel",
-      "target": "src_components_soundtrialsmodal",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L5",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel",
-      "target": "src_components_soundtrialsmodal_soundtrialsmodal",
       "confidence_score": 1.0
     },
     {
@@ -6647,48 +6832,12 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel",
-      "target": "src_services_nativenotificationservice",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel",
-      "target": "src_services_nativenotificationservice_nativenotify",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel",
-      "target": "src_services_nativenotificationservice_notification_trials",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L36",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
@@ -6700,7 +6849,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L38",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
@@ -6712,23 +6861,11 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L72",
+      "source_location": "L63",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_notificationpanel_notificationpanel",
       "target": "src_hooks_usebottomsheetdrag_usebottomsheetdrag"
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NotificationPanel.jsx",
-      "source_location": "L46",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "src_components_notificationpanel_notificationpanel",
-      "target": "src_services_nativenotificationservice_notification_trials"
     },
     {
       "relation": "contains",
@@ -7218,7 +7355,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L8",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7230,7 +7367,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L8",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7241,7 +7378,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L10",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_unifiedsearchmodal",
+      "target": "src_components_unifiedsearchmodal_popular_categories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/UnifiedSearchModal.jsx",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7253,7 +7401,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L3",
+      "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7265,7 +7413,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L3",
+      "source_location": "L2",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7277,7 +7425,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7289,7 +7437,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7301,7 +7449,31 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L7",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_unifiedsearchmodal",
+      "target": "src_hooks_usebottomsheetdrag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/UnifiedSearchModal.jsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_unifiedsearchmodal",
+      "target": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/UnifiedSearchModal.jsx",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7313,7 +7485,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L7",
+      "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7325,7 +7497,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7337,7 +7509,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7349,7 +7521,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7361,7 +7533,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7373,7 +7545,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal",
@@ -7386,7 +7558,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L11",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7398,7 +7570,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L12",
+      "source_location": "L27",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7410,7 +7582,19 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L315",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
+      "target": "src_hooks_usebottomsheetdrag_usebottomsheetdrag"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/UnifiedSearchModal.jsx",
+      "source_location": "L507",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7422,7 +7606,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L105",
+      "source_location": "L167",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7434,7 +7618,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L93",
+      "source_location": "L154",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7446,7 +7630,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L586",
+      "source_location": "L814",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -7458,7 +7642,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/UnifiedSearchModal.jsx",
-      "source_location": "L407",
+      "source_location": "L586",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_unifiedsearchmodal_unifiedsearchmodal",
@@ -13921,7 +14105,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L488",
+      "source_location": "L483",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -14556,7 +14740,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L507",
+      "source_location": "L502",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -15768,7 +15952,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L614",
+      "source_location": "L609",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -15840,7 +16024,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L612",
+      "source_location": "L607",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -15888,7 +16072,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L613",
+      "source_location": "L608",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -15972,7 +16156,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L503",
+      "source_location": "L498",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -16020,7 +16204,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/TransportView.jsx",
-      "source_location": "L504",
+      "source_location": "L499",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_transportview_transportview",
@@ -16240,6 +16424,193 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design",
+      "target": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_1_executive_summary_philosophy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_2_global_semantic_color_token_matrix",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_3_ui_component_standards_guidelines",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L234",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_4_specific_view_audit_normalization_plan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L256",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_5_mobile_touch_ergonomics_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L265",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_foody_vrinda_design_system_theme_architecture_specification",
+      "target": "design_6_implementation_checklist_phasing_awaiting_user_sign_off",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_1_executive_summary_philosophy",
+      "target": "design_the_core_theme_duality",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_2_global_semantic_color_token_matrix",
+      "target": "design_2_1_css_semantic_tokens_definition",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L154",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_1_button_hierarchy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L165",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_2_live_maps_gps_tracking_pins_sarathi_rider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L190",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_3_role_switcher_header_navigation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L204",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_4_modal_dialogs_bottom_sheets",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L221",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_3_ui_component_standards_guidelines",
+      "target": "design_3_5_status_badges_lifecycle_states",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L236",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_4_specific_view_audit_normalization_plan",
+      "target": "design_4_1_kitchen_desk_kitchenview_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L243",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_4_specific_view_audit_normalization_plan",
+      "target": "design_4_2_transport_rider_desk_transportview_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L249",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_4_specific_view_audit_normalization_plan",
+      "target": "design_4_3_owner_desk_ownerview_jsx_developer_desk_developerview_jsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -16283,5 +16654,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "279a9a02eaa39f485641c2d531fab424eb666aa9"
+  "built_at_commit": "19137072ae2beb1789189c40177711a766526cfb"
 }

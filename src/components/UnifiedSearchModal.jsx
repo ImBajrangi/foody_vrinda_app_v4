@@ -8,6 +8,7 @@ import {
   ArrowRight, Sparkles, Check
 } from 'lucide-react';
 import { HitSoochiService } from '../services/hitSoochiService';
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import DynamicToast from './ui/DynamicToast';
 
 const POPULAR_CATEGORIES = [
@@ -84,16 +85,22 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     }, 200);
   }, [closing, onClose]);
 
-  // Focus input on mount
+  const { sheetRef, handleProps, dismiss } = useBottomSheetDrag(handleAnimatedClose, 45);
+
+  // Focus input on mount ONLY for desktop devices (avoids virtual keyboard disturbance on mobile)
   useEffect(() => {
     if (isOpen) {
       setClosing(false);
       setExpandedDish(null);
       setExpandedShop(null);
       setExpandedOrder(null);
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 80);
+
+      const isMobile = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768);
+      if (!isMobile) {
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 80);
+      }
     } else {
       setSearchTerm('');
       setResults({ shops: [], menuItems: [], orders: [] });
@@ -110,13 +117,13 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           setExpandedShop(null);
           setExpandedOrder(null);
         } else {
-          handleAnimatedClose();
+          dismiss();
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleAnimatedClose, expandedDish, expandedShop, expandedOrder]);
+  }, [isOpen, dismiss, expandedDish, expandedShop, expandedOrder]);
 
   // Auto-hide toast
   useEffect(() => {
@@ -326,74 +333,99 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     <>
       <div
         onClick={(e) => {
-          if (e.target === e.currentTarget) handleAnimatedClose();
+          if (e.target === e.currentTarget) dismiss();
         }}
-        className={`fixed inset-0 z-50 flex items-end sm:items-start justify-center p-0 sm:p-4 pt-0 sm:pt-14 md:pt-20 bg-black/60 dark:bg-black/80 backdrop-blur-xs apple-overlay ${closing ? 'closing' : ''}`}
+        className={`fixed inset-0 z-[99999] flex items-end sm:items-start justify-center p-0 sm:p-4 pt-0 sm:pt-14 md:pt-20 bg-black/60 dark:bg-black/80 backdrop-blur-xs apple-overlay ${closing ? 'closing' : ''}`}
       >
-        <div className={`w-full max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[28px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}>
+        <div 
+          ref={sheetRef}
+          className={`w-full max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
+        >
 
-          {/* Top Sticky Header (Unified Seamless Container with Consistent Theme) */}
-          <div className="bg-white dark:bg-[#282526] border-b border-stone-200 dark:border-white/10 shrink-0">
-            {/* Top Grabber Indicator for Mobile (Integrated) */}
-            <div className="w-12 h-1.5 bg-stone-300 dark:bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5 sm:hidden"></div>
+          {/* Top Sticky Header (Unified Seamless Container with Consistent Theme & Swipe-Down Gesture) */}
+          <div 
+            {...handleProps}
+            className="bg-white dark:bg-[#282526] border-b border-stone-200 dark:border-white/10 shrink-0 select-none cursor-grab active:cursor-grabbing"
+          >
+            {/* Top Grabber Indicator for Mobile */}
+            <div className="w-full pt-3 pb-1.5 flex justify-center sm:hidden touch-none">
+              <div className="w-12 h-1.5 bg-stone-300 dark:bg-white/20 rounded-full transition-colors"></div>
+            </div>
 
-            {/* Search Input Bar */}
-            <div className="p-3 sm:p-4 pt-1 sm:pt-4 flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center shrink-0">
-                <Search size={18} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
+            {/* Search Input Bar (Ultra-Premium Apple / Arc Style Search Capsule + Crisp Cancel) */}
+            <div className="p-3 sm:p-4 pt-1 sm:pt-3.5 flex items-center gap-2.5 sm:gap-3">
+              {/* Integrated Search Input Capsule */}
+              <div className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-100/90 dark:bg-[#181617] border border-stone-200/90 dark:border-white/15 rounded-2xl px-3 sm:px-3.5 flex items-center gap-2.5 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/20 focus-within:bg-white dark:focus-within:bg-[#141213] transition-all shadow-inner">
+                <div className="w-7 h-7 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <Search size={15} strokeWidth={2.6} />
+                </div>
+
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search dishes, kitchens, cravings..."
+                  value={searchTerm}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchTerm.trim()) {
+                      saveRecentSearch(searchTerm);
+                    }
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchTerm(val);
+                    if (!val.trim()) {
+                      setResults({ shops: [], menuItems: [], orders: [] });
+                      setExpandedDish(null);
+                      setExpandedShop(null);
+                      setExpandedOrder(null);
+                    }
+                  }}
+                  className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold tracking-tight"
+                />
+
+                {/* Inline Clear Button */}
+                {searchTerm.trim().length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setResults({ shops: [], menuItems: [], orders: [] });
+                    }}
+                    className="w-5 h-5 rounded-full bg-stone-300 hover:bg-stone-400 dark:bg-white/20 dark:hover:bg-white/30 text-stone-700 dark:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90 shrink-0"
+                    title="Clear search text"
+                    aria-label="Clear text"
+                  >
+                    <X size={11} strokeWidth={2.8} />
+                  </button>
+                )}
               </div>
 
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search dishes, kitchens, cravings, orders..."
-                value={searchTerm}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchTerm.trim()) {
-                    saveRecentSearch(searchTerm);
-                  }
-                }}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSearchTerm(val);
-                  if (!val.trim()) {
-                    setResults({ shops: [], menuItems: [], orders: [] });
-                    setExpandedDish(null);
-                    setExpandedShop(null);
-                    setExpandedOrder(null);
-                  }
-                }}
-                className="flex-1 min-w-0 text-sm sm:text-base bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-stone-400 dark:placeholder-zinc-500 text-stone-900 dark:text-white font-bold"
-              />
-
-              {/* Clear Input CTA */}
-              {searchTerm.trim().length > 0 && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setResults({ shops: [], menuItems: [], orders: [] });
-                    searchInputRef.current?.focus();
-                  }}
-                  className="w-7 h-7 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-600 dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
-                  title="Clear input"
-                >
-                  <X size={13} />
-                </button>
-              )}
-
-              {/* Close Modal CTA */}
+              {/* Distinct Cancel / Dismiss CTA */}
               <button
-                onClick={handleAnimatedClose}
-                className="w-8 h-8 rounded-full bg-stone-200/90 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                type="button"
+                onClick={() => dismiss()}
+                className="h-9 sm:h-10 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white text-xs sm:text-sm font-black font-['Outfit'] flex items-center justify-center transition-all active:scale-95 cursor-pointer shrink-0 shadow-2xs select-none"
                 title="Close search"
               >
-                <X size={16} />
+                Cancel
               </button>
             </div>
           </div>
 
-          {/* Results / Discovery Content Area */}
-          <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5 no-scrollbar bg-[#FAF7F2] dark:bg-[#1E1B1C]">
+          {/* Results / Discovery Content Area (Auto-dismisses keyboard on touch/scroll) */}
+          <div 
+            onScroll={() => {
+              if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                document.activeElement.blur();
+              }
+            }}
+            onTouchMove={() => {
+              if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                document.activeElement.blur();
+              }
+            }}
+            className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5 no-scrollbar bg-[#FAF7F2] dark:bg-[#1E1B1C]"
+          >
             
             {/* Loading Indicator */}
             {loading && (

@@ -218,10 +218,12 @@ export default function Header({
             </button>
           )}
 
-          {/* Theme Toggle Button (Light / Dark Mode) */}
+          {/* Theme Toggle Button (Light / Dark Mode - Hidden on mobile when cart is active to maintain max 3 buttons) */}
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group"
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95 group ${
+              totalQty > 0 && onOpenCart ? 'hidden sm:flex' : 'flex'
+            }`}
             title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
             aria-label="Toggle Theme"
           >

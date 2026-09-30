@@ -38,14 +38,17 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
       setPhone(initialPhone);
       setAddress(initialAddr);
 
-      // Smooth auto-focus first empty field
-      setTimeout(() => {
-        if (!initialPhone && phoneRef.current) {
-          phoneRef.current.focus();
-        } else if (!initialAddr && addressRef.current) {
-          addressRef.current.focus();
-        }
-      }, 200);
+      // Smooth auto-focus first empty field ONLY on desktop
+      const isMobile = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768);
+      if (!isMobile) {
+        setTimeout(() => {
+          if (!initialPhone && phoneRef.current) {
+            phoneRef.current.focus();
+          } else if (!initialAddr && addressRef.current) {
+            addressRef.current.focus();
+          }
+        }, 200);
+      }
     }
   }, [isOpen, userData, user]);
 

@@ -1364,19 +1364,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             showToast(s.name, 'info');
                           }}
                           className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${isSelected
-                            ? 'btn-dark-active bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
-                            : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
+                            ? 'bg-amber-500/10 dark:bg-[#E0FF33]/[.12] border border-amber-500/30 dark:border-[#E0FF33]/30 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/25 shadow-2xs'
+                            : 'bg-stone-50/80 dark:bg-white/[.03] border border-stone-200/60 dark:border-white/5 hover:bg-stone-100 dark:hover:bg-white/[.06]'
                             }`}
                           aria-pressed={isSelected}
                           aria-label={`${s.name}${isOpen ? '' : ' — closed'}${isSelected ? ' — currently active' : ''}`}
                         >
                           {/* Radio Indicator */}
                           <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected
-                            ? 'border-amber-400 dark:border-[#E0FF33] bg-amber-400/20 dark:bg-[#E0FF33]/20'
+                            ? 'border-amber-600 dark:border-[#E0FF33] bg-amber-600/15 dark:bg-[#E0FF33]/20'
                             : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
                             }`}>
                             <div className={`w-2 h-2 rounded-full transition-all duration-200 ${isSelected
-                              ? 'bg-amber-400 dark:bg-[#E0FF33] scale-100'
+                              ? 'bg-amber-600 dark:bg-[#E0FF33] scale-100'
                               : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
                               }`} />
                           </div>
@@ -1386,10 +1386,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             <div className="flex items-center gap-1.5">
                               <p
                                 className={`text-[13px] sm:text-sm font-bold truncate transition-colors ${isSelected
-                                  ? '!text-white dark:text-[#E0FF33]'
+                                  ? 'text-amber-950 dark:text-[#E0FF33]'
                                   : 'text-stone-800 dark:text-zinc-100'
                                   }`}
-                                style={isSelected ? { color: '#FFFFFF' } : undefined}
                               >
                                 {s.name}
                               </p>
@@ -1397,10 +1396,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             {s.address && (
                               <p
                                 className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
-                                  ? 'text-stone-300 dark:text-[#E0FF33]/70'
+                                  ? 'text-amber-800/80 dark:text-[#E0FF33]/70 font-medium'
                                   : 'text-stone-400 dark:text-zinc-500'
                                   }`}
-                                style={isSelected ? { color: 'rgba(255, 255, 255, 0.8)' } : undefined}
                               >
                                 {s.address}
                               </p>
@@ -1596,7 +1594,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         >
           {/* Active Order Activity Capsule */}
           {!isTrackingModalOpen && trackingOrder && (
-            <div className="pointer-events-auto w-auto flex justify-center animate-fadeIn">
+            <div className="pointer-events-auto w-full max-w-full flex justify-center animate-fadeIn">
               <ActiveOrderCapsule
                 order={trackingOrder}
                 allShops={allShops}

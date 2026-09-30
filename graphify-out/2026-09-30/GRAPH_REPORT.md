@@ -1,11 +1,11 @@
 # Graph Report - foody_vrinda_v3  (2026-09-30)
 
 ## Corpus Check
-- 65 files · ~128,741 words
+- 65 files · ~129,333 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 350 nodes · 1039 edges · 27 communities (13 shown, 14 thin omitted)
+- 350 nodes · 1041 edges · 27 communities (13 shown, 14 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
@@ -22,7 +22,7 @@
 - CustomerView.jsx
 - OwnerView.jsx
 - Foody Vrinda (v3)
-- AppUpdateService
+- appUpdateService.js
 - Loader.jsx
 - AMPMToggle.jsx
 - DayNightSwitch.jsx
@@ -112,10 +112,10 @@ Nodes (6): Active Engineering Rules, Commands, Foody Vrinda v3 — Project Comma
 
 ### Community 25 - "App.jsx"
 Cohesion: 0.07
-Nodes (34): App(), DeveloperView, KitchenView, OwnerView, TransportView, AppUpdateModal(), AuthModal(), DESK_CONFIG (+26 more)
+Nodes (33): App(), DeveloperView, KitchenView, OwnerView, TransportView, AppUpdateModal(), AuthModal(), DESK_CONFIG (+25 more)
 
 ## Knowledge Gaps
-- **58 isolated node(s):** `__filename`, `__dirname`, `ROOT_DIR`, `ANDROID_DIR`, `APK_PATH` (+53 more)
+- **57 isolated node(s):** `__filename`, `__dirname`, `ROOT_DIR`, `ANDROID_DIR`, `APK_PATH` (+52 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -123,14 +123,14 @@ Nodes (34): App(), DeveloperView, KitchenView, OwnerView, TransportView, AppUpda
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `NativeNotificationService` connect `NativeNotificationService` to `App.jsx`?**
-  _High betweenness centrality (0.076) - this node is a cross-community bridge._
+  _High betweenness centrality (0.077) - this node is a cross-community bridge._
 - **Why does `NOTIFICATION_TRIALS` connect `App.jsx` to `NativeNotificationService`?**
   _High betweenness centrality (0.028) - this node is a cross-community bridge._
 - **What connects `__filename`, `__dirname`, `ROOT_DIR` to the rest of the system?**
-  _58 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _57 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CustomerView.jsx` be split into smaller, more focused modules?**
   _Cohesion score 0.11522048364153627 - nodes in this community are weakly interconnected._
 - **Should `supabase.js` be split into smaller, more focused modules?**
   _Cohesion score 0.07990867579908675 - nodes in this community are weakly interconnected._
 - **Should `App.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.06634615384615385 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06912442396313365 - nodes in this community are weakly interconnected._

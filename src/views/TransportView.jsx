@@ -839,7 +839,7 @@ export default function TransportView() {
             <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
 
             {/* TOP FLOATING CONTROLS */}
-            <div className="absolute top-4 inset-x-4 flex items-center justify-between z-[500] pointer-events-none">
+            <div className="absolute top-4 inset-x-4 flex items-center justify-between z-20 pointer-events-none">
               <button
                 onClick={() => setViewMode('list')}
                 className="px-3.5 py-2 rounded-xl bg-[#1E1B1C]/90 hover:bg-[#282526] text-white shadow-xl backdrop-blur-md flex items-center gap-2 border border-white/15 active:scale-95 transition-all cursor-pointer pointer-events-auto text-xs font-bold"
@@ -865,21 +865,21 @@ export default function TransportView() {
             </div>
 
             {/* BOTTOM FLOATING ROUTE RIBBON */}
-            <div className="absolute bottom-4 inset-x-4 z-[500] pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-[#1E1B1C]/90 backdrop-blur-md border border-white/10 shadow-xl text-xs text-white">
+            <div className="absolute bottom-4 inset-x-4 z-20 pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-white/95 dark:bg-[#1E1B1C]/90 backdrop-blur-md border border-stone-200/90 dark:border-white/10 shadow-xl text-xs text-stone-900 dark:text-white">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-[#E0FF33]/15 text-[#E0FF33] text-[10px] font-black border border-[#E0FF33]/30">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] text-[10px] font-black border border-amber-500/30 dark:border-[#E0FF33]/30">
                   ORIGIN
                 </span>
-                <span className="font-bold truncate max-w-[140px]">
+                <span className="font-bold truncate max-w-[140px] text-stone-900 dark:text-white">
                   {activeShop?.name || 'Kitchen Store'}
                 </span>
               </div>
-              <ArrowRight size={14} className="text-[#E0FF33] stroke-[2.5]" />
+              <ArrowRight size={14} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.5]" />
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-black border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-black border border-emerald-500/30">
                   DROP-OFF
                 </span>
-                <span className="font-bold truncate max-w-[160px]">
+                <span className="font-bold truncate max-w-[160px] text-stone-900 dark:text-white">
                   {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Customer Address'}
                 </span>
               </div>

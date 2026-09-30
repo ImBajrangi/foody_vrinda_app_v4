@@ -472,12 +472,22 @@ export default function AuthModal({ isOpen, onClose }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) handleAnimatedClose();
       }}
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
     >
       {/* Modal / Bottom Sheet Box */}
       <div
         ref={authSheetRef}
         style={authSheetStyle}
+        onScroll={() => {
+          if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            document.activeElement.blur();
+          }
+        }}
+        onTouchMove={() => {
+          if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            document.activeElement.blur();
+          }
+        }}
         className={`relative w-full max-w-[440px] bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] p-4 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-3.5 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden transition-colors ${closing ? 'translate-y-12' : 'translate-y-0'}`}
       >
         {/* Subtle Ambient Header Accent */}
@@ -647,7 +657,6 @@ export default function AuthModal({ isOpen, onClose }) {
                       onChange={(e) => setNameInput(e.target.value)}
                       placeholder="Enter your full name"
                       className="bg-transparent text-stone-900 dark:text-white text-base font-bold w-full focus:outline-none placeholder:text-stone-400 dark:placeholder:text-zinc-500 font-['Plus_Jakarta_Sans']"
-                      autoFocus
                     />
                   </div>
 
@@ -698,7 +707,6 @@ export default function AuthModal({ isOpen, onClose }) {
                         onChange={(e) => setPhoneEditInput(e.target.value.replace(/\D/g, ''))}
                         placeholder="Enter 10-digit mobile number"
                         className="bg-transparent text-stone-900 dark:text-white text-base font-mono font-bold tracking-wider w-full focus:outline-none placeholder:text-stone-400 dark:placeholder:text-zinc-500"
-                        autoFocus
                       />
                     </div>
 
@@ -774,7 +782,6 @@ export default function AuthModal({ isOpen, onClose }) {
                       onChange={(e) => setAddressInput(e.target.value)}
                       placeholder="House/Room No., Building, Street, Ashram, or Landmark in Vrindavan..."
                       className="w-full min-h-[92px] bg-stone-50 dark:bg-[#141213] text-sm sm:text-base text-stone-900 dark:text-white p-3.5 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-500 leading-relaxed shadow-inner"
-                      autoFocus
                     />
 
                     {/* Quick Landmark Chips (Balanced 2-Column Grid) */}
@@ -1235,7 +1242,6 @@ export default function AuthModal({ isOpen, onClose }) {
                       placeholder="Enter 10-digit mobile number"
                       maxLength={10}
                       required
-                      autoFocus
                       className="w-full bg-transparent py-2 text-sm sm:text-base text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
                     />
                   </div>
@@ -1278,7 +1284,6 @@ export default function AuthModal({ isOpen, onClose }) {
                           onChange={(e) => setDisplayName(e.target.value)}
                           placeholder="Full Name (e.g. Radhe Shyam)"
                           required
-                          autoFocus
                           className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
@@ -1323,7 +1328,6 @@ export default function AuthModal({ isOpen, onClose }) {
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Email Address (e.g. user@example.com)"
                           required
-                          autoFocus
                           className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>

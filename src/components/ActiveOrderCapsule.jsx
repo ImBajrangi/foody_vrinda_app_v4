@@ -222,28 +222,28 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
             }
       }
       className={`${
-        isEmbedded ? 'relative' : 'fixed left-1/2 z-[45]'
-      } flex items-center gap-2.5 h-[44px] px-3.5 rounded-full bg-white/95 dark:bg-[#1E1B1C]/95 text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 shadow-[0_10px_30px_rgba(28,25,23,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl cursor-pointer select-none hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 active:scale-[0.98] transition-all`}
+        isEmbedded ? 'relative max-w-full' : 'fixed left-1/2 z-[45] max-w-[calc(100vw-24px)]'
+      } flex items-center justify-between gap-2 sm:gap-2.5 h-[44px] px-3 sm:px-3.5 rounded-full bg-white/95 dark:bg-[#1E1B1C]/95 text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 shadow-[0_10px_30px_rgba(28,25,23,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl cursor-pointer select-none hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 active:scale-[0.98] transition-all box-border`}
     >
       {/* Theme Status Glyph Node */}
       <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusInfo.bgClass} border ${statusInfo.borderClass} shrink-0`}>
         <IconComponent className={`w-3.5 h-3.5 ${statusInfo.accentClass}`} />
       </div>
 
-      {/* Clean Hierarchy with High Legibility */}
-      <div className="flex items-center gap-1.5 whitespace-nowrap">
-        <span className="text-xs sm:text-[13px] font-black font-['Outfit'] text-stone-950 dark:text-white tracking-tight">
+      {/* Clean Hierarchy with High Legibility & Responsive Truncation */}
+      <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1 overflow-hidden">
+        <span className="text-xs sm:text-[13px] font-black font-['Outfit'] text-stone-950 dark:text-white tracking-tight truncate shrink-0 max-w-[110px] sm:max-w-none">
           {statusInfo.title}
         </span>
-        <span className="text-stone-300 dark:text-zinc-600 text-[11px] font-bold">•</span>
-        <span className="text-xs font-bold text-stone-600 dark:text-zinc-300">
+        <span className="text-stone-300 dark:text-zinc-600 text-[11px] font-bold shrink-0">•</span>
+        <span className="text-[11px] sm:text-xs font-bold text-stone-600 dark:text-zinc-300 truncate min-w-0 flex-1">
           {cleanShop}
         </span>
       </div>
 
       {/* Trailing Theme-Native Time Pill & Expand Trigger */}
-      <div className="flex items-center gap-1.5 shrink-0 pl-1">
-        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 pl-0.5">
+        <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
           <Clock className="w-3 h-3 stroke-[2.8]" />
           <span>{isCompleted ? 'Done' : statusInfo.timeText}</span>
         </div>
