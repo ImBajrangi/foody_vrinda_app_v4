@@ -21,7 +21,7 @@ const OwnerView = lazy(() => import('./views/OwnerView'));
 const DeveloperView = lazy(() => import('./views/DeveloperView'));
 import { useTheme } from './context/ThemeContext';
 import { useBackHandler } from './hooks/useBackHandler';
-import { executeTopBackHandler, shouldAllowAppExit } from './services/backHandlerService';
+import { executeTopBackHandler, shouldAllowAppExit, handleKeyboardOrInputDismiss } from './services/backHandlerService';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -238,6 +238,11 @@ export default function App() {
 
     if (Capacitor.isNativePlatform()) {
       backListenerPromise = CapApp.addListener('backButton', () => {
+        // 0. If soft keyboard or an input field is active, dismiss it and consume the back press
+        if (handleKeyboardOrInputDismiss()) {
+          return;
+        }
+
         // 1. Check if any open modal/sheet/drawer was registered across the entire app
         if (executeTopBackHandler()) {
           return;
@@ -267,6 +272,9 @@ export default function App() {
     // Web Browser Escape Key Support
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
+        if (handleKeyboardOrInputDismiss()) {
+          return;
+        }
         executeTopBackHandler();
       }
     };

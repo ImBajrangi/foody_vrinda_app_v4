@@ -147,8 +147,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_adversarial_security",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "test-adversarial-security.js"
     },
     {
@@ -158,8 +158,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_colors",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "colors"
     },
     {
@@ -170,8 +170,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_pass",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "pass()"
     },
     {
@@ -182,8 +182,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_fail",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "fail()"
     },
     {
@@ -194,8 +194,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_section",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "section()"
     },
     {
@@ -206,8 +206,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_runadversarialtestsuite",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "runadversarialtestsuite()"
     },
     {
@@ -240,8 +240,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_pass",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "pass()"
     },
     {
@@ -264,8 +264,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_section",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "section()"
     },
     {
@@ -276,8 +276,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_runtestsuite",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "runtestsuite()"
     },
     {
@@ -323,7 +323,7 @@
       "_origin": "ast",
       "id": "src_app",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "app.jsx"
     },
     {
@@ -334,7 +334,7 @@
       "_origin": "ast",
       "id": "src_app_kitchenview",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "kitchenview"
     },
     {
@@ -345,7 +345,7 @@
       "_origin": "ast",
       "id": "src_app_transportview",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "transportview"
     },
     {
@@ -356,7 +356,7 @@
       "_origin": "ast",
       "id": "src_app_ownerview",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "ownerview"
     },
     {
@@ -367,7 +367,7 @@
       "_origin": "ast",
       "id": "src_app_developerview",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "developerview"
     },
     {
@@ -379,7 +379,7 @@
       "_origin": "ast",
       "id": "src_app_app",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "app()"
     },
     {
@@ -389,7 +389,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordercapsule",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule.jsx"
     },
@@ -401,7 +401,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordercapsule_activeordercapsule",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule()"
     },
@@ -412,7 +412,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal.jsx"
     },
@@ -424,7 +424,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal_activeordertrackingmodal",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal()"
     },
@@ -435,8 +435,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_appupdatemodal",
-      "community": 9,
-      "community_name": "appUpdateService.js",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "appupdatemodal.jsx"
     },
     {
@@ -447,8 +447,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_appupdatemodal_appupdatemodal",
-      "community": 9,
-      "community_name": "appUpdateService.js",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "appupdatemodal()"
     },
     {
@@ -459,7 +459,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "authmodal.jsx"
     },
     {
@@ -470,7 +470,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "desk_config"
     },
     {
@@ -482,7 +482,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "authmodal()"
     },
     {
@@ -493,7 +493,7 @@
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -505,7 +505,7 @@
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -515,8 +515,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_errorboundary",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "errorboundary.jsx"
     },
     {
@@ -528,8 +528,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "errorboundary"
     },
     {
@@ -540,8 +540,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_constructor",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".constructor()"
     },
     {
@@ -552,8 +552,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_getderivedstatefromerror",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -564,8 +564,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_componentdidcatch",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".componentdidcatch()"
     },
     {
@@ -576,8 +576,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_handlereset",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".handlereset()"
     },
     {
@@ -588,8 +588,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_render",
-      "community": 29,
-      "community_name": "ErrorBoundary",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": ".render()"
     },
     {
@@ -600,7 +600,7 @@
       "_origin": "ast",
       "id": "src_components_header",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "header.jsx"
     },
     {
@@ -612,7 +612,7 @@
       "_origin": "ast",
       "id": "src_components_header_header",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "header()"
     },
     {
@@ -656,8 +656,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mappicker",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "mappicker.jsx"
     },
     {
@@ -668,8 +668,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_mappicker_mappicker",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "mappicker()"
     },
     {
@@ -680,7 +680,7 @@
       "_origin": "ast",
       "id": "src_components_notificationpanel",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "notificationpanel.jsx"
     },
     {
@@ -692,7 +692,7 @@
       "_origin": "ast",
       "id": "src_components_notificationpanel_notificationpanel",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "notificationpanel()"
     },
     {
@@ -703,7 +703,7 @@
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -715,7 +715,7 @@
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -725,7 +725,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet.jsx"
     },
@@ -736,7 +736,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantities",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantities"
     },
@@ -748,7 +748,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantitypickersheet",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet()"
     },
@@ -760,7 +760,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
@@ -771,7 +771,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_chef_tags",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "chef_tags"
     },
     {
@@ -782,7 +782,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_rider_tags",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "rider_tags"
     },
     {
@@ -794,7 +794,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -805,7 +805,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "rewardsmodal.jsx"
     },
     {
@@ -817,7 +817,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal_rewardsmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "rewardsmodal()"
     },
     {
@@ -851,7 +851,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unauthorizedaccessscreen.jsx"
     },
     {
@@ -863,7 +863,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen_unauthorizedaccessscreen",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unauthorizedaccessscreen()"
     },
     {
@@ -874,7 +874,7 @@
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unifiedsearchmodal.jsx"
     },
     {
@@ -885,7 +885,7 @@
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_popular_categories",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "popular_categories"
     },
     {
@@ -897,7 +897,7 @@
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_unifiedsearchmodal",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unifiedsearchmodal()"
     },
     {
@@ -964,7 +964,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader.jsx"
     },
@@ -976,7 +976,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_bouncingloader",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader()"
     },
@@ -987,7 +987,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_styledwrapper",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "styledwrapper"
     },
@@ -1306,7 +1306,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinksbar.jsx"
     },
     {
@@ -1318,7 +1318,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_socialicon",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "socialicon()"
     },
     {
@@ -1330,7 +1330,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_sociallinksbar",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinksbar()"
     },
     {
@@ -1375,7 +1375,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinks.js"
     },
     {
@@ -1386,7 +1386,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_links",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "social_links"
     },
     {
@@ -1397,7 +1397,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_channels",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "social_channels"
     },
     {
@@ -1407,8 +1407,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_authcontext",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "authcontext.jsx"
     },
     {
@@ -1418,8 +1418,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_context_authcontext_authcontext",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "authcontext"
     },
     {
@@ -1429,8 +1429,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_dev_emails",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "authorized_dev_emails"
     },
     {
@@ -1440,8 +1440,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_admin_emails",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "authorized_admin_emails"
     },
     {
@@ -1452,8 +1452,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isdeveloperuser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "isdeveloperuser()"
     },
     {
@@ -1464,8 +1464,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isadminuser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "isadminuser()"
     },
     {
@@ -1476,8 +1476,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_authprovider",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "authprovider()"
     },
     {
@@ -1489,7 +1489,7 @@
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -1500,7 +1500,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "cartcontext.jsx"
     },
     {
@@ -1511,7 +1511,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext_cartcontext",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "cartcontext"
     },
     {
@@ -1522,8 +1522,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_cartcontext_cartprovider",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "cartprovider()"
     },
     {
@@ -1535,7 +1535,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext_usecart",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usecart()"
     },
     {
@@ -1592,7 +1592,7 @@
       "_origin": "ast",
       "id": "src_context_notificationcontext_usenotifications",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usenotifications()"
     },
     {
@@ -1603,7 +1603,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "themecontext.jsx"
     },
     {
@@ -1614,7 +1614,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext_themecontext",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "themecontext"
     },
     {
@@ -1625,8 +1625,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_themecontext_themeprovider",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "themeprovider()"
     },
     {
@@ -1638,7 +1638,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext_usetheme",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usetheme()"
     },
     {
@@ -1727,7 +1727,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler.js"
     },
@@ -1739,7 +1739,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler()"
     },
@@ -1751,7 +1751,7 @@
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usebottomsheetdrag.js"
     },
     {
@@ -1763,7 +1763,7 @@
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usebottomsheetdrag()"
     },
     {
@@ -1796,7 +1796,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usegeolocation",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation.js"
     },
@@ -1808,7 +1808,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usegeolocation_usegeolocation",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation()"
     },
@@ -1819,8 +1819,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_main",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 25,
+      "community_name": "App.jsx",
       "norm_label": "main.jsx"
     },
     {
@@ -1830,7 +1830,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
@@ -1842,7 +1842,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
@@ -1854,7 +1854,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
@@ -1866,7 +1866,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
@@ -1961,29 +1961,53 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
       "label": "backHandlers",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L9",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "backhandlers"
+    },
+    {
+      "label": "initKeyboardListeners()",
+      "file_type": "code",
+      "source_file": "src/services/backHandlerService.js",
+      "source_location": "L19",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_backhandlerservice_initkeyboardlisteners",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "initkeyboardlisteners()"
+    },
+    {
+      "label": "handleKeyboardOrInputDismiss()",
+      "file_type": "code",
+      "source_file": "src/services/backHandlerService.js",
+      "source_location": "L77",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
+      "community": 25,
+      "community_name": "App.jsx",
+      "norm_label": "handlekeyboardorinputdismiss()"
     },
     {
       "label": "registerBackHandler()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L12",
+      "source_location": "L125",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "registerbackhandler()"
     },
@@ -1991,11 +2015,11 @@
       "label": "unregisterBackHandler()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L24",
+      "source_location": "L137",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "unregisterbackhandler()"
     },
@@ -2003,48 +2027,48 @@
       "label": "hasActiveBackHandlers()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L29",
+      "source_location": "L142",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
       "label": "executeTopBackHandler()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L33",
+      "source_location": "L146",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_executetopbackhandler",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "executetopbackhandler()"
     },
     {
       "label": "shouldAllowAppExit()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L52",
+      "source_location": "L165",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_shouldallowappexit",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "shouldallowappexit()"
     },
     {
       "label": "resetExitPressTimer()",
       "file_type": "code",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L61",
+      "source_location": "L174",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -2055,7 +2079,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "hitsoochiservice.js"
     },
     {
@@ -2066,7 +2090,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_local_satvik_ontology",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "local_satvik_ontology"
     },
     {
@@ -2079,7 +2103,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "hitsoochiservice"
     },
     {
@@ -2091,7 +2115,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getcuratedsuggestions",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": ".getcuratedsuggestions()"
     },
     {
@@ -2103,7 +2127,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_rankitems",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": ".rankitems()"
     },
     {
@@ -2115,7 +2139,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_optimizequery",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": ".optimizequery()"
     },
     {
@@ -2127,7 +2151,7 @@
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getsuggestions",
       "community": 25,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": ".getsuggestions()"
     },
     {
@@ -2552,8 +2576,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_istablewriteforbidden",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "istablewriteforbidden()"
     },
     {
@@ -2564,8 +2588,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_marktablewriteforbidden",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "marktablewriteforbidden()"
     },
     {
@@ -2588,8 +2612,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isforbiddenerror",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "isforbiddenerror()"
     },
     {
@@ -2611,7 +2635,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "resolvedishcutout()"
     },
@@ -2714,8 +2738,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculatedistancekm",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "calculatedistancekm()"
     },
     {
@@ -2726,8 +2750,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getrecommendedriders",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "getrecommendedriders()"
     },
     {
@@ -2738,7 +2762,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isshopcurrentlyopen",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "isshopcurrentlyopen()"
     },
@@ -2774,8 +2798,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_setcacheditem",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "setcacheditem()"
     },
     {
@@ -2821,8 +2845,8 @@
       "source_location": "L708",
       "_origin": "ast",
       "id": "src_supabase_allowed_order_transitions",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "allowed_order_transitions"
     },
     {
@@ -2833,8 +2857,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isvalidstatustransition",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "isvalidstatustransition()"
     },
     {
@@ -2845,8 +2869,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculateauthoritativeordertotals",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "calculateauthoritativeordertotals()"
     },
     {
@@ -2954,8 +2978,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 20,
-      "community_name": "RealtimeMultiplexer",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": ".handlemenuchangepayload()"
     },
     {
@@ -2978,8 +3002,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleofferchangepayload",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 20,
+      "community_name": "RealtimeMultiplexer",
       "norm_label": ".handleofferchangepayload()"
     },
     {
@@ -2990,8 +3014,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handleuserchangepayload",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": ".handleuserchangepayload()"
     },
     {
@@ -3109,7 +3133,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribesinglecloudorder",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribesinglecloudorder()"
     },
@@ -3133,7 +3157,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudmenus",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribecloudmenus()"
     },
@@ -3371,8 +3395,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcachedusers",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "getcachedusers()"
     },
     {
@@ -3383,8 +3407,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_savecachedusers",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "savecachedusers()"
     },
     {
@@ -3441,8 +3465,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudusers",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "getcloudusers()"
     },
     {
@@ -3453,8 +3477,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getliveuserroleandprofile",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "getliveuserroleandprofile()"
     },
     {
@@ -3465,8 +3489,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_recordloggedinuser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "recordloggedinuser()"
     },
     {
@@ -3477,8 +3501,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createclouduser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "createclouduser()"
     },
     {
@@ -3489,8 +3513,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updateclouduser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "updateclouduser()"
     },
     {
@@ -3513,8 +3537,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deleteclouduser",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "deleteclouduser()"
     },
     {
@@ -3525,8 +3549,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudusers",
-      "community": 2,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "subscribecloudusers()"
     },
     {
@@ -3538,7 +3562,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "createcloudreview()"
     },
     {
@@ -3561,8 +3585,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_generatesecureorderotp",
-      "community": 22,
-      "community_name": "supabase.js",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "generatesecureorderotp()"
     },
     {
@@ -3573,8 +3597,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getorderotp",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "getorderotp()"
     },
     {
@@ -3585,8 +3609,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_verifyorderotp",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 2,
+      "community_name": "runTestSuite",
       "norm_label": "verifyorderotp()"
     },
     {
@@ -3646,7 +3670,7 @@
       "_origin": "ast",
       "id": "src_supabase_recordmultistaffreview",
       "community": 0,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "recordmultistaffreview()"
     },
     {
@@ -3750,7 +3774,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_customerview",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview.jsx"
     },
@@ -3762,7 +3786,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_getlocalcustomermenus",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcustomermenus()"
     },
@@ -3774,7 +3798,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_setlocalcustomermenus",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcustomermenus()"
     },
@@ -3785,7 +3809,7 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "src_views_customerview_menuitemcard",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "menuitemcard"
     },
@@ -3793,11 +3817,11 @@
       "label": "CustomerView()",
       "file_type": "code",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L259",
+      "source_location": "L246",
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_customerview",
-      "community": 25,
+      "community": 0,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview()"
     },
@@ -3866,8 +3890,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
-      "community": 5,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "supabase.js",
       "norm_label": "ownerview()"
     },
     {
@@ -5651,6 +5675,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",
+      "target": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app",
       "target": "src_services_backhandlerservice_shouldallowappexit",
       "confidence_score": 1.0
     },
@@ -5756,7 +5792,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L242",
+      "source_location": "L247",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -5768,7 +5804,19 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/App.jsx",
-      "source_location": "L253",
+      "source_location": "L242",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_app_app",
+      "target": "src_services_backhandlerservice_handlekeyboardorinputdismiss"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/App.jsx",
+      "source_location": "L258",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app_app",
@@ -9053,7 +9101,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L260",
+      "source_location": "L247",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9242,7 +9290,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L281",
+      "source_location": "L268",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9538,7 +9586,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L261",
+      "source_location": "L248",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9937,7 +9985,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L567",
+      "source_location": "L554",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -9984,7 +10032,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L470",
+      "source_location": "L457",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -10186,7 +10234,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L284",
+      "source_location": "L271",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -10291,7 +10339,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L453",
+      "source_location": "L440",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -10415,7 +10463,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L9",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10426,7 +10474,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L33",
+      "source_location": "L146",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10437,7 +10485,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L29",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_backhandlerservice",
+      "target": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/backHandlerService.js",
+      "source_location": "L142",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10448,7 +10507,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L12",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_backhandlerservice",
+      "target": "src_services_backhandlerservice_initkeyboardlisteners",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/backHandlerService.js",
+      "source_location": "L125",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10459,7 +10529,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L61",
+      "source_location": "L174",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10470,7 +10540,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L52",
+      "source_location": "L165",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
@@ -10481,11 +10551,23 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/backHandlerService.js",
-      "source_location": "L24",
+      "source_location": "L137",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_backhandlerservice",
       "target": "src_services_backhandlerservice_unregisterbackhandler",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/backHandlerService.js",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
+      "target": "src_services_backhandlerservice_initkeyboardlisteners",
       "confidence_score": 1.0
     },
     {
@@ -12899,7 +12981,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L1083",
+      "source_location": "L1070",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -13463,7 +13545,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L827",
+      "source_location": "L814",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14039,7 +14121,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L962",
+      "source_location": "L949",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14734,7 +14816,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L778",
+      "source_location": "L765",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -14758,7 +14840,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L635",
+      "source_location": "L622",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -15430,7 +15512,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L801",
+      "source_location": "L788",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16280,7 +16362,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L259",
+      "source_location": "L246",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview",
@@ -16325,7 +16407,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L290",
+      "source_location": "L277",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16337,7 +16419,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/views/CustomerView.jsx",
-      "source_location": "L650",
+      "source_location": "L637",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_views_customerview_customerview",
@@ -16786,5 +16868,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "786985a960e456d52e9a637a10a2b6837ea7bef6"
+  "built_at_commit": "11bf7f5e3caf6e0bd594cb65ad7a3fad0d653244"
 }

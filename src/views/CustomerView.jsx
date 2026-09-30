@@ -107,100 +107,55 @@ const MenuItemCard = memo(function MenuItemCard({
           onOpenDetails(item);
         }
       }}
-      style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
-      className={`bg-white dark:bg-[#282526] border rounded-[28px] p-4 sm:p-5 relative cursor-pointer flex items-center justify-between gap-3 sm:gap-4 transition-all duration-200 select-none ${
+      style={{ animationDelay: `${Math.min(idx * 55, 450)}ms` }}
+      className={`food-card-pop bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[190px] sm:min-h-[200px] flex flex-col justify-between apple-tap-target transition-all duration-200 select-none ${
         quantityInCart > 0
-          ? 'border-amber-500/40 dark:border-[#E0FF33]/30 bg-stone-50/80 dark:bg-[#2c282a] shadow-md dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)]'
-          : 'border-stone-200/90 dark:border-white/10 shadow-xs dark:shadow-lg hover:border-stone-300 dark:hover:border-white/20'
+          ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+          : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
-      {/* Left Column: Dish Details & Pricing (60% Width) */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between py-1 pr-1">
-        <div>
-          {/* Header Row: Combo Tag */}
+      {/* Top Row: Dish Name + Combo Tag */}
+      <div className="flex justify-between items-start z-10 gap-2">
+        <div className="max-w-[75%] sm:max-w-[80%]">
           {item.isCombo && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[9.5px] font-black uppercase tracking-wider mb-1.5 shadow-xs">
-              <Sparkles size={10} className="text-[#E0FF33]" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+              <Sparkles size={11} className="text-[#E0FF33]" />
               {item.tag || 'Combo Offer'}
             </span>
           )}
-
-          {/* Dish Title */}
-          <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white leading-snug tracking-tight truncate font-['Outfit']">
+          <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
             {item.name}
           </h3>
-
-          {/* Subtitle / Description */}
-          <p className="text-xs font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
-            {item.subtitle || 'Authentic Satvik preparation in pure desi ghee'}
+          <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
+            {item.subtitle || 'Authentic Satvik preparation'}
           </p>
-
-          {/* Combo Items Pill */}
           {item.comboItems && item.comboItems.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {item.comboItems.slice(0, 2).map((ci, cidx) => (
-                <span key={cidx} className="text-[10px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {item.comboItems.map((ci, cidx) => (
+                <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
                   + {ci}
                 </span>
               ))}
-              {item.comboItems.length > 2 && (
-                <span className="text-[10px] font-semibold text-stone-400 dark:text-zinc-500 self-center">
-                  +{item.comboItems.length - 2} more
-                </span>
-              )}
             </div>
           )}
         </div>
+      </div>
 
-        {/* Price Row */}
-        <div className="mt-4 flex items-baseline gap-1.5">
+      {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
+      <div className="mt-3 sm:mt-4 z-10">
+        <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
           <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
             quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
           }`}>
             ₹{activePrice}
           </span>
           {hasDiscount && (
-            <span className="text-xs font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
+            <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
               ₹{activeOriginalPrice}
             </span>
           )}
         </div>
-      </div>
 
-      {/* Right Column: 3D Food Stage + Overlapping Action Pill (40% Width) */}
-      <div className="food-stage-visual">
-        <div className="food-stage-halo" />
-
-        {/* Dish Visual (Supports both transparent PNGs & white photo vignette) */}
-        <div className="w-full h-full p-2 flex items-center justify-center">
-          <img
-            src={item.image || '/dishes/thali.png'}
-            alt={item.name}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = '/dishes/thali.png';
-            }}
-            className="dish-blend-mask w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)]"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-
-        {/* Favorite Heart Button (Top-Right Floating) */}
-        <button
-          type="button"
-          onClick={(e) => onToggleFavorite(item.id, e)}
-          className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-black/35 dark:bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center transition-transform cursor-pointer apple-tap-target hover:scale-110 active:scale-90 text-white shadow-sm z-10"
-          title="Favorite"
-          aria-label="Favorite"
-        >
-          <Heart
-            size={14}
-            className={isFav ? 'text-red-500 fill-red-500' : 'text-white'}
-          />
-        </button>
-
-        {/* Overlapping Bottom Action Pill */}
         {quantityInCart === 0 ? (
           <button
             type="button"
@@ -208,15 +163,15 @@ const MenuItemCard = memo(function MenuItemCard({
               e.stopPropagation();
               onAddToCart(item);
             }}
-            className="floating-action-pill"
+            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
           >
-            <span>ADD</span>
-            <Plus size={13} strokeWidth={3.5} />
+            <span>Order Now</span>
+            <ChevronRight size={14} strokeWidth={3} />
           </button>
         ) : (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="floating-stepper-pill"
+            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
           >
             <button
               type="button"
@@ -224,18 +179,21 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
               }}
-              className="stepper-btn-ios bg-stone-800 dark:bg-[#272425] text-white hover:bg-stone-700 active:bg-red-500/25"
+              style={{ backgroundColor: '#292524' }}
+              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-stone-700 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
               title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
               aria-label="Decrease quantity"
             >
               {quantityInCart === 1 ? (
-                <Trash2 size={12} className="text-red-400 stroke-red-400" />
+                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" />
               ) : (
-                <Minus size={12} strokeWidth={3} className="text-white" />
+                <Minus size={15} strokeWidth={3} className="text-white" />
               )}
             </button>
 
-            <span className="stepper-qty px-1.5 text-xs font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit'] min-w-[20px] text-center select-none">
+            <span
+              className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
+            >
               {quantityInCart}
             </span>
 
@@ -245,14 +203,29 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="stepper-btn-ios bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-stone-950 font-black shadow-xs"
+              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
               title="Add another"
               aria-label="Increase quantity"
             >
-              <Plus size={13} strokeWidth={3.5} className="text-stone-950 stroke-current" />
+              <Plus size={16} strokeWidth={3.5} />
             </button>
           </div>
         )}
+      </div>
+
+      {/* Right Side Dish Image - Seamless Vignette Blend */}
+      <div className="absolute right-[-6px] bottom-[-6px] sm:right-[-4px] sm:bottom-[-4px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 pointer-events-none flex items-center justify-center overflow-hidden rounded-3xl">
+        <img
+          src={item.image || '/dishes/thali.png'}
+          alt={item.name}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/dishes/thali.png';
+          }}
+          className="dish-blend-mask w-full h-full object-contain select-none pointer-events-none"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
     </div>
   );
@@ -1328,31 +1301,41 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Header — Single clean line */}
-                <div className="px-5 pt-2 sm:pt-4 pb-3 flex items-center justify-between">
-                  <h3 className="text-[15px] sm:text-base font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                    Switch Kitchen
-                  </h3>
+                <div className="px-5 pt-3 sm:pt-4 pb-3 flex items-center justify-between border-b border-stone-200/60 dark:border-white/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 flex items-center justify-center text-amber-600 dark:text-[#E0FF33]">
+                      <Store size={17} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-none">
+                        Select Kitchen Outlet
+                      </h3>
+                      <p className="text-[11px] font-medium text-stone-500 dark:text-zinc-400 mt-0.5">
+                        Choose your nearest kitchen for fresh prasad delivery
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={() => handleCloseShopSwitcher()}
-                    className="w-7 h-7 rounded-full bg-stone-100 dark:bg-white/[.08] hover:bg-stone-200 dark:hover:bg-white/[.14] flex items-center justify-center text-stone-500 dark:text-zinc-400 cursor-pointer transition-colors shrink-0"
+                    className="w-8 h-8 rounded-full bg-stone-100 dark:bg-white/[.08] hover:bg-stone-200 dark:hover:bg-white/[.14] flex items-center justify-center text-stone-500 dark:text-zinc-400 cursor-pointer transition-colors shrink-0"
                     aria-label="Close"
                   >
-                    <X size={14} strokeWidth={2.5} />
+                    <X size={15} strokeWidth={2.5} />
                   </button>
                 </div>
               </div>
 
               {/* Search — only when 3+ shops */}
               {allShops.length > 2 && (
-                <div className="px-5 pb-3">
+                <div className="px-4 sm:px-5 pt-3 pb-2">
                   <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500 pointer-events-none" />
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500 pointer-events-none" />
                     <input
                       type="text"
                       value={shopSearch}
                       onChange={(e) => setShopSearch(e.target.value)}
-                      placeholder="Search by name or area…"
-                      className="w-full h-9 bg-stone-100/80 dark:bg-white/[.05] border border-transparent focus:border-stone-300 dark:focus:border-white/[.12] rounded-xl pl-8 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium"
+                      placeholder="Search by kitchen name or area…"
+                      className="w-full h-10 bg-stone-100/90 dark:bg-white/[.05] border border-stone-200/60 dark:border-white/[.08] focus:border-amber-500 dark:focus:border-[#E0FF33]/50 rounded-xl pl-9 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium font-['Outfit']"
                     />
                     {shopSearch && (
                       <button
@@ -1368,24 +1351,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
 
               {/* Kitchen List */}
-              <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-4 pb-4 sm:pb-5">
+              <div className="flex-1 overflow-y-auto no-scrollbar px-3.5 sm:px-5 py-3 space-y-2.5">
                 {filteredShops.length === 0 ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
-                    <div className="w-11 h-11 rounded-full bg-stone-100 dark:bg-white/[.05] flex items-center justify-center text-stone-400 dark:text-zinc-500">
-                      <Search size={18} />
+                    <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-white/[.05] flex items-center justify-center text-stone-400 dark:text-zinc-500">
+                      <Search size={20} />
                     </div>
-                    <p className="text-[13px] text-stone-500 dark:text-zinc-400">
-                      No results for "<span className="font-semibold text-stone-700 dark:text-zinc-200">{shopSearch}</span>"
+                    <p className="text-[13px] text-stone-500 dark:text-zinc-400 font-medium">
+                      No kitchens found for "<span className="font-semibold text-stone-700 dark:text-zinc-200">{shopSearch}</span>"
                     </p>
                     <button
                       onClick={() => setShopSearch('')}
-                      className="text-xs font-semibold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
                     >
                       Clear search
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {filteredShops.map(s => {
                       const isSelected = s.id === selectedShopId;
                       const isOpen = isShopCurrentlyOpen(s);
@@ -1398,60 +1381,75 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             handleCloseShopSwitcher();
                             showToast(s.name, 'info');
                           }}
-                          className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${isSelected
-                            ? 'bg-amber-500/10 dark:bg-[#E0FF33]/[.12] border border-amber-500/30 dark:border-[#E0FF33]/30 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/25 shadow-2xs'
-                            : 'bg-stone-50/80 dark:bg-white/[.03] border border-stone-200/60 dark:border-white/5 hover:bg-stone-100 dark:hover:bg-white/[.06]'
-                            }`}
+                          className={`w-full text-left p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
+                            isSelected
+                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-2 border-amber-500 dark:border-[#E0FF33] shadow-[0_4px_20px_rgba(224,255,51,0.08)]'
+                              : 'bg-stone-50/90 dark:bg-[#282526]/80 border border-stone-200/80 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#322E30] hover:border-stone-300 dark:hover:border-white/20'
+                          }`}
                           aria-pressed={isSelected}
-                          aria-label={`${s.name}${isOpen ? '' : ' — closed'}${isSelected ? ' — currently active' : ''}`}
+                          aria-label={`${s.name}${isOpen ? ' (Open)' : ' (Closed)'}${isSelected ? ' — active outlet' : ''}`}
                         >
-                          {/* Radio Indicator */}
-                          <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected
-                            ? 'border-amber-600 dark:border-[#E0FF33] bg-amber-600/15 dark:bg-[#E0FF33]/20'
-                            : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
+                          {/* Left: Store Icon Avatar + Text Info */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {/* Outlet Icon Avatar */}
+                            <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected
+                                ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-stone-950 shadow-xs'
+                                : 'bg-stone-200/90 dark:bg-white/10 text-stone-700 dark:text-zinc-300 group-hover:bg-stone-300 dark:group-hover:bg-white/15'
                             }`}>
-                            <div className={`w-2 h-2 rounded-full transition-all duration-200 ${isSelected
-                              ? 'bg-amber-600 dark:bg-[#E0FF33] scale-100'
-                              : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
-                              }`} />
-                          </div>
-
-                          {/* Kitchen Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <p
-                                className={`text-[13px] sm:text-sm font-bold truncate transition-colors ${isSelected
-                                  ? 'text-amber-950 dark:text-[#E0FF33]'
-                                  : 'text-stone-800 dark:text-zinc-100'
-                                  }`}
-                              >
-                                {s.name}
-                              </p>
+                              <Store size={18} strokeWidth={2.2} />
                             </div>
-                            {s.address && (
-                              <p
-                                className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
-                                  ? 'text-amber-800/80 dark:text-[#E0FF33]/70 font-medium'
-                                  : 'text-stone-400 dark:text-zinc-500'
-                                  }`}
-                              >
-                                {s.address}
-                              </p>
-                            )}
+
+                            {/* Info */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-sm sm:text-[15px] font-black tracking-tight truncate font-['Outfit'] ${
+                                  isSelected
+                                    ? 'text-amber-950 dark:text-[#E0FF33]'
+                                    : 'text-stone-900 dark:text-white'
+                                }`}>
+                                  {s.name}
+                                </h4>
+                                {isSelected && (
+                                  <span className="px-1.5 py-0.2 rounded-md bg-amber-500/20 dark:bg-[#E0FF33]/20 text-[9.5px] font-black uppercase text-amber-700 dark:text-[#E0FF33] shrink-0 font-['Outfit']">
+                                    ACTIVE
+                                  </span>
+                                )}
+                              </div>
+
+                              {s.address && (
+                                <p className="text-[11.5px] text-stone-500 dark:text-zinc-400 mt-0.5 truncate flex items-center gap-1 font-medium">
+                                  <MapPin size={11} className="shrink-0 text-stone-400 dark:text-zinc-500" />
+                                  <span className="truncate">{s.address}</span>
+                                </p>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Status Dot */}
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {!isOpen && (
-                              <span className={`text-[10px] font-medium ${isSelected ? 'text-white/50 dark:text-[#E0FF33]/40' : 'text-red-400 dark:text-red-400/80'
-                                }`}>
-                                Closed
+                          {/* Right: Status Pill & Selection Indicator */}
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {isOpen ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black tracking-wide font-['Outfit']">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+                                OPEN
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold tracking-wide font-['Outfit']">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                CLOSED
                               </span>
                             )}
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${isOpen
-                              ? (isSelected ? 'bg-emerald-400 dark:bg-emerald-400' : 'bg-emerald-500')
-                              : 'bg-red-400/60 dark:bg-red-400/50'
-                              } ${isOpen ? 'animate-pulse' : ''}`} />
+
+                            {/* Radio Checkmark */}
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                              isSelected
+                                ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-stone-950 shadow-xs'
+                                : 'border-2 border-stone-300 dark:border-white/20 group-hover:border-stone-400 dark:group-hover:border-white/40'
+                            }`}>
+                              {isSelected && (
+                                <Check size={12} strokeWidth={3.5} />
+                              )}
+                            </div>
                           </div>
                         </button>
                       );
@@ -1588,7 +1586,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             return (
               <MenuItemCard
-                key={item.id}
+                key={`${selectedCategory}_${item.id}`}
                 item={item}
                 idx={idx}
                 isFav={isFav}

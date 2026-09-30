@@ -93,7 +93,10 @@
 
   /* Prevent aggressive iOS/Android zoom on input focus and ensure smooth virtual keyboard handling */
   @media (max-width: 768px) {
-    input, select, textarea {
+
+    input,
+    select,
+    textarea {
       font-size: 16px !important;
     }
   }
@@ -317,9 +320,11 @@
   color: var(--accent-text);
   border: none;
 }
+
 .fv-btn-primary:active {
   transform: scale(0.96);
 }
+
 .fv-btn-primary:hover {
   filter: brightness(1.08);
 }
@@ -341,6 +346,7 @@
   color: var(--text-primary);
   border: 1px solid var(--border-app);
 }
+
 .fv-btn-secondary:active {
   transform: scale(0.97);
 }
@@ -360,6 +366,7 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
+
 .fv-btn-icon-circle:active {
   transform: scale(0.92);
 }
@@ -395,115 +402,89 @@
 }
 
 /* ==========================================================================
-   FOOD STAGE & FLOATING CTA ENGINE (Apple & Swiggy Gold Standard)
+   SEQUENTIAL STAGGER ENTRANCE BOUNCE ENGINE (60-120fps Fluid Physics)
    ========================================================================== */
-.food-stage-visual {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+@keyframes foodCardStaggerPop {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.92);
+  }
 
-@media (min-width: 640px) {
-  .food-stage-visual {
-    width: 136px;
-    height: 136px;
+  65% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.018);
+  }
+
+  85% {
+    transform: translateY(1.5px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-.food-stage-halo {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 50%, transparent 72%);
-  pointer-events: none;
+.food-card-pop {
+  opacity: 0;
+  animation: foodCardStaggerPop 0.44s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  will-change: transform, opacity;
 }
 
-.light .food-stage-halo {
-  background: radial-gradient(circle at center, rgba(217, 119, 6, 0.08) 0%, rgba(0, 0, 0, 0.02) 50%, transparent 72%);
-}
-
-/* Floating Action Pill (Centered directly on food stage bottom) */
-.floating-action-pill {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 9999px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 900;
-  font-size: 12.5px;
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
+/* ==========================================================================
+   NATIVE iOS FLUID TACTILE SPRING & CUSHIONED PRESS ENGINE (Apple HIG Physics)
+   ========================================================================== */
+.ios-touch-feedback,
+.apple-tap-target,
+.apple-stepper-btn {
+  transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease,
+    filter 0.2s ease,
+    background-color 0.15s ease;
   touch-action: manipulation;
-  transition: transform 0.16s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.16s ease;
-  white-space: nowrap;
-  z-index: 10;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
 }
 
-.light .floating-action-pill {
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+.ios-touch-feedback:active,
+.apple-tap-target:active {
+  transform: scale(0.962);
+  filter: brightness(0.94);
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.12s ease;
 }
 
-.floating-action-pill:active {
-  transform: translateX(-50%) scale(0.94);
-}
-
-/* Floating iOS Stepper Pill */
-.floating-stepper-pill {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  height: 36px;
-  min-width: 98px;
-  padding: 2px 4px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #1A1718;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  z-index: 10;
-  touch-action: manipulation;
-}
-
-.light .floating-stepper-pill {
-  background-color: #FFFFFF;
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.stepper-btn-ios {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.12s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.12s ease;
-  flex-shrink: 0;
-}
-
-.stepper-btn-ios:active {
+.apple-stepper-btn:active {
   transform: scale(0.88);
+  filter: brightness(0.92);
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* Dignified, organic cushioned shrink/expand for Cards and clickable list rows */
+.ios-card-press,
+.apple-card-interactive {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+
+.ios-card-press:active,
+.apple-card-interactive:active {
+  transform: scale(0.985);
+  transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* Isolated Spring: Ensure clicking buttons/steppers inside a card never shakes the parent card */
+.ios-card-press:has(button:active),
+.ios-card-press:has(.stepper-capsule:active),
+.apple-card-interactive:has(button:active),
+.apple-card-interactive:has(.stepper-capsule:active) {
+  transform: none !important;
 }
 
 /* --- 3. Status Badges & OTP --- */
@@ -2124,31 +2105,6 @@
   }
 }
 
-/* 5. Tactile Feedback & Apple Press Physics */
-.apple-tap-target {
-  transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), box-shadow 0.12s ease-out !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-.apple-tap-target:active {
-  transform: scale(0.96) !important;
-}
-
-.apple-stepper-btn {
-  transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), background-color 0.1s ease-out !important;
-}
-
-.apple-stepper-btn:active {
-  transform: scale(0.82) !important;
-}
-
-.apple-card-interactive {
-  transition: box-shadow 0.15s ease-out, border-color 0.12s ease-out, background-color 0.12s ease-out, transform 0.12s cubic-bezier(0, 0, 0.2, 1) !important;
-  -webkit-tap-highlight-color: transparent;
-}
-
 @media (hover: hover) {
   .apple-card-interactive:hover {
     box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(224, 255, 51, 0.08) !important;
@@ -2506,33 +2462,45 @@ path.casing-parabolic-dots,
   animation-delay: 160ms;
 }
 
-/* ===== CUSTOMER MENU CARD STAGGER POP-IN (Desktop Only) ===== */
-
-@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
-  @keyframes customerCardPop {
-    0% {
-      opacity: 0;
-      transform: translateY(18px) scale(0.96);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+/* ===== ELASTIC INCOMING ORDER & CARD POP ENGINE ===== */
+@keyframes customerCardPop {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.88);
   }
 
-  .customer-card-pop {
-    animation: customerCardPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.12s ease-out;
+  50% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.035);
   }
 
-  .customer-card-pop:hover {
-    /* transform: none !important; */
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  75% {
+    transform: translateY(3px) scale(0.99);
+  }
+
+  90% {
+    transform: translateY(-1px) scale(1.005);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Mobile & Touch Devices: Instant Zero-Lag Rendering (No Sticky Hovers, No Unnecessary Animations) */
+.customer-card-pop,
+.order-elastic-pop {
+  animation: customerCardPop 0.52s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform, opacity;
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.2s ease, border-color 0.15s ease;
+}
+
+.customer-card-pop:hover,
+.order-elastic-pop:hover {
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+/* Mobile & Touch Devices: Instant Zero-Lag Rendering (No Sticky Hovers) */
 @media (hover: none) or (pointer: coarse) or (max-width: 768px) {
 
   /* 1. Neutralize sticky hover transforms and hovering states on touch */
@@ -2547,16 +2515,7 @@ path.casing-parabolic-dots,
     filter: none !important;
   }
 
-  /* 2. Tactile Touch Down (:active) for Instantaneous Physical Feel */
-  button:active,
-  [role="button"]:active,
-  .apple-tap-target:active,
-  .customer-card-pop:active {
-    transform: scale(0.975) !important;
-    transition: transform 0.05s ease-out !important;
-  }
-
-  /* 3. Strip All Unnecessary Continuous / Looping GPU Animations on Mobile */
+  /* 2. Strip All Unnecessary Continuous / Looping GPU Animations on Mobile */
   .animate-pulse,
   .animate-ping,
   .animate-bounce,
@@ -2575,14 +2534,7 @@ path.casing-parabolic-dots,
     color: #E0FF33 !important;
   }
 
-  /* 4. Instant Card Rendering (Zero Stagger Latency) */
-  .customer-card-pop {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
-  /* 5. Mobile GPU Efficiency: Avoid Heavy Real-Time Backdrop Blurs in WebViews */
+  /* 4. Mobile GPU Efficiency: Avoid Heavy Real-Time Backdrop Blurs in WebViews */
   .apple-overlay {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -3036,12 +2988,14 @@ path.casing-parabolic-dots,
   border-color: rgba(28, 25, 23, 0.14) !important;
   color: #1C1917 !important;
 }
+
 .light .payment-method-unselected *,
 .light .payment-method-unselected div,
 .light .payment-method-unselected p,
 .light .payment-method-unselected span {
   color: #1C1917 !important;
 }
+
 .light .payment-method-unselected .payment-sub,
 .light .payment-method-unselected p[class*="text-stone"] {
   color: #57534E !important;
@@ -3052,16 +3006,20 @@ path.casing-parabolic-dots,
   border-color: rgba(28, 25, 23, 0.12) !important;
   color: #1C1917 !important;
 }
+
 .light .qty-picker-pill * {
   color: #1C1917 !important;
 }
+
 .light .qty-picker-pill .qty-label {
   color: #57534E !important;
 }
+
 .light .qty-picker-pill .qty-num {
   color: #1C1917 !important;
   font-weight: 900 !important;
 }
+
 .light .qty-picker-pill svg {
   color: #57534E !important;
   stroke: #57534E !important;
@@ -3071,19 +3029,23 @@ path.casing-parabolic-dots,
 .btn-map-track {
   transition: transform 0.1s ease-out, opacity 0.12s ease-out !important;
 }
+
 .light .btn-map-track {
   background-color: #1C1917 !important;
   color: #FFFFFF !important;
 }
+
 .light .btn-map-track span,
 .light .btn-map-track svg {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
 }
+
 .dark .btn-map-track {
   background-color: #E0FF33 !important;
   color: #121011 !important;
 }
+
 .dark .btn-map-track span,
 .dark .btn-map-track svg {
   color: #121011 !important;
@@ -3265,10 +3227,12 @@ label {
     transform: scale(0.9);
     opacity: 0.75;
   }
+
   70% {
     transform: scale(1.65);
     opacity: 0;
   }
+
   100% {
     transform: scale(1.65);
     opacity: 0;
