@@ -1813,12 +1813,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <span className="text-stone-500 dark:text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
                   </div>
 
-                  {cart.find(c => c.id === selectedDishDetails.id)?.quantity > 0 && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                      {cart.find(c => c.id === selectedDishDetails.id).quantity} in basket
-                    </span>
-                  )}
+
                 </div>
 
                 {/* Dish Name */}
