@@ -478,7 +478,7 @@ export default function AuthModal({ isOpen, onClose }) {
       <div
         ref={authSheetRef}
         style={authSheetStyle}
-        className={`relative w-full max-w-[440px] bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] p-6 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-4 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden transition-colors ${closing ? 'translate-y-12' : 'translate-y-0'}`}
+        className={`relative w-full max-w-[440px] bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] p-4 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-3.5 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden transition-colors ${closing ? 'translate-y-12' : 'translate-y-0'}`}
       >
         {/* Subtle Ambient Header Accent */}
         <div
@@ -883,9 +883,9 @@ export default function AuthModal({ isOpen, onClose }) {
             </div>
 
             {/* 4. Grouped Navigation & Preference Links */}
-            <div className="p-1 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5">
+            <div className="p-1.5 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5 shadow-xs">
               {/* Theme Preference Row */}
-              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
+              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
                   {isLight ? (
                     <Sun className="w-4 h-4 text-amber-500 shrink-0" />
@@ -898,30 +898,32 @@ export default function AuthModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
-                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                       isLight 
                         ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black' 
                         : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
-                    <span>Divine Light</span>
+                    <Sun size={12} className={isLight ? "text-amber-500" : "opacity-70"} />
+                    <span>Light</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
-                    className={`px-3 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                       isDark 
                         ? 'bg-[#E0FF33] text-black shadow-xs font-black' 
                         : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                     }`}
                   >
-                    <span>Dark Obsidian</span>
+                    <Moon size={12} className={isDark ? "text-black" : "opacity-70"} />
+                    <span>Dark</span>
                   </button>
                 </div>
               </div>
 
               {/* Notification Chime Preference Row */}
-              <div className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
+              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
                   <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#E0FF33] shrink-0" />
                   <span>Notification Sound</span>
@@ -929,10 +931,10 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={() => setShowSoundTrials(true)}
-                  className="px-3 py-1 rounded-full text-[10px] font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  className="px-3 py-1.5 rounded-full text-xs font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <span>{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
-                  <span className="text-[9px] text-amber-600 dark:text-[#E0FF33] font-black">Trials &gt;</span>
+                  <span className="text-[10px] text-amber-600 dark:text-[#E0FF33] font-black">Change &gt;</span>
                 </button>
               </div>
 
@@ -942,7 +944,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   handleAnimatedClose();
                   window.dispatchEvent(new CustomEvent('foody-open-orders'));
                 }}
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
@@ -957,7 +959,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   handleAnimatedClose();
                   window.dispatchEvent(new CustomEvent('foody_open_rewards'));
                 }}
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Gift className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -970,7 +972,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 href={SOCIAL_LINKS.whatsappChannel}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full p-2.5 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -987,7 +989,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
             {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
             {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#181617] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-sm">
+              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#181617] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-xs">
                 <div className="flex items-center justify-between px-0.5">
                   <div className="flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
@@ -1032,32 +1034,32 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out */}
-            <div className="grid grid-cols-2 gap-2.5 mt-1">
+            {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out (No truncation, easy tap target) */}
+            <div className="grid grid-cols-2 gap-2 mt-1">
               <button
                 type="button"
                 onClick={() => setShowLoginView(true)}
-                className="group p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-stone-50 dark:hover:bg-[#252223] border border-stone-200 dark:border-white/10 hover:border-amber-400/50 dark:hover:border-[#E0FF33]/30 transition-all duration-200 flex items-center gap-3 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="group p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-stone-50 dark:hover:bg-[#252223] border border-stone-200 dark:border-white/10 hover:border-amber-400/50 dark:hover:border-[#E0FF33]/30 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 group-hover:bg-amber-500 group-hover:text-white dark:group-hover:bg-[#E0FF33] dark:group-hover:text-black text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 transition-all shadow-xs">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 group-hover:bg-amber-500 group-hover:text-white dark:group-hover:bg-[#E0FF33] dark:group-hover:text-black text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 transition-all shadow-xs">
                   <LogIn className="w-4 h-4" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">Switch Account</div>
-                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">Change profile</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] whitespace-nowrap leading-tight">Switch Account</div>
+                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">Change user</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="group p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/50 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center gap-3 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="group p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/50 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
               >
-                <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-rose-500 text-stone-600 dark:text-zinc-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-rose-500 text-stone-600 dark:text-zinc-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
                   <LogOut className="w-4 h-4" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] truncate">Sign Out</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] whitespace-nowrap leading-tight">Sign Out</div>
                   <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">End session</div>
                 </div>
               </button>
