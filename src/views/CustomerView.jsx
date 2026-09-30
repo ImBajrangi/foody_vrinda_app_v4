@@ -109,8 +109,8 @@ const MenuItemCard = memo(function MenuItemCard({
       }}
       style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
       className={`bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[200px] sm:min-h-[220px] flex flex-col justify-between apple-card-interactive transition-all duration-200 customer-card-pop touch-manipulation active:scale-[0.98] select-none ${quantityInCart > 0
-          ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-          : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
+        ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+        : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl'
         }`}
     >
       {/* Top Row: Dish Name + Combo Tag + Outline Heart Button */}
@@ -201,7 +201,7 @@ const MenuItemCard = memo(function MenuItemCard({
               )}
             </button>
 
-            <span 
+            <span
               className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
               style={{ color: '#FFFFFF' }}
             >
@@ -1364,42 +1364,42 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             showToast(s.name, 'info');
                           }}
                           className={`w-full text-left px-3.5 py-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${isSelected
-                              ? 'btn-dark-active bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
-                              : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
+                            ? 'btn-dark-active bg-stone-900 dark:bg-[#E0FF33]/[.12] ring-1 ring-stone-900/20 dark:ring-[#E0FF33]/25'
+                            : 'bg-stone-50/80 dark:bg-white/[.03] hover:bg-stone-100 dark:hover:bg-white/[.06]'
                             }`}
                           aria-pressed={isSelected}
                           aria-label={`${s.name}${isOpen ? '' : ' — closed'}${isSelected ? ' — currently active' : ''}`}
                         >
                           {/* Radio Indicator */}
                           <div className={`w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200 ${isSelected
-                              ? 'border-amber-400 dark:border-[#E0FF33] bg-amber-400/20 dark:bg-[#E0FF33]/20'
-                              : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
+                            ? 'border-amber-400 dark:border-[#E0FF33] bg-amber-400/20 dark:bg-[#E0FF33]/20'
+                            : 'border-stone-300 dark:border-white/15 group-hover:border-stone-400 dark:group-hover:border-white/25'
                             }`}>
                             <div className={`w-2 h-2 rounded-full transition-all duration-200 ${isSelected
-                                ? 'bg-amber-400 dark:bg-[#E0FF33] scale-100'
-                                : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
+                              ? 'bg-amber-400 dark:bg-[#E0FF33] scale-100'
+                              : 'bg-transparent scale-0 group-hover:scale-75 group-hover:bg-stone-300 dark:group-hover:bg-white/20'
                               }`} />
                           </div>
 
                           {/* Kitchen Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p 
+                              <p
                                 className={`text-[13px] sm:text-sm font-bold truncate transition-colors ${isSelected
                                   ? '!text-white dark:text-[#E0FF33]'
                                   : 'text-stone-800 dark:text-zinc-100'
-                                }`}
+                                  }`}
                                 style={isSelected ? { color: '#FFFFFF' } : undefined}
                               >
                                 {s.name}
                               </p>
                             </div>
                             {s.address && (
-                              <p 
+                              <p
                                 className={`text-[11px] mt-0.5 truncate transition-colors ${isSelected
                                   ? 'text-stone-300 dark:text-[#E0FF33]/70'
                                   : 'text-stone-400 dark:text-zinc-500'
-                                }`}
+                                  }`}
                                 style={isSelected ? { color: 'rgba(255, 255, 255, 0.8)' } : undefined}
                               >
                                 {s.address}
@@ -1416,8 +1416,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                               </span>
                             )}
                             <span className={`w-2 h-2 rounded-full shrink-0 ${isOpen
-                                ? (isSelected ? 'bg-emerald-400 dark:bg-emerald-400' : 'bg-emerald-500')
-                                : 'bg-red-400/60 dark:bg-red-400/50'
+                              ? (isSelected ? 'bg-emerald-400 dark:bg-emerald-400' : 'bg-emerald-500')
+                              : 'bg-red-400/60 dark:bg-red-400/50'
                               } ${isOpen ? 'animate-pulse' : ''}`} />
                           </div>
                         </button>
@@ -1812,8 +1812,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <span className="text-stone-400 dark:text-zinc-500 text-xs">•</span>
                     <span className="text-stone-500 dark:text-zinc-400 text-xs font-bold">100% Vedic Pure</span>
                   </div>
-
-
                 </div>
 
                 {/* Dish Name */}
@@ -2423,11 +2421,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
-                          paymentMethod === 'online'
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${paymentMethod === 'online'
                             ? 'text-stone-950 dark:text-[#121011]'
                             : 'text-stone-950 dark:text-white'
-                        }`}>
+                          }`}>
                           Online Pay
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'online'
@@ -2466,11 +2463,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
-                          paymentMethod === 'cash'
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${paymentMethod === 'cash'
                             ? 'text-stone-950 dark:text-[#121011]'
                             : 'text-stone-950 dark:text-white'
-                        }`}>
+                          }`}>
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'cash'

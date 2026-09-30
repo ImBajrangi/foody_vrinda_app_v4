@@ -98,44 +98,44 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
           icon: ChefHat,
           tag: 'Kitchen Order',
           title: 'New Order Received',
-          iconBox: 'bg-amber-500/15 border border-amber-400/30 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.15)]',
-          dotColor: 'bg-amber-400',
-          pingColor: 'bg-amber-400',
-          glowBg: 'bg-amber-400/10',
-          btnBg: 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#151314] shadow-[0_4px_16px_rgba(245,158,11,0.25)]'
+          iconBox: 'bg-amber-500/15 border border-amber-500/30 dark:border-amber-400/30 text-amber-600 dark:text-amber-400 shadow-sm dark:shadow-[0_0_15px_rgba(251,191,36,0.15)]',
+          dotColor: 'bg-amber-500 dark:bg-amber-400',
+          pingColor: 'bg-amber-500 dark:bg-amber-400',
+          glowBg: 'bg-amber-500/10 dark:bg-amber-400/10',
+          btnBg: 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-900 shadow-md shadow-amber-500/20 active:shadow-none'
         };
       case 'delivery':
         return {
           icon: Truck,
           tag: 'Delivery Dispatch',
           title: 'Order Ready for Pickup',
-          iconBox: 'bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.15)]',
-          dotColor: 'bg-cyan-400',
-          pingColor: 'bg-cyan-400',
-          glowBg: 'bg-cyan-400/10',
-          btnBg: 'bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-[#151314] shadow-[0_4px_16px_rgba(6,182,212,0.25)]'
+          iconBox: 'bg-cyan-500/15 border border-cyan-500/30 dark:border-cyan-400/30 text-cyan-600 dark:text-cyan-400 shadow-sm dark:shadow-[0_0_15px_rgba(34,211,238,0.15)]',
+          dotColor: 'bg-cyan-500 dark:bg-cyan-400',
+          pingColor: 'bg-cyan-500 dark:bg-cyan-400',
+          glowBg: 'bg-cyan-500/10 dark:bg-cyan-400/10',
+          btnBg: 'bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-stone-900 shadow-md shadow-cyan-500/20 active:shadow-none'
         };
       case 'owner':
         return {
           icon: Store,
           tag: 'Store Dispatch',
           title: 'New Store Order',
-          iconBox: 'bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]',
-          dotColor: 'bg-[#E0FF33]',
-          pingColor: 'bg-[#E0FF33]',
-          glowBg: 'bg-[#E0FF33]/10',
-          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-[#151314] shadow-[0_4px_16px_rgba(224,255,51,0.25)]'
+          iconBox: 'bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 text-lime-700 dark:text-[#E0FF33] shadow-sm dark:shadow-[0_0_15px_rgba(224,255,51,0.15)]',
+          dotColor: 'bg-lime-500 dark:bg-[#E0FF33]',
+          pingColor: 'bg-lime-500 dark:bg-[#E0FF33]',
+          glowBg: 'bg-lime-500/10 dark:bg-[#E0FF33]/10',
+          btnBg: 'bg-[#D4F420] dark:bg-[#E0FF33] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
         };
       default:
         return {
           icon: BellRing,
           tag: 'Order Alert',
           title: 'Live Order Notification',
-          iconBox: 'bg-[#E0FF33]/15 border border-[#E0FF33]/30 text-[#E0FF33] shadow-[0_0_15px_rgba(224,255,51,0.15)]',
-          dotColor: 'bg-[#E0FF33]',
-          pingColor: 'bg-[#E0FF33]',
-          glowBg: 'bg-[#E0FF33]/10',
-          btnBg: 'bg-[#E0FF33] hover:bg-[#d4f624] text-[#151314] shadow-[0_4px_16px_rgba(224,255,51,0.25)]'
+          iconBox: 'bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 text-lime-700 dark:text-[#E0FF33] shadow-sm dark:shadow-[0_0_15px_rgba(224,255,51,0.15)]',
+          dotColor: 'bg-lime-500 dark:bg-[#E0FF33]',
+          pingColor: 'bg-lime-500 dark:bg-[#E0FF33]',
+          glowBg: 'bg-lime-500/10 dark:bg-[#E0FF33]/10',
+          btnBg: 'bg-[#D4F420] dark:bg-[#E0FF33] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
         };
     }
   };
@@ -148,10 +148,10 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
       {/* Sleek, Calm, Non-blinking Floating Audio HUD Banner */}
       {isPlaying && !isDismissed && (
         <div className="fixed top-[max(18px,env(safe-area-inset-top)+14px)] left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:top-5 sm:right-6 z-[999999] w-[calc(100vw-24px)] sm:w-[440px] max-w-full animate-slide-down select-none">
-          <div className="p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#1E1B1C]/95 backdrop-blur-2xl border border-white/15 text-white shadow-[0_24px_60px_-10px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)] relative overflow-hidden">
+          <div className="p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-[#1E1B1C]/95 backdrop-blur-2xl border border-stone-200/80 dark:border-white/15 text-stone-900 dark:text-white shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[0_24px_60px_-10px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)] relative overflow-hidden">
             
             {/* Ambient subtle corner glow matching role */}
-            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full ${config.glowBg || 'bg-[#E0FF33]/5'} blur-2xl pointer-events-none`} />
+            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full ${config.glowBg || 'bg-lime-500/5 dark:bg-[#E0FF33]/5'} blur-2xl pointer-events-none`} />
 
             {/* Close Button */}
             <button
@@ -160,7 +160,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                 setIsDismissed(true);
                 onSilence();
               }}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/5 active:scale-90"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/15 text-stone-400 hover:text-stone-700 dark:text-neutral-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border border-stone-200/60 dark:border-white/5 active:scale-90"
               title="Dismiss alert"
             >
               <X className="w-3.5 h-3.5" />
@@ -175,48 +175,48 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                 </div>
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.pingColor} opacity-75`} />
-                  <span className={`relative inline-flex rounded-full h-3 w-3 ${config.dotColor} border-2 border-[#1E1B1C]`} />
+                  <span className={`relative inline-flex rounded-full h-3 w-3 ${config.dotColor} border-2 border-white dark:border-[#1E1B1C]`} />
                 </span>
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 font-['Outfit']">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
                     {config.tag}
                   </span>
                   {shortId && (
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/[0.08] text-neutral-200 border border-white/[0.08]">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-white/[0.08] text-stone-600 dark:text-neutral-200 border border-stone-200/70 dark:border-white/[0.08]">
                       #{shortId}
                     </span>
                   )}
                   {totalAmount > 0 && (
-                    <span className="text-xs font-mono font-black text-[#E0FF33] ml-auto">
+                    <span className="text-xs font-mono font-black text-lime-700 dark:text-[#E0FF33] ml-auto">
                       ₹{totalAmount}
                     </span>
                   )}
                 </div>
 
-                <h4 className="text-sm sm:text-base font-extrabold text-white font-['Outfit'] truncate mt-0.5 tracking-tight">
+                <h4 className="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white font-['Outfit'] truncate mt-0.5 tracking-tight">
                   {config.title}
                 </h4>
 
-                <p className="text-xs text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
-                  <span className="text-neutral-200 font-medium">{customerName}</span>
-                  <span className="text-white/20">·</span>
+                <p className="text-xs text-stone-500 dark:text-neutral-400 truncate flex items-center gap-1.5 mt-0.5">
+                  <span className="text-stone-700 dark:text-neutral-200 font-semibold">{customerName}</span>
+                  <span className="text-stone-300 dark:text-white/20">·</span>
                   <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
                 </p>
               </div>
             </div>
 
             {/* Action Buttons: Silence (compact utility) + View Details (prominent full-width CTA) */}
-            <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center gap-2">
+            <div className="mt-3.5 pt-3 border-t border-stone-200/80 dark:border-white/10 flex items-center gap-2">
               <button
                 type="button"
                 onClick={onSilence}
-                className="h-10 px-3.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-white/10 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+                className="h-10 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all border border-stone-200/80 dark:border-white/10 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
                 title="Silence sound"
               >
-                <VolumeX className="w-4 h-4 text-rose-400 shrink-0" />
+                <VolumeX className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
                 <span>Silence</span>
               </button>
 
@@ -236,21 +236,21 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
       {/* Comprehensive Order & Payment Details Audit Modal */}
       {showDetailModal && (
         <div 
-          className="fixed inset-0 z-[9999999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-fadeIn"
+          className="fixed inset-0 z-[9999999] flex items-center justify-center p-3 sm:p-5 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fadeIn"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowDetailModal(false);
           }}
         >
-          <div className="w-full max-w-lg bg-[#1E1B1C] border border-white/10 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="w-full max-w-lg bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#282526] shrink-0">
+            <div className="p-4 sm:p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between bg-stone-50 dark:bg-[#282526] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
+                <div className="w-10 h-10 rounded-2xl bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-lime-700 dark:text-[#E0FF33]">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-black text-white font-['Outfit']">
+                    <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">
                       Order #{shortId}
                     </h3>
                     <button
@@ -260,13 +260,13 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="text-neutral-400 hover:text-[#E0FF33] p-1 rounded transition-colors"
+                      className="text-stone-400 hover:text-stone-700 dark:text-neutral-400 dark:hover:text-[#E0FF33] p-1 rounded transition-colors"
                       title="Copy full order UUID"
                     >
-                      {copied ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                      {copied ? <CheckCircle2 size={13} className="text-emerald-500 dark:text-emerald-400" /> : <Copy size={13} />}
                     </button>
                   </div>
-                  <p className="text-xs text-neutral-400 flex items-center gap-1">
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 flex items-center gap-1">
                     <Clock size={11} />
                     <span>{order.created_at || order.createdAt ? new Date(order.created_at || order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Live Alert'}</span>
                     <span>•</span>
@@ -278,45 +278,45 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
               <button
                 type="button"
                 onClick={() => setShowDetailModal(false)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-200 dark:border-white/10 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* Modal Scrollable Content */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans'] bg-[#1E1B1C]">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 font-['Plus_Jakarta_Sans'] bg-stone-50/50 dark:bg-[#1E1B1C]">
               {/* Payment Status Card */}
-              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2">
-                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 space-y-2 shadow-sm">
+                <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-bold uppercase tracking-wider block">
                   Payment Details
                 </span>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {isCod ? (
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-xl border border-amber-400/20">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-400/10 px-2.5 py-1 rounded-xl border border-amber-500/20 dark:border-amber-400/20">
                         <Banknote size={14} /> Cash on Delivery (COD)
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-400/10 px-2.5 py-1 rounded-xl border border-emerald-400/20">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-400/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 dark:border-emerald-400/20">
                         <CreditCard size={14} /> Paid Online (UPI / Card)
                       </span>
                     )}
                   </div>
-                  <span className="text-base font-mono font-black text-[#E0FF33]">
+                  <span className="text-base font-mono font-black text-lime-700 dark:text-[#E0FF33]">
                     ₹{totalAmount}
                   </span>
                 </div>
               </div>
 
               {/* Customer & Location Details */}
-              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 space-y-2.5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider block">Customer</span>
-                    <h4 className="text-sm font-bold text-white font-['Outfit'] mt-0.5">{customerName}</h4>
+                    <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-bold uppercase tracking-wider block">Customer</span>
+                    <h4 className="text-sm font-bold text-stone-900 dark:text-white font-['Outfit'] mt-0.5">{customerName}</h4>
                     {customerPhone && (
-                      <p className="text-xs text-neutral-400 font-mono mt-0.5">{customerPhone}</p>
+                      <p className="text-xs text-stone-500 dark:text-neutral-400 font-mono mt-0.5">{customerPhone}</p>
                     )}
                   </div>
 
@@ -324,7 +324,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                     <div className="flex items-center gap-2">
                       <a
                         href={`tel:${customerPhone}`}
-                        className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-400/20 text-xs font-bold flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-400/20 text-xs font-bold flex items-center gap-1 transition-colors"
                       >
                         <Phone size={12} /> Call
                       </a>
@@ -332,7 +332,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                         href={`https://wa.me/91${customerPhone.replace(/\D/g, '').slice(-10)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1 transition-colors"
                       >
                         <ExternalLink size={12} /> WhatsApp
                       </a>
@@ -341,22 +341,22 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                 </div>
 
                 {deliveryAddress && (
-                  <div className="pt-2 border-t border-white/5 flex items-start gap-2 text-xs text-neutral-300">
-                    <MapPin size={14} className="text-[#E0FF33] shrink-0 mt-0.5" />
+                  <div className="pt-2 border-t border-stone-100 dark:border-white/5 flex items-start gap-2 text-xs text-stone-600 dark:text-neutral-300">
+                    <MapPin size={14} className="text-lime-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
                     <span>{deliveryAddress}</span>
                   </div>
                 )}
 
                 {cookingNotes && (
-                  <div className="p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/25 text-xs text-amber-200">
-                    <strong className="text-amber-300 font-bold">Chef Instructions:</strong> {cookingNotes}
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/25 dark:border-amber-400/25 text-xs text-amber-800 dark:text-amber-200">
+                    <strong className="text-amber-700 dark:text-amber-300 font-bold">Chef Instructions:</strong> {cookingNotes}
                   </div>
                 )}
               </div>
 
               {/* Items Breakdown */}
-              <div className="p-4 rounded-2xl bg-[#282526] border border-white/10 space-y-2">
-                <div className="flex justify-between items-center pb-2 border-b border-white/10 text-xs font-bold text-neutral-400 uppercase tracking-wider">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 space-y-2 shadow-sm">
+                <div className="flex justify-between items-center pb-2 border-b border-stone-200 dark:border-white/10 text-xs font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">
                   <span>Ordered Dishes ({itemCount})</span>
                   <span>Amount</span>
                 </div>
@@ -368,37 +368,37 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                     return (
                       <div key={idx} className="flex justify-between items-center text-xs py-1">
                         <div className="flex items-center gap-2 min-w-0 pr-2">
-                          <span className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[8px] text-emerald-400 font-bold shrink-0">
+                          <span className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[8px] text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
                             v
                           </span>
-                          <span className="text-white font-medium truncate">{item.name}</span>
-                          <span className="text-neutral-400 font-bold shrink-0">x {qty}</span>
+                          <span className="text-stone-900 dark:text-white font-medium truncate">{item.name}</span>
+                          <span className="text-stone-400 dark:text-neutral-400 font-bold shrink-0">x {qty}</span>
                         </div>
-                        <span className="font-mono font-bold text-white shrink-0">₹{qty * price}</span>
+                        <span className="font-mono font-bold text-stone-900 dark:text-white shrink-0">₹{qty * price}</span>
                       </div>
                     );
                   })
                 ) : (
-                  <p className="text-xs text-neutral-400 py-2">Item details synced from kitchen board.</p>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 py-2">Item details synced from kitchen board.</p>
                 )}
 
                 {/* Total Summary */}
-                <div className="pt-2 border-t border-white/10 flex justify-between items-center text-sm font-black text-white font-['Outfit']">
-                  <span className="text-[#E0FF33]">Grand Total</span>
-                  <span className="text-[#E0FF33] font-mono text-base">₹{totalAmount}</span>
+                <div className="pt-2 border-t border-stone-200 dark:border-white/10 flex justify-between items-center text-sm font-black text-stone-900 dark:text-white font-['Outfit']">
+                  <span className="text-lime-700 dark:text-[#E0FF33]">Grand Total</span>
+                  <span className="text-lime-700 dark:text-[#E0FF33] font-mono text-base">₹{totalAmount}</span>
                 </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 sm:p-5 border-t border-white/10 bg-[#282526] flex items-center justify-end gap-2 shrink-0">
+            <div className="p-4 sm:p-5 border-t border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#282526] flex items-center justify-end gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   onSilence();
                   setShowDetailModal(false);
                 }}
-                className="py-2.5 px-5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs border border-white/10 transition-colors cursor-pointer"
+                className="py-2.5 px-5 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-colors cursor-pointer"
               >
                 Close Ticket
               </button>
