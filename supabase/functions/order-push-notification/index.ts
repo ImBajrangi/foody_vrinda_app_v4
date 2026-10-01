@@ -1,5 +1,3 @@
-// @ts-nocheck
-// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 
@@ -138,15 +136,27 @@ async function sendFCMMessage(
   return { ok: resp.ok, status: resp.status, resJson };
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
-};
+// CORS: Restrict to known origins (production domain + local dev)
+const ALLOWED_ORIGINS = [
+  "https://eat.vrindopnishad.in",
+  "https://mrsxliwyqodtwjuyqmts.supabase.co",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -157,7 +167,7 @@ serve(async (req: Request) => {
     if (!serviceAccountJsonStr) {
       return new Response(
         JSON.stringify({ error: "Missing FCM_SERVICE_ACCOUNT in Edge Function secrets." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -174,7 +184,7 @@ serve(async (req: Request) => {
     if (!order || !order.id) {
       return new Response(
         JSON.stringify({ message: "No order record found in payload" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -186,7 +196,7 @@ serve(async (req: Request) => {
     if (type === "UPDATE" && status === oldStatus) {
       return new Response(
         JSON.stringify({ message: "Status unchanged, skipping push" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -282,7 +292,7 @@ serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true, results }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -338,7 +348,7 @@ serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true, results }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -550,13 +560,13 @@ serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: true, results }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   } catch (err: any) {
     console.error("FCM Edge Function Error:", err);
     return new Response(
       JSON.stringify({ error: err.message || String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });

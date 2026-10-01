@@ -6,7 +6,6 @@ import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import NotificationPanel from './components/NotificationPanel';
 import UnifiedSearchModal from './components/UnifiedSearchModal';
-import CustomerView from './views/CustomerView';
 import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import CompleteProfileModal from './components/CompleteProfileModal';
@@ -14,7 +13,8 @@ import AppUpdateModal from './components/AppUpdateModal';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Code-split heavy views to reduce customer boot payload by >60%
+// Code-split all role views to reduce initial boot payload
+const CustomerView = lazy(() => import('./views/CustomerView'));
 const KitchenView = lazy(() => import('./views/KitchenView'));
 const TransportView = lazy(() => import('./views/TransportView'));
 const OwnerView = lazy(() => import('./views/OwnerView'));
@@ -381,18 +381,18 @@ export default function App() {
 
       <main className="w-full flex-1 flex flex-col">
         <ErrorBoundary>
-          {currentTab === 'customer' && (
-            <CustomerView 
-              trackingOrderId={trackingOrderId}
-              setTrackingOrderId={setTrackingOrderId}
-            />
-          )}
-          
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center min-h-[300px]">
               <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 dark:border-[#E0FF33]/30 border-t-amber-500 dark:border-t-[#E0FF33] animate-spin" />
             </div>
           }>
+            {currentTab === 'customer' && (
+              <CustomerView 
+                trackingOrderId={trackingOrderId}
+                setTrackingOrderId={setTrackingOrderId}
+              />
+            )}
+
             {currentTab === 'kitchen' && <KitchenView />}
 
             {currentTab === 'delivery' && <TransportView />}

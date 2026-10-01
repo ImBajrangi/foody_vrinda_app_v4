@@ -55,6 +55,11 @@ export function AuthProvider({ children }) {
     } catch (e) { }
     return null;
   });
+  // ⚠️ SECURITY INVARIANT: This role from localStorage is a UI HINT ONLY for instant hydration.
+  // It is NEVER used as an authorization source. The real authorization chain is:
+  //   Supabase Auth session → getLiveUserRoleAndProfile() → RLS policies → PostgreSQL
+  // An attacker editing localStorage cannot gain elevated access because all privileged
+  // operations go through Supabase RLS which validates the authenticated user's server-side role.
   const [userRole, setUserRole] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_user_data');

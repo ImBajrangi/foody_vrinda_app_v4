@@ -1415,8 +1415,21 @@ class RealtimeMultiplexer {
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
+            // On reconnect: invalidate stale cache and refetch authoritative data from DB
+            if (this._wasDisconnected) {
+              this._wasDisconnected = false;
+              invalidateCache('orders');
+              invalidateCache('menus');
+              invalidateCache('shops');
+              invalidateCache('users');
+              // Dispatch event so UI components know to refetch
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('foody_realtime_reconnected'));
+              }
+            }
             this.isSubscribed = true;
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            this._wasDisconnected = true;
             this.isSubscribed = false;
             this.channel = null;
           }
