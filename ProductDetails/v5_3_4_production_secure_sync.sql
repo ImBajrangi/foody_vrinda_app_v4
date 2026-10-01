@@ -194,13 +194,13 @@ CREATE POLICY "Orders Client Safe Update Policy"
 CREATE OR REPLACE FUNCTION public.trg_protect_order_immutable_columns()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    -- Superuser and service_role are unrestricted (used by backend jobs & atomic RPCs)
-    IF current_user IN ('postgres', 'supabase_admin')
-       OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+    -- Superuser and service_role bypass: only when inside custody RPCs or service_role JWT / direct admin session
+    IF COALESCE(current_setting('foody.custody_rpc_active', true), 'false') = 'true'
+       OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role')
+       OR (current_setting('request.jwt.claim.role', true) IS NULL AND current_user IN ('postgres', 'supabase_admin')) THEN
         RETURN NEW;
     END IF;
 
@@ -365,16 +365,19 @@ BEGIN
     -- Verify caller identity: either Supabase auth.uid() or registered app delivery agent
     IF auth.uid() IS NOT NULL THEN
         IF auth.uid()::text IS DISTINCT FROM p_rider_id THEN
-            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id;
+            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id USING ERRCODE = '42501';
         END IF;
         v_caller_id := auth.uid()::text;
-    ELSIF current_user IN ('postgres', 'supabase_admin') OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+    ELSIF (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') OR (current_setting('request.jwt.claim.role', true) IS NULL) THEN
         v_caller_id := p_rider_id;
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin', 'kitchen')) THEN
         v_caller_id := p_rider_id;
     ELSE
         RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id USING ERRCODE = '42501';
     END IF;
+
+    -- Set transaction-local bypass flag for immutability trigger
+    PERFORM set_config('foody.custody_rpc_active', 'true', true);
 
     -- Lock the order row exclusively (concurrency protection)
     SELECT * INTO v_order FROM public.foody_orders WHERE id = p_order_id FOR UPDATE;
@@ -460,16 +463,19 @@ DECLARE
 BEGIN
     IF auth.uid() IS NOT NULL THEN
         IF auth.uid()::text IS DISTINCT FROM p_rider_id THEN
-            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id;
+            RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id USING ERRCODE = '42501';
         END IF;
         v_caller_id := auth.uid()::text;
-    ELSIF current_user IN ('postgres', 'supabase_admin') OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+    ELSIF (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') OR (current_setting('request.jwt.claim.role', true) IS NULL) THEN
         v_caller_id := p_rider_id;
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin')) THEN
         v_caller_id := p_rider_id;
     ELSE
         RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id USING ERRCODE = '42501';
     END IF;
+
+    -- Set transaction-local bypass flag for immutability trigger
+    PERFORM set_config('foody.custody_rpc_active', 'true', true);
 
     SELECT * INTO v_order FROM public.foody_orders WHERE id = p_order_id FOR UPDATE;
 
