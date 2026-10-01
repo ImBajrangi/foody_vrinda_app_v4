@@ -182,29 +182,16 @@ serve(async (req: Request) => {
     const status = (order.status || "").toLowerCase();
     const oldStatus = (old_record?.status || "").toLowerCase();
 
-    // Extract items summary & customer name for rich personalization
-    const itemsList = Array.isArray(order.items)
-      ? order.items
-      : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch (_) { return []; } })() : []);
-    const firstItemName = itemsList[0]?.name || itemsList[0]?.title || "Vedic Prasad";
-    const extraItemsCount = itemsList.length > 1 
-      ? ` (+${itemsList.length - 1} more)` 
-      : (itemsList[0]?.quantity > 1 ? ` (x${itemsList[0].quantity})` : "");
-    const itemsSummary = `${firstItemName}${extraItemsCount}`;
-
-    const customerFullName = (order.customer_name || order.customerName || order.user_name || order.userName || order.delivery_address?.name || "Bhakta").trim();
-    const customerFirstName = customerFullName.split(" ")[0] || "Bhakta";
-
     // Skip if status didn't change on UPDATE
     if (type === "UPDATE" && status === oldStatus) {
       return new Response(
         JSON.stringify({ message: "Status unchanged, skipping push" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const googleAccessToken = await getGoogleAccessToken(serviceAccount);
-    const results = [];
+    const results: any[] = [];
 
     // Fetch shop settings for multi-role preferences (self-chef, self-delivery)
     const orderShopId = order.shop_id || order.shopId || "shop-vrinda-main";
@@ -224,7 +211,7 @@ serve(async (req: Request) => {
     const isDevotional = Boolean(
       order.devotional_mode || 
       order.devotionalMode || 
-      payload.devotional_mode || 
+      body.devotional_mode || 
       shopSettings?.devotional_mode || 
       shopSettings?.payment_settings?.devotional_notifications
     );
@@ -243,16 +230,27 @@ serve(async (req: Request) => {
     const customerFullName = (order.customer_name || order.customerName || order.user_name || order.userName || order.delivery_address?.name || (isDevotional ? "Bhakta" : "Customer")).trim();
     const customerFirstName = customerFullName.split(" ")[0] || (isDevotional ? "Bhakta" : "Customer");
 
-    // Skip if status didn't change on UPDATE
-    if (type === "UPDATE" && status === oldStatus) {
-      return new Response(
-        JSON.stringify({ message: "Status unchanged, skipping push" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+    // Resolve customer FCM token for push notifications
+    let customerToken: string | null = null;
+    const customerSound = isDevotional ? "temple_bell" : "soft_pulse";
+    const customerUserId = order.user_id || order.userId || order.customer_id || order.customerId;
+    const customerPhone = order.customer_phone || order.customerPhone || order.phone;
+    if (customerUserId || customerPhone) {
+      try {
+        const orFilter = [
+          customerUserId ? `id.eq.${customerUserId}` : null,
+          customerPhone ? `phone.eq.${customerPhone}` : null,
+        ].filter(Boolean).join(",");
+        const { data: custProfile } = await supabase
+          .from("foody_logged_users")
+          .select("fcm_token")
+          .or(orFilter)
+          .not("fcm_token", "is", null)
+          .limit(1)
+          .maybeSingle();
+        customerToken = custProfile?.fcm_token || null;
+      } catch (_) {}
     }
-
-    const googleAccessToken = await getGoogleAccessToken(serviceAccount);
-    const results = [];
 
     // --- ESCALATION 1: UNRESPONSIVE KITCHEN WARNING (3-Minute Alert to Developer) ---
     if (type === "UNRESPONSIVE_ALERT") {

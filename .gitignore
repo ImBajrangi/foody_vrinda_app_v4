@@ -28,3 +28,14 @@ Queries/*
 supabase/serviceAccountKey.json
 supabase/.temp/
 *firebase-adminsdk*.json
+
+# Security: Release signing keys must live in CI/CD secrets
+*.keystore
+*.jks
+
+# Security: Build artifacts belong in GitHub Releases / CDN, not source control
+*.apk
+*.aab
+
+# Security: Firebase config contains project identifiers
+android/app/google-services.json
