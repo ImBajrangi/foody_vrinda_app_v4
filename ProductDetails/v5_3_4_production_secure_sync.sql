@@ -111,7 +111,7 @@ CREATE POLICY "Service role full access users"
 CREATE POLICY "Logged Users Public Read Policy"
   ON public.foody_logged_users FOR SELECT
   TO anon, authenticated
-  USING (true);
+  USING (role = 'customer');
 
 -- 2e. foody_users: Public read-only (drops wide-open legacy ALL policy)
 ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
@@ -129,7 +129,7 @@ CREATE POLICY "Service role full access users"
 CREATE POLICY "Users Public Read Policy"
   ON public.foody_users FOR SELECT
   TO anon, authenticated
-  USING (true);
+  USING (role = 'customer');
 
 -- ========================================================================
 -- Step 3: Orders Security Model (foody_orders)
@@ -161,11 +161,11 @@ CREATE POLICY "Service role full access orders"
   TO service_role
   USING (true) WITH CHECK (true);
 
--- 3a. Read orders: Clients can view orders
+-- 3a. Read orders: Active orders readable for guest tracking; archived orders protected
 CREATE POLICY "Orders Client Read Policy"
   ON public.foody_orders FOR SELECT
   TO anon, authenticated
-  USING (true);
+  USING (created_at > (NOW() - INTERVAL '7 days'));
 
 -- 3b. Safe Insert: Only initial new/pending orders allowed
 CREATE POLICY "Orders Client Safe Insert Policy"
