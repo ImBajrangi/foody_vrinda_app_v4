@@ -180,20 +180,97 @@ CREATE POLICY "Orders Client Safe Insert Policy"
     AND delivery_otp_used_at IS NULL
   );
 
--- 3c. Safe Update: Prep updates allowed; custody transitions ('picked_up', 'delivered') BLOCKED from direct UPDATE
+-- 3c. Safe Update: Kitchen prep updates allowed; custody transitions ('picked_up', 'delivered') BLOCKED from direct UPDATE
 CREATE POLICY "Orders Client Safe Update Policy"
   ON public.foody_orders FOR UPDATE
   TO anon, authenticated
-  USING (true)
+  USING (status NOT IN ('picked_up', 'delivered', 'cancelled'))
   WITH CHECK (
     status NOT IN ('picked_up', 'delivered')
     OR status = (SELECT o.status FROM public.foody_orders o WHERE o.id = foody_orders.id)
   );
 
+-- 3d. Column-Level Integrity Trigger: Blocks unauthorized client mutation of financial, identity, and OTP columns
+CREATE OR REPLACE FUNCTION public.trg_protect_order_immutable_columns()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+    -- Superuser and service_role are unrestricted (used by backend jobs & atomic RPCs)
+    IF current_user IN ('postgres', 'supabase_admin')
+       OR (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') THEN
+        RETURN NEW;
+    END IF;
+
+    -- Financial & Core Scope Immutability:
+    IF NEW.total_amount IS DISTINCT FROM OLD.total_amount THEN
+        RAISE EXCEPTION 'Security violation: total_amount is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.subtotal IS DISTINCT FROM OLD.subtotal THEN
+        RAISE EXCEPTION 'Security violation: subtotal is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.delivery_charge IS DISTINCT FROM OLD.delivery_charge THEN
+        RAISE EXCEPTION 'Security violation: delivery_charge is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.gst_amount IS DISTINCT FROM OLD.gst_amount THEN
+        RAISE EXCEPTION 'Security violation: gst_amount is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.shop_id IS DISTINCT FROM OLD.shop_id THEN
+        RAISE EXCEPTION 'Security violation: shop_id is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.user_id IS DISTINCT FROM OLD.user_id THEN
+        RAISE EXCEPTION 'Security violation: user_id is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.items::text IS DISTINCT FROM OLD.items::text THEN
+        RAISE EXCEPTION 'Security violation: items cannot be modified after order creation.' USING ERRCODE = '42501';
+    END IF;
+
+    -- Security Credentials & OTP Immutability:
+    IF NEW.pickup_otp IS DISTINCT FROM OLD.pickup_otp THEN
+        RAISE EXCEPTION 'Security violation: pickup_otp is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.delivery_otp IS DISTINCT FROM OLD.delivery_otp THEN
+        RAISE EXCEPTION 'Security violation: delivery_otp is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.pickup_otp_hash IS DISTINCT FROM OLD.pickup_otp_hash THEN
+        RAISE EXCEPTION 'Security violation: pickup_otp_hash is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.delivery_otp_hash IS DISTINCT FROM OLD.delivery_otp_hash THEN
+        RAISE EXCEPTION 'Security violation: delivery_otp_hash is immutable.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.pickup_otp_used_at IS DISTINCT FROM OLD.pickup_otp_used_at THEN
+        RAISE EXCEPTION 'Security violation: pickup_otp_used_at can only be set via atomic RPC.' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.delivery_otp_used_at IS DISTINCT FROM OLD.delivery_otp_used_at THEN
+        RAISE EXCEPTION 'Security violation: delivery_otp_used_at can only be set via atomic RPC.' USING ERRCODE = '42501';
+    END IF;
+
+    -- Rider Reassignment Protection:
+    IF NEW.rider_id IS DISTINCT FROM OLD.rider_id AND OLD.rider_id IS NOT NULL THEN
+        RAISE EXCEPTION 'Security violation: rider_id cannot be reassigned directly by client.' USING ERRCODE = '42501';
+    END IF;
+
+    -- Custody State Machine Jump Protection:
+    IF NEW.status IN ('picked_up', 'delivered') AND NEW.status IS DISTINCT FROM OLD.status THEN
+        RAISE EXCEPTION 'Security violation: Transition to "%" requires atomic OTP verification RPC.', NEW.status USING ERRCODE = '42501';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_enforce_order_immutability ON public.foody_orders;
+CREATE TRIGGER trg_enforce_order_immutability
+    BEFORE UPDATE ON public.foody_orders
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trg_protect_order_immutable_columns();
+
 -- ========================================================================
 -- Step 4: Audit Ledger (foody_order_events)
--- Direct client INSERT remains 100% BLOCKED.
--- Events can ONLY be emitted through triggers and atomic RPCs.
+-- Direct client SELECT & INSERT are 100% BLOCKED.
+-- Events can ONLY be read by service_role and emitted via atomic RPCs / triggers.
 -- ========================================================================
 ALTER TABLE public.foody_order_events ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access order events" ON public.foody_order_events;
@@ -209,13 +286,9 @@ CREATE POLICY "Service role full access events"
   TO service_role
   USING (true) WITH CHECK (true);
 
-CREATE POLICY "Order Events Public Read Policy"
-  ON public.foody_order_events FOR SELECT
-  TO anon, authenticated
-  USING (true);
-
--- NOTE: No INSERT policy for 'anon' or 'authenticated' enforces default-deny (SQLSTATE 42501).
--- This completely preserves ADV-04 (Audit Tamper Protection).
+-- CRITICAL AUDIT PRIVACY: No SELECT, INSERT, UPDATE, or DELETE policy for 'anon' or 'authenticated'.
+-- Default-deny ensures complete audit privacy and immutability (SQLSTATE 42501).
+-- This completely preserves ADV-04 (Audit Tamper Protection) and prevents audit-log data leakage.
 
 -- ========================================================================
 -- Step 5: Financial Settlements & Ledger Security
@@ -300,7 +373,7 @@ BEGIN
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin', 'kitchen')) THEN
         v_caller_id := p_rider_id;
     ELSE
-        RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id;
+        RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id USING ERRCODE = '42501';
     END IF;
 
     -- Lock the order row exclusively (concurrency protection)
@@ -312,6 +385,11 @@ BEGIN
 
     IF v_order.status NOT IN ('ready_for_pickup', 'rider_assigned', 'rider_arriving') THEN
         RAISE EXCEPTION 'Order % is in state "%" — cannot claim for pickup.', p_order_id, v_order.status;
+    END IF;
+
+    -- Cross-rider protection: If rider is already assigned, cannot be claimed by another rider
+    IF v_order.rider_id IS NOT NULL AND v_order.rider_id IS DISTINCT FROM v_caller_id THEN
+        RAISE EXCEPTION 'Order % is already assigned to rider %, cannot be claimed by %.', p_order_id, v_order.rider_id, v_caller_id;
     END IF;
 
     -- Enforce OTP one-time use
@@ -342,12 +420,13 @@ BEGIN
         RAISE EXCEPTION 'No OTP configured for order %. Cannot verify pickup.', p_order_id;
     END IF;
 
-    -- Transition state
+    -- Transition state & wipe plaintext OTP immediately upon verification
     UPDATE public.foody_orders
     SET
         status = 'picked_up',
         rider_id = v_caller_id,
         picked_up_at = NOW(),
+        pickup_otp = NULL,
         pickup_otp_attempts = 0,
         pickup_otp_used_at = NOW(),
         otp_used_at = NOW(),
@@ -389,7 +468,7 @@ BEGIN
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin')) THEN
         v_caller_id := p_rider_id;
     ELSE
-        RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id;
+        RAISE EXCEPTION 'Authorization failure: Rider ID % is not registered or authorized.', p_rider_id USING ERRCODE = '42501';
     END IF;
 
     SELECT * INTO v_order FROM public.foody_orders WHERE id = p_order_id FOR UPDATE;
@@ -432,10 +511,12 @@ BEGIN
         RAISE EXCEPTION 'No OTP configured for order %. Cannot verify delivery.', p_order_id;
     END IF;
 
+    -- Transition state & wipe plaintext OTP immediately upon verification
     UPDATE public.foody_orders
     SET
         status = 'delivered',
         delivered_at = NOW(),
+        delivery_otp = NULL,
         delivery_otp_attempts = 0,
         delivery_otp_used_at = NOW(),
         otp_used_at = NOW(),

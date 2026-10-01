@@ -43,6 +43,7 @@ function isBlocked(data, error) {
     return code === '42501' || code === 'PGRST301' || code === '42P01' ||
       msg.includes('permission denied') || msg.includes('policy') ||
       msg.includes('row-level security') || msg.includes('violates row-level') ||
+      msg.includes('authorization failure') || msg.includes('security violation') ||
       (error.status === 403 || error.status === 401);
   }
   if (Array.isArray(data) && data.length === 0) return 'EMPTY';
@@ -151,6 +152,49 @@ await test('Anon CANNOT update order status', async () => {
   return Array.isArray(data) && data.length === 0 ? true : `VULNERABLE: update succeeded on ${data?.length} rows`;
 });
 
+await test('Anon CANNOT tamper with order total_amount', async () => {
+  const { data: orders } = await anonClient.from('foody_orders').select('id,total_amount').limit(1);
+  if (!orders || orders.length === 0) return 'SKIP';
+  const target = orders[0];
+  const original = target.total_amount;
+  const attackAmount = (Number(original) === 1 ? 2 : 1);
+  const { data, error } = await anonClient.from('foody_orders').update({ total_amount: attackAmount }).eq('id', target.id).select();
+  if (isMissing(error)) return 'SKIP';
+  if (error) return true; // Trigger / RLS blocked
+  if (Array.isArray(data) && (data.length === 0 || data[0].total_amount === original)) return true;
+  return `VULNERABLE: total_amount changed from ${original} to ${data?.[0]?.total_amount}`;
+});
+
+await test('Anon CANNOT tamper with order shop_id', async () => {
+  const { data: orders } = await anonClient.from('foody_orders').select('id,shop_id').limit(1);
+  if (!orders || orders.length === 0) return 'SKIP';
+  const target = orders[0];
+  const { data, error } = await anonClient.from('foody_orders').update({ shop_id: 'shop-unauthorized-target' }).eq('id', target.id).select();
+  if (isMissing(error)) return 'SKIP';
+  if (error) return true;
+  return Array.isArray(data) && (data.length === 0 || data[0].shop_id === target.shop_id) ? true : `VULNERABLE: shop_id modified`;
+});
+
+await test('Anon CANNOT tamper with order user_id', async () => {
+  const { data: orders } = await anonClient.from('foody_orders').select('id,user_id').limit(1);
+  if (!orders || orders.length === 0) return 'SKIP';
+  const target = orders[0];
+  const { data, error } = await anonClient.from('foody_orders').update({ user_id: 'attacker-id-999' }).eq('id', target.id).select();
+  if (isMissing(error)) return 'SKIP';
+  if (error) return true;
+  return Array.isArray(data) && (data.length === 0 || data[0].user_id === target.user_id) ? true : `VULNERABLE: user_id modified`;
+});
+
+await test('Anon CANNOT tamper with order OTP fields', async () => {
+  const { data: orders } = await anonClient.from('foody_orders').select('id').limit(1);
+  if (!orders || orders.length === 0) return 'SKIP';
+  const target = orders[0];
+  const { data, error } = await anonClient.from('foody_orders').update({ pickup_otp: '999999', delivery_otp: '999999' }).eq('id', target.id).select();
+  if (isMissing(error)) return 'SKIP';
+  if (error) return true;
+  return Array.isArray(data) && data.length === 0 ? true : `VULNERABLE: OTP modified directly`;
+});
+
 await test('Anon CANNOT update shop settings', async () => {
   const { data, error } = await anonClient.from('foody_shops').update({is_open:false,name:'HACKED'}).eq('id','shop-vrinda-main').select();
   if (isMissing(error)) return 'SKIP';
@@ -218,6 +262,26 @@ for (const rpcName of rpcFunctions) {
     return isBlocked(data, error) ? true : `VULNERABLE: RPC executed`;
   });
 }
+
+await test('Anon CANNOT claim pickup via claim_order_pickup_atomic with forged rider', async () => {
+  const { data, error } = await anonClient.rpc('claim_order_pickup_atomic', {
+    p_order_id: 'ord-dummy-target',
+    p_rider_id: 'forged-rider-id',
+    p_otp_input: '123456'
+  });
+  if (isMissing(error)) return 'SKIP';
+  return isBlocked(data, error) ? true : `VULNERABLE: RPC executed without authorization`;
+});
+
+await test('Anon CANNOT verify delivery via verify_delivery_otp_atomic with forged rider', async () => {
+  const { data, error } = await anonClient.rpc('verify_delivery_otp_atomic', {
+    p_order_id: 'ord-dummy-target',
+    p_rider_id: 'forged-rider-id',
+    p_otp_input: '123456'
+  });
+  if (isMissing(error)) return 'SKIP';
+  return isBlocked(data, error) ? true : `VULNERABLE: RPC executed without authorization`;
+});
 
 // ── SECTION 5: Direct REST bypass ──
 console.log('\n── SECTION 5: Direct REST API bypass ──');
