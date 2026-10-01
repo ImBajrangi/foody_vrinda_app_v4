@@ -1,3 +1,5 @@
+// @ts-nocheck
+// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
 
@@ -140,6 +142,7 @@ async function sendFCMMessage(
 const ALLOWED_ORIGINS = [
   "https://eat.vrindopnishad.in",
   "https://mrsxliwyqodtwjuyqmts.supabase.co",
+  "com.foodyvrinda.app",
   "http://localhost:5173",
   "http://localhost:3000",
 ];
@@ -214,15 +217,15 @@ serve(async (req: Request) => {
         .limit(1)
         .maybeSingle();
       shopSettings = shopData;
-    } catch (_) {}
+    } catch (_) { }
 
     const isSelfChef = Boolean(shopSettings?.payment_settings?.self_chef_mode || shopSettings?.alarm_settings?.kitchenNew);
     const isSelfDelivery = Boolean(shopSettings?.payment_settings?.self_delivery_mode);
     const isDevotional = Boolean(
-      order.devotional_mode || 
-      order.devotionalMode || 
-      body.devotional_mode || 
-      shopSettings?.devotional_mode || 
+      order.devotional_mode ||
+      order.devotionalMode ||
+      body.devotional_mode ||
+      shopSettings?.devotional_mode ||
       shopSettings?.payment_settings?.devotional_notifications
     );
 
@@ -232,8 +235,8 @@ serve(async (req: Request) => {
       : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch (_) { return []; } })() : []);
     const defaultItem = isDevotional ? "Vedic Prasad" : "Food Order";
     const firstItemName = itemsList[0]?.name || itemsList[0]?.title || defaultItem;
-    const extraItemsCount = itemsList.length > 1 
-      ? ` (+${itemsList.length - 1} more)` 
+    const extraItemsCount = itemsList.length > 1
+      ? ` (+${itemsList.length - 1} more)`
       : (itemsList[0]?.quantity > 1 ? ` (x${itemsList[0].quantity})` : "");
     const itemsSummary = `${firstItemName}${extraItemsCount}`;
 
@@ -259,7 +262,7 @@ serve(async (req: Request) => {
           .limit(1)
           .maybeSingle();
         customerToken = custProfile?.fcm_token || null;
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // --- ESCALATION 1: UNRESPONSIVE KITCHEN WARNING (3-Minute Alert to Developer) ---
@@ -421,7 +424,7 @@ serve(async (req: Request) => {
         if (!staff.fcm_token || seenTokens.has(staff.fcm_token)) continue;
         seenTokens.add(staff.fcm_token);
 
-        const title = isDevotional 
+        const title = isDevotional
           ? `🔔 NEW BHOG: ${itemsSummary} · ₹${order.total_amount || 0}`
           : `🔔 New Order: ${itemsSummary} · ₹${order.total_amount || 0}`;
         const bodyMsg = isDevotional
@@ -469,7 +472,7 @@ serve(async (req: Request) => {
         if (rider.is_online === false || rider.duty_status === "off_duty") continue;
         seenRiderTokens.add(rider.fcm_token);
 
-        const title = isDevotional 
+        const title = isDevotional
           ? `🛵 Early Pickup: ${itemsSummary} · ₹${order.total_amount || 0}`
           : `🛵 Upcoming Pickup: ${itemsSummary} · ₹${order.total_amount || 0}`;
         const bodyMsg = isDevotional
@@ -537,7 +540,7 @@ serve(async (req: Request) => {
         for (const owner of ownerProfiles) {
           if (!owner.fcm_token) continue;
           const payMode = (order.payment_method || "cash").toUpperCase();
-          const title = isDevotional 
+          const title = isDevotional
             ? `💰 ₹${order.total_amount || 0} Received · ${itemsSummary}`
             : `💰 Payment Received: ₹${order.total_amount || 0} · ${itemsSummary}`;
           const bodyMsg = isDevotional

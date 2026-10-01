@@ -41,6 +41,8 @@ DROP POLICY IF EXISTS "Service role full access shops" ON public.foody_shops;
 DROP POLICY IF EXISTS "Allow public read shops" ON public.foody_shops;
 DROP POLICY IF EXISTS "Allow staff edit shops" ON public.foody_shops;
 DROP POLICY IF EXISTS "Shops Public Read Policy" ON public.foody_shops;
+DROP POLICY IF EXISTS "Admins and Owners can manage shops" ON public.foody_shops;
+DROP POLICY IF EXISTS "Authorized staff and Admins can view shops" ON public.foody_shops;
 
 CREATE POLICY "Service role full access shops"
   ON public.foody_shops FOR ALL
@@ -61,6 +63,7 @@ DROP POLICY IF EXISTS "Allow public read menus" ON public.foody_menus;
 DROP POLICY IF EXISTS "Allow staff edit menus" ON public.foody_menus;
 DROP POLICY IF EXISTS "Kitchen staff and Admins can manage menus" ON public.foody_menus;
 DROP POLICY IF EXISTS "Menus Public Read Policy" ON public.foody_menus;
+DROP POLICY IF EXISTS "Authorized kitchen staff and Admins can view menus" ON public.foody_menus;
 
 CREATE POLICY "Service role full access menus"
   ON public.foody_menus FOR ALL
@@ -95,6 +98,7 @@ DROP POLICY IF EXISTS "Public access logged users" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Service role full access users" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Users see own shop" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Logged Users Read Policy" ON public.foody_logged_users;
+DROP POLICY IF EXISTS "Logged Users Public Read Policy" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Block Direct Logged User Update" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Allow public read logged users" ON public.foody_logged_users;
 DROP POLICY IF EXISTS "Allow public edit logged users" ON public.foody_logged_users;
@@ -106,6 +110,24 @@ CREATE POLICY "Service role full access users"
 
 CREATE POLICY "Logged Users Public Read Policy"
   ON public.foody_logged_users FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- 2e. foody_users: Public read-only (drops wide-open legacy ALL policy)
+ALTER TABLE public.foody_users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access users" ON public.foody_users;
+DROP POLICY IF EXISTS "Users read own profile, Admins read all" ON public.foody_users;
+DROP POLICY IF EXISTS "Block Direct User Update" ON public.foody_users;
+DROP POLICY IF EXISTS "Service role full access users" ON public.foody_users;
+DROP POLICY IF EXISTS "Users Public Read Policy" ON public.foody_users;
+
+CREATE POLICY "Service role full access users"
+  ON public.foody_users FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "Users Public Read Policy"
+  ON public.foody_users FOR SELECT
   TO anon, authenticated
   USING (true);
 
@@ -196,7 +218,7 @@ CREATE POLICY "Order Events Public Read Policy"
 -- This completely preserves ADV-04 (Audit Tamper Protection).
 
 -- ========================================================================
--- Step 5: Financial Settlements (foody_cash_settlements)
+-- Step 5: Financial Settlements & Ledger Security
 -- Strictly protected from public manipulation.
 -- ========================================================================
 ALTER TABLE public.foody_cash_settlements ENABLE ROW LEVEL SECURITY;
@@ -211,6 +233,42 @@ CREATE POLICY "Service role full access settlements"
   ON public.foody_cash_settlements FOR ALL
   TO service_role
   USING (true) WITH CHECK (true);
+
+-- 5b. foody_cash_transactions: Service role only (blocks public tampering)
+ALTER TABLE public.foody_cash_transactions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access cash transactions" ON public.foody_cash_transactions;
+DROP POLICY IF EXISTS "Service role full access transactions" ON public.foody_cash_transactions;
+
+CREATE POLICY "Service role full access transactions"
+  ON public.foody_cash_transactions FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+
+-- 5c. foody_notifications: Remove wide-open public policy
+ALTER TABLE public.foody_notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access notifications" ON public.foody_notifications;
+
+-- 5d. foody_offers: Public read-only, service role write
+ALTER TABLE public.foody_offers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Full Access on foody_offers" ON public.foody_offers;
+DROP POLICY IF EXISTS "Public access offers" ON public.foody_offers;
+DROP POLICY IF EXISTS "Public Read Access on foody_offers" ON public.foody_offers;
+DROP POLICY IF EXISTS "Service role full access offers" ON public.foody_offers;
+DROP POLICY IF EXISTS "Offers Public Read Policy" ON public.foody_offers;
+
+CREATE POLICY "Service role full access offers"
+  ON public.foody_offers FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "Offers Public Read Policy"
+  ON public.foody_offers FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- 5e. foody_reviews: Remove wide-open public policy
+ALTER TABLE public.foody_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access reviews" ON public.foody_reviews;
 
 -- ========================================================================
 -- Step 6: Atomic Custody Transfer RPCs (claim_order_pickup & verify_delivery_otp)
