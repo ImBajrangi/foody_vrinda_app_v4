@@ -2253,6 +2253,39 @@ html:not(.dark) .leaflet-interactive.animated-delivery-route {
   filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.45)) !important;
 }
 
+/* Animated Pedestrian Walking Dots (Road Drop-off -> Doorstep Pin) */
+@keyframes flowWalkingDots {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: -18px;
+  }
+}
+
+path.animated-walking-dots,
+.leaflet-pane path.animated-walking-dots,
+.leaflet-overlay-pane svg path.animated-walking-dots,
+.leaflet-interactive.animated-walking-dots {
+  stroke: #E0FF33 !important;
+  stroke-dasharray: 4px 5px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 3px !important;
+  animation: flowWalkingDots 0.85s linear infinite !important;
+  filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.75)) !important;
+  will-change: stroke-dashoffset;
+}
+
+html:not(.dark) path.animated-walking-dots,
+html:not(.dark) .leaflet-pane path.animated-walking-dots,
+html:not(.dark) .leaflet-overlay-pane svg path.animated-walking-dots,
+html:not(.dark) .leaflet-interactive.animated-walking-dots {
+  stroke: #D97706 !important;
+  filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.5)) !important;
+}
+
 @keyframes flowParabolicDots {
   0% {
     stroke-dashoffset: 0px;

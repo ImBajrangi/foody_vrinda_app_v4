@@ -287,42 +287,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Continuous Route Polyline & Ultra-Smooth Upward-Arched Parabolic Dotted Arcs
-    const generateParabolicArc = (start, end, numPoints = 50, bendFactor = 0.28) => {
-      const [lat0, lng0] = start;
-      const [lat1, lng1] = end;
-      const dLat = lat1 - lat0;
-      const dLng = lng1 - lng0;
-      const dist = Math.hypot(dLat, dLng);
-      if (dist < 0.00001) return [start, end];
-
-      const midLat = (lat0 + lat1) / 2;
-      const midLng = (lng0 + lng1) / 2;
-
-      // Calculate perpendicular normal with strict upward (overhead arc) orientation
-      let normLat = -dLng / dist;
-      let normLng = dLat / dist;
-
-      if (normLat < 0) {
-        normLat = -normLat;
-        normLng = -normLng;
-      }
-      if (normLat < 0.25) {
-        normLat = 0.45;
-      }
-
-      const controlLat = midLat + normLat * dist * bendFactor;
-      const controlLng = midLng + normLng * dist * bendFactor;
-
-      const points = [];
-      for (let i = 0; i <= numPoints; i++) {
-        const t = i / numPoints;
-        const invT = 1 - t;
-        const lat = invT * invT * lat0 + 2 * invT * t * controlLat + t * t * lat1;
-        const lng = invT * invT * lng0 + 2 * invT * t * controlLng + t * t * lng1;
-        points.push([lat, lng]);
-      }
-      return points;
+    // 5. Continuous Route Polyline & Direct Walking Pedestrian Connectors
+    const generateWalkingPath = (start, end) => {
+      if (!start || !end) return [];
+      return [start, end];
     };
 
     let currentRouteCoords = [
@@ -331,9 +299,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       [destLat, destLng]
     ];
 
-    // Road Casing (Crisp Solid Underlay)
+    // Road Casing (Crisp Solid Dark Underlay for 100% contrast)
     const roadCasing = L.polyline(currentRouteCoords, {
-      color: isDark ? '#181617' : '#FFFFFF',
+      color: '#181617',
       weight: 5.5,
       opacity: 0.95,
       lineCap: 'round',
@@ -353,24 +321,45 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadLine);
 
-    // Clean Animated Walking / Connector Arcs
+    // Start Connector Casing (Kitchen -> Road Start Dark Underlay)
+    const startConnectorCasing = L.polyline([], {
+      color: '#181617',
+      weight: 5.5,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(startConnectorCasing);
+
+    // Clean Animated Walking / Connector (Kitchen -> Road Start)
     const startConnector = L.polyline([], {
       color: primaryThemeColor,
-      weight: 2.5,
-      dashArray: '4, 8',
-      className: 'animated-delivery-route',
-      opacity: 0.9,
+      weight: 3,
+      dashArray: '4, 5',
+      className: 'animated-walking-dots',
+      opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(startConnector);
 
+    // Walking Connector Casing (Road End -> Doorstep Dark Underlay)
+    const walkingConnectorCasing = L.polyline([], {
+      color: '#181617',
+      weight: 5.5,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(walkingConnectorCasing);
+
+    // Walking Connector Foreground (Road End -> Doorstep High-Contrast Pedestrian Dots)
     const walkingConnector = L.polyline([], {
       color: primaryThemeColor,
-      weight: 2.5,
-      dashArray: '4, 8',
-      className: 'animated-delivery-route',
-      opacity: 0.9,
+      weight: 3,
+      dashArray: '4, 5',
+      className: 'animated-walking-dots',
+      opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
     });
@@ -378,16 +367,17 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     // Road Drop-off Terminus Dot (Where vehicle stops and walking begins)
     const dropOffStopDot = L.circleMarker([destLat, destLng], {
-      radius: 4.5,
-      color: isDark ? '#181617' : '#FFFFFF',
+      radius: 5,
+      color: '#181617',
       fillColor: primaryThemeColor,
       fillOpacity: 1,
-      weight: 2
+      weight: 2.5
     });
+    dropOffStopDot.bindTooltip('Vehicle Drop-off (Doorstep Walking Path)', { permanent: false, direction: 'top', offset: [0, -10] });
 
     let animInterval = null;
 
-    // Fetch OSRM route and establish road driving path + dynamic parabolic arc to doorstep
+    // Fetch OSRM route and establish road driving path + dynamic straight connector to doorstep
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
@@ -412,26 +402,32 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             roadCasing.setLatLngs(rawLatLngs);
             roadLine.setLatLngs(rawLatLngs);
 
-            // Connect Kitchen -> Road Start with walking connector
+            // Connect Kitchen -> Road Start with straight cased walking connector
             const isStartOffset = Math.hypot(roadStart[0] - shopLat, roadStart[1] - shopLng) > 0.0001;
             if (isStartOffset) {
-              const startArc = generateParabolicArc([shopLat, shopLng], roadStart, 50, 0.22);
-              startConnector.setLatLngs(startArc);
+              const startPath = generateWalkingPath([shopLat, shopLng], roadStart);
+              startConnectorCasing.setLatLngs(startPath);
+              startConnector.setLatLngs(startPath);
             } else {
+              startConnectorCasing.setLatLngs([]);
               startConnector.setLatLngs([]);
             }
 
-            // Connect Road End -> Doorstep Pin with walking connector
-            const walkingArc = generateParabolicArc(roadEnd, [destLat, destLng], 50, 0.22);
-            walkingConnector.setLatLngs(walkingArc);
-
-
-            // Show drop-off stop dot at road terminus if destination is offset
+            // Connect Road End -> Doorstep Pin with straight cased walking connector
             const isEndOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
             if (isEndOffset) {
+              const walkingPath = generateWalkingPath(roadEnd, [destLat, destLng]);
+              walkingConnectorCasing.setLatLngs(walkingPath);
+              walkingConnector.setLatLngs(walkingPath);
               dropOffStopDot.setLatLng(roadEnd);
               if (!group.hasLayer(dropOffStopDot)) {
                 group.addLayer(dropOffStopDot);
+              }
+            } else {
+              walkingConnectorCasing.setLatLngs([]);
+              walkingConnector.setLatLngs([]);
+              if (group.hasLayer(dropOffStopDot)) {
+                group.removeLayer(dropOffStopDot);
               }
             }
 
