@@ -2227,7 +2227,7 @@ body.sheet-dragging {
   }
 
   100% {
-    stroke-dashoffset: -28px;
+    stroke-dashoffset: -30px;
   }
 }
 
@@ -2239,9 +2239,18 @@ path.animated-delivery-route,
   stroke-dasharray: 6px 9px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
-  stroke-width: 3.2px !important;
+  stroke-width: 3.5px !important;
   animation: flowRouteDash 0.75s linear infinite !important;
-  filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.75)) !important;
+  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.75)) !important;
+  will-change: stroke-dashoffset;
+}
+
+html:not(.dark) path.animated-delivery-route,
+html:not(.dark) .leaflet-pane path.animated-delivery-route,
+html:not(.dark) .leaflet-overlay-pane svg path.animated-delivery-route,
+html:not(.dark) .leaflet-interactive.animated-delivery-route {
+  stroke: #D97706 !important;
+  filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.45)) !important;
 }
 
 @keyframes flowParabolicDots {

@@ -440,10 +440,12 @@ export default function TransportView() {
     });
     group.addLayer(routeCasing);
 
-    // Glowing Solid Neon Driving Road Line
+    // Glowing Animated Neon Driving Road Line
     const routeLine = L.polyline(currentRouteCoords, {
       color: '#E0FF33',
       weight: 3.5,
+      dashArray: '6, 9',
+      className: 'animated-delivery-route',
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'

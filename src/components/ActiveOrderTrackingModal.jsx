@@ -341,21 +341,24 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadCasing);
 
-    // Vibrant Solid Delivery Route Line (Neon Lime in Dark, Royal Saffron in Light)
+    // Vibrant Animated Flowing Delivery Route (Neon Lime in Dark, Royal Saffron in Light)
     const roadLine = L.polyline(currentRouteCoords, {
       color: primaryThemeColor,
       weight: 3.5,
+      dashArray: '6, 9',
+      className: 'animated-delivery-route',
       opacity: 1,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(roadLine);
 
-    // Clean Walking / Connector Arcs
+    // Clean Animated Walking / Connector Arcs
     const startConnector = L.polyline([], {
       color: primaryThemeColor,
       weight: 2.5,
-      dashArray: '4, 6',
+      dashArray: '4, 8',
+      className: 'animated-delivery-route',
       opacity: 0.9,
       lineCap: 'round',
       lineJoin: 'round'
@@ -365,7 +368,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     const walkingConnector = L.polyline([], {
       color: primaryThemeColor,
       weight: 2.5,
-      dashArray: '4, 6',
+      dashArray: '4, 8',
+      className: 'animated-delivery-route',
       opacity: 0.9,
       lineCap: 'round',
       lineJoin: 'round'
