@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1790838902.2989168,
-    "ast_hash": "ae011b65dc5646b7bda8b0da2148c42f",
+    "mtime": 1790769507.6530013,
+    "ast_hash": "ecb045ba4031c59532f8d59aa70d8d1c",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1790838812.8410113,
-    "ast_hash": "4d5f4820748e548f15f6d76fea15d1e8",
+    "mtime": 1790759031.437066,
+    "ast_hash": "8e7cf5693e4cb914e92692895b53e8e5",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1790838797.2429636,
-    "ast_hash": "8566343de8cef237bec3856a639fde8f",
+    "mtime": 1790782534.560151,
+    "ast_hash": "e78fdd14c22efa10edf1e6d4ed5183e6",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1790838476.9877226,
-    "ast_hash": "6e25b24fe4b3a2251044c4d0522ac4b5",
+    "mtime": 1788928658.5510406,
+    "ast_hash": "d47acd8c5d9e9168552f2602a526c75d",
     "semantic_hash": ""
   },
   "index.html": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1790842119.584391,
-    "ast_hash": "ce83e2647529923e4a59c4555daf566c",
+    "mtime": 1790782011.9919138,
+    "ast_hash": "734f7dc6379daa593e97679e05b641f3",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/order-push-notification/index.ts": {
-    "mtime": 1790839071.255947,
-    "ast_hash": "8755d053d014c40c4f8c9ca162b7de26",
+    "mtime": 1790765285.3462396,
+    "ast_hash": "44038f4b03286999b4c7330fa7ed6e49",
     "semantic_hash": ""
   },
   "scripts/test_push_workflow.mjs": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "ProductDetails/v5_3_4_production_secure_sync.sql": {
-    "mtime": 1790842282.7009192,
-    "ast_hash": "d0152d781c995a5ced879abb40d530be",
+    "mtime": 1790783243.4366693,
+    "ast_hash": "1a6272c9fc7cc680a20e09d14823cc4b",
     "semantic_hash": ""
   },
   "ProductDetails/v5_3_concurrency_race_protocol.sql": {
@@ -432,11 +432,6 @@
   "ProductDetails/v5_3_6_production_fresh_start.sql": {
     "mtime": 1790784134.2096698,
     "ast_hash": "c035ea411ae8f1e2c00cbd4a6ce1b389",
-    "semantic_hash": ""
-  },
-  "scripts/test-live-rls-regression.mjs": {
-    "mtime": 1790841991.74218,
-    "ast_hash": "5a7ea92ff6079f602d14e33fe2927dec",
     "semantic_hash": ""
   }
 }

@@ -89,4 +89,10 @@ rule-transitional-otp-v5.4:
 rule-zero-drift-schema-resilience:
 “All database upserts in src/supabase.js must maintain resilience against missing transitional schema columns by intercepting PostgREST 400 column errors and retrying with strict canonical payloads.”
 
+<RULE[agent_efficiency]>
+When auditing or generating production migrations, always pair declarative RLS policies with PostgreSQL BEFORE UPDATE triggers for financial, identity, and OTP immutability, and explicitly verify error codes (SQLSTATE 42501) rather than relying solely on HTTP 200 empty array responses.
+</RULE[agent_efficiency]>
+
+Rule [Android Adaptive Icon Invariant]:
+"All adaptive launcher icon foregrounds (ic_launcher_foreground.png) must have a 100% transparent background (alpha = 0) with the active emblem scaled between 55%–62% of the canvas to adhere to Android's 66dp safe zone. Backgrounds must use the signature Obsidian (#1E1B1C) vector, and legacy fallback icons must never retain opaque white corner bounding boxes."
 

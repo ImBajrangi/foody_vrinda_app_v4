@@ -368,7 +368,7 @@ BEGIN
             RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id USING ERRCODE = '42501';
         END IF;
         v_caller_id := auth.uid()::text;
-    ELSIF (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') OR (current_setting('request.jwt.claim.role', true) IS NULL) THEN
+    ELSIF auth.role() = 'service_role' OR (auth.role() IS NULL AND current_user IN ('postgres', 'supabase_admin')) THEN
         v_caller_id := p_rider_id;
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin', 'kitchen')) THEN
         v_caller_id := p_rider_id;
@@ -466,7 +466,7 @@ BEGIN
             RAISE EXCEPTION 'Caller identity mismatch: auth.uid()=% does not match claimed rider_id=%', auth.uid()::text, p_rider_id USING ERRCODE = '42501';
         END IF;
         v_caller_id := auth.uid()::text;
-    ELSIF (COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role') OR (current_setting('request.jwt.claim.role', true) IS NULL) THEN
+    ELSIF auth.role() = 'service_role' OR (auth.role() IS NULL AND current_user IN ('postgres', 'supabase_admin')) THEN
         v_caller_id := p_rider_id;
     ELSIF EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id AND role IN ('delivery', 'rider', 'sarathi', 'owner', 'developer', 'grand_admin')) THEN
         v_caller_id := p_rider_id;
