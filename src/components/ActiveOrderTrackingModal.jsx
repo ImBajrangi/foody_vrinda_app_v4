@@ -321,21 +321,23 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadLine);
 
-    // Start Connector Casing (Kitchen -> Road Start Dark Underlay)
+    // Start Connector Casing (Kitchen -> Road Start Obsidian Beads)
     const startConnectorCasing = L.polyline([], {
-      color: '#181617',
-      weight: 5.5,
-      opacity: 0.95,
+      color: '#121011',
+      weight: 8.5,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(startConnectorCasing);
 
-    // Clean Animated Walking / Connector (Kitchen -> Road Start)
+    // Clean Animated Walking Dots (Kitchen -> Road Start Glowing Beads)
     const startConnector = L.polyline([], {
       color: primaryThemeColor,
-      weight: 3,
-      dashArray: '4, 5',
+      weight: 4.5,
+      dashArray: '1, 16',
       className: 'animated-walking-dots',
       opacity: 1,
       lineCap: 'round',
@@ -343,21 +345,23 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(startConnector);
 
-    // Walking Connector Casing (Road End -> Doorstep Dark Underlay)
+    // Walking Connector Casing (Road End -> Doorstep Obsidian Beads)
     const walkingConnectorCasing = L.polyline([], {
-      color: '#181617',
-      weight: 5.5,
-      opacity: 0.95,
+      color: '#121011',
+      weight: 8.5,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
       lineCap: 'round',
       lineJoin: 'round'
     });
     group.addLayer(walkingConnectorCasing);
 
-    // Walking Connector Foreground (Road End -> Doorstep High-Contrast Pedestrian Dots)
+    // Walking Connector Foreground (Road End -> Doorstep Glowing Beads)
     const walkingConnector = L.polyline([], {
       color: primaryThemeColor,
-      weight: 3,
-      dashArray: '4, 5',
+      weight: 4.5,
+      dashArray: '1, 16',
       className: 'animated-walking-dots',
       opacity: 1,
       lineCap: 'round',
