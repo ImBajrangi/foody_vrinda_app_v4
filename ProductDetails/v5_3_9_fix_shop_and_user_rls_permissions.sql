@@ -35,16 +35,15 @@ GRANT SELECT ON public.foody_reviews TO anon, authenticated;
 GRANT SELECT ON public.foody_roles TO anon, authenticated;
 
 -- Security-barrier public catalog views
+DROP VIEW IF EXISTS public.public_shop_catalog CASCADE;
 CREATE OR REPLACE VIEW public.public_shop_catalog WITH (security_barrier = true) AS
-  SELECT id, name, description, address, phone, image, rating, reviews_count, is_open, is_online,
-         delivery_charge, minimum_order_amount, is_veg_only, shop_type, opening_time, closing_time,
-         cuisine_types, is_active, is_deleted, created_at, updated_at
+  SELECT *
   FROM public.foody_shops
-  WHERE is_deleted IS NOT TRUE AND is_active IS NOT FALSE;
+  WHERE COALESCE(is_deleted, false) IS FALSE AND COALESCE(is_active, true) IS TRUE;
 
+DROP VIEW IF EXISTS public.public_menu_catalog CASCADE;
 CREATE OR REPLACE VIEW public.public_menu_catalog WITH (security_barrier = true) AS
-  SELECT id, shop_id, name, hindi_name, description, price, original_price, category, subcategory,
-         is_available, is_veg, image, rating, reviews_count, preparation_time, tags, nutrition, is_combo, combo_items, created_at, updated_at
+  SELECT *
   FROM public.foody_menus;
 
 GRANT SELECT ON public.public_shop_catalog TO anon, authenticated;
@@ -131,6 +130,12 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
+  -- Allow internal postgres and supabase background services (e.g. auth hooks / admin seeders)
+  IF current_user IN ('supabase_admin', 'postgres', 'service_role') OR session_user IN ('supabase_admin', 'postgres') THEN
+    NEW.updated_at := NOW();
+    RETURN NEW;
+  END IF;
+
   -- 1. On INSERT: Non-admins can NEVER self-register with privileged roles or shop ownership
   IF TG_OP = 'INSERT' THEN
     IF NEW.role NOT IN ('customer') OR NEW.shop_id IS NOT NULL OR NEW.shop_ids IS NOT NULL OR (NEW.dev_permissions IS NOT NULL AND NEW.dev_permissions::text != '[]') THEN
@@ -171,6 +176,64 @@ CREATE TRIGGER trg_protect_foody_logged_users
   BEFORE INSERT OR UPDATE ON public.foody_logged_users
   FOR EACH ROW
   EXECUTE FUNCTION public.protect_user_profile_columns();
+
+-- =====================================================================
+-- STEP 3.1: HARDENED AUTH.USERS SIGNUP TRIGGER (INSERT ONLY)
+-- =====================================================================
+CREATE OR REPLACE FUNCTION public.handle_auth_user_sync()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_name TEXT;
+  v_email TEXT;
+  v_phone TEXT;
+  v_avatar TEXT;
+BEGIN
+  v_name := COALESCE(
+    NEW.raw_user_meta_data->>'display_name',
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'name',
+    split_part(NEW.email, '@', 1),
+    'Foody Devotee'
+  );
+  v_email := NEW.email;
+  v_phone := COALESCE(NEW.phone, NEW.raw_user_meta_data->>'phone', '');
+  v_avatar := COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', '');
+
+  -- Insert only on new user creation (DO NOTHING on conflict so existing roles/shops are preserved)
+  INSERT INTO public.foody_logged_users (
+    id, display_name, email, phone, avatar_url, role, is_active, last_login_at, created_at, updated_at
+  ) VALUES (
+    NEW.id::text, v_name, v_email, v_phone, v_avatar, 'customer', true, NOW(), NOW(), NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    last_login_at = NOW(),
+    updated_at = NOW();
+
+  INSERT INTO public.foody_users (
+    id, display_name, email, phone, avatar_url, role, is_active, created_at, updated_at
+  ) VALUES (
+    NEW.id::text, v_name, v_email, v_phone, v_avatar, 'customer', true, NOW(), NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    updated_at = NOW();
+
+  RETURN NEW;
+END;
+$$;
+
+DO $$ 
+BEGIN
+  DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+  CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_auth_user_sync();
+EXCEPTION WHEN OTHERS THEN
+  NULL;
+END $$;
 
 -- Secure User Profile Sync RPC (Controlled Profile Management)
 DROP FUNCTION IF EXISTS public.sync_authenticated_profile(TEXT, TEXT, TEXT, TEXT);
