@@ -23,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
+import { PRESET_DISHES, PRESET_CATEGORIES } from '../constants/presetDishes';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import NativeTimePicker from '../components/ui/NativeTimePicker';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -355,6 +356,16 @@ export default function OwnerView() {
     const handleLocalUsers = (e) => {
       if (e?.detail?.users && Array.isArray(e.detail.users) && e.detail.users.length > 0) {
         setUsersList(e.detail.users);
+      } else if (e?.detail?.user) {
+        setUsersList(prev => {
+          const idx = prev.findIndex(u => u.id === e.detail.user.id || (u.email && e.detail.user.email && u.email.toLowerCase() === e.detail.user.email.toLowerCase()));
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...e.detail.user };
+            return next;
+          }
+          return [e.detail.user, ...prev];
+        });
       }
     };
     window.addEventListener('foody_users_changed', handleLocalUsers);
@@ -454,6 +465,96 @@ export default function OwnerView() {
     nutrition: '',
     ingredients: ''
   });
+
+  // Preset Visual & Template Selection States
+  // Preset Visual & Template Selection States
+  const [presetCutoutCategory, setPresetCutoutCategory] = useState('All');
+  const [presetCutoutSearch, setPresetCutoutSearch] = useState('');
+  const [showPresetCatalogModal, setShowPresetCatalogModal] = useState(false);
+  const [presetModalCategory, setPresetModalCategory] = useState('All');
+  const [presetModalSearch, setPresetModalSearch] = useState('');
+  const [presetPriceOverrides, setPresetPriceOverrides] = useState({});
+
+  // Quick Inline Price Editing State
+  const [inlineEditingDishId, setInlineEditingDishId] = useState(null);
+  const [inlineEditingPrice, setInlineEditingPrice] = useState('');
+
+  const handleQuickPriceChange = async (dishId, newPrice) => {
+    const cleanPrice = Math.max(0, Math.round(Number(newPrice) || 0));
+    // Optimistic update for instant UI feedback
+    setMenuItems(prev => prev.map(m => m.id === dishId ? { ...m, price: cleanPrice } : m));
+    setInlineEditingDishId(null);
+    setFastNotification({
+      type: 'success',
+      text: `Price updated to ₹${cleanPrice}`,
+      icon: 'DollarSign'
+    });
+
+    try {
+      await updateCloudMenuItem(dishId, { price: cleanPrice });
+    } catch (err) {
+      console.error('Failed to update price in cloud:', err);
+      setToast({ message: "Failed to update price in cloud", type: "error" });
+    }
+  };
+
+  const handleApplyPresetTemplate = (preset, customPrice = null) => {
+    if (!preset) return;
+    const finalPrice = customPrice !== null ? String(customPrice) : String(presetPriceOverrides[preset.id] || preset.price || '120');
+    setMenuForm(prev => ({
+      ...prev,
+      name: preset.name,
+      description: preset.description || prev.description,
+      price: finalPrice,
+      category: preset.category === 'Meals' ? 'Meals' : preset.category === 'Sweets & Prasad' ? 'Sweets' : preset.category === 'Beverages' ? 'Drinks' : 'Snacks',
+      spicyLevel: preset.spicyLevel || 'Mild',
+      imageUrl: preset.image || preset.cdnImage,
+      nutrition: preset.nutrition ? `${preset.calories || '250 kcal'} (${preset.nutrition.carbs || '30g'} C, ${preset.nutrition.protein || '10g'} P, ${preset.nutrition.fat || '8g'} F)` : '',
+      ingredients: preset.tag || ''
+    }));
+    setFastNotification({
+      type: 'success',
+      text: `Loaded "${preset.name}" preset (₹${finalPrice})!`,
+      icon: 'Sparkles'
+    });
+  };
+
+  const handleQuickAddPresetDish = async (preset, customPrice = null) => {
+    const targetShop = menuForm.shopId || currentUserShopId || (allShops[0]?.id || 'shop-vrinda-main');
+    const dishId = `dish-${Date.now().toString(36)}-${Math.random().toString(36).slice(-3)}`;
+    const priceToSet = Number(customPrice ?? presetPriceOverrides[preset.id] ?? preset.price) || 120;
+    const originalPriceToSet = Math.max(priceToSet, Number(preset.originalPrice) || priceToSet);
+    const newDish = {
+      id: dishId,
+      name: preset.name,
+      description: preset.description || 'Authentic Satvik preparation cooked with pure desi ghee.',
+      price: priceToSet,
+      originalPrice: originalPriceToSet,
+      category: preset.category || 'Snacks',
+      image: preset.image || preset.cdnImage,
+      isAvailable: true,
+      isVeg: true,
+      shopId: targetShop,
+      rating: preset.rating || 4.9,
+      calories: preset.calories || '260 kcal',
+      nutrition: preset.nutrition || { kcal: '260 kcal', carbs: '32g', protein: '10g', fat: '8g' },
+      spicyLevel: preset.spicyLevel || 'Mild',
+      tag: preset.tag || 'Bestseller'
+    };
+
+    setMenuItems(prev => [newDish, ...prev]);
+    setFastNotification({
+      type: 'success',
+      text: `+ ${preset.name} (₹${priceToSet}) added to menu!`,
+      icon: 'Plus'
+    });
+
+    try {
+      await createCloudMenuItem(newDish);
+    } catch (err) {
+      console.error('Error adding preset menu item:', err);
+    }
+  };
 
   // Fetch shop-specific orders for analytics and audit with Supabase Realtime
   useEffect(() => {
@@ -2253,6 +2354,44 @@ export default function OwnerView() {
                   )}
 
             <form onSubmit={handleSaveMenuForm} className="space-y-4">
+              {/* Quick Preset Templates Strip */}
+              <div className="bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 p-3 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-[#E0FF33] flex items-center gap-1.5 font-['Outfit']">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    ⚡ Quick-Fill from Preset Dish Template (24 Items)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetCatalogModal(true)}
+                    className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] underline hover:no-underline cursor-pointer"
+                  >
+                    View All Presets
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                  {PRESET_DISHES.slice(0, 10).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleApplyPresetTemplate(p)}
+                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+                      title={p.description}
+                    >
+                      <img src={p.image} alt={p.name} className="w-4 h-4 object-contain" />
+                      <span>{p.name}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetCatalogModal(true)}
+                    className="px-2.5 py-1 rounded-xl bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black text-[10px] font-black uppercase tracking-wider shrink-0 shadow-xs cursor-pointer"
+                  >
+                    + More
+                  </button>
+                </div>
+              </div>
+
               {/* Dish Name Input */}
               <div>
                 <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
@@ -2485,50 +2624,124 @@ export default function OwnerView() {
                   )}
                 </div>
 
-                {/* Preset Cutout Quick Tiles */}
-                <div>
-                  <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5 font-['Outfit']">
-                    Or select a preset visual cutout:
-                  </span>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-                    {[
-                      { src: '/dishes/thali.png', name: 'Royal Thali' },
-                      { src: '/dishes/curry.png', name: 'Shahi Paneer' },
-                      { src: '/dishes/sweet.png', name: 'Saffron Kheer' },
-                      { src: '/dishes/rice.png', name: 'Jeera Rice' },
-                      { src: '/dishes/pizza.png', name: 'Satvik Pizza' },
-                      { src: '/dishes/burger.png', name: 'Veggie Burger' }
-                    ].map((asset) => {
-                      const isSelected = menuForm.imageUrl === asset.src;
-                      return (
+                {/* Preset Cutout Quick Tiles (24 Curated WebP Presets) */}
+                <div className="bg-stone-50/80 dark:bg-[#181617] p-3.5 rounded-2xl border border-stone-200 dark:border-white/10 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[11px] font-black text-stone-700 dark:text-neutral-200 uppercase tracking-wider font-['Outfit'] flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-[#E0FF33]" />
+                        Select Preset Dish Cutout (24 Presets)
+                      </span>
+                      <p className="text-[10px] text-stone-500 dark:text-neutral-400">
+                        Tap any dish to set image, or click <span className="text-amber-600 dark:text-[#E0FF33] font-bold">Auto-Fill</span> to populate all fields.
+                      </p>
+                    </div>
+
+                    {/* Quick Search */}
+                    <div className="relative w-full sm:w-44">
+                      <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={presetCutoutSearch}
+                        onChange={(e) => setPresetCutoutSearch(e.target.value)}
+                        placeholder="Search 24 presets..."
+                        className="w-full bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-6 py-1.5 text-[11px] text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                      />
+                      {presetCutoutSearch && (
                         <button
-                          key={asset.src}
                           type="button"
-                          onClick={() => setMenuForm({ ...menuForm, imageUrl: asset.src })}
-                          className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[86px] ${isSelected
-                            ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
-                            : 'bg-stone-100 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-200/70 dark:hover:bg-[#252223]'
-                            }`}
-                          title={asset.name}
+                          onClick={() => setPresetCutoutSearch('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-white"
                         >
-                          <div className="w-10 h-10 flex items-center justify-center">
-                            <img
-                              src={asset.src}
-                              alt={asset.name}
-                              className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
-                            />
-                          </div>
-                          {isSelected && (
-                            <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
-                              <Check size={10} className="stroke-[3]" />
-                            </div>
-                          )}
-                          <span className={`text-[10px] font-bold mt-1 text-center truncate w-full ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
-                            {asset.name}
-                          </span>
+                          <X className="w-3 h-3" />
                         </button>
-                      );
-                    })}
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Category Filter Chips */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                    {PRESET_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setPresetCutoutCategory(cat)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${presetCutoutCategory === cat
+                          ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
+                          : 'bg-stone-200/70 hover:bg-stone-300/70 text-stone-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-neutral-400 border-stone-300/60 dark:border-white/5'
+                          }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Presets Grid */}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto no-scrollbar p-1">
+                    {PRESET_DISHES
+                      .filter((p) => {
+                        const matchCat = presetCutoutCategory === 'All' || p.category === presetCutoutCategory;
+                        const matchQ = !presetCutoutSearch ||
+                          p.name.toLowerCase().includes(presetCutoutSearch.toLowerCase()) ||
+                          p.category.toLowerCase().includes(presetCutoutSearch.toLowerCase());
+                        return matchCat && matchQ;
+                      })
+                      .map((preset) => {
+                        const isSelected = menuForm.imageUrl === preset.image || menuForm.imageUrl === preset.cdnImage;
+                        return (
+                          <div
+                            key={preset.id}
+                            className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
+                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                              : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#E0FF33]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
+                              }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setMenuForm({ ...menuForm, imageUrl: preset.image })}
+                              className="w-full flex flex-col items-center justify-center flex-1 cursor-pointer"
+                              title={`Set image to ${preset.name}`}
+                            >
+                              <div className="w-11 h-11 flex items-center justify-center relative">
+                                <img
+                                  src={preset.image}
+                                  alt={preset.name}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
+                                  onError={(e) => {
+                                    if (preset.cdnImage && e.target.src !== preset.cdnImage) {
+                                      e.target.src = preset.cdnImage;
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <span className={`text-[10px] font-bold mt-1 text-center truncate w-full leading-tight ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
+                                {preset.name}
+                              </span>
+                            </button>
+
+                            {isSelected && (
+                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
+                                <Check size={10} className="stroke-[3]" />
+                              </div>
+                            )}
+
+                            {/* Autofill hover button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyPresetTemplate(preset);
+                              }}
+                              className="w-full mt-1.5 py-0.5 px-1 rounded-md bg-stone-100 hover:bg-amber-500 hover:text-white dark:bg-white/5 dark:hover:bg-[#E0FF33] dark:hover:text-black text-[9px] font-bold text-stone-600 dark:text-neutral-400 transition-colors cursor-pointer border border-stone-200 dark:border-white/5 truncate"
+                              title={`Auto-fill form with ${preset.name}`}
+                            >
+                              ✨ Auto-Fill
+                            </button>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -2675,9 +2888,19 @@ export default function OwnerView() {
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-neutral-400">All live dishes visible to customers</p>
               </div>
-              <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap self-start sm:self-auto">
-                {menuItems.length} Dishes Live
-              </span>
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowPresetCatalogModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Presets Catalog (24)</span>
+                </button>
+                <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                  {menuItems.length} Dishes Live
+                </span>
+              </div>
             </div>
 
             {/* Mass Items Filter Toolbar: Search & Category Filter */}
@@ -2759,8 +2982,8 @@ export default function OwnerView() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-1">
-                            <div className="min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
                               <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit'] truncate">{item.name}</p>
                               {isBeingEdited && (
                                 <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
@@ -2768,7 +2991,80 @@ export default function OwnerView() {
                                 </span>
                               )}
                             </div>
-                            <span className="font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] shrink-0">₹{item.price}</span>
+
+                            {/* Quick Inline Price Controls on Mobile */}
+                            <div className="shrink-0 flex items-center">
+                              {inlineEditingDishId === item.id ? (
+                                <div className="flex items-center gap-1 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33]">
+                                  <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
+                                  <input
+                                    type="number"
+                                    value={inlineEditingPrice}
+                                    onChange={(e) => setInlineEditingPrice(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
+                                      if (e.key === 'Escape') setInlineEditingDishId(null);
+                                    }}
+                                    autoFocus
+                                    className="w-14 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
+                                    className="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer"
+                                    title="Save price"
+                                  >
+                                    <Check size={11} className="stroke-[3]" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setInlineEditingDishId(null)}
+                                    className="w-5 h-5 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
+                                    title="Cancel"
+                                  >
+                                    <X size={11} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#151314] px-1.5 py-1 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10));
+                                    }}
+                                    className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
+                                    title="Decrease price by ₹10"
+                                  >
+                                    -
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setInlineEditingDishId(item.id);
+                                      setInlineEditingPrice(String(item.price || 0));
+                                    }}
+                                    className="px-1.5 py-0.5 text-xs font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] hover:underline cursor-pointer flex items-center gap-1"
+                                    title="Click to edit price directly"
+                                  >
+                                    <span>₹{item.price}</span>
+                                    <Edit2 size={8} className="opacity-40" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickPriceChange(item.id, Number(item.price || 0) + 10);
+                                    }}
+                                    className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
+                                    title="Increase price by ₹10"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
 
@@ -2875,8 +3171,70 @@ export default function OwnerView() {
                                 {item.category}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] whitespace-nowrap text-sm">
-                              ₹{item.price}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              {inlineEditingDishId === item.id ? (
+                                <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33] w-fit">
+                                  <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
+                                  <input
+                                    type="number"
+                                    value={inlineEditingPrice}
+                                    onChange={(e) => setInlineEditingPrice(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
+                                      if (e.key === 'Escape') setInlineEditingDishId(null);
+                                    }}
+                                    autoFocus
+                                    className="w-16 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
+                                    className="w-6 h-6 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer active:scale-90"
+                                    title="Save price"
+                                  >
+                                    <Check size={12} className="stroke-[3]" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setInlineEditingDishId(null)}
+                                    className="w-6 h-6 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
+                                    title="Cancel"
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5 w-fit">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10))}
+                                    className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
+                                    title="Decrease price by ₹10"
+                                  >
+                                    -
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInlineEditingDishId(item.id);
+                                      setInlineEditingPrice(String(item.price || 0));
+                                    }}
+                                    className="px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#E0FF33]/10 border border-stone-200 dark:border-white/10 font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] cursor-pointer flex items-center gap-1.5 group/price shadow-2xs"
+                                    title="Click to edit price directly"
+                                  >
+                                    <span>₹{item.price}</span>
+                                    <Edit2 size={10} className="opacity-40 group-hover/price:opacity-100 transition-opacity" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleQuickPriceChange(item.id, Number(item.price || 0) + 10)}
+                                    className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
+                                    title="Increase price by ₹10"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
                             </td>
                             <td className="py-3.5 px-4 whitespace-nowrap">
                               <div className="flex items-center gap-1.5">
@@ -3866,6 +4224,215 @@ export default function OwnerView() {
           </div>
         );
       })()}
+
+      {/* 24 Curated Presets Master Catalog Modal */}
+      {showPresetCatalogModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scaleUp">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-6 border-b border-stone-200 dark:border-white/10 flex items-center justify-between gap-3 bg-stone-50 dark:bg-[#252223]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
+                    Master Satvik Dish Presets (24 Items)
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400">
+                    Pre-configured gourmet Satvik recipes with high-res WebP cutouts & nutritional data.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPresetCatalogModal(false)}
+                className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-700 dark:text-white transition-colors cursor-pointer"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Filter Toolbar */}
+            <div className="p-3 sm:p-4 border-b border-stone-200 dark:border-white/5 bg-stone-100/50 dark:bg-[#1A1819] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              {/* Category Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {PRESET_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setPresetModalCategory(cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border ${presetModalCategory === cat
+                      ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
+                      : 'bg-white hover:bg-stone-100 text-stone-700 dark:bg-[#282526] dark:hover:bg-white/10 dark:text-neutral-300 border-stone-200 dark:border-white/10'
+                      }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={presetModalSearch}
+                  onChange={(e) => setPresetModalSearch(e.target.value)}
+                  placeholder="Search preset dishes..."
+                  className="w-full bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-xl pl-9 pr-7 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                />
+                {presetModalSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setPresetModalSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-white"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Presets Grid Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {PRESET_DISHES
+                  .filter((p) => {
+                    const matchCat = presetModalCategory === 'All' || p.category === presetModalCategory;
+                    const matchQ = !presetModalSearch ||
+                      p.name.toLowerCase().includes(presetModalSearch.toLowerCase()) ||
+                      p.description.toLowerCase().includes(presetModalSearch.toLowerCase()) ||
+                      p.category.toLowerCase().includes(presetModalSearch.toLowerCase());
+                    return matchCat && matchQ;
+                  })
+                  .map((preset) => (
+                    <div
+                      key={preset.id}
+                      className="bg-stone-50 dark:bg-[#252223] border border-stone-200 dark:border-white/10 rounded-2xl p-3.5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 transition-all hover:shadow-lg group"
+                    >
+                      <div>
+                        {/* Top Cutout & Badges */}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-black/40 p-1 flex items-center justify-center shrink-0 border border-stone-200 dark:border-white/5 shadow-inner">
+                            <img
+                              src={preset.image}
+                              alt={preset.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-200 pointer-events-none"
+                              onError={(e) => {
+                                if (preset.cdnImage && e.target.src !== preset.cdnImage) {
+                                  e.target.src = preset.cdnImage;
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]">
+                              {preset.tag || preset.category}
+                            </span>
+                            <span className="text-xs font-mono font-bold text-stone-500 dark:text-neutral-400">
+                              {preset.calories}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Title & Description */}
+                        <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white line-clamp-1 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                          {preset.name}
+                        </h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
+                          {preset.description}
+                        </p>
+                      </div>
+
+                      {/* Pricing & Actions */}
+                      <div className="pt-3 mt-3 border-t border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-neutral-500">
+                            Your Selling Price
+                          </span>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-xs font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit']">₹</span>
+                            <input
+                              type="number"
+                              value={presetPriceOverrides[preset.id] ?? preset.price}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
+                              }}
+                              className="w-16 px-1.5 py-0.5 rounded-lg bg-white dark:bg-black/60 border border-stone-300 dark:border-white/10 text-xs font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#E0FF33] focus:outline-none"
+                              placeholder={String(preset.price)}
+                            />
+                            {preset.price && (
+                              <span className="text-[9px] text-stone-400 dark:text-neutral-500 whitespace-nowrap" title="Suggested Base Price">
+                                (base ₹{preset.price})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleApplyPresetTemplate(preset, presetPriceOverrides[preset.id]);
+                              setShowPresetCatalogModal(false);
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-[10px] font-bold transition-all cursor-pointer"
+                            title="Load into Edit Form"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleQuickAddPresetDish(preset, presetPriceOverrides[preset.id])}
+                            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-black text-[10px] font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1"
+                          >
+                            <Plus className="w-3 h-3 stroke-[3]" />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Modal Footer with Bulk Add */}
+            <div className="p-4 sm:p-5 border-t border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#252223] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <span className="text-xs text-stone-500 dark:text-neutral-400 font-medium">
+                Showing {PRESET_DISHES.length} curated master presets
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const targetShop = menuForm.shopId || currentUserShopId || (allShops[0]?.id || 'shop-vrinda-main');
+                    for (const p of PRESET_DISHES) {
+                      await handleQuickAddPresetDish(p);
+                    }
+                    setShowPresetCatalogModal(false);
+                    setToast({ message: 'All 24 presets added to menu catalog!', type: 'success' });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Add All 24 Presets to Menu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPresetCatalogModal(false)}
+                  className="px-4 py-2 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Realtime Live Alarm HUD Banner */}
       <ActiveAlarmBanner

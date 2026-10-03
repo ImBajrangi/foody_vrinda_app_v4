@@ -191,17 +191,39 @@ export function resolveDishCutout(image, name = '', category = '') {
     }
   }
 
-  // 2. Fallback to smart cutouts based on item keywords if no image is supplied
+// 2. Fallback to smart cutouts based on item keywords if no image is supplied
   const lowerName = (name || '').toLowerCase();
   const lowerCat = (category || '').toLowerCase();
 
-  if (lowerName.includes('burger')) return '/dishes/burger.png';
+  if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
+  if (lowerName.includes('bhature') || lowerName.includes('chole bhature')) return '/dishes/presets/golden-chole-bhature-feast.webp';
+  if (lowerName.includes('chole') && lowerName.includes('naan')) return '/dishes/presets/chole-curry-naan-platter.webp';
+  if (lowerName.includes('garlic naan') || lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
+  if (lowerName.includes('samosa')) return '/dishes/presets/crispy-samosas-basket.webp';
+  if (lowerName.includes('spring roll') || lowerName.includes('roll')) return '/dishes/presets/crispy-spring-rolls.webp';
+  if (lowerName.includes('schezwan') && lowerName.includes('noodle')) return '/dishes/presets/schezwan-veggie-noodles.webp';
+  if (lowerName.includes('noodle') || lowerName.includes('chowmein') || lowerName.includes('maggi') || lowerName.includes('hakka')) return '/dishes/presets/glossy-stir-fried-noodles.webp';
+  if (lowerName.includes('momo') || lowerName.includes('dimsum')) return '/dishes/presets/steamed-veggie-momos.webp';
+  if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries')) return '/dishes/presets/seasoned-crispy-fries.webp';
+  if (lowerName.includes('jalebi') || lowerName.includes('imarti')) return '/dishes/presets/glossy-kesar-jalebi.webp';
+  if (lowerName.includes('kaju') || lowerName.includes('katli')) return '/dishes/presets/silver-vark-kaju-katli.webp';
+  if (lowerName.includes('barfi') || lowerName.includes('burfi') || lowerName.includes('pista barfi')) return '/dishes/presets/pista-khoya-barfi.webp';
+  if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
+  if (lowerName.includes('tikki') || lowerName.includes('aloo tikki')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
+  if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+  if (lowerName.includes('club sandwich') || lowerName.includes('bombay sandwich')) return '/dishes/presets/grilled-veg-cheese-sandwich-platter.webp';
+  if (lowerName.includes('grilled cheese')) return '/dishes/presets/gooey-grilled-cheese-tomato-basil.webp';
+  if (lowerName.includes('sandwich') || lowerName.includes('toast')) return '/dishes/presets/grilled-veggie-cheese-sandwich.webp';
+  if (lowerName.includes('puff') || lowerName.includes('patties') || lowerName.includes('patty')) return '/dishes/presets/golden-cheesy-triangle-puff.webp';
+  if (lowerName.includes('farmhouse pizza') || lowerName.includes('cheese pizza')) return '/dishes/presets/loaded-farmhouse-pizza.webp';
+  if (lowerName.includes('pizza')) return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
+  if (lowerName.includes('handi paneer') || lowerName.includes('korma')) return '/dishes/presets/handi-paneer-curry.webp';
+  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer curry')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
   if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.png';
-  if (lowerName.includes('pizza') || lowerName.includes('bread')) return '/dishes/pizza.png';
-  if (lowerName.includes('kheer') || lowerName.includes('sweet') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
+  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
   if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.png';
   if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
-  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('chaat') || lowerName.includes('chat') || lowerName.includes('samosa') || lowerName.includes('kachori') || lowerName.includes('tikki') || lowerName.includes('pakora')) return '/dishes/pizza.png';
+  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('kachori') || lowerName.includes('pakora')) return '/dishes/presets/crispy-samosas-basket.webp';
 
   return '/dishes/thali.png';
 }
@@ -212,6 +234,7 @@ export function resolveDishCutout(image, name = '', category = '') {
 const CACHE_TTL_MS = {
   SHOPS: 60 * 60 * 1000,    // 1 hour
   MENUS: 30 * 60 * 1000,    // 30 minutes
+  PRESETS: 60 * 60 * 1000,  // 1 hour
   ORDERS: 45 * 1000,        // 45 seconds (refreshed live via Realtime)
   USERS: 2 * 60 * 1000      // 2 minutes (refreshed live via Realtime)
 };
@@ -219,6 +242,7 @@ const CACHE_TTL_MS = {
 const memoryCache = {
   shops: { data: null, timestamp: 0 },
   menus: {},  // [shopId]: { data, timestamp }
+  presets: { data: null, timestamp: 0 },
   orders: {}, // [shopId]: { data, timestamp }
   users: { data: null, timestamp: 0 }
 };
@@ -499,22 +523,53 @@ export function isShopCurrentlyOpen(shop) {
   return true;
 }
 
+export function getDeletedShopIds() {
+  try {
+    const raw = safeStorage.getItem('foody_deleted_shop_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return new Set(parsed);
+    }
+  } catch (e) { }
+  return new Set();
+}
+
+export function addDeletedShopId(id) {
+  if (!id) return;
+  try {
+    const set = getDeletedShopIds();
+    set.add(id);
+    safeStorage.setItem('foody_deleted_shop_ids', JSON.stringify(Array.from(set)));
+  } catch (e) { }
+}
+
+export function removeDeletedShopId(id) {
+  if (!id) return;
+  try {
+    const set = getDeletedShopIds();
+    set.delete(id);
+    safeStorage.setItem('foody_deleted_shop_ids', JSON.stringify(Array.from(set)));
+  } catch (e) { }
+}
+
 export function getCachedShops() {
+  const deletedSet = getDeletedShopIds();
   try {
     const raw = safeStorage.getItem('foody_cached_shops') || safeStorage.getItem('foody_cache_shops');
     if (raw !== null && raw !== undefined) {
       const parsed = JSON.parse(raw);
       const list = Array.isArray(parsed) ? parsed : parsed?.data;
       if (Array.isArray(list) && list.length > 0) {
-        return list.map(normalizeShop);
+        return list.filter(s => !deletedSet.has(s.id)).map(normalizeShop);
       }
     }
   } catch (e) { }
-  return (SEED_SHOPS || []).map(normalizeShop);
+  return (SEED_SHOPS || []).filter(s => !deletedSet.has(s.id)).map(normalizeShop);
 }
 
 export function saveCachedShops(shopsList) {
-  const normalized = (shopsList || []).map(normalizeShop);
+  const deletedSet = getDeletedShopIds();
+  const normalized = (shopsList || []).filter(s => !deletedSet.has(s.id)).map(normalizeShop);
   try {
     safeStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
     safeStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: Date.now() }));
@@ -578,6 +633,10 @@ export function invalidateCache(type, key) {
   } else if (type === 'users') {
     memoryCache.users = { data: null, timestamp: 0 };
     safeStorage.removeItem('foody_cached_users');
+  } else if (type === 'presets') {
+    memoryCache.presets = { data: null, timestamp: 0 };
+    safeStorage.removeItem('foody_cached_presets');
+    safeStorage.removeItem('foody_cache_presets');
   }
 }
 
@@ -602,7 +661,8 @@ export async function getCloudShops() {
       }
 
       if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
-        const activeOnly = res.data.filter(d => d.is_active !== false && d.is_deleted !== true);
+        const deletedSet = getDeletedShopIds();
+        const activeOnly = res.data.filter(d => d.is_active !== false && d.is_deleted !== true && !deletedSet.has(d.id));
         const normalized = activeOnly.map(d => normalizeShop(d));
         const finalShops = saveCachedShops(normalized);
         memoryCache.shops = { data: finalShops, timestamp: Date.now() };
@@ -640,14 +700,13 @@ export async function getCloudMenus(shopId = 'all') {
 
   const promise = (async () => {
     try {
-      // First try the security-barrier public_menu_catalog view, fallback to foody_menus
-      let query = supabase.from('public_menu_catalog').select('*');
+      let query = supabase.from('foody_menus').select('*');
       if (shopId && shopId !== 'all') {
         query = query.eq('shop_id', shopId);
       }
       let { data, error } = await query;
       if (error) {
-        let fallbackQuery = supabase.from('foody_menus').select('*');
+        let fallbackQuery = supabase.from('public_menu_catalog').select('*');
         if (shopId && shopId !== 'all') {
           fallbackQuery = fallbackQuery.eq('shop_id', shopId);
         }
@@ -930,8 +989,32 @@ export async function createCloudOrder(orderData) {
         dbPayload[key] = val;
       }
     }
+    if (!dbPayload.customer_address && dbPayload.delivery_address) dbPayload.customer_address = dbPayload.delivery_address;
+    if (!dbPayload.delivery_address && dbPayload.customer_address) dbPayload.delivery_address = dbPayload.customer_address;
 
-    // Persist to Supabase foody_orders table
+    // 1. Try secure server-side validated RPC creation
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_validated_order', {
+        p_order_id: dbPayload.id,
+        p_shop_id: dbPayload.shop_id || 'shop-vrinda-main',
+        p_customer_name: dbPayload.customer_name || 'Devotee Customer',
+        p_customer_phone: dbPayload.customer_phone || '9999999999',
+        p_delivery_address: dbPayload.delivery_address || 'Vrindavan Dham',
+        p_customer_address: dbPayload.customer_address || dbPayload.delivery_address || 'Vrindavan Dham',
+        p_items: dbPayload.items || [],
+        p_payment_method: dbPayload.payment_method || 'cod',
+        p_cooking_notes: dbPayload.cooking_notes || '',
+        p_fulfillment_type: dbPayload.fulfillment_type || 'delivery'
+      });
+
+      if (!rpcError && rpcData) {
+        return { ...normalizedCreated, ...rpcData };
+      }
+    } catch (rpcErr) {
+      // RPC fallback to direct upsert
+    }
+
+    // 2. Direct upsert fallback
     let { data, error } = await supabase
       .from('foody_orders')
       .upsert([dbPayload], { onConflict: 'id' })
@@ -939,7 +1022,6 @@ export async function createCloudOrder(orderData) {
       .single();
 
     if (error && (error.message?.includes('delivery_otp') || error.message?.includes('pickup_otp'))) {
-      // Fallback: If DB schema has already migrated to hash-only (or plaintext columns not yet defined in DB), retry without plaintext columns
       const hashOnlyPayload = { ...dbPayload };
       delete hashOnlyPayload.pickup_otp;
       delete hashOnlyPayload.delivery_otp;
@@ -1413,6 +1495,11 @@ class RealtimeMultiplexer {
           { event: '*', schema: 'public', table: 'foody_offers' },
           (payload) => this.handleOfferChangePayload(payload)
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_presets' },
+          (payload) => this.handlePresetChangePayload(payload)
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             // On reconnect: invalidate stale cache and refetch authoritative data from DB
@@ -1422,6 +1509,7 @@ class RealtimeMultiplexer {
               invalidateCache('menus');
               invalidateCache('shops');
               invalidateCache('users');
+              invalidateCache('presets');
               // Dispatch event so UI components know to refetch
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('foody_realtime_reconnected'));
@@ -1564,6 +1652,51 @@ class RealtimeMultiplexer {
 
     this.offerListeners.forEach(cb => {
       try { cb(normalized, next, payload.eventType); } catch (e) { console.error('Offer listener error:', e); }
+    });
+  }
+
+  handlePresetChangePayload(payload) {
+    const raw = payload.new || payload.old;
+    if (!raw) return;
+
+    invalidateCache('presets');
+
+    const normalized = {
+      id: raw.id,
+      name: raw.name || '',
+      category: raw.category || 'Snacks',
+      price: Number(raw.price || 0),
+      originalPrice: raw.original_price ? Number(raw.original_price) : Number(raw.price || 0),
+      description: raw.description || '',
+      image: raw.image || '',
+      cdnImage: raw.cdn_image || raw.image || '',
+      tag: raw.tag || '',
+      rating: Number(raw.rating || 4.9),
+      calories: raw.calories || '250 kcal',
+      nutrition: typeof raw.nutrition === 'object' ? raw.nutrition : { kcal: raw.calories || '250 kcal', carbs: '30g', protein: '10g', fat: '8g' },
+      spicyLevel: raw.spicy_level || 'Mild',
+      isVeg: raw.is_veg ?? true,
+      isActive: raw.is_active ?? true,
+      sortOrder: Number(raw.sort_order || 0)
+    };
+
+    const current = getCachedPresets();
+    let next;
+    if (payload.eventType === 'DELETE') {
+      next = current.filter(p => p.id !== raw.id);
+    } else {
+      const idx = current.findIndex(p => p.id === raw.id);
+      if (idx >= 0) {
+        next = [...current];
+        next[idx] = { ...next[idx], ...normalized };
+      } else {
+        next = [normalized, ...current];
+      }
+    }
+
+    saveCachedPresets(next);
+    dispatchSafeEvent('foody_presets_changed', {
+      presets: next, item: normalized, eventType: payload.eventType
     });
   }
 
@@ -1988,6 +2121,218 @@ export async function deleteCloudOffer(offerId) {
 }
 
 // -------------------------------------------------------------
+// PRESET DISHES CLOUD APIS (SWR + DATABASE PARITY)
+// -------------------------------------------------------------
+
+export function getCachedPresets() {
+  try {
+    if (memoryCache.presets?.data && Array.isArray(memoryCache.presets.data) && memoryCache.presets.data.length > 0) {
+      return memoryCache.presets.data;
+    }
+    const raw = safeStorage.getItem('foody_cached_presets') || safeStorage.getItem('foody_cache_presets');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : (parsed.data || []);
+      if (Array.isArray(list) && list.length > 0) {
+        memoryCache.presets.data = list;
+        return list;
+      }
+    }
+  } catch (e) { }
+  return [];
+}
+
+export function saveCachedPresets(presets) {
+  const safeList = Array.isArray(presets) ? presets : [];
+  memoryCache.presets = { data: safeList, timestamp: Date.now() };
+  try {
+    safeStorage.setItem('foody_cached_presets', JSON.stringify(safeList));
+    safeStorage.setItem('foody_cache_presets', JSON.stringify({ data: safeList, timestamp: Date.now() }));
+  } catch (e) { }
+  return safeList;
+}
+
+export async function getCloudPresets(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && memoryCache.presets?.data && Array.isArray(memoryCache.presets.data) && memoryCache.presets.data.length > 0 && (now - (memoryCache.presets.timestamp || 0) < CACHE_TTL_MS.PRESETS)) {
+    return memoryCache.presets.data;
+  }
+
+  const cached = getCachedPresets();
+  if (isTableMissing('foody_presets')) return cached;
+
+  try {
+    const { data, error } = await supabase
+      .from('foody_presets')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (isTableError(error)) {
+        markTableMissing('foody_presets');
+      }
+      return cached;
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+      const mapped = data.map(d => ({
+        id: d.id,
+        name: d.name || '',
+        category: d.category || 'Snacks',
+        price: Number(d.price || 0),
+        originalPrice: d.original_price ? Number(d.original_price) : Number(d.price || 0),
+        description: d.description || '',
+        image: d.image || '',
+        cdnImage: d.cdn_image || d.image || '',
+        tag: d.tag || '',
+        rating: Number(d.rating || 4.9),
+        calories: d.calories || '250 kcal',
+        nutrition: typeof d.nutrition === 'object' && d.nutrition !== null ? d.nutrition : { kcal: d.calories || '250 kcal', carbs: '30g', protein: '10g', fat: '8g' },
+        spicyLevel: d.spicy_level || 'Mild',
+        isVeg: d.is_veg ?? true,
+        isActive: d.is_active ?? true,
+        sortOrder: Number(d.sort_order || 0)
+      }));
+
+      saveCachedPresets(mapped);
+      dispatchSafeEvent('foody_presets_changed', { presets: mapped });
+      return mapped;
+    }
+  } catch (err) {
+    console.warn('getCloudPresets exception:', err);
+  }
+
+  return cached;
+}
+
+export async function createCloudPreset(presetData) {
+  const presetId = presetData.id || `preset-${Date.now().toString(36)}`;
+  const nowIso = new Date().toISOString();
+  const newPreset = {
+    id: presetId,
+    name: presetData.name || 'Satvik Dish',
+    category: presetData.category || 'Snacks',
+    price: Number(presetData.price || 0),
+    originalPrice: Number(presetData.originalPrice || presetData.price || 0),
+    description: presetData.description || '',
+    image: presetData.image || '',
+    cdnImage: presetData.cdnImage || presetData.image || '',
+    tag: presetData.tag || 'Special',
+    rating: Number(presetData.rating || 4.9),
+    calories: presetData.calories || '250 kcal',
+    nutrition: presetData.nutrition || { kcal: '250 kcal', carbs: '30g', protein: '10g', fat: '8g' },
+    spicyLevel: presetData.spicyLevel || 'Mild',
+    isVeg: presetData.isVeg ?? true,
+    isActive: presetData.isActive ?? true,
+    sortOrder: Number(presetData.sortOrder || 0),
+    createdAt: nowIso
+  };
+
+  const current = getCachedPresets();
+  const nextList = [newPreset, ...current.filter(p => p.id !== presetId)];
+  saveCachedPresets(nextList);
+  dispatchSafeEvent('foody_presets_changed', { presets: nextList, createdPreset: newPreset });
+
+  if (!isTableMissing('foody_presets')) {
+    try {
+      const { error } = await supabase.from('foody_presets').upsert({
+        id: newPreset.id,
+        name: newPreset.name,
+        category: newPreset.category,
+        price: newPreset.price,
+        original_price: newPreset.originalPrice,
+        description: newPreset.description,
+        image: newPreset.image,
+        cdn_image: newPreset.cdnImage,
+        tag: newPreset.tag,
+        rating: newPreset.rating,
+        calories: newPreset.calories,
+        nutrition: newPreset.nutrition,
+        spicy_level: newPreset.spicyLevel,
+        is_veg: newPreset.isVeg,
+        is_active: newPreset.isActive,
+        sort_order: newPreset.sortOrder,
+        updated_at: nowIso
+      });
+      if (error) console.warn('createCloudPreset error:', error.message);
+    } catch (e) { }
+  }
+
+  return newPreset;
+}
+
+export async function updateCloudPreset(presetId, updates) {
+  const current = getCachedPresets();
+  let updatedPreset = null;
+  const nextList = current.map(p => {
+    if (p.id === presetId) {
+      updatedPreset = { ...p, ...updates };
+      return updatedPreset;
+    }
+    return p;
+  });
+
+  if (updatedPreset) {
+    saveCachedPresets(nextList);
+    dispatchSafeEvent('foody_presets_changed', { presets: nextList, updatedPreset });
+  }
+
+  if (!isTableMissing('foody_presets') && updatedPreset) {
+    try {
+      const payload = { updated_at: new Date().toISOString() };
+      if (updates.name !== undefined) payload.name = updates.name;
+      if (updates.category !== undefined) payload.category = updates.category;
+      if (updates.price !== undefined) payload.price = Number(updates.price);
+      if (updates.originalPrice !== undefined) payload.original_price = Number(updates.originalPrice);
+      if (updates.description !== undefined) payload.description = updates.description;
+      if (updates.image !== undefined) payload.image = updates.image;
+      if (updates.cdnImage !== undefined) payload.cdn_image = updates.cdnImage;
+      if (updates.tag !== undefined) payload.tag = updates.tag;
+      if (updates.rating !== undefined) payload.rating = Number(updates.rating);
+      if (updates.calories !== undefined) payload.calories = updates.calories;
+      if (updates.nutrition !== undefined) payload.nutrition = updates.nutrition;
+      if (updates.spicyLevel !== undefined) payload.spicy_level = updates.spicyLevel;
+      if (updates.isVeg !== undefined) payload.is_veg = updates.isVeg;
+      if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+      if (updates.sortOrder !== undefined) payload.sort_order = Number(updates.sortOrder);
+
+      const { error } = await supabase.from('foody_presets').update(payload).eq('id', presetId);
+      if (error) console.warn('updateCloudPreset error:', error.message);
+    } catch (e) { }
+  }
+
+  return updatedPreset;
+}
+
+export async function deleteCloudPreset(presetId) {
+  const current = getCachedPresets();
+  const nextList = current.filter(p => p.id !== presetId);
+  saveCachedPresets(nextList);
+  dispatchSafeEvent('foody_presets_changed', { presets: nextList });
+
+  if (!isTableMissing('foody_presets')) {
+    try {
+      const { error } = await supabase.from('foody_presets').delete().eq('id', presetId);
+      if (error) console.warn('deleteCloudPreset error:', error.message);
+    } catch (e) { }
+  }
+
+  return true;
+}
+
+export function subscribeCloudPresets(callback) {
+  if (typeof window === 'undefined') return () => {};
+  const handler = (e) => {
+    if (typeof callback === 'function') {
+      callback(e?.detail?.presets || getCachedPresets(), e?.detail);
+    }
+  };
+  window.addEventListener('foody_presets_changed', handler);
+  return () => window.removeEventListener('foody_presets_changed', handler);
+}
+
+// -------------------------------------------------------------
 // MENUS & COMBOS CRUD
 // -------------------------------------------------------------
 
@@ -2244,6 +2589,7 @@ export async function deleteCloudMenuItem(itemId, shopId = null) {
 
 export async function createCloudShop(shopData) {
   const shopId = shopData.id || `shop-vrinda-${Date.now().toString(36)}`;
+  removeDeletedShopId(shopId);
   const onlinePayments = shopData.paymentSettings?.onlinePaymentsEnabled ?? shopData.onlinePaymentsEnabled ?? true;
   const cod = shopData.paymentSettings?.codEnabled ?? shopData.codEnabled ?? true;
 
@@ -2406,6 +2752,9 @@ export async function updateCloudShop(shopId, shopData) {
 }
 
 export async function deleteCloudShop(shopId) {
+  if (!shopId) return false;
+  addDeletedShopId(shopId);
+
   const current = getCachedShops();
   const nextList = current.filter(s => s.id !== shopId);
   saveCachedShops(nextList);
@@ -2416,33 +2765,33 @@ export async function deleteCloudShop(shopId) {
   });
 
   try {
-    // 1. Reassign foreign key relations before deleting shop from database to satisfy Postgres constraints
+    // 1. Reassign menu foreign keys if needed
     try {
       if (!isTableWriteForbidden('foody_menus')) await supabase.from('foody_menus').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      if (!isTableWriteForbidden('foody_orders')) await supabase.from('foody_orders').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      if (!isTableWriteForbidden('foody_logged_users')) await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-      if (!isTableWriteForbidden('foody_users')) await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
-    } catch (fkErr) {
-      if (isForbiddenError(fkErr)) {
-        markTableWriteForbidden('foody_logged_users');
-        markTableWriteForbidden('foody_users');
-      } else {
-        console.warn("Foreign key reassign note:", fkErr);
-      }
-    }
+    } catch (e) { }
 
-    // 2. Perform hard delete on foody_shops
-    const { error } = await supabase.from('foody_shops').delete().eq('id', shopId);
-    if (error) {
-      console.warn("deleteCloudShop hard delete note, applying soft-delete flag:", error.message);
-      // 3. Fallback: Mark as inactive & deleted so database queries and views permanently filter it out
-      await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+    try {
+      if (!isTableWriteForbidden('foody_logged_users')) await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+    } catch (e) { }
+
+    try {
+      if (!isTableWriteForbidden('foody_users')) await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+    } catch (e) { }
+
+    // 2. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)
+    try {
+      const { error } = await supabase.from('foody_shops').delete().eq('id', shopId);
+      if (error) {
+        // Fallback: Soft-delete in foody_shops
+        await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+      }
+    } catch (e) {
+      try {
+        await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+      } catch (err) { }
     }
   } catch (e) {
-    console.warn("deleteCloudShop error:", e);
-    try {
-      await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
-    } catch (err) { }
+    console.warn("deleteCloudShop notice:", e);
   }
 
   return true;
@@ -3024,43 +3373,52 @@ export async function recordLoggedInUser(userProfile) {
   setCachedItem('users', 'all', next);
   dispatchSafeEvent('foody_users_changed', { users: next, updatedUser: loggedUsersPayload });
 
-  // 2. Persist dual writes to Supabase foody_logged_users & foody_users
+  // 2. Persist profile update to Supabase foody_logged_users & foody_users
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedUsersPayload, { onConflict: 'id' });
-      if (err1) {
-        if (isForbiddenError(err1)) {
-          markTableWriteForbidden('foody_logged_users');
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('recordLoggedInUser logged_users notice:', err1.message);
-        }
+      const { data: updated, error: err1 } = await supabase
+        .from('foody_logged_users')
+        .update({
+          display_name: cleanName,
+          phone: cleanPhone,
+          avatar_url: loggedUsersPayload.avatar_url,
+          address: loggedUsersPayload.address,
+          last_login_at: nowIso,
+          updated_at: nowIso
+        })
+        .eq('id', cleanId)
+        .select();
+
+      if ((!updated || updated.length === 0 || err1) && cleanId) {
+        await supabase.rpc('sync_authenticated_profile', {
+          p_display_name: cleanName,
+          p_phone: cleanPhone,
+          p_address: loggedUsersPayload.address,
+          p_avatar_url: loggedUsersPayload.avatar_url
+        });
       }
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_logged_users');
-        markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('recordLoggedInUser logged_users notice:', e);
       }
     }
   }
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error: err2 } = await supabase.from('foody_users').upsert(standardUsersPayload, { onConflict: 'id' });
-      if (err2) {
-        if (isForbiddenError(err2)) {
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('recordLoggedInUser foody_users notice:', err2.message);
-        }
-      }
+      await supabase
+        .from('foody_users')
+        .update({
+          display_name: cleanName,
+          phone: cleanPhone,
+          avatar_url: standardUsersPayload.avatar_url,
+          address: standardUsersPayload.address,
+          updated_at: nowIso
+        })
+        .eq('id', cleanId);
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('recordLoggedInUser foody_users notice:', e);
       }
     }
   }
@@ -3129,40 +3487,28 @@ export async function createCloudUser(userData) {
 
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error: err1 } = await supabase.from('foody_logged_users').upsert(loggedDbPayload, { onConflict: 'id' });
-      if (err1) {
-        if (isForbiddenError(err1)) {
-          markTableWriteForbidden('foody_logged_users');
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('createCloudUser logged_users notice:', err1.message);
-        }
+      const { error: rpcErr } = await supabase.rpc('sync_authenticated_profile', {
+        p_display_name: newUser.displayName,
+        p_phone: newUser.phone,
+        p_address: newUser.address,
+        p_avatar_url: newUser.avatarUrl
+      });
+      if (rpcErr) {
+        await supabase.from('foody_logged_users').update(loggedDbPayload).eq('id', newUser.id);
       }
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_logged_users');
-        markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('createCloudUser logged_users notice:', e);
       }
     }
   }
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error: err2 } = await supabase.from('foody_users').upsert(standardDbPayload, { onConflict: 'id' });
-      if (err2) {
-        if (isForbiddenError(err2)) {
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('createCloudUser foody_users notice:', err2.message);
-        }
-      }
+      await supabase.from('foody_users').update(standardDbPayload).eq('id', newUser.id);
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('createCloudUser foody_users notice:', e);
       }
     }
   }
@@ -3288,40 +3634,26 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
 
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error: err1 } = await supabase.from('foody_logged_users').upsert(fullLoggedPayload, { onConflict: 'id' });
-      if (err1) {
-        if (isForbiddenError(err1)) {
-          markTableWriteForbidden('foody_logged_users');
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('updateCloudUser logged_users note:', err1.message);
-        }
+      const { error: err1 } = await supabase.from('foody_logged_users').update(fullLoggedPayload).eq('id', userId);
+      if (err1 && isForbiddenError(err1)) {
+        markTableWriteForbidden('foody_logged_users');
       }
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_logged_users');
-        markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('updateCloudUser logged_users note:', e);
       }
     }
   }
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error: err2 } = await supabase.from('foody_users').upsert(fullStandardPayload, { onConflict: 'id' });
-      if (err2) {
-        if (isForbiddenError(err2)) {
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('updateCloudUser foody_users note:', err2.message);
-        }
+      const { error: err2 } = await supabase.from('foody_users').update(fullStandardPayload).eq('id', userId);
+      if (err2 && isForbiddenError(err2)) {
+        markTableWriteForbidden('foody_users');
       }
     } catch (e) {
       if (isForbiddenError(e)) {
         markTableWriteForbidden('foody_users');
-      } else {
-        console.warn('updateCloudUser foody_users note:', e);
       }
     }
   }
@@ -3437,6 +3769,25 @@ export async function createCloudReview(reviewData) {
       rider_feedback: reviewData.rider_feedback || reviewData.riderFeedback || {},
       created_at: reviewData.created_at || new Date().toISOString()
     };
+
+    // 1. Try secure verified review submission RPC
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('submit_verified_review', {
+        p_order_id: payload.order_id,
+        p_rating: payload.rating,
+        p_comment: payload.comment,
+        p_customer_phone: reviewData.customer_phone || reviewData.customerPhone || null,
+        p_tags: payload.tags,
+        p_chef_feedback: payload.chef_feedback,
+        p_rider_feedback: payload.rider_feedback
+      });
+
+      if (!rpcError && rpcData) {
+        return rpcData;
+      }
+    } catch (rpcErr) {
+      // Fallback to standard insert
+    }
 
     const { data, error } = await supabase
       .from('foody_reviews')
@@ -4112,17 +4463,17 @@ export async function recordCashSettlement({ riderId, shopId, expectedAmount, re
 
   // Record into Supabase foody_cash_settlements table
   try {
-    await supabase.from('foody_cash_settlements').insert([{
+    const settlementPayload = {
       rider_id: cleanId,
       shop_id: shopId || 'shop-vrinda-main',
       expected_amount: expected,
       received_amount: received,
-      difference: difference,
       status: status,
       settled_by: settledBy,
       notes: `Settlement via Daily Cash Panel (${status})`,
       created_at: nowIso
-    }]);
+    };
+    await supabase.from('foody_cash_settlements').insert([settlementPayload]);
   } catch (e) {
     console.warn('recordCashSettlement database insert notice:', e);
   }

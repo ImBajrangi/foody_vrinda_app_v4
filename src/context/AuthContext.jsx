@@ -155,6 +155,9 @@ export function AuthProvider({ children }) {
   // Listen for real-time shop configuration updates (e.g. online/offline and payment toggles)
   useEffect(() => {
     const handleShopsChanged = (e) => {
+      if (e?.type === 'storage' && e.key && e.key !== 'foody_cache_shops' && e.key !== 'foody_all_shops') {
+        return;
+      }
       const incoming = (e?.detail?.shops && Array.isArray(e.detail.shops))
         ? e.detail.shops
         : getCachedShops();
@@ -250,7 +253,10 @@ export function AuthProvider({ children }) {
     };
 
     const unsubscribe = subscribeCloudUsers(handleUsersUpdate);
-    const handleStorage = () => {
+    const handleStorage = (e) => {
+      if (e && e.key && e.key !== 'foody_registered_users_cloud' && e.key !== 'foody_users_cache') {
+        return;
+      }
       const cached = getCachedUsers();
       handleUsersUpdate(cached);
     };

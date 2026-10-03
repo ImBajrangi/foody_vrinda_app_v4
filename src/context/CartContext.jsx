@@ -43,11 +43,15 @@ export function CartProvider({ children }) {
 
   // Keep paymentSettings synchronized across windows and state triggers
   useEffect(() => {
-    const handleConfigChange = () => {
+    const handleConfigChange = (e) => {
+      if (e && e.type === 'storage' && e.key && e.key !== 'foody_payment_config') {
+        return;
+      }
       try {
         const saved = localStorage.getItem('foody_payment_config');
         if (saved) {
-          setPaymentSettings(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          setPaymentSettings(prev => JSON.stringify(prev) === JSON.stringify(parsed) ? prev : parsed);
         }
       } catch (e) { }
     };

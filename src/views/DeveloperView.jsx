@@ -53,6 +53,7 @@ import {
   MapPin,
   Clock,
   Layers,
+  Edit2,
   Edit3,
   AlertCircle,
   Check,
@@ -92,6 +93,7 @@ import {
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
+import { PRESET_DISHES } from '../constants/presetDishes';
 
 export default function DeveloperView({ setCurrentTab }) {
   const {
@@ -132,6 +134,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [shopSearch, setShopSearch] = useState('');
   const [isCreatingShop, setIsCreatingShop] = useState(false);
   const [editingShop, setEditingShop] = useState(null);
+  const [shopToDelete, setShopToDelete] = useState(null);
   const [newShopName, setNewShopName] = useState('');
   const [newShopAddress, setNewShopAddress] = useState('');
   const [newShopPhone, setNewShopPhone] = useState('');
@@ -380,6 +383,16 @@ export default function DeveloperView({ setCurrentTab }) {
       if (e?.detail?.users && Array.isArray(e.detail.users) && e.detail.users.length > 0) {
         setUsersList(prev => isEqualList(prev, e.detail.users) ? prev : e.detail.users);
         setStats(prev => prev.notifications === e.detail.users.length ? prev : ({ ...prev, notifications: e.detail.users.length }));
+      } else if (e?.detail?.user) {
+        setUsersList(prev => {
+          const idx = prev.findIndex(u => u.id === e.detail.user.id || (u.email && e.detail.user.email && u.email.toLowerCase() === e.detail.user.email.toLowerCase()));
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...e.detail.user };
+            return next;
+          }
+          return [e.detail.user, ...prev];
+        });
       }
     };
     window.addEventListener('foody_users_changed', handleLocalUsersChanged);
@@ -388,6 +401,24 @@ export default function DeveloperView({ setCurrentTab }) {
       if (e?.detail?.shops && Array.isArray(e.detail.shops)) {
         setShopsList(prev => isEqualList(prev, e.detail.shops) ? prev : e.detail.shops);
         setStats(prev => prev.shops === e.detail.shops.length ? prev : ({ ...prev, shops: e.detail.shops.length }));
+      } else if (e?.detail?.deleted && e?.detail?.shopId) {
+        setShopsList(prev => {
+          const next = prev.filter(s => s.id !== e.detail.shopId);
+          setStats(st => ({ ...st, shops: next.length }));
+          return next;
+        });
+      } else if (e?.detail?.shopData) {
+        setShopsList(prev => {
+          const idx = prev.findIndex(s => s.id === e.detail.shopData.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...e.detail.shopData };
+            return next;
+          }
+          const next = [e.detail.shopData, ...prev];
+          setStats(st => ({ ...st, shops: next.length }));
+          return next;
+        });
       }
     };
     window.addEventListener('foody_shops_changed', handleLocalShopsChanged);
@@ -396,6 +427,27 @@ export default function DeveloperView({ setCurrentTab }) {
       if (e?.detail?.menus && Array.isArray(e.detail.menus)) {
         setMenusList(prev => isEqualList(prev, e.detail.menus) ? prev : e.detail.menus);
         setStats(prev => prev.items === e.detail.menus.length ? prev : ({ ...prev, items: e.detail.menus.length }));
+      } else if (e?.detail?.deleted || e?.detail?.eventType === 'DELETE') {
+        const delId = e.detail.itemId || e.detail.item?.id;
+        if (delId) {
+          setMenusList(prev => {
+            const next = prev.filter(m => m.id !== delId);
+            setStats(st => ({ ...st, items: next.length }));
+            return next;
+          });
+        }
+      } else if (e?.detail?.item) {
+        setMenusList(prev => {
+          const idx = prev.findIndex(m => m.id === e.detail.item.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...e.detail.item };
+            return next;
+          }
+          const next = [e.detail.item, ...prev];
+          setStats(st => ({ ...st, items: next.length }));
+          return next;
+        });
       }
     };
     window.addEventListener('foody_menus_changed', handleLocalMenusChanged);
@@ -404,6 +456,18 @@ export default function DeveloperView({ setCurrentTab }) {
       if (e?.detail?.offers && Array.isArray(e.detail.offers)) {
         setOffersList(prev => isEqualList(prev, e.detail.offers) ? prev : e.detail.offers);
         setStats(prev => prev.offers === e.detail.offers.length ? prev : ({ ...prev, offers: e.detail.offers.length }));
+      } else if (e?.detail?.offer) {
+        setOffersList(prev => {
+          const idx = prev.findIndex(o => o.id === e.detail.offer.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...e.detail.offer };
+            return next;
+          }
+          const next = [e.detail.offer, ...prev];
+          setStats(st => ({ ...st, offers: next.length }));
+          return next;
+        });
       }
     };
     window.addEventListener('foody_offers_changed', handleLocalOffersChanged);
@@ -463,10 +527,16 @@ export default function DeveloperView({ setCurrentTab }) {
   }, []);
 
   useEffect(() => {
-    const handleConfigChanged = () => {
+    const handleConfigChanged = (e) => {
+      if (e && e.type === 'storage' && e.key && e.key !== 'foody_payment_config') {
+        return;
+      }
       try {
         const saved = localStorage.getItem('foody_payment_config');
-        if (saved) setPaymentsConfig(JSON.parse(saved));
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setPaymentsConfig(prev => JSON.stringify(prev) === JSON.stringify(parsed) ? prev : parsed);
+        }
       } catch (e) { }
     };
     window.addEventListener('foody_payment_config_changed', handleConfigChanged);
@@ -533,41 +603,103 @@ export default function DeveloperView({ setCurrentTab }) {
   // ==========================================
   // 1. SHOPS / KITCHENS MANAGEMENT HANDLERS
   // ==========================================
-  const handleCreateShop = async (e) => {
+  const handleSaveShop = async (e) => {
     e.preventDefault();
-    if (!newShopName.trim()) {
-      return setToast({ message: 'Please enter a kitchen/shop name', type: 'warning' });
+    const cleanName = newShopName.trim();
+    if (!cleanName || cleanName.length < 2) {
+      return setToast({ message: 'Kitchen name must be at least 2 characters', type: 'warning' });
     }
-    const shopId = `shop-${newShopName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}-${Date.now().toString(36).slice(-4)}`;
-    const newShop = {
-      id: shopId,
-      name: newShopName.trim(),
-      shopType: newShopType || 'hotel',
-      address: newShopAddress.trim() || 'Raman Reti, Vrindavan, UP',
-      phone: newShopPhone.trim() || '9876543210',
-      preparationTime: newShopPrepTime || '15-20 mins',
-      deliveryRadius: newShopRadius || '10 km',
-      image: newShopImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
-      pureVeg: newShopPureVeg,
-      isOpen: newShopIsOpen,
-      paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true, shopType: newShopType || 'hotel' }
-    };
 
-    setShopsList(prev => {
-      const updated = [newShop, ...prev];
-      saveCachedShops(updated);
-      return updated;
-    });
+    const cleanPhone = newShopPhone.replace(/\D/g, '');
+    if (newShopPhone && cleanPhone.length !== 10) {
+      return setToast({ message: 'Please enter a valid 10-digit phone number', type: 'warning' });
+    }
 
-    setToast({ message: `Kitchen "${newShop.name}" created and synced!`, type: 'success' });
-    logActivity(`Kitchen "${newShop.name}" created`, 'success');
-    setIsCreatingShop(false);
-    setNewShopName('');
-    setNewShopAddress('');
-    setNewShopPhone('');
+    const radiusVal = newShopRadius.replace(/\D/g, '');
+    const formattedRadius = radiusVal ? `${radiusVal} km` : '10 km';
+    const formattedPrepTime = newShopPrepTime.trim() || '15-20 mins';
 
-    await createCloudShop(newShop);
-    if (refreshShops) await refreshShops();
+    if (editingShop) {
+      const updatedShop = {
+        ...editingShop,
+        name: cleanName,
+        shopType: newShopType || 'hotel',
+        address: newShopAddress.trim() || 'Raman Reti, Vrindavan, UP',
+        phone: cleanPhone || '9876543210',
+        preparationTime: formattedPrepTime,
+        deliveryRadius: formattedRadius,
+        image: newShopImage.trim() || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+        pureVeg: newShopPureVeg,
+        isOpen: newShopIsOpen
+      };
+
+      setShopsList(prev => {
+        const updated = prev.map(s => s.id === editingShop.id ? updatedShop : s);
+        saveCachedShops(updated);
+        return updated;
+      });
+
+      setToast({ message: `Kitchen "${updatedShop.name}" updated successfully!`, type: 'success' });
+      logActivity(`Kitchen "${updatedShop.name}" updated`, 'success');
+      setIsCreatingShop(false);
+      setEditingShop(null);
+      setNewShopName('');
+      setNewShopAddress('');
+      setNewShopPhone('');
+      setNewShopPrepTime('15-20 mins');
+      setNewShopRadius('10 km');
+
+      await updateCloudShop(editingShop.id, updatedShop);
+      if (refreshShops) await refreshShops();
+    } else {
+      const shopId = `shop-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}-${Date.now().toString(36).slice(-4)}`;
+      const newShop = {
+        id: shopId,
+        name: cleanName,
+        shopType: newShopType || 'hotel',
+        address: newShopAddress.trim() || 'Raman Reti, Vrindavan, UP',
+        phone: cleanPhone || '9876543210',
+        preparationTime: formattedPrepTime,
+        deliveryRadius: formattedRadius,
+        image: newShopImage.trim() || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+        pureVeg: newShopPureVeg,
+        isOpen: newShopIsOpen,
+        paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true, shopType: newShopType || 'hotel' }
+      };
+
+      setShopsList(prev => {
+        const updated = [newShop, ...prev];
+        saveCachedShops(updated);
+        return updated;
+      });
+
+      setToast({ message: `Kitchen "${newShop.name}" created and synced!`, type: 'success' });
+      logActivity(`Kitchen "${newShop.name}" created`, 'success');
+      setIsCreatingShop(false);
+      setNewShopName('');
+      setNewShopAddress('');
+      setNewShopPhone('');
+      setNewShopPrepTime('15-20 mins');
+      setNewShopRadius('10 km');
+
+      await createCloudShop(newShop);
+      if (refreshShops) await refreshShops();
+    }
+  };
+
+  const handleEditShop = (shop) => {
+    setEditingShop(shop);
+    setNewShopName(shop.name || '');
+    setNewShopType(shop.shopType || 'hotel');
+    setNewShopAddress(shop.address || '');
+    setNewShopPhone(shop.phone || '');
+    setNewShopPrepTime(shop.preparationTime || '15-20 mins');
+    setNewShopRadius(shop.deliveryRadius || '10 km');
+    setNewShopImage(shop.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop');
+    setNewShopPureVeg(shop.pureVeg ?? true);
+    setNewShopIsOpen(shop.isOpen ?? true);
+    setIsCreatingShop(true);
+    if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
   };
 
   const handleToggleShopOpen = async (shopId, currentIsOpen) => {
@@ -591,7 +723,8 @@ export default function DeveloperView({ setCurrentTab }) {
       saveCachedShops(updated);
       return updated;
     });
-    setToast({ message: `Kitchen "${shopName}" removed`, type: 'info' });
+    setShopToDelete(null);
+    setToast({ message: `Kitchen "${shopName}" removed and relations reassigned`, type: 'info' });
     logActivity(`Kitchen "${shopName}" deleted`, 'warning');
     await deleteCloudShop(shopId);
     if (refreshShops) await refreshShops();
@@ -1374,24 +1507,36 @@ export default function DeveloperView({ setCurrentTab }) {
                   type="button"
                   onClick={() => {
                     if (collapsedSections.shops) setCollapsedSections(prev => ({ ...prev, shops: false }));
-                    setIsCreatingShop(!isCreatingShop);
+                    if (isCreatingShop) {
+                      setIsCreatingShop(false);
+                      setEditingShop(null);
+                      setNewShopName('');
+                      setNewShopAddress('');
+                      setNewShopPhone('');
+                    } else {
+                      setEditingShop(null);
+                      setNewShopName('');
+                      setNewShopAddress('');
+                      setNewShopPhone('');
+                      setIsCreatingShop(true);
+                    }
                   }}
                   className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
-                  <span>{isCreatingShop ? 'Close Form' : 'Add Kitchen'}</span>
+                  <span>{isCreatingShop ? (editingShop ? 'Close Edit' : 'Close Form') : 'Add Kitchen'}</span>
                 </button>
               </div>
             </div>
 
             {(activeDevTab === 'shops' || !collapsedSections.shops) && (
               <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-                {/* Create Shop Form Drawer */}
+                {/* Create / Edit Shop Form Drawer */}
                 {isCreatingShop && (
-                  <form onSubmit={handleCreateShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
+                  <form onSubmit={handleSaveShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
-                        <Store className="w-4 h-4" /> Add New Cloud Kitchen Branch
+                        <Store className="w-4 h-4" /> {editingShop ? `Edit Kitchen: ${editingShop.name}` : 'Add New Cloud Kitchen Branch'}
                       </h4>
                       <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
                     </div>
@@ -1420,48 +1565,71 @@ export default function DeveloperView({ setCurrentTab }) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Kitchen / Shop Name</label>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">
+                          Kitchen / Shop Name <span className="text-amber-600 dark:text-[#E0FF33]">*</span>
+                        </label>
                         <input
                           type="text"
                           value={newShopName}
                           onChange={e => setNewShopName(e.target.value)}
                           placeholder="e.g. Govind Dham Annakoot"
                           required
+                          minLength={2}
                           className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Phone / Helpline</label>
-                        <input
-                          type="text"
-                          value={newShopPhone}
-                          onChange={e => setNewShopPhone(e.target.value)}
-                          placeholder="e.g. 9876543210"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                        />
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">
+                          Phone / Helpline <span className="text-stone-400 dark:text-neutral-500 font-normal">(10 Digits)</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-400 dark:text-neutral-500">+91</span>
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            value={newShopPhone}
+                            onChange={e => setNewShopPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            placeholder="9876543210"
+                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl pl-10 pr-2.5 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                          />
+                        </div>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Preparation Time</label>
-                        <input
-                          type="text"
+                        <select
                           value={newShopPrepTime}
                           onChange={e => setNewShopPrepTime(e.target.value)}
-                          placeholder="15-20 mins"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                        />
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33] cursor-pointer"
+                        >
+                          <option value="10-15 mins">10-15 mins (Express / Fast)</option>
+                          <option value="15-20 mins">15-20 mins (Standard)</option>
+                          <option value="20-30 mins">20-30 mins (Cooked Fresh)</option>
+                          <option value="30-45 mins">30-45 mins (Special Feast)</option>
+                          <option value="45-60 mins">45-60 mins (Bulk / Catering)</option>
+                        </select>
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Delivery Radius</label>
-                        <input
-                          type="text"
-                          value={newShopRadius}
-                          onChange={e => setNewShopRadius(e.target.value)}
-                          placeholder="12 km"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
-                        />
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">
+                          Delivery Radius <span className="text-stone-400 dark:text-neutral-500 font-normal">(km)</span>
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="1"
+                            max="50"
+                            value={newShopRadius.replace(/\D/g, '')}
+                            onChange={e => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setNewShopRadius(val ? `${val} km` : '');
+                            }}
+                            placeholder="10"
+                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 pr-10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-400 dark:text-neutral-500">km</span>
+                        </div>
                       </div>
 
                       <div className="sm:col-span-2">
@@ -1513,7 +1681,13 @@ export default function DeveloperView({ setCurrentTab }) {
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => setIsCreatingShop(false)}
+                          onClick={() => {
+                            setIsCreatingShop(false);
+                            setEditingShop(null);
+                            setNewShopName('');
+                            setNewShopAddress('');
+                            setNewShopPhone('');
+                          }}
                           className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold cursor-pointer"
                         >
                           Cancel
@@ -1522,7 +1696,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="submit"
                           className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
-                          Create Kitchen
+                          {editingShop ? 'Update Kitchen' : 'Create Kitchen'}
                         </button>
                       </div>
                     </div>
@@ -1594,6 +1768,14 @@ export default function DeveloperView({ setCurrentTab }) {
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
+                                onClick={() => handleEditShop(s)}
+                                title="Edit Kitchen Details"
+                                className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-amber-500/20 dark:bg-white/5 dark:hover:bg-[#E0FF33]/20 text-stone-700 dark:text-neutral-300 hover:text-amber-800 dark:hover:text-[#E0FF33] border border-stone-300 dark:border-white/5 cursor-pointer"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleImpersonateShop(s.id)}
                                 title="Launch Staff View"
                                 className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-amber-700 dark:text-amber-400 border border-stone-300 dark:border-white/5 cursor-pointer"
@@ -1602,7 +1784,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteShop(s.id, s.name)}
+                                onClick={() => setShopToDelete(s)}
                                 title="Delete Kitchen"
                                 className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
                               >
@@ -1616,6 +1798,45 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Safe Delete Kitchen Confirmation Modal */}
+        {shopToDelete && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-red-500/30 dark:border-red-500/30 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp">
+              <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                <div className="w-10 h-10 rounded-2xl bg-red-500/15 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm uppercase tracking-wider font-['Outfit']">Delete Kitchen Branch</h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400">Irreversible administrative action</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-stone-700 dark:text-neutral-300 leading-relaxed">
+                Are you sure you want to delete <strong className="text-stone-900 dark:text-white font-bold">"{shopToDelete.name}"</strong>? Associated menus and orders will be safely reassigned to the primary kitchen before removing from Supabase.
+              </p>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShopToDelete(null)}
+                  className="px-4 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-xs font-bold cursor-pointer transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteShop(shopToDelete.id, shopToDelete.name)}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider cursor-pointer shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Confirm Delete</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1647,6 +1868,40 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
+                  onClick={async () => {
+                    const targetShop = allShops[0]?.id || 'shop-vrinda-main';
+                    let added = 0;
+                    for (const p of PRESET_DISHES) {
+                      const dishId = `dish-${Date.now().toString(36)}-${Math.random().toString(36).slice(-3)}`;
+                      const newDish = {
+                        id: dishId,
+                        name: p.name,
+                        category: p.category,
+                        price: p.price,
+                        originalPrice: p.originalPrice || p.price,
+                        description: p.description,
+                        image: p.image,
+                        isAvailable: true,
+                        isVeg: true,
+                        shopId: targetShop,
+                        rating: p.rating || 4.9,
+                        tags: ['Satvik', p.tag || 'Bestseller']
+                      };
+                      setMenusList(prev => [newDish, ...prev]);
+                      await createCloudMenuItem(newDish);
+                      added++;
+                    }
+                    setToast({ message: `Seeded ${added} Master Presets to ${targetShop}!`, type: 'success' });
+                    logActivity(`Seeded 24 Preset dishes to ${targetShop}`, 'success');
+                  }}
+                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  title="Seed all 24 curated WebP preset dishes to catalog"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span>Seed 24 Presets</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
                     setIsCreatingDish(!isCreatingDish);
@@ -1669,6 +1924,30 @@ export default function DeveloperView({ setCurrentTab }) {
                         <UtensilsCrossed className="w-4 h-4" /> Add Dish to Menu Catalog
                       </h4>
                       <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_menus`</span>
+                    </div>
+
+                    {/* Quick Preset autofill row */}
+                    <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                      <span className="text-[10px] font-black text-cyan-700 dark:text-cyan-400 uppercase tracking-wider shrink-0">⚡ Presets:</span>
+                      {PRESET_DISHES.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setNewDishName(p.name);
+                            setNewDishPrice(String(p.price));
+                            setNewDishOriginalPrice(String(p.originalPrice || p.price));
+                            setNewDishDescription(p.description);
+                            setNewDishImage(p.image);
+                            setNewDishCategory(p.category === 'Meals' ? 'Satvik Thali' : p.category === 'Sweets & Prasad' ? 'Sweets & Desserts' : 'Snacks & Chaat');
+                            setToast({ message: `Loaded preset: ${p.name}`, type: 'info' });
+                          }}
+                          className="px-2 py-1 rounded-lg bg-white dark:bg-[#282526] hover:bg-cyan-500 hover:text-white dark:hover:bg-cyan-400 dark:hover:text-black text-[10px] font-bold text-stone-700 dark:text-neutral-300 border border-stone-200 dark:border-white/10 shrink-0 transition-colors flex items-center gap-1"
+                        >
+                          <img src={p.image} alt={p.name} className="w-3.5 h-3.5 object-contain" />
+                          <span>{p.name}</span>
+                        </button>
+                      ))}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
