@@ -493,5 +493,10 @@
     "mtime": 1791094822.5425036,
     "ast_hash": "eb83724ce6ec8b37fe1983cfa46f4596",
     "semantic_hash": ""
+  },
+  "scripts/verify-delivery-hardened-evidence.js": {
+    "mtime": 1791103849.3867722,
+    "ast_hash": "138bcdae1a8f80276ead773dc3096e02",
+    "semantic_hash": ""
   }
 }
