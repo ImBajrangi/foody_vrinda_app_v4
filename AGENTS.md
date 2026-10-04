@@ -160,3 +160,10 @@ Testing MUST use synthetic/test accounts and test shops.
 
 All disaster recovery procedures and rollback drills MUST strictly follow the reproducible runbook at `ProductDetails/DISASTER_RECOVERY_RUNBOOK.md`. A DR drill is certified successful only when an independent authorized engineer can reproduce the full restore, schema verification, and critical smoke flows with logged RTO and RPO metrics without touching production infrastructure.
 
+### CI/CD, Token & Cost Protection Invariant
+
+1. **Atomic Final Push Protocol**: Never trigger multiple micro-pushes. Group related code, test fixes, and docs into a single consolidated commit and push only after all local tests and builds (`npm run build`) pass cleanly.
+2. **CI/CD Resource Efficiency**: Documentation and metadata changes MUST never burn GitHub Actions or Vercel runner quotas (enforce `paths-ignore` for `**.md`, `docs/**`, `graphify-out/**`).
+3. **Token & LLM Conservation**: Keep all context exchanges focused, high-density, and free of redundant verbosity to prevent token exhaustion.
+
+

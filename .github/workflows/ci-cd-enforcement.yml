@@ -6,10 +6,20 @@ on:
       - 'feature/*'
       - beta
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'graphify-out/**'
+      - '.agents/**'
   pull_request:
     branches:
       - beta
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'graphify-out/**'
+      - '.agents/**'
 
 jobs:
   validate_and_test:

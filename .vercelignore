@@ -15,4 +15,6 @@ graphify-out/
 .agents/
 scripts/
 fast_transcribe.sh
+*.md
+docs/
 *.log
