@@ -216,11 +216,11 @@ const MenuItemCard = memo(function MenuItemCard({
       {/* Right Side Dish Image - Seamless Vignette Blend */}
       <div className="absolute right-[-6px] bottom-[-6px] sm:right-[-4px] sm:bottom-[-4px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 pointer-events-none flex items-center justify-center overflow-hidden rounded-3xl">
         <img
-          src={item.image || '/dishes/thali.png'}
+          src={item.image || '/dishes/thali.webp'}
           alt={item.name}
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = '/dishes/thali.png';
+            e.target.src = '/dishes/thali.webp';
           }}
           className="dish-blend-mask w-full h-full object-contain select-none pointer-events-none"
           loading="lazy"

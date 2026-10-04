@@ -219,13 +219,13 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (lowerName.includes('pizza')) return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
   if (lowerName.includes('handi paneer') || lowerName.includes('korma')) return '/dishes/presets/handi-paneer-curry.webp';
   if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer curry')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
-  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.png';
-  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.png';
-  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.png';
+  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.webp';
+  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.webp';
+  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.webp';
   if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
   if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('kachori') || lowerName.includes('pakora')) return '/dishes/presets/crispy-samosas-basket.webp';
 
-  return '/dishes/thali.png';
+  return '/dishes/thali.webp';
 }
 
 // ========================================================================
