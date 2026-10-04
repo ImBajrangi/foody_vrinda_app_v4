@@ -195,7 +195,7 @@ class NativeNotificationService {
       // Try playing audio file first
       if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
         const audio = new Audio(soundSrc);
-        audio.volume = 0.8;
+        audio.volume = 1.0;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
