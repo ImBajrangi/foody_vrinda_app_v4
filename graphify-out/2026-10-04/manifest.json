@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1791103561.89838,
-    "ast_hash": "f56004902b2e135f3f4fe7097abf119b",
+    "mtime": 1791104621.1678874,
+    "ast_hash": "4cb92611c02747e579f526fb4b68bf82",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1791103402.4266965,
-    "ast_hash": "043426c042fd74c1cff1bfe40922a8ad",
+    "mtime": 1791104800.8379033,
+    "ast_hash": "c1f69e1026c86c5d92fe047719721d0f",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791094475.7619715,
-    "ast_hash": "3752ec29cf8cbbc0a82f10bedd60eb8b",
+    "mtime": 1791106180.5502021,
+    "ast_hash": "49ab7ecc666e76a144cbbd524867a9b0",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -495,8 +495,13 @@
     "semantic_hash": ""
   },
   "scripts/verify-delivery-hardened-evidence.js": {
-    "mtime": 1791103849.3867722,
-    "ast_hash": "138bcdae1a8f80276ead773dc3096e02",
+    "mtime": 1791104162.339552,
+    "ast_hash": "8fc360faa535169719e87522f28a5a01",
+    "semantic_hash": ""
+  },
+  "scripts/verify-admin-lifecycle-tests-27-43.sql": {
+    "mtime": 1791106070.632555,
+    "ast_hash": "c8b6e4add748208a4dd5f767302008ff",
     "semantic_hash": ""
   }
 }
