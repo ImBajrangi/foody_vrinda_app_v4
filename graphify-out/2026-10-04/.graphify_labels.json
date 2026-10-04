@@ -4,7 +4,7 @@
   "2": "supabase.js",
   "3": "index.ts",
   "4": "🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete",
-  "5": "test-database-sync.js",
+  "5": "OwnerView.jsx",
   "6": "Foody Vrinda (v3)",
   "7": "eslint.config.js",
   "8": "vite.config.js",
@@ -19,16 +19,13 @@
   "17": "RewardButton.jsx",
   "18": "SciFiLoader.jsx",
   "19": "StarRating.jsx",
-  "20": "dispatchSafeEvent",
+  "20": ".ensureSubscribed",
   "21": "NativeNotificationService",
   "22": "DeveloperView.jsx",
   "23": "firebase.js",
   "24": "Active Engineering Rules",
-  "25": "supabase",
+  "25": "App.jsx",
   "26": "test_push_workflow.mjs",
   "27": "Foody Vrinda — Design System & Theme Architecture Specification",
-  "28": "🌟 Foody Vrinda: System Architecture & Delivery Verification Updates",
-  "29": "ErrorBoundary",
-  "30": "ReviewModal.jsx",
-  "31": "verify_roles_and_db_sync.mjs"
+  "28": "🌟 Foody Vrinda: System Architecture & Delivery Verification Updates"
 }

@@ -484,10 +484,9 @@ export default function OwnerView() {
     // Optimistic update for instant UI feedback
     setMenuItems(prev => prev.map(m => m.id === dishId ? { ...m, price: cleanPrice } : m));
     setInlineEditingDishId(null);
-    setFastNotification({
-      type: 'success',
-      text: `Price updated to ₹${cleanPrice}`,
-      icon: 'DollarSign'
+    setToast({
+      message: `Price updated to ₹${cleanPrice}`,
+      type: 'success'
     });
 
     try {
@@ -512,10 +511,9 @@ export default function OwnerView() {
       nutrition: preset.nutrition ? `${preset.calories || '250 kcal'} (${preset.nutrition.carbs || '30g'} C, ${preset.nutrition.protein || '10g'} P, ${preset.nutrition.fat || '8g'} F)` : '',
       ingredients: preset.tag || ''
     }));
-    setFastNotification({
-      type: 'success',
-      text: `Loaded "${preset.name}" preset (₹${finalPrice})!`,
-      icon: 'Sparkles'
+    setToast({
+      message: `Loaded "${preset.name}" preset (₹${finalPrice})!`,
+      type: 'success'
     });
   };
 
@@ -532,6 +530,7 @@ export default function OwnerView() {
       originalPrice: originalPriceToSet,
       category: preset.category || 'Snacks',
       image: preset.image || preset.cdnImage,
+      imageUrl: preset.image || preset.cdnImage,
       isAvailable: true,
       isVeg: true,
       shopId: targetShop,
@@ -542,17 +541,20 @@ export default function OwnerView() {
       tag: preset.tag || 'Bestseller'
     };
 
-    setMenuItems(prev => [newDish, ...prev]);
-    setFastNotification({
-      type: 'success',
-      text: `+ ${preset.name} (₹${priceToSet}) added to menu!`,
-      icon: 'Plus'
+    setMenuItems(prev => [newDish, ...prev.filter(m => m.id !== dishId)]);
+    setToast({
+      message: `+ ${preset.name} (₹${priceToSet}) added to menu!`,
+      type: 'success'
     });
 
     try {
-      await createCloudMenuItem(newDish);
+      const saved = await createCloudMenuItem(newDish);
+      if (saved) {
+        setMenuItems(prev => [saved, ...prev.filter(m => m.id !== dishId && m.id !== saved.id)]);
+      }
     } catch (err) {
       console.error('Error adding preset menu item:', err);
+      setToast({ message: `Failed to add ${preset.name}`, type: 'error' });
     }
   };
 
