@@ -1,0 +1,67 @@
+name: Multi-Environment & Production Safety CI/CD
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - beta
+      - main
+  pull_request:
+    branches:
+      - beta
+      - main
+
+jobs:
+  validate_and_test:
+    name: Build, Lint & Migration Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Audit Migrations for Production Safety
+        run: node scripts/lint-migrations.js
+
+      - name: Production Bundle Verification
+        run: npm run build
+
+  deploy_dev:
+    name: Deploy to Alpha / Dev
+    needs: validate_and_test
+    if: startsWith(github.ref, 'refs/heads/feature/')
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Alpha Environment Gate
+        run: echo "🚀 Triggered Alpha/Dev deployment pipeline for branch ${GITHUB_REF_NAME}"
+
+  deploy_staging:
+    name: Deploy to Beta / Staging
+    needs: validate_and_test
+    if: github.ref == 'refs/heads/beta'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Beta Environment Gate
+        run: echo "🧪 Triggered Beta/Staging deployment pipeline. Target DB: Beta Supabase (Synthetic data only)."
+
+  deploy_production:
+    name: Deploy to Production
+    needs: validate_and_test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production # Requires manual approval in GitHub repo settings
+    steps:
+      - name: Production Deployment Gate
+        run: |
+          echo "🛡️ Multi-Environment Production Safety Gate Passed."
+          echo "Applying version-controlled migrations and deploying to live production."

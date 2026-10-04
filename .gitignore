@@ -21,8 +21,10 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
 
 Queries/*
 supabase/serviceAccountKey.json
