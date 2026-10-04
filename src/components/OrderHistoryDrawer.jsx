@@ -230,14 +230,32 @@ export default function OrderHistoryDrawer({
                 </p>
               </div>
             </div>
-            <button 
-              type="button"
-              onClick={() => handleAnimatedClose()}
-              className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
-              aria-label="Close orders"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {orders.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('foody_my_session_orders');
+                    localStorage.removeItem('foody_customer_orders_cache');
+                    localStorage.removeItem('foody_active_tracking_id');
+                    setOrders([]);
+                    if (onToast) onToast('Order history cleared from this device', 'info');
+                  }}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-bold text-stone-500 hover:text-rose-500 dark:text-neutral-400 dark:hover:text-rose-400 bg-stone-200/60 dark:bg-white/5 transition-all cursor-pointer"
+                  title="Clear order cache on this device"
+                >
+                  Clear
+                </button>
+              )}
+              <button 
+                type="button"
+                onClick={() => handleAnimatedClose()}
+                className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+                aria-label="Close orders"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Orders Scrollable Content */}

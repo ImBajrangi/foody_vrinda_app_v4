@@ -1,22 +1,22 @@
 # Graph Report - foody_vrinda_v3  (2026-10-04)
 
 ## Corpus Check
-- 95 files · ~196,017 words
+- 95 files · ~195,573 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 522 nodes · 1312 edges · 36 communities (23 shown, 13 thin omitted)
+- 523 nodes · 1313 edges · 35 communities (23 shown, 12 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fa3c987b`
+- Built from commit: `3281d75f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - run-android.js
-- test-database-sync.js
+- setCachedItem
 - 🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete
 - OwnerView.jsx
 - Foody Vrinda (v3)
@@ -42,10 +42,9 @@
 - 🌟 Foody Vrinda: System Architecture & Delivery Verification Updates
 - CustomerView.jsx
 - verify_roles_and_db_sync.mjs
-- .ensureSubscribed
 - 2. Step-by-Step Recovery Execution Chain
 - seed-synthetic-beta-data.js
-- AppUpdateService
+- App.jsx
 - verify-dr-integrity.js
 - lint-migrations.js
 
@@ -64,35 +63,35 @@
 ## Surprising Connections (you probably didn't know these)
 - `runAdversarialTestSuite()` --calls--> `getCloudShops()`  [EXTRACTED]
   scripts/test-adversarial-security.js → src/supabase.js
-- `runTestSuite()` --calls--> `createCloudMenuItem()`  [EXTRACTED]
-  scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `deleteCloudMenuItem()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `getCloudShops()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
 - `runTestSuite()` --calls--> `getOrderOTP()`  [EXTRACTED]
   scripts/test-database-sync.js → src/supabase.js
+- `runTestSuite()` --calls--> `getRecommendedRiders()`  [EXTRACTED]
+  scripts/test-database-sync.js → src/supabase.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (36 total, 13 thin omitted)
+## Communities (35 total, 12 thin omitted)
 
 ### Community 1 - "run-android.js"
 Cohesion: 0.27
 Nodes (10): ANDROID_DIR, APK_PATH, __dirname, ensureDeviceReady(), __filename, getConnectedDevices(), log(), main() (+2 more)
 
-### Community 2 - "test-database-sync.js"
-Cohesion: 0.09
-Nodes (27): COLORS, runAdversarialTestSuite(), section(), COLORS, pass(), runTestSuite(), section(), QUANTITIES (+19 more)
+### Community 2 - "setCachedItem"
+Cohesion: 0.10
+Nodes (25): COLORS, runAdversarialTestSuite(), section(), COLORS, pass(), runTestSuite(), section(), ALLOWED_ORDER_TRANSITIONS (+17 more)
 
 ### Community 4 - "🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete"
 Cohesion: 0.07
 Nodes (26): 1. Executive Summary, 2. Test Execution Matrix (22 / 22 Regression Tests), 3. Security Property Verification & Evidence Status, 4.1 Request Processing & Verification Pipeline, 4.2 Separation of Privilege & Execution Pipelines, 4. Architectural Analysis: End-to-End Control Flow, 5.1 Caller Identity Binding (`claim_order_pickup_atomic` & `verify_delivery_otp_atomic`), 5.2 One-Time Use OTP Verification (+18 more)
 
 ### Community 5 - "OwnerView.jsx"
-Cohesion: 0.10
-Nodes (42): ActiveAlarmBanner(), DynamicToast(), NativeTimePicker(), POPULAR_CATEGORIES, PRESET_DISHES, DEFAULT_SEEDS, NotificationContext, NotificationProvider() (+34 more)
+Cohesion: 0.08
+Nodes (54): AuthModal(), Header(), NotificationPanel(), OrderHistoryDrawer(), ActiveAlarmBanner(), DynamicToast(), NativeTimePicker(), SearchableDropdown() (+46 more)
 
 ### Community 6 - "Foody Vrinda (v3)"
 Cohesion: 0.40
@@ -108,19 +107,19 @@ Nodes (7): activePresetDishes, DEFAULT_PRESET_DISHES, findPresetByKeyword(), get
 
 ### Community 21 - "NativeNotificationService"
 Cohesion: 0.12
-Nodes (9): AuthModal(), DESK_CONFIG, SoundTrialsModal(), SocialLinksBar(), SOCIAL_CHANNELS, SOCIAL_LINKS, NativeNotificationService, nativeNotify (+1 more)
+Nodes (8): DESK_CONFIG, SoundTrialsModal(), SocialLinksBar(), SOCIAL_CHANNELS, SOCIAL_LINKS, NativeNotificationService, nativeNotify, NOTIFICATION_TRIALS
 
 ### Community 22 - "supabase.js"
-Cohesion: 0.08
-Nodes (72): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), addDeletedShopId(), adminBlockUser() (+64 more)
+Cohesion: 0.07
+Nodes (77): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), addDeletedShopId(), adminBlockUser() (+69 more)
 
 ### Community 23 - "firebase.js"
 Cohesion: 0.50
 Nodes (3): app, auth, db
 
 ### Community 24 - "Multi-Environment & Production Safety"
-Cohesion: 0.13
-Nodes (14): Active Engineering Rules, Commands, Credentials, Deployment Rules, Disaster Recovery & Rollback Standard, Environment Isolation, Foody Vrinda v3 — Project Commands & Rules, Migration Rules (+6 more)
+Cohesion: 0.12
+Nodes (15): Active Engineering Rules, CI/CD, Token & Cost Protection Invariant, Commands, Credentials, Deployment Rules, Disaster Recovery & Rollback Standard, Environment Isolation, Foody Vrinda v3 — Project Commands & Rules (+7 more)
 
 ### Community 25 - "verify-delivery-hardened-evidence.js"
 Cohesion: 0.32
@@ -135,16 +134,12 @@ Cohesion: 0.22
 Nodes (8): 🧪 Build & Quality Verification, 🛡️ Daily Rotating Sarathi Token (`getDailySarathiCode`), 📊 End-to-End Chain-of-Custody Audit Fields, 📌 Executive Summary of System Enhancements, 🌟 Foody Vrinda: System Architecture & Delivery Verification Updates, 📁 Key File Links, 🗄️ Supabase Database Migration DDL, 🔄 Two-Stage OTP Handover Lifecycle
 
 ### Community 29 - "CustomerView.jsx"
-Cohesion: 0.05
-Nodes (54): App(), CustomerView, DeveloperView, KitchenView, OwnerView, TransportView, ActiveOrderCapsule(), ActiveOrderTrackingModal() (+46 more)
+Cohesion: 0.10
+Nodes (27): ActiveOrderCapsule(), ActiveOrderTrackingModal(), CompleteProfileModal(), MapPicker(), QUANTITIES, QuantityPickerSheet(), CHEF_TAGS, ReviewModal() (+19 more)
 
 ### Community 31 - "verify_roles_and_db_sync.mjs"
 Cohesion: 0.50
 Nodes (4): recordTest(), results, runTestSuite(), supabase
-
-### Community 34 - ".ensureSubscribed"
-Cohesion: 0.23
-Nodes (4): invalidateCache(), RealtimeMultiplexer, subscribeCloudOffers(), subscribeCloudShops()
 
 ### Community 36 - "2. Step-by-Step Recovery Execution Chain"
 Cohesion: 0.17
@@ -154,29 +149,33 @@ Nodes (11): 1. DR Acceptance Criteria Chain, 2. Step-by-Step Recovery Execution 
 Cohesion: 0.25
 Nodes (6): envName, supabase, SYNTHETIC_MENUS, SYNTHETIC_SHOPS, targetKey, targetUrl
 
+### Community 38 - "App.jsx"
+Cohesion: 0.07
+Nodes (18): App(), CustomerView, DeveloperView, KitchenView, OwnerView, TransportView, AppUpdateModal(), ErrorBoundary (+10 more)
+
 ### Community 39 - "verify-dr-integrity.js"
 Cohesion: 0.40
 Nodes (3): CRITICAL_TABLES, startTime, supabase
 
 ## Knowledge Gaps
-- **134 isolated node(s):** `__filename`, `__dirname`, `__filename`, `__dirname`, `ROOT_DIR` (+129 more)
+- **135 isolated node(s):** `__filename`, `__dirname`, `__filename`, `__dirname`, `ROOT_DIR` (+130 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `NOTIFICATION_TRIALS` connect `NativeNotificationService` to `OwnerView.jsx`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **What connects `__filename`, `__dirname`, `__filename` to the rest of the system?**
-  _134 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `test-database-sync.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.09103840682788052 - nodes in this community are weakly interconnected._
+  _135 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `setCachedItem` be split into smaller, more focused modules?**
+  _Cohesion score 0.09988385598141696 - nodes in this community are weakly interconnected._
 - **Should `🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete` be split into smaller, more focused modules?**
   _Cohesion score 0.07407407407407407 - nodes in this community are weakly interconnected._
 - **Should `OwnerView.jsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09941944847605225 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07792207792207792 - nodes in this community are weakly interconnected._
 - **Should `NativeNotificationService` be split into smaller, more focused modules?**
-  _Cohesion score 0.11740890688259109 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12091038406827881 - nodes in this community are weakly interconnected._
 - **Should `supabase.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.08045977011494253 - nodes in this community are weakly interconnected._
-- **Should `Multi-Environment & Production Safety` be split into smaller, more focused modules?**
-  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06856187290969899 - nodes in this community are weakly interconnected._

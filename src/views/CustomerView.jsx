@@ -739,7 +739,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             createdAt: orderRecord.created_at || orderRecord.createdAt,
             items: Array.isArray(orderRecord.items) ? orderRecord.items : []
           };
-          setTrackingOrder(mapped);
+          if (['delivered', 'completed', 'cancelled'].includes(mapped.status)) {
+            setTrackingOrder(null);
+            if (setTrackingOrderId) setTrackingOrderId(null);
+            try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
+          } else {
+            setTrackingOrder(mapped);
+          }
           // Keep modal minimized on initial load/reload so the storefront stays clean and accessible
         }
       } catch (err) {

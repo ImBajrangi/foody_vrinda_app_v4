@@ -1,6 +1,6 @@
 {
   "1": "run-android.js",
-  "2": "test-database-sync.js",
+  "2": "setCachedItem",
   "3": "index.ts",
   "4": "🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete",
   "5": "OwnerView.jsx",
@@ -29,10 +29,9 @@
   "28": "🌟 Foody Vrinda: System Architecture & Delivery Verification Updates",
   "29": "CustomerView.jsx",
   "31": "verify_roles_and_db_sync.mjs",
-  "34": ".ensureSubscribed",
   "36": "2. Step-by-Step Recovery Execution Chain",
   "37": "seed-synthetic-beta-data.js",
-  "38": "AppUpdateService",
+  "38": "App.jsx",
   "39": "verify-dr-integrity.js",
   "40": "lint-migrations.js"
 }
