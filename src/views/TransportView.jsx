@@ -1005,28 +1005,6 @@ export default function TransportView() {
               <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
               <span className="truncate">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
             </button>
-
-            {/* Test Sound Button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isPlaying) {
-                  stopAlarm();
-                } else {
-                  warmUpAudio();
-                  playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'test-deliv-tone' }, true);
-                  showToast('Sarathi rider chime triggered! Tap Silence to stop.', 'info');
-                }
-              }}
-              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
-                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
-                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
-                }`}
-              title="Test or silence Sarathi Rider Chime"
-            >
-              {isPlaying ? <VolumeX size={15} className="text-rose-500 shrink-0" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />}
-              <span className="truncate">{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
-            </button>
           </div>
 
           {/* List vs Carto View Switcher: Ergonomic full-width segmented control on mobile, compact on desktop */}
@@ -1073,79 +1051,8 @@ export default function TransportView() {
         </div>
       </div>
 
-      {/* 3. SARATHI FLEET OPERATIONS METRICS & SEGMENTED TABS (No kitchen lock — Independent Fleet) */}
+      {/* 3. SARATHI FLEET OPERATIONS SEGMENTED TABS (Independent Fleet) */}
       <div className="space-y-3">
-        {/* KPI Cards Row (Owner-Grade Operations HUD for Sarathi) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <button
-            type="button"
-            onClick={() => setRiderTab('active')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-              riderTab === 'active'
-                ? 'bg-cyan-500/15 border-cyan-500/40 shadow-sm'
-                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Today's Deliveries</span>
-              <Truck size={16} className="text-cyan-600 dark:text-cyan-400" />
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{activeTrips.length}</span>
-              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">in-transit</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRiderTab('upcoming')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-              riderTab === 'upcoming'
-                ? 'bg-amber-500/15 border-amber-500/40 shadow-sm'
-                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Upcoming</span>
-              <Clock size={16} className="text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{upcomingPickups.length}</span>
-              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">ready for pickup</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRiderTab('completed')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-              riderTab === 'completed'
-                ? 'bg-emerald-500/15 border-emerald-500/40 shadow-sm'
-                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Completed Today</span>
-              <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{completedToday.length}</span>
-              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">delivered</span>
-            </div>
-          </button>
-
-          <div className="p-3.5 rounded-2xl bg-stone-200/80 dark:bg-[#282526] border border-stone-300 dark:border-white/5 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Earnings / COD</span>
-              <Banknote size={16} className="text-amber-600 dark:text-[#E0FF33]" />
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{totalCodCollectedToday}</span>
-              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">cash to settle</span>
-            </div>
-          </div>
-        </div>
-
         {/* Tab Switcher Pills */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-inner">
           <button

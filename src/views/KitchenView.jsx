@@ -414,31 +414,6 @@ export default function KitchenView() {
               </span>
             </button>
 
-            {/* Sound Alarm Quick Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isPlaying) {
-                  stopAlarm();
-                } else {
-                  warmUpAudio();
-                  playRoleAlarm('kitchen', { title: 'TEST KITCHEN BUZZER', orderId: 'test-kitch-tone' }, true);
-                  showToast('Kitchen sound alarm test triggered! Tap Silence or banner to stop.', 'info');
-                }
-              }}
-              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isPlaying
-                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 animate-pulse'
-                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-stone-400 dark:hover:border-white/20'
-                }`}
-              title="Test or silence Kitchen Sound Alarm"
-            >
-              {isPlaying ? <VolumeX size={15} className="text-rose-500 shrink-0" /> : <Volume2 size={15} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />}
-              <span className="truncate">
-                <span className="sm:hidden">{isPlaying ? 'Silence' : 'Sound'}</span>
-                <span className="hidden sm:inline">{isPlaying ? 'Silence Alarm' : 'Test Sound'}</span>
-              </span>
-            </button>
-
             {/* Rush Mode (+15 Mins) Toggle */}
             <button
               type="button"

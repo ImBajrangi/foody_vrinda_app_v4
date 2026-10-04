@@ -75,6 +75,7 @@ export default function OrderHistoryDrawer({
     const fetchOrders = async () => {
       try {
         setLoading(true);
+        const isAuthenticated = Boolean(userId && !String(userId).startsWith('guest-'));
         const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
         const sessionOrderIds = (() => {
           try {
@@ -86,13 +87,14 @@ export default function OrderHistoryDrawer({
 
         let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
 
-        if (userId && cleanPhone && cleanPhone.length >= 10) {
-          query = query.or(`user_id.eq.${userId},customer_phone.eq.${cleanPhone}`);
-        } else if (userId) {
+        if (isAuthenticated) {
+          // Strictly query orders belonging to this authenticated user
           query = query.eq('user_id', userId);
         } else if (cleanPhone && cleanPhone.length >= 10) {
+          // Unauthenticated guest lookup by explicit phone
           query = query.eq('customer_phone', cleanPhone);
         } else if (sessionOrderIds.length > 0) {
+          // Anonymous guest session orders on this device
           query = query.in('id', sessionOrderIds);
         } else {
           setOrders([]);
@@ -122,11 +124,22 @@ export default function OrderHistoryDrawer({
     // Realtime changes on customer orders using multiplexer
     const unsubscribe = subscribeCloudOrders('all', (updatedOrder) => {
       if (!updatedOrder) return;
+      const isAuthenticated = Boolean(userId && !String(userId).startsWith('guest-'));
       const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
       const orderPhone = (updatedOrder.customerPhone || updatedOrder.customer_phone || '').replace(/\D/g, '');
       const orderUserId = updatedOrder.userId || updatedOrder.user_id;
+      const sessionOrderIds = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+        } catch {
+          return [];
+        }
+      })();
 
-      const isForMe = (userId && orderUserId === userId) || (cleanPhone.length >= 10 && orderPhone.endsWith(cleanPhone.slice(-10)));
+      const isForMe = isAuthenticated
+        ? (orderUserId === userId)
+        : (cleanPhone.length >= 10 && orderPhone.endsWith(cleanPhone.slice(-10))) || sessionOrderIds.includes(updatedOrder.id);
+
       if (isForMe) {
         setOrders(prev => {
           const idx = prev.findIndex(o => o.id === updatedOrder.id);

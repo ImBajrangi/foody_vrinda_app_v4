@@ -1095,29 +1095,6 @@ export default function OwnerView() {
               )}
               <span>{ownerSoundAlerts ? 'Order Sound: ON' : 'Order Sound: OFF'}</span>
             </button>
-
-            {/* Sound Alarm Quick Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                if (isPlaying) {
-                  stopAlarm();
-                } else {
-                  warmUpAudio();
-                  playRoleAlarm('owner', { title: 'TEST ADMIN BELL', orderId: 'test-admin-tone' }, false);
-                  setToast({ message: 'Store Owner Bell triggered! Tap again to silence.', type: 'info' });
-                }
-              }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
-                isPlaying
-                  ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/50 animate-pulse'
-                  : 'bg-stone-100 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-[#E0FF33]/30 hover:bg-stone-200 dark:hover:bg-white/10'
-              }`}
-              title="Test or silence Store Owner Alarm"
-            >
-              {isPlaying ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />}
-              <span>{isPlaying ? 'Silence Sound' : 'Test Sound'}</span>
-            </button>
           </div>
         </div>
 

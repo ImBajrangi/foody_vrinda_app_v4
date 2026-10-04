@@ -834,6 +834,8 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     localStorage.removeItem('foody_user_data');
+    localStorage.removeItem('foody_customer_orders_cache');
+    localStorage.removeItem('foody_my_session_orders');
     try {
       await supabase.auth.signOut();
     } catch (e) { }

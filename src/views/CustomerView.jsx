@@ -2540,7 +2540,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         isOpen={isOrderHistoryOpen}
         onClose={() => setIsOrderHistoryOpen(false)}
         userId={user?.id}
-        userPhone={userData?.phone || user?.phone || checkoutPhone}
+        userPhone={userData?.phone || user?.phone || (user?.isAnonymous ? checkoutPhone : '')}
         allShops={allShops}
         onTrackOrder={(order) => {
           if (order?.id && setTrackingOrderId) {
