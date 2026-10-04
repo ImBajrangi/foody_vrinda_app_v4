@@ -876,9 +876,9 @@ export function AuthProvider({ children }) {
     );
 
     const updates = { role: newRole };
-    if (targetShopId) {
+    if (targetShopId !== undefined) {
       updates.shopId = targetShopId;
-      updates.shopIds = [targetShopId];
+      updates.shopIds = targetShopId ? [targetShopId] : [];
     }
 
     // 1. Update in local cache & Supabase cloud
@@ -888,16 +888,16 @@ export function AuthProvider({ children }) {
     if (isCurrentActiveUser) {
       setUserRole(newRole);
       setImpersonatedRole(null);
-      if (targetShopId) {
+      if (targetShopId !== undefined) {
         setCurrentUserShopId(targetShopId);
-        setCurrentUserShopIds([targetShopId]);
-        setCurrentShopName(resolveShopName(targetShopId));
+        setCurrentUserShopIds(targetShopId ? [targetShopId] : []);
+        setCurrentShopName(targetShopId ? resolveShopName(targetShopId) : null);
       }
       setUserData(prev => {
         const updated = {
           ...(prev || {}),
           role: newRole,
-          ...(targetShopId ? { shopId: targetShopId, shopIds: [targetShopId] } : {})
+          ...(targetShopId !== undefined ? { shopId: targetShopId, shopIds: targetShopId ? [targetShopId] : [] } : {})
         };
         try {
           localStorage.setItem('foody_user_data', JSON.stringify(updated));

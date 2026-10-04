@@ -877,6 +877,26 @@ export function checkShopOperatingStatus(shop) {
   return { isOpen: true, reason: 'ok', openingTime: openTime, closingTime: closeTime };
 }
 
+/**
+ * Dedicated asynchronous, non-blocking push notification dispatcher.
+ * Database transactions MUST succeed first; push notifications SHOULD happen as best-effort.
+ * A push failure never interrupts order state transition or UI flow.
+ */
+function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
+  Promise.resolve().then(async () => {
+    try {
+      await supabase.functions.invoke('order-push-notification', {
+        body: {
+          type,
+          record: { id: record?.id, ...record, ...extra }
+        }
+      });
+    } catch (err) {
+      console.debug('Background push notification notice (non-fatal):', err?.message || err);
+    }
+  }).catch(() => {});
+}
+
 export async function createCloudOrder(orderData) {
   try {
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -1039,16 +1059,9 @@ export async function createCloudOrder(orderData) {
       return normalizedCreated;
     }
 
-    // Direct fail-safe push trigger using official Supabase functions client
-    try {
-      supabase.functions.invoke('order-push-notification', {
-        body: {
-          type: 'INSERT',
-          fcm_token: activeFcmToken,
-          order: { ...normalizedCreated, ...data }
-        }
-      }).catch(() => {});
-    } catch (_) {}
+    // Best-effort non-blocking background push notification dispatch
+    // Database transaction is already successful; push failure must never block order workflow
+    dispatchOrderPushNotificationAsync('INSERT', { ...normalizedCreated, ...data }, { fcm_token: activeFcmToken });
 
     return { ...normalizedCreated, ...data };
   } catch (err) {
@@ -1155,33 +1168,164 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
     });
 
 
-    const { data, error } = await supabase
-      .from('foody_orders')
-      .update(payload)
-      .eq('id', orderId)
-      .select();
+    let rpcSuccess = false;
+    let finalData = null;
 
-    // Direct fail-safe push trigger using official Supabase functions client
+    // 1. Dedicated RPC State Machine Execution (First-Class Path)
     try {
-      supabase.functions.invoke('order-push-notification', {
-        body: {
-          type: 'UPDATE',
-          record: { id: orderId, status: payload.status, ...payload }
+      if (payload.status === 'preparing') {
+        const { data: kd, error: ke } = await supabase.rpc('kitchen_start_preparing', { p_order_id: orderId });
+        if (!ke && kd) {
+          rpcSuccess = true;
+          finalData = kd;
+        } else {
+          const { data: od, error: oe } = await supabase.rpc('owner_accept_order', { p_order_id: orderId });
+          if (!oe && od) {
+            rpcSuccess = true;
+            finalData = od;
+          }
         }
-      }).catch(() => {});
-    } catch (_) {}
+      } else if (payload.status === 'ready_for_pickup') {
+        const { data: kd, error: ke } = await supabase.rpc('kitchen_mark_ready', { p_order_id: orderId });
+        if (!ke && kd) {
+          rpcSuccess = true;
+          finalData = kd;
+        }
+      } else if (payload.status === 'out_for_delivery') {
+        const { data: dd, error: de } = await supabase.rpc('delivery_mark_out_for_delivery', { p_order_id: orderId });
+        if (!de && dd) {
+          rpcSuccess = true;
+          finalData = dd;
+        }
+      } else if (payload.status === 'completed') {
+        const { data: dd, error: de } = await supabase.rpc('delivery_mark_delivered', { p_order_id: orderId });
+        if (!de && dd) {
+          rpcSuccess = true;
+          finalData = dd;
+        }
+      } else if (payload.status === 'cancelled') {
+        const { data: od, error: oe } = await supabase.rpc('owner_reject_order', { 
+          p_order_id: orderId, 
+          p_reason: extra?.reason || extra?.cooking_notes || 'Cancelled by staff' 
+        });
+        if (!oe && od) {
+          rpcSuccess = true;
+          finalData = od;
+        }
+      }
 
-    if (error) {
-      if (error.code === '42501' || error.message?.includes('row-level security')) {
-        console.info('updateCloudOrderStatus: Direct mutation restricted by RLS (RPC-only state machine active). Code:', error.code);
-      } else {
-        console.warn('updateCloudOrderStatus note:', error.message);
+      if (extra?.cashStatus === 'collected' || extra?.cash_status === 'collected') {
+        const { data: cd } = await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
+        if (cd) finalData = { ...(finalData || {}), ...cd };
+      }
+    } catch (rpcErr) {
+      console.debug('RPC state transition attempt note:', rpcErr?.message || rpcErr);
+    }
+
+    // 2. Fallback to direct UPDATE if RPC was not applicable or caller is Platform Admin / Service Role
+    if (!rpcSuccess) {
+      const { data, error } = await supabase
+        .from('foody_orders')
+        .update(payload)
+        .eq('id', orderId)
+        .select();
+
+      if (error) {
+        if (error.code === '42501' || error.message?.includes('row-level security') || error.message?.includes('permission denied')) {
+          console.info('updateCloudOrderStatus: Direct mutation restricted by RLS (RPC state machine active). Code:', error.code);
+        } else {
+          console.warn('updateCloudOrderStatus note:', error.message);
+        }
+      } else if (data) {
+        finalData = data;
       }
     }
-    return data;
+
+    // Asynchronous non-blocking push notification dispatch
+    // Database transaction is committed; notification failure must never block order flow
+    dispatchOrderPushNotificationAsync('UPDATE', { id: orderId, status: payload.status, ...payload });
+
+    return finalData;
   } catch (err) {
     console.warn('updateCloudOrderStatus exception:', err.message);
     return null;
+  }
+}
+
+/**
+ * 🛵 Fetch Available Deliveries (Privacy-Preserving Pre-Claim Discovery)
+ * Calls get_available_deliveries RPC with optional rider GPS coords for radius filtering
+ */
+export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
+  try {
+    const rpcParams = {};
+    if (coords && coords.lat != null && coords.lng != null) {
+      rpcParams.p_lat = Number(coords.lat);
+      rpcParams.p_lng = Number(coords.lng);
+      rpcParams.p_radius_km = Number(radiusKm) || 15.0;
+    }
+    const { data, error } = await supabase.rpc('get_available_deliveries', rpcParams);
+    if (error) {
+      console.warn('fetchAvailableDeliveries RPC error:', error.message);
+      return [];
+    }
+    const list = Array.isArray(data) ? data : [];
+    return list.map(o => ({
+      id: o.id,
+      shopId: o.shop_id,
+      shop_id: o.shop_id,
+      shopName: o.shop_name || 'Kitchen',
+      pickupLocation: o.pickup_location || 'Kitchen Counter',
+      pickupCoordinates: o.pickup_coordinates,
+      pickupDistanceKm: o.pickup_distance_km,
+      status: o.status,
+      totalAmount: o.total_amount,
+      total_amount: o.total_amount,
+      deliveryCharge: o.delivery_charge,
+      paymentMethod: o.payment_method,
+      payment_method: o.payment_method,
+      itemsSummary: o.items_summary,
+      itemCount: o.item_count,
+      customerName: o.customer_name,
+      customerPhone: o.customer_phone,
+      customerAddress: o.delivery_area,
+      deliveryAddress: o.delivery_area,
+      deliveryArea: o.delivery_area,
+      deliveryCoordinates: o.delivery_coordinates,
+      createdAt: o.created_at,
+      created_at: o.created_at,
+      isClaimed: false,
+      is_claimed: false,
+      rider_id: null
+    }));
+  } catch (err) {
+    console.warn('fetchAvailableDeliveries exception:', err.message);
+    return [];
+  }
+}
+
+/**
+ * 🛵 Self-Claim Delivery Order (Approved Active Delivery Partners Only)
+ * Invokes PostgreSQL RPC delivery_claim_order with FOR UPDATE row lock and approval checks
+ */
+export async function claimDeliveryOrder(orderId) {
+  try {
+    const { data, error } = await supabase.rpc('delivery_claim_order', {
+      p_order_id: orderId
+    });
+
+    if (error) {
+      console.error('claimDeliveryOrder failed:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    // Invalidate local orders cache
+    invalidateCache('orders');
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('claimDeliveryOrder exception:', err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -3675,13 +3819,139 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   return updateCloudUser(userId, updates);
 }
 
-export async function deleteCloudUser(userId) {
+export async function adminBlockUser(userId, reason = 'Administrative block') {
+  try {
+    const { data, error } = await supabase.rpc('admin_block_user', {
+      p_user_id: userId,
+      p_reason: reason
+    });
+    if (error) throw error;
+    
+    // Update local cache
+    const currentUsers = getCachedUsers();
+    const updatedList = currentUsers.map(u => u.id === userId ? { ...u, isActive: false, is_active: false } : u);
+    saveCachedUsers(updatedList);
+    setCachedItem('users', 'all', updatedList);
+    dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUserId: userId });
+    return { success: true, data };
+  } catch (err) {
+    console.warn('adminBlockUser exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function adminUnblockUser(userId, reason = 'Administrative unblock') {
+  try {
+    const { data, error } = await supabase.rpc('admin_unblock_user', {
+      p_user_id: userId,
+      p_reason: reason
+    });
+    if (error) throw error;
+    
+    // Update local cache
+    const currentUsers = getCachedUsers();
+    const updatedList = currentUsers.map(u => u.id === userId ? { ...u, isActive: true, is_active: true } : u);
+    saveCachedUsers(updatedList);
+    setCachedItem('users', 'all', updatedList);
+    dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUserId: userId });
+    return { success: true, data };
+  } catch (err) {
+    console.warn('adminUnblockUser exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function adminRevokeUser(userId, reason = 'Privileges revoked by developer') {
+  try {
+    const { data, error } = await supabase.rpc('admin_revoke_user', {
+      p_user_id: userId,
+      p_reason: reason
+    });
+    if (error) throw error;
+    
+    // Update local cache
+    const currentUsers = getCachedUsers();
+    const updatedList = currentUsers.map(u => u.id === userId ? {
+      ...u,
+      role: 'customer',
+      shopId: null,
+      shop_id: null,
+      shopIds: [],
+      shop_ids: [],
+      devPermissions: {},
+      deliveryStatus: 'suspended',
+      delivery_status: 'suspended'
+    } : u);
+    saveCachedUsers(updatedList);
+    setCachedItem('users', 'all', updatedList);
+    dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUserId: userId });
+    return { success: true, data };
+  } catch (err) {
+    console.warn('adminRevokeUser exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function adminForceSignout(userId, reason = 'Administrative forced session invalidation') {
+  try {
+    const { data, error } = await supabase.rpc('admin_force_signout', {
+      p_user_id: userId,
+      p_reason: reason
+    });
+    if (error) throw error;
+    return { success: true, data };
+  } catch (err) {
+    console.warn('adminForceSignout exception:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function fetchAdminUserActions(limit = 100) {
+  try {
+    const { data, error } = await supabase.rpc('admin_get_audit_log', {
+      p_limit: limit
+    });
+    if (error) {
+      // Fallback direct query if RPC error
+      const { data: directData, error: directErr } = await supabase
+        .from('admin_user_actions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (!directErr && directData) return directData;
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn('fetchAdminUserActions exception:', err.message);
+    return [];
+  }
+}
+
+export async function deleteCloudUser(userId, reason = 'Deleted from Developer Dashboard') {
   const currentUsers = getCachedUsers();
   const updatedList = currentUsers.filter(u => u.id !== userId);
   saveCachedUsers(updatedList);
   setCachedItem('users', 'all', updatedList);
   dispatchSafeEvent('foody_users_changed', { users: updatedList, deletedUserId: userId });
 
+  // 1. Primary server-side RPC execution
+  try {
+    const { data, error } = await supabase.rpc('admin_delete_user', {
+      p_user_id: userId,
+      p_reason: reason
+    });
+    if (!error && data?.success) {
+      return true;
+    }
+    if (error) {
+      console.warn('deleteCloudUser RPC note:', error.message);
+    }
+  } catch (rpcErr) {
+    console.warn('deleteCloudUser RPC exception:', rpcErr.message);
+  }
+
+  // 2. Fallback direct table deletion
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
       const { error } = await supabase.from('foody_logged_users').delete().eq('id', userId);

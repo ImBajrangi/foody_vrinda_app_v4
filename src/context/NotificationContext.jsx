@@ -305,12 +305,17 @@ export function NotificationProvider({ children }) {
 
     setNotifications(prev => [newEntry, ...prev.filter(n => n.id !== newEntry.id)]);
 
-    // Trigger pleasant synthesized acoustic chime
-    try {
-      const chimeType = newEntry.type === 'kitchen' ? 'kitchen' : newEntry.type === 'delivery' ? 'delivery' : 'customer';
-      nativeNotify.playChime(chimeType);
-    } catch {
-      // ignore
+    // Trigger role-specific chime ONLY if caller hasn't already played audio (prevents dual audio)
+    if (!notif.skipSound) {
+      try {
+        const role = userRoleRef.current;
+        const chimeType = ['kitchen', 'owner', 'delivery', 'customer'].includes(newEntry.type)
+          ? newEntry.type
+          : (['kitchen', 'owner', 'delivery'].includes(role) ? role : 'customer');
+        nativeNotify.playChime(chimeType);
+      } catch {
+        // ignore
+      }
     }
 
     // Directly push to OS Notification Center / Lock Screen
@@ -457,11 +462,12 @@ export function NotificationProvider({ children }) {
           id: `order-status-${orderData.id}-${orderData.status}`,
           title,
           message: msg,
-          type: 'order',
+          type: activeRole || 'customer',
           orderId: orderData.id,
           statusTag,
           read: false,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          skipSound: true // Native notification method above already played the role-specific sound
         });
       }
     });

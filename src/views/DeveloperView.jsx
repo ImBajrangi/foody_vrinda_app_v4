@@ -86,6 +86,10 @@ import {
   createCloudUser,
   updateCloudUser,
   deleteCloudUser,
+  adminBlockUser,
+  adminUnblockUser,
+  adminRevokeUser,
+  adminForceSignout,
   subscribeCloudUsers,
   getCachedUsers,
   saveCachedUsers,
@@ -945,18 +949,37 @@ export default function DeveloperView({ setCurrentTab }) {
   };
 
   const handleUpdateUserShop = async (userId, newShopId) => {
+    const finalShopId = (!newShopId || newShopId === 'all') ? null : newShopId;
     setUsersList(prev => {
-      const updated = prev.map(u => u.id === userId ? { ...u, shopId: newShopId, shopIds: [newShopId] } : u);
+      const updated = prev.map(u => u.id === userId ? { ...u, shopId: finalShopId, shopIds: finalShopId ? [finalShopId] : [] } : u);
       saveCachedUsers(updated);
       return updated;
     });
     if (updateUserRole) {
       const targetUser = usersList.find(u => u.id === userId);
-      await updateUserRole(userId, targetUser?.role || 'customer', newShopId);
+      await updateUserRole(userId, targetUser?.role || 'customer', finalShopId);
     } else {
-      await updateCloudUser(userId, { shopId: newShopId, shopIds: [newShopId] });
+      await updateCloudUser(userId, { shopId: finalShopId, shopIds: finalShopId ? [finalShopId] : [] });
     }
-    setToast({ message: 'Kitchen assignment updated', type: 'success' });
+    const shopName = allShops.find(s => s.id === finalShopId)?.name;
+    setToast({ 
+      message: finalShopId ? `Assigned to ${shopName || finalShopId}` : 'Assigned as Independent Fleet (All Kitchens)', 
+      type: 'success' 
+    });
+  };
+
+  const handleToggleDeliveryStatus = async (userId, currentStatus) => {
+    const nextStatus = currentStatus === 'suspended' ? 'approved' : 'suspended';
+    setUsersList(prev => {
+      const updated = prev.map(u => u.id === userId ? { ...u, delivery_status: nextStatus } : u);
+      saveCachedUsers(updated);
+      return updated;
+    });
+    await updateCloudUser(userId, { delivery_status: nextStatus });
+    setToast({ 
+      message: `Delivery Sarathi ${nextStatus === 'approved' ? 'Approved & Activated' : 'Suspended'}`, 
+      type: nextStatus === 'approved' ? 'success' : 'warning' 
+    });
   };
 
   const handleCreateTestUser = async (e) => {
@@ -966,7 +989,11 @@ export default function DeveloperView({ setCurrentTab }) {
       return setToast({ message: 'Please enter a valid 10-digit phone number', type: 'warning' });
     }
     const newId = `user-${Date.now().toString(36)}`;
-    const targetShop = newUserShopId || (allShops[0]?.id || 'shop-vrinda-main');
+    const targetShop = (newUserRole === 'delivery' && (!newUserShopId || newUserShopId === 'all'))
+      ? null
+      : (newUserRole === 'developer' || newUserRole === 'grand_admin')
+        ? null
+        : (newUserShopId || (allShops[0]?.id || 'shop-vrinda-main'));
     const newUserRecord = {
       id: newId,
       displayName: newUserName || `Staff (${cleanPhone.slice(-4)})`,
@@ -974,7 +1001,7 @@ export default function DeveloperView({ setCurrentTab }) {
       email: newUserEmail || `${cleanPhone}@foodyvrinda.com`,
       role: newUserRole,
       shopId: targetShop,
-      shopIds: [targetShop]
+      shopIds: targetShop ? [targetShop] : []
     };
 
     setUsersList(prev => {
@@ -1044,6 +1071,10 @@ export default function DeveloperView({ setCurrentTab }) {
       setToast({ message: 'Protected Grand Admin / Master Developer accounts cannot be deleted', type: 'warning' });
       return;
     }
+    if (target?.role === 'developer' && userData?.role !== 'grand_admin') {
+      setToast({ message: 'Only Grand Admin can delete peer developer accounts', type: 'warning' });
+      return;
+    }
     setUserToDelete({ id: userId, name: userName || userId });
   };
 
@@ -1060,6 +1091,55 @@ export default function DeveloperView({ setCurrentTab }) {
     });
     setToast({ message: `User "${targetName}" removed`, type: 'info' });
     await deleteCloudUser(targetId);
+  };
+
+  const handleBlockUser = async (userId, userName) => {
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin' || target?.role === 'developer') {
+      setToast({ message: 'Cannot block admin/developer accounts from this panel', type: 'warning' });
+      return;
+    }
+    const res = await adminBlockUser(userId, `Blocked by developer from dashboard`);
+    if (res.success) {
+      setUsersList(prev => prev.map(u => u.id === userId ? { ...u, isActive: false, is_active: false } : u));
+      setToast({ message: `User "${userName}" blocked successfully`, type: 'success' });
+    } else {
+      setToast({ message: res.error || 'Block failed', type: 'error' });
+    }
+  };
+
+  const handleUnblockUser = async (userId, userName) => {
+    const res = await adminUnblockUser(userId, `Unblocked by developer from dashboard`);
+    if (res.success) {
+      setUsersList(prev => prev.map(u => u.id === userId ? { ...u, isActive: true, is_active: true } : u));
+      setToast({ message: `User "${userName}" unblocked`, type: 'success' });
+    } else {
+      setToast({ message: res.error || 'Unblock failed', type: 'error' });
+    }
+  };
+
+  const handleRevokeUser = async (userId, userName) => {
+    const target = usersList.find(u => u.id === userId);
+    if (target?.role === 'grand_admin' || target?.role === 'developer') {
+      setToast({ message: 'Cannot revoke admin/developer privileges from this panel', type: 'warning' });
+      return;
+    }
+    const res = await adminRevokeUser(userId, `Privileges revoked from developer dashboard`);
+    if (res.success) {
+      setUsersList(prev => prev.map(u => u.id === userId ? { ...u, role: 'customer', shopId: null } : u));
+      setToast({ message: `"${userName}" demoted to customer`, type: 'success' });
+    } else {
+      setToast({ message: res.error || 'Revoke failed', type: 'error' });
+    }
+  };
+
+  const handleForceSignout = async (userId, userName) => {
+    const res = await adminForceSignout(userId, `Session invalidated from developer dashboard`);
+    if (res.success) {
+      setToast({ message: `"${userName}" sessions terminated`, type: 'success' });
+    } else {
+      setToast({ message: res.error || 'Force signout failed', type: 'error' });
+    }
   };
 
   const handleQuickImpersonateUser = (u) => {
@@ -3240,6 +3320,31 @@ export default function DeveloperView({ setCurrentTab }) {
                                 <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33]" />
                                 <span>Global Access (All Kitchens)</span>
                               </div>
+                            ) : newUserRole === 'delivery' ? (
+                              <SearchableDropdown
+                                value={newUserShopId || 'all'}
+                                onChange={(val) => setNewUserShopId(val)}
+                                options={[
+                                  {
+                                    value: 'all',
+                                    label: 'Independent Fleet (All Kitchens)',
+                                    sublabel: 'Roaming Sarathi — accepts orders across all outlets',
+                                    icon: Globe,
+                                    badge: 'Independent',
+                                    badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400'
+                                  },
+                                  ...allShops.map(s => ({
+                                    value: s.id,
+                                    label: s.name,
+                                    sublabel: s.address || 'Dedicated to this branch',
+                                    icon: Store,
+                                    badge: 'Branch Dedicated',
+                                    badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                  }))
+                                ]}
+                                align="full"
+                                searchPlaceholder="Select fleet scope..."
+                              />
                             ) : (
                               <SearchableDropdown
                                 value={newUserShopId || allShops[0]?.id || ''}
@@ -3249,7 +3354,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   label: s.name,
                                   sublabel: s.address || 'Vrindavan Kitchen',
                                   icon: Store,
-                                  badge: 'Branch',
+                                  badge: newUserRole === 'owner' ? 'Owner Scope' : 'Kitchen Branch',
                                   badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
                                 }))}
                                 align="full"
@@ -3418,33 +3523,72 @@ export default function DeveloperView({ setCurrentTab }) {
                                   </div>
                                 </div>
 
-                                {/* Secondary Action Icons (Info + Delete) */}
-                                <div className="flex items-center gap-1.5 shrink-0">
+                                {/* Secondary Action Icons (Info + Block + Revoke + Signout + Delete) */}
+                                <div className="flex items-center gap-1 shrink-0">
                                   <button
                                     type="button"
                                     onClick={() => setSelectedUserDetail(u)}
                                     title="View account metadata & permissions"
-                                    className="p-2 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
+                                    className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
                                   >
-                                    <Info className="w-3.5 h-3.5" />
+                                    <Info className="w-3 h-3" />
                                   </button>
 
                                   {role === 'grand_admin' ? (
                                     <div
-                                      className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400/60 cursor-not-allowed"
+                                      className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400/60 cursor-not-allowed"
                                       title="Permanent protected account"
                                     >
-                                      <Lock className="w-3.5 h-3.5" />
+                                      <Lock className="w-3 h-3" />
                                     </div>
                                   ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
-                                      title="Delete user account"
-                                      className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-red-400 border border-rose-500/20 transition-all active:scale-95 cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
+                                    <>
+                                      {(u.isActive === false || u.is_active === false) ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUnblockUser(u.id, u.displayName)}
+                                          title="Unblock user"
+                                          className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                          <ShieldCheck className="w-3 h-3" />
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleBlockUser(u.id, u.displayName)}
+                                          title="Block user account"
+                                          className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                          <ShieldAlert className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                      {role !== 'customer' && role !== 'developer' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRevokeUser(u.id, u.displayName)}
+                                          title="Revoke privileges (demote to customer)"
+                                          className="p-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                          <KeyRound className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleForceSignout(u.id, u.displayName)}
+                                        title="Force sign out"
+                                        className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all active:scale-95 cursor-pointer"
+                                      >
+                                        <Zap className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
+                                        title="Delete user account"
+                                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-red-400 border border-rose-500/20 transition-all active:scale-95 cursor-pointer"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -3479,7 +3623,33 @@ export default function DeveloperView({ setCurrentTab }) {
                                   )}
 
                                   {/* Scope / Branch Assignment */}
-                                  {(role === 'kitchen' || role === 'delivery' || role === 'owner') ? (
+                                  {role === 'delivery' ? (
+                                    <SearchableDropdown
+                                      value={u.shopId || 'all'}
+                                      onChange={(val) => handleUpdateUserShop(u.id, val)}
+                                      options={[
+                                        {
+                                          value: 'all',
+                                          label: 'Independent Fleet (All Outlets)',
+                                          sublabel: 'Roaming Sarathi — delivers from all kitchens',
+                                          icon: Globe,
+                                          badge: 'Independent',
+                                          badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400'
+                                        },
+                                        ...allShops.map(s => ({
+                                          value: s.id,
+                                          label: s.name,
+                                          sublabel: s.address || 'Dedicated branch',
+                                          icon: Store,
+                                          badge: 'Branch',
+                                          badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                        }))
+                                      ]}
+                                      size="sm"
+                                      searchPlaceholder="Filter kitchen / fleet..."
+                                      className="w-full sm:w-auto sm:min-w-[175px]"
+                                    />
+                                  ) : (role === 'kitchen' || role === 'owner') ? (
                                     <SearchableDropdown
                                       value={u.shopId || (allShops[0]?.id || '')}
                                       onChange={(val) => handleUpdateUserShop(u.id, val)}
@@ -3488,11 +3658,11 @@ export default function DeveloperView({ setCurrentTab }) {
                                         label: s.name,
                                         sublabel: s.address || 'Vrindavan Kitchen',
                                         icon: Store,
-                                        badge: 'Branch',
+                                        badge: role === 'owner' ? 'Owner Scope' : 'Kitchen Branch',
                                         badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
                                       }))}
                                       size="sm"
-                                      searchPlaceholder="Filter kitchen..."
+                                      searchPlaceholder="Assign branch..."
                                       className="w-full sm:w-auto sm:min-w-[165px]"
                                     />
                                   ) : (role === 'grand_admin' || role === 'developer') ? (
@@ -3505,6 +3675,22 @@ export default function DeveloperView({ setCurrentTab }) {
                                       <Users className="w-3.5 h-3.5 shrink-0" />
                                       <span className="whitespace-nowrap font-bold">Public User</span>
                                     </div>
+                                  )}
+                                  {/* Delivery Partner Verification / Approval Badge */}
+                                  {role === 'delivery' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleDeliveryStatus(u.id, u.delivery_status || 'approved')}
+                                      className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        (u.delivery_status || 'approved') === 'approved'
+                                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                                          : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                                      }`}
+                                      title="Toggle delivery partner verification status"
+                                    >
+                                      <ShieldCheck className="w-3.5 h-3.5" />
+                                      <span>{(u.delivery_status || 'approved') === 'approved' ? 'Approved' : 'Suspended'}</span>
+                                    </button>
                                   )}
                                 </div>
 
@@ -3909,7 +4095,13 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/5 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-400">Assigned Branch Kitchen</span>
                 <p className="font-bold text-stone-900 dark:text-white">
-                  {allShops.find(s => s.id === selectedUserDetail.shopId)?.name || (selectedUserDetail.role === 'developer' || selectedUserDetail.role === 'grand_admin' ? 'Global (All Kitchens)' : 'Public Customer Scope')}
+                  {allShops.find(s => s.id === selectedUserDetail.shopId)?.name || (
+                    selectedUserDetail.role === 'developer' || selectedUserDetail.role === 'grand_admin'
+                      ? 'Global (All Kitchens)'
+                      : selectedUserDetail.role === 'delivery'
+                        ? 'Independent Fleet (All Kitchens / Roaming)'
+                        : 'Public Customer Scope'
+                  )}
                 </p>
               </div>
             </div>

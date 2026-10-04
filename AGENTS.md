@@ -96,6 +96,14 @@ When auditing or generating production migrations, always pair declarative RLS p
 Rule [Android Adaptive Icon Invariant]:
 "All adaptive launcher icon foregrounds (ic_launcher_foreground.png) must have a 100% transparent background (alpha = 0) with the active emblem scaled between 55%–62% of the canvas to adhere to Android's 66dp safe zone. Backgrounds must use the signature Obsidian (#1E1B1C) vector, and legacy fallback icons must never retain opaque white corner bounding boxes."
 
+Rule — Automatic SQL Trigger & Constraint Awareness:
+
+"When writing SQL test fixtures or batch cleanup scripts, always filter out immutable/protected system roles (e.g. role <> 'grand_admin') to respect database-level permanent account protection triggers."
+
+Rule — Migration Schema Parity Enforcement:
+
+"Always ensure column names in RPC procedures (foody_logged_users, foody_shops, foody_menus) match active schema definitions exactly before generating or running migrations."
+
 ## Multi-Environment & Production Safety
 
 ### Environment Isolation

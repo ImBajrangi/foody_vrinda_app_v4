@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1790768051.1276906,
-    "ast_hash": "d543958b29a22749a5166915db556e1f",
+    "mtime": 1790913994.8976743,
+    "ast_hash": "ad3e34d29272a16672428195dec721a8",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
@@ -120,18 +120,18 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1790838812.8410113,
-    "ast_hash": "4d5f4820748e548f15f6d76fea15d1e8",
+    "mtime": 1791101668.901195,
+    "ast_hash": "04552c17dd8264b4a6de296832cb2b46",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
-    "mtime": 1790691273.2980547,
-    "ast_hash": "f964557adfabe06d219ffc14cf777071",
+    "mtime": 1791044097.7753654,
+    "ast_hash": "af09bedf268bd5ee91e2c30f31d48664",
     "semantic_hash": ""
   },
   "src/context/NotificationContext.jsx": {
-    "mtime": 1790764531.753285,
-    "ast_hash": "d5fe24264b3bb11ce1ee45c56d68fd08",
+    "mtime": 1791100149.187145,
+    "ast_hash": "eaa1ec27b50e0bdb4b3636fdd84c040b",
     "semantic_hash": ""
   },
   "src/firebase.js": {
@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "src/hooks/useAudioAlarm.js": {
-    "mtime": 1790762247.206326,
-    "ast_hash": "d2ac777f1177010fab1af2b69b378a3a",
+    "mtime": 1791100286.3332105,
+    "ast_hash": "6939ee427810ce7fb911a54c89bfac29",
     "semantic_hash": ""
   },
   "src/hooks/useFastNotify.js": {
@@ -170,33 +170,33 @@
     "semantic_hash": ""
   },
   "src/supabase.js": {
-    "mtime": 1790838797.2429636,
-    "ast_hash": "8566343de8cef237bec3856a639fde8f",
+    "mtime": 1791103561.89838,
+    "ast_hash": "f56004902b2e135f3f4fe7097abf119b",
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1790770166.156935,
-    "ast_hash": "30bb74a976a65b85f4e223e7870d45de",
+    "mtime": 1791100578.6724627,
+    "ast_hash": "ef4c665feffd3b46298737a303e698ae",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1790765757.901112,
-    "ast_hash": "a0b2ded46f6db0640509c0cfc0b2d4bd",
+    "mtime": 1791103402.4266965,
+    "ast_hash": "043426c042fd74c1cff1bfe40922a8ad",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1790771845.2781858,
-    "ast_hash": "272087fc7b4036a7306c7e8fe9a36700",
+    "mtime": 1791101399.6439326,
+    "ast_hash": "f51675768aa2b0c4227ac537803a3ddc",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
-    "mtime": 1790765533.6193721,
-    "ast_hash": "f0ef537ce361f0652b17b8c4bc4faf85",
+    "mtime": 1791101359.8854496,
+    "ast_hash": "e26fc00b0c200370d17138695c6c376f",
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1790779532.6376147,
-    "ast_hash": "0321acd63392588502263eeaa59bd5b2",
+    "mtime": 1791103588.4132872,
+    "ast_hash": "fc2b218f13d80e6ee4a59b57892dc980",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -265,13 +265,13 @@
     "semantic_hash": ""
   },
   "src/services/nativeNotificationService.js": {
-    "mtime": 1790765318.2309713,
-    "ast_hash": "99e819d1820f767ab9461310ce2f0db9",
+    "mtime": 1791100243.2905571,
+    "ast_hash": "111d5d461be43479eefcf7581f46eb87",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1790842119.584391,
-    "ast_hash": "ce83e2647529923e4a59c4555daf566c",
+    "mtime": 1791094475.7619715,
+    "ast_hash": "3752ec29cf8cbbc0a82f10bedd60eb8b",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "supabase/functions/order-push-notification/index.ts": {
-    "mtime": 1790839071.255947,
-    "ast_hash": "8755d053d014c40c4f8c9ca162b7de26",
+    "mtime": 1791101904.1881893,
+    "ast_hash": "99a4951f5398a4687e260d9d6a5e9abf",
     "semantic_hash": ""
   },
   "scripts/test_push_workflow.mjs": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "ProductDetails/v5_3_4_production_secure_sync.sql": {
-    "mtime": 1790842282.7009192,
-    "ast_hash": "d0152d781c995a5ced879abb40d530be",
+    "mtime": 1790842424.0318048,
+    "ast_hash": "c978adb837d3e6e91cd1bb338c9f2ba9",
     "semantic_hash": ""
   },
   "ProductDetails/v5_3_concurrency_race_protocol.sql": {
@@ -437,6 +437,61 @@
   "scripts/test-live-rls-regression.mjs": {
     "mtime": 1790841991.74218,
     "ast_hash": "5a7ea92ff6079f602d14e33fe2927dec",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_7_seed_24_preset_dishes.sql": {
+    "mtime": 1791042496.3588457,
+    "ast_hash": "66d2d76bc5f36955fed49cbcfb9f2d7f",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_8_create_foody_presets_table.sql": {
+    "mtime": 1791042554.0975873,
+    "ast_hash": "17ef8934b57497f4e6d49f609ab26eaa",
+    "semantic_hash": ""
+  },
+  "ProductDetails/v5_3_9_fix_shop_and_user_rls_permissions.sql": {
+    "mtime": 1791047445.2473726,
+    "ast_hash": "b86988f31f9381282c07300047132476",
+    "semantic_hash": ""
+  },
+  "src/constants/presetDishes.js": {
+    "mtime": 1791042729.2841177,
+    "ast_hash": "1beb00f71951ab30813d599b9cf21b88",
+    "semantic_hash": ""
+  },
+  "tests/verify_roles_and_db_sync.mjs": {
+    "mtime": 1791044365.381438,
+    "ast_hash": "fef41192c1d2cd6cec843d9a9ef4201b",
+    "semantic_hash": ""
+  },
+  "scripts/lint-migrations.js": {
+    "mtime": 1791094223.178955,
+    "ast_hash": "ff99628e93dd7a146ada135c08776885",
+    "semantic_hash": ""
+  },
+  "scripts/seed-synthetic-beta-data.js": {
+    "mtime": 1791093841.4237754,
+    "ast_hash": "7537c40fa4cceb57e32fb6bf16171857",
+    "semantic_hash": ""
+  },
+  "scripts/verify-dr-integrity.js": {
+    "mtime": 1791094787.0109248,
+    "ast_hash": "dd619cfed7eba935a46d5c202c317cea",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20261004000001_production_rls_and_security.sql": {
+    "mtime": 1791094038.0913227,
+    "ast_hash": "b86988f31f9381282c07300047132476",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci-cd-enforcement.yml": {
+    "mtime": 1791095248.4415205,
+    "ast_hash": "c6b6e21c5b99f0cc1db01415da725ea3",
+    "semantic_hash": ""
+  },
+  "ProductDetails/DISASTER_RECOVERY_RUNBOOK.md": {
+    "mtime": 1791094822.5425036,
+    "ast_hash": "eb83724ce6ec8b37fe1983cfa46f4596",
     "semantic_hash": ""
   }
 }

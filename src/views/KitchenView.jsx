@@ -46,7 +46,14 @@ import {
 export default function KitchenView() {
   const { user, currentUserShopId, allShops = [], refreshShops, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
   const currentShop = allShops.find(s => s.id === currentUserShopId) || allShops[0];
-  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
+  const isDevOrAdmin = Boolean(
+    isAuthorizedDeveloper ||
+    isAuthorizedAdmin ||
+    actualRole === 'developer' ||
+    actualRole === 'grand_admin' ||
+    userRole === 'developer' ||
+    userRole === 'grand_admin'
+  );
 
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
@@ -465,12 +472,12 @@ export default function KitchenView() {
         </div>
       </div>
 
-      {/* BRANCH SELECTOR — Global roles can switch kitchen branches inline */}
-      {isGlobalRole && allShops.length > 1 && (
+      {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
+      {isDevOrAdmin && allShops.length > 1 && (
         <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
           <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
             <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
-            Switch Kitchen:
+            Switch Kitchen (Developer Only):
           </span>
           <SearchableDropdown
             value={currentUserShopId || allShops[0]?.id}

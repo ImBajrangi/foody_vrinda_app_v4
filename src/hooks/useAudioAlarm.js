@@ -23,9 +23,9 @@ export function useAudioAlarm() {
   const [volume, setVolumeState] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_alarm_volume');
-      return saved !== null ? parseFloat(saved) : 0.85;
+      return saved !== null ? parseFloat(saved) : 1.0;
     } catch (e) {
-      return 0.85;
+      return 1.0;
     }
   });
   const [notificationPermission, setNotificationPermission] = useState(() => {
@@ -128,78 +128,33 @@ export function useAudioAlarm() {
     };
   }, [unlockAudio, syncAudioState]);
 
-  // Helper to play high-impact audio file with HTML5 Audio alongside Web Audio
-  const playAudioFile = useCallback((src) => {
+  // Helper to play high-impact audio file with HTML5 Audio, returns true if successfully played
+  const playAudioFile = useCallback(async (src) => {
     try {
       if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
         const audio = new Audio(src);
-        audio.volume = Math.max(0, Math.min(1, volumeRef.current || 1.0));
-        const p = audio.play();
-        if (p && p.catch) p.catch(() => {});
+        audio.volume = 1.0; // 100% full volume
+        await audio.play();
+        return true;
       }
-    } catch (e) {}
+    } catch (e) {
+      return false;
+    }
+    return false;
   }, []);
 
-  // 1. Synthesize Kitchen Buzzer (Loud Piercing Dual-Tone Attention Alarm)
-  const synthesizeKitchenTone = useCallback(() => {
-    // Play loud restaurant chime file immediately
-    playAudioFile('/sounds/kitchen_alert.wav');
-
-    const ctx = getAudioContext(true);
-    if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+  // 1. Kitchen Alert: Loud, Urgent Restaurant Order Siren
+  const synthesizeKitchenTone = useCallback(async () => {
+    // Attempt to play clean high-impact audio file first
+    const played = await playAudioFile('/sounds/kitchen_alert.wav');
+    
+    // Haptic vibration on mobile
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate([300, 100, 300, 100, 400]); } catch (e) {}
     }
 
-    const vol = Math.max(0, Math.min(1, volumeRef.current));
-    if (vol <= 0.01) return; // Silent if volume is muted / zero
-
-    try {
-      const now = ctx.currentTime;
-      
-      // Dual Oscillator + Square harmonic for piercing kitchen-grade cut-through
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      osc1.type = 'sawtooth';
-      osc1.frequency.setValueAtTime(980, now);
-      osc1.frequency.setValueAtTime(1320, now + 0.12);
-
-      osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(980, now);
-      osc2.frequency.setValueAtTime(1320, now + 0.12);
-
-      // Boosted punchy envelope scaled by volume for maximum loudness
-      gainNode.gain.setValueAtTime(0.001, now);
-      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.85 * vol), now + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.5 * vol), now + 0.12);
-      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.9 * vol), now + 0.14);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
-
-      osc1.connect(gainNode);
-      osc2.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      osc1.start(now);
-      osc2.start(now);
-      osc1.stop(now + 0.45);
-      osc2.stop(now + 0.45);
-
-      // Strong haptic vibration pattern for mobile / android
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        try {
-          navigator.vibrate([300, 100, 300, 100, 400]);
-        } catch (e) {}
-      }
-    } catch (err) {
-      console.warn('Audio buzzer note:', err);
-    }
-  }, [playAudioFile]);
-
-  // 2. Synthesize Delivery Rider Chime (Bright Ascending 3-Tone Pickup Ping)
-  const synthesizeDeliveryTone = useCallback(() => {
-    playAudioFile('/sounds/delivery_alert.wav');
+    // Only fallback to synthesized oscillator if audio file failed to play
+    if (played) return;
 
     const ctx = getAudioContext(true);
     if (!ctx) return;
@@ -212,7 +167,61 @@ export function useAudioAlarm() {
 
     try {
       const now = ctx.currentTime;
-      const freqs = [587.33, 783.99, 987.77, 1318.51]; // D5 -> G5 -> B5 -> E6
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(880, now);
+      osc1.frequency.setValueAtTime(1320, now + 0.15);
+
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(880, now);
+      osc2.frequency.setValueAtTime(1320, now + 0.15);
+
+      gainNode.gain.setValueAtTime(0.001, now);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 1.0 * vol), now + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.7 * vol), now + 0.14);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 1.0 * vol), now + 0.16);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+      osc1.connect(gainNode);
+      osc2.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.46);
+      osc2.stop(now + 0.46);
+    } catch (err) {
+      console.warn('Audio buzzer fallback note:', err);
+    }
+  }, [playAudioFile]);
+
+  // 2. Synthesize Delivery Rider Chime (Bright Ascending 3-Tone Pickup Ping)
+  const synthesizeDeliveryTone = useCallback(async () => {
+    const played = await playAudioFile('/sounds/delivery_alert.wav');
+
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([250, 100, 350]);
+      } catch (e) {}
+    }
+
+    if (played) return;
+
+    const ctx = getAudioContext(true);
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    const vol = Math.max(0, Math.min(1, volumeRef.current));
+    if (vol <= 0.01) return;
+
+    try {
+      const now = ctx.currentTime;
+      const freqs = [783.99, 1046.50, 1318.51]; // G5 -> C6 -> E6
 
       freqs.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
@@ -223,7 +232,7 @@ export function useAudioAlarm() {
         osc.frequency.setValueAtTime(freq, noteTime);
 
         gainNode.gain.setValueAtTime(0.001, noteTime);
-        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.75 * vol), noteTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 1.0 * vol), noteTime + 0.02);
         gainNode.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.28);
 
         osc.connect(gainNode);
@@ -232,20 +241,22 @@ export function useAudioAlarm() {
         osc.start(noteTime);
         osc.stop(noteTime + 0.3);
       });
-
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        try {
-          navigator.vibrate([250, 100, 350]);
-        } catch (e) {}
-      }
     } catch (err) {
-      console.warn('Audio delivery tone note:', err);
+      console.warn('Audio delivery tone fallback note:', err);
     }
   }, [playAudioFile]);
 
   // 3. Synthesize Owner/Admin Luxury Resonant Bell
-  const synthesizeOwnerTone = useCallback(() => {
-    playAudioFile('/sounds/owner_alert.wav');
+  const synthesizeOwnerTone = useCallback(async () => {
+    const played = await playAudioFile('/sounds/owner_alert.wav');
+
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([150, 100, 250]);
+      } catch (e) {}
+    }
+
+    if (played) return;
 
     const ctx = getAudioContext(true);
     if (!ctx) return;
@@ -266,7 +277,7 @@ export function useAudioAlarm() {
       osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.08);
 
       gainNode.gain.setValueAtTime(0.001, now);
-      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.8 * vol), now + 0.03);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 1.0 * vol), now + 0.03);
       gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
 
       osc.connect(gainNode);
@@ -275,12 +286,16 @@ export function useAudioAlarm() {
       osc.start(now);
       osc.stop(now + 0.9);
     } catch (err) {
-      console.warn('Audio owner tone note:', err);
+      console.warn('Audio owner tone fallback note:', err);
     }
-  }, []);
+  }, [playAudioFile]);
 
   // 4. Synthesize Customer Blessing Prasad Bell
-  const synthesizeCustomerTone = useCallback(() => {
+  const synthesizeCustomerTone = useCallback(async () => {
+    const played = await playAudioFile('/sounds/customer_ping.wav');
+
+    if (played) return;
+
     const ctx = getAudioContext(true);
     if (!ctx) return;
     if (ctx.state === 'suspended') {
@@ -301,7 +316,7 @@ export function useAudioAlarm() {
         osc.frequency.setValueAtTime(f, t);
 
         gainNode.gain.setValueAtTime(0.001, t);
-        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 0.25 * vol), t + 0.03);
+        gainNode.gain.exponentialRampToValueAtTime(Math.max(0.001, 1.0 * vol), t + 0.03);
         gainNode.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
 
         osc.connect(gainNode);
@@ -311,9 +326,9 @@ export function useAudioAlarm() {
         osc.stop(t + 0.75);
       });
     } catch (err) {
-      console.warn('Audio customer tone note:', err);
+      console.warn('Audio customer tone fallback note:', err);
     }
-  }, []);
+  }, [playAudioFile]);
 
   // Stop Active Alarm
   const stopAlarm = useCallback(() => {

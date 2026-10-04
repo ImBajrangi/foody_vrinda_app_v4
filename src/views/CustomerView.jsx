@@ -1383,42 +1383,35 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           }}
                           className={`w-full text-left p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
                             isSelected
-                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-2 border-amber-500 dark:border-[#E0FF33] shadow-[0_4px_20px_rgba(224,255,51,0.08)]'
-                              : 'bg-stone-50/90 dark:bg-[#282526]/80 border border-stone-200/80 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-[#322E30] hover:border-stone-300 dark:hover:border-white/20'
+                              ? 'bg-amber-500/[0.05] dark:bg-[#E0FF33]/[0.05] border border-amber-500/40 dark:border-[#E0FF33]/35 shadow-xs'
+                              : 'bg-stone-50/80 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.07] hover:bg-stone-100/80 dark:hover:bg-white/[0.06] hover:border-stone-300 dark:hover:border-white/15'
                           }`}
                           aria-pressed={isSelected}
-                          aria-label={`${s.name}${isOpen ? ' (Open)' : ' (Closed)'}${isSelected ? ' — active outlet' : ''}`}
+                          aria-label={`${s.name}${isOpen ? '' : ' (Closed)'}${isSelected ? ' — active outlet' : ''}`}
                         >
                           {/* Left: Store Icon Avatar + Text Info */}
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
                             {/* Outlet Icon Avatar */}
                             <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                               isSelected
-                                ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-stone-950 shadow-xs'
-                                : 'bg-stone-200/90 dark:bg-white/10 text-stone-700 dark:text-zinc-300 group-hover:bg-stone-300 dark:group-hover:bg-white/15'
+                                ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/25'
+                                : 'bg-stone-200/70 dark:bg-white/[0.06] text-stone-600 dark:text-zinc-400 group-hover:bg-stone-300/80 dark:group-hover:bg-white/10'
                             }`}>
                               <Store size={18} strokeWidth={2.2} />
                             </div>
 
                             {/* Info */}
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className={`text-sm sm:text-[15px] font-black tracking-tight truncate font-['Outfit'] ${
-                                  isSelected
-                                    ? 'text-amber-950 dark:text-[#E0FF33]'
-                                    : 'text-stone-900 dark:text-white'
-                                }`}>
-                                  {s.name}
-                                </h4>
-                                {isSelected && (
-                                  <span className="px-1.5 py-0.2 rounded-md bg-amber-500/20 dark:bg-[#E0FF33]/20 text-[9.5px] font-black uppercase text-amber-700 dark:text-[#E0FF33] shrink-0 font-['Outfit']">
-                                    ACTIVE
-                                  </span>
-                                )}
-                              </div>
+                              <h4 className={`text-sm sm:text-[15px] font-bold tracking-tight truncate font-['Outfit'] ${
+                                isSelected
+                                  ? 'text-amber-900 dark:text-[#E0FF33]'
+                                  : 'text-stone-900 dark:text-white'
+                              }`}>
+                                {s.name}
+                              </h4>
 
                               {s.address && (
-                                <p className="text-[11.5px] text-stone-500 dark:text-zinc-400 mt-0.5 truncate flex items-center gap-1 font-medium">
+                                <p className="text-[12px] text-stone-500 dark:text-zinc-400 mt-0.5 truncate flex items-center gap-1.5 font-medium">
                                   <MapPin size={11} className="shrink-0 text-stone-400 dark:text-zinc-500" />
                                   <span className="truncate">{s.address}</span>
                                 </p>
@@ -1426,17 +1419,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             </div>
                           </div>
 
-                          {/* Right: Status Pill & Selection Indicator */}
+                          {/* Right: Only relevant indicators (Closed notice if closed, and clean selection checkmark) */}
                           <div className="flex items-center gap-2.5 shrink-0">
-                            {isOpen ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black tracking-wide font-['Outfit']">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                                OPEN
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold tracking-wide font-['Outfit']">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                CLOSED
+                            {!isOpen && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10px] font-semibold tracking-wide font-['Outfit']">
+                                Closed
                               </span>
                             )}
 
@@ -1444,10 +1431,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                               isSelected
                                 ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-stone-950 shadow-xs'
-                                : 'border-2 border-stone-300 dark:border-white/20 group-hover:border-stone-400 dark:group-hover:border-white/40'
+                                : 'border border-stone-300 dark:border-white/20 group-hover:border-stone-400 dark:group-hover:border-white/40'
                             }`}>
                               {isSelected && (
-                                <Check size={12} strokeWidth={3.5} />
+                                <Check size={12} strokeWidth={3} />
                               )}
                             </div>
                           </div>

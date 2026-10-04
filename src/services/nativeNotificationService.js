@@ -161,7 +161,7 @@ class NativeNotificationService {
     try {
       if (typeof window !== 'undefined' && typeof Audio !== 'undefined') {
         const audio = new Audio(trial.soundSrc);
-        audio.volume = 0.8;
+        audio.volume = 1.0;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
@@ -180,6 +180,13 @@ class NativeNotificationService {
    * Play real-time alert audio (HTML5 audio / Web Audio) using active trial
    */
   playChime(type = 'customer') {
+    const nowTs = Date.now();
+    if (this._lastChimeType === type && (nowTs - (this._lastChimeTimestamp || 0)) < 1200) {
+      return; // Deduplicate rapid fire of same chime to prevent double sound
+    }
+    this._lastChimeTimestamp = nowTs;
+    this._lastChimeType = type;
+
     try {
       const activeTrialId = this.getActiveTrial();
       const activeTrial = NOTIFICATION_TRIALS.find(t => t.id === activeTrialId) || NOTIFICATION_TRIALS[0];
@@ -199,15 +206,19 @@ class NativeNotificationService {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
-            this._playSynthesizedTrial(activeTrialId);
+            if (type === 'customer') {
+              this._playSynthesizedTrial(activeTrialId);
+            }
           });
           return;
         }
       }
     } catch {
-      // fallback to synthesized chime
+      // fallback to synthesized chime only for customer
+      if (type === 'customer') {
+        this._playSynthesizedTrial(this.getActiveTrial());
+      }
     }
-    this._playSynthesizedTrial(this.getActiveTrial());
   }
 
   _playSynthesizedTrial(trialId = 'natural_water_drop') {

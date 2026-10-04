@@ -138,22 +138,14 @@ async function sendFCMMessage(
   return { ok: resp.ok, status: resp.status, resJson };
 }
 
-// CORS: Restrict to known origins (production domain + local dev)
-const ALLOWED_ORIGINS = [
-  "https://eat.vrindopnishad.in",
-  "https://mrsxliwyqodtwjuyqmts.supabase.co",
-  "com.foodyvrinda.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
+// CORS: Dynamic caller origin reflection with safe fallback
 function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const origin = req.headers.get("origin") || "*";
   return {
-    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Max-Age": "86400",
   };
 }
 
@@ -168,9 +160,10 @@ serve(async (req: Request) => {
     const serviceAccountJsonStr = Deno.env.get("FCM_SERVICE_ACCOUNT") || "";
 
     if (!serviceAccountJsonStr) {
+      // Graceful non-blocking fallback if secret is not yet configured
       return new Response(
-        JSON.stringify({ error: "Missing FCM_SERVICE_ACCOUNT in Edge Function secrets." }),
-        { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+        JSON.stringify({ status: "skipped", message: "Push notification skipped: FCM_SERVICE_ACCOUNT not configured in secrets." }),
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 

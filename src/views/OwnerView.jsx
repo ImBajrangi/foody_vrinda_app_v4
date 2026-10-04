@@ -124,12 +124,24 @@ ChartJS.register(
 export default function OwnerView() {
   const { allShops = [], currentUserShopId, refreshShops, updateUserRole, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
   const { ownerSoundAlerts, toggleOwnerSoundAlerts } = useNotifications();
-  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
+  // ONLY verified developer / platform super-admin can switch kitchens across the system
+  const isDevOrAdmin = Boolean(
+    isAuthorizedDeveloper ||
+    isAuthorizedAdmin ||
+    actualRole === 'developer' ||
+    actualRole === 'grand_admin' ||
+    userRole === 'developer' ||
+    userRole === 'grand_admin'
+  );
 
-  // Resolved Active Kitchen
-  const currentShop = (allShops && allShops.length > 0)
-    ? (allShops.find(s => s.id === currentUserShopId) || allShops[0])
-    : null;
+  // Resolved Active Kitchen: Shop owners are strictly bound to their assigned shop
+  const currentShop = useMemo(() => {
+    if (!allShops || allShops.length === 0) return null;
+    if (isDevOrAdmin) {
+      return allShops.find(s => s.id === currentUserShopId) || allShops[0];
+    }
+    return (currentUserShopId ? allShops.find(s => s.id === currentUserShopId) : null) || allShops[0];
+  }, [allShops, currentUserShopId, isDevOrAdmin]);
 
   // Tab Navigation: 'analytics' | 'menu' | 'settings' | 'history'
   const [activeTab, setActiveTab] = useState('analytics');
@@ -1144,12 +1156,12 @@ export default function OwnerView() {
           </div>
         </div>
 
-        {/* BRANCH SELECTOR — Integrated inside Hero with Searchable Dropdown */}
-        {isGlobalRole && allShops.length > 1 && (
+        {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
+        {isDevOrAdmin && allShops.length > 1 && (
           <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-30">
             <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
               <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
-              Switch Kitchen:
+              Switch Kitchen (Developer Only):
             </span>
             <SearchableDropdown
               value={currentUserShopId || allShops[0]?.id}

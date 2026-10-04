@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
@@ -6,6 +6,8 @@ import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { 
   supabase, 
   updateCloudOrderStatus, 
+  fetchAvailableDeliveries,
+  claimDeliveryOrder,
   claimOrderPickupAtomic,
   verifyDeliveryOtpAtomic,
   subscribeCloudOrders, 
@@ -72,6 +74,8 @@ export default function TransportView() {
   const activeUser = currentUser || user || userData;
   const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
   const [orders, setOrders] = useState([]);
+  const [availableOrders, setAvailableOrders] = useState([]);
+  const [isClaimingOrderId, setIsClaimingOrderId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [viewMode, setViewMode] = useState(() => {
     try {
@@ -161,6 +165,7 @@ export default function TransportView() {
   };
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
   const [toast, setToast] = useState(null);
 
   // Audio Alarm hook
@@ -178,79 +183,73 @@ export default function TransportView() {
     }, 4000);
   };
 
-  const targetShopIds = (currentUserShopIds && currentUserShopIds.length > 0)
-    ? currentUserShopIds
-    : [currentUserShopId].filter(Boolean);
-
   // Fast notification listener with role-tailored delivery chime
-  useFastNotify(targetShopIds, 'delivery', (alertData) => {
+  useFastNotify('all', 'delivery', (alertData) => {
     playRoleAlarm('delivery', alertData, true);
     showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} ready for Sarathi Pickup!`, "info");
   });
 
-  // Load delivery orders (ready_for_pickup, ready, out_of_kitchen, out_for_delivery, in_transit) from Supabase Realtime
-  useEffect(() => {
-    // 1. Supabase Cloud Query
-    async function fetchRiderOrders() {
-      try {
-        let queryBuilder = supabase
-          .from('foody_orders')
-          .select('*')
-          .in('status', ['ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit'])
-          .order('created_at', { ascending: true });
+  // Load delivery orders: independent fleet across all platform outlets (including today's ended history)
+  const fetchRiderOrders = async () => {
+    try {
+      // 1. Supabase Cloud Query for assigned/claimed orders (PII unmasked)
+      const { data, error } = await supabase
+        .from('foody_orders')
+        .select('*')
+        .in('status', ['ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit', 'completed', 'delivered'])
+        .order('created_at', { ascending: false });
 
-        if (targetShopIds.length === 1) {
-          queryBuilder = queryBuilder.eq('shop_id', targetShopIds[0]);
-        } else if (targetShopIds.length > 1) {
-          queryBuilder = queryBuilder.in('shop_id', targetShopIds);
+      if (!error && data) {
+        const mapped = data.map(o => ({
+          id: o.id,
+          ...o,
+          shopId: o.shop_id,
+          customerName: o.customer_name,
+          customerPhone: o.customer_phone,
+          customerAddress: o.customer_address,
+          deliveryAddress: o.delivery_address,
+          deliveryCoordinates: o.delivery_coordinates,
+          totalAmount: o.total_amount,
+          paymentMethod: o.payment_method,
+          cashStatus: o.cash_status,
+          cookingNotes: o.cooking_notes,
+          createdAt: o.created_at,
+          isClaimed: true
+        }));
+        setOrders(mapped);
+
+        if (mapped.length > 0) {
+          setSelectedOrder(prev => {
+            if (prev) {
+              const found = mapped.find(o => o.id === prev.id);
+              return found || mapped[0];
+            }
+            const inTransit = mapped.find(o => ['out_for_delivery', 'picked_up', 'in_transit'].includes(o.status));
+            return inTransit || mapped[0];
+          });
         }
-
-        const { data, error } = await queryBuilder;
-        if (!error && data) {
-          const mapped = data.map(o => ({
-            id: o.id,
-            ...o,
-            shopId: o.shop_id,
-            customerName: o.customer_name,
-            customerPhone: o.customer_phone,
-            customerAddress: o.customer_address,
-            deliveryAddress: o.delivery_address,
-            deliveryCoordinates: o.delivery_coordinates,
-            totalAmount: o.total_amount,
-            paymentMethod: o.payment_method,
-            cashStatus: o.cash_status,
-            cookingNotes: o.cooking_notes,
-            createdAt: o.created_at
-          }));
-          setOrders(mapped);
-
-          if (mapped.length > 0) {
-            setSelectedOrder(prev => {
-              if (prev) {
-                const found = mapped.find(o => o.id === prev.id);
-                return found || mapped[0];
-              }
-              const inTransit = mapped.find(o => ['out_for_delivery', 'picked_up', 'in_transit'].includes(o.status));
-              return inTransit || mapped[0];
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase fetchRiderOrders note:', err.message);
       }
+
+      // 2. Fetch available unclaimed deliveries (Privacy-Preserving PII Masked, Geospatial filtered)
+      const available = await fetchAvailableDeliveries(riderCoords);
+      setAvailableOrders(available);
+    } catch (err) {
+      console.warn('Supabase fetchRiderOrders note:', err.message);
     }
+  };
+
+  useEffect(() => {
     fetchRiderOrders();
 
-    // 2. Realtime Postgres stream (listen to shop or global 'all')
-    const subShopId = targetShopIds.length === 1 ? targetShopIds[0] : 'all';
-    const unsubscribeSupabase = subscribeCloudOrders(subShopId, () => {
+    // 2. Realtime Postgres stream across all platform orders for independent fleet
+    const unsubscribeSupabase = subscribeCloudOrders('all', () => {
       fetchRiderOrders();
     });
 
     return () => {
       if (unsubscribeSupabase) unsubscribeSupabase();
     };
-  }, [currentUserShopId, currentUserShopIds]);
+  }, []);
 
   const activeOrder = selectedOrder || orders[0];
   const activeShop = allShops.find(s => s.id === activeOrder?.shopId);
@@ -646,6 +645,26 @@ export default function TransportView() {
     }, 600);
   };
 
+  const handleClaimOrder = async (orderId) => {
+    stopAlarm();
+    try {
+      setIsClaimingOrderId(orderId);
+      const res = await claimDeliveryOrder(orderId);
+      if (!res.success) {
+        showToast(res.error || 'Could not claim order. It might already be claimed.', 'warning');
+        return;
+      }
+      showToast('Delivery Claimed Successfully! Customer details unlocked.', 'success');
+      await fetchRiderOrders();
+      setRiderTab('active');
+    } catch (e) {
+      console.error(e);
+      showToast(e.message || 'Failed to claim delivery order', 'error');
+    } finally {
+      setIsClaimingOrderId(null);
+    }
+  };
+
   const handleStartDelivery = async (orderId, orderData, enteredOtp = null) => {
     stopAlarm();
     try {
@@ -759,15 +778,53 @@ export default function TransportView() {
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    const term = searchQuery.toLowerCase().trim();
-    if (!term) return true;
+  const activeTrips = useMemo(() => {
+    return orders.filter(o => ['out_for_delivery', 'picked_up', 'in_transit'].includes(o.status));
+  }, [orders]);
 
-    const idMatch = order.id.toLowerCase().includes(term);
-    const custMatch = order.customerName?.toLowerCase().includes(term);
-    const itemsMatch = order.items?.map(i => i.name.toLowerCase()).join(' ').includes(term);
-    return idMatch || custMatch || itemsMatch;
-  });
+  const upcomingPickups = useMemo(() => {
+    const assigned = orders.filter(o => ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status));
+    const assignedIds = new Set(assigned.map(o => o.id));
+    const unclaimed = availableOrders.filter(o => !assignedIds.has(o.id));
+    return [...unclaimed, ...assigned];
+  }, [orders, availableOrders]);
+
+  const completedToday = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return orders.filter(o => ['completed', 'delivered'].includes(o.status) && (o.created_at || '').startsWith(today));
+  }, [orders]);
+
+  const totalCodCollectedToday = useMemo(() => {
+    return completedToday.reduce((acc, o) => {
+      const isCod = o.paymentMethod === 'cash' || o.payment_method === 'cash';
+      return isCod ? acc + (Number(o.totalAmount || o.total_amount || 0)) : acc;
+    }, 0);
+  }, [completedToday]);
+
+  const tabOrders = useMemo(() => {
+    switch (riderTab) {
+      case 'active':
+        return activeTrips;
+      case 'upcoming':
+        return upcomingPickups;
+      case 'completed':
+        return completedToday;
+      case 'all':
+      default:
+        return orders;
+    }
+  }, [riderTab, activeTrips, upcomingPickups, completedToday, orders]);
+
+  const filteredOrders = useMemo(() => {
+    const term = searchQuery.toLowerCase().trim();
+    if (!term) return tabOrders;
+    return tabOrders.filter(order => {
+      const idMatch = order.id.toLowerCase().includes(term);
+      const custMatch = order.customerName?.toLowerCase().includes(term);
+      const itemsMatch = order.items?.map(i => i.name.toLowerCase()).join(' ').includes(term);
+      return idMatch || custMatch || itemsMatch;
+    });
+  }, [tabOrders, searchQuery]);
 
   return (
     <div className="space-y-6 pb-24">
@@ -1016,30 +1073,130 @@ export default function TransportView() {
         </div>
       </div>
 
-      {/* 3. BRANCH SELECTOR */}
-      {isGlobalRole && allShops.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
-          <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
-            <Store size={14} className="text-amber-600 dark:text-[#E0FF33]" />
-            Switch Kitchen:
-          </span>
-          <SearchableDropdown
-            value={currentUserShopId || allShops[0]?.id}
-            onChange={(val) => impersonate(val, userRole)}
-            options={allShops.map(s => ({
-              value: s.id,
-              label: s.name,
-              sublabel: s.address || 'Vrindavan Dham Kitchen',
-              icon: Store,
-              badge: s.tag || 'Branch',
-              badgeColor: 'bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
-            }))}
-            size="sm"
-            searchPlaceholder="Search kitchens..."
-            className="w-full sm:w-auto sm:min-w-[340px]"
-          />
+      {/* 3. SARATHI FLEET OPERATIONS METRICS & SEGMENTED TABS (No kitchen lock — Independent Fleet) */}
+      <div className="space-y-3">
+        {/* KPI Cards Row (Owner-Grade Operations HUD for Sarathi) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <button
+            type="button"
+            onClick={() => setRiderTab('active')}
+            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+              riderTab === 'active'
+                ? 'bg-cyan-500/15 border-cyan-500/40 shadow-sm'
+                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Today's Deliveries</span>
+              <Truck size={16} className="text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{activeTrips.length}</span>
+              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">in-transit</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setRiderTab('upcoming')}
+            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+              riderTab === 'upcoming'
+                ? 'bg-amber-500/15 border-amber-500/40 shadow-sm'
+                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Upcoming</span>
+              <Clock size={16} className="text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{upcomingPickups.length}</span>
+              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">ready for pickup</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setRiderTab('completed')}
+            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+              riderTab === 'completed'
+                ? 'bg-emerald-500/15 border-emerald-500/40 shadow-sm'
+                : 'bg-stone-200/80 dark:bg-[#282526] border-stone-300 dark:border-white/5 hover:border-stone-400'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Completed Today</span>
+              <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">{completedToday.length}</span>
+              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">delivered</span>
+            </div>
+          </button>
+
+          <div className="p-3.5 rounded-2xl bg-stone-200/80 dark:bg-[#282526] border border-stone-300 dark:border-white/5 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Earnings / COD</span>
+              <Banknote size={16} className="text-amber-600 dark:text-[#E0FF33]" />
+            </div>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-xl font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{totalCodCollectedToday}</span>
+              <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">cash to settle</span>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Tab Switcher Pills */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-inner">
+          <button
+            onClick={() => setRiderTab('active')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
+              riderTab === 'active'
+                ? 'bg-cyan-500 text-black font-black shadow-xs'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
+            }`}
+          >
+            <Truck size={14} />
+            <span>Today's Orders ({activeTrips.length})</span>
+          </button>
+
+          <button
+            onClick={() => setRiderTab('upcoming')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
+              riderTab === 'upcoming'
+                ? 'bg-amber-500 text-stone-950 font-black shadow-xs'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
+            }`}
+          >
+            <Clock size={14} />
+            <span>Upcoming ({upcomingPickups.length})</span>
+          </button>
+
+          <button
+            onClick={() => setRiderTab('completed')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
+              riderTab === 'completed'
+                ? 'bg-emerald-500 text-black font-black shadow-xs'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
+            }`}
+          >
+            <CheckCircle2 size={14} />
+            <span>Completed Today ({completedToday.length})</span>
+          </button>
+
+          <button
+            onClick={() => setRiderTab('all')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
+              riderTab === 'all'
+                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black shadow-xs'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
+            }`}
+          >
+            <List size={14} />
+            <span>Order History ({orders.length})</span>
+          </button>
+        </div>
+      </div>
 
       {/* VIEW MODE 1: PROFESSIONAL RESPONSIVE DISPATCH & CARTO MAP HUD */}
       {viewMode === 'map' && activeOrder && (
@@ -1340,8 +1497,9 @@ export default function TransportView() {
                   'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               }`}>
               {filteredOrders.map(order => {
-                const shopName = allShops.find(s => s.id === order.shopId)?.name || 'Kitchen';
+                const shopName = allShops.find(s => s.id === order.shopId)?.name || order.shopName || 'Kitchen';
                 const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);
+                const isUnclaimed = !order.rider_id && !order.riderId && order.isClaimed !== true;
 
                 return (
                   <div
@@ -1349,7 +1507,7 @@ export default function TransportView() {
                     className="bg-white dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/40 dark:hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
                     {/* Status Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
 
                     <div className="space-y-3.5">
                       {/* Header: Order ID & Status Pill */}
@@ -1364,99 +1522,170 @@ export default function TransportView() {
                           </p>
                         </div>
 
-                        <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
-                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                          : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
-                          }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
-                          <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
-                        </span>
+                        {isUnclaimed ? (
+                          <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full animate-ping bg-emerald-500" />
+                            <span>Available to Claim</span>
+                          </span>
+                        ) : (
+                          <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
+                            ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                            : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                            }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
+                            <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
+                          </span>
+                        )}
                       </div>
 
-                      {/* Customer Info Panel */}
-                      <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-2xl p-4 space-y-3 text-xs text-stone-800 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold text-stone-900 dark:text-white text-sm">{order.customerName || 'Customer'}</span>
-                          {order.customerPhone && (
-                            <a
-                              href={`tel:${order.customerPhone}`}
-                              className="px-3 py-1 rounded-full bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
-                            >
-                              <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
-                              <span>{order.customerPhone}</span>
-                            </a>
+                      {/* Customer Info Panel: Masked PII for Unclaimed, Full for Claimed */}
+                      {isUnclaimed ? (
+                        <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-amber-500/20 rounded-2xl p-4 space-y-2.5 text-xs text-stone-800 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-stone-900 dark:text-white text-sm flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                              <span>{order.customerName || 'Customer'}</span>
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-stone-200 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-[10px] text-stone-600 dark:text-neutral-400 font-mono">
+                              {order.customerPhone || '******'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
+                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-bold text-stone-900 dark:text-white">Delivery Vicinity: <span className="font-normal text-amber-600 dark:text-amber-400">{order.deliveryArea || order.deliveryAddress || 'Vrindavan Vicinity'}</span></p>
+                              <p className="text-[10px] text-stone-500 dark:text-neutral-500 mt-0.5">🔒 Exact customer address & phone will unlock upon claiming</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs text-stone-700 dark:text-neutral-300 pt-0.5">
+                            <span className="font-semibold text-stone-800 dark:text-neutral-300 flex items-center gap-1.5">
+                              <Navigation className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                              <span>Pickup Distance:</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-mono font-bold text-[11px] border border-cyan-500/20">
+                              {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km away` : 'Nearby Vrindavan'}
+                            </span>
+                          </div>
+
+                          {order.itemsSummary && (
+                            <div className="text-[11px] text-stone-600 dark:text-neutral-400 truncate">
+                              <span className="font-semibold text-stone-800 dark:text-neutral-300">Items: </span>
+                              <span>{order.itemsSummary}</span>
+                            </div>
                           )}
-                        </div>
 
-                        <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
-                          <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
-                          <p className="line-clamp-2 leading-relaxed">{order.customerAddress || order.deliveryAddress || 'Vrindavan Delivery Location'}</p>
+                          <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between text-xs">
+                            <span className="text-stone-500 dark:text-neutral-400 font-medium">Estimated Rider Earning:</span>
+                            <span className="font-black text-emerald-600 dark:text-emerald-400 font-['Outfit'] text-sm">
+                              ₹{order.deliveryCharge || 45}
+                            </span>
+                          </div>
                         </div>
+                      ) : (
+                        <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-2xl p-4 space-y-3 text-xs text-stone-800 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-stone-900 dark:text-white text-sm">{order.customerName || 'Customer'}</span>
+                            {order.customerPhone && (
+                              <a
+                                href={`tel:${order.customerPhone}`}
+                                className="px-3 py-1 rounded-full bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                              >
+                                <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
+                                <span>{order.customerPhone}</span>
+                              </a>
+                            )}
+                          </div>
 
-                        <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-                          <span className="text-neutral-400 font-medium">Payment:</span>
-                          {(() => {
-                            const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
-                            const isCash = rawMethod === 'cash' || rawMethod === 'cod';
-                            const isCollected = order.cash_status === 'collected' || order.cashStatus === 'collected' || order.cash_collected || order.cashCollected;
-                            if (!isCash) {
+                          <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
+                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                            <p className="line-clamp-2 leading-relaxed">{order.customerAddress || order.deliveryAddress || 'Vrindavan Delivery Location'}</p>
+                          </div>
+
+                          <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+                            <span className="text-neutral-400 font-medium">Payment:</span>
+                            {(() => {
+                              const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
+                              const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+                              const isCollected = order.cash_status === 'collected' || order.cashStatus === 'collected' || order.cash_collected || order.cashCollected;
+                              if (!isCash) {
+                                return (
+                                  <span className="px-2.5 py-1 rounded-xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-bold text-[10px] flex items-center gap-1.5">
+                                    <CreditCard className="w-3 h-3 text-emerald-400" />
+                                    <span>PAID ONLINE</span>
+                                  </span>
+                                );
+                              }
+                              if (isCollected) {
+                                return (
+                                  <span className="px-2.5 py-1 rounded-xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-bold text-[10px] flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                    <span>CASH COLLECTED</span>
+                                  </span>
+                                );
+                              }
                               return (
-                                <span className="px-2.5 py-1 rounded-xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-bold text-[10px] flex items-center gap-1.5">
-                                  <CreditCard className="w-3 h-3 text-emerald-400" />
-                                  <span>PAID ONLINE</span>
+                                <span className="px-2.5 py-1 rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/20 font-black text-[10px] flex items-center gap-1.5">
+                                  <Banknote className="w-3 h-3 text-amber-300" />
+                                  <span>COLLECT ₹{order.totalAmount || order.total_amount || 0}</span>
                                 </span>
                               );
-                            }
-                            if (isCollected) {
-                              return (
-                                <span className="px-2.5 py-1 rounded-xl bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 font-bold text-[10px] flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                                  <span>CASH COLLECTED</span>
-                                </span>
-                              );
-                            }
-                            return (
-                              <span className="px-2.5 py-1 rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/20 font-black text-[10px] flex items-center gap-1.5">
-                                <Banknote className="w-3 h-3 text-amber-300" />
-                                <span>COLLECT ₹{order.totalAmount || order.total_amount || 0}</span>
-                              </span>
-                            );
-                          })()}
+                            })()}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Action Buttons: Unified Platform UI/UX */}
-                    <div className="pt-2 flex gap-2.5 font-['Plus_Jakarta_Sans']">
-                      <button
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setViewMode('map');
-                        }}
-                        className="flex-1 py-3.5 px-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-white/10 hover:border-white/20"
-                      >
-                        <Map className="w-4 h-4 text-[#E0FF33]" />
-                        <span>Map View</span>
-                      </button>
+                    {isUnclaimed ? (
+                      <div className="pt-2 font-['Plus_Jakarta_Sans']">
+                        <button
+                          type="button"
+                          onClick={() => handleClaimOrder(order.id)}
+                          disabled={isClaimingOrderId === order.id}
+                          className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer disabled:opacity-50"
+                        >
+                          {isClaimingOrderId === order.id ? (
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Truck className="w-4 h-4 stroke-[2.5]" />
+                          )}
+                          <span>{isClaimingOrderId === order.id ? 'Claiming Order...' : '🛵 Claim Delivery'}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="pt-2 flex gap-2.5 font-['Plus_Jakarta_Sans']">
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setViewMode('map');
+                          }}
+                          className="flex-1 py-3.5 px-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-white/10 hover:border-white/20"
+                        >
+                          <Map className="w-4 h-4 text-[#E0FF33]" />
+                          <span>Map View</span>
+                        </button>
 
-                      {isReady ? (
-                        <button
-                          onClick={() => handleInitiatePickup(order)}
-                          className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
-                        >
-                          <span>Start Ride</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleInitiateDelivery(order)}
-                          className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
-                        >
-                          <Check className="w-4 h-4 stroke-[3]" />
-                          <span>Delivered</span>
-                        </button>
-                      )}
-                    </div>
+                        {isReady ? (
+                          <button
+                            onClick={() => handleInitiatePickup(order)}
+                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
+                          >
+                            <span>Start Ride</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleInitiateDelivery(order)}
+                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
+                          >
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>Delivered</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
