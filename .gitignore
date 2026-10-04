@@ -41,3 +41,6 @@ supabase/.temp/
 
 # Security: Firebase config contains project identifiers
 android/app/google-services.json
+
+release/
+graphify-out/

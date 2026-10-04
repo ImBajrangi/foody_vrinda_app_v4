@@ -1,0 +1,18 @@
+# Vercel Deployment Exclusions
+# Ignore mobile platforms and build artifacts
+android/
+ios/
+release/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Ignore internal docs and tooling
+Queries/
+ProductDetails/
+graphify-out/
+.agents/
+scripts/
+fast_transcribe.sh
+*.log

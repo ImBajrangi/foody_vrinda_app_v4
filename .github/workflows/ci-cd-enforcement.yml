@@ -39,29 +39,35 @@ jobs:
     needs: validate_and_test
     if: startsWith(github.ref, 'refs/heads/feature/')
     runs-on: ubuntu-latest
-    environment: development
+    env:
+      TARGET_ENV: development
     steps:
       - name: Alpha Environment Gate
-        run: echo "🚀 Triggered Alpha/Dev deployment pipeline for branch ${GITHUB_REF_NAME}"
+        run: |
+          echo "Triggered Alpha/Dev deployment pipeline for branch ${GITHUB_REF_NAME}"
 
   deploy_staging:
     name: Deploy to Beta / Staging
     needs: validate_and_test
     if: github.ref == 'refs/heads/beta'
     runs-on: ubuntu-latest
-    environment: staging
+    env:
+      TARGET_ENV: staging
     steps:
       - name: Beta Environment Gate
-        run: echo "🧪 Triggered Beta/Staging deployment pipeline. Target DB: Beta Supabase (Synthetic data only)."
+        run: |
+          echo "Triggered Beta/Staging deployment pipeline"
+          echo "Target database: Beta Supabase (Synthetic data only)"
 
   deploy_production:
     name: Deploy to Production
     needs: validate_and_test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production # Requires manual approval in GitHub repo settings
+    env:
+      TARGET_ENV: production
     steps:
       - name: Production Deployment Gate
         run: |
-          echo "🛡️ Multi-Environment Production Safety Gate Passed."
+          echo "Multi-Environment Production Safety Gate Passed."
           echo "Applying version-controlled migrations and deploying to live production."
