@@ -15,7 +15,16 @@ export class ErrorBoundary extends React.Component {
     console.error("Caught in ErrorBoundary:", error, errorInfo);
   }
 
+  isChunkLoadError() {
+    const msg = this.state.error?.message || '';
+    return /loading chunk|failed to fetch dynamically imported module|importing a module script failed/i.test(msg);
+  }
+
   handleReset = () => {
+    if (this.isChunkLoadError() && typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
     this.setState({ hasError: false, error: null });
     if (this.props.onReset) {
       this.props.onReset();
@@ -24,6 +33,7 @@ export class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const isChunkError = this.isChunkLoadError();
       return (
         <div className="w-full min-h-[360px] flex items-center justify-center p-6 my-4 rounded-3xl bg-[#181617]/90 border border-red-500/30 shadow-2xl backdrop-blur-xl text-center">
           <div className="max-w-md flex flex-col items-center">
@@ -32,11 +42,13 @@ export class ErrorBoundary extends React.Component {
             </div>
             
             <h3 className="text-xl font-bold text-white mb-2 font-serif">
-              Something went slightly off
+              {isChunkError ? "New Version Available" : "Something went slightly off"}
             </h3>
             
             <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-              {this.state.error?.message || "A rendering hiccup occurred. Don't worry, your sacred Prasad and basket are safe."}
+              {isChunkError
+                ? "The application was updated. Click below to load the latest version."
+                : (this.state.error?.message || "A rendering hiccup occurred. Don't worry, your sacred Prasad and basket are safe.")}
             </p>
 
             <button
@@ -44,7 +56,7 @@ export class ErrorBoundary extends React.Component {
               className="w-full max-w-xs py-3.5 px-8 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(224,255,51,0.35)] active:scale-95 transition-all cursor-pointer font-['Outfit']"
             >
               <RefreshCw size={16} className="stroke-[2.5]" />
-              <span>Reload View</span>
+              <span>{isChunkError ? "Update & Reload" : "Reload View"}</span>
             </button>
           </div>
         </div>

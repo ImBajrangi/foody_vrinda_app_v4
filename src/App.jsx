@@ -13,12 +13,14 @@ import AppUpdateModal from './components/AppUpdateModal';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Code-split all role views to reduce initial boot payload
-const CustomerView = lazy(() => import('./views/CustomerView'));
-const KitchenView = lazy(() => import('./views/KitchenView'));
-const TransportView = lazy(() => import('./views/TransportView'));
-const OwnerView = lazy(() => import('./views/OwnerView'));
-const DeveloperView = lazy(() => import('./views/DeveloperView'));
+import { lazyWithRetry } from './utils/lazyWithRetry';
+
+// Code-split all role views to reduce initial boot payload with auto-retry on stale deployments
+const CustomerView = lazyWithRetry(() => import('./views/CustomerView'));
+const KitchenView = lazyWithRetry(() => import('./views/KitchenView'));
+const TransportView = lazyWithRetry(() => import('./views/TransportView'));
+const OwnerView = lazyWithRetry(() => import('./views/OwnerView'));
+const DeveloperView = lazyWithRetry(() => import('./views/DeveloperView'));
 import { useTheme } from './context/ThemeContext';
 import { useBackHandler } from './hooks/useBackHandler';
 import { executeTopBackHandler, shouldAllowAppExit, handleKeyboardOrInputDismiss } from './services/backHandlerService';
