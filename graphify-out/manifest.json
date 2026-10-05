@@ -510,8 +510,8 @@
     "semantic_hash": ""
   },
   "src/components/FVRewardsDashboard.jsx": {
-    "mtime": 1791138757.852464,
-    "ast_hash": "351138f6ff6cb15db2a9b0aaf9c7a34d",
+    "mtime": 1791165567.3830416,
+    "ast_hash": "759568553078379ff5dc4c058003f824",
     "semantic_hash": ""
   },
   "src/components/RoleBasedTutorialModal.jsx": {
@@ -520,8 +520,8 @@
     "semantic_hash": ""
   },
   "src/services/fvWalletService.js": {
-    "mtime": 1791165124.5567734,
-    "ast_hash": "3b35bee39f87b58e0a9176b72fdd7d1b",
+    "mtime": 1791165486.0597937,
+    "ast_hash": "1e85c6152c34975fb5ab80eb5726bf93",
     "semantic_hash": ""
   },
   "src/services/tutorialService.js": {
@@ -542,6 +542,11 @@
   "scripts/test-wallet-multiplex.mjs": {
     "mtime": 1791165133.7159173,
     "ast_hash": "dbec4916088245106cd7b0c729514207",
+    "semantic_hash": ""
+  },
+  "scripts/test-leaderboard-privacy.mjs": {
+    "mtime": 1791165471.8423553,
+    "ast_hash": "05fb75800ca93d1a7ced79d9cd25b07f",
     "semantic_hash": ""
   }
 }

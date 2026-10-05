@@ -1,4 +1,4 @@
-import { supabase } from '../supabase';
+import { supabase } from '../supabase.js';
 
 const SWR_EXPIRY_MS = 60 * 1000; // 1 minute fresh window, render stale immediately
 const CACHE_PREFIX = 'foody_fv_wallet_cache_';
@@ -175,7 +175,58 @@ export async function getCommunityLinks(targetRole = 'all') {
 }
 
 /**
+ * Privacy-compliant display name mask for public leaderboards
+ * Prevents leaking full names, student IDs, phone numbers, or email handles
+ */
+export function maskLeaderboardName(name, isSelf = false) {
+  if (isSelf) return name || 'You';
+  if (!name || typeof name !== 'string') return 'Foody Devotee';
+
+  let clean = name.trim();
+
+  // 1. Strip student roll number / alphanumeric registration IDs (e.g., '24F2004883 HARSH SHARMA')
+  clean = clean.replace(/^[0-9][0-9A-Za-z_-]{4,}\s+/i, '');
+
+  // 2. Strip internal user role wrappers
+  if (clean.toLowerCase().includes('chef_')) return 'Kitchen Chef';
+  if (clean.toLowerCase().startsWith('user (')) clean = clean.replace(/^user\s*\((.*?)\)/i, '$1');
+
+  // 3. Test/Auto-generated accounts with trailing digits (e.g. 'vrindatest31514')
+  if (/^[a-zA-Z]+[0-9]{3,}$/.test(clean)) {
+    return 'Devotee •••' + clean.slice(-3);
+  }
+
+  // 4. Phone numbers
+  const digitsOnly = clean.replace(/\D/g, '');
+  if (digitsOnly.length >= 10) {
+    return 'Devotee •••' + digitsOnly.slice(-4);
+  }
+
+  // 5. Email addresses
+  if (clean.includes('@')) {
+    const userPart = clean.split('@')[0];
+    return 'Devotee •••' + userPart.slice(-3);
+  }
+
+  // 6. Multi-word names: First name + Last name initial masked (e.g. 'Kunvar Singh' -> 'Kunvar S***')
+  const parts = clean.split(/\s+/);
+  if (parts.length >= 2) {
+    const first = parts[0];
+    const lastInitial = parts[1].charAt(0).toUpperCase();
+    return `${first} ${lastInitial}***`;
+  }
+
+  // 7. Single word names (e.g. 'Radharani' -> 'Radh***')
+  if (clean.length > 3) {
+    return clean.slice(0, 3) + '***';
+  }
+
+  return clean + '***';
+}
+
+/**
  * Fetches leaderboard rankings (customer or delivery)
+ * Filters out zero-achievement accounts and ensures privacy
  */
 export async function getFVLeaderboard(periodType = 'all_time', roleType = 'customer', limit = 10) {
   const cacheKey = `${LEADERBOARD_CACHE_KEY}${periodType}_${roleType}`;
@@ -188,10 +239,21 @@ export async function getFVLeaderboard(periodType = 'all_time', roleType = 'cust
 
     if (error) throw error;
     if (data?.success && Array.isArray(data.leaderboard)) {
+      // Filter out zero-achievement accounts and internal accounts
+      const qualified = data.leaderboard.filter(item => {
+        const hasPoints = Number(item.points_earned) > 0;
+        const hasRefs = Number(item.referrals_count) > 0;
+        const isInternal = String(item.user_id || '').startsWith('chef_') ||
+                           String(item.user_id || '').startsWith('master-') ||
+                           String(item.display_name || '').toLowerCase().includes('chef_') ||
+                           String(item.display_name || '').toLowerCase().startsWith('vrindatest');
+        return (hasPoints || hasRefs) && !isInternal;
+      });
+
       if (typeof window !== 'undefined') {
-        localStorage.setItem(cacheKey, JSON.stringify(data.leaderboard));
+        localStorage.setItem(cacheKey, JSON.stringify(qualified));
       }
-      return data.leaderboard;
+      return qualified;
     }
   } catch (err) {
     console.warn('[FVWallet] get_fv_leaderboard error, using cached fallback:', err);
@@ -202,7 +264,10 @@ export async function getFVLeaderboard(periodType = 'all_time', roleType = 'cust
     const local = localStorage.getItem(cacheKey);
     if (local) {
       try {
-        return JSON.parse(local);
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(item => (Number(item.points_earned) > 0 || Number(item.referrals_count) > 0));
+        }
       } catch (e) {
         // ignore
       }

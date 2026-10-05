@@ -25,7 +25,8 @@ import {
   getFVLeaderboard, 
   getCommunityLinks,
   generateWhatsAppShareUrl,
-  ptsToRupees 
+  ptsToRupees,
+  maskLeaderboardName
 } from '../services/fvWalletService';
 
 export default function FVRewardsDashboard({ isOpen, onClose }) {
@@ -99,7 +100,6 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
 
   const referralCode = wallet?.referral_code || 'FVPROMO';
   const availablePoints = wallet?.available_points ?? 0;
-  const rupeeValue = ptsToRupees(availablePoints);
 
   const copyReferralCode = () => {
     if (!referralCode) return;
@@ -215,9 +215,6 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                             {availablePoints}
                           </span>
                           <span className="text-sm font-bold text-zinc-400">FV Points</span>
-                        </div>
-                        <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                          ≈ ₹{rupeeValue} Real Platform Value
                         </div>
                       </div>
 
@@ -460,6 +457,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
               )}
 
               {/* TAB 4: LEADERBOARD */}
+              {/* TAB 4: LEADERBOARD */}
               {activeTab === 'leaderboard' && (
                 <div className="space-y-4">
                   {/* Category Switcher */}
@@ -468,7 +466,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('customer')}
                       className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         leaderboardRole === 'customer' 
-                          ? 'bg-[#E0FF33] text-[#121011] font-black' 
+                          ? 'bg-[#E0FF33] text-[#121011] font-black shadow-xs' 
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -478,7 +476,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('delivery')}
                       className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         leaderboardRole === 'delivery' 
-                          ? 'bg-[#E0FF33] text-[#121011] font-black' 
+                          ? 'bg-[#E0FF33] text-[#121011] font-black shadow-xs' 
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -486,38 +484,100 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     </button>
                   </div>
 
+                  {/* Personal Rank & Standing Capsule */}
+                  {(() => {
+                    const myRankItem = leaderboard.find(item => item.user_id === userId);
+                    const myPoints = Number(wallet?.available_points) || 0;
+                    const myReferrals = Number(wallet?.referrals_count || referrals?.length) || 0;
+                    
+                    return (
+                      <div className="p-3.5 bg-gradient-to-r from-[#282526] to-[#1E1B1C] border border-[#E0FF33]/25 rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center font-black text-xs font-['Outfit'] shrink-0">
+                            {myRankItem ? `#${myRankItem.rank}` : '—'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-black text-white font-['Outfit'] truncate">
+                                Your Standing
+                              </span>
+                              <span className="text-[9px] px-1.5 py-0.2 bg-[#E0FF33] text-black font-black rounded-full shrink-0">
+                                {myRankItem ? 'RANKED' : 'UNRANKED'}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-zinc-400 truncate">
+                              {myReferrals} Referrals • {myPoints} FV Points
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={handleWhatsAppShare}
+                          className="px-3 py-1.5 bg-[#E0FF33] hover:bg-[#ccee2b] text-[#121011] text-[11px] font-black rounded-xl flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all shrink-0"
+                          title="Invite devotees to earn rank"
+                        >
+                          <Share2 size={12} />
+                          <span>Invite</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
+
                   {leaderboard.length === 0 ? (
-                    <div className="bg-[#282526] border border-white/10 rounded-2xl p-6 text-center text-xs text-zinc-400">
-                      Ranks are recalculating for the new season. Start referring to enter top 10!
+                    <div className="bg-[#282526] border border-white/10 rounded-3xl p-6 text-center space-y-3 shadow-xs">
+                      <div className="w-12 h-12 mx-auto rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33]">
+                        <Trophy size={24} className="animate-pulse" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-white font-['Outfit']">
+                          Dynasty Season Is Open!
+                        </h4>
+                        <p className="text-xs text-zinc-400 max-w-xs mx-auto mt-1 leading-relaxed">
+                          No ranked participants yet. Be the first devotee to share prasadam, refer friends, and claim the #1 spot!
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleWhatsAppShare}
+                        className="px-4 py-2 bg-[#E0FF33] text-[#121011] text-xs font-black rounded-xl inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Share2 size={14} />
+                        <span>Share on WhatsApp & Claim #1</span>
+                      </button>
                     </div>
                   ) : (
                     <div className="space-y-2">
+                      <div className="flex items-center justify-between px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                        <span>Rank & Devotee</span>
+                        <span>FV Points</span>
+                      </div>
                       {leaderboard.map((item, idx) => {
+                        const isSelf = item.user_id === userId;
                         const isTop3 = idx < 3;
                         const medalColors = ['text-amber-400', 'text-zinc-300', 'text-amber-600'];
+                        const displayName = maskLeaderboardName(item.display_name, isSelf);
 
                         return (
                           <div
                             key={item.user_id || idx}
-                            className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${
-                              item.user_id === userId
-                                ? 'bg-[#E0FF33]/10 border-[#E0FF33]/40'
-                                : 'bg-[#282526] border-white/5'
+                            className={`p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                              isSelf
+                                ? 'bg-[#E0FF33]/10 border-[#E0FF33]/40 shadow-xs'
+                                : 'bg-[#282526] border-white/5 hover:border-white/10'
                             }`}
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="w-7 text-center font-black font-['Outfit']">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-7 text-center font-black font-['Outfit'] shrink-0">
                                 {isTop3 ? (
                                   <Award size={18} className={medalColors[idx]} />
                                 ) : (
-                                  <span className="text-xs text-zinc-500">#{item.rank}</span>
+                                  <span className="text-xs text-zinc-500">#{item.rank || idx + 1}</span>
                                 )}
                               </div>
-                              <div>
-                                <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                                  {item.display_name}
-                                  {item.user_id === userId && (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#E0FF33] text-black font-black">
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-white flex items-center gap-1.5 truncate">
+                                  <span>{displayName}</span>
+                                  {isSelf && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#E0FF33] text-black font-black shrink-0">
                                       YOU
                                     </span>
                                   )}
@@ -528,7 +588,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                               </div>
                             </div>
 
-                            <div className="text-right">
+                            <div className="text-right shrink-0">
                               <p className="text-xs font-black text-[#E0FF33] font-['Outfit']">
                                 {item.points_earned} FV
                               </p>

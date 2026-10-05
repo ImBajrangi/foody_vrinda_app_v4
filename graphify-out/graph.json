@@ -535,6 +535,39 @@
       "norm_label": "runtestsuite()"
     },
     {
+      "label": "test-leaderboard-privacy.mjs",
+      "file_type": "code",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_test_leaderboard_privacy",
+      "community": 0,
+      "community_name": "App.jsx",
+      "norm_label": "test-leaderboard-privacy.mjs"
+    },
+    {
+      "label": "rawMockDbLeaderboard",
+      "file_type": "code",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "scripts_test_leaderboard_privacy_rawmockdbleaderboard",
+      "community": 0,
+      "community_name": "App.jsx",
+      "norm_label": "rawmockdbleaderboard"
+    },
+    {
+      "label": "filtered",
+      "file_type": "code",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "scripts_test_leaderboard_privacy_filtered",
+      "community": 0,
+      "community_name": "App.jsx",
+      "norm_label": "filtered"
+    },
+    {
       "label": "test-live-rls-regression.mjs",
       "file_type": "code",
       "source_file": "scripts/test-live-rls-regression.mjs",
@@ -1033,7 +1066,7 @@
       "_origin": "ast",
       "id": "src_app",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "app.jsx"
     },
     {
@@ -1044,7 +1077,7 @@
       "_origin": "ast",
       "id": "src_app_customerview",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "customerview"
     },
     {
@@ -1055,7 +1088,7 @@
       "_origin": "ast",
       "id": "src_app_kitchenview",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "kitchenview"
     },
     {
@@ -1066,7 +1099,7 @@
       "_origin": "ast",
       "id": "src_app_transportview",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "transportview"
     },
     {
@@ -1077,7 +1110,7 @@
       "_origin": "ast",
       "id": "src_app_ownerview",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "ownerview"
     },
     {
@@ -1088,7 +1121,7 @@
       "_origin": "ast",
       "id": "src_app_developerview",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "developerview"
     },
     {
@@ -1100,7 +1133,7 @@
       "_origin": "ast",
       "id": "src_app_app",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "app()"
     },
     {
@@ -1110,7 +1143,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordercapsule",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule.jsx"
     },
@@ -1122,7 +1155,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordercapsule_activeordercapsule",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordercapsule()"
     },
@@ -1133,7 +1166,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal.jsx"
     },
@@ -1145,7 +1178,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_activeordertrackingmodal_activeordertrackingmodal",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "activeordertrackingmodal()"
     },
@@ -1157,7 +1190,7 @@
       "_origin": "ast",
       "id": "src_components_appupdatemodal",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "appupdatemodal.jsx"
     },
     {
@@ -1169,7 +1202,7 @@
       "_origin": "ast",
       "id": "src_components_appupdatemodal_appupdatemodal",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "appupdatemodal()"
     },
     {
@@ -1180,7 +1213,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "authmodal.jsx"
     },
     {
@@ -1191,7 +1224,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "desk_config"
     },
     {
@@ -1203,7 +1236,7 @@
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "authmodal()"
     },
     {
@@ -1213,7 +1246,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
@@ -1225,7 +1258,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal()"
     },
@@ -1332,20 +1365,20 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_fvrewardsdashboard",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "fvrewardsdashboard.jsx"
     },
     {
       "label": "FVRewardsDashboard()",
       "file_type": "code",
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L31",
+      "source_location": "L32",
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_fvrewardsdashboard_fvrewardsdashboard",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "fvrewardsdashboard()"
     },
     {
@@ -1356,7 +1389,7 @@
       "_origin": "ast",
       "id": "src_components_header",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "header.jsx"
     },
     {
@@ -1368,7 +1401,7 @@
       "_origin": "ast",
       "id": "src_components_header_header",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "header()"
     },
     {
@@ -1412,7 +1445,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mappicker",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "mappicker.jsx"
     },
@@ -1424,7 +1457,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_mappicker_mappicker",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "mappicker()"
     },
@@ -1435,7 +1468,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_notificationpanel",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "notificationpanel.jsx"
     },
@@ -1447,7 +1480,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_notificationpanel_notificationpanel",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "notificationpanel()"
     },
@@ -1459,7 +1492,7 @@
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer.jsx"
     },
     {
@@ -1471,7 +1504,7 @@
       "_origin": "ast",
       "id": "src_components_orderhistorydrawer_orderhistorydrawer",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "orderhistorydrawer()"
     },
     {
@@ -1481,7 +1514,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet.jsx"
     },
@@ -1492,7 +1525,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantities",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantities"
     },
@@ -1504,7 +1537,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_quantitypickersheet_quantitypickersheet",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "quantitypickersheet()"
     },
@@ -1516,7 +1549,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
@@ -1527,7 +1560,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_chef_tags",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "chef_tags"
     },
     {
@@ -1538,7 +1571,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_rider_tags",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "rider_tags"
     },
     {
@@ -1550,7 +1583,7 @@
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -1560,8 +1593,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_rewardsmodal",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "rewardsmodal.jsx"
     },
     {
@@ -1572,8 +1605,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_rewardsmodal_rewardsmodal",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "rewardsmodal()"
     },
     {
@@ -1606,8 +1639,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_soundtrialsmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "soundtrialsmodal.jsx"
     },
     {
@@ -1618,8 +1651,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_soundtrialsmodal_soundtrialsmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "soundtrialsmodal()"
     },
     {
@@ -1630,7 +1663,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unauthorizedaccessscreen.jsx"
     },
     {
@@ -1642,7 +1675,7 @@
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen_unauthorizedaccessscreen",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "unauthorizedaccessscreen()"
     },
     {
@@ -1652,8 +1685,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "unifiedsearchmodal.jsx"
     },
     {
@@ -1663,8 +1696,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_popular_categories",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "popular_categories"
     },
     {
@@ -1675,8 +1708,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_unifiedsearchmodal_unifiedsearchmodal",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "unifiedsearchmodal()"
     },
     {
@@ -1743,7 +1776,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader.jsx"
     },
@@ -1755,7 +1788,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_bouncingloader",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "bouncingloader()"
     },
@@ -1766,7 +1799,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_ui_bouncingloader_styledwrapper",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "styledwrapper"
     },
@@ -1811,8 +1844,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_dynamictoast",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "dynamictoast.jsx"
     },
     {
@@ -1823,8 +1856,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_dynamictoast_dynamictoast",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "dynamictoast()"
     },
     {
@@ -1868,8 +1901,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "nativetimepicker.jsx"
     },
     {
@@ -1880,8 +1913,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker_nativetimepicker",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "nativetimepicker()"
     },
     {
@@ -2061,8 +2094,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "searchabledropdown.jsx"
     },
     {
@@ -2073,8 +2106,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_searchabledropdown_searchabledropdown",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "searchabledropdown()"
     },
     {
@@ -2085,7 +2118,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinksbar.jsx"
     },
     {
@@ -2097,7 +2130,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_socialicon",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "socialicon()"
     },
     {
@@ -2109,7 +2142,7 @@
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_sociallinksbar",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinksbar()"
     },
     {
@@ -2154,7 +2187,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "presetdishes.js"
     },
     {
@@ -2165,7 +2198,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_default_preset_dishes",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "default_preset_dishes"
     },
     {
@@ -2176,7 +2209,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_activepresetdishes",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "activepresetdishes"
     },
     {
@@ -2186,8 +2219,8 @@
       "source_location": "L403",
       "_origin": "ast",
       "id": "src_constants_presetdishes_preset_dishes",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "preset_dishes"
     },
     {
@@ -2198,7 +2231,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_preset_categories",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "preset_categories"
     },
     {
@@ -2210,7 +2243,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_getpresetdishes",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "getpresetdishes()"
     },
     {
@@ -2222,7 +2255,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_loadpresetdishes",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "loadpresetdishes()"
     },
     {
@@ -2234,7 +2267,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_getpresetdishbyid",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "getpresetdishbyid()"
     },
     {
@@ -2246,7 +2279,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_findpresetbykeyword",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "findpresetbykeyword()"
     },
     {
@@ -2257,7 +2290,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "sociallinks.js"
     },
     {
@@ -2268,7 +2301,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_links",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "social_links"
     },
     {
@@ -2279,7 +2312,7 @@
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_channels",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "social_channels"
     },
     {
@@ -2371,7 +2404,7 @@
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -2382,7 +2415,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "cartcontext.jsx"
     },
     {
@@ -2393,7 +2426,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext_cartcontext",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "cartcontext"
     },
     {
@@ -2405,7 +2438,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext_cartprovider",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "cartprovider()"
     },
     {
@@ -2417,7 +2450,7 @@
       "_origin": "ast",
       "id": "src_context_cartcontext_usecart",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usecart()"
     },
     {
@@ -2473,7 +2506,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_notificationcontext_usenotifications",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usenotifications()"
     },
@@ -2485,7 +2518,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "themecontext.jsx"
     },
     {
@@ -2496,7 +2529,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext_themecontext",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "themecontext"
     },
     {
@@ -2508,7 +2541,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext_themeprovider",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "themeprovider()"
     },
     {
@@ -2520,7 +2553,7 @@
       "_origin": "ast",
       "id": "src_context_themecontext_usetheme",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "usetheme()"
     },
     {
@@ -2574,8 +2607,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "useaudioalarm.js"
     },
     {
@@ -2586,8 +2619,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_getaudiocontext",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "getaudiocontext()"
     },
     {
@@ -2598,8 +2631,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_useaudioalarm",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "useaudioalarm()"
     },
     {
@@ -2609,7 +2642,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler.js"
     },
@@ -2621,7 +2654,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler()"
     },
@@ -2632,7 +2665,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag.js"
     },
@@ -2644,7 +2677,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebottomsheetdrag_usebottomsheetdrag",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usebottomsheetdrag()"
     },
@@ -2678,7 +2711,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usegeolocation",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation.js"
     },
@@ -2690,7 +2723,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usegeolocation_usegeolocation",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "usegeolocation()"
     },
@@ -2702,7 +2735,7 @@
       "_origin": "ast",
       "id": "src_main",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "main.jsx"
     },
     {
@@ -2712,7 +2745,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
@@ -2724,7 +2757,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
@@ -2736,7 +2769,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
@@ -2748,7 +2781,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
@@ -2759,8 +2792,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_appupdateservice",
-      "community": 5,
-      "community_name": "supabase.js",
+      "community": 38,
+      "community_name": "appUpdateService.js",
       "norm_label": "appupdateservice.js"
     },
     {
@@ -2770,8 +2803,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_services_appupdateservice_current_app_version",
-      "community": 5,
-      "community_name": "supabase.js",
+      "community": 38,
+      "community_name": "appUpdateService.js",
       "norm_label": "current_app_version"
     },
     {
@@ -2784,7 +2817,7 @@
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice",
       "community": 38,
-      "community_name": "fvWalletService.js",
+      "community_name": "appUpdateService.js",
       "norm_label": "appupdateservice"
     },
     {
@@ -2796,7 +2829,7 @@
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_constructor",
       "community": 38,
-      "community_name": "fvWalletService.js",
+      "community_name": "appUpdateService.js",
       "norm_label": ".constructor()"
     },
     {
@@ -2808,7 +2841,7 @@
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_checkforupdates",
       "community": 38,
-      "community_name": "fvWalletService.js",
+      "community_name": "appUpdateService.js",
       "norm_label": ".checkforupdates()"
     },
     {
@@ -2820,7 +2853,7 @@
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_startupdate",
       "community": 38,
-      "community_name": "fvWalletService.js",
+      "community_name": "appUpdateService.js",
       "norm_label": ".startupdate()"
     },
     {
@@ -2832,7 +2865,7 @@
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_publishrelease",
       "community": 38,
-      "community_name": "fvWalletService.js",
+      "community_name": "appUpdateService.js",
       "norm_label": ".publishrelease()"
     },
     {
@@ -2843,7 +2876,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
@@ -2854,7 +2887,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "backhandlers"
     },
     {
@@ -2866,7 +2899,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_initkeyboardlisteners",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "initkeyboardlisteners()"
     },
     {
@@ -2878,7 +2911,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "handlekeyboardorinputdismiss()"
     },
     {
@@ -2889,7 +2922,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "registerbackhandler()"
     },
@@ -2901,7 +2934,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "unregisterbackhandler()"
     },
@@ -2914,7 +2947,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
@@ -2926,7 +2959,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_executetopbackhandler",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "executetopbackhandler()"
     },
     {
@@ -2938,7 +2971,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_shouldallowappexit",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "shouldallowappexit()"
     },
     {
@@ -2950,7 +2983,7 @@
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -2960,8 +2993,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_fvwalletservice",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "fvwalletservice.js"
     },
     {
@@ -2971,8 +3004,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_services_fvwalletservice_fv_exchange_rate",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "fv_exchange_rate"
     },
     {
@@ -2982,8 +3015,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_services_fvwalletservice_fv_points_per_rupee",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "fv_points_per_rupee"
     },
     {
@@ -2994,8 +3027,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_ptstorupees",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "ptstorupees()"
     },
     {
@@ -3006,8 +3039,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_rupeestopts",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "rupeestopts()"
     },
     {
@@ -3018,8 +3051,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getcachedwallet",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "getcachedwallet()"
     },
     {
@@ -3030,8 +3063,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_setcachedwallet",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "setcachedwallet()"
     },
     {
@@ -3042,8 +3075,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_inituserwallet",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "inituserwallet()"
     },
     {
@@ -3054,8 +3087,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getwalletdashboard",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "getwalletdashboard()"
     },
     {
@@ -3066,8 +3099,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_redeemfvpoints",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "redeemfvpoints()"
     },
     {
@@ -3078,55 +3111,67 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getcommunitylinks",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "getcommunitylinks()"
+    },
+    {
+      "label": "maskLeaderboardName()",
+      "file_type": "code",
+      "source_file": "src/services/fvWalletService.js",
+      "source_location": "L181",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "src_services_fvwalletservice_maskleaderboardname",
+      "community": 0,
+      "community_name": "App.jsx",
+      "norm_label": "maskleaderboardname()"
     },
     {
       "label": "getFVLeaderboard()",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L180",
+      "source_location": "L231",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getfvleaderboard",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "getfvleaderboard()"
     },
     {
       "label": "activeWalletSubscriptions",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L215",
+      "source_location": "L280",
       "_origin": "ast",
       "id": "src_services_fvwalletservice_activewalletsubscriptions",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "activewalletsubscriptions"
     },
     {
       "label": "subscribeUserWallet()",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L220",
+      "source_location": "L285",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_subscribeuserwallet",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "subscribeuserwallet()"
     },
     {
       "label": "generateWhatsAppShareUrl()",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L292",
+      "source_location": "L357",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_generatewhatsappshareurl",
-      "community": 38,
-      "community_name": "fvWalletService.js",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "generatewhatsappshareurl()"
     },
     {
@@ -3136,8 +3181,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "hitsoochiservice.js"
     },
     {
@@ -3147,8 +3192,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_local_satvik_ontology",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "local_satvik_ontology"
     },
     {
@@ -3160,8 +3205,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": "hitsoochiservice"
     },
     {
@@ -3172,8 +3217,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getcuratedsuggestions",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": ".getcuratedsuggestions()"
     },
     {
@@ -3184,8 +3229,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_rankitems",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": ".rankitems()"
     },
     {
@@ -3196,8 +3241,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_optimizequery",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": ".optimizequery()"
     },
     {
@@ -3208,8 +3253,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_hitsoochiservice_hitsoochiservice_getsuggestions",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 2,
+      "community_name": "UnifiedSearchModal.jsx",
       "norm_label": ".getsuggestions()"
     },
     {
@@ -3219,8 +3264,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "nativenotificationservice.js"
     },
     {
@@ -3230,8 +3275,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_notification_trials",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "notification_trials"
     },
     {
@@ -3315,8 +3360,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotificationservice_setactivetrial",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": ".setactivetrial()"
     },
     {
@@ -3542,8 +3587,8 @@
       "source_location": "L954",
       "_origin": "ast",
       "id": "src_services_nativenotificationservice_nativenotify",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "App.jsx",
       "norm_label": "nativenotify"
     },
     {
@@ -3717,7 +3762,7 @@
       "_origin": "ast",
       "id": "src_supabase_istablemissing",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "istablemissing()"
     },
     {
@@ -3728,8 +3773,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_marktablemissing",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "marktablemissing()"
     },
     {
@@ -3740,8 +3785,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_istableerror",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "istableerror()"
     },
     {
@@ -3822,8 +3867,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "resolvedishcutout()"
     },
     {
@@ -3949,7 +3994,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isshopcurrentlyopen",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "isshopcurrentlyopen()"
     },
@@ -4033,8 +4078,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_invalidatecache",
-      "community": 2,
-      "community_name": ".ensureSubscribed",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "invalidatecache()"
     },
     {
@@ -4237,7 +4282,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": "realtimemultiplexer"
     },
@@ -4249,7 +4294,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_constructor",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".constructor()"
     },
@@ -4261,7 +4306,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_ensuresubscribed",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".ensuresubscribed()"
     },
@@ -4273,7 +4318,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlemenuchangepayload",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".handlemenuchangepayload()"
     },
@@ -4309,7 +4354,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_handlepresetchangepayload",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".handlepresetchangepayload()"
     },
@@ -4333,7 +4378,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeorders",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribeorders()"
     },
@@ -4345,7 +4390,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribesingleorder",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribesingleorder()"
     },
@@ -4357,7 +4402,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribenotifications",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribenotifications()"
     },
@@ -4369,7 +4414,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeusers",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribeusers()"
     },
@@ -4381,7 +4426,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribemenus",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribemenus()"
     },
@@ -4393,7 +4438,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeshops",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribeshops()"
     },
@@ -4405,7 +4450,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_realtimemultiplexer_subscribeoffers",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": ".subscribeoffers()"
     },
@@ -4440,7 +4485,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribesinglecloudorder",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribesinglecloudorder()"
     },
@@ -4464,7 +4509,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudmenus",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "subscribecloudmenus()"
     },
@@ -4476,7 +4521,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudshops",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": "subscribecloudshops()"
     },
@@ -4488,7 +4533,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_subscribecloudoffers",
-      "community": 2,
+      "community": 35,
       "community_name": ".ensureSubscribed",
       "norm_label": "subscribecloudoffers()"
     },
@@ -4608,7 +4653,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedpresets",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "getcachedpresets()"
     },
     {
@@ -4620,7 +4665,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedpresets",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "savecachedpresets()"
     },
     {
@@ -4632,7 +4677,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudpresets",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "getcloudpresets()"
     },
     {
@@ -4644,7 +4689,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudpreset",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "createcloudpreset()"
     },
     {
@@ -4656,7 +4701,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudpreset",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "updatecloudpreset()"
     },
     {
@@ -4668,7 +4713,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudpreset",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "deletecloudpreset()"
     },
     {
@@ -4680,7 +4725,7 @@
       "_origin": "ast",
       "id": "src_supabase_subscribecloudpresets",
       "community": 35,
-      "community_name": "presetDishes.js",
+      "community_name": ".ensureSubscribed",
       "norm_label": "subscribecloudpresets()"
     },
     {
@@ -4691,8 +4736,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudmenuitem",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "createcloudmenuitem()"
     },
     {
@@ -4703,8 +4748,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updatecloudmenuitem",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "updatecloudmenuitem()"
     },
     {
@@ -4715,8 +4760,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deletecloudmenuitem",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "deletecloudmenuitem()"
     },
     {
@@ -5013,7 +5058,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "createcloudreview()"
     },
     {
@@ -5253,7 +5298,7 @@
       "_origin": "ast",
       "id": "src_supabase_recordmultistaffreview",
       "community": 32,
-      "community_name": "ReviewModal.jsx",
+      "community_name": "CustomerView.jsx",
       "norm_label": "recordmultistaffreview()"
     },
     {
@@ -5358,7 +5403,7 @@
       "_origin": "ast",
       "id": "src_utils_lazywithretry",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "lazywithretry.js"
     },
     {
@@ -5370,7 +5415,7 @@
       "_origin": "ast",
       "id": "src_utils_lazywithretry_lazywithretry",
       "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community_name": "App.jsx",
       "norm_label": "lazywithretry()"
     },
     {
@@ -5380,7 +5425,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_customerview",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview.jsx"
     },
@@ -5392,7 +5437,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_getlocalcustomermenus",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcustomermenus()"
     },
@@ -5404,7 +5449,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_setlocalcustomermenus",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcustomermenus()"
     },
@@ -5415,7 +5460,7 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "src_views_customerview_menuitemcard",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "menuitemcard"
     },
@@ -5427,7 +5472,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_customerview_customerview",
-      "community": 0,
+      "community": 32,
       "community_name": "CustomerView.jsx",
       "norm_label": "customerview()"
     },
@@ -5484,8 +5529,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_ownerview",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "ownerview.jsx"
     },
     {
@@ -5496,8 +5541,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
-      "community": 22,
-      "community_name": "DeveloperView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "ownerview()"
     },
     {
@@ -7792,6 +7837,52 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_leaderboard_privacy",
+      "target": "scripts_test_leaderboard_privacy_filtered",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_leaderboard_privacy",
+      "target": "scripts_test_leaderboard_privacy_rawmockdbleaderboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_leaderboard_privacy",
+      "target": "src_services_fvwalletservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-leaderboard-privacy.mjs",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_leaderboard_privacy",
+      "target": "src_services_fvwalletservice_maskleaderboardname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "scripts/test-live-rls-regression.mjs",
       "source_location": "L19",
       "weight": 1.0,
@@ -9993,7 +10084,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard",
@@ -10093,6 +10184,18 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard",
+      "target": "src_services_fvwalletservice_maskleaderboardname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/FVRewardsDashboard.jsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_fvrewardsdashboard",
       "target": "src_services_fvwalletservice_ptstorupees",
       "confidence_score": 1.0
     },
@@ -10126,7 +10229,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -10150,7 +10253,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L94",
+      "source_location": "L95",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -10162,7 +10265,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L85",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -10174,7 +10277,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -10186,7 +10289,19 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L102",
+      "source_location": "L557",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
+      "target": "src_services_fvwalletservice_maskleaderboardname"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FVRewardsDashboard.jsx",
+      "source_location": "L596",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -10198,7 +10313,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FVRewardsDashboard.jsx",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_components_fvrewardsdashboard_fvrewardsdashboard",
@@ -14671,7 +14786,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L215",
+      "source_location": "L280",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14704,7 +14819,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L292",
+      "source_location": "L357",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14737,7 +14852,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L180",
+      "source_location": "L231",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14764,6 +14879,17 @@
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
       "target": "src_services_fvwalletservice_inituserwallet",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/fvWalletService.js",
+      "source_location": "L181",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_fvwalletservice",
+      "target": "src_services_fvwalletservice_maskleaderboardname",
       "confidence_score": 1.0
     },
     {
@@ -14814,7 +14940,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L220",
+      "source_location": "L285",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14898,7 +15024,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L243",
+      "source_location": "L308",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice_subscribeuserwallet",
@@ -23489,5 +23615,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "30406eb87097471866e24ff8bdc8be6278198ffb"
+  "built_at_commit": "41d50593f64254555a97b93259c989b4314e25dd"
 }
