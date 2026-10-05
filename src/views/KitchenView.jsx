@@ -539,21 +539,21 @@ export default function KitchenView() {
         </div>
 
         {/* Growth & Promos Card */}
-        <div data-tour="restaurant-grow" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-gradient-to-r from-emerald-950/40 via-[#282526] to-[#1E1B1C] border border-emerald-500/30 shadow-lg flex items-center justify-between gap-3">
+        <div data-tour="restaurant-grow" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-emerald-50/80 dark:bg-gradient-to-r dark:from-emerald-950/40 dark:via-[#282526] dark:to-[#1E1B1C] border border-emerald-500/25 dark:border-emerald-500/30 shadow-sm dark:shadow-lg flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
               <Sparkles size={20} strokeWidth={2.5} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-['Outfit']">Kitchen Growth Hub</p>
-              <h4 className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">Broadcast Festive Thalis</h4>
+              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider font-['Outfit']">Kitchen Growth Hub</p>
+              <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit'] truncate">Broadcast Festive Thalis</h4>
             </div>
           </div>
           <a
             href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
             target="_blank"
             rel="noopener noreferrer"
-            className="h-8.5 px-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all shrink-0"
+            className="h-8.5 px-3 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
           >
             <MessageCircle size={13} />
             <span>Channel</span>
@@ -588,24 +588,24 @@ export default function KitchenView() {
 
       {/* ORDERS GRID */}
       {!activeShopId ? (
-        <div data-tour="restaurant-orders" className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
+        <div data-tour="restaurant-orders restaurant-manage-orders" className="bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-10 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200/90 dark:border-white/5 flex flex-col items-center justify-center shadow-sm">
           <div className="w-16 h-16 rounded-3xl bg-rose-500/10 flex items-center justify-center mb-3.5 border border-rose-500/20">
             <AlertTriangle size={32} className="text-rose-500" />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">Kitchen Unavailable</p>
-          <p className="text-xs text-stone-600 dark:text-zinc-500 mt-1 max-w-md">
+          <p className="text-xs text-stone-600 dark:text-zinc-400 mt-1 max-w-md">
             {currentUserShopId
               ? `The assigned kitchen "${currentUserShopId}" is currently inactive or deleted. Foreign kitchen orders are strictly isolated.`
               : 'Please select an active kitchen to view operations.'}
           </p>
         </div>
       ) : isolatedOrders.length === 0 ? (
-        <div data-tour="restaurant-orders" className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-3xl bg-stone-300/60 dark:bg-white/5 flex items-center justify-center mb-3.5 border border-stone-300 dark:border-white/5">
-            <CheckCircle2 size={32} className="text-amber-600 dark:text-[#E0FF33]" />
+        <div data-tour="restaurant-orders restaurant-manage-orders" className="bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-10 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200/90 dark:border-white/5 flex flex-col items-center justify-center shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center mb-3.5 border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs">
+            <CheckCircle2 size={28} strokeWidth={2.5} />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">All Orders Prepared</p>
-          <p className="text-xs text-stone-600 dark:text-zinc-500 mt-1">Kitchen queue is clear. Radhe Radhe!</p>
+          <p className="text-xs sm:text-sm text-stone-500 dark:text-zinc-400 mt-1 font-['Plus_Jakarta_Sans']">Kitchen queue is clear. Radhe Radhe!</p>
         </div>
       ) : (
         <div data-tour="restaurant-orders" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">

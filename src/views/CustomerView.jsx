@@ -178,6 +178,7 @@ const MenuItemCard = memo(function MenuItemCard({
           </button>
         ) : (
           <div
+            data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
             onClick={(e) => e.stopPropagation()}
             className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
           >

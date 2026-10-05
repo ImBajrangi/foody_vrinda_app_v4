@@ -33,30 +33,118 @@ import {
   saveTutorialProgress
 } from '../services/tutorialService';
 
-// Fallback selector map if dataTour is slightly varied or nested
+// Comprehensive valid CSS fallback selector map per stage
 const SELECTOR_FALLBACKS = {
-  'customer-search': ['[data-tour="customer-search"]', '[data-tour*="search"]', 'button[title*="Search"]'],
-  'customer-categories': ['[data-tour="customer-categories"]', '[data-tour="food-categories"]', '.sticky-category-bar'],
-  'customer-add-to-cart': ['[data-tour="customer-add-to-cart"]', '[data-tour*="add-to-cart"]', '.food-card-pop button', '.food-card-pop'],
-  'customer-basket': ['[data-tour="customer-basket"]', 'button[title*="Basket"]', 'button[title*="Cart"]'],
-  'customer-address': ['[data-tour="customer-address"]', 'button[title*="Branch"]', 'textarea[placeholder*="ashram"]', '.branch-selector'],
-  'customer-fv-wallet': ['[data-tour="customer-fv-wallet"]', 'button[title*="Rewards"]', 'button[title*="FV"]'],
-  'customer-profile': ['[data-tour="customer-profile"]', '[data-tour="profile-avatar"]', 'button[title*="Profile"]'],
+  // Customer stages
+  'customer-search': [
+    '[data-tour~="customer-search"]',
+    '[data-tour*="search"]',
+    'button[title*="Search" i]',
+    'button[aria-label*="Search" i]',
+    'input[placeholder*="Search" i]'
+  ],
+  'customer-categories': [
+    '[data-tour~="customer-categories"]',
+    '[data-tour*="categories"]',
+    '.sticky-category-bar'
+  ],
+  'customer-add-to-cart': [
+    '[data-tour~="customer-add-to-cart"]',
+    '[data-tour*="add-to-cart"]',
+    '.food-card-pop button',
+    '.food-card-pop',
+    '.stepper-capsule'
+  ],
+  'customer-basket': [
+    '[data-tour~="customer-basket"]',
+    'button[title*="Basket" i]',
+    'button[title*="Cart" i]',
+    'button[aria-label*="Basket" i]'
+  ],
+  'customer-address': [
+    '[data-tour~="customer-address"]',
+    '[data-tour*="branch-selector"]',
+    'button[title*="Branch" i]',
+    'button[title*="Address" i]'
+  ],
+  'customer-fv-wallet': [
+    '[data-tour~="customer-fv-wallet"]',
+    'button[title*="Rewards" i]',
+    'button[title*="FV" i]',
+    'button[title*="Points" i]'
+  ],
+  'customer-profile': [
+    '[data-tour~="customer-profile"]',
+    '[data-tour*="profile"]',
+    'button[title*="Profile" i]',
+    'button[title*="Account" i]'
+  ],
   
-  'delivery-go-online': ['[data-tour="delivery-go-online"]', 'button:has(span:contains("Duty"))', 'button[title*="Duty"]'],
-  'delivery-orders': ['[data-tour="delivery-orders"]', 'button:has(span:contains("Orders"))', '.orders-board'],
-  'delivery-accept': ['[data-tour="delivery-accept"]', 'button:contains("Claim")', 'button:contains("Accept")'],
-  'delivery-navigation': ['[data-tour="delivery-navigation"]', 'button:contains("HUD")', 'button:contains("Map")'],
-  'delivery-complete': ['[data-tour="delivery-complete"]', 'button:contains("Delivered")', 'button:contains("OTP")'],
-  'delivery-earnings': ['[data-tour="delivery-earnings"]', '[data-tour*="earnings"]'],
-  'delivery-referral': ['[data-tour="delivery-referral"]', '[data-tour*="referral"]'],
+  // Delivery stages
+  'delivery-go-online': [
+    '[data-tour~="delivery-go-online"]',
+    'button[title*="Duty" i]',
+    'button[title*="Online" i]'
+  ],
+  'delivery-orders': [
+    '[data-tour~="delivery-orders"]',
+    '[data-tour*="orders"]',
+    'button[title*="Orders" i]'
+  ],
+  'delivery-accept': [
+    '[data-tour~="delivery-accept"]',
+    '[data-tour*="accept"]',
+    '[data-tour*="claim"]',
+    '[data-tour~="delivery-orders"]'
+  ],
+  'delivery-navigation': [
+    '[data-tour~="delivery-navigation"]',
+    'button[title*="HUD" i]',
+    'button[title*="Map" i]',
+    'button[title*="Navigation" i]'
+  ],
+  'delivery-complete': [
+    '[data-tour~="delivery-complete"]',
+    '[data-tour*="complete"]',
+    '[data-tour*="otp"]',
+    '[data-tour~="delivery-go-online"]'
+  ],
+  'delivery-earnings': [
+    '[data-tour~="delivery-earnings"]',
+    '[data-tour*="earnings"]'
+  ],
+  'delivery-referral': [
+    '[data-tour~="delivery-referral"]',
+    '[data-tour*="referral"]'
+  ],
 
-  'restaurant-setup': ['[data-tour="restaurant-setup"]', 'button[title*="Availability"]', 'button[title*="Online"]'],
-  'restaurant-menu': ['[data-tour="restaurant-menu"]', 'button:contains("Manual Order")', 'button[title*="Menu"]'],
-  'restaurant-orders': ['[data-tour="restaurant-orders"]', '.orders-grid', '[data-tour*="orders"]'],
-  'restaurant-manage-orders': ['[data-tour="restaurant-manage-orders"]', 'button:contains("Cooking")', 'button:contains("Ready")'],
-  'restaurant-sales': ['[data-tour="restaurant-sales"]', '[data-tour*="sales"]'],
-  'restaurant-grow': ['[data-tour="restaurant-grow"]', '[data-tour*="grow"]']
+  // Restaurant / Kitchen stages
+  'restaurant-setup': [
+    '[data-tour~="restaurant-setup"]',
+    'button[title*="Availability" i]',
+    'button[title*="Online" i]'
+  ],
+  'restaurant-menu': [
+    '[data-tour~="restaurant-menu"]',
+    'button[title*="Menu" i]',
+    'button[title*="Dishes" i]'
+  ],
+  'restaurant-orders': [
+    '[data-tour~="restaurant-orders"]',
+    '[data-tour*="orders"]'
+  ],
+  'restaurant-manage-orders': [
+    '[data-tour~="restaurant-manage-orders"]',
+    '[data-tour~="restaurant-orders"]'
+  ],
+  'restaurant-sales': [
+    '[data-tour~="restaurant-sales"]',
+    '[data-tour*="sales"]'
+  ],
+  'restaurant-grow': [
+    '[data-tour~="restaurant-grow"]',
+    '[data-tour*="grow"]'
+  ]
 };
 
 export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, forceRole = null }) {
@@ -102,32 +190,61 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
+  // Helper: check if element is actually visible and rendered
+  const isElementVisible = (el) => {
+    if (!el || !el.isConnected) return false;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+  };
+
+  // Safe element finder that handles space-separated and compound data-tour values
+  const findElementForStage = useCallback((dataTour) => {
+    if (!dataTour) return null;
+
+    // 1. Direct attribute selectors (word match, contains match, exact match)
+    const primarySelectors = [
+      `[data-tour~="${dataTour}"]`,
+      `[data-tour*="${dataTour}"]`,
+      `[data-tour="${dataTour}"]`
+    ];
+
+    for (const sel of primarySelectors) {
+      try {
+        const matches = document.querySelectorAll(sel);
+        for (const m of matches) {
+          if (isElementVisible(m)) return m;
+        }
+      } catch (_) {}
+    }
+
+    // 2. Fallback selectors
+    const fallbacks = SELECTOR_FALLBACKS[dataTour] || [];
+    for (const sel of fallbacks) {
+      try {
+        const matches = document.querySelectorAll(sel);
+        for (const m of matches) {
+          if (isElementVisible(m)) return m;
+        }
+      } catch (_) {}
+    }
+
+    return null;
+  }, []);
+
   // Element Finder and Measurement
   const updateTargetRect = useCallback(() => {
     if (!isOpen || !activeStage?.dataTour) {
       setTargetRect(null);
       setTargetFound(false);
-      return;
+      return null;
     }
 
-    let el = document.querySelector(`[data-tour="${activeStage.dataTour}"]`);
-    
-    // Check fallback selectors
-    if (!el && SELECTOR_FALLBACKS[activeStage.dataTour]) {
-      for (const sel of SELECTOR_FALLBACKS[activeStage.dataTour]) {
-        try {
-          const match = document.querySelector(sel);
-          if (match) {
-            el = match;
-            break;
-          }
-        } catch (_) {}
-      }
-    }
+    const el = findElementForStage(activeStage.dataTour);
 
     if (el) {
       const rect = el.getBoundingClientRect();
-      // Ensure element has dimensions and is in document
       if (rect.width > 0 && rect.height > 0) {
         setTargetRect({
           top: rect.top,
@@ -147,35 +264,51 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     setTargetRect(null);
     setTargetFound(false);
     return null;
-  }, [isOpen, activeStage]);
+  }, [isOpen, activeStage?.dataTour, findElementForStage]);
 
-  // Scroll into view & track target element on stage change
+  // Scroll into view & continuous rAF tracking on stage change
   useEffect(() => {
     if (!isOpen) return;
 
-    let timer = setTimeout(() => {
+    let animationFrameId;
+    let cancelTimer;
+    const startTime = Date.now();
+
+    const trackElement = () => {
+      updateTargetRect();
+      if (Date.now() - startTime < 650) {
+        animationFrameId = requestAnimationFrame(trackElement);
+      }
+    };
+
+    // Locate and scroll into view if needed
+    cancelTimer = setTimeout(() => {
       const el = updateTargetRect();
       if (el) {
-        // Only scroll if element is not already visible in comfortable viewport area
+        const style = window.getComputedStyle(el);
+        const isFixedOrSticky = style.position === 'fixed' || style.position === 'sticky';
         const r = el.getBoundingClientRect();
-        const isInView = r.top >= 60 && r.bottom <= window.innerHeight - 60;
-        if (!isInView) {
+        const isInComfortableViewport = r.top >= 50 && r.bottom <= window.innerHeight - 50;
+
+        if (!isInComfortableViewport && !isFixedOrSticky) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-          // Re-measure after scroll settling
-          setTimeout(updateTargetRect, 280);
         }
       }
-    }, 60);
+      animationFrameId = requestAnimationFrame(trackElement);
+    }, 40);
 
     const onScroll = () => {
       updateTargetRect();
     };
 
     window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    window.addEventListener('resize', onScroll, { passive: true });
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(cancelTimer);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
       window.removeEventListener('scroll', onScroll, { capture: true });
+      window.removeEventListener('resize', onScroll);
     };
   }, [isOpen, currentStep, updateTargetRect]);
 
@@ -253,28 +386,29 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
 
   // Card Positioning Calculations
   const cardWidth = Math.min(windowDims.width - 24, 380);
-  const cardEstimatedHeight = 280;
+  const cardHeight = cardRef.current?.offsetHeight || 290;
 
   let placement = 'center';
-  let cardTop = windowDims.height / 2 - 140;
-  let cardLeft = (windowDims.width - cardWidth) / 2;
+  let cardTop = Math.max(16, (windowDims.height - cardHeight) / 2);
+  let cardLeft = Math.max(12, (windowDims.width - cardWidth) / 2);
   let arrowLeft = cardWidth / 2;
 
   if (targetRect && targetFound) {
     const spaceBelow = windowDims.height - targetRect.bottom;
     const spaceAbove = targetRect.top;
+    const gap = 14;
 
-    if (spaceBelow >= cardEstimatedHeight + 20) {
+    if (spaceBelow >= cardHeight + gap) {
       placement = 'bottom';
-      cardTop = targetRect.bottom + 14;
-    } else if (spaceAbove >= cardEstimatedHeight + 20) {
+      cardTop = targetRect.bottom + gap;
+    } else if (spaceAbove >= cardHeight + gap) {
       placement = 'top';
-      cardTop = Math.max(16, targetRect.top - cardEstimatedHeight - 14);
+      cardTop = Math.max(12, targetRect.top - cardHeight - gap);
     } else {
       placement = spaceBelow > spaceAbove ? 'bottom' : 'top';
       cardTop = placement === 'bottom' 
-        ? Math.min(windowDims.height - cardEstimatedHeight - 16, targetRect.bottom + 14)
-        : Math.max(16, targetRect.top - cardEstimatedHeight - 14);
+        ? Math.min(windowDims.height - cardHeight - 12, targetRect.bottom + gap)
+        : Math.max(12, targetRect.top - cardHeight - gap);
     }
 
     // Align horizontally with target center, clamped inside viewport
@@ -345,19 +479,19 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           left: `${cardLeft}px`,
           width: `${cardWidth}px`
         }}
-        className={`fixed z-20 flex flex-col bg-[#1E1B1C] text-white rounded-[28px] sm:rounded-[32px] border border-[#E0FF33]/30 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(224,255,51,0.15)] overflow-hidden transition-all duration-300 apple-modal-spring ${closing ? 'closing' : ''}`}
+        className={`fixed z-20 flex flex-col bg-[#1E1B1C] text-white rounded-[28px] sm:rounded-[32px] border border-[#E0FF33]/30 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(224,255,51,0.15)] overflow-hidden transition-all duration-300 apple-modal-spring preserve-dark ${closing ? 'closing' : ''}`}
       >
         {/* Directional Arrow pointing to the highlighted element */}
         {targetFound && placement === 'bottom' && (
           <div
             style={{ left: `${arrowLeft}px` }}
-            className="absolute -top-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-t border-l border-[#E0FF33]/30 rotate-45 z-30"
+            className="absolute -top-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-t border-l border-[#E0FF33]/40 rotate-45 z-30 preserve-dark"
           />
         )}
         {targetFound && placement === 'top' && (
           <div
             style={{ left: `${arrowLeft}px` }}
-            className="absolute -bottom-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-b border-r border-[#E0FF33]/30 rotate-45 z-30"
+            className="absolute -bottom-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-b border-r border-[#E0FF33]/40 rotate-45 z-30 preserve-dark"
           />
         )}
 

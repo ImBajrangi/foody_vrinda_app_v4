@@ -2592,27 +2592,27 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #1C1917 !important;
 }
 
-/* Dark Obsidian Containers -> Crisp Divine White Surfaces (except buttons & steppers & transparent/page bars) */
-.light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.customer-card-pop *):not(.stepper-capsule):not(.sticky-category-bar):not([class*="bg-[#FAF7F2]"]),
-.light [class*="bg-[#151314]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#181617]"]:not(button):not([role="button"]):not(.brand-medallion):not(.sticky-category-bar),
-.light [class*="bg-[#141213]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.otp-code-pill),
-.light [class*="bg-[#1B191A]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.otp-code-pill),
-.light [class*="bg-[#221F20]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#1C1A1B]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#121011]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#1F1C1D]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#161415]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#171516]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#242021]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#1A1718]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#131112]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#201D1E]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#232021]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#262324]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#191718]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#110F10]"]:not(button):not([role="button"]):not(.sticky-category-bar),
-.light [class*="bg-[#1D1B1C]"]:not(button):not([role="button"]):not(.sticky-category-bar) {
+/* Dark Obsidian Containers -> Crisp Divine White Surfaces (except buttons & steppers & transparent/page bars & preserve-dark) */
+.light [class*="bg-[#1E1B1C]"]:not(button):not([role="button"]):not(.customer-card-pop *):not(.stepper-capsule):not(.sticky-category-bar):not([class*="bg-[#FAF7F2]"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#151314]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#181617]"]:not(button):not([role="button"]):not(.brand-medallion):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#141213]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.otp-code-pill):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1B191A]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.otp-code-pill):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#221F20]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1C1A1B]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#121011]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1F1C1D]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#161415]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#171516]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#242021]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1A1718]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#131112]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#201D1E]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#232021]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#262324]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#191718]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#110F10]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1D1B1C]"]:not(button):not([role="button"]):not(.sticky-category-bar):not(.preserve-dark):not(.preserve-dark *) {
   background-color: #FFFFFF !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.08) !important;
@@ -2638,18 +2638,64 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* Secondary Elevated Cards & Panels -> Warm Soft Cream / Ivory */
-.light [class*="bg-[#282526]"]:not(button):not([role="button"]),
-.light [class*="bg-[#2A2627]"]:not(button):not([role="button"]),
-.light [class*="bg-[#332E30]"]:not(button):not([role="button"]),
-.light [class*="bg-[#322E30]"]:not(button):not([role="button"]),
-.light [class*="bg-[#232328]"]:not(button):not([role="button"]),
-.light [class*="bg-[#1C1C20]"]:not(button):not([role="button"]),
-.light [class*="bg-[#2B2728]"]:not(button):not([role="button"]),
-.light [class*="bg-[#2D292A]"]:not(button):not([role="button"]) {
+.light [class*="bg-[#282526]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#2A2627]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#332E30]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#322E30]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#232328]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#1C1C20]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#2B2728]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-[#2D292A]"]:not(button):not([role="button"]):not(.preserve-dark):not(.preserve-dark *) {
   background-color: #F8F4EC !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.08) !important;
   box-shadow: 0 2px 10px -2px rgba(28, 25, 23, 0.04);
+}
+
+/* Protected Dark Luxury Elements (Platform Tour Spotlight, Dynamic Island HUD) */
+.preserve-dark,
+.light .preserve-dark,
+[data-theme="light"] .preserve-dark {
+  background-color: #1E1B1C !important;
+  color: #FFFFFF !important;
+  border-color: rgba(224, 255, 51, 0.35) !important;
+}
+
+.preserve-dark *,
+.light .preserve-dark *,
+[data-theme="light"] .preserve-dark * {
+  color: inherit;
+}
+
+.preserve-dark [class*="bg-[#151314]"],
+.light .preserve-dark [class*="bg-[#151314]"] {
+  background-color: #151314 !important;
+}
+
+.preserve-dark [class*="bg-[#1E1B1C]"],
+.light .preserve-dark [class*="bg-[#1E1B1C]"] {
+  background-color: #1E1B1C !important;
+}
+
+.preserve-dark h1,
+.preserve-dark h2,
+.preserve-dark h3,
+.preserve-dark h4,
+.light .preserve-dark h1,
+.light .preserve-dark h2,
+.light .preserve-dark h3,
+.light .preserve-dark h4 {
+  color: #FFFFFF !important;
+}
+
+.preserve-dark p,
+.light .preserve-dark p {
+  color: #D4D4D8 !important;
+}
+
+.preserve-dark strong,
+.light .preserve-dark strong {
+  color: #FFFFFF !important;
 }
 
 /* Dev Stat Metric Cards in Light Mode */
@@ -2679,13 +2725,13 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* 2. Universal Light Mode Typography & High Contrast */
-.light h1,
-.light h2,
-.light h3,
-.light h4,
-.light h5,
-.light h6 {
-  color: #181617 !important;
+.light h1:not(.preserve-dark *):not([class*="text-white"]),
+.light h2:not(.preserve-dark *):not([class*="text-white"]),
+.light h3:not(.preserve-dark *):not([class*="text-white"]),
+.light h4:not(.preserve-dark *):not([class*="text-white"]),
+.light h5:not(.preserve-dark *):not([class*="text-white"]),
+.light h6:not(.preserve-dark *):not([class*="text-white"]) {
+  color: #181617;
 }
 
 .light p {
@@ -2733,28 +2779,28 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* 4. Translucent Containers & Secondary Buttons in Light Mode */
-.light [class*="bg-white/5"]:not(button):not(a):not(button *):not([role="button"] *),
-.light [class*="bg-white/10"]:not(button):not(a):not(button *):not([role="button"] *),
-.light [class*="bg-white/15"]:not(button):not(a):not(button *):not([role="button"] *),
-.light [class*="bg-white/20"]:not(button):not(a):not(button *):not([role="button"] *) {
-  background-color: #EDE7DD !important;
-  border-color: rgba(28, 25, 23, 0.1) !important;
+.light [class*="bg-white/5"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/10"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/15"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/20"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *) {
+  background-color: #F4EFE8 !important;
+  border-color: rgba(28, 25, 23, 0.08) !important;
   color: #181617 !important;
 }
 
-.light button[class*="bg-white/5"]:not(.btn-dark *),
-.light button[class*="bg-white/10"]:not(.btn-dark *),
-.light a[class*="bg-white/5"]:not(.btn-dark *),
-.light a[class*="bg-white/10"]:not(.btn-dark *) {
-  background-color: #EDE7DD !important;
+.light button[class*="bg-white/5"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light button[class*="bg-white/10"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light a[class*="bg-white/5"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light a[class*="bg-white/10"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *) {
+  background-color: #F4EFE8 !important;
   color: #181617 !important;
-  border-color: rgba(28, 25, 23, 0.12) !important;
+  border-color: rgba(28, 25, 23, 0.1) !important;
   font-weight: 700 !important;
 }
 
-.light button[class*="bg-white/5"]:hover,
-.light button[class*="bg-white/10"]:hover {
-  background-color: #E2DBD0 !important;
+.light button[class*="bg-white/5"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light button[class*="bg-white/10"]:hover:not(.preserve-dark):not(.preserve-dark *) {
+  background-color: #ECE5DC !important;
   color: #000000 !important;
 }
 
@@ -2775,19 +2821,22 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #181617 !important;
 }
 
-/* Eliminate unnecessary heavy/dirty dark shadows in Light Mode */
+/* Refined, clean micro-elevation in Light Mode */
 .light .shadow-2xl,
 .light .shadow-xl,
-.light .shadow-lg,
+.light .shadow-lg {
+  box-shadow: 0 10px 28px -4px rgba(28, 25, 23, 0.06), 0 4px 12px -2px rgba(28, 25, 23, 0.03) !important;
+}
+
 .light .shadow-md,
 .light .shadow-sm,
 .light .shadow {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 2px 8px -1px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(28, 25, 23, 0.03) !important;
 }
 
-.light button,
-.light [role="button"] {
-  box-shadow: none !important;
+.light button:not(.no-shadow):not(.preserve-dark),
+.light [role="button"]:not(.no-shadow):not(.preserve-dark) {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 /* Prevent light hover background from firing in Dark Mode */
@@ -2823,22 +2872,22 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 .light [class*="hover:bg-[#322E30]"]:hover,
-.light [class*="hover:bg-[#282526]"]:hover,
-.light [class*="hover:bg-[#332E30]"]:hover,
-.light [class*="hover:bg-[#1E1B1C]"]:hover {
-  background-color: #EDE7DD !important;
+.light [class*="hover:bg-[#282526]"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:bg-[#332E30]"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:bg-[#1E1B1C]"]:hover:not(.preserve-dark):not(.preserve-dark *) {
+  background-color: #F4EFE8 !important;
   color: #1C1917 !important;
 }
 
 /* 6. Tabs & Operational Switchers */
-.light button[class*="bg-[#282526]"] {
-  background-color: #EDE7DD !important;
+.light button[class*="bg-[#282526]"]:not(.preserve-dark):not(.preserve-dark *) {
+  background-color: #F4EFE8 !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
-  box-shadow: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 
-.light button[class*="bg-[#282526]"] * {
+.light button[class*="bg-[#282526]"]:not(.preserve-dark):not(.preserve-dark *) * {
   color: #1C1917 !important;
 }
 

@@ -204,23 +204,23 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
               {activeTab === 'wallet' && (
                 <div className="space-y-4">
                   {/* Balance Display Card */}
-                  <div className="relative rounded-3xl bg-gradient-to-br from-[#282526] via-[#242021] to-[#181617] border border-[#E0FF33]/30 p-5 sm:p-6 shadow-xl overflow-hidden">
+                  <div className="relative rounded-3xl bg-amber-500/10 dark:bg-gradient-to-br dark:from-[#282526] dark:via-[#242021] dark:to-[#181617] border border-amber-500/30 dark:border-[#E0FF33]/30 p-5 sm:p-6 shadow-md dark:shadow-xl overflow-hidden">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#E0FF33] flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-[#E0FF33] flex items-center gap-1.5">
                           <Sparkles size={13} /> Available Balance
                         </span>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-3xl sm:text-4xl font-black text-white font-['Outfit']">
+                          <span className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white font-['Outfit']">
                             {availablePoints}
                           </span>
-                          <span className="text-sm font-bold text-zinc-400">FV Points</span>
+                          <span className="text-sm font-bold text-stone-600 dark:text-zinc-400">FV Points</span>
                         </div>
                       </div>
 
                       <div className="text-right space-y-1">
-                        <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">50 FV = ₹5.00</div>
-                        <div className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-[11px] text-zinc-300">
+                        <div className="text-[10px] text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-bold">50 FV = ₹5.00</div>
+                        <div className="px-3 py-1 rounded-xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 text-[11px] text-stone-700 dark:text-zinc-300">
                           Instant at Checkout
                         </div>
                       </div>
@@ -491,21 +491,21 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     const myReferrals = Number(wallet?.referrals_count ?? wallet?.referral_summary?.total_referrals ?? 0);
                     
                     return (
-                      <div className="p-3.5 bg-gradient-to-r from-[#282526] to-[#1E1B1C] border border-[#E0FF33]/25 rounded-2xl flex items-center justify-between gap-3 shadow-xs">
+                      <div className="p-3.5 bg-stone-100 dark:bg-gradient-to-r dark:from-[#282526] dark:to-[#1E1B1C] border border-stone-200 dark:border-[#E0FF33]/25 rounded-2xl flex items-center justify-between gap-3 shadow-xs">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-[#E0FF33]/15 text-[#E0FF33] flex items-center justify-center font-black text-xs font-['Outfit'] shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center font-black text-xs font-['Outfit'] shrink-0">
                             {myRankItem ? `#${myRankItem.rank}` : '—'}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-black text-white font-['Outfit'] truncate">
+                              <span className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                                 Your Standing
                               </span>
-                              <span className="text-[9px] px-1.5 py-0.2 bg-[#E0FF33] text-black font-black rounded-full shrink-0">
+                              <span className="text-[9px] px-1.5 py-0.2 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black rounded-full shrink-0">
                                 {myRankItem ? 'RANKED' : 'UNRANKED'}
                               </span>
                             </div>
-                            <p className="text-[10px] text-zinc-400 truncate">
+                            <p className="text-[10px] text-stone-600 dark:text-zinc-400 truncate">
                               {myReferrals} Referrals • {myPoints} FV Points
                             </p>
                           </div>
@@ -607,12 +607,12 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
               {/* TAB 5: WHATSAPP COMMUNITY CHANNELS */}
               {activeTab === 'community' && (
                 <div className="space-y-3">
-                  <div className="bg-gradient-to-r from-emerald-950/50 to-green-950/20 border border-emerald-500/20 rounded-3xl p-5 space-y-2">
+                  <div className="bg-emerald-50/70 dark:bg-gradient-to-r dark:from-emerald-950/50 dark:to-green-950/20 border border-emerald-500/20 rounded-3xl p-5 space-y-2">
                     <div className="flex items-center gap-2.5">
-                      <MessageCircle className="w-5 h-5 text-emerald-400" />
-                      <h4 className="text-sm font-bold text-white font-['Outfit']">Official WhatsApp Communities</h4>
+                      <MessageCircle className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                      <h4 className="text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Official WhatsApp Communities</h4>
                     </div>
-                    <p className="text-xs text-zinc-300 leading-relaxed">
+                    <p className="text-xs text-stone-600 dark:text-zinc-300 leading-relaxed">
                       Stay connected with direct broadcasts from Sri Vrindavan Dham for secret coupons, instant flash sales, and fleet dispatch updates!
                     </p>
                   </div>

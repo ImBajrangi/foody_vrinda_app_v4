@@ -60,6 +60,7 @@ import {
   Check,
   Star,
   User,
+  Users,
   CreditCard,
   X,
   KeyRound,
@@ -1062,20 +1063,20 @@ export default function TransportView() {
             </div>
 
             {/* Banner: Sarathi Fleet Dynasty Referrals */}
-            <div data-tour="delivery-referral" className="md:col-span-2 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-gradient-to-r from-emerald-950/40 via-[#282526] to-[#1E1B1C] border border-emerald-500/30 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3.5">
+            <div data-tour="delivery-referral" className="md:col-span-2 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-emerald-50/80 dark:bg-gradient-to-r dark:from-emerald-950/40 dark:via-[#282526] dark:to-[#1E1B1C] border border-emerald-500/25 dark:border-emerald-500/30 shadow-sm dark:shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3.5">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
                   <Users size={19} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white font-['Outfit']">Sarathi Fleet Referral Hub</h4>
-                  <p className="text-xs text-zinc-400">Invite new riders to the Foody Vrinda fleet and earn 100 FV points per completed order.</p>
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Sarathi Fleet Referral Hub</h4>
+                  <p className="text-xs text-stone-600 dark:text-zinc-400">Invite new riders to the Foody Vrinda fleet and earn 100 FV points per completed order.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
-                className="h-9 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
               >
                 <MessageCircle size={14} />
                 <span>Join Fleet Channel</span>
@@ -1517,7 +1518,7 @@ export default function TransportView() {
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-[32px] p-12 sm:p-16 text-center shadow-md flex flex-col items-center justify-center">
+            <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-[32px] p-12 sm:p-16 text-center shadow-md flex flex-col items-center justify-center">
               <div className="w-16 h-16 rounded-3xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] mb-4 shadow-sm">
                 <PackageCheck size={32} strokeWidth={2.2} />
               </div>
