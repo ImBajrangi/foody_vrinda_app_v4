@@ -48,9 +48,11 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
   }
 
   const status = currentOrder.status || 'new';
-  const shop = (allShops && allShops.length > 0)
-    ? (allShops.find(s => s.id === (currentOrder.shopId || currentOrder.shop_id)) || allShops[0])
-    : { name: 'Prem Mandir Prasad Kitchen' };
+  const orderShopId = currentOrder.shopId || currentOrder.shop_id;
+  const matchedShop = (allShops && allShops.length > 0 && orderShopId)
+    ? allShops.find(s => s.id === orderShopId)
+    : null;
+  const shop = matchedShop || { name: currentOrder.shopName || 'Foody Vrinda Kitchen' };
 
   const isCompleted = status === 'completed' || status === 'delivered';
 

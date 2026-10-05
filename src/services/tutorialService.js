@@ -19,7 +19,12 @@ import {
   Menu,
   BellRing,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Search,
+  Plus,
+  MapPin,
+  User,
+  Compass
 } from 'lucide-react';
 
 export const TUTORIAL_VERSIONS = {
@@ -36,93 +41,108 @@ export const ROLE_TUTORIAL_DATA = {
     accentColor: '#E0FF33',
     stages: [
       {
-        id: 'welcome',
+        id: 'search',
+        dataTour: 'customer-search',
         stageNumber: 1,
-        tag: 'STAGE 1 • WELCOME',
-        title: 'Welcome',
-        subtitle: '100% Satvik Pure Prasadam & Delicacies in Sri Vrindavan Dham',
-        icon: UtensilsCrossed,
-        badgeText: 'Pure Satvik • Zero Onion-Garlic',
-        uiElement: 'Foody Vrinda Home',
+        tag: 'STAGE 1 • SEARCH',
+        title: 'Find your favourite food',
+        subtitle: 'Search for Prasadam, sweets, snacks and more across Sri Vrindavan.',
+        icon: Search,
+        badgeText: 'Instant Search',
+        uiElement: 'Universal Search',
         highlights: [
-          { label: 'Divine Offerings', desc: 'Temple-style Bankey Bihari Peda, Radha Rani Kachori, and authentic thalis.' },
-          { label: 'Sanctified Kitchens', desc: 'Prepared with highest standards of cleanliness and traditional Braj devotion.' },
-          { label: 'Local Delivery', desc: 'Swift doorstep service anywhere within Sri Vrindavan and Mathura region.' }
+          { label: 'Universal Search', desc: 'Find dishes, restaurants or browse daily temple prasadam.' },
+          { label: 'Quick Query', desc: 'Type or speak to locate authentic Satvik delicacies fast.' }
         ]
       },
       {
-        id: 'find_food',
+        id: 'categories',
+        dataTour: 'customer-categories',
         stageNumber: 2,
         tag: 'STAGE 2 • DISCOVERY',
-        title: 'Find Food',
-        subtitle: 'Explore authentic menus, shops & voice search',
-        icon: ShoppingBag,
-        badgeText: 'Voice Search Enabled',
-        uiElement: 'Search Bar & Category Strip',
+        title: 'Explore categories',
+        subtitle: 'Browse food by category and discover what you want.',
+        icon: UtensilsCrossed,
+        badgeText: 'Pure Satvik Menus',
+        uiElement: 'Category Strip',
         highlights: [
-          { label: 'Universal Search', desc: 'Find dishes, restaurants or speak in Hindi/English with voice recognition.' },
-          { label: 'Category Strips', desc: 'Quickly filter Sweets, Chat, Thalis, Beverages, or Gaushala Dairy items.' },
-          { label: 'Live Kitchen Status', desc: 'Clear indicators showing if a kitchen is currently baking or accepting orders.' }
+          { label: 'Category Filter', desc: 'Filter Sweets, Chaat, Thalis, Beverages, or Gaushala Dairy items.' },
+          { label: '100% Satvik', desc: 'Every preparation is pure vegetarian, without onion or garlic.' }
         ]
       },
       {
-        id: 'order',
+        id: 'add_to_cart',
+        dataTour: 'customer-add-to-cart',
         stageNumber: 3,
         tag: 'STAGE 3 • ORDERING',
-        title: 'Place Order',
-        subtitle: 'From basket to doorstep with real-time GPS radar',
-        icon: Navigation,
-        badgeText: 'Live GPS Delivery Radar',
-        uiElement: 'Basket & Live GPS Radar',
+        title: 'Add items to your basket',
+        subtitle: 'Choose your quantity and build your order.',
+        icon: Plus,
+        badgeText: '1-Tap Ordering',
+        uiElement: 'Dish Card + Button',
         highlights: [
-          { label: '1-Tap Basket', desc: 'Customize portions, sweet levels, and special satvik requests easily.' },
-          { label: 'Doorstep Pinpoint', desc: 'Pin your Ashram, Hotel, or Home location with interactive GPS Map Picker.' },
-          { label: 'Delivery Verification', desc: 'Safe delivery confirmed via confidential 4-digit OTP at doorstep.' }
+          { label: 'Portion Control', desc: 'Select portions and customize quantities effortlessly.' },
+          { label: 'Instant Feedback', desc: 'Haptic confirmation and micro-animations on every add.' }
         ]
       },
       {
-        id: 'earn_fv',
+        id: 'basket',
+        dataTour: 'customer-basket',
         stageNumber: 4,
-        tag: 'STAGE 4 • REWARDS',
-        title: 'Earn FV Points',
-        subtitle: '1 FV Point = ₹0.10 • 50 FV Points = ₹5.00 Real Value',
-        icon: Coins,
-        badgeText: 'Real Platform Currency',
-        uiElement: 'FV Points Badge (Header)',
+        tag: 'STAGE 4 • BASKET',
+        title: 'Your Basket',
+        subtitle: 'Review items, quantity and total before checkout.',
+        icon: ShoppingBag,
+        badgeText: 'Live Order Review',
+        uiElement: 'Basket Trigger',
         highlights: [
-          { label: 'Auto-Provisioned Wallet', desc: 'Your digital dynasty wallet is created automatically upon signup.' },
-          { label: 'Order Rewards', desc: 'Earn points every time you enjoy delicious prasadam meals.' },
-          { label: 'Cryptographic Ledger', desc: 'Every point credit is permanently protected in an append-only journal.' }
+          { label: 'Order Summary', desc: 'Review dishes, applied promo discounts, and transparent totals.' },
+          { label: 'Special Instructions', desc: 'Add sattvic cooking notes for the temple chefs.' }
         ]
       },
       {
-        id: 'refer',
+        id: 'address',
+        dataTour: 'customer-address',
         stageNumber: 5,
-        tag: 'STAGE 5 • DYNASTY',
-        title: 'Refer Friends',
-        subtitle: 'Share divine tastes & earn genuine milestone rewards',
-        icon: Users,
-        badgeText: 'Up to +35 FV Points',
-        uiElement: 'Dynasty Referral Hub',
+        tag: 'STAGE 5 • DELIVERY',
+        title: 'Choose your delivery address',
+        subtitle: 'GPS is optional. You can use your saved or typed address.',
+        icon: MapPin,
+        badgeText: 'Flexible Address',
+        uiElement: 'Delivery Address',
         highlights: [
-          { label: '1-Tap WhatsApp Share', desc: 'Share your personalized invite link with friends and WhatsApp groups.' },
-          { label: 'Instant Bonus', desc: 'Both you and your friend earn +5 FV Points the moment they register.' },
-          { label: 'First Order Reward', desc: 'Earn +10 FV (You) and +20 FV (Friend) on their qualifying first order.' }
+          { label: 'No Blocker', desc: 'Type your Ashram, Flat, or Landmark name — GPS click is optional.' },
+          { label: 'Safe Delivery', desc: 'Dedicated Sarathi riders deliver hot prasad directly to your doorstep.' }
         ]
       },
       {
-        id: 'redeem',
+        id: 'fv_wallet',
+        dataTour: 'customer-fv-wallet',
         stageNumber: 6,
-        tag: 'STAGE 6 • REDEMPTION',
-        title: 'Redeem FV',
-        subtitle: 'Apply FV Points for instant rupee discounts on orders',
-        icon: Sparkles,
-        badgeText: 'Instant ₹ Savings',
-        uiElement: 'Checkout Slider & Discounts',
+        tag: 'STAGE 6 • REWARDS',
+        title: 'Earn FV Points',
+        subtitle: 'Complete eligible actions and earn FV Points you can redeem.',
+        icon: Coins,
+        badgeText: '1 FV Point = ₹0.10',
+        uiElement: 'FV Points Badge',
         highlights: [
-          { label: 'Checkout Slider', desc: 'Choose how many points to redeem directly inside your basket drawer.' },
-          { label: 'Direct Rupee Off', desc: '10 FV = ₹1 off, 50 FV = ₹5 off, 100 FV = ₹10 off your meal total.' },
-          { label: 'Zero Extra Charges', desc: 'No hidden convenience or redemption fees ever.' }
+          { label: 'Real Value', desc: 'Earn points on every order and referral.' },
+          { label: 'Redeem for Cash Off', desc: 'Use your points at checkout for instant rupee discounts.' }
+        ]
+      },
+      {
+        id: 'profile',
+        dataTour: 'customer-profile',
+        stageNumber: 7,
+        tag: 'STAGE 7 • ACCOUNT',
+        title: 'Your account',
+        subtitle: 'Manage your profile, orders and settings here.',
+        icon: User,
+        badgeText: 'Devotee Console',
+        uiElement: 'Profile Avatar',
+        highlights: [
+          { label: 'Order History', desc: 'Track live orders and view past receipts anytime.' },
+          { label: 'Settings & Replay', desc: 'Replay this tour or update contact details whenever needed.' }
         ]
       }
     ]
@@ -135,89 +155,105 @@ export const ROLE_TUTORIAL_DATA = {
     accentColor: '#06B6D4',
     stages: [
       {
-        id: 'welcome',
+        id: 'go_online',
+        dataTour: 'delivery-go-online',
         stageNumber: 1,
-        tag: 'STAGE 1 • WELCOME',
-        title: 'Welcome',
-        subtitle: 'Deliver sacred prasadam across Sri Vrindavan Dham',
-        icon: Bike,
-        badgeText: 'Official Fleet Partner',
-        uiElement: 'Sarathi Rider Console',
+        tag: 'STAGE 1 • AVAILABILITY',
+        title: 'Go Online',
+        subtitle: 'Turn on your radar to receive nearby delivery dispatches.',
+        icon: Power,
+        badgeText: 'Shift Radar Switch',
+        uiElement: 'Duty Toggle',
         highlights: [
-          { label: 'Noble Service', desc: 'Serve pilgrims and devotees by delivering fresh, authentic prasad.' },
-          { label: 'Transparent Earnings', desc: 'Guaranteed per-drop fees, peak incentives, and fast cash payouts.' },
-          { label: 'Community Support', desc: 'Join the dedicated WhatsApp Rider Fleet group for dispatch help.' }
+          { label: 'Shift Toggle', desc: 'Toggle Online when ready to ride; go Offline during rest breaks.' },
+          { label: 'Smart Dispatch', desc: 'Nearby orders are automatically routed to your phone.' }
         ]
       },
       {
-        id: 'online',
+        id: 'orders',
+        dataTour: 'delivery-orders',
         stageNumber: 2,
-        tag: 'STAGE 2 • AVAILABILITY',
-        title: 'Go Online',
-        subtitle: 'Turn on your radar to receive nearby delivery dispatches',
-        icon: Power,
-        badgeText: '1-Tap Online Radar',
-        uiElement: 'Shift Radar Switch',
+        tag: 'STAGE 2 • DISPATCH',
+        title: 'Available Orders',
+        subtitle: 'View live incoming orders, distances and pickup locations.',
+        icon: Navigation,
+        badgeText: 'Real-Time Feed',
+        uiElement: 'Orders Board',
         highlights: [
-          { label: 'Shift Toggle', desc: 'Toggle Online when you are ready to ride; go Offline whenever taking a break.' },
-          { label: 'Smart Dispatch', desc: 'Orders within your radius are automatically routed to your device.' },
-          { label: 'Cash Limit Monitor', desc: 'Live COD audit keeps your shift smooth and within safe limits.' }
+          { label: 'Live Tickets', desc: 'View distance, customer address, and payout before accepting.' },
+          { label: 'Audio Alarms', desc: 'Loud buzzer chimes ensure zero missed runs.' }
         ]
       },
       {
         id: 'accept',
+        dataTour: 'delivery-accept',
         stageNumber: 3,
-        tag: 'STAGE 3 • DISPATCH',
+        tag: 'STAGE 3 • ACCEPT',
         title: 'Accept Delivery',
-        subtitle: 'Inspect kitchen pickup, customer location & earnings',
-        icon: Navigation,
-        badgeText: 'Real-Time Routing',
-        uiElement: 'Incoming Dispatch Radar',
+        subtitle: 'Inspect kitchen pickup, customer location & earnings.',
+        icon: CheckCircle2,
+        badgeText: '1-Tap Claim',
+        uiElement: 'Accept Button',
         highlights: [
-          { label: 'Audio Alerts', desc: 'Loud alerts ensure you never miss a high-priority order dispatch.' },
-          { label: 'Kitchen Directions', desc: '1-Tap Google / In-app map navigation straight to the restaurant pickup counter.' },
-          { label: 'Order Verification', desc: 'Confirm order ticket number before packing securely into delivery bag.' }
+          { label: 'Immediate Claim', desc: 'Lock in the order and notify the kitchen team instantly.' },
+          { label: 'Kitchen Counter', desc: 'Head to the kitchen pickup counter for packaged prasad.' }
         ]
       },
       {
-        id: 'deliver',
+        id: 'navigation',
+        dataTour: 'delivery-navigation',
         stageNumber: 4,
-        tag: 'STAGE 4 • DOORSTEP',
-        title: 'Complete Delivery',
-        subtitle: 'Safe doorstep drop verification & cash collection',
-        icon: CheckCircle2,
-        badgeText: '4-Digit OTP Guard',
-        uiElement: 'Doorstep 4-Digit OTP',
+        tag: 'STAGE 4 • NAVIGATION',
+        title: 'Live Navigation',
+        subtitle: '1-Tap turn-by-turn map directions straight to kitchen and customer.',
+        icon: Compass,
+        badgeText: 'Carto Map HUD',
+        uiElement: 'Map Route',
         highlights: [
-          { label: 'Customer OTP', desc: 'Ask customer for 4-digit verification code to confirm dropoff.' },
-          { label: 'Cash Collection', desc: 'Collect exact bill amount for COD orders and record with 1 tap.' },
-          { label: 'Instant Status Sync', desc: 'Completion immediately notifies kitchen, customer, and backend ledger.' }
+          { label: 'Turn-by-Turn', desc: 'Optimized routing through Sri Vrindavan streets and Parikrama Marg.' },
+          { label: 'Live Location Sync', desc: 'Customer sees your real-time ETA in their active tracking modal.' }
+        ]
+      },
+      {
+        id: 'complete',
+        dataTour: 'delivery-complete',
+        stageNumber: 5,
+        tag: 'STAGE 5 • DOORSTEP',
+        title: 'Complete Delivery',
+        subtitle: 'Safe doorstep drop verification with 4-digit OTP code.',
+        icon: ShieldCheck,
+        badgeText: '4-Digit OTP Guard',
+        uiElement: 'OTP Modal',
+        highlights: [
+          { label: 'Customer OTP', desc: 'Ask customer for 4-digit code to securely verify handover.' },
+          { label: 'COD Cash Collection', desc: 'Collect exact cash amount and record with 1 tap.' }
         ]
       },
       {
         id: 'earnings',
-        stageNumber: 5,
-        tag: 'STAGE 5 • PAYOUTS',
+        dataTour: 'delivery-earnings',
+        stageNumber: 6,
+        tag: 'STAGE 6 • PAYOUTS',
         title: 'Earnings',
-        subtitle: 'Transparent ledger of daily completed orders & tips',
+        subtitle: 'Transparent ledger of daily completed orders & tips.',
         icon: DollarSign,
-        badgeText: 'Daily Settlement Ready',
-        uiElement: 'Trip & Earnings Ledger',
+        badgeText: 'Daily Settlement',
+        uiElement: 'Earnings Ledger',
         highlights: [
-          { label: 'Trip Ledger', desc: 'View payout details for every completed run in real time.' },
-          { label: 'Peak Multipliers', desc: 'Earn extra bonuses during temple darshan hours and festival rush.' },
-          { label: 'Direct Transfer', desc: 'Weekly settlements directly to your bank account or UPI ID.' }
+          { label: 'Trip Ledger', desc: 'Track per-drop payments and peak darshan multipliers.' },
+          { label: 'Fast Payouts', desc: 'Direct transfers to your bank account or UPI ID.' }
         ]
       },
       {
-        id: 'refer_rider',
-        stageNumber: 6,
-        tag: 'STAGE 6 • MILESTONES',
+        id: 'referral',
+        dataTour: 'delivery-referral',
+        stageNumber: 7,
+        tag: 'STAGE 7 • MILESTONES',
         title: 'Refer Delivery Partners',
-        subtitle: 'Bring fellow delivery partners and unlock tiered cash bonuses',
+        subtitle: 'Bring fellow delivery partners and unlock tiered cash bonuses: 1st (+10 FV), 5th (+25 FV), and 15th (+35 FV).',
         icon: Users,
         badgeText: 'Up to +70 FV Milestone Rewards',
-        uiElement: '1st / 5th / 15th Milestones',
+        uiElement: 'Milestones Hub',
         highlights: [
           { label: '1st Completed Delivery Milestone', desc: 'New rider earns +10 FV • Referrer earns +5 FV bonus.' },
           { label: '5th Completed Deliveries Milestone', desc: 'Rider earns +25 FV • Referrer earns +20 FV bonus.' },
@@ -234,108 +270,93 @@ export const ROLE_TUTORIAL_DATA = {
     accentColor: '#F59E0B',
     stages: [
       {
-        id: 'welcome',
-        stageNumber: 1,
-        tag: 'STAGE 1 • WELCOME',
-        title: 'Welcome',
-        subtitle: 'Empowering authentic Satvik food creators in Vrindavan',
-        icon: ChefHat,
-        badgeText: 'Verified Cloud Kitchen',
-        uiElement: 'Kitchen Operations Hub',
-        highlights: [
-          { label: 'Direct Devotee Reach', desc: 'Showcase your sacred dishes to thousands of devotees and residents.' },
-          { label: 'Zero Quality Compromise', desc: 'Maintain strict 100% Satvik standards without onion and garlic.' },
-          { label: 'Fleet Integration', desc: 'Our dedicated Sarathi delivery riders handle all doorstep logistics.' }
-        ]
-      },
-      {
         id: 'setup',
-        stageNumber: 2,
-        tag: 'STAGE 2 • SETTINGS',
+        dataTour: 'restaurant-setup',
+        stageNumber: 1,
+        tag: 'STAGE 1 • SETTINGS',
         title: 'Restaurant Setup',
-        subtitle: 'Configure store hours, address & operational switches',
+        subtitle: 'Configure store hours, operational switches and prep buffers.',
         icon: Store,
-        badgeText: 'Complete Kitchen Control',
-        uiElement: 'Store Switch & Kitchen Timing',
+        badgeText: 'Kitchen Switch',
+        uiElement: 'Store Setup',
         highlights: [
-          { label: 'Store Switch', desc: 'Open and close your online kitchen whenever you start or finish cooking.' },
-          { label: 'Payment Toggles', desc: 'Choose to accept Cash on Delivery, Online UPI, or both.' },
-          { label: 'Prep Time Buffer', desc: 'Set standard cooking time (15-30 mins) to manage customer expectations.' }
+          { label: 'Store Switch', desc: 'Open and close your kitchen with one tap.' },
+          { label: 'Payment Toggles', desc: 'Accept Cash on Delivery, Online UPI, or both.' }
         ]
       },
       {
         id: 'menu',
-        stageNumber: 3,
-        tag: 'STAGE 3 • CATALOG',
+        dataTour: 'restaurant-menu',
+        stageNumber: 2,
+        tag: 'STAGE 2 • CATALOG',
         title: 'Menu',
-        subtitle: 'Add signature dishes, pricing & food cutouts',
+        subtitle: 'Add signature dishes, pricing, food cutouts & stock toggles.',
         icon: Menu,
-        badgeText: 'Dynamic Catalog Grid',
-        uiElement: 'Dish Cutouts & Stock Switch',
+        badgeText: 'Catalog Management',
+        uiElement: 'Menu Grid',
         highlights: [
-          { label: 'Instant Dish Creation', desc: 'Set dish names, descriptions, transparent cutouts, and rupee prices.' },
-          { label: 'Category Tagging', desc: 'Group dishes under Temple Sweets, Thalis, Snacks, or Drinks.' },
-          { label: 'Out of Stock Switch', desc: 'Mark sold-out dishes unavailable with 1 tap to prevent canceled orders.' }
+          { label: 'Instant Creation', desc: 'Manage dish names, descriptions, cutouts, and rupee prices.' },
+          { label: 'Stock Toggle', desc: 'Mark dishes out of stock instantly if ingredients run out.' }
         ]
       },
       {
-        id: 'receive_orders',
-        stageNumber: 4,
-        tag: 'STAGE 4 • KDS TICKETS',
+        id: 'orders',
+        dataTour: 'restaurant-orders',
+        stageNumber: 3,
+        tag: 'STAGE 3 • KDS',
         title: 'Incoming Orders',
-        subtitle: 'Live kitchen display screen with loud sound trials',
+        subtitle: 'Live kitchen display screen with loud buzzer sound trials.',
         icon: BellRing,
-        badgeText: 'High-Alert Sound Engine',
-        uiElement: 'Live Kitchen Display (KDS)',
+        badgeText: 'Live KDS Tickets',
+        uiElement: 'KDS Display',
         highlights: [
-          { label: 'Immediate Alert', desc: 'Loud temple gong / buzzer plays immediately when a customer orders.' },
-          { label: 'Visual Ticket', desc: 'Clear item quantities, custom portion notes, and delivery destination.' },
-          { label: 'Accept / Reject', desc: 'Acknowledge order and start cooking with estimated preparation clock.' }
+          { label: 'Instant Chime', desc: 'Loud alarm alerts the kitchen whenever a customer places an order.' },
+          { label: 'Clear Tickets', desc: 'View item quantities, customizations, and packaging notes.' }
         ]
       },
       {
         id: 'manage_orders',
-        stageNumber: 5,
-        tag: 'STAGE 5 • DISPATCH',
+        dataTour: 'restaurant-manage-orders',
+        stageNumber: 4,
+        tag: 'STAGE 4 • STATIONS',
         title: 'Manage Orders',
-        subtitle: 'Move tickets through Preparing, Ready, and Dispatched',
+        subtitle: 'Move tickets through Preparing, Ready, and Rider handoff.',
         icon: CheckCircle2,
-        badgeText: 'Seamless Station Workflow',
-        uiElement: 'Station Status & Rider Handoff',
+        badgeText: 'Station Workflow',
+        uiElement: 'Order Stations',
         highlights: [
-          { label: 'Mark Ready', desc: 'Notify assigned Sarathi rider the exact moment food is packed.' },
-          { label: 'Rider Pickup', desc: 'Verify rider ID and hand over packaged prasad.' },
-          { label: 'Live Tracking', desc: 'Follow the order until it is successfully delivered at customer doorstep.' }
+          { label: 'Mark Ready', desc: 'Notify assigned Sarathi rider immediately when food is packaged.' },
+          { label: 'Rider Pickup', desc: 'Verify rider OTP and hand over sacred prasad.' }
         ]
       },
       {
         id: 'sales',
-        stageNumber: 6,
-        tag: 'STAGE 6 • REVENUE',
+        dataTour: 'restaurant-sales',
+        stageNumber: 5,
+        tag: 'STAGE 5 • REVENUE',
         title: 'Sales',
-        subtitle: 'Real-time revenue analytics & transparent accounting',
+        subtitle: 'Real-time revenue analytics & transparent accounting.',
         icon: DollarSign,
-        badgeText: 'Daily Revenue Ledger',
-        uiElement: 'Gross Sales Dashboard',
+        badgeText: 'Revenue Dashboard',
+        uiElement: 'Sales Accounting',
         highlights: [
-          { label: 'Revenue Dashboard', desc: 'Track gross daily sales, completed order counts, and average bill size.' },
-          { label: 'COD Reconciliation', desc: 'Monitor cash collected by riders vs digital UPI payments.' },
-          { label: 'Bank Settlement', desc: 'Scheduled automated payouts directly into your registered bank account.' }
+          { label: 'Daily Sales', desc: 'Track gross turnover, orders completed, and average order value.' },
+          { label: 'Reconciliation', desc: 'Clear accounting for Cash on Delivery and digital prepayments.' }
         ]
       },
       {
         id: 'grow',
-        stageNumber: 7,
-        tag: 'STAGE 7 • GROWTH',
+        dataTour: 'restaurant-grow',
+        stageNumber: 6,
+        tag: 'STAGE 6 • GROWTH',
         title: 'Grow',
-        subtitle: 'Boost ratings, customer reviews & festive promotions',
+        subtitle: 'Boost ratings, customer reviews & festive promotions.',
         icon: TrendingUp,
-        badgeText: 'Build Royal Reputation',
-        uiElement: 'Customer Reviews & Broadcast',
+        badgeText: 'Reputation & Outreach',
+        uiElement: 'Growth Hub',
         highlights: [
-          { label: 'Customer Reviews', desc: 'Monitor ratings and chef feedback from happy pilgrims.' },
-          { label: 'VIP Channels', desc: 'Promote special festival thalis on the Foody Vrinda WhatsApp broadcast.' },
-          { label: 'Repeat Customers', desc: 'Build loyal followers who order every Ekadashi and festival day.' }
+          { label: 'Devotee Reviews', desc: 'Monitor ratings and customer feedback from pilgrims.' },
+          { label: 'Festival Promos', desc: 'Promote special festival thalis on the Foody Vrinda WhatsApp broadcast.' }
         ]
       }
     ]

@@ -482,7 +482,7 @@ export default function DeveloperView({ setCurrentTab }) {
         const [shops, menus, orders, users, offers] = await Promise.all([
           getCloudShops(),
           getCloudMenus('all'),
-          getCloudOrders(),
+          selectedShopId ? getCloudOrders(selectedShopId) : Promise.resolve([]),
           getCloudUsers(true),
           getCloudOffers(true)
         ]);

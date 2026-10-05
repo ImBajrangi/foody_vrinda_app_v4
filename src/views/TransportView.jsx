@@ -963,7 +963,7 @@ export default function TransportView() {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Card 1: COD Cash in Hand */}
-            <div className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
+            <div data-tour="delivery-earnings" className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
                 : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
               }`}>
@@ -1060,6 +1060,27 @@ export default function TransportView() {
                 />
               </div>
             </div>
+
+            {/* Banner: Sarathi Fleet Dynasty Referrals */}
+            <div data-tour="delivery-referral" className="md:col-span-2 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-gradient-to-r from-emerald-950/40 via-[#282526] to-[#1E1B1C] border border-emerald-500/30 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3.5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+                  <Users size={19} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white font-['Outfit']">Sarathi Fleet Referral Hub</h4>
+                  <p className="text-xs text-zinc-400">Invite new riders to the Foody Vrinda fleet and earn 100 FV points per completed order.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
+                className="h-9 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+              >
+                <MessageCircle size={14} />
+                <span>Join Fleet Channel</span>
+              </button>
+            </div>
           </div>
         );
       })()}
@@ -1090,6 +1111,7 @@ export default function TransportView() {
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
             {/* Rider Duty Presence Toggle */}
             <button
+              data-tour="delivery-go-online"
               type="button"
               onClick={toggleRiderDuty}
               className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRiderOnDuty
@@ -1124,6 +1146,7 @@ export default function TransportView() {
           {/* List vs Carto View Switcher: Ergonomic full-width segmented control on mobile, compact on desktop */}
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner w-full sm:w-auto shrink-0">
             <button
+              data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
                 ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
@@ -1134,6 +1157,7 @@ export default function TransportView() {
               <span className="whitespace-nowrap font-['Outfit']">Orders ({orders.length})</span>
             </button>
             <button
+              data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
                 ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
@@ -1652,6 +1676,7 @@ export default function TransportView() {
                     {isUnclaimed ? (
                       <div className="pt-2 font-['Plus_Jakarta_Sans']">
                         <button
+                          data-tour="delivery-accept"
                           type="button"
                           onClick={() => handleClaimOrder(order.id)}
                           disabled={isClaimingOrderId === order.id}
@@ -1688,6 +1713,7 @@ export default function TransportView() {
                           </button>
                         ) : (
                           <button
+                            data-tour="delivery-complete"
                             onClick={() => handleInitiateDelivery(order)}
                             className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
                           >

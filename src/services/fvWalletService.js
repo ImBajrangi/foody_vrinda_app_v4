@@ -163,11 +163,11 @@ export async function getCommunityLinks(targetRole = 'all') {
     return [
       {
         id: 'comm_default_whatsapp',
-        name: 'Foody Vrinda VIP WhatsApp Channel',
-        description: 'Exclusive deals, instant delivery updates, and secret discounts',
+        name: 'Vrindopnishad Channel',
+        description: 'Exclusive deals, sacred updates, and instant delivery notifications',
         channel_type: 'whatsapp_channel',
         target_role: 'customer',
-        link_url: 'https://whatsapp.com/channel/foodyvrinda',
+        link_url: 'https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q',
         is_active: true
       }
     ];
@@ -244,9 +244,9 @@ export async function getFVLeaderboard(periodType = 'all_time', roleType = 'cust
         const hasPoints = Number(item.points_earned) > 0;
         const hasRefs = Number(item.referrals_count) > 0;
         const isInternal = String(item.user_id || '').startsWith('chef_') ||
-                           String(item.user_id || '').startsWith('master-') ||
-                           String(item.display_name || '').toLowerCase().includes('chef_') ||
-                           String(item.display_name || '').toLowerCase().startsWith('vrindatest');
+          String(item.user_id || '').startsWith('master-') ||
+          String(item.display_name || '').toLowerCase().includes('chef_') ||
+          String(item.display_name || '').toLowerCase().startsWith('vrindatest');
         return (hasPoints || hasRefs) && !isInternal;
       });
 
@@ -283,7 +283,7 @@ const activeWalletSubscriptions = new Map();
  * Realtime subscription to wallet balance updates (Multiplexed singleton per user)
  */
 export function subscribeUserWallet(userId, onUpdate) {
-  if (!userId || !supabase) return () => {};
+  if (!userId || !supabase) return () => { };
 
   const cleanId = String(userId).trim();
   let entry = activeWalletSubscriptions.get(cleanId);
@@ -346,7 +346,7 @@ export function subscribeUserWallet(userId, onUpdate) {
       activeWalletSubscriptions.delete(cleanId);
       try {
         supabase.removeChannel(currentEntry.channel);
-      } catch (_) {}
+      } catch (_) { }
     }
   };
 }

@@ -18,6 +18,7 @@ import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { nativeNotify } from '../services/nativeNotificationService';
 import { initUserWallet, getWalletDashboard } from '../services/fvWalletService';
+import { isContaminatedPickupAddress, sanitizeCustomerAddress } from '../utils/addressUtils';
 
 const AuthContext = createContext(null);
 
@@ -311,8 +312,8 @@ export function AuthProvider({ children }) {
           email: userProfile.email || '',
           phone: userProfile.phone || '',
           role: resolvedRole,
-          shopId: userProfile.shopId || allShops[0]?.id || 'shop-vrinda-main',
-          shopIds: userProfile.shopIds || [allShops[0]?.id || 'shop-vrinda-main'],
+          shopId: userProfile.shopId || null,
+          shopIds: userProfile.shopIds || (userProfile.shopId ? [userProfile.shopId] : []),
           isLoggedInUser: true,
           createdAt: new Date().toISOString()
         };
@@ -409,8 +410,8 @@ export function AuthProvider({ children }) {
 
           // Priority: live database record > existingRecord > developer/admin whitelist > parsedSaved > customer
           let role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : (parsedSaved?.role || 'customer')));
-          let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || allShops[0]?.id || 'shop-vrinda-main';
-          let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || [activeShopId];
+          let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || null;
+          let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || (activeShopId ? [activeShopId] : []);
 
           const userProfile = {
             ...(parsedSaved || {}),
@@ -505,11 +506,12 @@ export function AuthProvider({ children }) {
         );
 
         const role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
-        const activeShopId = existingRecord?.shopId || allShops[0]?.id || 'shop-vrinda-main';
-        const activeShopIds = existingRecord?.shopIds || allShops.map(s => s.id);
+        const activeShopId = existingRecord?.shopId || null;
+        const activeShopIds = existingRecord?.shopIds || (activeShopId ? [activeShopId] : ((isDeveloperUser(email) || isAdminUser(email)) ? allShops.map(s => s.id) : []));
 
         const userPhone = existingRecord?.phone || u.user_metadata?.phone || u.phone || '';
-        const userAddr = existingRecord?.address || existingRecord?.customerAddress || u.user_metadata?.address || '';
+        const rawUserAddr = existingRecord?.address || existingRecord?.customerAddress || u.user_metadata?.address || '';
+        const userAddr = sanitizeCustomerAddress(rawUserAddr);
 
         const userProfile = {
           id: u.id,
@@ -675,16 +677,18 @@ export function AuthProvider({ children }) {
 
   // Update user profile fields (Name, Phone, Default Address) and sync to cache & Supabase
   const updateUserProfile = useCallback(async ({ displayName, phone, address, customerAddress }) => {
-    const cleanPhone = (phone || '').replace(/\D/g, '').slice(0, 10);
-    const cleanAddr = (address || customerAddress || '').trim();
-    const cleanName = (displayName || '').trim();
+    const cleanPhone = phone !== undefined ? (phone || '').replace(/\D/g, '').slice(0, 10) : undefined;
+    const hasAddressField = address !== undefined || customerAddress !== undefined;
+    const rawAddr = (address || customerAddress || '').trim();
+    const cleanAddr = hasAddressField ? sanitizeCustomerAddress(rawAddr) : undefined;
+    const cleanName = displayName !== undefined ? (displayName || '').trim() : undefined;
 
     setUserData(prev => {
       const updated = {
         ...(prev || {}),
-        ...(cleanName ? { displayName: cleanName } : {}),
-        ...(cleanPhone ? { phone: cleanPhone } : {}),
-        ...(cleanAddr ? { address: cleanAddr, customerAddress: cleanAddr } : {})
+        ...(cleanName !== undefined ? { displayName: cleanName } : {}),
+        ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+        ...(hasAddressField ? { address: cleanAddr, customerAddress: cleanAddr } : {})
       };
       try {
         localStorage.setItem('foody_user_data', JSON.stringify(updated));
@@ -697,9 +701,9 @@ export function AuthProvider({ children }) {
     if (activeId) {
       try {
         await updateCloudUser(activeId, {
-          ...(cleanName ? { displayName: cleanName } : {}),
-          ...(cleanPhone ? { phone: cleanPhone } : {}),
-          ...(cleanAddr ? { address: cleanAddr } : {})
+          ...(cleanName !== undefined ? { displayName: cleanName } : {}),
+          ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+          ...(hasAddressField ? { address: cleanAddr } : {})
         });
       } catch (_) { }
     }
@@ -752,8 +756,8 @@ export function AuthProvider({ children }) {
         address,
         customerAddress: address,
         role: 'customer',
-        shopId: allShops[0]?.id || 'shop-vrinda-main',
-        shopIds: [allShops[0]?.id || 'shop-vrinda-main'],
+        shopId: null,
+        shopIds: [],
         isLoggedInUser: true
       };
       await createCloudUser(userProfile).catch(() => { });
@@ -835,8 +839,8 @@ export function AuthProvider({ children }) {
       phone: clean,
       displayName: `Customer (${clean.slice(-4)})`,
       role: 'customer',
-      shopId: allShops[0]?.id || 'shop-vrinda-main',
-      shopIds: [allShops[0]?.id || 'shop-vrinda-main']
+      shopId: null,
+      shopIds: []
     });
 
     const userProfile = {
@@ -860,6 +864,11 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('foody_user_data');
     localStorage.removeItem('foody_customer_orders_cache');
     localStorage.removeItem('foody_my_session_orders');
+    localStorage.removeItem('customerName');
+    localStorage.removeItem('customerPhone');
+    localStorage.removeItem('customerAddress');
+    localStorage.removeItem('deliveryCoords');
+    localStorage.removeItem('foody_fulfillment_type');
     try {
       await supabase.auth.signOut();
     } catch (e) { }

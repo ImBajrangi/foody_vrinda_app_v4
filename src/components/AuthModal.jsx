@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { updateCloudUser } from '../supabase';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
+import { sanitizeCustomerAddress } from '../utils/addressUtils';
 import {
   X,
   LogIn,
@@ -147,8 +148,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [phoneEditInput, setPhoneEditInput] = useState('');
 
-  // Demo selection
-  const [demoShopId, setDemoShopId] = useState('');
 
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -162,7 +161,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   // Sync profile editing inputs when userData changes
   useEffect(() => {
     if (userData) {
-      setAddressInput(userData.address || userData.customerAddress || '');
+      setAddressInput(sanitizeCustomerAddress(userData.address || userData.customerAddress || ''));
       setNameInput(userData.displayName || user?.displayName || '');
       setPhoneEditInput(userData.phone || user?.phone || user?.phoneNumber || '');
     }
@@ -187,39 +186,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     }
   }, [successMsg]);
 
-  // Helper to get allowed workspaces by verified role
-  const getAuthorizedWorkspaces = (role) => {
-    if (isAuthorizedDeveloper || role === 'developer') {
-      return [
-        { role: 'customer', label: 'Storefront', icon: Sparkles },
-        { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
-        { role: 'delivery', label: 'Rider Board', icon: Truck },
-        { role: 'owner', label: 'Store Owner', icon: ShieldCheck },
-        { role: 'developer', label: 'Developer Console', icon: Terminal, fullWidth: true }
-      ];
-    }
-    if (isAuthorizedAdmin || role === 'owner') {
-      return [
-        { role: 'customer', label: 'Storefront', icon: Sparkles },
-        { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat },
-        { role: 'delivery', label: 'Rider Board', icon: Truck },
-        { role: 'owner', label: 'Store Owner', icon: ShieldCheck }
-      ];
-    }
-    if (role === 'kitchen') {
-      return [
-        { role: 'customer', label: 'Storefront', icon: Sparkles },
-        { role: 'kitchen', label: 'Kitchen KDS', icon: ChefHat }
-      ];
-    }
-    if (role === 'delivery') {
-      return [
-        { role: 'customer', label: 'Storefront', icon: Sparkles },
-        { role: 'delivery', label: 'Rider Board', icon: Truck }
-      ];
-    }
-    return [];
-  };
 
   const closeTimeoutRef = useRef(null);
 
@@ -479,7 +445,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const userMobile = userData?.phone || user?.phone || user?.phoneNumber || '';
   const cleanMob = userMobile ? userMobile.replace(/\D/g, '') : '';
   const hasValidPhone = Boolean(cleanMob && cleanMob.length >= 10);
-  const userAddress = userData?.address || userData?.customerAddress || '';
+  const userAddress = sanitizeCustomerAddress(userData?.address || userData?.customerAddress || '');
   const hasValidAddress = Boolean(userAddress && userAddress.trim().length > 3);
   const isProfileIncomplete = !hasValidPhone || !hasValidAddress;
 
@@ -861,7 +827,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       <button
                         type="button"
                         onClick={() => {
-                          setAddressInput(userData?.address || userData?.customerAddress || '');
+                          setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
                           setIsEditingAddress(true);
                         }}
                         className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] cursor-pointer shrink-0 transition-colors"
@@ -1030,52 +996,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               </a>
             </div>
 
-            {/* 5. Authorized Operational Switcher (Dev / Admin only) */}
-            {(isAuthorizedDeveloper || isAuthorizedAdmin) && (
-              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#181617] border border-stone-200/90 dark:border-white/10 space-y-2.5 animate-fade-in shadow-xs">
-                <div className="flex items-center justify-between px-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <Terminal className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
-                    <span className="text-[11px] font-black text-stone-700 dark:text-zinc-300 uppercase tracking-wider font-['Outfit']">
-                      Operational Switcher
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider text-amber-800 dark:text-[#E0FF33] px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30">
-                    {isAuthorizedDeveloper ? 'DEVELOPER' : 'ADMIN CONTROL'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {getAuthorizedWorkspaces(userRole).map((d) => {
-                    const Icon = d.icon;
-                    const isCurrent = userRole === d.role;
-                    return (
-                      <button
-                        key={d.role}
-                        type="button"
-                        onClick={() => {
-                          impersonate(demoShopId || allShops[0]?.id || 'shop-1', d.role);
-                          handleAnimatedClose();
-                        }}
-                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${d.fullWidth
-                          ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-amber-500/15 dark:from-[#E0FF33]/15 via-amber-500/5 dark:via-[#E0FF33]/5 to-transparent border-amber-500/40 dark:border-[#E0FF33]/40 text-amber-900 dark:text-[#E0FF33] hover:border-amber-500 dark:hover:border-[#E0FF33]'
-                          : ''
-                          } ${isCurrent
-                            ? 'bg-amber-500 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-[0_2px_12px_rgba(224,255,51,0.3)] font-black'
-                            : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-zinc-300 border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/20 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5'
-                          }`}
-                      >
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${isCurrent ? 'bg-black/15 text-black' : 'bg-stone-100 dark:bg-white/5 text-stone-500 dark:text-zinc-400'
-                          }`}>
-                          <Icon className="w-3.5 h-3.5" />
-                        </div>
-                        <span className="truncate">{d.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* 6. Single Clean Full-Width Sign Out Button */}
             <div className="mt-1">

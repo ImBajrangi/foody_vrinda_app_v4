@@ -71,9 +71,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
   const currentOrder = liveOrder || order;
 
-  const shop = (allShops && allShops.length > 0)
-    ? (allShops.find(s => s.id === (currentOrder?.shopId || currentOrder?.shop_id)) || allShops[0])
-    : { name: 'Foody Vrinda Kitchen', coordinates: { lat: 27.5706, lng: 77.6593 } };
+  const orderShopId = currentOrder?.shopId || currentOrder?.shop_id;
+  const matchedShop = (allShops && allShops.length > 0 && orderShopId)
+    ? allShops.find(s => s.id === orderShopId)
+    : null;
+  const shop = matchedShop || {
+    name: currentOrder?.shopName || 'Foody Vrinda Kitchen',
+    coordinates: { lat: 27.5706, lng: 77.6593 }
+  };
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
     if (closeTimeoutRef.current) {

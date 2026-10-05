@@ -784,10 +784,21 @@ export function isValidStatusTransition(currentStatus, nextStatus) {
  * Evaluates unit prices directly against the menu catalog, calculates GST & delivery fee from DB shop config
  */
 export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmentType = 'delivery', couponDiscount = 0) {
-  const targetShopId = shopId || 'shop-vrinda-main';
-  const shopCatalog = getCachedItem('menus', targetShopId) || getCachedItem('menus', 'all') || [];
+  if (!shopId || typeof shopId !== 'string' || shopId.trim() === '') {
+    console.error('[SHOP ISOLATION VIOLATION] calculateAuthoritativeOrderTotals called without a valid shopId:', shopId);
+    return {
+      subtotal: 0,
+      deliveryCharge: 0,
+      gstAmount: 0,
+      discount: 0,
+      totalAmount: 0,
+      verifiedItems: []
+    };
+  }
+  const targetShopId = shopId.trim();
+  const shopCatalog = getCachedItem('menus', targetShopId) || [];
   const shopsList = getCachedShops() || [];
-  const targetShop = shopsList.find(s => s.id === targetShopId) || shopsList[0];
+  const targetShop = shopsList.find(s => s.id === targetShopId);
 
   let calculatedSubtotal = 0;
   const verifiedItems = [];
@@ -899,12 +910,52 @@ function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
 
 export async function createCloudOrder(orderData) {
   try {
+    const rawShopId = orderData.shop_id || orderData.shopId;
+    if (!rawShopId || typeof rawShopId !== 'string' || rawShopId.trim() === '' || rawShopId === 'all') {
+      console.error('[SHOP ISOLATION VIOLATION] createCloudOrder rejected: missing or invalid shop_id', orderData);
+      throw new Error('Order creation rejected: valid shop_id is mandatory');
+    }
+    const shopId = rawShopId.trim();
+
+    // Verify shop exists, is active, and is not deleted in database
+    const { data: targetShop, error: shopErr } = await supabase
+      .from('foody_shops')
+      .select('id, is_active, is_deleted, name, delivery_charge, gst_percentage')
+      .eq('id', shopId)
+      .maybeSingle();
+
+    if (shopErr || !targetShop) {
+      console.error('[SHOP ISOLATION VIOLATION] Target shop does not exist:', shopId, shopErr);
+      throw new Error(`Order creation rejected: shop "${shopId}" not found`);
+    }
+
+    if (targetShop.is_active === false || targetShop.is_deleted === true) {
+      console.error('[SHOP ISOLATION VIOLATION] Target shop is inactive or deleted:', targetShop);
+      throw new Error(`Order creation rejected: shop "${targetShop.name || shopId}" is currently inactive/unavailable`);
+    }
+
+    // Verify basket items belong to this shop if item specifies shopId
+    const items = orderData.items || [];
+    for (const it of items) {
+      const itShop = it.shopId || it.shop_id;
+      if (itShop && itShop !== shopId) {
+        console.error('[SHOP ISOLATION VIOLATION] Basket item belongs to foreign shop:', { itShop, shopId, item: it });
+        throw new Error(`Order creation rejected: basket contains item from foreign shop "${itShop}"`);
+      }
+    }
+
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const shopId = orderData.shopId || orderData.shop_id || 'shop-vrinda-main';
-    const fulfillmentType = orderData.fulfillmentType || orderData.fulfillment_type || 'delivery';
+    const rawFulfillment = orderData.fulfillmentType || orderData.fulfillment_type || 'delivery';
+    const fulfillmentType = (rawFulfillment === 'self_pickup' || rawFulfillment === 'pickup') ? 'pickup' : 'delivery';
     
     // Authoritative Server-Side Total Calculation from Database Catalog
     const totals = calculateAuthoritativeOrderTotals(shopId, orderData.items || [], fulfillmentType, orderData.discount || 0);
+    const verifiedItems = (totals.verifiedItems && totals.verifiedItems.length > 0) ? totals.verifiedItems : (orderData.items || []);
+    const subtotal = totals.subtotal > 0 ? totals.subtotal : (Number(orderData.subtotal) || 0);
+    const deliveryCharge = fulfillmentType === 'pickup' ? 0 : (targetShop.delivery_charge ?? orderData.deliveryCharge ?? totals.deliveryCharge ?? 0);
+    const gstPercent = Number(targetShop.gst_percentage ?? 5);
+    const gstAmount = totals.gstAmount > 0 ? totals.gstAmount : Math.round(subtotal * gstPercent / 100);
+    const totalAmount = totals.totalAmount > 0 ? totals.totalAmount : (subtotal + deliveryCharge + gstAmount - (orderData.discount || 0));
     
     // Generate secure cryptographic OTPs
     const generatedPickupOtp = generateSecureOrderOTP();
@@ -927,11 +978,11 @@ export async function createCloudOrder(orderData) {
       customer_address: orderData.customerAddress || orderData.customer_address || 'Vrindavan Dham',
       delivery_address: orderData.deliveryAddress || orderData.delivery_address || orderData.customerAddress || 'Vrindavan Dham',
       delivery_coordinates: orderData.deliveryCoordinates || orderData.delivery_coordinates || { lat: 27.5706, lng: 77.6593 },
-      items: totals.verifiedItems,
-      subtotal: totals.subtotal,
-      delivery_charge: totals.deliveryCharge,
-      gst_amount: totals.gstAmount,
-      total_amount: totals.totalAmount,
+      items: verifiedItems,
+      subtotal,
+      delivery_charge: deliveryCharge,
+      gst_amount: gstAmount,
+      total_amount: totalAmount,
       status: orderData.status || 'new',
       payment_method: orderData.paymentMethod || orderData.payment_method || 'cash',
       payment_id: orderData.paymentId || orderData.payment_id || null,
@@ -984,9 +1035,7 @@ export async function createCloudOrder(orderData) {
       createdAt: orderPayload.created_at
     };
 
-    // Update in-memory and local cache instantly
-    const allOrders = getCachedItem('orders', 'all') || [];
-    setCachedItem('orders', 'all', [normalizedCreated, ...allOrders.filter(o => o.id !== orderId)]);
+    // Update in-memory and local cache strictly scoped to this shop
     if (orderPayload.shop_id) {
       const shopOrders = getCachedItem('orders', orderPayload.shop_id) || [];
       setCachedItem('orders', orderPayload.shop_id, [normalizedCreated, ...shopOrders.filter(o => o.id !== orderId)]);
@@ -1418,13 +1467,18 @@ export async function verifyOrderHashChain(orderId) {
 }
 
 
-export async function getCloudOrders(shopId = 'all') {
-  const cached = getCachedItem('orders', shopId);
+export async function getCloudOrders(shopId) {
+  if (!shopId || typeof shopId !== 'string' || shopId.trim() === '') {
+    console.warn('[SHOP ISOLATION] getCloudOrders rejected invalid or empty shopId:', shopId);
+    return [];
+  }
+  const cleanShopId = shopId.trim();
+  const cached = getCachedItem('orders', cleanShopId);
   if (cached && Array.isArray(cached)) {
     return cached;
   }
 
-  const reqKey = `getCloudOrders_${shopId}`;
+  const reqKey = `getCloudOrders_${cleanShopId}`;
   if (pendingRequests.has(reqKey)) {
     return pendingRequests.get(reqKey);
   }
@@ -1432,8 +1486,8 @@ export async function getCloudOrders(shopId = 'all') {
   const promise = (async () => {
     try {
       let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(60);
-      if (shopId && shopId !== 'all') {
-        query = query.eq('shop_id', shopId);
+      if (cleanShopId !== 'all') {
+        query = query.eq('shop_id', cleanShopId);
       }
       const { data, error } = await query;
       if (error || !data) return cached || [];
@@ -1454,7 +1508,7 @@ export async function getCloudOrders(shopId = 'all') {
         createdAt: raw.created_at
       }));
 
-      setCachedItem('orders', shopId, mapped);
+      setCachedItem('orders', cleanShopId, mapped);
       return mapped;
     } catch (err) {
       console.warn('getCloudOrders exception:', err);
@@ -1548,9 +1602,10 @@ class RealtimeMultiplexer {
               createdAt: raw.created_at
             };
 
-            // Synchronize memory and local caches so subsequent views read updated data with 0 egress
+            // Synchronize memory and local caches strictly scoped to raw.shop_id
             try {
-              ['all', raw.shop_id].filter(Boolean).forEach(k => {
+              if (raw.shop_id) {
+                const k = raw.shop_id;
                 const currentList = getCachedItem('orders', k) || [];
                 if (payload.eventType === 'DELETE') {
                   setCachedItem('orders', k, currentList.filter(o => o.id !== raw.id));
@@ -1564,13 +1619,13 @@ class RealtimeMultiplexer {
                     setCachedItem('orders', k, [normalized, ...currentList]);
                   }
                 }
-              });
+              }
             } catch (e) { }
 
-            // Broadcast to desk listeners
+            // Broadcast strictly to desk listeners matching this exact shop_id
             this.orderListeners.forEach(listener => {
               try {
-                if (!listener.shopId || listener.shopId === 'all' || listener.shopId === raw.shop_id) {
+                if (listener.shopId && raw.shop_id && listener.shopId === raw.shop_id) {
                   listener.callback(normalized, payload.eventType);
                 }
               } catch (e) {
@@ -1908,8 +1963,14 @@ class RealtimeMultiplexer {
   }
 
   subscribeOrders(shopId, callback) {
+    const clean = shopId && typeof shopId === 'string' ? shopId.trim().toLowerCase() : '';
+    if (!shopId || typeof shopId !== 'string' || clean === '' || clean === 'all' || clean === '*' || clean.includes('all shop') || clean.includes('broadcast')) {
+      console.warn('[SHOP ISOLATION] Refusing order subscription without a valid specific shopId:', shopId);
+      return null;
+    }
+    const cleanShopId = shopId.trim();
     this.ensureSubscribed();
-    const listenerObj = { shopId, callback };
+    const listenerObj = { shopId: cleanShopId, callback };
     this.orderListeners.add(listenerObj);
 
     return () => {
@@ -1985,6 +2046,11 @@ class RealtimeMultiplexer {
 const multiplexer = new RealtimeMultiplexer();
 
 export function subscribeCloudOrders(shopId, onUpdate) {
+  const clean = shopId && typeof shopId === 'string' ? shopId.trim().toLowerCase() : '';
+  if (!shopId || typeof shopId !== 'string' || clean === '' || clean === 'all' || clean === '*' || clean.includes('all shop') || clean.includes('broadcast')) {
+    console.warn('[SHOP ISOLATION] subscribeCloudOrders rejected: invalid shopId', shopId);
+    return null;
+  }
   return multiplexer.subscribeOrders(shopId, onUpdate);
 }
 

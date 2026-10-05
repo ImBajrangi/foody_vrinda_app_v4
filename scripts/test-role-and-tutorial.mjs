@@ -60,40 +60,34 @@ const customerStages = ROLE_TUTORIAL_DATA.customer_v1.stages;
 const deliveryStages = ROLE_TUTORIAL_DATA.delivery_v1.stages;
 const restaurantStages = ROLE_TUTORIAL_DATA.restaurant_v1.stages;
 
-// Customer stages: Welcome -> Find Food -> Place Order -> Earn FV Points -> Refer Friends -> Redeem FV
-assert.strictEqual(customerStages.length, 6);
-assert.strictEqual(customerStages[0].title, 'Welcome');
-assert.strictEqual(customerStages[1].title, 'Find Food');
-assert.strictEqual(customerStages[2].title, 'Place Order');
-assert.strictEqual(customerStages[3].title, 'Earn FV Points');
-assert.strictEqual(customerStages[4].title, 'Refer Friends');
-assert.strictEqual(customerStages[5].title, 'Redeem FV');
+// Customer stages: Search -> Categories -> Add to Cart -> Basket -> Address -> FV Wallet -> Profile
+assert.strictEqual(customerStages.length, 7);
+assert.strictEqual(customerStages[0].title, 'Find your favourite food');
+assert.strictEqual(customerStages[1].title, 'Explore categories');
+assert.strictEqual(customerStages[2].title, 'Add items to your basket');
+assert.strictEqual(customerStages[3].title, 'Your Basket');
+assert.strictEqual(customerStages[4].title, 'Choose your delivery address');
+assert.strictEqual(customerStages[5].title, 'Earn FV Points');
+assert.strictEqual(customerStages[6].title, 'Your account');
 
-// Delivery stages: Welcome -> Go Online -> Accept Delivery -> Complete Delivery -> Earnings -> Refer Delivery Partners
-assert.strictEqual(deliveryStages.length, 6);
-assert.strictEqual(deliveryStages[0].title, 'Welcome');
-assert.strictEqual(deliveryStages[1].title, 'Go Online');
+// Delivery stages: Go Online -> Available Orders -> Accept -> Live Navigation -> Complete -> Earnings -> Fleet Referrals
+assert.strictEqual(deliveryStages.length, 7);
+assert.strictEqual(deliveryStages[0].title, 'Go Online');
+assert.strictEqual(deliveryStages[1].title, 'Available Orders');
 assert.strictEqual(deliveryStages[2].title, 'Accept Delivery');
-assert.strictEqual(deliveryStages[3].title, 'Complete Delivery');
-assert.strictEqual(deliveryStages[4].title, 'Earnings');
-assert.strictEqual(deliveryStages[5].title, 'Refer Delivery Partners');
+assert.strictEqual(deliveryStages[3].title, 'Live Navigation');
+assert.strictEqual(deliveryStages[4].title, 'Complete Delivery');
+assert.strictEqual(deliveryStages[5].title, 'Earnings');
+assert.strictEqual(deliveryStages[6].title, 'Refer Delivery Partners');
 
-// Verify milestone explanations exist in delivery
-const milestonesStage = deliveryStages[5];
-const milestoneDesc = milestonesStage.highlights.map(h => `${h.label} ${h.desc}`).join(' ');
-assert.ok(milestoneDesc.includes('1st Completed Delivery Milestone') && milestoneDesc.includes('+10 FV'), 'Delivery explains 1st milestone (+10 FV)');
-assert.ok(milestoneDesc.includes('5th Completed Deliveries Milestone') && milestoneDesc.includes('+25 FV'), 'Delivery explains 5th milestone (+25 FV)');
-assert.ok(milestoneDesc.includes('15th Completed Deliveries Milestone') && milestoneDesc.includes('+35 FV'), 'Delivery explains 15th milestone (+35 FV)');
-
-// Restaurant stages: Welcome -> Restaurant Setup -> Menu -> Incoming Orders -> Manage Orders -> Sales -> Grow
-assert.strictEqual(restaurantStages.length, 7);
-assert.strictEqual(restaurantStages[0].title, 'Welcome');
-assert.strictEqual(restaurantStages[1].title, 'Restaurant Setup');
-assert.strictEqual(restaurantStages[2].title, 'Menu');
-assert.strictEqual(restaurantStages[3].title, 'Incoming Orders');
-assert.strictEqual(restaurantStages[4].title, 'Manage Orders');
-assert.strictEqual(restaurantStages[5].title, 'Sales');
-assert.strictEqual(restaurantStages[6].title, 'Grow');
+// Restaurant stages: Restaurant Setup -> Menu -> Incoming Orders -> Manage Orders -> Sales -> Grow
+assert.strictEqual(restaurantStages.length, 6);
+assert.strictEqual(restaurantStages[0].title, 'Restaurant Setup');
+assert.strictEqual(restaurantStages[1].title, 'Menu');
+assert.strictEqual(restaurantStages[2].title, 'Incoming Orders');
+assert.strictEqual(restaurantStages[3].title, 'Manage Orders');
+assert.strictEqual(restaurantStages[4].title, 'Sales');
+assert.strictEqual(restaurantStages[5].title, 'Grow');
 console.log('   ✅ All 3 tutorial flows match requirements with exact required stages.');
 
 // 4. Persistence & Isolation Tests

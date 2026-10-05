@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchAddressSuggestions } from '../services/addressService';
+import { sanitizeCustomerAddress } from '../utils/addressUtils';
 
 export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }) {
   const { user, userData, updateUserProfile } = useAuth();
@@ -32,7 +33,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
     if (isOpen) {
       const initialName = userData?.displayName || user?.user_metadata?.displayName || user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
       const initialPhone = (userData?.phone || user?.phone || user?.phoneNumber || '').replace(/\D/g, '').slice(-10);
-      const initialAddr = userData?.address || userData?.customerAddress || '';
+      const initialAddr = sanitizeCustomerAddress(userData?.address || userData?.customerAddress || '');
       
       setName(initialName);
       setPhone(initialPhone);

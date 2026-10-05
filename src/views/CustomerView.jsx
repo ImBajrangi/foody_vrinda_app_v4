@@ -4,6 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useBackHandler } from '../hooks/useBackHandler';
 import { fetchAddressSuggestions } from '../services/addressService';
+import {
+  isContaminatedPickupAddress,
+  sanitizeCustomerAddress,
+  isValidCoordinates,
+  resolveOrderCoordinates,
+  DEFAULT_VRINDA_COORDS
+} from '../utils/addressUtils';
 import MapPicker from '../components/MapPicker';
 import BouncingLoader from '../components/ui/BouncingLoader';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -159,6 +166,7 @@ const MenuItemCard = memo(function MenuItemCard({
         {quantityInCart === 0 ? (
           <button
             type="button"
+            data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
             onClick={(e) => {
               e.stopPropagation();
               onAddToCart(item);
@@ -271,17 +279,59 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [deliveryCoords, setDeliveryCoords] = useState(() => {
     try {
       const cached = localStorage.getItem('deliveryCoords');
-      return cached ? JSON.parse(cached) : { lat: null, lng: null };
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (isValidCoordinates(parsed)) return parsed;
+        localStorage.removeItem('deliveryCoords');
+      }
+      return { lat: null, lng: null };
     } catch {
       return { lat: null, lng: null };
     }
+  });
+
+  const [coordinateSource, setCoordinateSource] = useState(() => {
+    try {
+      const cached = localStorage.getItem('deliveryCoords');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (isValidCoordinates(parsed)) return 'saved';
+      }
+    } catch (_) {}
+    return null;
   });
 
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showShopSwitcher, setShowShopSwitcher] = useState(false);
   const [shopSearch, setShopSearch] = useState('');
-  const [fulfillmentType, setFulfillmentType] = useState('delivery'); // 'delivery' | 'pickup'
+  const [fulfillmentType, setFulfillmentType] = useState(() => {
+    try {
+      const saved = localStorage.getItem('foody_fulfillment_type');
+      return (saved === 'pickup' || saved === 'delivery') ? saved : 'delivery';
+    } catch {
+      return 'delivery';
+    }
+  });
+
+  const handleSetFulfillmentType = useCallback((type) => {
+    setFulfillmentType(type);
+    try {
+      localStorage.setItem('foody_fulfillment_type', type);
+    } catch (_) {}
+    if (type === 'delivery') {
+      // If delivery address is empty or contaminated, restore legitimate saved/profile address
+      setCheckoutAddress(prev => {
+        if (!prev || isContaminatedPickupAddress(prev)) {
+          const legitimate = sanitizeCustomerAddress(localStorage.getItem('customerAddress')) ||
+            sanitizeCustomerAddress(userData?.address || userData?.customerAddress) ||
+            sanitizeCustomerAddress(geo.address);
+          return legitimate || '';
+        }
+        return prev;
+      });
+    }
+  }, [userData, geo.address]);
   const [onlineRidersCount, setOnlineRidersCount] = useState(1);
   const [cookingNotes, setCookingNotes] = useState('');
 
@@ -308,9 +358,20 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     });
   };
 
-  // Checkout details with full profile auto-fill
+  // Checkout details with full profile auto-fill and defensive sanitization
   const [checkoutName, setCheckoutName] = useState(() => localStorage.getItem('customerName') || '');
-  const [checkoutAddress, setCheckoutAddress] = useState(() => localStorage.getItem('customerAddress') || '');
+  const [checkoutAddress, setCheckoutAddress] = useState(() => {
+    try {
+      const cached = localStorage.getItem('customerAddress');
+      if (isContaminatedPickupAddress(cached)) {
+        localStorage.removeItem('customerAddress');
+        return '';
+      }
+      return cached || '';
+    } catch {
+      return '';
+    }
+  });
   const [checkoutPhone, setCheckoutPhone] = useState(() => localStorage.getItem('customerPhone') || '');
 
   // Visual validation shake state & input focus refs
@@ -335,22 +396,41 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   // Auto-fill checkout fields from user profile + geo address for instant future orders
   useEffect(() => {
-    if (userData) {
+    if (userData && !userData.isAnonymous) {
       if (userData.displayName && (!checkoutName || checkoutName === 'Guest')) {
         setCheckoutName(userData.displayName);
       }
       if (userData.phone && !checkoutPhone) {
         setCheckoutPhone(userData.phone.replace(/\D/g, '').slice(0, 10));
       }
-      if ((userData.address || userData.customerAddress) && !checkoutAddress) {
-        setCheckoutAddress(userData.address || userData.customerAddress);
+      const rawUserAddr = userData.address || userData.customerAddress || '';
+      if (isContaminatedPickupAddress(rawUserAddr)) {
+        // Defensive purge from profile to avoid re-contaminating state
+        if (updateUserProfile && isUserLoggedIn) {
+          updateUserProfile({ address: '', customerAddress: '' });
+        }
+      } else if (rawUserAddr && (!checkoutAddress || isContaminatedPickupAddress(checkoutAddress))) {
+        setCheckoutAddress(rawUserAddr);
       }
     }
   }, [userData]);
 
   useEffect(() => {
-    if (!checkoutAddress && geo.address) setCheckoutAddress(geo.address);
+    if (!checkoutAddress && geo.address && !isContaminatedPickupAddress(geo.address)) {
+      setCheckoutAddress(geo.address);
+    }
   }, [geo.address]);
+
+  // Defensive sanitization on mount for contaminated legacy addresses
+  useEffect(() => {
+    try {
+      const rawStored = localStorage.getItem('customerAddress');
+      if (isContaminatedPickupAddress(rawStored)) {
+        localStorage.removeItem('customerAddress');
+        setCheckoutAddress(prev => isContaminatedPickupAddress(prev) ? '' : prev);
+      }
+    } catch (_) {}
+  }, []);
 
   const handleAutoFillLocation = async () => {
     showToast("Detecting GPS location...", "info");
@@ -358,7 +438,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       const loc = await geo.requestLocation();
       if (loc && loc.address) {
         setCheckoutAddress(loc.address);
-        if (loc.coords) setDeliveryCoords(loc.coords);
+        if (loc.coords && isValidCoordinates(loc.coords)) {
+          setDeliveryCoords(loc.coords);
+          setCoordinateSource('gps');
+          try {
+            localStorage.setItem('deliveryCoords', JSON.stringify(loc.coords));
+          } catch (_) {}
+        }
         showToast("Address Auto-filled!", "success");
         return;
       }
@@ -372,8 +458,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [paymentMethod, setPaymentMethod] = useState('online');
 
   // Dynamically resolve payment methods for the active shop
-  const currentCartShop = (allShops && allShops.length > 0)
-    ? (allShops.find(s => s.id === selectedShopId) || allShops[0])
+  const currentCartShop = (allShops && allShops.length > 0 && selectedShopId)
+    ? (allShops.find(s => s.id === selectedShopId && s.is_active !== false && !s.is_deleted) || null)
     : null;
   const { onlineAvailable, codAvailable, globalOnline, globalCod } = resolveShopPaymentOptions(currentCartShop);
 
@@ -557,7 +643,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      try { localStorage.setItem('customerAddress', checkoutAddress); } catch (_) { }
+      try {
+        if (checkoutAddress && !isContaminatedPickupAddress(checkoutAddress)) {
+          localStorage.setItem('customerAddress', checkoutAddress);
+        } else if (!checkoutAddress || isContaminatedPickupAddress(checkoutAddress)) {
+          const currentStored = localStorage.getItem('customerAddress');
+          if (isContaminatedPickupAddress(currentStored)) {
+            localStorage.removeItem('customerAddress');
+          }
+        }
+      } catch (_) { }
     }, 400);
     return () => clearTimeout(timer);
   }, [checkoutAddress]);
@@ -569,10 +664,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearTimeout(timer);
   }, [checkoutPhone]);
 
-  // Set default active shop if none selected
+  // Set default active shop if none selected (picks first active, non-deleted shop)
   useEffect(() => {
-    if (!selectedShopId && allShops.length > 0) {
-      setSelectedShopId(allShops[0].id);
+    if (!selectedShopId && allShops && allShops.length > 0) {
+      const firstActive = allShops.find(s => s.is_active !== false && !s.is_deleted);
+      if (firstActive) {
+        setSelectedShopId(firstActive.id);
+      }
     }
   }, [allShops, selectedShopId, setSelectedShopId]);
 
@@ -783,7 +881,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         const riders = users.filter(u => (u.role === 'delivery' || u.role === 'rider') && u.is_active !== false && u.isOnline !== false);
         setOnlineRidersCount(riders.length);
         if (riders.length === 0) {
-          setFulfillmentType('pickup');
+          handleSetFulfillmentType('pickup');
         }
       } catch (e) { }
     };
@@ -792,20 +890,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearInterval(interval);
   }, []);
 
-  const activeShop = allShops.find(s => s.id === selectedShopId) || allShops[0] || {
-    id: 'default-vrinda',
-    name: 'Vrinda Cloud Kitchen',
-    address: 'Near ISKCON Temple, Raman Reti, Vrindavan',
-    minimumOrderAmount: 0,
-    deliveryCharge: 0,
-    gstPercentage: 5,
-    isOpen: true,
-    shopType: 'hotel',
-    openingTime: '08:00',
-    closingTime: '22:30'
-  };
+  const activeShop = useMemo(() => {
+    if (!selectedShopId || !allShops || allShops.length === 0) return null;
+    return allShops.find(s => s.id === selectedShopId && s.is_active !== false && !s.is_deleted) || null;
+  }, [allShops, selectedShopId]);
 
-  const isShopOpen = isShopCurrentlyOpen(activeShop);
+  const isShopOpen = activeShop ? isShopCurrentlyOpen(activeShop) : false;
 
   const filteredShops = useMemo(() => {
     if (!shopSearch.trim()) return allShops || [];
@@ -834,9 +924,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return showToast('Basket is empty', 'error');
-    if (!selectedShopId && allShops.length > 0) setSelectedShopId(allShops[0].id);
 
-    // 1. Verify Kitchen is online and within operating schedule
+    // 1. Mandatory Selected Shop Validation (Zero Silent Fallbacks)
+    if (!selectedShopId) {
+      return showToast("Please select a restaurant/kitchen.", "error");
+    }
+
+    // 2. Verify Shop is active and non-deleted
+    if (!activeShop) {
+      return showToast("Selected kitchen is unavailable or inactive.", "error");
+    }
+
+    // 3. Basket Shop Mismatch Guard (Dishes from Shop A cannot be ordered from Shop B)
+    const foreignItem = cart.find(item => {
+      const itemShopId = item.shopId || item.shop_id;
+      return itemShopId && itemShopId !== selectedShopId;
+    });
+    if (foreignItem) {
+      return showToast("Basket contains items from another kitchen.", "error");
+    }
+
+    // 4. Verify Kitchen is online and within operating schedule
     if (!isShopOpen) {
       return showToast(
         "Kitchen Closed / Offline",
@@ -865,53 +973,113 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       return showToast("Invalid Phone", 'error', 'Enter valid 10-digit mobile number');
     }
 
-    const cleanAddress = fulfillmentType === 'pickup'
-      ? `[Self-Pickup] Counter: ${activeShop?.name || 'Kitchen'}`
-      : (checkoutAddress || '').trim();
+    // Determine fulfillment details and address validation
+    const pickupCounterId = activeShop?.id || selectedShopId;
+    const pickupCounterName = activeShop?.name || 'Kitchen Counter';
+    const pickupCounterAddress = activeShop?.address || 'Vrindavan';
+
+    let orderDeliveryAddress = '';
+    let orderCustomerAddress = '';
+    let resolvedDeliveryCoords = null;
+    let resolvedCoordinateSource = 'service_area_fallback';
 
     if (fulfillmentType === 'delivery') {
-      if (cleanAddress.length < 4) {
+      const cleanAddress = (checkoutAddress || '').trim();
+
+      if (cleanAddress.length < 4 || isContaminatedPickupAddress(cleanAddress)) {
         triggerShake('address');
         return showToast("Address required", 'error', 'Enter street or landmark name');
       }
 
-      if (!deliveryCoords || typeof deliveryCoords.lat !== 'number' || typeof deliveryCoords.lng !== 'number') {
-        triggerShake('address');
-        return showToast("Pin Location", 'error', 'Please pin your delivery address on map');
+      orderDeliveryAddress = cleanAddress;
+      orderCustomerAddress = cleanAddress;
+
+      let savedCoords = null;
+      try {
+        const cached = localStorage.getItem('deliveryCoords');
+        if (cached) savedCoords = JSON.parse(cached);
+      } catch (_) {}
+
+      const coordRes = resolveOrderCoordinates({
+        pinnedCoords: deliveryCoords,
+        savedCoords,
+        fulfillmentType: 'delivery'
+      });
+
+      resolvedDeliveryCoords = coordRes.coords;
+      resolvedCoordinateSource = coordRes.source;
+
+      if (isBelowMin) {
+        return showToast(`Min ₹${minOrderAmount}`, 'error', `Add ₹${minOrderAmount - subtotal} more`);
       }
-    }
 
-    // 2. Anti-Fake Order Check for Shop Type Self-Pickup
-    if (isRetailShop && isPickupOrder && paymentMethod === 'cash') {
-      return showToast("Prepaid Order Required", 'error', 'Pickup from retail shop requires online payment confirmation to prevent uncollected waste.');
-    }
-
-    if (isBelowMin && fulfillmentType === 'delivery') {
-      return showToast(`Min ₹${minOrderAmount}`, 'error', `Add ₹${minOrderAmount - subtotal} more`);
-    }
-
-    // Auto-save verified delivery details to local storage and user profile for instant 1-tap future checkout
-    try {
-      localStorage.setItem('customerName', cleanName);
-      localStorage.setItem('customerPhone', cleanPhone);
-      localStorage.setItem('customerAddress', cleanAddress);
-      if (updateUserProfile && isUserLoggedIn) {
-        updateUserProfile({
-          displayName: cleanName,
-          phone: cleanPhone,
-          address: cleanAddress,
-          customerAddress: cleanAddress
-        });
+      // Auto-save verified delivery details to local storage and user profile
+      try {
+        localStorage.setItem('customerName', cleanName);
+        localStorage.setItem('customerPhone', cleanPhone);
+        localStorage.setItem('customerAddress', cleanAddress);
+        if (resolvedCoordinateSource === 'gps') {
+          try {
+            localStorage.setItem('deliveryCoords', JSON.stringify(resolvedDeliveryCoords));
+          } catch (_) {}
+        }
+        if (updateUserProfile && isUserLoggedIn) {
+          updateUserProfile({
+            displayName: cleanName,
+            phone: cleanPhone,
+            address: cleanAddress,
+            customerAddress: cleanAddress
+          });
+        }
+      } catch (err) {
+        console.warn("Could not sync profile fields to storage:", err);
       }
-    } catch (err) {
-      console.warn("Could not sync profile fields to storage:", err);
+    } else {
+      // 2. Anti-Fake Order Check for Shop Type Self-Pickup
+      if (isRetailShop && paymentMethod === 'cash') {
+        return showToast("Prepaid Order Required", 'error', 'Pickup from retail shop requires online payment confirmation to prevent uncollected waste.');
+      }
+
+      // Self-Pickup state isolation: NEVER write pickup counter address to customer personal address!
+      orderDeliveryAddress = `[Counter Pickup] ${pickupCounterName}`;
+      // Preserve customer's legitimate personal address if available, otherwise note counter pickup
+      const legitSaved = sanitizeCustomerAddress(checkoutAddress) || sanitizeCustomerAddress(localStorage.getItem('customerAddress'));
+      orderCustomerAddress = legitSaved || `${pickupCounterName} (Counter Pickup)`;
+
+      const shopCoords = activeShop?.coords || (activeShop?.latitude && activeShop?.longitude ? { lat: activeShop.latitude, lng: activeShop.longitude } : null);
+      const coordRes = resolveOrderCoordinates({
+        activeShopCoords: shopCoords,
+        fulfillmentType: 'pickup'
+      });
+
+      resolvedDeliveryCoords = coordRes.coords;
+      resolvedCoordinateSource = coordRes.source;
+
+      // Update only name and phone — DO NOT touch customerAddress in localStorage or profile!
+      try {
+        localStorage.setItem('customerName', cleanName);
+        localStorage.setItem('customerPhone', cleanPhone);
+        if (updateUserProfile && isUserLoggedIn) {
+          updateUserProfile({
+            displayName: cleanName,
+            phone: cleanPhone
+          });
+        }
+      } catch (err) {
+        console.warn("Could not sync profile name/phone:", err);
+      }
     }
 
     const orderPayload = {
-      shopId: selectedShopId || (allShops[0]?.id || 'default-vrinda'),
+      shopId: selectedShopId,
+      fulfillmentType,
+      fulfillment_type: fulfillmentType,
+      pickupCounterId: fulfillmentType === 'pickup' ? pickupCounterId : null,
+      pickupCounterName: fulfillmentType === 'pickup' ? pickupCounterName : null,
+      pickupCounterAddress: fulfillmentType === 'pickup' ? pickupCounterAddress : null,
       customerName: cleanName,
-      customerAddress: cleanAddress,
-      deliveryAddress: cleanAddress,
+      customerAddress: orderCustomerAddress,
+      deliveryAddress: orderDeliveryAddress,
       customerPhone: cleanPhone,
       items: cart.map(item => ({
         id: item.id,
@@ -930,7 +1098,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       userId: user?.id || user?.uid || userData?.id || 'registered-customer',
       isTestOrder: false,
       paymentMethod,
-      deliveryCoordinates: deliveryCoords,
+      deliveryCoordinates: resolvedDeliveryCoords,
+      coordinateSource: resolvedCoordinateSource,
       cookingNotes
     };
 
@@ -1190,7 +1359,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         <MapPicker
           initialCoords={deliveryCoords}
           onLocationSelect={async (coords) => {
-            setDeliveryCoords(coords);
+            if (isValidCoordinates(coords)) {
+              setDeliveryCoords(coords);
+              setCoordinateSource('gps');
+              try {
+                localStorage.setItem('deliveryCoords', JSON.stringify(coords));
+              } catch (_) {}
+            }
             setShowMapPicker(false);
             showToast("Location Pinned", "success");
             try {
@@ -1212,6 +1387,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {/* Top Control Strip: Branch Selector Pill + Orders History Button */}
         <div className="flex items-center gap-2 sm:gap-3 justify-between w-full">
           <button
+            data-tour="customer-address branch-selector"
             onClick={() => allShops.length > 1 && (showShopSwitcher ? handleCloseShopSwitcher() : setShowShopSwitcher(true))}
             className={`flex-1 min-w-0 h-11 flex items-center gap-2 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] border border-stone-300 dark:border-white/10 px-3.5 rounded-full text-xs shadow-xs transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
             title={allShops.length > 1 ? "Switch Kitchen Branch" : "Current Branch"}
@@ -1457,7 +1633,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       </div>
 
       {/* HORIZONTAL CATEGORY PILL CHIPS (Sticky Navigation Bar) */}
-      <div data-tour="food-categories" className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2 mb-4 sm:mb-6 bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 transition-all">
+      <div data-tour="customer-categories food-categories" className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2 mb-4 sm:mb-6 bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 transition-all">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           {categories.map((cat) => {
             const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
@@ -2109,7 +2285,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <button
                       type="button"
                       onClick={() => {
-                        if (onlineRidersCount > 0) setFulfillmentType('delivery');
+                        if (onlineRidersCount > 0) handleSetFulfillmentType('delivery');
                         else showToast("Riders Busy", 'info', "Self-Pickup is available at the counter right now");
                       }}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'delivery'
@@ -2124,7 +2300,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                     <button
                       type="button"
-                      onClick={() => setFulfillmentType('pickup')}
+                      onClick={() => handleSetFulfillmentType('pickup')}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'pickup'
                         ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
                         : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
@@ -2366,10 +2542,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                               const chosenAddr = item.address || item.display_name || item.title || item.name || '';
                               setCheckoutAddress(chosenAddr);
                               setShowAddressDropdown(false);
-                              const lat = item.lat || item.latitude;
-                              const lng = item.lng || item.lon || item.longitude;
-                              if (lat && lng) {
-                                setDeliveryCoords({ lat: parseFloat(lat), lng: parseFloat(lng) });
+                              const lat = parseFloat(item.lat || item.latitude);
+                              const lng = parseFloat(item.lng || item.lon || item.longitude);
+                              if (!isNaN(lat) && !isNaN(lng)) {
+                                const coords = { lat, lng };
+                                setDeliveryCoords(coords);
+                                setCoordinateSource('gps');
+                                try {
+                                  localStorage.setItem('deliveryCoords', JSON.stringify(coords));
+                                } catch (_) {}
                               }
                               showToast("Address Selected", "success");
                             }}

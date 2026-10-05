@@ -488,7 +488,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                   {(() => {
                     const myRankItem = leaderboard.find(item => item.user_id === userId);
                     const myPoints = Number(wallet?.available_points) || 0;
-                    const myReferrals = Number(wallet?.referrals_count || referrals?.length) || 0;
+                    const myReferrals = Number(wallet?.referrals_count ?? wallet?.referral_summary?.total_referrals ?? 0);
                     
                     return (
                       <div className="p-3.5 bg-gradient-to-r from-[#282526] to-[#1E1B1C] border border-[#E0FF33]/25 rounded-2xl flex items-center justify-between gap-3 shadow-xs">

@@ -166,7 +166,7 @@ export default function Header({
             /* ========================================================================= */
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
               <button 
-                data-tour="profile-avatar"
+                data-tour="customer-profile profile-avatar"
                 onClick={handleProfileClick}
                 className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full p-[2px] bg-gradient-to-tr from-[#E0FF33]/60 via-amber-400/40 to-[#E0FF33] transition-all duration-300 flex-shrink-0 cursor-pointer apple-tap-target active:scale-95 shadow-sm"
                 title="Profile & Settings"
@@ -288,7 +288,7 @@ export default function Header({
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Universal Search Button (Available on both Mobile & Desktop) */}
           <button
-            data-tour="search-btn"
+            data-tour="customer-search search-btn"
             onClick={onToggleSearch}
             className="w-9 h-9 sm:w-auto sm:h-10 px-0 sm:px-3.5 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center gap-1.5 text-stone-800 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95"
             title="Search dishes, menus & shops"
@@ -301,16 +301,19 @@ export default function Header({
 
 
           {/* Quick Cart Trigger (Uniform Circular Button with floating badge) */}
-          {totalQty > 0 && onOpenCart && (
+          {onOpenCart && (
             <button
+              data-tour="customer-basket"
               onClick={onOpenCart}
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
               title="Open Basket"
             >
               <ShoppingBag size={17} className="text-amber-600 dark:text-[#E0FF33]" />
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-['Outfit'] border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
-                {totalQty}
-              </span>
+              {totalQty > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-['Outfit'] border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
+                  {totalQty}
+                </span>
+              )}
             </button>
           )}
 
@@ -387,6 +390,7 @@ export default function Header({
               {/* FV Dynasty Rewards Badge / Trigger */}
               {onToggleRewards && (
                 <button
+                  data-tour="customer-fv-wallet"
                   onClick={onToggleRewards}
                   className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/15 hover:bg-amber-500/20 dark:hover:bg-[#E0FF33]/25 border border-amber-500/30 dark:border-[#E0FF33]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
                   title="FV Dynasty Rewards & Referral Hub"

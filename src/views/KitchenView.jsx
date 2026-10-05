@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
@@ -40,12 +40,27 @@ import {
   Minus,
   Trash2,
   Store,
-  PackageCheck
+  PackageCheck,
+  AlertTriangle,
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 
 export default function KitchenView() {
   const { user, currentUserShopId, allShops = [], refreshShops, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
-  const currentShop = allShops.find(s => s.id === currentUserShopId) || allShops[0];
+
+  // 1. RESOLVE ONE AUTHORITATIVE SHOP ID
+  // Primary Invariant: resolvedShopId === queriedShopId === realtimeShopId === renderedShopId
+  // NEVER silently switch to allShops[0]
+  const activeShop = useMemo(() => {
+    if (!currentUserShopId || !allShops || allShops.length === 0) return null;
+    const found = allShops.find(s => s.id === currentUserShopId && s.is_active !== false && !s.is_deleted);
+    return found || null;
+  }, [allShops, currentUserShopId]);
+
+  const activeShopId = activeShop?.id || null;
+  const currentShop = activeShop;
+
   const isDevOrAdmin = Boolean(
     isAuthorizedDeveloper ||
     isAuthorizedAdmin ||
@@ -69,10 +84,14 @@ export default function KitchenView() {
   }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
 
   const handleToggleKitchenOnline = async () => {
-    const targetShopId = currentShop?.id || currentUserShopId || allShops[0]?.id || 'shop-vrinda-main';
+    if (!activeShopId) {
+      showToast("Kitchen inactive", "error");
+      return;
+    }
+    const targetShopId = activeShopId;
     const nextOnline = !isShopOnline;
     setShopOnlineOverride(nextOnline);
-    showToast(nextOnline ? "Kitchen is now ONLINE (Taking live tickets)" : "Kitchen is now OFFLINE (Orders paused)", nextOnline ? "success" : "warning");
+    showToast(nextOnline ? "Kitchen ONLINE" : "Kitchen OFFLINE", nextOnline ? "success" : "warning");
 
     try {
       await updateCloudShop(targetShopId, {
@@ -88,7 +107,7 @@ export default function KitchenView() {
     } catch (e) {
       console.error("Toggle kitchen error:", e);
       setShopOnlineOverride(!nextOnline);
-      showToast("Failed to toggle online status", "error");
+      showToast("Online Status Failed", "error");
     }
   };
 
@@ -112,15 +131,25 @@ export default function KitchenView() {
     }, 4000);
   };
 
-  // Fast Realtime notification listener with role-tailored alarm
-  useFastNotify(currentUserShopId, 'kitchen', (alertData) => {
+  // Fast Realtime notification listener strictly bound to activeShopId
+  useFastNotify(activeShopId, 'kitchen', (alertData) => {
     playRoleAlarm('kitchen', alertData, true);
     showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} received in kitchen!`, "info");
   });
 
-  // Load active orders (new & preparing) from Supabase Realtime
+  // 2. & 9. Load active orders (new & preparing) from Supabase Realtime & Strict Isolation
   useEffect(() => {
-    if (!currentUserShopId) return;
+    // Hard guard: never query orders when activeShopId is null, undefined, empty, or invalid
+    if (!activeShopId) {
+      setOrders([]);
+      return;
+    }
+
+    // Immediately clear old orders to prevent cross-shop ghost data
+    setOrders([]);
+
+    let isCurrent = true;
+    const requestedShopId = activeShopId;
 
     // 1. Supabase Cloud fetch
     async function fetchKitchenOrders() {
@@ -128,12 +157,16 @@ export default function KitchenView() {
         const { data, error } = await supabase
           .from('foody_orders')
           .select('*')
-          .eq('shop_id', currentUserShopId)
+          .eq('shop_id', requestedShopId)
           .in('status', ['new', 'preparing', 'ready_for_pickup', 'ready'])
           .order('created_at', { ascending: true });
 
+        if (!isCurrent) return;
+
         if (!error && data) {
-          const mapped = data.map(o => ({
+          // Pre-commit hard filter strictly matching requestedShopId
+          const isolatedData = data.filter(o => (o.shop_id ?? o.shopId) === requestedShopId);
+          const mapped = isolatedData.map(o => ({
             id: o.id,
             ...o,
             shopId: o.shop_id,
@@ -149,28 +182,56 @@ export default function KitchenView() {
           setOrders(mapped);
         }
       } catch (err) {
+        if (!isCurrent) return;
         console.warn('Supabase fetchKitchenOrders note:', err.message);
       }
     }
     fetchKitchenOrders();
 
-    // 2. Realtime Postgres stream
-    const unsubscribeSupabase = subscribeCloudOrders(currentUserShopId, () => {
-      fetchKitchenOrders();
+    // 2. Realtime Postgres stream strictly bound to requestedShopId
+    const unsubscribeSupabase = subscribeCloudOrders(requestedShopId, () => {
+      if (isCurrent) {
+        fetchKitchenOrders();
+      }
     });
 
     return () => {
+      isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
     };
-  }, [currentUserShopId]);
+  }, [activeShopId]);
+
+  // 10. CROSS-SHOP DEV ASSERTION
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) {
+      orders.forEach(order => {
+        const orderShopId = order.shop_id ?? order.shopId;
+        if (activeShopId && orderShopId && orderShopId !== activeShopId) {
+          console.error(
+            '[SHOP ISOLATION VIOLATION]',
+            { activeShopId, orderShopId, orderId: order.id }
+          );
+        }
+      });
+    }
+  }, [orders, activeShopId]);
+
+  // 4. RENDER-TIME HARD ISOLATION (Final defense: No matching shop ID = DO NOT PAINT)
+  const isolatedOrders = useMemo(() => {
+    if (!activeShopId) return [];
+    return orders.filter(order => {
+      const orderShopId = order.shop_id ?? order.shopId;
+      return Boolean(orderShopId && activeShopId && orderShopId === activeShopId);
+    });
+  }, [orders, activeShopId]);
 
   // Load menu items for manual order creation
   const fetchMenu = async () => {
-    if (!currentUserShopId) return;
+    if (!activeShopId) return;
     try {
-      const cloudItems = await getCloudMenus(currentUserShopId);
+      const cloudItems = await getCloudMenus(activeShopId);
       if (cloudItems && cloudItems.length > 0) {
-        setManualCart(cloudItems.map(i => ({ ...i, quantity: 0 })));
+        setManualCart(cloudItems.filter(m => (m.shop_id ?? m.shopId) === activeShopId).map(i => ({ ...i, quantity: 0 })));
       }
     } catch (e) {
       console.error(e);
@@ -208,13 +269,16 @@ export default function KitchenView() {
 
   const handleCreateManualOrder = async (e) => {
     e.preventDefault();
+    if (!activeShopId) {
+      return showToast("Kitchen Inactive.", "error");
+    }
     const cartItems = manualCart.filter(i => i.quantity > 0);
-    if (cartItems.length === 0) return showToast("Please select at least one item.", "error");
+    if (cartItems.length === 0) return showToast("Select Item.", "error");
 
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const orderPayload = {
-      shopId: currentUserShopId,
+      shopId: activeShopId,
       customerName,
       customerAddress,
       deliveryAddress: customerAddress,
@@ -242,16 +306,16 @@ export default function KitchenView() {
       // Notify staff
       await createCloudNotification({
         role: 'kitchen',
-        shopId: currentUserShopId,
+        shopId: activeShopId,
         orderId: cloudOrder.id,
         message: `New manual order #${cloudOrder.id.slice(-6).toUpperCase()} created for ${customerName}.`
       });
 
-      showToast("Manual order created successfully!", "success");
+      showToast("Order Created", "success");
       handleCloseCreateModal();
     } catch (err) {
       console.error(err);
-      showToast("Failed to create manual order.", "error");
+      showToast("Order Creation Failed" + (err.message || "Unknown error"), "error");
     }
   };
 
@@ -265,17 +329,17 @@ export default function KitchenView() {
       try {
         await createCloudNotification({
           role: 'delivery',
-          shopId: currentUserShopId,
+          shopId: activeShopId,
           title: `Food in Preparation: Head to Kitchen`,
           message: `Chef started cooking Order #${orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}. Head to kitchen for instant hot pickup!`,
           orderId
         });
       } catch (err) { }
 
-      showToast("Order accepted! Riders alerted for hot pickup.", "success");
+      showToast("Order Accepted!", "success");
     } catch (e) {
       console.error(e);
-      showToast("Failed to accept order.", "error");
+      showToast("Order Acceptance Failed.", "error");
     }
   };
 
@@ -304,7 +368,7 @@ export default function KitchenView() {
 
       await createCloudNotification({
         role: 'delivery',
-        shopId: currentUserShopId,
+        shopId: activeShopId,
         title: `Pickup Ready: ${itemSummary}`,
         message: `${itemSummary} (${customerName}) is ready for pickup.`,
         orderId
@@ -313,7 +377,7 @@ export default function KitchenView() {
       showToast(`Ready: ${itemSummary} (${customerName})`, "success");
     } catch (e) {
       console.error("Order ready update error:", e);
-      showToast("Failed to update status.", "error");
+      showToast("Update Failed.", "error");
     }
   };
 
@@ -382,67 +446,118 @@ export default function KitchenView() {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
-                Kitchen Operations
+                {currentShop ? `${currentShop.name} — Operations` : (currentUserShopId ? 'Assigned Kitchen Unavailable' : 'Kitchen Operations')}
               </h1>
               <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
-                {orders.length} Active
+                {isolatedOrders.length} Active
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5 truncate">
-              Live Satvik preparation board & instant kitchen dispatch
+              {currentShop ? (currentShop.address || 'Live Satvik preparation board & instant kitchen dispatch') : 'Assigned kitchen is inactive or unavailable'}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
-          {/* Operations Utility Strip: 2-column balanced grid on mobile, horizontal flex on desktop */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
-            {/* Realtime Kitchen Presence Toggle */}
-            <button
-              type="button"
-              onClick={handleToggleKitchenOnline}
-              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isShopOnline
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-                }`}
-              title="Toggle Live Kitchen Availability"
-            >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <span className="truncate">
-                <span className="sm:hidden">{isShopOnline ? 'Online' : 'Offline'}</span>
-                <span className="hidden sm:inline">{isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
-              </span>
-            </button>
+        <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap">
+          {/* Realtime Kitchen Presence Toggle */}
+          <button
+            data-tour="restaurant-setup"
+            type="button"
+            onClick={handleToggleKitchenOnline}
+            className={`h-10 px-3 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isShopOnline
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+              : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+              }`}
+            title="Toggle Live Kitchen Availability"
+          >
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+            <span>{isShopOnline ? 'Online' : 'Offline'}</span>
+          </button>
 
-            {/* Rush Mode (+15 Mins) Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsRushMode(prev => !prev);
-                showToast(!isRushMode ? "Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
-              }}
-              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRushMode
-                  ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
-                  : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
-                }`}
-              title="Extend prep time by +15 mins during rush hours"
-            >
-              <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
-              <span className="truncate">
-                <span className="sm:hidden">{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
-                <span className="hidden sm:inline">{isRushMode ? 'Rush Mode ON (+15m)' : 'Rush Mode'}</span>
-              </span>
-            </button>
-          </div>
+          {/* Rush Mode (+15 Mins) Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              setIsRushMode(prev => !prev);
+              showToast(!isRushMode ? "+15 Mins" : "Rush OFF", !isRushMode ? "warning" : "info");
+            }}
+            className={`h-10 px-3 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRushMode
+              ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
+              : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
+              }`}
+            title="Extend prep time by +15 mins during rush hours"
+          >
+            <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
+            <span>{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
+          </button>
 
           {/* Primary CTA: Create Manual Order */}
           <button
+            data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="w-full sm:w-auto h-10 sm:h-11 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm px-4 sm:px-5 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-['Outfit'] tracking-wide"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-4 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-['Outfit'] tracking-wide"
           >
             <Plus size={16} strokeWidth={3} />
-            <span className="whitespace-nowrap">Create Manual Order</span>
+            <span className="whitespace-nowrap">Create Order</span>
           </button>
+        </div>
+      </div>
+
+      {/* INACTIVE ASSIGNED KITCHEN WARNING BANNER */}
+      {!activeShopId && (
+        <div className="p-4 sm:p-5 rounded-[28px] bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-black font-['Outfit'] text-rose-700 dark:text-rose-300">
+              Assigned Kitchen Inactive
+            </h3>
+            <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5">
+              {currentUserShopId
+                ? `Assigned kitchen ID "${currentUserShopId}" is currently deactivated, deleted, or cannot be found. Orders for other kitchens are strictly quarantined.`
+                : 'No kitchen is currently assigned to this account. Please contact an administrator.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* KITCHEN BUSINESS & REVENUE OVERVIEW */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Sales & Revenue Card */}
+        <div data-tour="restaurant-sales" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0">
+              <TrendingUp size={20} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Daily Orders & Volume</p>
+              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit'] mt-0.5">{isolatedOrders.length} Active Orders</h3>
+            </div>
+          </div>
+          <span className="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-mono">
+            Live Queue
+          </span>
+        </div>
+
+        {/* Growth & Promos Card */}
+        <div data-tour="restaurant-grow" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-gradient-to-r from-emerald-950/40 via-[#282526] to-[#1E1B1C] border border-emerald-500/30 shadow-lg flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+              <Sparkles size={20} strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-['Outfit']">Kitchen Growth Hub</p>
+              <h4 className="text-xs sm:text-sm font-bold text-white font-['Outfit'] truncate">Broadcast Festive Thalis</h4>
+            </div>
+          </div>
+          <a
+            href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-8.5 px-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all shrink-0"
+          >
+            <MessageCircle size={13} />
+            <span>Channel</span>
+          </a>
         </div>
       </div>
 
@@ -454,7 +569,7 @@ export default function KitchenView() {
             Switch Kitchen:
           </span>
           <SearchableDropdown
-            value={currentUserShopId || allShops[0]?.id}
+            value={activeShopId || ''}
             onChange={(val) => impersonate(val, userRole)}
             options={allShops.map(s => ({
               value: s.id,
@@ -472,8 +587,20 @@ export default function KitchenView() {
       )}
 
       {/* ORDERS GRID */}
-      {orders.length === 0 ? (
-        <div className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
+      {!activeShopId ? (
+        <div data-tour="restaurant-orders" className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-rose-500/10 flex items-center justify-center mb-3.5 border border-rose-500/20">
+            <AlertTriangle size={32} className="text-rose-500" />
+          </div>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">Kitchen Unavailable</p>
+          <p className="text-xs text-stone-600 dark:text-zinc-500 mt-1 max-w-md">
+            {currentUserShopId
+              ? `The assigned kitchen "${currentUserShopId}" is currently inactive or deleted. Foreign kitchen orders are strictly isolated.`
+              : 'Please select an active kitchen to view operations.'}
+          </p>
+        </div>
+      ) : isolatedOrders.length === 0 ? (
+        <div data-tour="restaurant-orders" className="bg-stone-200/80 dark:bg-[#282526] rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-300 dark:border-white/5 flex flex-col items-center justify-center">
           <div className="w-16 h-16 rounded-3xl bg-stone-300/60 dark:bg-white/5 flex items-center justify-center mb-3.5 border border-stone-300 dark:border-white/5">
             <CheckCircle2 size={32} className="text-amber-600 dark:text-[#E0FF33]" />
           </div>
@@ -481,8 +608,8 @@ export default function KitchenView() {
           <p className="text-xs text-stone-600 dark:text-zinc-500 mt-1">Kitchen queue is clear. Radhe Radhe!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {orders.map((order, idx) => {
+        <div data-tour="restaurant-orders" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          {isolatedOrders.map((order, idx) => {
             const isNew = order.status === 'new';
 
             return (
@@ -510,10 +637,10 @@ export default function KitchenView() {
                     </div>
 
                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
-                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
-                        : ['ready_for_pickup', 'ready'].includes(order.status)
-                          ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
-                          : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                      ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
+                      : ['ready_for_pickup', 'ready'].includes(order.status)
+                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
+                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                       }`}>
                       {isNew ? (
                         <Flame size={11} className="fill-current" />
@@ -671,6 +798,7 @@ export default function KitchenView() {
                     </div>
                   ) : isNew ? (
                     <button
+                      data-tour="restaurant-manage-orders"
                       onClick={() => handleAcceptOrder(order.id)}
                       className="fv-btn-primary w-full"
                     >
@@ -679,6 +807,7 @@ export default function KitchenView() {
                     </button>
                   ) : (
                     <button
+                      data-tour="restaurant-manage-orders"
                       onClick={() => handleOrderReady(order.id, order)}
                       className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
                     >

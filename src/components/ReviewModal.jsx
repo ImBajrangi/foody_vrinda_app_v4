@@ -65,7 +65,7 @@ export default function ReviewModal({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const targetShopId = order?.shopId || order?.shop_id || shopId || 'shop-vrinda-main';
+    const targetShopId = order?.shopId || order?.shop_id || shopId || null;
     const targetCustName = order?.customerName || order?.customer_name || 'Devotee Customer';
 
     try {
