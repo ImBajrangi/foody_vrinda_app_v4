@@ -892,8 +892,8 @@ export default function OwnerView() {
     });
 
     try {
-      await updateCloudShop(targetShop.id, { 
-        isOnline: nextOnline, 
+      await updateCloudShop(targetShop.id, {
+        isOnline: nextOnline,
         is_online: nextOnline,
         isOpen: nextOnline,
         is_open: nextOnline
@@ -981,7 +981,7 @@ export default function OwnerView() {
       if (editingMenuItem) {
         // Supabase Cloud update
         await updateCloudMenuItem(editingMenuItem.id, payload);
-        
+
         // If moved to a different kitchen than current view, remove from current view list
         if (targetShopId !== currentUserShopId) {
           setMenuItems(prev => prev.filter(m => m.id !== editingMenuItem.id));
@@ -1081,11 +1081,10 @@ export default function OwnerView() {
                   type: 'info'
                 });
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${
-                ownerSoundAlerts
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${ownerSoundAlerts
                   ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/30 hover:bg-amber-500/25'
                   : 'bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
-              }`}
+                }`}
               title={ownerSoundAlerts ? 'Rings phone with custom sound when orders arrive. Click to silence.' : 'Ringtone silenced. Click to enable staff order alerts.'}
             >
               {ownerSoundAlerts ? (
@@ -1114,11 +1113,10 @@ export default function OwnerView() {
             <button
               type="button"
               onClick={handleToggleShopOnline}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${
-                isShopOnline
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${isShopOnline
                   ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25'
                   : 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/25'
-              }`}
+                }`}
               title="Click to toggle shop Online/Offline status in realtime"
             >
               <span className={`w-2 h-2 rounded-full ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
@@ -1138,7 +1136,7 @@ export default function OwnerView() {
           <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-30">
             <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
               <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
-              Switch Kitchen (Developer Only):
+              Switch Kitchen:
             </span>
             <SearchableDropdown
               value={currentUserShopId || allShops[0]?.id}
@@ -1253,11 +1251,10 @@ export default function OwnerView() {
                   >
                     <span className="hidden sm:inline">{f.label}</span>
                     <span className="sm:hidden">{f.shortLabel}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full font-black tracking-wide ${
-                      isActive 
-                        ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
+                    <span className={`text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full font-black tracking-wide ${isActive
+                        ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
                         : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
-                    }`}>
+                      }`}>
                       {f.count}
                     </span>
                   </button>
@@ -1679,15 +1676,13 @@ export default function OwnerView() {
                       <button
                         type="button"
                         onClick={() => setShopForm({ ...shopForm, shopType: 'hotel' })}
-                        className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                          shopForm.shopType === 'hotel' || !shopForm.shopType
+                        className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${shopForm.shopType === 'hotel' || !shopForm.shopType
                             ? 'bg-amber-500/10 border-amber-500 text-stone-900 dark:text-white dark:bg-[#E0FF33]/10 dark:border-[#E0FF33] shadow-sm'
                             : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300 dark:bg-[#282526] dark:border-white/10 dark:text-neutral-400 dark:hover:border-white/20'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          shopForm.shopType === 'hotel' || !shopForm.shopType ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${shopForm.shopType === 'hotel' || !shopForm.shopType ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
+                          }`}>
                           <UtensilsCrossed className="w-4 h-4" />
                         </div>
                         <div>
@@ -1699,15 +1694,13 @@ export default function OwnerView() {
                       <button
                         type="button"
                         onClick={() => setShopForm({ ...shopForm, shopType: 'shop' })}
-                        className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                          shopForm.shopType === 'shop'
+                        className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${shopForm.shopType === 'shop'
                             ? 'bg-amber-500/10 border-amber-500 text-stone-900 dark:text-white dark:bg-amber-400/10 dark:border-amber-400 shadow-sm'
                             : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300 dark:bg-[#282526] dark:border-white/10 dark:text-neutral-400 dark:hover:border-white/20'
-                        }`}
+                          }`}
                       >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          shopForm.shopType === 'shop' ? 'bg-amber-500 text-white dark:bg-amber-400 dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${shopForm.shopType === 'shop' ? 'bg-amber-500 text-white dark:bg-amber-400 dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
+                          }`}>
                           <Store className="w-4 h-4" />
                         </div>
                         <div>
@@ -2059,18 +2052,16 @@ export default function OwnerView() {
                               }`}
                           >
                             <div className="flex items-center justify-between w-full">
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                                isSelected 
-                                  ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950 shadow-sm' 
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected
+                                  ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950 shadow-sm'
                                   : 'bg-stone-200 text-stone-700 dark:bg-white/5 dark:text-neutral-400'
-                              }`}>
+                                }`}>
                                 <Icon className="w-4 h-4" />
                               </div>
-                              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                                isSelected 
-                                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-stone-950' 
+                              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${isSelected
+                                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-stone-950'
                                   : 'bg-stone-200 text-stone-700 dark:bg-white/5 dark:text-neutral-400'
-                              }`}>
+                                }`}>
                                 {period.time}
                               </span>
                             </div>
@@ -2344,937 +2335,937 @@ export default function OwnerView() {
                     </div>
                   )}
 
-            <form onSubmit={handleSaveMenuForm} className="space-y-4">
-              {/* Quick Preset Templates Strip */}
-              <div className="bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 p-3 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-[#E0FF33] flex items-center gap-1.5 font-['Outfit']">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    ⚡ Quick-Fill from Preset Dish Template (24 Items)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowPresetCatalogModal(true)}
-                    className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] underline hover:no-underline cursor-pointer"
-                  >
-                    View All Presets
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                  {PRESET_DISHES.slice(0, 10).map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleApplyPresetTemplate(p)}
-                      className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
-                      title={p.description}
-                    >
-                      <img src={p.image} alt={p.name} className="w-4 h-4 object-contain" />
-                      <span>{p.name}</span>
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setShowPresetCatalogModal(true)}
-                    className="px-2.5 py-1 rounded-xl bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black text-[10px] font-black uppercase tracking-wider shrink-0 shadow-xs cursor-pointer"
-                  >
-                    + More
-                  </button>
-                </div>
-              </div>
-
-              {/* Dish Name Input */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
-                  Dish Name
-                </label>
-                <input
-                  ref={dishNameInputRef}
-                  type="text"
-                  value={menuForm.name}
-                  onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
-                  placeholder="e.g. Shahi Vrindavan Thali"
-                  required
-                  className={`w-full bg-stone-50 dark:bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${editingMenuItem
-                    ? 'border-amber-500 dark:border-[#E0FF33]/50 ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
-                    : 'border-stone-200 dark:border-white/10 focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10'
-                    }`}
-                />
-              </div>
-
-              {/* Description Input — Smart Auto-Expanding Box */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
-                    Description
-                  </label>
-                  {menuForm.description && (
-                    <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-medium font-['Plus_Jakarta_Sans']">
-                      {menuForm.description.length} chars
-                    </span>
-                  )}
-                </div>
-                <div className="relative bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all shadow-inner overflow-hidden">
-                  <textarea
-                    ref={descriptionInputRef}
-                    rows={3}
-                    value={menuForm.description}
-                    onChange={(e) => {
-                      setMenuForm({ ...menuForm, description: e.target.value });
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${Math.max(88, e.target.scrollHeight)}px`;
-                    }}
-                    placeholder="Rich fragrant gravy prepared with pure desi ghee, fresh spices, and sacred herbs..."
-                    className="w-full bg-transparent px-4 py-3 text-xs sm:text-[13px] leading-relaxed text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none font-['Plus_Jakarta_Sans'] resize-none min-h-[88px] max-h-[260px] overflow-y-auto no-scrollbar block"
-                  />
-                </div>
-              </div>
-
-              {/* Price with Quick Stepper Controls */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
-                    Price (₹)
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setMenuForm(prev => ({ ...prev, price: Math.max(0, Number(prev.price || 0) - 10) }))}
-                      className="px-2.5 py-1 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-bold transition-all border border-stone-300 dark:border-white/5 cursor-pointer"
-                    >
-                      -₹10
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 10 }))}
-                      className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
-                    >
-                      +₹10
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 50 }))}
-                      className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
-                    >
-                      +₹50
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative flex items-center bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all px-4 py-2.5 shadow-inner">
-                  <span className="text-base font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit'] pr-3 border-r border-stone-200 dark:border-white/10 select-none">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    value={menuForm.price || ''}
-                    onChange={(e) => setMenuForm({ ...menuForm, price: Math.max(0, Number(e.target.value)) })}
-                    placeholder="0"
-                    required
-                    className="w-full bg-transparent pl-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none font-mono font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Kitchen / Branch Selector */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
-                  <span>Target Kitchen (Branch)</span>
-                  {allShops.length > 1 && (
-                    <span className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold lowercase">
-                      assigns dish to selected kitchen
-                    </span>
-                  )}
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {(allShops.length > 0 ? allShops : [{ id: currentUserShopId || 'shop-vrinda-main', name: 'Vrinda Cloud Kitchen (Main)', address: 'Vrindavan' }]).map(shop => {
-                    const isSelected = (menuForm.shopId || currentUserShopId) === shop.id;
-                    return (
-                      <button
-                        key={shop.id}
-                        type="button"
-                        onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
-                        className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
-                          ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30 font-black'
-                          : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
-                          }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-1">
-                          <span className="text-xs font-bold truncate">{shop.name}</span>
-                          {isSelected && <Check size={14} className="stroke-[3] shrink-0 ml-1" />}
-                        </div>
-                        <span className={`text-[10px] truncate ${isSelected ? 'text-white/80 dark:text-[#121011]/80 font-medium' : 'text-stone-400 dark:text-neutral-500'}`}>
-                          {shop.address || 'Vrindavan Dham'}
+                  <form onSubmit={handleSaveMenuForm} className="space-y-4">
+                    {/* Quick Preset Templates Strip */}
+                    <div className="bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 p-3 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-[#E0FF33] flex items-center gap-1.5 font-['Outfit']">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          ⚡ Quick-Fill from Preset Dish Template (24 Items)
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Category Selector */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
-                  Category
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: 'Meals', label: 'Meals', icon: UtensilsCrossed, color: 'text-amber-500' },
-                    { id: 'Sweets', label: 'Sweets', icon: CakeSlice, color: 'text-purple-500' },
-                    { id: 'Snacks', label: 'Snacks', icon: Sandwich, color: 'text-orange-500' },
-                    { id: 'Drinks', label: 'Drinks', icon: CupSoda, color: 'text-cyan-500' }
-                  ].map(cat => {
-                    const isSelected = menuForm.category === cat.id ||
-                      (cat.id === 'Meals' && menuForm.category === 'Main') ||
-                      (cat.id === 'Sweets' && menuForm.category === 'Sweets & Prasad');
-                    const IconComponent = cat.icon;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
-                        className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 select-none cursor-pointer whitespace-nowrap active:scale-[0.98] ${isSelected
-                          ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] font-black shadow-xs'
-                          : 'bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-950 border-stone-200/80 dark:bg-[#1E1B1C] dark:text-zinc-300 dark:border-white/5 dark:hover:text-white dark:hover:border-white/15'
-                          }`}
-                      >
-                        <IconComponent className={`w-4 h-4 shrink-0 ${isSelected ? 'text-inherit' : cat.color}`} />
-                        <span>{cat.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Visual Transparent PNG Asset & AI Photo Uploader */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
-                    Dish Photo / AI Image
-                  </label>
-                  {menuForm.imageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setMenuForm({ ...menuForm, imageUrl: '' })}
-                      className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                    >
-                      Clear Image
-                    </button>
-                  )}
-                </div>
-
-                {/* Direct Device/AI Photo Upload Button */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageFileUpload}
-                  className="hidden"
-                />
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={imageUploadLoading}
-                    className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33]/25 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
-                  >
-                    <Upload className="w-4 h-4 shrink-0" />
-                    <span>{imageUploadLoading ? 'Optimizing AI Photo...' : 'Upload Photo / AI Image from Device'}</span>
-                  </button>
-
-                  {menuForm.imageUrl && (
-                    <div className="flex items-center gap-2 bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 px-3 py-1.5 rounded-2xl">
-                      <div className="w-8 h-8 rounded-lg bg-white dark:bg-black/40 overflow-hidden flex items-center justify-center shrink-0 border border-stone-200 dark:border-white/10">
-                        <img
-                          src={menuForm.imageUrl}
-                          alt="Uploaded Preview"
-                          className="w-full h-full object-contain"
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-[140px]">
-                        Custom Photo Set
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={menuForm.imageUrl}
-                    onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
-                    placeholder="Or paste image URL (https://... or /dishes/...)"
-                    className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                  />
-                  {menuForm.imageUrl && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] dark:bg-black/60 p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
-                      <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Preset Cutout Quick Tiles (24 Curated WebP Presets) */}
-                <div className="bg-stone-50/80 dark:bg-[#181617] p-3.5 rounded-2xl border border-stone-200 dark:border-white/10 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[11px] font-black text-stone-700 dark:text-neutral-200 uppercase tracking-wider font-['Outfit'] flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-[#E0FF33]" />
-                        Select Preset Dish Cutout (24 Presets)
-                      </span>
-                      <p className="text-[10px] text-stone-500 dark:text-neutral-400">
-                        Tap any dish to set image, or click <span className="text-amber-600 dark:text-[#E0FF33] font-bold">Auto-Fill</span> to populate all fields.
-                      </p>
-                    </div>
-
-                    {/* Quick Search */}
-                    <div className="relative w-full sm:w-44">
-                      <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={presetCutoutSearch}
-                        onChange={(e) => setPresetCutoutSearch(e.target.value)}
-                        placeholder="Search 24 presets..."
-                        className="w-full bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-6 py-1.5 text-[11px] text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
-                      />
-                      {presetCutoutSearch && (
                         <button
                           type="button"
-                          onClick={() => setPresetCutoutSearch('')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-white"
+                          onClick={() => setShowPresetCatalogModal(true)}
+                          className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] underline hover:no-underline cursor-pointer"
                         >
-                          <X className="w-3 h-3" />
+                          View All Presets
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                        {PRESET_DISHES.slice(0, 10).map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleApplyPresetTemplate(p)}
+                            className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+                            title={p.description}
+                          >
+                            <img src={p.image} alt={p.name} className="w-4 h-4 object-contain" />
+                            <span>{p.name}</span>
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setShowPresetCatalogModal(true)}
+                          className="px-2.5 py-1 rounded-xl bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black text-[10px] font-black uppercase tracking-wider shrink-0 shadow-xs cursor-pointer"
+                        >
+                          + More
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Dish Name Input */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
+                        Dish Name
+                      </label>
+                      <input
+                        ref={dishNameInputRef}
+                        type="text"
+                        value={menuForm.name}
+                        onChange={(e) => setMenuForm({ ...menuForm, name: e.target.value })}
+                        placeholder="e.g. Shahi Vrindavan Thali"
+                        required
+                        className={`w-full bg-stone-50 dark:bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${editingMenuItem
+                          ? 'border-amber-500 dark:border-[#E0FF33]/50 ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
+                          : 'border-stone-200 dark:border-white/10 focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10'
+                          }`}
+                      />
+                    </div>
+
+                    {/* Description Input — Smart Auto-Expanding Box */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
+                          Description
+                        </label>
+                        {menuForm.description && (
+                          <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-medium font-['Plus_Jakarta_Sans']">
+                            {menuForm.description.length} chars
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all shadow-inner overflow-hidden">
+                        <textarea
+                          ref={descriptionInputRef}
+                          rows={3}
+                          value={menuForm.description}
+                          onChange={(e) => {
+                            setMenuForm({ ...menuForm, description: e.target.value });
+                            e.target.style.height = 'auto';
+                            e.target.style.height = `${Math.max(88, e.target.scrollHeight)}px`;
+                          }}
+                          placeholder="Rich fragrant gravy prepared with pure desi ghee, fresh spices, and sacred herbs..."
+                          className="w-full bg-transparent px-4 py-3 text-xs sm:text-[13px] leading-relaxed text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none font-['Plus_Jakarta_Sans'] resize-none min-h-[88px] max-h-[260px] overflow-y-auto no-scrollbar block"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Price with Quick Stepper Controls */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
+                          Price (₹)
+                        </label>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setMenuForm(prev => ({ ...prev, price: Math.max(0, Number(prev.price || 0) - 10) }))}
+                            className="px-2.5 py-1 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-bold transition-all border border-stone-300 dark:border-white/5 cursor-pointer"
+                          >
+                            -₹10
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 10 }))}
+                            className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
+                          >
+                            +₹10
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 50 }))}
+                            className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
+                          >
+                            +₹50
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative flex items-center bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all px-4 py-2.5 shadow-inner">
+                        <span className="text-base font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit'] pr-3 border-r border-stone-200 dark:border-white/10 select-none">
+                          ₹
+                        </span>
+                        <input
+                          type="number"
+                          value={menuForm.price || ''}
+                          onChange={(e) => setMenuForm({ ...menuForm, price: Math.max(0, Number(e.target.value)) })}
+                          placeholder="0"
+                          required
+                          className="w-full bg-transparent pl-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Kitchen / Branch Selector */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
+                        <span>Target Kitchen (Branch)</span>
+                        {allShops.length > 1 && (
+                          <span className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold lowercase">
+                            assigns dish to selected kitchen
+                          </span>
+                        )}
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {(allShops.length > 0 ? allShops : [{ id: currentUserShopId || 'shop-vrinda-main', name: 'Vrinda Cloud Kitchen (Main)', address: 'Vrindavan' }]).map(shop => {
+                          const isSelected = (menuForm.shopId || currentUserShopId) === shop.id;
+                          return (
+                            <button
+                              key={shop.id}
+                              type="button"
+                              onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
+                              className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
+                                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30 font-black'
+                                : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
+                                }`}
+                            >
+                              <div className="flex items-center justify-between w-full mb-1">
+                                <span className="text-xs font-bold truncate">{shop.name}</span>
+                                {isSelected && <Check size={14} className="stroke-[3] shrink-0 ml-1" />}
+                              </div>
+                              <span className={`text-[10px] truncate ${isSelected ? 'text-white/80 dark:text-[#121011]/80 font-medium' : 'text-stone-400 dark:text-neutral-500'}`}>
+                                {shop.address || 'Vrindavan Dham'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Category Selector */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
+                        Category
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { id: 'Meals', label: 'Meals', icon: UtensilsCrossed, color: 'text-amber-500' },
+                          { id: 'Sweets', label: 'Sweets', icon: CakeSlice, color: 'text-purple-500' },
+                          { id: 'Snacks', label: 'Snacks', icon: Sandwich, color: 'text-orange-500' },
+                          { id: 'Drinks', label: 'Drinks', icon: CupSoda, color: 'text-cyan-500' }
+                        ].map(cat => {
+                          const isSelected = menuForm.category === cat.id ||
+                            (cat.id === 'Meals' && menuForm.category === 'Main') ||
+                            (cat.id === 'Sweets' && menuForm.category === 'Sweets & Prasad');
+                          const IconComponent = cat.icon;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
+                              className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 select-none cursor-pointer whitespace-nowrap active:scale-[0.98] ${isSelected
+                                ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] font-black shadow-xs'
+                                : 'bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-950 border-stone-200/80 dark:bg-[#1E1B1C] dark:text-zinc-300 dark:border-white/5 dark:hover:text-white dark:hover:border-white/15'
+                                }`}
+                            >
+                              <IconComponent className={`w-4 h-4 shrink-0 ${isSelected ? 'text-inherit' : cat.color}`} />
+                              <span>{cat.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Visual Transparent PNG Asset & AI Photo Uploader */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
+                          Dish Photo / AI Image
+                        </label>
+                        {menuForm.imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setMenuForm({ ...menuForm, imageUrl: '' })}
+                            className="text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                          >
+                            Clear Image
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Direct Device/AI Photo Upload Button */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageFileUpload}
+                        className="hidden"
+                      />
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={imageUploadLoading}
+                          className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33]/25 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
+                        >
+                          <Upload className="w-4 h-4 shrink-0" />
+                          <span>{imageUploadLoading ? 'Optimizing AI Photo...' : 'Upload Photo / AI Image from Device'}</span>
+                        </button>
+
+                        {menuForm.imageUrl && (
+                          <div className="flex items-center gap-2 bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 px-3 py-1.5 rounded-2xl">
+                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-black/40 overflow-hidden flex items-center justify-center shrink-0 border border-stone-200 dark:border-white/10">
+                              <img
+                                src={menuForm.imageUrl}
+                                alt="Uploaded Preview"
+                                className="w-full h-full object-contain"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            </div>
+                            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-[140px]">
+                              Custom Photo Set
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={menuForm.imageUrl}
+                          onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
+                          placeholder="Or paste image URL (https://... or /dishes/...)"
+                          className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        />
+                        {menuForm.imageUrl && (
+                          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] dark:bg-black/60 p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
+                            <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Preset Cutout Quick Tiles (24 Curated WebP Presets) */}
+                      <div className="bg-stone-50/80 dark:bg-[#181617] p-3.5 rounded-2xl border border-stone-200 dark:border-white/10 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <span className="text-[11px] font-black text-stone-700 dark:text-neutral-200 uppercase tracking-wider font-['Outfit'] flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-[#E0FF33]" />
+                              Select Preset Dish Cutout (24 Presets)
+                            </span>
+                            <p className="text-[10px] text-stone-500 dark:text-neutral-400">
+                              Tap any dish to set image, or click <span className="text-amber-600 dark:text-[#E0FF33] font-bold">Auto-Fill</span> to populate all fields.
+                            </p>
+                          </div>
+
+                          {/* Quick Search */}
+                          <div className="relative w-full sm:w-44">
+                            <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={presetCutoutSearch}
+                              onChange={(e) => setPresetCutoutSearch(e.target.value)}
+                              placeholder="Search 24 presets..."
+                              className="w-full bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-6 py-1.5 text-[11px] text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                            />
+                            {presetCutoutSearch && (
+                              <button
+                                type="button"
+                                onClick={() => setPresetCutoutSearch('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-neutral-500 dark:hover:text-white"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Category Filter Chips */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                          {PRESET_CATEGORIES.map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setPresetCutoutCategory(cat)}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${presetCutoutCategory === cat
+                                ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
+                                : 'bg-stone-200/70 hover:bg-stone-300/70 text-stone-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-neutral-400 border-stone-300/60 dark:border-white/5'
+                                }`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Presets Grid */}
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto no-scrollbar p-1">
+                          {PRESET_DISHES
+                            .filter((p) => {
+                              const matchCat = presetCutoutCategory === 'All' || p.category === presetCutoutCategory;
+                              const matchQ = !presetCutoutSearch ||
+                                p.name.toLowerCase().includes(presetCutoutSearch.toLowerCase()) ||
+                                p.category.toLowerCase().includes(presetCutoutSearch.toLowerCase());
+                              return matchCat && matchQ;
+                            })
+                            .map((preset) => {
+                              const isSelected = menuForm.imageUrl === preset.image || menuForm.imageUrl === preset.cdnImage;
+                              return (
+                                <div
+                                  key={preset.id}
+                                  className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
+                                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                                    : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#E0FF33]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
+                                    }`}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => setMenuForm({ ...menuForm, imageUrl: preset.image })}
+                                    className="w-full flex flex-col items-center justify-center flex-1 cursor-pointer"
+                                    title={`Set image to ${preset.name}`}
+                                  >
+                                    <div className="w-11 h-11 flex items-center justify-center relative">
+                                      <img
+                                        src={preset.image}
+                                        alt={preset.name}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
+                                        onError={(e) => {
+                                          if (preset.cdnImage && e.target.src !== preset.cdnImage) {
+                                            e.target.src = preset.cdnImage;
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                    <span className={`text-[10px] font-bold mt-1 text-center truncate w-full leading-tight ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
+                                      {preset.name}
+                                    </span>
+                                  </button>
+
+                                  {isSelected && (
+                                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
+                                      <Check size={10} className="stroke-[3]" />
+                                    </div>
+                                  )}
+
+                                  {/* Autofill hover button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleApplyPresetTemplate(preset);
+                                    }}
+                                    className="w-full mt-1.5 py-0.5 px-1 rounded-md bg-stone-100 hover:bg-amber-500 hover:text-white dark:bg-white/5 dark:hover:bg-[#E0FF33] dark:hover:text-black text-[9px] font-bold text-stone-600 dark:text-neutral-400 transition-colors cursor-pointer border border-stone-200 dark:border-white/5 truncate"
+                                    title={`Auto-fill form with ${preset.name}`}
+                                  >
+                                    ✨ Auto-Fill
+                                  </button>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Spiciness Level Selector */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
+                        Spiciness Level
+                      </label>
+                      <div className="grid grid-cols-3 bg-stone-100 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-200 dark:border-white/10 gap-1.5">
+                        {[
+                          {
+                            id: 'Mild',
+                            label: 'Mild',
+                            activeClass: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-500/40 shadow-xs',
+                            dotClass: 'bg-emerald-500'
+                          },
+                          {
+                            id: 'Medium',
+                            label: 'Medium',
+                            activeClass: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/40 shadow-xs',
+                            dotClass: 'bg-amber-500'
+                          },
+                          {
+                            id: 'Spicy',
+                            label: 'Spicy',
+                            activeClass: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30 dark:border-rose-500/40 shadow-xs',
+                            dotClass: 'bg-rose-500',
+                            isFlame: true
+                          }
+                        ].map(spice => {
+                          const isSelected = menuForm.spicyLevel === spice.id;
+                          return (
+                            <button
+                              key={spice.id}
+                              type="button"
+                              onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
+                              className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 cursor-pointer select-none border active:scale-[0.98] ${isSelected
+                                ? `${spice.activeClass} font-black`
+                                : 'border-transparent text-stone-600 hover:text-stone-950 hover:bg-white/80 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
+                                }`}
+                            >
+                              {spice.isFlame ? (
+                                <Flame className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-neutral-500'}`} />
+                              ) : (
+                                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isSelected ? `${spice.dotClass} ring-2 ring-current/30` : 'bg-stone-300 dark:bg-neutral-600'}`} />
+                              )}
+                              <span>{spice.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Nutrition Info Input */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5 font-['Outfit']">
+                        Nutrition Info
+                      </label>
+                      <input
+                        type="text"
+                        value={menuForm.nutrition}
+                        onChange={(e) => setMenuForm({ ...menuForm, nutrition: e.target.value })}
+                        placeholder="e.g. 260 kcal, 14g Protein, 100% Satvik"
+                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
+                      />
+                    </div>
+
+                    {/* Web UI Custom Toggle Switches */}
+                    <div className="space-y-2.5 pt-3 border-t border-stone-200 dark:border-white/5">
+                      {/* 100% Satvik Toggle */}
+                      <div
+                        onClick={() => setMenuForm(prev => ({ ...prev, isSatvik: !prev.isSatvik }))}
+                        className="p-3 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-stone-900 dark:text-white leading-tight">100% Satvik Prasad</p>
+                            <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Strictly without onion or garlic</p>
+                          </div>
+                        </div>
+
+                        {/* Custom Animated Toggle Switch */}
+                        <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isSatvik ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
+                          <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isSatvik ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </div>
+                      </div>
+
+                      {/* Chef's Recommendation Toggle */}
+                      <div
+                        onClick={() => setMenuForm(prev => ({ ...prev, isDailySpecial: !prev.isDailySpecial }))}
+                        className="p-3 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                            <Crown className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-stone-900 dark:text-white leading-tight">Chef's Special Recommendation</p>
+                            <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Highlight with glowing banner on top</p>
+                          </div>
+                        </div>
+
+                        {/* Custom Animated Toggle Switch */}
+                        <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isDailySpecial ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
+                          <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Submit CTA */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="submit"
+                        className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#d2f323] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
+                      >
+                        <CheckCircle2 size={16} />
+                        <span>{editingMenuItem ? 'Save & Update Dish' : 'Publish Dish to Menu'}</span>
+                      </button>
+                      {editingMenuItem && (
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="py-3.5 px-4 rounded-2xl bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs transition-all border border-stone-300 dark:border-white/5 cursor-pointer"
+                        >
+                          Cancel
                         </button>
                       )}
                     </div>
-                  </div>
+                  </form>
+                </>
+              )}
+            </div>
 
-                  {/* Category Filter Chips */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                    {PRESET_CATEGORIES.map((cat) => (
+            {/* Menu Catalog Table & Showcase — Scaled for Mass Items */}
+            <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200 dark:border-white/5">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
+                    Dish Catalog ({filteredMenuItems.length}{filteredMenuItems.length !== menuItems.length ? ` of ${menuItems.length}` : ''})
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400">All live dishes visible to customers</p>
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetCatalogModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Presets Catalog (24)</span>
+                  </button>
+                  <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                    {menuItems.length} Dishes Live
+                  </span>
+                </div>
+              </div>
+
+              {/* Mass Items Filter Toolbar: Search & Category Filter */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search dishes by name or ingredients..."
+                    className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 dark:text-neutral-500 dark:hover:text-white cursor-pointer p-0.5 rounded-full transition-colors active:scale-90"
+                      title="Clear search"
+                      aria-label="Clear dish search"
+                    >
+                      <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                  {['All', 'Meals', 'Sweets', 'Snacks', 'Drinks'].map(cat => {
+                    const isActive = categoryFilter === cat;
+                    return (
                       <button
                         key={cat}
                         type="button"
-                        onClick={() => setPresetCutoutCategory(cat)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${presetCutoutCategory === cat
-                          ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
-                          : 'bg-stone-200/70 hover:bg-stone-300/70 text-stone-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-neutral-400 border-stone-300/60 dark:border-white/5'
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none ${isActive
+                          ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                          : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5'
                           }`}
                       >
                         {cat}
                       </button>
-                    ))}
-                  </div>
-
-                  {/* Presets Grid */}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto no-scrollbar p-1">
-                    {PRESET_DISHES
-                      .filter((p) => {
-                        const matchCat = presetCutoutCategory === 'All' || p.category === presetCutoutCategory;
-                        const matchQ = !presetCutoutSearch ||
-                          p.name.toLowerCase().includes(presetCutoutSearch.toLowerCase()) ||
-                          p.category.toLowerCase().includes(presetCutoutSearch.toLowerCase());
-                        return matchCat && matchQ;
-                      })
-                      .map((preset) => {
-                        const isSelected = menuForm.imageUrl === preset.image || menuForm.imageUrl === preset.cdnImage;
-                        return (
-                          <div
-                            key={preset.id}
-                            className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
-                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
-                              : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#E0FF33]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
-                              }`}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => setMenuForm({ ...menuForm, imageUrl: preset.image })}
-                              className="w-full flex flex-col items-center justify-center flex-1 cursor-pointer"
-                              title={`Set image to ${preset.name}`}
-                            >
-                              <div className="w-11 h-11 flex items-center justify-center relative">
-                                <img
-                                  src={preset.image}
-                                  alt={preset.name}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-150 pointer-events-none"
-                                  onError={(e) => {
-                                    if (preset.cdnImage && e.target.src !== preset.cdnImage) {
-                                      e.target.src = preset.cdnImage;
-                                    }
-                                  }}
-                                />
-                              </div>
-                              <span className={`text-[10px] font-bold mt-1 text-center truncate w-full leading-tight ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
-                                {preset.name}
-                              </span>
-                            </button>
-
-                            {isSelected && (
-                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
-                                <Check size={10} className="stroke-[3]" />
-                              </div>
-                            )}
-
-                            {/* Autofill hover button */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleApplyPresetTemplate(preset);
-                              }}
-                              className="w-full mt-1.5 py-0.5 px-1 rounded-md bg-stone-100 hover:bg-amber-500 hover:text-white dark:bg-white/5 dark:hover:bg-[#E0FF33] dark:hover:text-black text-[9px] font-bold text-stone-600 dark:text-neutral-400 transition-colors cursor-pointer border border-stone-200 dark:border-white/5 truncate"
-                              title={`Auto-fill form with ${preset.name}`}
-                            >
-                              ✨ Auto-Fill
-                            </button>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Spiciness Level Selector */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit']">
-                  Spiciness Level
-                </label>
-                <div className="grid grid-cols-3 bg-stone-100 dark:bg-[#1E1B1C] p-1.5 rounded-2xl border border-stone-200 dark:border-white/10 gap-1.5">
-                  {[
-                    {
-                      id: 'Mild',
-                      label: 'Mild',
-                      activeClass: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-500/40 shadow-xs',
-                      dotClass: 'bg-emerald-500'
-                    },
-                    {
-                      id: 'Medium',
-                      label: 'Medium',
-                      activeClass: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/40 shadow-xs',
-                      dotClass: 'bg-amber-500'
-                    },
-                    {
-                      id: 'Spicy',
-                      label: 'Spicy',
-                      activeClass: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30 dark:border-rose-500/40 shadow-xs',
-                      dotClass: 'bg-rose-500',
-                      isFlame: true
-                    }
-                  ].map(spice => {
-                    const isSelected = menuForm.spicyLevel === spice.id;
-                    return (
-                      <button
-                        key={spice.id}
-                        type="button"
-                        onClick={() => setMenuForm({ ...menuForm, spicyLevel: spice.id })}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 cursor-pointer select-none border active:scale-[0.98] ${isSelected
-                          ? `${spice.activeClass} font-black`
-                          : 'border-transparent text-stone-600 hover:text-stone-950 hover:bg-white/80 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5'
-                          }`}
-                      >
-                        {spice.isFlame ? (
-                          <Flame className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-stone-400 dark:text-neutral-500'}`} />
-                        ) : (
-                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isSelected ? `${spice.dotClass} ring-2 ring-current/30` : 'bg-stone-300 dark:bg-neutral-600'}`} />
-                        )}
-                        <span>{spice.label}</span>
-                      </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Nutrition Info Input */}
-              <div>
-                <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1.5 font-['Outfit']">
-                  Nutrition Info
-                </label>
-                <input
-                  type="text"
-                  value={menuForm.nutrition}
-                  onChange={(e) => setMenuForm({ ...menuForm, nutrition: e.target.value })}
-                  placeholder="e.g. 260 kcal, 14g Protein, 100% Satvik"
-                  className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
-                />
-              </div>
-
-              {/* Web UI Custom Toggle Switches */}
-              <div className="space-y-2.5 pt-3 border-t border-stone-200 dark:border-white/5">
-                {/* 100% Satvik Toggle */}
-                <div
-                  onClick={() => setMenuForm(prev => ({ ...prev, isSatvik: !prev.isSatvik }))}
-                  className="p-3 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-stone-900 dark:text-white leading-tight">100% Satvik Prasad</p>
-                      <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Strictly without onion or garlic</p>
-                    </div>
+              {/* Mobile Card List (< sm screens) */}
+              <div className="sm:hidden space-y-3 max-h-[580px] overflow-y-auto no-scrollbar p-0.5">
+                {filteredMenuItems.length === 0 ? (
+                  <div className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                    {menuItems.length === 0
+                      ? "No dishes added yet. Use the form above to add your first dish."
+                      : "No dishes match your current search/filter."}
                   </div>
+                ) : (
+                  filteredMenuItems.map(item => {
+                    const isBeingEdited = editingMenuItem?.id === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
+                          ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
+                          : 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
+                          }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-14 h-14 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-1 relative">
+                            <img
+                              src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                              alt={item.name}
+                              className="w-full h-full object-contain"
+                              loading="lazy"
+                            />
+                            {isBeingEdited && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center">
+                                <Check size={10} className="stroke-[3]" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit'] truncate">{item.name}</p>
+                                {isBeingEdited && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
+                                    <Edit2 size={10} className="stroke-[2.5]" /> Active in Form
+                                  </span>
+                                )}
+                              </div>
 
-                  {/* Custom Animated Toggle Switch */}
-                  <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isSatvik ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isSatvik ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </div>
-                </div>
-
-                {/* Chef's Recommendation Toggle */}
-                <div
-                  onClick={() => setMenuForm(prev => ({ ...prev, isDailySpecial: !prev.isDailySpecial }))}
-                  className="p-3 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15 transition-all flex items-center justify-between cursor-pointer select-none"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                      <Crown className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-stone-900 dark:text-white leading-tight">Chef's Special Recommendation</p>
-                      <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Highlight with glowing banner on top</p>
-                    </div>
-                  </div>
-
-                  {/* Custom Animated Toggle Switch */}
-                  <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isDailySpecial ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit CTA */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#d2f323] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
-                >
-                  <CheckCircle2 size={16} />
-                  <span>{editingMenuItem ? 'Save & Update Dish' : 'Publish Dish to Menu'}</span>
-                </button>
-                {editingMenuItem && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="py-3.5 px-4 rounded-2xl bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs transition-all border border-stone-300 dark:border-white/5 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </form>
-          </>
-        )}
-      </div>
-
-          {/* Menu Catalog Table & Showcase — Scaled for Mass Items */}
-          <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200 dark:border-white/5">
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
-                  Dish Catalog ({filteredMenuItems.length}{filteredMenuItems.length !== menuItems.length ? ` of ${menuItems.length}` : ''})
-                </h3>
-                <p className="text-xs text-stone-500 dark:text-neutral-400">All live dishes visible to customers</p>
-              </div>
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setShowPresetCatalogModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Presets Catalog (24)</span>
-                </button>
-                <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
-                  {menuItems.length} Dishes Live
-                </span>
-              </div>
-            </div>
-
-            {/* Mass Items Filter Toolbar: Search & Category Filter */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search dishes by name or ingredients..."
-                  className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 dark:text-neutral-500 dark:hover:text-white cursor-pointer p-0.5 rounded-full transition-colors active:scale-90"
-                    title="Clear search"
-                    aria-label="Clear dish search"
-                  >
-                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
-                )}
-              </div>
-
-              {/* Category Filter Chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                {['All', 'Meals', 'Sweets', 'Snacks', 'Drinks'].map(cat => {
-                  const isActive = categoryFilter === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setCategoryFilter(cat)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none ${isActive
-                        ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
-                        : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5'
-                        }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Mobile Card List (< sm screens) */}
-            <div className="sm:hidden space-y-3 max-h-[580px] overflow-y-auto no-scrollbar p-0.5">
-              {filteredMenuItems.length === 0 ? (
-                <div className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
-                  {menuItems.length === 0
-                    ? "No dishes added yet. Use the form above to add your first dish."
-                    : "No dishes match your current search/filter."}
-                </div>
-              ) : (
-                filteredMenuItems.map(item => {
-                  const isBeingEdited = editingMenuItem?.id === item.id;
-                  return (
-                    <div
-                      key={item.id}
-                      className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
-                        ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
-                        : 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
-                        }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 shrink-0 flex items-center justify-center p-1 relative">
-                          <img
-                            src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
-                            alt={item.name}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
-                          />
-                          {isBeingEdited && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center">
-                              <Check size={10} className="stroke-[3]" />
+                              {/* Quick Inline Price Controls on Mobile */}
+                              <div className="shrink-0 flex items-center">
+                                {inlineEditingDishId === item.id ? (
+                                  <div className="flex items-center gap-1 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33]">
+                                    <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
+                                    <input
+                                      type="number"
+                                      value={inlineEditingPrice}
+                                      onChange={(e) => setInlineEditingPrice(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
+                                        if (e.key === 'Escape') setInlineEditingDishId(null);
+                                      }}
+                                      autoFocus
+                                      className="w-14 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
+                                      className="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer"
+                                      title="Save price"
+                                    >
+                                      <Check size={11} className="stroke-[3]" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setInlineEditingDishId(null)}
+                                      className="w-5 h-5 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
+                                      title="Cancel"
+                                    >
+                                      <X size={11} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#151314] px-1.5 py-1 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10));
+                                      }}
+                                      className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
+                                      title="Decrease price by ₹10"
+                                    >
+                                      -
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setInlineEditingDishId(item.id);
+                                        setInlineEditingPrice(String(item.price || 0));
+                                      }}
+                                      className="px-1.5 py-0.5 text-xs font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] hover:underline cursor-pointer flex items-center gap-1"
+                                      title="Click to edit price directly"
+                                    >
+                                      <span>₹{item.price}</span>
+                                      <Edit2 size={8} className="opacity-40" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickPriceChange(item.id, Number(item.price || 0) + 10);
+                                      }}
+                                      className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
+                                      title="Increase price by ₹10"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit'] truncate">{item.name}</p>
-                              {isBeingEdited && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
-                                  <Edit2 size={10} className="stroke-[2.5]" /> Active in Form
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
+
+                            <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-stone-200 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border border-stone-300 dark:border-white/10 whitespace-nowrap">
+                                {item.category}
+                              </span>
+                              {(item.isSatvik === true || item.isSatvik === undefined) && (
+                                <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
+                                  Satvik
+                                </span>
+                              )}
+                              {item.isDailySpecial && (
+                                <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
+                                  Special
                                 </span>
                               )}
                             </div>
-
-                            {/* Quick Inline Price Controls on Mobile */}
-                            <div className="shrink-0 flex items-center">
-                              {inlineEditingDishId === item.id ? (
-                                <div className="flex items-center gap-1 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33]">
-                                  <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
-                                  <input
-                                    type="number"
-                                    value={inlineEditingPrice}
-                                    onChange={(e) => setInlineEditingPrice(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
-                                      if (e.key === 'Escape') setInlineEditingDishId(null);
-                                    }}
-                                    autoFocus
-                                    className="w-14 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
-                                    className="w-5 h-5 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer"
-                                    title="Save price"
-                                  >
-                                    <Check size={11} className="stroke-[3]" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setInlineEditingDishId(null)}
-                                    className="w-5 h-5 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
-                                    title="Cancel"
-                                  >
-                                    <X size={11} />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#151314] px-1.5 py-1 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10));
-                                    }}
-                                    className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
-                                    title="Decrease price by ₹10"
-                                  >
-                                    -
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setInlineEditingDishId(item.id);
-                                      setInlineEditingPrice(String(item.price || 0));
-                                    }}
-                                    className="px-1.5 py-0.5 text-xs font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] hover:underline cursor-pointer flex items-center gap-1"
-                                    title="Click to edit price directly"
-                                  >
-                                    <span>₹{item.price}</span>
-                                    <Edit2 size={8} className="opacity-40" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleQuickPriceChange(item.id, Number(item.price || 0) + 10);
-                                    }}
-                                    className="w-5 h-5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90"
-                                    title="Increase price by ₹10"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
-
-                          <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-stone-200 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border border-stone-300 dark:border-white/10 whitespace-nowrap">
-                              {item.category}
-                            </span>
-                            {(item.isSatvik === true || item.isSatvik === undefined) && (
-                              <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
-                                Satvik
-                              </span>
-                            )}
-                            {item.isDailySpecial && (
-                              <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap">
-                                Special
-                              </span>
-                            )}
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
-                        <button
-                          onClick={() => handleEditMenuItem(item)}
-                          className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
-                            ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
-                            : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
-                            }`}
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
-                        </button>
-                        <button
-                          onClick={() => setDeleteTargetId(item.id)}
-                          className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Desktop Table (>= sm screens) with Smooth Scroll Container */}
-            <div className="hidden sm:block rounded-3xl border border-stone-300 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-[#1E1B1C]/80 shadow-sm backdrop-blur-sm">
-              <div className="overflow-x-auto max-h-[580px] overflow-y-auto no-scrollbar">
-                <table className="w-full text-left text-sm">
-                  <thead className="sticky top-0 bg-stone-200/95 dark:bg-[#252223]/95 backdrop-blur-md z-10 border-b border-stone-300 dark:border-white/10">
-                    <tr className="text-[11px] font-black text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
-                      <th className="py-3.5 px-4 whitespace-nowrap">Dish</th>
-                      <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
-                      <th className="py-3.5 px-4 whitespace-nowrap">Price</th>
-                      <th className="py-3.5 px-4 whitespace-nowrap">Badges</th>
-                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
-                    {filteredMenuItems.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
-                          {menuItems.length === 0
-                            ? "No dishes added yet. Use the form to add dishes."
-                            : "No dishes match your search or category filter."}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredMenuItems.map(item => {
-                        const isBeingEdited = editingMenuItem?.id === item.id;
-                        return (
-                          <tr
-                            key={item.id}
-                            className={`transition-all duration-150 group ${isBeingEdited
-                              ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-l-4 border-l-amber-500 dark:border-l-[#E0FF33]'
-                              : 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
+                          <button
+                            onClick={() => handleEditMenuItem(item)}
+                            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
+                              ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
+                              : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
                               }`}
                           >
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-11 h-11 rounded-2xl bg-stone-100 dark:bg-[#282526] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs ${isBeingEdited ? 'border-2 border-amber-500 dark:border-[#E0FF33]' : 'border border-stone-200 dark:border-white/10'
-                                  }`}>
-                                  <img
-                                    src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
-                                    alt={item.name}
-                                    className="w-full h-full object-contain"
-                                    loading="lazy"
-                                  />
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
+                          </button>
+                          <button
+                            onClick={() => setDeleteTargetId(item.id)}
+                            className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Desktop Table (>= sm screens) with Smooth Scroll Container */}
+              <div className="hidden sm:block rounded-3xl border border-stone-300 dark:border-white/10 overflow-hidden bg-white/80 dark:bg-[#1E1B1C]/80 shadow-sm backdrop-blur-sm">
+                <div className="overflow-x-auto max-h-[580px] overflow-y-auto no-scrollbar">
+                  <table className="w-full text-left text-sm">
+                    <thead className="sticky top-0 bg-stone-200/95 dark:bg-[#252223]/95 backdrop-blur-md z-10 border-b border-stone-300 dark:border-white/10">
+                      <tr className="text-[11px] font-black text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
+                        <th className="py-3.5 px-4 whitespace-nowrap">Dish</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Price</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Badges</th>
+                        <th className="py-3.5 px-4 text-right whitespace-nowrap">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
+                      {filteredMenuItems.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                            {menuItems.length === 0
+                              ? "No dishes added yet. Use the form to add dishes."
+                              : "No dishes match your search or category filter."}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredMenuItems.map(item => {
+                          const isBeingEdited = editingMenuItem?.id === item.id;
+                          return (
+                            <tr
+                              key={item.id}
+                              className={`transition-all duration-150 group ${isBeingEdited
+                                ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-l-4 border-l-amber-500 dark:border-l-[#E0FF33]'
+                                : 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
+                                }`}
+                            >
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-11 h-11 rounded-2xl bg-stone-100 dark:bg-[#282526] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs ${isBeingEdited ? 'border-2 border-amber-500 dark:border-[#E0FF33]' : 'border border-stone-200 dark:border-white/10'
+                                    }`}>
+                                    <img
+                                      src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
+                                      alt={item.name}
+                                      className="w-full h-full object-contain"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                  <div className="min-w-0 max-w-[180px] lg:max-w-xs">
+                                    <p className="font-black text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
+                                    <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">{item.description || 'No description provided'}</p>
+                                    {isBeingEdited && (
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase">
+                                        <Edit2 size={10} className="stroke-[2.5]" /> Editing
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="min-w-0 max-w-[180px] lg:max-w-xs">
-                                  <p className="font-black text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
-                                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">{item.description || 'No description provided'}</p>
-                                  {isBeingEdited && (
-                                    <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase">
-                                      <Edit2 size={10} className="stroke-[2.5]" /> Editing
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-200/90 dark:bg-white/10 text-stone-800 dark:text-neutral-200 border border-stone-300 dark:border-white/10 whitespace-nowrap shadow-2xs">
+                                  {item.category}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                {inlineEditingDishId === item.id ? (
+                                  <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33] w-fit">
+                                    <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
+                                    <input
+                                      type="number"
+                                      value={inlineEditingPrice}
+                                      onChange={(e) => setInlineEditingPrice(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
+                                        if (e.key === 'Escape') setInlineEditingDishId(null);
+                                      }}
+                                      autoFocus
+                                      className="w-16 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
+                                      className="w-6 h-6 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer active:scale-90"
+                                      title="Save price"
+                                    >
+                                      <Check size={12} className="stroke-[3]" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setInlineEditingDishId(null)}
+                                      className="w-6 h-6 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
+                                      title="Cancel"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 w-fit">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10))}
+                                      className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
+                                      title="Decrease price by ₹10"
+                                    >
+                                      -
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setInlineEditingDishId(item.id);
+                                        setInlineEditingPrice(String(item.price || 0));
+                                      }}
+                                      className="px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#E0FF33]/10 border border-stone-200 dark:border-white/10 font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] cursor-pointer flex items-center gap-1.5 group/price shadow-2xs"
+                                      title="Click to edit price directly"
+                                    >
+                                      <span>₹{item.price}</span>
+                                      <Edit2 size={10} className="opacity-40 group-hover/price:opacity-100 transition-opacity" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleQuickPriceChange(item.id, Number(item.price || 0) + 10)}
+                                      className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
+                                      title="Increase price by ₹10"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="flex items-center gap-1.5">
+                                  {(item.isSatvik === true || item.isSatvik === undefined) && (
+                                    <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
+                                      Satvik
+                                    </span>
+                                  )}
+                                  {item.isDailySpecial && (
+                                    <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
+                                      Special
                                     </span>
                                   )}
                                 </div>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-200/90 dark:bg-white/10 text-stone-800 dark:text-neutral-200 border border-stone-300 dark:border-white/10 whitespace-nowrap shadow-2xs">
-                                {item.category}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              {inlineEditingDishId === item.id ? (
-                                <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33] w-fit">
-                                  <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
-                                  <input
-                                    type="number"
-                                    value={inlineEditingPrice}
-                                    onChange={(e) => setInlineEditingPrice(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') handleQuickPriceChange(item.id, inlineEditingPrice);
-                                      if (e.key === 'Escape') setInlineEditingDishId(null);
-                                    }}
-                                    autoFocus
-                                    className="w-16 bg-transparent text-xs font-black text-stone-900 dark:text-white focus:outline-none"
-                                  />
+                              </td>
+                              <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                <div className="flex items-center justify-end gap-1.5">
                                   <button
                                     type="button"
-                                    onClick={() => handleQuickPriceChange(item.id, inlineEditingPrice)}
-                                    className="w-6 h-6 rounded-md bg-emerald-500 text-white flex items-center justify-center cursor-pointer active:scale-90"
-                                    title="Save price"
+                                    onClick={() => handleEditMenuItem(item)}
+                                    className={`w-8 h-8 rounded-xl transition-all cursor-pointer border flex items-center justify-center shadow-2xs active:scale-95 ${isBeingEdited
+                                      ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] shadow-md font-bold'
+                                      : 'bg-stone-200/90 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-white/10 dark:hover:bg-white/20 dark:text-neutral-200 dark:hover:text-white dark:border-white/10'
+                                      }`}
+                                    title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
                                   >
-                                    <Check size={12} className="stroke-[3]" />
+                                    <Edit2 size={13} className="stroke-[2.5]" />
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => setInlineEditingDishId(null)}
-                                    className="w-6 h-6 rounded-md bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-neutral-400 flex items-center justify-center cursor-pointer"
-                                    title="Cancel"
+                                    onClick={() => setDeleteTargetId(item.id)}
+                                    title="Delete Dish"
+                                    className="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                                   >
-                                    <X size={12} />
+                                    <Trash2 size={13} className="stroke-[2.5]" />
                                   </button>
                                 </div>
-                              ) : (
-                                <div className="flex items-center gap-1.5 w-fit">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleQuickPriceChange(item.id, Math.max(0, Number(item.price || 0) - 10))}
-                                    className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
-                                    title="Decrease price by ₹10"
-                                  >
-                                    -
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setInlineEditingDishId(item.id);
-                                      setInlineEditingPrice(String(item.price || 0));
-                                    }}
-                                    className="px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#E0FF33]/10 border border-stone-200 dark:border-white/10 font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] cursor-pointer flex items-center gap-1.5 group/price shadow-2xs"
-                                    title="Click to edit price directly"
-                                  >
-                                    <span>₹{item.price}</span>
-                                    <Edit2 size={10} className="opacity-40 group-hover/price:opacity-100 transition-opacity" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleQuickPriceChange(item.id, Number(item.price || 0) + 10)}
-                                    className="w-6 h-6 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 text-[10px] font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/5"
-                                    title="Increase price by ₹10"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5">
-                                {(item.isSatvik === true || item.isSatvik === undefined) && (
-                                  <span className="inline-flex items-center bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
-                                    Satvik
-                                  </span>
-                                )}
-                                {item.isDailySpecial && (
-                                  <span className="inline-flex items-center bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/20 text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-2xs">
-                                    Special
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditMenuItem(item)}
-                                  className={`w-8 h-8 rounded-xl transition-all cursor-pointer border flex items-center justify-center shadow-2xs active:scale-95 ${isBeingEdited
-                                    ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] shadow-md font-bold'
-                                    : 'bg-stone-200/90 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-white/10 dark:hover:bg-white/20 dark:text-neutral-200 dark:hover:text-white dark:border-white/10'
-                                    }`}
-                                  title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
-                                >
-                                  <Edit2 size={13} className="stroke-[2.5]" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setDeleteTargetId(item.id)}
-                                  title="Delete Dish"
-                                  className="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
-                                >
-                                  <Trash2 size={13} className="stroke-[2.5]" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* VIEW 4: CASH AUDIT */}
@@ -3608,11 +3599,10 @@ export default function OwnerView() {
                         >
                           <IconComp size={13} className={isActive ? 'text-white dark:text-black stroke-[2.5]' : 'text-stone-500 dark:text-neutral-400'} />
                           <span>{tab.label}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${
-                            isActive 
-                              ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs' 
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${isActive
+                              ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
                               : 'bg-stone-300 dark:bg-white/10 text-stone-800 dark:text-neutral-300'
-                          }`}>
+                            }`}>
                             {tab.count}
                           </span>
                         </button>
@@ -4041,20 +4031,18 @@ export default function OwnerView() {
                             const eta = rider.etaMins ?? rider.etaMinutes ?? Math.max(4, Math.round(rider.distanceKm * 4 + 3));
 
                             return (
-                              <div 
-                                key={rider.id || rIdx} 
-                                className={`flex items-center justify-between gap-3 p-3 rounded-xl transition-all ${
-                                  isTop 
-                                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/40 shadow-sm' 
+                              <div
+                                key={rider.id || rIdx}
+                                className={`flex items-center justify-between gap-3 p-3 rounded-xl transition-all ${isTop
+                                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/40 shadow-sm'
                                     : 'bg-white dark:bg-white/[0.03] border border-stone-200 dark:border-white/5 hover:bg-stone-100 dark:hover:bg-white/[0.06]'
-                                }`}
+                                  }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs shrink-0 ${
-                                    isTop 
-                                      ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33]' 
+                                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs shrink-0 ${isTop
+                                      ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33]'
                                       : 'bg-cyan-400/10 text-cyan-600 dark:text-cyan-300 border-cyan-400/30'
-                                  }`}>
+                                    }`}>
                                     {(rider.name || rider.displayName)?.slice(0, 2).toUpperCase() || 'RD'}
                                   </div>
                                   <div className="min-w-0">
@@ -4092,11 +4080,10 @@ export default function OwnerView() {
                                     }));
                                     setToast({ message: `Assigned to ${riderName} & Dispatched!`, type: 'success' });
                                   }}
-                                  className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 ${
-                                    isTop 
-                                      ? 'bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-black' 
+                                  className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 ${isTop
+                                      ? 'bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-black'
                                       : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white'
-                                  }`}
+                                    }`}
                                 >
                                   {isTop ? 'Assign (Best Match)' : 'Assign Rider'}
                                 </button>

@@ -5,23 +5,23 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1791106542.4720035,
-    "ast_hash": "0d8bd834d285034557af94e1565084d7",
+    "mtime": 1791139290.4098194,
+    "ast_hash": "87759d699c4c09936dde49b124b83257",
     "semantic_hash": ""
   },
   "src/components/ActiveOrderTrackingModal.jsx": {
-    "mtime": 1790913994.8976743,
-    "ast_hash": "ad3e34d29272a16672428195dec721a8",
+    "mtime": 1791108672.350722,
+    "ast_hash": "890c93e03eb37dbb85458c7acf3432ce",
     "semantic_hash": ""
   },
   "src/components/AuthModal.jsx": {
-    "mtime": 1790767179.2353356,
-    "ast_hash": "ebf8e05ef8d51477c37de0130f89231b",
+    "mtime": 1791139218.8150775,
+    "ast_hash": "a1f56e2fc58afee5f9504f60ae2c7751",
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
-    "mtime": 1790767664.510802,
-    "ast_hash": "d2f97c0bc8e67339edf8173bece93953",
+    "mtime": 1791163241.8252697,
+    "ast_hash": "a48fd7567713d2ff6a58fb4914779997",
     "semantic_hash": ""
   },
   "src/components/Loader.jsx": {
@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "src/components/OrderHistoryDrawer.jsx": {
-    "mtime": 1791107990.0680711,
-    "ast_hash": "f0aab4e385b19e9a3d0338a3e8b18914",
+    "mtime": 1791108250.807367,
+    "ast_hash": "5c4b2f0c14544c976a849525f4bb55b6",
     "semantic_hash": ""
   },
   "src/components/QuantityPickerSheet.jsx": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/components/RewardsModal.jsx": {
-    "mtime": 1788875182.4004896,
-    "ast_hash": "f74590e0ea6b314df98f0d283221fc60",
+    "mtime": 1791138249.436432,
+    "ast_hash": "28b9468b8fbb52da2c8d5efe56e2ce95",
     "semantic_hash": ""
   },
   "src/components/UnifiedSearchModal.jsx": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1791108035.1088164,
-    "ast_hash": "9d29c2177e0546108c29833b24da7917",
+    "mtime": 1791163528.9771523,
+    "ast_hash": "170a5c4b38c03ff3921eac67ece3d1db",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
@@ -175,28 +175,28 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1791108015.1856465,
-    "ast_hash": "21a853207ba8b50d5f537139b8822842",
+    "mtime": 1791109497.7781317,
+    "ast_hash": "82e8f7384131a045663a95ad6b3172ce",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
-    "mtime": 1791104800.8379033,
-    "ast_hash": "c1f69e1026c86c5d92fe047719721d0f",
+    "mtime": 1791110255.6689153,
+    "ast_hash": "dcd22c492f12d4582d830926ab231e65",
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1791107943.5911572,
-    "ast_hash": "98d25c62cc3ed306da000b59490ebb7b",
+    "mtime": 1791109794.1659884,
+    "ast_hash": "f26bef0b875973169c4c777fb7929f4f",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
-    "mtime": 1791107960.9058144,
-    "ast_hash": "95b422cd15d729b2f26273bd3ba4d236",
+    "mtime": 1791109803.0878081,
+    "ast_hash": "29edfab555779163aa8e38a92f3b5cf2",
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
-    "mtime": 1791107930.1976123,
-    "ast_hash": "de9660edd3567512bc9ffd8d1f1e3fd3",
+    "mtime": 1791109453.5186732,
+    "ast_hash": "8e2c7a8872153af02222b9d34181832c",
     "semantic_hash": ""
   },
   "vite.config.js": {
@@ -507,6 +507,36 @@
   "src/utils/lazyWithRetry.js": {
     "mtime": 1791106530.578183,
     "ast_hash": "9d12cea2a0240803673253105f7472bb",
+    "semantic_hash": ""
+  },
+  "src/components/FVRewardsDashboard.jsx": {
+    "mtime": 1791138757.852464,
+    "ast_hash": "351138f6ff6cb15db2a9b0aaf9c7a34d",
+    "semantic_hash": ""
+  },
+  "src/components/RoleBasedTutorialModal.jsx": {
+    "mtime": 1791139548.6191988,
+    "ast_hash": "ca312c55f43e2284308f18dbc1fd0eef",
+    "semantic_hash": ""
+  },
+  "src/services/fvWalletService.js": {
+    "mtime": 1791138222.8136742,
+    "ast_hash": "a2b99582eb8b2d20fb191ea7111059ce",
+    "semantic_hash": ""
+  },
+  "src/services/tutorialService.js": {
+    "mtime": 1791163275.551804,
+    "ast_hash": "92fa913bf8fff88ffe97ff8e60aecf96",
+    "semantic_hash": ""
+  },
+  "scripts/browser-cdp-test.mjs": {
+    "mtime": 1791163583.9241676,
+    "ast_hash": "dde31cf32f3be23c51937e8f175c9599",
+    "semantic_hash": ""
+  },
+  "scripts/test-role-and-tutorial.mjs": {
+    "mtime": 1791163298.9046845,
+    "ast_hash": "e5ce3a33e63bb2b32c0d9b422bf364a5",
     "semantic_hash": ""
   }
 }

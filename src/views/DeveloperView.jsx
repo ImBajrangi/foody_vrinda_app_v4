@@ -3457,10 +3457,10 @@ export default function DeveloperView({ setCurrentTab }) {
                                 }`}
                             >
                               {/* Top Row: User Identity & Action Icons */}
-                              <div className="flex items-center justify-between gap-3">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 w-full">
                                 <div
                                   onClick={() => setSelectedUserDetail(u)}
-                                  className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group/user"
+                                  className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 cursor-pointer group/user w-full sm:w-auto"
                                   title="Click to view detailed user profile"
                                 >
                                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
@@ -3524,78 +3524,127 @@ export default function DeveloperView({ setCurrentTab }) {
                                 </div>
 
                                 {/* Secondary Action Icons (Info + Block + Revoke + Signout + Delete) */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedUserDetail(u)}
-                                    title="View account metadata & permissions"
-                                    className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
-                                  >
-                                    <Info className="w-3 h-3" />
-                                  </button>
+                                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                                  <div className="relative group/btn">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedUserDetail(u)}
+                                      title="View account metadata & permissions"
+                                      aria-label="View account metadata & permissions"
+                                      className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer"
+                                    >
+                                      <Info className="w-3.5 h-3.5" />
+                                    </button>
+                                    <div className="absolute bottom-full mb-2 left-0 sm:left-1/2 sm:-translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-white dark:text-[#FAF7F2] text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                      Account Info
+                                      <div className="absolute top-full left-2.5 sm:left-1/2 sm:-translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                    </div>
+                                  </div>
 
                                   {role === 'grand_admin' ? (
-                                    <div
-                                      className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400/60 cursor-not-allowed"
-                                      title="Permanent protected account"
-                                    >
-                                      <Lock className="w-3 h-3" />
+                                    <div className="relative group/btn">
+                                      <div
+                                        className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-400/60 cursor-not-allowed"
+                                        title="Permanent protected account"
+                                        aria-label="Permanent protected account"
+                                      >
+                                        <Lock className="w-3.5 h-3.5" />
+                                      </div>
+                                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-amber-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                        Super Admin (Protected)
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                      </div>
                                     </div>
                                   ) : (
                                     <>
                                       {(u.isActive === false || u.is_active === false) ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => handleUnblockUser(u.id, u.displayName)}
-                                          title="Unblock user"
-                                          className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all active:scale-95 cursor-pointer"
-                                        >
-                                          <ShieldCheck className="w-3 h-3" />
-                                        </button>
+                                        <div className="relative group/btn">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUnblockUser(u.id, u.displayName)}
+                                            title="Unblock user"
+                                            aria-label="Unblock user"
+                                            className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+                                          >
+                                            <ShieldCheck className="w-3.5 h-3.5" />
+                                          </button>
+                                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-emerald-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                            Unblock User
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                          </div>
+                                        </div>
                                       ) : (
-                                        <button
-                                          type="button"
-                                          onClick={() => handleBlockUser(u.id, u.displayName)}
-                                          title="Block user account"
-                                          className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20 transition-all active:scale-95 cursor-pointer"
-                                        >
-                                          <ShieldAlert className="w-3 h-3" />
-                                        </button>
+                                        <div className="relative group/btn">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleBlockUser(u.id, u.displayName)}
+                                            title="Block user account"
+                                            aria-label="Block user account"
+                                            className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20 transition-all active:scale-95 cursor-pointer"
+                                          >
+                                            <ShieldAlert className="w-3.5 h-3.5" />
+                                          </button>
+                                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-orange-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                            Block User
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                          </div>
+                                        </div>
                                       )}
                                       {role !== 'customer' && role !== 'developer' && (
+                                        <div className="relative group/btn">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleRevokeUser(u.id, u.displayName)}
+                                            title="Revoke privileges (demote to customer)"
+                                            aria-label="Revoke privileges (demote to customer)"
+                                            className="p-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 transition-all active:scale-95 cursor-pointer"
+                                          >
+                                            <KeyRound className="w-3.5 h-3.5" />
+                                          </button>
+                                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-yellow-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                            Revoke Roles
+                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                          </div>
+                                        </div>
+                                      )}
+                                      <div className="relative group/btn">
                                         <button
                                           type="button"
-                                          onClick={() => handleRevokeUser(u.id, u.displayName)}
-                                          title="Revoke privileges (demote to customer)"
-                                          className="p-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 transition-all active:scale-95 cursor-pointer"
+                                          onClick={() => handleForceSignout(u.id, u.displayName)}
+                                          title="Force sign out"
+                                          aria-label="Force sign out"
+                                          className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all active:scale-95 cursor-pointer"
                                         >
-                                          <KeyRound className="w-3 h-3" />
+                                          <Zap className="w-3.5 h-3.5" />
                                         </button>
-                                      )}
-                                      <button
-                                        type="button"
-                                        onClick={() => handleForceSignout(u.id, u.displayName)}
-                                        title="Force sign out"
-                                        className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all active:scale-95 cursor-pointer"
-                                      >
-                                        <Zap className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
-                                        title="Delete user account"
-                                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-red-400 border border-rose-500/20 transition-all active:scale-95 cursor-pointer"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
+                                        <div className="absolute bottom-full mb-2 right-0 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-blue-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                          Force Sign Out
+                                          <div className="absolute top-full right-2.5 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                        </div>
+                                      </div>
+                                      <div className="relative group/btn">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteUser(u.id, u.displayName, u.email)}
+                                          title="Delete user account"
+                                          aria-label="Delete user account"
+                                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-red-400 border border-rose-500/20 transition-all active:scale-95 cursor-pointer"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <div className="absolute bottom-full mb-2 right-0 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 px-2.5 py-1 rounded-lg bg-stone-900 dark:bg-[#181617] text-rose-400 text-[10px] font-bold font-['Plus_Jakarta_Sans'] whitespace-nowrap w-max opacity-0 invisible group-hover/btn:opacity-100 group-hover/btn:visible group-focus-within/btn:opacity-100 group-focus-within/btn:visible transition-all duration-150 transform translate-y-1 group-hover/btn:translate-y-0 pointer-events-none z-50 shadow-xl border border-white/10 flex items-center justify-center">
+                                          Delete Account
+                                          <div className="absolute top-full right-2.5 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 border-4 border-transparent border-t-stone-900 dark:border-t-[#181617]" />
+                                        </div>
+                                      </div>
                                     </>
                                   )}
                                 </div>
                               </div>
 
                               {/* Bottom Row: Controls Toolbar (Role, Scope, Test Login) */}
-                              <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2 min-w-0 flex-1">
+                              <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 w-full">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0 flex-1 w-full">
                                   {/* Role Selector / Fixed Badge */}
                                   {role === 'grand_admin' ? (
                                     <div

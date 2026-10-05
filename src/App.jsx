@@ -10,6 +10,8 @@ import RewardsModal from './components/RewardsModal';
 import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import CompleteProfileModal from './components/CompleteProfileModal';
 import AppUpdateModal from './components/AppUpdateModal';
+import RoleBasedTutorialModal from './components/RoleBasedTutorialModal';
+import { isTutorialCompleted, getTutorialKeyForRole } from './services/tutorialService';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -31,7 +33,15 @@ import { SplashScreen } from '@capacitor/splash-screen';
 
 export default function App() {
 
-  const { userRole, isAuthorizedAdmin, isAuthorizedDeveloper } = useAuth();
+  const { 
+    user, 
+    userData, 
+    userRole, 
+    isAuthenticated, 
+    loading: authLoading, 
+    isAuthorizedAdmin, 
+    isAuthorizedDeveloper 
+  } = useAuth();
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio } = useAudioAlarm();
   const { isLight, theme } = useTheme();
@@ -95,12 +105,23 @@ export default function App() {
 
   // Modals Visibility
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState('login');
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  const handleToggleAuth = (mode = 'login') => {
+    if (typeof mode === 'string' && (mode === 'login' || mode === 'signup')) {
+      setAuthInitialMode(mode);
+      setIsAuthOpen(true);
+    } else {
+      setIsAuthOpen(prev => !prev);
+    }
+  };
 
   // Background Auto-Update Engine (Checks Supabase Cloud for new APK release)
   useEffect(() => {
@@ -132,6 +153,40 @@ export default function App() {
       clearTimeout(timer);
       window.removeEventListener('foody:check-app-update', handleManualCheck);
     };
+  }, []);
+
+  // Role-Based First-Time User Tutorial (Auto-tour on first authenticated login per role)
+  useEffect(() => {
+    // 1. Guard against unauthenticated state or pending auth resolution
+    if (authLoading) return;
+    if (!isAuthenticated) return;
+
+    // 2. Ensure real user ID and determined role exist
+    const uid = user?.id || userData?.id;
+    if (!uid || !userRole) return;
+
+    // 3. Strictly verify this role is eligible for a tutorial
+    const tutorialKey = getTutorialKeyForRole(userRole);
+    if (!tutorialKey) return; // Administrative or unresolved roles are not auto-assigned
+
+    // 4. Auto-launch tutorial only if not already completed by this user for this role
+    try {
+      if (!isTutorialCompleted(uid, userRole)) {
+        const timer = setTimeout(() => {
+          setIsTutorialOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch (_) {}
+  }, [authLoading, isAuthenticated, user?.id, userData?.id, userRole]);
+
+  // Replay Tutorial event listener (triggered from Settings / Profile / Help)
+  useEffect(() => {
+    const handleOpenTutorial = () => {
+      setIsTutorialOpen(true);
+    };
+    window.addEventListener('foody:open-tutorial', handleOpenTutorial);
+    return () => window.removeEventListener('foody:open-tutorial', handleOpenTutorial);
   }, []);
 
   // Active Customer Tracking Order ID (persisted across reloads)
@@ -170,7 +225,11 @@ export default function App() {
         setIsSearchOpen(true);
       }
     };
-    const handleOpenAuth = () => setIsAuthOpen(true);
+    const handleOpenAuth = (e) => {
+      const mode = e?.detail?.mode || (typeof e?.detail === 'string' ? e.detail : 'login');
+      setAuthInitialMode(mode);
+      setIsAuthOpen(true);
+    };
     const handleOpenCompleteProfile = (e) => {
       const isForced = e?.detail?.force === true;
       if (!isForced) {
@@ -357,6 +416,19 @@ export default function App() {
     setIsSearchOpen(false);
   };
 
+  // Capture referral code from URL parameters (?ref=... or ?referral=...)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const refCode = params.get('ref') || params.get('referral');
+      if (refCode && refCode.trim()) {
+        const cleanCode = refCode.trim().toUpperCase();
+        localStorage.setItem('foody_pending_referral_code', cleanCode);
+        window.dispatchEvent(new CustomEvent('foody:referral-detected', { detail: { code: cleanCode } }));
+      }
+    } catch (_) {}
+  }, []);
+
   return (
     <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
       <Header 
@@ -364,7 +436,8 @@ export default function App() {
         enableAudio={enableAudio}
         onToggleSearch={() => setIsSearchOpen(!isSearchOpen)}
         onToggleNotifications={() => setIsNotificationsOpen(!isNotificationsOpen)}
-        onToggleAuth={() => setIsAuthOpen(!isAuthOpen)}
+        onToggleAuth={handleToggleAuth}
+        onToggleRewards={() => setIsRewardsOpen(!isRewardsOpen)}
         onToggleOrders={() => {
           setTrackingOrderId(null);
           setCurrentTab('customer');
@@ -430,6 +503,7 @@ export default function App() {
       <AuthModal 
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        initialMode={authInitialMode}
       />
 
       <CompleteProfileModal
@@ -465,6 +539,11 @@ export default function App() {
         isOpen={isUpdateOpen}
         updateInfo={updateInfo}
         onClose={() => setIsUpdateOpen(false)}
+      />
+
+      <RoleBasedTutorialModal
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
       />
     </div>
   );

@@ -3,17 +3,17 @@ import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
-import { 
-  supabase, 
-  updateCloudOrderStatus, 
+import {
+  supabase,
+  updateCloudOrderStatus,
   fetchAvailableDeliveries,
   claimDeliveryOrder,
   claimOrderPickupAtomic,
   verifyDeliveryOtpAtomic,
-  subscribeCloudOrders, 
-  createCloudNotification, 
-  getOrderItemSummary, 
-  getOrderCustomerName, 
+  subscribeCloudOrders,
+  createCloudNotification,
+  getOrderItemSummary,
+  getOrderCustomerName,
   updateCloudUser,
   updateUserOnlineStatus,
   getRiderCashLedger,
@@ -129,13 +129,13 @@ export default function TransportView() {
 
         const now = Date.now();
         const timeDiff = now - lastBroadcastTime;
-        const hasMovedSignificantly = !lastCoords || 
+        const hasMovedSignificantly = !lastCoords ||
           (Math.abs(coords.lat - lastCoords.lat) > 0.0003 || Math.abs(coords.lng - lastCoords.lng) > 0.0003);
 
         if (timeDiff > 30000 || (timeDiff > 10000 && hasMovedSignificantly)) {
           lastBroadcastTime = now;
           lastCoords = coords;
-          updateUserOnlineStatus(riderId, true, coords).catch(() => {});
+          updateUserOnlineStatus(riderId, true, coords).catch(() => { });
         }
       },
       (err) => {
@@ -423,7 +423,44 @@ export default function TransportView() {
       group.addLayer(riderMarker);
     }
 
-    // 4. Seamless Continuous Driving Road Polyline
+    // 4. Seamless Continuous Driving Road Polyline & Upper Parabolic Connectors (Uber Style)
+    const generateWalkingPath = (start, end, curvature = 0.32) => {
+      if (!start || !end) return [];
+      const [lat1, lng1] = start;
+      const [lat2, lng2] = end;
+
+      const dLat = lat2 - lat1;
+      const dLng = lng2 - lng1;
+      const dist = Math.hypot(dLat, dLng);
+      if (dist === 0) return [start, end];
+
+      const midLat = (lat1 + lat2) / 2;
+      const midLng = (lng1 + lng2) / 2;
+
+      let normLat = -dLng / dist;
+      let normLng = dLat / dist;
+
+      if (normLat < 0) {
+        normLat = -normLat;
+        normLng = -normLng;
+      }
+
+      const arcHeight = dist * curvature;
+      const controlLat = midLat + normLat * arcHeight + (Math.abs(dLng) < 0.0002 ? arcHeight * 0.3 : 0);
+      const controlLng = midLng + normLng * arcHeight;
+
+      const points = [];
+      const steps = 24;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const invT = 1 - t;
+        const lat = invT * invT * lat1 + 2 * invT * t * controlLat + t * t * lat2;
+        const lng = invT * invT * lng1 + 2 * invT * t * controlLng + t * t * lng2;
+        points.push([lat, lng]);
+      }
+      return points;
+    };
+
     let currentRouteCoords = [
       [shopLat, shopLng],
       [destLat, destLng]
@@ -451,20 +488,83 @@ export default function TransportView() {
     });
     group.addLayer(routeLine);
 
+    // Parabolic Start Connector (Kitchen -> Road Start)
+    const startConnectorCasing = L.polyline([], {
+      color: '#121011',
+      weight: 8.5,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(startConnectorCasing);
+
+    const startConnector = L.polyline([], {
+      color: '#E0FF33',
+      weight: 4.5,
+      dashArray: '1, 16',
+      className: 'animated-walking-dots',
+      opacity: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(startConnector);
+
+    // Parabolic Destination Connector (Road End -> Doorstep)
+    const destConnectorCasing = L.polyline([], {
+      color: '#121011',
+      weight: 8.5,
+      dashArray: '1, 16',
+      className: 'casing-parabolic-dots',
+      opacity: 0.98,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(destConnectorCasing);
+
+    const destConnector = L.polyline([], {
+      color: '#E0FF33',
+      weight: 4.5,
+      dashArray: '1, 16',
+      className: 'animated-walking-dots',
+      opacity: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
+    });
+    group.addLayer(destConnector);
+
     fetch(`https://router.project-osrm.org/route/v1/driving/${shopLng},${shopLat};${destLng},${destLat}?overview=full&geometries=geojson`)
       .then(res => res.json())
       .then(data => {
         if (data?.routes?.[0]?.geometry?.coordinates) {
           const rawLatLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
           if (rawLatLngs.length > 0) {
-            const fullRoute = [
-              [shopLat, shopLng],
-              ...rawLatLngs,
-              [destLat, destLng]
-            ];
+            const roadStart = rawLatLngs[0];
+            const roadEnd = rawLatLngs[rawLatLngs.length - 1];
 
-            routeCasing.setLatLngs(fullRoute);
-            routeLine.setLatLngs(fullRoute);
+            routeCasing.setLatLngs(rawLatLngs);
+            routeLine.setLatLngs(rawLatLngs);
+
+            const isStartOffset = Math.hypot(roadStart[0] - shopLat, roadStart[1] - shopLng) > 0.0001;
+            if (isStartOffset) {
+              const startPath = generateWalkingPath([shopLat, shopLng], roadStart);
+              startConnectorCasing.setLatLngs(startPath);
+              startConnector.setLatLngs(startPath);
+            } else {
+              startConnectorCasing.setLatLngs([]);
+              startConnector.setLatLngs([]);
+            }
+
+            const isEndOffset = Math.hypot(roadEnd[0] - destLat, roadEnd[1] - destLng) > 0.0001;
+            if (isEndOffset) {
+              const destPath = generateWalkingPath(roadEnd, [destLat, destLng]);
+              destConnectorCasing.setLatLngs(destPath);
+              destConnector.setLatLngs(destPath);
+            } else {
+              destConnectorCasing.setLatLngs([]);
+              destConnector.setLatLngs([]);
+            }
 
             if (mapInstanceRef.current && routeGroupRef.current) {
               mapInstanceRef.current.fitBounds(routeGroupRef.current.getBounds(), {
@@ -617,8 +717,8 @@ export default function TransportView() {
     if (!isValid) {
       setOtpModalState(prev => ({
         ...prev,
-        error: currentType === 'pickup' 
-          ? 'Invalid Kitchen Pickup OTP. Check screen with staff.' 
+        error: currentType === 'pickup'
+          ? 'Invalid Kitchen Pickup OTP. Check screen with staff.'
           : 'Invalid Customer Delivery OTP. Check with customer.',
         shake: true
       }));
@@ -685,7 +785,7 @@ export default function TransportView() {
         await claimOrderPickupAtomic(orderId, riderId, enteredOtp);
       }
       await updateCloudOrderStatus(orderId, 'out_for_delivery', riderPayload);
-      
+
       setOrders(prev => prev.map(o => o.id === orderId ? {
         ...o,
         status: 'out_for_delivery',
@@ -863,17 +963,15 @@ export default function TransportView() {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Card 1: COD Cash in Hand */}
-            <div className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${
-              cashCheck.isExceeded 
-                ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' 
+            <div className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
                 : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
-            }`}>
+              }`}>
               {/* Row 1: Icon + Title on Left, Status Badge on Right */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${
-                    cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
+                    }`}>
                     <Banknote size={19} strokeWidth={2.5} />
                   </div>
                   <div className="min-w-0">
@@ -911,8 +1009,8 @@ export default function TransportView() {
 
               {/* Progress Bar */}
               <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${cashCheck.isExceeded ? 'bg-rose-500' : 'bg-amber-500 dark:bg-[#E0FF33]'}`} 
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${cashCheck.isExceeded ? 'bg-rose-500' : 'bg-amber-500 dark:bg-[#E0FF33]'}`}
                   style={{ width: `${cashPercent}%` }}
                 />
               </div>
@@ -933,9 +1031,8 @@ export default function TransportView() {
                   </div>
                 </div>
 
-                <span className={`text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap ${
-                  trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
-                }`}>
+                <span className={`text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap ${trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                  }`}>
                   {trustScore >= 750 ? 'Top Sarathi' : 'Active Partner'}
                 </span>
               </div>
@@ -957,8 +1054,8 @@ export default function TransportView() {
 
               {/* Progress Bar */}
               <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500"
                   style={{ width: `${trustPercent}%` }}
                 />
               </div>
@@ -976,7 +1073,7 @@ export default function TransportView() {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
-                Sarathi Delivery Fleet
+                Delivery Fleet
               </h1>
               <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 {orders.length} Active {orders.length === 1 ? 'Trip' : 'Trips'}
@@ -989,21 +1086,38 @@ export default function TransportView() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
-          {/* Status Controls: Equal 2-column grid on mobile, inline on desktop */}
-          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+          {/* Action Controls: 2-column balanced grid on mobile, inline flex on desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
             {/* Rider Duty Presence Toggle */}
             <button
               type="button"
               onClick={toggleRiderDuty}
-              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-                isRiderOnDuty
+              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRiderOnDuty
                   ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
                   : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-              }`}
+                }`}
               title="Toggle Rider Duty Availability"
             >
               <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <span className="truncate">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+              <span className="whitespace-nowrap font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+            </button>
+
+            {/* Download Full Delivery Audit Report CSV */}
+            <button
+              type="button"
+              onClick={() => {
+                const success = exportDeliveryAuditReportCSV(orders);
+                if (success) {
+                  setToast({ message: 'Delivery Audit Report downloaded!', type: 'success' });
+                } else {
+                  setToast({ message: 'No orders available to export', type: 'info' });
+                }
+              }}
+              className="h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 transition-all cursor-pointer apple-tap-target shrink-0 shadow-xs"
+              title="Download CSV Delivery Audit Trail Report"
+            >
+              <Download size={14} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
+              <span className="whitespace-nowrap font-['Outfit']">Export CSV</span>
             </button>
           </div>
 
@@ -1022,7 +1136,7 @@ export default function TransportView() {
             <button
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
-                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
+                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
                 : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
@@ -1030,77 +1144,67 @@ export default function TransportView() {
               <span className="whitespace-nowrap font-['Outfit']">Carto HUD</span>
             </button>
           </div>
-
-          {/* Download Full Delivery Audit Report CSV */}
-          <button
-            type="button"
-            onClick={() => {
-              const success = exportDeliveryAuditReportCSV(orders);
-              if (success) {
-                setToast({ message: 'Delivery Audit Report downloaded!', type: 'success' });
-              } else {
-                setToast({ message: 'No orders available to export', type: 'info' });
-              }
-            }}
-            className="h-10 sm:h-11 px-3.5 sm:px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 transition-all cursor-pointer apple-tap-target shrink-0 shadow-xs"
-            title="Download CSV Delivery Audit Trail Report"
-          >
-            <Download size={14} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
-            <span className="whitespace-nowrap font-['Outfit']">Export Audit CSV</span>
-          </button>
         </div>
       </div>
 
       {/* 3. SARATHI FLEET OPERATIONS SEGMENTED TABS (Independent Fleet) */}
       <div className="space-y-3">
-        {/* Tab Switcher Pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-inner">
+        {/* Tab Switcher Pills (Matching Signature Foody Vrinda Theme) */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 overflow-x-auto no-scrollbar shadow-inner">
           <button
             onClick={() => setRiderTab('active')}
-            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
-              riderTab === 'active'
-                ? 'bg-cyan-500 text-black font-black shadow-xs'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
-            }`}
+            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
+                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+              }`}
           >
             <Truck size={14} />
-            <span>Today's Orders ({activeTrips.length})</span>
+            <span>Today's Orders</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              {activeTrips.length}
+            </span>
           </button>
 
           <button
             onClick={() => setRiderTab('upcoming')}
-            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
-              riderTab === 'upcoming'
-                ? 'bg-amber-500 text-stone-950 font-black shadow-xs'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
-            }`}
+            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
+                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+              }`}
           >
             <Clock size={14} />
-            <span>Upcoming ({upcomingPickups.length})</span>
+            <span>Upcoming</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              {upcomingPickups.length}
+            </span>
           </button>
 
           <button
             onClick={() => setRiderTab('completed')}
-            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
-              riderTab === 'completed'
-                ? 'bg-emerald-500 text-black font-black shadow-xs'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
-            }`}
+            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
+                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+              }`}
           >
             <CheckCircle2 size={14} />
-            <span>Completed Today ({completedToday.length})</span>
+            <span>Completed Today</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              {completedToday.length}
+            </span>
           </button>
 
           <button
             onClick={() => setRiderTab('all')}
-            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 font-['Outfit'] ${
-              riderTab === 'all'
-                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black shadow-xs'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white'
-            }`}
+            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
+                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+              }`}
           >
             <List size={14} />
-            <span>Order History ({orders.length})</span>
+            <span>Order History</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              {orders.length}
+            </span>
           </button>
         </div>
       </div>
@@ -1360,7 +1464,7 @@ export default function TransportView() {
                             {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
                           </p>
                         </div>
-                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30' : 'bg-cyan-400/20 text-cyan-800 dark:text-cyan-300 border border-cyan-400/30'
+                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30' : 'bg-[#E0FF33]/20 text-stone-900 dark:text-[#E0FF33] border border-[#E0FF33]/30'
                           }`}>
                           {isReadyOrder ? 'Ready' : 'In Transit'}
                         </span>
@@ -1400,8 +1504,8 @@ export default function TransportView() {
             </div>
           ) : (
             <div className={`grid gap-5 ${filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
-                filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-                  'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+                'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               }`}>
               {filteredOrders.map(order => {
                 const shopName = allShops.find(s => s.id === order.shopId)?.name || order.shopName || 'Kitchen';
@@ -1414,7 +1518,7 @@ export default function TransportView() {
                     className="bg-white dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/40 dark:hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
                     {/* Status Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-[#E0FF33]'}`} />
 
                     <div className="space-y-3.5">
                       {/* Header: Order ID & Status Pill */}
@@ -1437,9 +1541,9 @@ export default function TransportView() {
                         ) : (
                           <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
                             ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                            : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'
+                            : 'bg-[#E0FF33]/15 text-stone-900 dark:text-[#E0FF33] border-[#E0FF33]/30'
                             }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-cyan-500'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-[#E0FF33]'}`} />
                             <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
                           </span>
                         )}
@@ -1468,10 +1572,10 @@ export default function TransportView() {
 
                           <div className="flex items-center justify-between text-xs text-stone-700 dark:text-neutral-300 pt-0.5">
                             <span className="font-semibold text-stone-800 dark:text-neutral-300 flex items-center gap-1.5">
-                              <Navigation className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                              <Navigation className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
                               <span>Pickup Distance:</span>
                             </span>
-                            <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-mono font-bold text-[11px] border border-cyan-500/20">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-800 dark:text-[#E0FF33] font-mono font-bold text-[11px] border border-amber-500/20 dark:border-[#E0FF33]/20">
                               {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km away` : 'Nearby Vrindavan'}
                             </span>
                           </div>
@@ -1612,19 +1716,17 @@ export default function TransportView() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md apple-overlay"
         >
           <div
-            className={`w-full max-w-md bg-stone-900 border border-white/10 text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${
-              otpModalState.shake ? 'animate-shake' : ''
-            }`}
+            className={`w-full max-w-md bg-stone-900 border border-white/10 text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${otpModalState.shake ? 'animate-shake' : ''
+              }`}
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 pb-4 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-                    otpModalState.type === 'pickup'
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${otpModalState.type === 'pickup'
                       ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
                       : 'bg-[#E0FF33]/15 border-[#E0FF33]/30 text-[#E0FF33]'
-                  }`}
+                    }`}
                 >
                   {otpModalState.type === 'pickup' ? (
                     <Store className="w-6 h-6" />
@@ -1635,11 +1737,10 @@ export default function TransportView() {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                        otpModalState.type === 'pickup'
+                      className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${otpModalState.type === 'pickup'
                           ? 'bg-amber-500/20 text-amber-300'
                           : 'bg-[#E0FF33]/20 text-[#E0FF33]'
-                      }`}
+                        }`}
                     >
                       {otpModalState.type === 'pickup' ? 'Stage 1: Kitchen Pickup' : 'Stage 2: Customer Handover'}
                     </span>
@@ -1694,7 +1795,7 @@ export default function TransportView() {
             {/* 📍 GEOFENCE PROXIMITY VERIFICATION (Prevents Remote Doorstep Fraud) */}
             {otpModalState.type === 'delivery' && (() => {
               const geofence = checkDeliveryGeofence(
-                riderCoords, 
+                riderCoords,
                 otpModalState.order.deliveryCoordinates || otpModalState.order.delivery_coordinates
               );
               if (!geofence.hasCoordinates) return null;
@@ -1754,13 +1855,12 @@ export default function TransportView() {
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
                     disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
                     autoComplete="one-time-code"
-                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${
-                      otpModalState.isSuccess
+                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${otpModalState.isSuccess
                         ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
                         : digit
-                        ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                        : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                    }`}
+                          ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                          : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                      }`}
                   />
                 ))}
               </div>
@@ -1788,11 +1888,10 @@ export default function TransportView() {
                 type="button"
                 onClick={() => verifyAndSubmitOtp()}
                 disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
-                className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${
-                  otpModalState.type === 'pickup'
+                className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${otpModalState.type === 'pickup'
                     ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
                     : 'bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] shadow-[#E0FF33]/20'
-                }`}
+                  }`}
               >
                 {otpModalState.isSubmitting ? (
                   <>

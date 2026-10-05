@@ -17,6 +17,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { nativeNotify } from '../services/nativeNotificationService';
+import { initUserWallet, getWalletDashboard } from '../services/fvWalletService';
 
 const AuthContext = createContext(null);
 
@@ -48,6 +49,7 @@ export const isAdminUser = (email = '', role = '') => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [userData, setUserData] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_user_data');
@@ -358,6 +360,7 @@ export function AuthProvider({ children }) {
         }
 
         const currentSbUser = data?.session?.user || null;
+        setSession(data?.session || null);
 
         const savedData = localStorage.getItem('foody_user_data');
         let parsedSaved = null;
@@ -463,9 +466,10 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const u = session.user;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      setSession(newSession || null);
+      if (newSession?.user) {
+        const u = newSession.user;
         const email = u.email || '';
         const cleanEmail = email.toLowerCase().trim();
         const cleanId = String(u.id).trim();
@@ -535,6 +539,16 @@ export function AuthProvider({ children }) {
             window.dispatchEvent(new CustomEvent('foody-complete-profile', { detail: userProfile }));
           }, 450);
         }
+      } else if (_event === 'SIGNED_OUT') {
+        setSession(null);
+        const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
+        setUser(guestUser);
+        setUserData({ role: 'customer', isAnonymous: true, displayName: 'Guest' });
+        setUserRole('customer');
+        setCurrentUserShopId(null);
+        setCurrentUserShopIds([]);
+        setCurrentShopName(null);
+        localStorage.removeItem('foody_user_data');
       }
     });
 
@@ -744,6 +758,16 @@ export function AuthProvider({ children }) {
       };
       await createCloudUser(userProfile).catch(() => { });
       await recordLoggedInUser(userProfile).catch(() => { });
+      
+      // Auto-provision user wallet & bind referral code if user signed up via referral link
+      const pendingRef = typeof window !== 'undefined' ? localStorage.getItem('foody_pending_referral_code') : null;
+      await initUserWallet(data.user.id, pendingRef, 'direct').catch((err) => {
+        console.warn('[AuthContext] Wallet initialization on signup notice:', err);
+      });
+      if (pendingRef) {
+        try { localStorage.removeItem('foody_pending_referral_code'); } catch (_) {}
+      }
+
       nativeNotify.notifyLogin(cleanName);
     }
     return data;
@@ -839,6 +863,7 @@ export function AuthProvider({ children }) {
     try {
       await supabase.auth.signOut();
     } catch (e) { }
+    setSession(null);
     setImpersonatedShopId(null);
     setImpersonatedRole(null);
     setUserRole('customer');
@@ -968,13 +993,15 @@ export function AuthProvider({ children }) {
     ? (allShops.length > 0 ? allShops.map(s => s.id) : (currentUserShopIds.length > 0 ? currentUserShopIds : ['shop-vrinda-main']))
     : currentUserShopIds;
 
-  // Strictly check if the user has authenticated with credentials / phone lookup
+  // Strictly check if the user has authenticated with credentials / active Supabase session
   const isAuthenticated = Boolean(
-    (user && !user.isAnonymous && (user.email || user.phone || user.phoneNumber) && user.email !== 'Guest' && user.displayName !== 'Guest') ||
-    (userData && userData.isLoggedInUser === true && (userData.phone || userData.email || userData.id))
+    (session && session.user && !session.user.is_anonymous) ||
+    (user && !user.isAnonymous && !String(user.uid || '').startsWith('guest-') && (user.id || user.email || user.phone || user.phoneNumber) && user.email !== 'Guest' && user.displayName !== 'Guest') ||
+    (userData && userData.isLoggedInUser === true && !userData.isAnonymous && (userData.phone || userData.email || userData.id))
   );
 
   const value = {
+    session,
     user,
     currentUser: user,
     userData,

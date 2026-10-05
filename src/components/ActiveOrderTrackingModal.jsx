@@ -287,10 +287,47 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Continuous Route Polyline & Direct Walking Pedestrian Connectors
-    const generateWalkingPath = (start, end) => {
+    // 5. Continuous Route Polyline & Upper Parabolic Arc Walking Pedestrian Connectors (Uber Style)
+    const generateWalkingPath = (start, end, curvature = 0.32) => {
       if (!start || !end) return [];
-      return [start, end];
+      const [lat1, lng1] = start;
+      const [lat2, lng2] = end;
+
+      const dLat = lat2 - lat1;
+      const dLng = lng2 - lng1;
+      const dist = Math.hypot(dLat, dLng);
+      if (dist === 0) return [start, end];
+
+      // Midpoint
+      const midLat = (lat1 + lat2) / 2;
+      const midLng = (lng1 + lng2) / 2;
+
+      // Perpendicular normal vector (-dLng, dLat)
+      let normLat = -dLng / dist;
+      let normLng = dLat / dist;
+
+      // Force upper parabola orientation (crest arches towards positive latitude / upwards like Uber)
+      if (normLat < 0) {
+        normLat = -normLat;
+        normLng = -normLng;
+      }
+
+      // Calculate arc deflection
+      const arcHeight = dist * curvature;
+      const controlLat = midLat + normLat * arcHeight + (Math.abs(dLng) < 0.0002 ? arcHeight * 0.3 : 0);
+      const controlLng = midLng + normLng * arcHeight;
+
+      // Sample 24 quadratic Bézier points along the parabolic curve
+      const points = [];
+      const steps = 24;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const invT = 1 - t;
+        const lat = invT * invT * lat1 + 2 * invT * t * controlLat + t * t * lat2;
+        const lng = invT * invT * lng1 + 2 * invT * t * controlLng + t * t * lng2;
+        points.push([lat, lng]);
+      }
+      return points;
     };
 
     let currentRouteCoords = [

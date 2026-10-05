@@ -1457,7 +1457,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       </div>
 
       {/* HORIZONTAL CATEGORY PILL CHIPS (Sticky Navigation Bar) */}
-      <div className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2 mb-4 sm:mb-6 bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 transition-all">
+      <div data-tour="food-categories" className="sticky-category-bar sticky top-0 z-20 -mx-3 px-3 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-2 mb-4 sm:mb-6 bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 transition-all">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
           {categories.map((cat) => {
             const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();

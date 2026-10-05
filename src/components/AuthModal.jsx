@@ -34,7 +34,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Volume2
+  Volume2,
+  Gamepad2
 } from 'lucide-react';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
@@ -62,7 +63,7 @@ const DESK_CONFIG = {
   },
   delivery: {
     icon: Truck,
-    title: 'Sarathi Delivery Fleet',
+    title: 'Delivery Fleet',
     subtitle: 'Real-time rider dispatch, GPS routing & COD audit',
     badge: 'Sarathi Rider',
     color: '#06B6D4',
@@ -89,12 +90,13 @@ const DESK_CONFIG = {
   }
 };
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const {
     user,
     userData,
     userRole,
     actualRole,
+    isAuthenticated: authContextIsAuthenticated,
     isGrandAdmin,
     isAuthorizedAdmin,
     isAuthorizedDeveloper,
@@ -117,6 +119,17 @@ export default function AuthModal({ isOpen, onClose }) {
   const [isSignup, setIsSignup] = useState(false);
   const [signupStep, setSignupStep] = useState(1); // 1: Identity | 2: Credentials | 3: Delivery
   const [showStaffSignIn, setShowStaffSignIn] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialMode === 'signup') {
+        setIsSignup(true);
+        setSignupStep(1);
+      } else {
+        setIsSignup(false);
+      }
+    }
+  }, [isOpen, initialMode]);
 
   // Form fields
   const [phoneInput, setPhoneInput] = useState('');
@@ -239,13 +252,16 @@ export default function AuthModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const isAuthenticated = Boolean(
-    user &&
-    !user.isAnonymous &&
-    (user.email || user.phone || user.phoneNumber) &&
-    user.email !== 'Guest' &&
-    user.email !== 'Local User' &&
-    user.displayName !== 'Guest' &&
-    userData?.isLoggedInUser
+    authContextIsAuthenticated || (
+      user &&
+      !user.isAnonymous &&
+      !String(user.uid || '').startsWith('guest-') &&
+      (user.email || user.phone || user.phoneNumber) &&
+      user.email !== 'Guest' &&
+      user.email !== 'Local User' &&
+      user.displayName !== 'Guest' &&
+      userData?.isLoggedInUser
+    )
   );
 
   const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
@@ -619,14 +635,13 @@ export default function AuthModal({ isOpen, onClose }) {
                     const effectiveDisplayRole = actualRole || userData?.role || userRole;
                     const isMasterAdmin = effectiveDisplayRole === 'grand_admin' || isGrandAdmin;
                     return (
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${
-                        isMasterAdmin ? 'bg-amber-500/20 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/40 dark:border-amber-400/40' :
-                          effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                            effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
-                              effectiveDisplayRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
-                                effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
-                                  'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
-                      }`}>
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${isMasterAdmin ? 'bg-amber-500/20 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/40 dark:border-amber-400/40' :
+                        effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
+                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
+                            effectiveDisplayRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
+                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
+                        }`}>
                         {isMasterAdmin ? 'Grand Admin' :
                           effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
                             effectiveDisplayRole === 'delivery' ? 'Rider Sarathi' :
@@ -906,11 +921,10 @@ export default function AuthModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                      isLight 
-                        ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black' 
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${isLight
+                      ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black'
+                      : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
                   >
                     <Sun size={12} className={isLight ? "text-amber-500" : "opacity-70"} />
                     <span>Light</span>
@@ -918,11 +932,10 @@ export default function AuthModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                      isDark 
-                        ? 'bg-[#E0FF33] text-black shadow-xs font-black' 
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${isDark
+                      ? 'bg-[#E0FF33] text-black shadow-xs font-black'
+                      : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
                   >
                     <Moon size={12} className={isDark ? "text-black" : "opacity-70"} />
                     <span>Dark</span>
@@ -976,6 +989,28 @@ export default function AuthModal({ isOpen, onClose }) {
                 <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
               </button>
 
+              {/* App Guide & Interactive Tutorial */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleAnimatedClose();
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('foody:open-tutorial'));
+                  }, 200);
+                }}
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4 h-4 text-amber-500 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <Gamepad2 className="w-4 h-4" />
+                  </div>
+                  <span>App Guide & Role Onboarding</span>
+                </div>
+                <span className="text-[10px] text-amber-800 dark:text-[#E0FF33] font-black bg-amber-500/15 dark:bg-[#E0FF33]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/30">
+                  Replay Tutorial
+                </span>
+              </button>
+
               <a
                 href={SOCIAL_LINKS.whatsappChannel}
                 target="_blank"
@@ -985,8 +1020,8 @@ export default function AuthModal({ isOpen, onClose }) {
                 <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.055-1.928-.485-1.528-.636-2.505-2.203-2.582-2.305-.077-.102-.624-.827-.624-1.577 0-.75.385-1.12.522-1.272.137-.154.298-.192.399-.192.1 0 .201.002.289.006.092.004.215-.035.335.253.127.304.433 1.053.471 1.13.038.077.064.167.013.268-.051.102-.077.167-.154.256-.077.09-.161.2-.23.268-.077.077-.157.161-.067.315.09.154.398.657.854 1.063.587.522 1.082.684 1.236.76.154.077.244.064.334-.038.09-.102.385-.448.487-.601.103-.154.205-.128.346-.077.141.051.897.423 1.051.5.154.077.256.115.295.179.039.064.039.372-.105.777z"/>
-                      <path d="M12 2C6.477 2 2 6.477 2 12c0 1.891.527 3.66 1.443 5.176L2 22l4.985-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.05c-1.637 0-3.153-.487-4.432-1.328l-.317-.209-2.962.83.83-2.887-.229-.335A8.006 8.006 0 014 12c0-4.411 3.589-8.05 8-8.05s8 3.639 8 8.05-3.589 8.05-8 8.05z"/>
+                      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.055-1.928-.485-1.528-.636-2.505-2.203-2.582-2.305-.077-.102-.624-.827-.624-1.577 0-.75.385-1.12.522-1.272.137-.154.298-.192.399-.192.1 0 .201.002.289.006.092.004.215-.035.335.253.127.304.433 1.053.471 1.13.038.077.064.167.013.268-.051.102-.077.167-.154.256-.077.09-.161.2-.23.268-.077.077-.157.161-.067.315.09.154.398.657.854 1.063.587.522 1.082.684 1.236.76.154.077.244.064.334-.038.09-.102.385-.448.487-.601.103-.154.205-.128.346-.077.141.051.897.423 1.051.5.154.077.256.115.295.179.039.064.039.372-.105.777z" />
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 1.891.527 3.66 1.443 5.176L2 22l4.985-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.05c-1.637 0-3.153-.487-4.432-1.328l-.317-.209-2.962.83.83-2.887-.229-.335A8.006 8.006 0 014 12c0-4.411 3.589-8.05 8-8.05s8 3.639 8 8.05-3.589 8.05-8 8.05z" />
                     </svg>
                   </div>
                   <span>Official WhatsApp Channel</span>
@@ -1006,7 +1041,7 @@ export default function AuthModal({ isOpen, onClose }) {
                     </span>
                   </div>
                   <span className="text-[9px] font-black tracking-wider text-amber-800 dark:text-[#E0FF33] px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30">
-                    {isAuthorizedDeveloper ? 'DEVELOPER ROOT' : 'ADMIN CONTROL'}
+                    {isAuthorizedDeveloper ? 'DEVELOPER' : 'ADMIN CONTROL'}
                   </span>
                 </div>
 
@@ -1023,8 +1058,8 @@ export default function AuthModal({ isOpen, onClose }) {
                           handleAnimatedClose();
                         }}
                         className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${d.fullWidth
-                            ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-amber-500/15 dark:from-[#E0FF33]/15 via-amber-500/5 dark:via-[#E0FF33]/5 to-transparent border-amber-500/40 dark:border-[#E0FF33]/40 text-amber-900 dark:text-[#E0FF33] hover:border-amber-500 dark:hover:border-[#E0FF33]'
-                            : ''
+                          ? 'col-span-2 justify-center py-2.5 bg-gradient-to-r from-amber-500/15 dark:from-[#E0FF33]/15 via-amber-500/5 dark:via-[#E0FF33]/5 to-transparent border-amber-500/40 dark:border-[#E0FF33]/40 text-amber-900 dark:text-[#E0FF33] hover:border-amber-500 dark:hover:border-[#E0FF33]'
+                          : ''
                           } ${isCurrent
                             ? 'bg-amber-500 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-[0_2px_12px_rgba(224,255,51,0.3)] font-black'
                             : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-zinc-300 border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/20 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5'
@@ -1042,34 +1077,27 @@ export default function AuthModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* 6. Dual-Action Bottom Bar: Switch Account & Sign Out (No truncation, easy tap target) */}
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <button
-                type="button"
-                onClick={() => setShowLoginView(true)}
-                className="group p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-stone-50 dark:hover:bg-[#252223] border border-stone-200 dark:border-white/10 hover:border-amber-400/50 dark:hover:border-[#E0FF33]/30 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
-              >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 group-hover:bg-amber-500 group-hover:text-white dark:group-hover:bg-[#E0FF33] dark:group-hover:text-black text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 transition-all shadow-xs">
-                  <LogIn className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] whitespace-nowrap leading-tight">Switch Account</div>
-                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">Change user</div>
-                </div>
-              </button>
-
+            {/* 6. Single Clean Full-Width Sign Out Button */}
+            <div className="mt-1">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="group p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/50 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center gap-2.5 cursor-pointer text-left active:scale-[0.98] shadow-xs"
+                className="w-full p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/60 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center justify-between cursor-pointer text-left active:scale-[0.98] shadow-xs group"
               >
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-100 dark:bg-white/5 group-hover:bg-rose-500 text-stone-600 dark:text-zinc-400 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
-                  <LogOut className="w-4 h-4" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 group-hover:bg-rose-500 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
+                    <LogOut className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] whitespace-nowrap leading-tight">
+                      Sign Out
+                    </div>
+                    <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">
+                      End session securely
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] whitespace-nowrap leading-tight">Sign Out</div>
-                  <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">End session</div>
-                </div>
+                <ChevronRight className="w-4 h-4 text-stone-400 dark:text-zinc-500 group-hover:text-rose-500 transition-colors" />
               </button>
             </div>
 
@@ -1145,8 +1173,8 @@ export default function AuthModal({ isOpen, onClose }) {
                         setSuccessMsg('');
                       }}
                       className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-[10px] sm:text-xs font-bold transition-all text-center select-none cursor-pointer ${isActive
-                          ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-extrabold'
-                          : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                        ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-extrabold'
+                        : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                         }`}
                     >
                       <Icon className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#E0FF33]" />
@@ -1164,8 +1192,8 @@ export default function AuthModal({ isOpen, onClose }) {
                   type="button"
                   onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'phone'
-                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
-                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
+                    : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                 >
                   <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33] shrink-0" />
@@ -1176,8 +1204,8 @@ export default function AuthModal({ isOpen, onClose }) {
                   type="button"
                   onClick={() => { setLoginMethod('email'); setError(''); setSuccessMsg(''); }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'email'
-                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
-                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
+                    : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                 >
                   <Mail className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
@@ -1202,10 +1230,10 @@ export default function AuthModal({ isOpen, onClose }) {
                           if (s.step < signupStep) setSignupStep(s.step);
                         }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-['Outfit'] transition-all ${signupStep === s.step
-                            ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-md scale-105'
-                            : signupStep > s.step
-                              ? 'bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 cursor-pointer'
-                              : 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-zinc-500 border border-stone-300 dark:border-white/5'
+                          ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-md scale-105'
+                          : signupStep > s.step
+                            ? 'bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 cursor-pointer'
+                            : 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-zinc-500 border border-stone-300 dark:border-white/5'
                           }`}
                       >
                         {signupStep > s.step ? '✓' : s.step}

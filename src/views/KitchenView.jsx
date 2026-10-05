@@ -260,7 +260,7 @@ export default function KitchenView() {
     try {
       await updateCloudOrderStatus(orderId, 'preparing');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'preparing' } : o));
-      
+
       // Parallel Early Rider Dispatch: Notify nearest active riders immediately so food is never delivered cold!
       try {
         await createCloudNotification({
@@ -395,15 +395,15 @@ export default function KitchenView() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
-          {/* Operations Utility Strip: 3-column balanced grid on mobile, horizontal flex on desktop */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto">
+          {/* Operations Utility Strip: 2-column balanced grid on mobile, horizontal flex on desktop */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             {/* Realtime Kitchen Presence Toggle */}
             <button
               type="button"
               onClick={handleToggleKitchenOnline}
               className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isShopOnline
-                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
                 }`}
               title="Toggle Live Kitchen Availability"
             >
@@ -421,11 +421,10 @@ export default function KitchenView() {
                 setIsRushMode(prev => !prev);
                 showToast(!isRushMode ? "Rush Mode ON: Customer ETA extended by +15 mins" : "Rush Mode OFF: Normal prep flow restored", !isRushMode ? "warning" : "info");
               }}
-              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${
-                isRushMode
+              className={`h-10 sm:h-11 px-2 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRushMode
                   ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
                   : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
-              }`}
+                }`}
               title="Extend prep time by +15 mins during rush hours"
             >
               <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
@@ -452,7 +451,7 @@ export default function KitchenView() {
         <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
           <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
             <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
-            Switch Kitchen (Developer Only):
+            Switch Kitchen:
           </span>
           <SearchableDropdown
             value={currentUserShopId || allShops[0]?.id}
@@ -510,10 +509,9 @@ export default function KitchenView() {
                       </p>
                     </div>
 
-                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${
-                        isNew
-                          ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
-                          : ['ready_for_pickup', 'ready'].includes(order.status)
+                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
+                        ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
+                        : ['ready_for_pickup', 'ready'].includes(order.status)
                           ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
                           : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
                       }`}>
@@ -528,8 +526,8 @@ export default function KitchenView() {
                         {isNew
                           ? 'New Order'
                           : ['ready_for_pickup', 'ready'].includes(order.status)
-                          ? 'Ready For Pickup'
-                          : 'Preparing'}
+                            ? 'Ready For Pickup'
+                            : 'Preparing'}
                       </span>
                     </span>
                   </div>
@@ -645,8 +643,8 @@ export default function KitchenView() {
                             <button
                               onClick={() => toggleItemReady(order.id, item.id)}
                               className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer apple-tap-target flex-shrink-0 ${item.ready
-                                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-300'
+                                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-300'
                                 }`}
                             >
                               <Check size={11} strokeWidth={item.ready ? 3 : 2} />
