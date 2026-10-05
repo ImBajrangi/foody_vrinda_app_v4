@@ -1243,14 +1243,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
         {/* Global Shop Offline / Closed Warning Indicator */}
         {!isShopOpen && (
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/30 flex items-center justify-between gap-2 sm:gap-3 text-red-700 dark:text-red-300 text-xs shadow-sm overflow-hidden">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center justify-between gap-2 sm:gap-3 text-stone-700 dark:text-zinc-300 text-xs shadow-xs overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-              <span className="font-bold truncate text-[11px] sm:text-xs">
-                {activeShop?.name || 'Kitchen'} is currently Closed
+              <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 animate-pulse shrink-0" />
+              <span className="font-bold truncate text-[11px] sm:text-xs text-stone-900 dark:text-white">
+                {activeShop?.name || 'Kitchen'} is currently closed
               </span>
             </div>
-            <span className="text-[10px] font-bold text-red-800 dark:text-red-300 bg-red-100 dark:bg-red-950/50 px-2 py-0.5 rounded-full border border-red-500/25 shrink-0 whitespace-nowrap">
+            <span className="text-[10px] font-bold text-stone-600 dark:text-zinc-400 bg-stone-200/80 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-stone-300/50 dark:border-white/5 shrink-0 whitespace-nowrap font-['Outfit']">
               {activeShop?.openingTime || '08:00'} – {activeShop?.closingTime || '22:30'}
             </span>
           </div>
@@ -1426,9 +1426,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           </div>
 
                           {/* Right: Only relevant indicators (Closed notice if closed, and clean selection checkmark) */}
-                          <div className="flex items-center gap-2.5 shrink-0">
+                          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
                             {!isOpen && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10px] font-semibold tracking-wide font-['Outfit']">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-200/50 dark:bg-[#1E1B1C] text-stone-500 dark:text-zinc-400 border border-stone-300/60 dark:border-white/10 text-[10px] font-bold tracking-wider uppercase font-['Outfit'] shadow-2xs">
                                 Closed
                               </span>
                             )}
@@ -2061,13 +2061,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               {/* KITCHEN CLOSED / OFFLINE NOTICE BANNER */}
               {!isShopOpen && (
-                <div className="p-3.5 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs space-y-1 animate-fade-in shadow-inner">
-                  <div className="flex items-center gap-2 font-black text-red-100">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                    <span className="text-sm font-['Outfit']">Kitchen Currently Offline / Closed</span>
+                <div className="p-3.5 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 text-xs space-y-1 animate-fade-in shadow-xs">
+                  <div className="flex items-center gap-2 font-black text-stone-900 dark:text-white">
+                    <span className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse"></span>
+                    <span className="text-sm font-['Outfit']">Kitchen Currently Closed</span>
                   </div>
-                  <p className="text-[11px] text-red-300/90 leading-relaxed font-medium">
-                    Operating Schedule: <strong className="text-white">{activeShop?.openingTime || '08:00 AM'} – {activeShop?.closingTime || '10:30 PM'}</strong>. Order placement is temporarily paused.
+                  <p className="text-[11px] text-stone-500 dark:text-zinc-400 leading-relaxed font-medium">
+                    Operating Schedule: <strong className="text-stone-900 dark:text-white">{activeShop?.openingTime || '08:00 AM'} – {activeShop?.closingTime || '10:30 PM'}</strong>. Order placement is temporarily paused.
                   </p>
                 </div>
               )}

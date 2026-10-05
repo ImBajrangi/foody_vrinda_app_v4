@@ -356,9 +356,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             <div className="p-3 sm:p-4 pt-1 sm:pt-3.5 flex items-center gap-2.5 sm:gap-3">
               {/* Integrated Search Input Capsule */}
               <div className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-100/90 dark:bg-[#181617] border border-stone-200/90 dark:border-white/15 rounded-2xl px-3 sm:px-3.5 flex items-center gap-2.5 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/20 focus-within:bg-white dark:focus-within:bg-[#141213] transition-all shadow-inner">
-                <div className="w-7 h-7 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
-                  <Search size={15} strokeWidth={2.6} />
-                </div>
+                <Search size={18} strokeWidth={2.2} className="text-amber-600 dark:text-[#E0FF33] shrink-0 pointer-events-none" />
 
                 <input
                   ref={searchInputRef}
@@ -531,28 +529,48 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
             {/* ─── EMPTY STATE (When no results found) ─── */}
             {!loading && searchTerm.trim() && totalResultsCount === 0 && (
-              <div className="py-12 text-center space-y-3">
-                <div className="w-14 h-14 mx-auto rounded-full bg-stone-200 dark:bg-white/5 flex items-center justify-center text-stone-400 dark:text-zinc-500">
-                  <Search size={24} />
+              <div className="py-10 sm:py-14 text-center px-4">
+                {/* Visual Anchor with subtle glowing aura */}
+                <div className="relative w-16 h-16 mx-auto mb-4">
+                  <div className="absolute inset-0 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 blur-xl"></div>
+                  <div className="relative w-16 h-16 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-md">
+                    <Search size={24} strokeWidth={2.2} />
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-black text-stone-900 dark:text-white">No exact dishes or kitchens found</h4>
-                  <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
-                    Try searching for &quot;Thali&quot;, &quot;Paneer&quot;, &quot;Kheer&quot;, &quot;Pizza&quot; or check spelling.
+
+                <div className="max-w-sm mx-auto space-y-1">
+                  <h4 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                    No results for &ldquo;{searchTerm}&rdquo;
+                  </h4>
+                  <p className="text-xs sm:text-sm text-stone-500 dark:text-zinc-400 leading-relaxed font-medium">
+                    We couldn&apos;t find matching items. Check spelling or try popular categories:
                   </p>
                 </div>
-                <div className="pt-2 flex justify-center gap-2">
+
+                {/* Popular Cravings Quick Chips */}
+                <div className="pt-4 flex flex-wrap items-center justify-center gap-2 max-w-md mx-auto">
+                  {['Thali', 'Paneer', 'Sweets', 'Pizza', 'Chai'].map((query) => (
+                    <button
+                      key={query}
+                      onClick={() => handleSelectSuggestion(query.toLowerCase())}
+                      className="px-4 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 text-xs font-semibold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-[#E0FF33] transition-all cursor-pointer shadow-2xs active:scale-95"
+                    >
+                      {query}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Clear search CTA */}
+                <div className="pt-4">
                   <button
-                    onClick={() => handleSelectSuggestion('thali')}
-                    className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#E0FF33] text-xs font-bold border border-amber-500/20"
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setResults({ shops: [], menuItems: [], orders: [] });
+                    }}
+                    className="text-xs font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-[#E0FF33] transition-colors cursor-pointer inline-flex items-center gap-1 hover:underline"
                   >
-                    🍛 Try Thalis
-                  </button>
-                  <button
-                    onClick={() => handleSelectSuggestion('paneer')}
-                    className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#E0FF33] text-xs font-bold border border-amber-500/20"
-                  >
-                    🧀 Try Paneer
+                    Clear search query
                   </button>
                 </div>
               </div>

@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "src/components/Header.jsx": {
-    "mtime": 1791163241.8252697,
-    "ast_hash": "a48fd7567713d2ff6a58fb4914779997",
+    "mtime": 1791165963.920077,
+    "ast_hash": "de81dc8b1daeb06d0daeb3195a6e606a",
     "semantic_hash": ""
   },
   "src/components/Loader.jsx": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "src/components/UnifiedSearchModal.jsx": {
-    "mtime": 1790767563.8490717,
-    "ast_hash": "2d4b6df3d4e5182c83a31263035e2466",
+    "mtime": 1791166902.3819587,
+    "ast_hash": "d595d716969fea80c7277bc22261b337",
     "semantic_hash": ""
   },
   "src/components/ui/AMPMToggle.jsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1791109497.7781317,
-    "ast_hash": "82e8f7384131a045663a95ad6b3172ce",
+    "mtime": 1791166839.4759228,
+    "ast_hash": "542a8ae5c371f5772b150cc1d20ff821",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {

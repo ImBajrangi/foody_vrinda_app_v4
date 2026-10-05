@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
-import { Bell, Search, ShoppingBag, Sun, Moon, Coins, LogIn, User } from 'lucide-react';
+import { Bell, Search, ShoppingBag, Sun, Moon, Coins, LogIn } from 'lucide-react';
 import { getCachedWallet, subscribeUserWallet } from '../services/fvWalletService';
 
 export default function Header({ 
@@ -193,7 +193,12 @@ export default function Header({
                 </div>
               </button>
               
-              <div className="min-w-0 flex-1">
+              <button 
+                onClick={handleProfileClick}
+                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target"
+                title="Profile & Settings"
+                aria-label="Open Profile and Settings"
+              >
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-amber-700 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
                     वृन्दोपनिषद्
@@ -203,10 +208,10 @@ export default function Header({
                     {getLocationLabel()}
                   </span>
                 </div>
-                <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-['Outfit'] truncate">
+                <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-['Outfit'] truncate group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                   {getDisplayName()}
                 </h2>
-              </div>
+              </button>
             </div>
           )}
         </div>
@@ -405,27 +410,6 @@ export default function Header({
                 
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 dark:bg-[#E0FF33] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm animate-pulse"></span>
-                )}
-              </button>
-
-              {/* Profile / Account Trigger (Shown ONLY when Authenticated) */}
-              <button 
-                onClick={handleProfileClick}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95 overflow-hidden"
-                title="Profile / Account"
-                aria-label="Profile and Settings"
-              >
-                {userAvatar ? (
-                  <img 
-                    src={userAvatar} 
-                    alt={getDisplayName()} 
-                    referrerPolicy="no-referrer"
-                    crossOrigin="anonymous"
-                    className="w-full h-full object-cover" 
-                    onError={() => setHeaderAvatarError(true)}
-                  />
-                ) : (
-                  <User size={17} className="text-amber-600 dark:text-[#E0FF33]" />
                 )}
               </button>
             </div>
