@@ -401,8 +401,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_adversarial_security",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "test-adversarial-security.js"
     },
     {
@@ -412,8 +412,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_colors",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "colors"
     },
     {
@@ -424,8 +424,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_pass",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "pass()"
     },
     {
@@ -436,8 +436,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_fail",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "fail()"
     },
     {
@@ -448,8 +448,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_section",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "section()"
     },
     {
@@ -460,8 +460,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_adversarial_security_runadversarialtestsuite",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "runadversarialtestsuite()"
     },
     {
@@ -471,8 +471,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "scripts_test_database_sync",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "test-database-sync.js"
     },
     {
@@ -482,8 +482,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "scripts_test_database_sync_colors",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "colors"
     },
     {
@@ -494,8 +494,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_pass",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "pass()"
     },
     {
@@ -506,8 +506,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_fail",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "fail()"
     },
     {
@@ -518,8 +518,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_section",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "section()"
     },
     {
@@ -530,8 +530,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_test_database_sync_runtestsuite",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "runtestsuite()"
     },
     {
@@ -646,7 +646,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "test-role-and-tutorial.mjs"
     },
     {
@@ -657,7 +657,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_mockstorage",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "mockstorage"
     },
     {
@@ -668,7 +668,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_negativeroles",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "negativeroles"
     },
     {
@@ -679,7 +679,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_deliveryaliases",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "deliveryaliases"
     },
     {
@@ -690,7 +690,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_restaurantaliases",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "restaurantaliases"
     },
     {
@@ -701,7 +701,7 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_milestonedesc",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "milestonedesc"
     },
     {
@@ -712,8 +712,86 @@
       "_origin": "ast",
       "id": "scripts_test_role_and_tutorial_progressafterstep1",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "progressafterstep1"
+    },
+    {
+      "label": "test-wallet-multiplex.mjs",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "test-wallet-multiplex.mjs"
+    },
+    {
+      "label": "createdChannels",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_createdchannels",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "createdchannels"
+    },
+    {
+      "label": "removedChannels",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_removedchannels",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "removedchannels"
+    },
+    {
+      "label": "mockSupabase",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_mocksupabase",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "mocksupabase"
+    },
+    {
+      "label": "activeWalletSubscriptions",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_activewalletsubscriptions",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "activewalletsubscriptions"
+    },
+    {
+      "label": "subscribeUserWalletTest()",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L39",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_subscribeuserwallettest",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "subscribeuserwallettest()"
+    },
+    {
+      "label": "unsubA",
+      "file_type": "code",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "scripts_test_wallet_multiplex_unsuba",
+      "community": 30,
+      "community_name": "test-wallet-multiplex.mjs",
+      "norm_label": "unsuba"
     },
     {
       "label": "test_push_workflow.mjs",
@@ -954,8 +1032,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "app.jsx"
     },
     {
@@ -965,8 +1043,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_app_customerview",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "customerview"
     },
     {
@@ -976,8 +1054,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_app_kitchenview",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "kitchenview"
     },
     {
@@ -987,8 +1065,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_app_transportview",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "transportview"
     },
     {
@@ -998,8 +1076,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_app_ownerview",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "ownerview"
     },
     {
@@ -1009,8 +1087,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_app_developerview",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "developerview"
     },
     {
@@ -1021,8 +1099,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_app_app",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "app()"
     },
     {
@@ -1078,8 +1156,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_appupdatemodal",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "appupdatemodal.jsx"
     },
     {
@@ -1090,8 +1168,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_appupdatemodal_appupdatemodal",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "appupdatemodal()"
     },
     {
@@ -1101,8 +1179,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_authmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "authmodal.jsx"
     },
     {
@@ -1112,8 +1190,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "src_components_authmodal_desk_config",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "desk_config"
     },
     {
@@ -1124,8 +1202,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_authmodal_authmodal",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "authmodal()"
     },
     {
@@ -1135,8 +1213,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_completeprofilemodal",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal.jsx"
     },
     {
@@ -1147,8 +1225,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_completeprofilemodal_completeprofilemodal",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "completeprofilemodal()"
     },
     {
@@ -1158,8 +1236,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_errorboundary",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": "errorboundary.jsx"
     },
     {
@@ -1171,8 +1249,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": "errorboundary"
     },
     {
@@ -1183,8 +1261,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_constructor",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".constructor()"
     },
     {
@@ -1195,8 +1273,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_getderivedstatefromerror",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".getderivedstatefromerror()"
     },
     {
@@ -1207,8 +1285,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_componentdidcatch",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".componentdidcatch()"
     },
     {
@@ -1219,8 +1297,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_ischunkloaderror",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".ischunkloaderror()"
     },
     {
@@ -1231,8 +1309,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_handlereset",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".handlereset()"
     },
     {
@@ -1243,8 +1321,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_errorboundary_errorboundary_render",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 20,
+      "community_name": "ErrorBoundary",
       "norm_label": ".render()"
     },
     {
@@ -1255,7 +1333,7 @@
       "_origin": "ast",
       "id": "src_components_fvrewardsdashboard",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "fvrewardsdashboard.jsx"
     },
     {
@@ -1267,7 +1345,7 @@
       "_origin": "ast",
       "id": "src_components_fvrewardsdashboard_fvrewardsdashboard",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "fvrewardsdashboard()"
     },
     {
@@ -1437,8 +1515,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_reviewmodal",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal.jsx"
     },
     {
@@ -1448,8 +1526,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_reviewmodal_chef_tags",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "chef_tags"
     },
     {
@@ -1459,8 +1537,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_reviewmodal_rider_tags",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "rider_tags"
     },
     {
@@ -1471,8 +1549,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_reviewmodal_reviewmodal",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "reviewmodal()"
     },
     {
@@ -1483,7 +1561,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "rewardsmodal.jsx"
     },
     {
@@ -1495,7 +1573,7 @@
       "_origin": "ast",
       "id": "src_components_rewardsmodal_rewardsmodal",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "rewardsmodal()"
     },
     {
@@ -1506,7 +1584,7 @@
       "_origin": "ast",
       "id": "src_components_rolebasedtutorialmodal",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "rolebasedtutorialmodal.jsx"
     },
     {
@@ -1518,7 +1596,7 @@
       "_origin": "ast",
       "id": "src_components_rolebasedtutorialmodal_rolebasedtutorialmodal",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "rolebasedtutorialmodal()"
     },
     {
@@ -1551,8 +1629,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "unauthorizedaccessscreen.jsx"
     },
     {
@@ -1563,8 +1641,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_unauthorizedaccessscreen_unauthorizedaccessscreen",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "unauthorizedaccessscreen()"
     },
     {
@@ -1790,8 +1868,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "nativetimepicker.jsx"
     },
     {
@@ -1802,8 +1880,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_nativetimepicker_nativetimepicker",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "nativetimepicker()"
     },
     {
@@ -2006,8 +2084,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinksbar.jsx"
     },
     {
@@ -2018,8 +2096,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_socialicon",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "socialicon()"
     },
     {
@@ -2030,8 +2108,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_components_ui_sociallinksbar_sociallinksbar",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinksbar()"
     },
     {
@@ -2076,7 +2154,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "presetdishes.js"
     },
     {
@@ -2087,7 +2165,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_default_preset_dishes",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "default_preset_dishes"
     },
     {
@@ -2098,7 +2176,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_activepresetdishes",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "activepresetdishes"
     },
     {
@@ -2108,8 +2186,8 @@
       "source_location": "L403",
       "_origin": "ast",
       "id": "src_constants_presetdishes_preset_dishes",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "preset_dishes"
     },
     {
@@ -2120,7 +2198,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_preset_categories",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "preset_categories"
     },
     {
@@ -2132,7 +2210,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_getpresetdishes",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "getpresetdishes()"
     },
     {
@@ -2144,7 +2222,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_loadpresetdishes",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "loadpresetdishes()"
     },
     {
@@ -2156,7 +2234,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_getpresetdishbyid",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "getpresetdishbyid()"
     },
     {
@@ -2168,7 +2246,7 @@
       "_origin": "ast",
       "id": "src_constants_presetdishes_findpresetbykeyword",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "findpresetbykeyword()"
     },
     {
@@ -2178,8 +2256,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_constants_sociallinks",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "sociallinks.js"
     },
     {
@@ -2189,8 +2267,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_links",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "social_links"
     },
     {
@@ -2200,8 +2278,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_constants_sociallinks_social_channels",
-      "community": 21,
-      "community_name": "NativeNotificationService",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "social_channels"
     },
     {
@@ -2211,8 +2289,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_context_authcontext",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authcontext.jsx"
     },
     {
@@ -2222,8 +2300,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_context_authcontext_authcontext",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authcontext"
     },
     {
@@ -2233,8 +2311,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_dev_emails",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authorized_dev_emails"
     },
     {
@@ -2244,8 +2322,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_context_authcontext_authorized_admin_emails",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "authorized_admin_emails"
     },
     {
@@ -2256,8 +2334,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isdeveloperuser",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "isdeveloperuser()"
     },
     {
@@ -2268,8 +2346,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_isadminuser",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "isadminuser()"
     },
     {
@@ -2292,8 +2370,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_context_authcontext_useauth",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "useauth()"
     },
     {
@@ -2496,8 +2574,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm",
-      "community": 5,
-      "community_name": "supabase.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "useaudioalarm.js"
     },
     {
@@ -2508,8 +2586,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_getaudiocontext",
-      "community": 5,
-      "community_name": "supabase.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getaudiocontext()"
     },
     {
@@ -2520,8 +2598,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_useaudioalarm_useaudioalarm",
-      "community": 5,
-      "community_name": "supabase.js",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "useaudioalarm()"
     },
     {
@@ -2531,8 +2609,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_usebackhandler",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler.js"
     },
     {
@@ -2543,8 +2621,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_hooks_usebackhandler_usebackhandler",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "usebackhandler()"
     },
     {
@@ -2634,8 +2712,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_addressservice",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "addressservice.js"
     },
     {
@@ -2646,8 +2724,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_getlocalcache",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "getlocalcache()"
     },
     {
@@ -2658,8 +2736,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_setlocalcache",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "setlocalcache()"
     },
     {
@@ -2670,8 +2748,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_addressservice_fetchaddresssuggestions",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "fetchaddresssuggestions()"
     },
     {
@@ -2681,8 +2759,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_appupdateservice",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "appupdateservice.js"
     },
     {
@@ -2692,8 +2770,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_services_appupdateservice_current_app_version",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "current_app_version"
     },
     {
@@ -2705,8 +2783,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": "appupdateservice"
     },
     {
@@ -2717,8 +2795,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_constructor",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": ".constructor()"
     },
     {
@@ -2729,8 +2807,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_checkforupdates",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": ".checkforupdates()"
     },
     {
@@ -2741,8 +2819,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_startupdate",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": ".startupdate()"
     },
     {
@@ -2753,8 +2831,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_appupdateservice_appupdateservice_publishrelease",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": ".publishrelease()"
     },
     {
@@ -2764,8 +2842,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_services_backhandlerservice",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "backhandlerservice.js"
     },
     {
@@ -2775,8 +2853,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_services_backhandlerservice_backhandlers",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "backhandlers"
     },
     {
@@ -2787,8 +2865,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_initkeyboardlisteners",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "initkeyboardlisteners()"
     },
     {
@@ -2799,8 +2877,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_handlekeyboardorinputdismiss",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "handlekeyboardorinputdismiss()"
     },
     {
@@ -2811,8 +2889,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_registerbackhandler",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "registerbackhandler()"
     },
     {
@@ -2823,8 +2901,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_unregisterbackhandler",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "unregisterbackhandler()"
     },
     {
@@ -2835,8 +2913,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_hasactivebackhandlers",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "hasactivebackhandlers()"
     },
     {
@@ -2847,8 +2925,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_executetopbackhandler",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "executetopbackhandler()"
     },
     {
@@ -2859,8 +2937,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_shouldallowappexit",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "shouldallowappexit()"
     },
     {
@@ -2871,8 +2949,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_backhandlerservice_resetexitpresstimer",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "resetexitpresstimer()"
     },
     {
@@ -2883,7 +2961,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "fvwalletservice.js"
     },
     {
@@ -2894,7 +2972,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_fv_exchange_rate",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "fv_exchange_rate"
     },
     {
@@ -2905,7 +2983,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_fv_points_per_rupee",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "fv_points_per_rupee"
     },
     {
@@ -2917,7 +2995,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_ptstorupees",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "ptstorupees()"
     },
     {
@@ -2929,7 +3007,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_rupeestopts",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "rupeestopts()"
     },
     {
@@ -2940,8 +3018,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getcachedwallet",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 38,
+      "community_name": "fvWalletService.js",
       "norm_label": "getcachedwallet()"
     },
     {
@@ -2953,7 +3031,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_setcachedwallet",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "setcachedwallet()"
     },
     {
@@ -2965,7 +3043,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_inituserwallet",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "inituserwallet()"
     },
     {
@@ -2977,7 +3055,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getwalletdashboard",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "getwalletdashboard()"
     },
     {
@@ -2989,7 +3067,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_redeemfvpoints",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "redeemfvpoints()"
     },
     {
@@ -3001,7 +3079,7 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getcommunitylinks",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "getcommunitylinks()"
     },
     {
@@ -3013,31 +3091,42 @@
       "_origin": "ast",
       "id": "src_services_fvwalletservice_getfvleaderboard",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "getfvleaderboard()"
+    },
+    {
+      "label": "activeWalletSubscriptions",
+      "file_type": "code",
+      "source_file": "src/services/fvWalletService.js",
+      "source_location": "L215",
+      "_origin": "ast",
+      "id": "src_services_fvwalletservice_activewalletsubscriptions",
+      "community": 38,
+      "community_name": "fvWalletService.js",
+      "norm_label": "activewalletsubscriptions"
     },
     {
       "label": "subscribeUserWallet()",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L217",
+      "source_location": "L220",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_subscribeuserwallet",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "subscribeuserwallet()"
     },
     {
       "label": "generateWhatsAppShareUrl()",
       "file_type": "code",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L245",
+      "source_location": "L292",
       "_callable": true,
       "_origin": "ast",
       "id": "src_services_fvwalletservice_generatewhatsappshareurl",
       "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community_name": "fvWalletService.js",
       "norm_label": "generatewhatsappshareurl()"
     },
     {
@@ -3465,7 +3554,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "tutorialservice.js"
     },
     {
@@ -3476,7 +3565,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_tutorial_versions",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "tutorial_versions"
     },
     {
@@ -3487,7 +3576,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_role_tutorial_data",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "role_tutorial_data"
     },
     {
@@ -3499,7 +3588,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_getcanonicalrole",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "getcanonicalrole()"
     },
     {
@@ -3511,7 +3600,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_gettutorialkeyforrole",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "gettutorialkeyforrole()"
     },
     {
@@ -3523,7 +3612,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_gettutorialstoragekey",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "gettutorialstoragekey()"
     },
     {
@@ -3535,7 +3624,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_gettutorialprogress",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "gettutorialprogress()"
     },
     {
@@ -3547,7 +3636,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_istutorialcompleted",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "istutorialcompleted()"
     },
     {
@@ -3559,7 +3648,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_marktutorialcompleted",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "marktutorialcompleted()"
     },
     {
@@ -3571,7 +3660,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_savetutorialprogress",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "savetutorialprogress()"
     },
     {
@@ -3583,7 +3672,7 @@
       "_origin": "ast",
       "id": "src_services_tutorialservice_resettutorial",
       "community": 29,
-      "community_name": "App.jsx",
+      "community_name": "test-role-and-tutorial.mjs",
       "norm_label": "resettutorial()"
     },
     {
@@ -3604,8 +3693,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_supabase_supabase",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "supabase"
     },
     {
@@ -3628,7 +3717,7 @@
       "_origin": "ast",
       "id": "src_supabase_istablemissing",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "istablemissing()"
     },
     {
@@ -3639,8 +3728,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_marktablemissing",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "marktablemissing()"
     },
     {
@@ -3651,8 +3740,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_istableerror",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "istableerror()"
     },
     {
@@ -3733,8 +3822,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_resolvedishcutout",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "resolvedishcutout()"
     },
     {
@@ -3812,8 +3901,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcacheditem",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "getcacheditem()"
     },
     {
@@ -3848,8 +3937,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getrecommendedriders",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "getrecommendedriders()"
     },
     {
@@ -3968,8 +4057,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getcloudmenus",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "getcloudmenus()"
     },
     {
@@ -3979,8 +4068,8 @@
       "source_location": "L766",
       "_origin": "ast",
       "id": "src_supabase_allowed_order_transitions",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "allowed_order_transitions"
     },
     {
@@ -3991,8 +4080,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_isvalidstatustransition",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "isvalidstatustransition()"
     },
     {
@@ -4003,8 +4092,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_calculateauthoritativeordertotals",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "calculateauthoritativeordertotals()"
     },
     {
@@ -4051,8 +4140,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updatecloudorderstatus",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "updatecloudorderstatus()"
     },
     {
@@ -4519,7 +4608,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcachedpresets",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "getcachedpresets()"
     },
     {
@@ -4531,7 +4620,7 @@
       "_origin": "ast",
       "id": "src_supabase_savecachedpresets",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "savecachedpresets()"
     },
     {
@@ -4543,7 +4632,7 @@
       "_origin": "ast",
       "id": "src_supabase_getcloudpresets",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "getcloudpresets()"
     },
     {
@@ -4555,7 +4644,7 @@
       "_origin": "ast",
       "id": "src_supabase_createcloudpreset",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "createcloudpreset()"
     },
     {
@@ -4567,7 +4656,7 @@
       "_origin": "ast",
       "id": "src_supabase_updatecloudpreset",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "updatecloudpreset()"
     },
     {
@@ -4579,7 +4668,7 @@
       "_origin": "ast",
       "id": "src_supabase_deletecloudpreset",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "deletecloudpreset()"
     },
     {
@@ -4591,7 +4680,7 @@
       "_origin": "ast",
       "id": "src_supabase_subscribecloudpresets",
       "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community_name": "presetDishes.js",
       "norm_label": "subscribecloudpresets()"
     },
     {
@@ -4602,8 +4691,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudmenuitem",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "createcloudmenuitem()"
     },
     {
@@ -4614,8 +4703,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_updatecloudmenuitem",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "updatecloudmenuitem()"
     },
     {
@@ -4626,8 +4715,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_deletecloudmenuitem",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "deletecloudmenuitem()"
     },
     {
@@ -4674,8 +4763,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_markcloudordercashcollected",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 5,
+      "community_name": "supabase.js",
       "norm_label": "markcloudordercashcollected()"
     },
     {
@@ -4779,8 +4868,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_getliveuserroleandprofile",
-      "community": 38,
-      "community_name": "AuthContext.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "getliveuserroleandprofile()"
     },
     {
@@ -4923,8 +5012,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_createcloudreview",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "createcloudreview()"
     },
     {
@@ -5163,8 +5252,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_supabase_recordmultistaffreview",
-      "community": 0,
-      "community_name": "CustomerView.jsx",
+      "community": 32,
+      "community_name": "ReviewModal.jsx",
       "norm_label": "recordmultistaffreview()"
     },
     {
@@ -5268,8 +5357,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_lazywithretry",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "lazywithretry.js"
     },
     {
@@ -5280,8 +5369,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_utils_lazywithretry_lazywithretry",
-      "community": 29,
-      "community_name": "App.jsx",
+      "community": 0,
+      "community_name": "CustomerView.jsx",
       "norm_label": "lazywithretry()"
     },
     {
@@ -5395,8 +5484,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_views_ownerview",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "ownerview.jsx"
     },
     {
@@ -5407,8 +5496,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "src_views_ownerview_ownerview",
-      "community": 35,
-      "community_name": "OwnerView.jsx",
+      "community": 22,
+      "community_name": "DeveloperView.jsx",
       "norm_label": "ownerview()"
     },
     {
@@ -7996,6 +8085,72 @@
       "_origin": "ast",
       "source": "scripts_test_role_and_tutorial",
       "target": "src_services_tutorialservice_tutorial_versions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_activewalletsubscriptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_createdchannels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_mocksupabase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_removedchannels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_subscribeuserwallettest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/test-wallet-multiplex.mjs",
+      "source_location": "L102",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_test_wallet_multiplex",
+      "target": "scripts_test_wallet_multiplex_unsuba",
       "confidence_score": 1.0
     },
     {
@@ -14516,6 +14671,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
+      "source_location": "L215",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "src_services_fvwalletservice",
+      "target": "src_services_fvwalletservice_activewalletsubscriptions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/fvWalletService.js",
       "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
@@ -14538,7 +14704,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L245",
+      "source_location": "L292",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14648,7 +14814,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L217",
+      "source_location": "L220",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice",
@@ -14732,7 +14898,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/services/fvWalletService.js",
-      "source_location": "L231",
+      "source_location": "L243",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_services_fvwalletservice_subscribeuserwallet",
@@ -23323,5 +23489,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f1be3374269732d11947e9ec21f7db76509eb110"
+  "built_at_commit": "30406eb87097471866e24ff8bdc8be6278198ffb"
 }

@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1791106715.6573462,
-    "ast_hash": "141b0890a045bda38f85f6a4536e4ea7",
+    "mtime": 1791164649.4174724,
+    "ast_hash": "04d11637e6a89b399970ec8da97e2735",
     "semantic_hash": ""
   },
   "public/privacy.html": {
@@ -520,8 +520,8 @@
     "semantic_hash": ""
   },
   "src/services/fvWalletService.js": {
-    "mtime": 1791138222.8136742,
-    "ast_hash": "a2b99582eb8b2d20fb191ea7111059ce",
+    "mtime": 1791165124.5567734,
+    "ast_hash": "3b35bee39f87b58e0a9176b72fdd7d1b",
     "semantic_hash": ""
   },
   "src/services/tutorialService.js": {
@@ -537,6 +537,11 @@
   "scripts/test-role-and-tutorial.mjs": {
     "mtime": 1791163298.9046845,
     "ast_hash": "e5ce3a33e63bb2b32c0d9b422bf364a5",
+    "semantic_hash": ""
+  },
+  "scripts/test-wallet-multiplex.mjs": {
+    "mtime": 1791165133.7159173,
+    "ast_hash": "dbec4916088245106cd7b0c729514207",
     "semantic_hash": ""
   }
 }

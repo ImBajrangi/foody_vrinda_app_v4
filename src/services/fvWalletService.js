@@ -211,31 +211,78 @@ export async function getFVLeaderboard(periodType = 'all_time', roleType = 'cust
   return [];
 }
 
+// In-memory multiplex registry for user wallet realtime channels (userId -> { channel, listeners })
+const activeWalletSubscriptions = new Map();
+
 /**
- * Realtime subscription to wallet balance updates
+ * Realtime subscription to wallet balance updates (Multiplexed singleton per user)
  */
 export function subscribeUserWallet(userId, onUpdate) {
   if (!userId || !supabase) return () => {};
 
-  const channel = supabase
-    .channel(`fv_wallet_${userId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'foody_wallets',
-        filter: `user_id=eq.${userId}`
-      },
-      async () => {
-        const fresh = await getWalletDashboard(userId, true);
-        if (onUpdate && fresh) onUpdate(fresh);
-      }
-    )
-    .subscribe();
+  const cleanId = String(userId).trim();
+  let entry = activeWalletSubscriptions.get(cleanId);
+
+  if (!entry) {
+    const listeners = new Set();
+    if (typeof onUpdate === 'function') listeners.add(onUpdate);
+
+    const channelName = `fv_wallet_${cleanId}_${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'foody_wallets',
+          filter: `user_id=eq.${cleanId}`
+        },
+        async () => {
+          try {
+            const fresh = await getWalletDashboard(cleanId, true);
+            if (fresh) {
+              const currentEntry = activeWalletSubscriptions.get(cleanId);
+              if (currentEntry) {
+                currentEntry.listeners.forEach((listener) => {
+                  try {
+                    listener(fresh);
+                  } catch (e) {
+                    console.warn('[FVWallet] Listener notification error:', e);
+                  }
+                });
+              }
+            }
+          } catch (err) {
+            console.warn('[FVWallet] Realtime refresh error:', err);
+          }
+        }
+      );
+
+    channel.subscribe();
+
+    entry = { channel, listeners };
+    activeWalletSubscriptions.set(cleanId, entry);
+  } else {
+    if (typeof onUpdate === 'function') {
+      entry.listeners.add(onUpdate);
+    }
+  }
 
   return () => {
-    supabase.removeChannel(channel);
+    const currentEntry = activeWalletSubscriptions.get(cleanId);
+    if (!currentEntry) return;
+
+    if (typeof onUpdate === 'function') {
+      currentEntry.listeners.delete(onUpdate);
+    }
+
+    if (currentEntry.listeners.size === 0) {
+      activeWalletSubscriptions.delete(cleanId);
+      try {
+        supabase.removeChannel(currentEntry.channel);
+      } catch (_) {}
+    }
   };
 }
 

@@ -167,3 +167,8 @@ All disaster recovery procedures and rollback drills MUST strictly follow the re
 3. **Token & LLM Conservation**: Keep all context exchanges focused, high-density, and free of redundant verbosity to prevent token exhaustion.
 
 
+Rule [Automated CDP Smoke Test Standard]:
+"Before submitting any authentication, header, or onboarding flow changes, run the automated Chrome DevTools Protocol (scripts/browser-cdp-test.mjs) regression test in addition to npm run build to verify UI elements in desktop and mobile viewports."
+
+Rule [Strict Auth vs Storage Isolation]:
+"Application role and privilege resolution must derive authoritatively from active Supabase sessions and database profiles. localStorage is strictly reserved for client-side UI persistence (e.g. tutorial progress, draft carts) and must never grant or override role authorization."
