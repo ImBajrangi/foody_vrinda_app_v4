@@ -443,16 +443,16 @@ export default function KitchenView() {
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
             <ChefHat size={22} strokeWidth={2.5} />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
+              <h1 className="text-base sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-outfit font-sans leading-snug">
                 {currentShop ? `${currentShop.name} — Operations` : (currentUserShopId ? 'Assigned Kitchen Unavailable' : 'Kitchen Operations')}
               </h1>
               <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 {isolatedOrders.length} Active
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5 truncate">
+            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5">
               {currentShop ? (currentShop.address || 'Live Satvik preparation board & instant kitchen dispatch') : 'Assigned kitchen is inactive or unavailable'}
             </p>
           </div>
@@ -470,7 +470,7 @@ export default function KitchenView() {
               }`}
             title="Toggle Live Kitchen Availability"
           >
-            <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500' : 'bg-rose-500'}`} />
             <span>{isShopOnline ? 'Online' : 'Offline'}</span>
           </button>
 
@@ -495,7 +495,7 @@ export default function KitchenView() {
           <button
             data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-4 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-['Outfit'] tracking-wide"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-4 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-outfit font-sans tracking-wide"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="whitespace-nowrap">Create Order</span>
@@ -507,14 +507,14 @@ export default function KitchenView() {
       {!activeShopId && (
         <div className="p-4 sm:p-5 rounded-[28px] bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-black font-['Outfit'] text-rose-700 dark:text-rose-300">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-black font-outfit font-sans text-rose-700 dark:text-rose-300">
               Assigned Kitchen Inactive
             </h3>
-            <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5">
+            <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5 leading-relaxed">
               {currentUserShopId
                 ? `Assigned kitchen ID "${currentUserShopId}" is currently deactivated, deleted, or cannot be found. Orders for other kitchens are strictly quarantined.`
-                : 'No kitchen is currently assigned to this account. Please contact an administrator.'}
+                : 'No kitchen is currently assigned to this account. Please select an active kitchen below.'}
             </p>
           </div>
         </div>
@@ -529,8 +529,8 @@ export default function KitchenView() {
               <TrendingUp size={20} strokeWidth={2.5} />
             </div>
             <div>
-              <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Daily Orders & Volume</p>
-              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit'] mt-0.5">{isolatedOrders.length} Active Orders</h3>
+              <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans">Daily Orders & Volume</p>
+              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans mt-0.5">{isolatedOrders.length} Active Orders</h3>
             </div>
           </div>
           <span className="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-mono">
@@ -544,16 +544,16 @@ export default function KitchenView() {
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
               <Sparkles size={20} strokeWidth={2.5} />
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider font-['Outfit']">Kitchen Growth Hub</p>
-              <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit'] truncate">Broadcast Festive Thalis</h4>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider font-outfit font-sans">Kitchen Growth Hub</p>
+              <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-outfit font-sans leading-tight">Festive Broadcasts</h4>
             </div>
           </div>
           <a
             href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
             target="_blank"
             rel="noopener noreferrer"
-            className="h-8.5 px-3 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
+            className="h-8.5 px-3 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-outfit font-sans flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
           >
             <MessageCircle size={13} />
             <span>Channel</span>
@@ -564,7 +564,7 @@ export default function KitchenView() {
       {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
       {isDevOrAdmin && allShops.length > 1 && (
         <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
-          <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
+          <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-outfit font-sans">
             <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
             Switch Kitchen:
           </span>
@@ -592,7 +592,7 @@ export default function KitchenView() {
           <div className="w-16 h-16 rounded-3xl bg-rose-500/10 flex items-center justify-center mb-3.5 border border-rose-500/20">
             <AlertTriangle size={32} className="text-rose-500" />
           </div>
-          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">Kitchen Unavailable</p>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-outfit font-sans">Kitchen Unavailable</p>
           <p className="text-xs text-stone-600 dark:text-zinc-400 mt-1 max-w-md">
             {currentUserShopId
               ? `The assigned kitchen "${currentUserShopId}" is currently inactive or deleted. Foreign kitchen orders are strictly isolated.`
@@ -604,7 +604,7 @@ export default function KitchenView() {
           <div className="w-14 h-14 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center mb-3.5 border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs">
             <CheckCircle2 size={28} strokeWidth={2.5} />
           </div>
-          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-['Outfit']">All Orders Prepared</p>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-outfit font-sans">All Orders Prepared</p>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-zinc-400 mt-1 font-['Plus_Jakarta_Sans']">Kitchen queue is clear. Radhe Radhe!</p>
         </div>
       ) : (
@@ -626,7 +626,7 @@ export default function KitchenView() {
                     <div>
                       <div className="flex items-center gap-1.5">
                         <ShoppingBag size={15} className="text-amber-600 dark:text-[#E0FF33]" />
-                        <h3 className="font-black text-stone-900 dark:text-white text-sm sm:text-base font-['Outfit']">
+                        <h3 className="font-black text-stone-900 dark:text-white text-sm sm:text-base font-outfit font-sans">
                           Order #{order.id.slice(-6).toUpperCase()}
                         </h3>
                       </div>
@@ -733,7 +733,7 @@ export default function KitchenView() {
 
                   {/* Dishes Checklist Section */}
                   <div className="space-y-2">
-                    <p className="text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] flex items-center justify-between">
+                    <p className="text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans flex items-center justify-between">
                       <span>Dish Checklist</span>
                       <span className="text-stone-400 dark:text-zinc-500">{order.items?.length || 0} items</span>
                     </p>
@@ -839,7 +839,7 @@ export default function KitchenView() {
                   <Plus size={20} strokeWidth={3} />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit']">Create Manual Order</h3>
+                  <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans">Create Manual Order</h3>
                   <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">Record in-person or phone delivery order</p>
                 </div>
               </div>
@@ -856,7 +856,7 @@ export default function KitchenView() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Customer Information Column */}
                 <div className="space-y-3.5">
-                  <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-['Outfit']">Customer Information</h4>
+                  <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-outfit font-sans">Customer Information</h4>
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Customer Name</label>
@@ -909,7 +909,7 @@ export default function KitchenView() {
                 {/* Menu Items Selector Column */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-['Outfit']">Select Satvik Dishes</h4>
+                    <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-outfit font-sans">Select Satvik Dishes</h4>
                     <span className="text-[11px] text-amber-700 dark:text-[#E0FF33] font-bold">
                       {manualCart.filter(i => i.quantity > 0).length} selected
                     </span>
@@ -949,7 +949,7 @@ export default function KitchenView() {
                               <Minus size={11} strokeWidth={2.5} />
                             )}
                           </button>
-                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#E0FF33] font-['Outfit'] select-none">
+                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#E0FF33] font-outfit font-sans select-none">
                             {item.quantity}
                           </span>
                           <button

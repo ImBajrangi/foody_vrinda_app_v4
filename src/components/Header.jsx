@@ -166,28 +166,63 @@ export default function Header({
                   title={isAuthenticated ? "Profile & Settings" : "Sign in / Register"}
                   aria-label={isAuthenticated ? "Profile and Settings" : "Sign in to Foody Vrinda"}
                 >
-                  <div className="insta-story-wrapper">
-                    <div className="insta-story-ring" />
-                    <div className="insta-story-inner">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-[#1E1B1C] flex items-center justify-center">
-                        {userAvatar ? (
-                          <img 
-                            src={userAvatar} 
-                            alt={getDisplayName()} 
-                            referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
-                            className="w-full h-full object-cover" 
-                            onError={() => setHeaderAvatarError(true)}
-                          />
-                        ) : (
-                          <img 
-                            src="/foody-vrinda-logo.webp" 
-                            alt="Foody Vrinda" 
-                            className="w-full h-full object-cover" 
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                          />
-                        )}
-                      </div>
+                  <div className="relative flex items-center justify-center p-[3px]">
+                    {/* Instagram-Style Continuous Story Ring: Solid Arc -> Decaying Dashes -> Dots */}
+                    <svg 
+                      className="absolute -inset-[4px] w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none" 
+                      viewBox="0 0 56 56"
+                    >
+                      <defs>
+                        <linearGradient id="satvikThemeRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#E0FF33" />
+                          <stop offset="35%" stopColor="#FF9933" />
+                          <stop offset="70%" stopColor="#F59E0B" />
+                          <stop offset="100%" stopColor="#10B981" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Continuous One-Loop Rotating Track */}
+                      <g className="satvik-story-spin">
+                        {/* Faint Base Guide Track */}
+                        <circle 
+                          cx="28" cy="28" r="24.5" 
+                          fill="none" 
+                          stroke="url(#satvikThemeRingGrad)" 
+                          strokeWidth="1.2" 
+                          strokeOpacity="0.2" 
+                        />
+
+                        {/* Continuous Signature Stroke: Solid Arc (130°) -> Decaying Dashes -> Jewel Dots */}
+                        <circle 
+                          cx="28" cy="28" r="24.5" 
+                          fill="none" 
+                          stroke="url(#satvikThemeRingGrad)" 
+                          strokeWidth="3.2" 
+                          strokeLinecap="round" 
+                          strokeDasharray="56 5.5 13 5.5 10 5.5 7 5.5 4 5.5 1 5.5 1 5.5 1 5.5 1 5.5 1 5.5 1 5.5" 
+                        />
+                      </g>
+                    </svg>
+
+                    {/* Inner Avatar Frame */}
+                    <div className="relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-[#1E1B1C] border border-stone-200/50 dark:border-white/10 flex items-center justify-center shadow-inner">
+                      {userAvatar ? (
+                        <img 
+                          src={userAvatar} 
+                          alt={getDisplayName()} 
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          className="w-full h-full object-cover" 
+                          onError={() => setHeaderAvatarError(true)}
+                        />
+                      ) : (
+                        <img 
+                          src="/foody-vrinda-logo.webp" 
+                          alt="Foody Vrinda" 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
                     </div>
                   </div>
                 </button>
@@ -234,7 +269,7 @@ export default function Header({
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-['Outfit'] truncate group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
                     {getDisplayName()}
                   </h2>
                   {!isAuthenticated && (
@@ -318,21 +353,19 @@ export default function Header({
 
         {/* Right: Actions Cluster (Streamlined & Uncluttered) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Quick Cart Trigger (Always present for swift checkout) */}
-          {onOpenCart && (
+          {/* Quick Cart Trigger (Shown strictly when basket has items to reduce top header clutter) */}
+          {onOpenCart && totalQty > 0 && (
             <button
               data-tour="customer-basket"
               onClick={onOpenCart}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/40 dark:border-[#E0FF33]/40 hover:border-amber-500/60 dark:hover:border-[#E0FF33]/60 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0 animate-scale-in"
               title="Open Basket"
               aria-label="Open Basket"
             >
               <ShoppingBag size={17} className="text-amber-600 dark:text-[#E0FF33]" />
-              {totalQty > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-['Outfit'] border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
-                  {totalQty}
-                </span>
-              )}
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
+                {totalQty}
+              </span>
             </button>
           )}
 
@@ -361,7 +394,7 @@ export default function Header({
                   title="FV Dynasty Rewards & Referral Hub"
                 >
                   <Coins size={15} className="text-amber-600 dark:text-[#E0FF33]" />
-                  <span className="text-xs font-black font-['Outfit'] text-amber-700 dark:text-[#E0FF33]">
+                  <span className="text-xs font-black font-outfit font-sans text-amber-700 dark:text-[#E0FF33]">
                     {walletData?.available_points ?? 0}
                     <span className="hidden sm:inline ml-0.5 text-[10px] font-bold text-stone-500 dark:text-zinc-400">FV</span>
                   </span>

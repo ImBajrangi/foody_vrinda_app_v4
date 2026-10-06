@@ -7,6 +7,10 @@
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *, .light, .light *));
 
 @theme {
+  --font-outfit: 'Outfit', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-laila: 'Laila', serif;
+
   --color-obsidian-950: #151314;
   --color-obsidian-900: #1E1B1C;
   --color-obsidian-850: #242021;
@@ -3347,15 +3351,54 @@ label {
 }
 
 /* =========================================================================
-   Instagram Story Style Animated Ring & Profile Action Cue
+   Satvik Story-Style Mixture Animation (Circle Arcs & Orbiting Jewel Dots)
+   Bespoke theme-colored fluid motion (No generic rainbow, 100% Satvik palette)
    ========================================================================= */
-@keyframes instaStorySpin {
+@keyframes satvikRingRotate {
   0% {
     transform: rotate(0deg);
   }
   100% {
     transform: rotate(360deg);
   }
+}
+
+@keyframes satvikCounterOrbit {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes satvikArcDashFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 96;
+  }
+}
+
+@keyframes satvikPulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2.5px rgba(224, 255, 51, 0.4));
+    opacity: 0.95;
+  }
+  50% {
+    filter: drop-shadow(0 0 6.5px rgba(255, 153, 51, 0.65)) drop-shadow(0 0 10px rgba(224, 255, 51, 0.35));
+    opacity: 1;
+  }
+}
+
+.satvik-story-spin {
+  animation: satvikRingRotate 4.8s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
 }
 
 .insta-story-wrapper {
@@ -3369,8 +3412,8 @@ label {
   position: absolute;
   inset: -3px;
   border-radius: 9999px;
-  background: conic-gradient(from 0deg, #E0FF33, #FF9933, #FF007A, #7928CA, #00DFD8, #E0FF33);
-  animation: instaStorySpin 5s linear infinite;
+  background: conic-gradient(from 0deg, #E0FF33, #FF9933, #F59E0B, #10B981, #E0FF33);
+  animation: satvikRingRotate 6s linear infinite;
   z-index: 0;
 }
 
