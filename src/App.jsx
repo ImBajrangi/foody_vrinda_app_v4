@@ -109,10 +109,20 @@ export default function App() {
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInitialQuery, setSearchInitialQuery] = useState('');
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenSearch = (e) => {
+      setSearchInitialQuery(e?.detail?.query || '');
+      setIsSearchOpen(true);
+    };
+    window.addEventListener('foody:open-search', handleOpenSearch);
+    return () => window.removeEventListener('foody:open-search', handleOpenSearch);
+  }, []);
 
   const handleToggleAuth = (mode = 'login') => {
     if (typeof mode === 'string' && (mode === 'login' || mode === 'signup')) {
@@ -528,6 +538,7 @@ export default function App() {
       <UnifiedSearchModal 
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
+        initialQuery={searchInitialQuery}
         onSelectShop={(shopId) => {
           if (shopId) setSelectedShopId(shopId);
           setCurrentTab('customer');

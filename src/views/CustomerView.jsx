@@ -46,7 +46,9 @@ import {
   MessageCircle,
   Store,
   UserCheck,
-  LogIn
+  LogIn,
+  Globe,
+  ArrowRight
 } from 'lucide-react';
 import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
 import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
@@ -1422,7 +1424,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {!isShopOpen && (
           <div className="p-2.5 sm:p-3 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center justify-between gap-2 sm:gap-3 text-stone-700 dark:text-zinc-300 text-xs shadow-xs overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 animate-pulse shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-500 shrink-0" />
               <span className="font-bold truncate text-[11px] sm:text-xs text-stone-900 dark:text-white">
                 {activeShop?.name || 'Kitchen'} is currently closed
               </span>
@@ -1433,28 +1435,63 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           </div>
         )}
 
-        {/* Integrated Clean Search Bar */}
-        <div className="relative w-full">
-          <Search size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-400 pointer-events-none" />
+        {/* Integrated Clean Search Bar with Local & Vrindavan-Wide Scope */}
+        <div data-tour="customer-search" className="relative w-full">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 dark:text-zinc-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search pure delicacies & prasad..."
+            placeholder={`Search dishes in ${activeShop?.name?.replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '') || 'this kitchen'}...`}
             value={menuSearch}
             onChange={(e) => setMenuSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && menuSearch.trim() && filteredMenuItems.length === 0) {
+                window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
+              }
+            }}
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
-            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-11 text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
+            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-28 sm:pr-36 text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
           />
-          {menuSearch && (
-            <button
-              onClick={() => setMenuSearch('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-stone-300 dark:bg-white/20 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer active:scale-90"
-              title="Clear search"
-            >
-              <X size={14} strokeWidth={2.5} />
-            </button>
-          )}
+
+          {/* Right Action Controls inside Search Bar */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {menuSearch ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMenuSearch('')}
+                  className="w-7 h-7 rounded-full bg-stone-300 dark:bg-white/20 flex items-center justify-center text-stone-800 dark:text-white cursor-pointer active:scale-90"
+                  title="Clear search"
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-[#121011] text-[11px] font-black flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+                  title="Search across all Vrindavan kitchens"
+                >
+                  <span className="hidden xs:inline">All</span>
+                  <Globe size={12} />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: '' } }));
+                }}
+                className="px-2.5 sm:px-3 py-1 rounded-full bg-stone-300/80 hover:bg-stone-400/80 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-zinc-200 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer mr-0.5 active:scale-95"
+                title="Search all Vrindavan kitchens & delicacies"
+              >
+                <Globe size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                <span className="hidden xs:inline font-['Outfit']">All Vrindavan</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Kitchen Branch Switcher — Minimal Premium Modal */}
@@ -1740,12 +1777,31 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <BouncingLoader />
         </div>
       ) : filteredMenuItems.length === 0 ? (
-        <div className="bg-stone-100 dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-12 sm:p-16 text-center text-stone-600 dark:text-zinc-400 border border-stone-200 dark:border-white/5 flex flex-col items-center justify-center">
+        <div className="bg-stone-100 dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-8 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200 dark:border-white/5 flex flex-col items-center justify-center animate-fade-in shadow-xs">
           <div className="w-14 h-14 rounded-2xl bg-stone-200/80 dark:bg-white/5 flex items-center justify-center mb-3">
             <Soup size={32} className="text-amber-600 dark:text-[#E0FF33]" />
           </div>
-          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg">No items found</p>
-          <p className="text-xs text-stone-500 dark:text-zinc-500 mt-1">Try searching for other pure delicacies.</p>
+          <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
+            {menuSearch ? `No "${menuSearch}" found in this kitchen` : 'No items found'}
+          </p>
+          <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1 max-w-sm">
+            {menuSearch 
+              ? `This kitchen doesn't have "${menuSearch}", but other kitchens in Sri Vrindavan Dham may have it fresh!`
+              : 'Try selecting a different category or adjusting filters.'}
+          </p>
+          {menuSearch && (
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
+              }}
+              className="mt-4 px-4.5 py-2.5 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black text-xs flex items-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all hover:opacity-90"
+            >
+              <Globe size={14} />
+              <span>Search "{menuSearch}" in All Vrindavan Kitchens</span>
+              <ArrowRight size={13} />
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">

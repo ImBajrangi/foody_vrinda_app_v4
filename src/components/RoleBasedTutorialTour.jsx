@@ -26,6 +26,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   ROLE_TUTORIAL_DATA,
   getTutorialKeyForRole,
@@ -149,6 +150,7 @@ const SELECTOR_FALLBACKS = {
 
 export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, forceRole = null }) {
   const { user, userData, userRole } = useAuth();
+  const { isLight } = useTheme();
   const userId = user?.id || userData?.id;
 
   // Determine active role & tutorial dataset
@@ -420,58 +422,38 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999999] overflow-hidden apple-overlay select-none transition-opacity duration-200 ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      style={{ touchAction: 'none' }}
+      className={`fixed inset-0 z-[9999999] overflow-hidden select-none transition-opacity duration-200 ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      style={{ touchAction: 'none', background: 'transparent' }}
     >
-      {/* SVG FULL-SCREEN MASK BACKDROP */}
-      <svg 
-        className="fixed inset-0 w-full h-full pointer-events-none transition-all duration-300"
-        style={{ width: '100vw', height: '100vh' }}
-      >
-        <defs>
-          <mask id="game-tour-spotlight-mask">
-            {/* White covers entire screen (opaque) */}
-            <rect width="100%" height="100%" fill="white" />
-            {/* Black punches the transparent hole over the target element */}
-            {cutout && (
-              <rect
-                x={cutout.x}
-                y={cutout.y}
-                width={cutout.w}
-                height={cutout.h}
-                rx={18}
-                ry={18}
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-
-        {/* Shrouded dark luxury backdrop with mask applied */}
-        <rect
-          width="100%"
-          height="100%"
-          fill="rgba(10, 8, 9, 0.82)"
-          mask="url(#game-tour-spotlight-mask)"
-          className="backdrop-blur-[3px]"
-        />
-      </svg>
-
-      {/* Target Element Glowing Aura & Animated Border */}
-      {cutout && (
+      {/* Dynamic Theme Spotlight Hole & Backing Scrim */}
+      {cutout ? (
         <div
           style={{
             top: `${cutout.y}px`,
             left: `${cutout.x}px`,
             width: `${cutout.w}px`,
             height: `${cutout.h}px`,
-            borderRadius: '18px'
+            borderRadius: '20px',
+            boxShadow: isLight
+              ? '0 0 0 9999px rgba(25, 20, 22, 0.62), 0 0 25px rgba(245, 158, 11, 0.40)'
+              : '0 0 0 9999px rgba(10, 8, 9, 0.84), 0 0 30px rgba(224, 255, 51, 0.45)',
           }}
-          className="fixed pointer-events-none z-10 transition-all duration-300 border-2 border-[#E0FF33] shadow-[0_0_35px_rgba(224,255,51,0.55),inset_0_0_15px_rgba(224,255,51,0.25)] animate-pulse"
+          className={`fixed pointer-events-none z-10 transition-all duration-300 border-2 ${
+            isLight
+              ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.45)]'
+              : 'border-[#E0FF33] shadow-[0_0_30px_rgba(224,255,51,0.5),inset_0_0_12px_rgba(224,255,51,0.2)]'
+          }`}
+        />
+      ) : (
+        /* Fallback Backdrop if target element is currently not detected on screen */
+        <div 
+          className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-300 ${
+            isLight ? 'bg-black/60' : 'bg-black/80'
+          }`}
         />
       )}
 
-      {/* CALLOUT CARD CONTAINER */}
+      {/* Responsive Callout Card Container */}
       <div
         ref={cardRef}
         style={{
@@ -479,39 +461,75 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           left: `${cardLeft}px`,
           width: `${cardWidth}px`
         }}
-        className={`fixed z-20 flex flex-col bg-[#1E1B1C] text-white rounded-[28px] sm:rounded-[32px] border border-[#E0FF33]/30 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(224,255,51,0.15)] overflow-hidden transition-all duration-300 apple-modal-spring preserve-dark ${closing ? 'closing' : ''}`}
+        className={`fixed z-20 flex flex-col rounded-[28px] sm:rounded-[32px] overflow-hidden transition-all duration-300 apple-modal-spring ${
+          isLight
+            ? 'bg-[#FAF5EB] text-stone-900 border border-amber-400/50 shadow-[0_25px_80px_rgba(0,0,0,0.35),0_0_40px_rgba(245,158,11,0.2)]'
+            : 'bg-[#1E1B1C] text-white border border-[#E0FF33]/30 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(224,255,51,0.15)]'
+        } ${closing ? 'closing' : ''}`}
       >
-        {/* Directional Arrow pointing to the highlighted element */}
+        {/* Directional Arrow pointing towards the highlighted element */}
         {targetFound && placement === 'bottom' && (
           <div
             style={{ left: `${arrowLeft}px` }}
-            className="absolute -top-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-t border-l border-[#E0FF33]/40 rotate-45 z-30 preserve-dark"
+            className={`absolute -top-2 -translate-x-1/2 w-4 h-4 rotate-45 z-30 ${
+              isLight
+                ? 'bg-[#FAF5EB] border-t border-l border-amber-400/60'
+                : 'bg-[#1E1B1C] border-t border-l border-[#E0FF33]/40'
+            }`}
           />
         )}
         {targetFound && placement === 'top' && (
           <div
             style={{ left: `${arrowLeft}px` }}
-            className="absolute -bottom-2 -translate-x-1/2 w-4 h-4 bg-[#1E1B1C] border-b border-r border-[#E0FF33]/40 rotate-45 z-30 preserve-dark"
+            className={`absolute -bottom-2 -translate-x-1/2 w-4 h-4 rotate-45 z-30 ${
+              isLight
+                ? 'bg-[#FAF5EB] border-b border-r border-amber-400/60'
+                : 'bg-[#1E1B1C] border-b border-r border-[#E0FF33]/40'
+            }`}
           />
         )}
 
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#E0FF33] to-transparent opacity-80" />
+        {/* Ambient Top Glow Accent */}
+        <div
+          className={`absolute top-0 inset-x-0 h-1.5 opacity-90 ${
+            isLight
+              ? 'bg-gradient-to-r from-transparent via-amber-500 to-transparent'
+              : 'bg-gradient-to-r from-transparent via-[#E0FF33] to-transparent'
+          }`}
+        />
 
         {/* Header Ribbon: Stage Tag + Step Counter + Close */}
-        <div className="px-5 pt-4 pb-2 flex items-center justify-between gap-2 border-b border-white/5">
+        <div
+          className={`px-5 pt-4 pb-2.5 flex items-center justify-between gap-2 border-b ${
+            isLight ? 'border-stone-300/60' : 'border-white/5'
+          }`}
+        >
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#E0FF33]/15 text-[#E0FF33] text-[10px] font-black uppercase tracking-wider font-['Outfit'] border border-[#E0FF33]/30">
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-['Outfit'] border ${
+                isLight
+                  ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
+                  : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
+              }`}
+            >
               {activeStage.tag || `STAGE ${currentStep + 1}`}
             </span>
-            <span className="text-[11px] font-bold text-zinc-400 font-mono">
+            <span
+              className={`text-[11px] font-bold font-mono ${
+                isLight ? 'text-stone-500' : 'text-zinc-400'
+              }`}
+            >
               {currentStep + 1} / {stages.length}
             </span>
           </div>
 
           <button
             onClick={handleSkip}
-            className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 ${
+              isLight
+                ? 'bg-stone-200/80 hover:bg-stone-300 text-stone-600 hover:text-stone-950'
+                : 'bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white'
+            }`}
             title="Skip Tour"
             aria-label="Skip Tour"
           >
@@ -523,28 +541,54 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
         <div className="p-5 space-y-3.5">
           {/* Title Row with Stage Icon */}
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center text-[#E0FF33] shrink-0 shadow-sm">
+            <div
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${
+                isLight
+                  ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+                  : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
+              }`}
+            >
               <IconComponent size={20} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-black text-white font-['Outfit'] tracking-tight leading-snug">
+              <h3
+                className={`text-base sm:text-lg font-black font-['Outfit'] tracking-tight leading-snug ${
+                  isLight ? 'text-stone-950' : 'text-white'
+                }`}
+              >
                 {activeStage.title}
               </h3>
-              <p className="text-xs text-zinc-300 font-medium leading-relaxed mt-1">
+              <p
+                className={`text-xs font-medium leading-relaxed mt-1 ${
+                  isLight ? 'text-stone-600' : 'text-zinc-300'
+                }`}
+              >
                 {activeStage.subtitle}
               </p>
             </div>
           </div>
 
-          {/* Highlights / Features pill list */}
+          {/* Highlights / Features list */}
           {activeStage.highlights && activeStage.highlights.length > 0 && (
-            <div className="bg-[#151314] rounded-2xl p-3 border border-white/5 space-y-2">
+            <div
+              className={`rounded-2xl p-3 border space-y-2 ${
+                isLight
+                  ? 'bg-stone-200/60 border-stone-300/80 text-stone-800'
+                  : 'bg-[#151314] border-white/5 text-zinc-300'
+              }`}
+            >
               {activeStage.highlights.map((h, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#E0FF33] mt-1.5 shrink-0" />
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                      isLight ? 'bg-amber-600' : 'bg-[#E0FF33]'
+                    }`}
+                  />
                   <div className="leading-snug">
-                    <strong className="text-white font-bold">{h.label}:</strong>{' '}
-                    <span className="text-zinc-400">{h.desc}</span>
+                    <strong className={isLight ? 'text-stone-950 font-bold' : 'text-white font-bold'}>
+                      {h.label}:
+                    </strong>{' '}
+                    <span className={isLight ? 'text-stone-600' : 'text-zinc-400'}>{h.desc}</span>
                   </div>
                 </div>
               ))}
@@ -553,27 +597,49 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
 
           {/* Target Element Fallback notice if element not in current viewport */}
           {!targetFound && (
-            <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] font-medium flex items-center gap-1.5">
-              <Sparkles size={12} className="text-amber-400 shrink-0" />
+            <div
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-medium flex items-center gap-1.5 ${
+                isLight
+                  ? 'bg-amber-500/10 border-amber-500/25 text-amber-900'
+                  : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+              }`}
+            >
+              <Sparkles size={12} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
               <span>Target feature: {activeStage.uiElement || 'Platform Control'}</span>
             </div>
           )}
 
           {/* Progress Bar */}
-          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+          <div
+            className={`w-full h-1.5 rounded-full overflow-hidden ${
+              isLight ? 'bg-stone-300/70' : 'bg-white/10'
+            }`}
+          >
             <div
-              className="h-full bg-[#E0FF33] rounded-full transition-all duration-300"
+              className={`h-full rounded-full transition-all duration-300 ${
+                isLight ? 'bg-amber-600' : 'bg-[#E0FF33]'
+              }`}
               style={{ width: `${((currentStep + 1) / stages.length) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Action Controls Bar */}
-        <div className="px-5 py-3.5 bg-[#151314] border-t border-white/10 flex items-center justify-between gap-3">
+        <div
+          className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 ${
+            isLight
+              ? 'bg-stone-100/90 border-stone-200'
+              : 'bg-[#151314] border-white/10'
+          }`}
+        >
           {/* Skip Button */}
           <button
             onClick={handleSkip}
-            className="text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer px-2 py-1"
+            className={`text-xs font-bold transition-colors cursor-pointer px-2 py-1 ${
+              isLight
+                ? 'text-stone-500 hover:text-stone-900'
+                : 'text-zinc-400 hover:text-white'
+            }`}
           >
             Skip Tour
           </button>
@@ -583,7 +649,11 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
             {currentStep > 0 && (
               <button
                 onClick={handleBack}
-                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center gap-1 transition-all cursor-pointer active:scale-95 border border-white/10"
+                className={`h-9 px-3 rounded-full font-bold text-xs flex items-center gap-1 transition-all cursor-pointer active:scale-95 border ${
+                  isLight
+                    ? 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 border-stone-300'
+                    : 'bg-white/10 hover:bg-white/15 text-white border-white/10'
+                }`}
               >
                 <ChevronLeft size={14} />
                 <span>Back</span>
@@ -592,7 +662,11 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
 
             <button
               onClick={handleNext}
-              className="h-9 px-4 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-black font-black text-xs flex items-center gap-1.5 shadow-[0_4px_16px_rgba(224,255,51,0.3)] transition-all cursor-pointer active:scale-95 font-['Outfit']"
+              className={`h-9 px-4 rounded-full font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 font-['Outfit'] shadow-md ${
+                isLight
+                  ? 'bg-stone-900 hover:bg-stone-800 text-white shadow-stone-900/20'
+                  : 'bg-[#E0FF33] hover:bg-[#CCFF00] text-black shadow-[0_4px_16px_rgba(224,255,51,0.3)]'
+              }`}
             >
               <span>{isLast ? 'Got it! Finish' : 'Next'}</span>
               {isLast ? (

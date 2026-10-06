@@ -3345,3 +3345,57 @@ label {
 .leaflet-tooltip-bottom:before {
   border-bottom-color: #181617 !important;
 }
+
+/* =========================================================================
+   Instagram Story Style Animated Ring & Profile Action Cue
+   ========================================================================= */
+@keyframes instaStorySpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.insta-story-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.insta-story-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, #E0FF33, #FF9933, #FF007A, #7928CA, #00DFD8, #E0FF33);
+  animation: instaStorySpin 5s linear infinite;
+  z-index: 0;
+}
+
+.insta-story-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 9999px;
+  background: #1E1B1C;
+  padding: 2.5px;
+  transition: background-color 0.2s ease;
+}
+
+.light .insta-story-inner {
+  background: #FAF7F2;
+}
+
+@keyframes hintFloatBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-hint-float {
+  animation: hintFloatBounce 2.4s ease-in-out infinite;
+}

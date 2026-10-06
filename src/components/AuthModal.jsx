@@ -531,14 +531,30 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAnimatedClose}
-            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer shrink-0 ml-2"
-            aria-label="Close modal"
-          >
-            <X size={15} />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer"
+              title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              aria-label="Toggle App Theme"
+            >
+              {isLight ? (
+                <Moon size={14} className="text-amber-600" />
+              ) : (
+                <Sun size={14} className="text-[#E0FF33]" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAnimatedClose}
+              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X size={15} />
+            </button>
+          </div>
         </div>
 
         {/* ALERTS & STATUS */}

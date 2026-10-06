@@ -22,16 +22,27 @@ const POPULAR_CATEGORIES = [
 
 const RECENT_SEARCHES_KEY = 'foody_vrinda_recent_searches_v2';
 
-export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder }) {
+export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder, initialQuery = '' }) {
   const { user, userData, userRole, currentUserShopId, allShops } = useAuth();
   const { addToCart } = useCart();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialQuery || '');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
   const [results, setResults] = useState({ shops: [], menuItems: [], orders: [] });
   const [loading, setLoading] = useState(false);
   const [closing, setClosing] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const searchInputRef = useRef(null);
+
+  // Sync initial query when opened
+  useEffect(() => {
+    if (isOpen) {
+      if (initialQuery) {
+        setSearchTerm(initialQuery);
+      }
+    } else {
+      setSearchTerm('');
+    }
+  }, [isOpen, initialQuery]);
 
   // Detail expansion & cart interaction states
   const [expandedDish, setExpandedDish] = useState(null);
