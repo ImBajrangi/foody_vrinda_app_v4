@@ -20,6 +20,7 @@ import { Browser } from '@capacitor/browser';
 import { nativeNotify } from '../services/nativeNotificationService';
 import { initUserWallet, getWalletDashboard } from '../services/fvWalletService';
 import { isContaminatedPickupAddress, sanitizeCustomerAddress } from '../utils/addressUtils';
+import { markNewUserTutorialEligible } from '../services/tutorialService';
 
 const AuthContext = createContext(null);
 
@@ -548,6 +549,11 @@ export function AuthProvider({ children }) {
         localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
         syncUserToCloudList(userProfile);
 
+        // If this is a brand-new user record without existing record, mark eligible for first-visit tutorial
+        if (!existingRecord) {
+          markNewUserTutorialEligible(u.id, role);
+        }
+
         // If phone or address is missing for a newly logged-in customer, prompt profile completion
         if (!userPhone || !userAddr) {
           setTimeout(() => {
@@ -785,6 +791,9 @@ export function AuthProvider({ children }) {
         try { localStorage.removeItem('foody_pending_referral_code'); } catch (_) {}
       }
 
+      // Mark newly registered user eligible for first-visit tutorial
+      markNewUserTutorialEligible(data.user.id, 'customer');
+
       nativeNotify.notifyLogin(cleanName);
     }
     return data;
@@ -870,6 +879,10 @@ export function AuthProvider({ children }) {
     localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
     await recordLoggedInUser(userProfile).catch(() => { });
     nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
+
+    // Mark newly registered user eligible for first-visit tutorial
+    markNewUserTutorialEligible(newCustomer.id, 'customer');
+
     return userProfile;
   };
 

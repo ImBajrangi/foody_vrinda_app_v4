@@ -8,17 +8,29 @@ import {
   getTutorialProgress,
   isTutorialCompleted,
   markTutorialCompleted,
-  saveTutorialProgress
+  saveTutorialProgress,
+  initAppVisitTracking,
+  isFirstDeviceVisit,
+  markNewUserTutorialEligible,
+  shouldAutoLaunchTutorial,
+  clearNewUserTutorialEligibility
 } from '../src/services/tutorialService.js';
 
-// Mock localStorage for Node environment
+// Mock localStorage and sessionStorage for Node environment
 const mockStorage = new Map();
+const mockSessionStorage = new Map();
 global.window = {};
 global.localStorage = {
   getItem: (key) => mockStorage.get(key) || null,
   setItem: (key, val) => mockStorage.set(key, String(val)),
   removeItem: (key) => mockStorage.delete(key),
   clear: () => mockStorage.clear()
+};
+global.sessionStorage = {
+  getItem: (key) => mockSessionStorage.get(key) || null,
+  setItem: (key, val) => mockSessionStorage.set(key, String(val)),
+  removeItem: (key) => mockSessionStorage.delete(key),
+  clear: () => mockSessionStorage.clear()
 };
 
 console.log('🧪 Running Comprehensive Role Resolution & Tutorial Matrix Tests...\n');
@@ -134,5 +146,59 @@ assert.strictEqual(progressAfterStep1.current_step, 1);
 console.log('   ✅ Storage keys properly isolated by user_id + role + version.');
 console.log('   ✅ Role change safety verified (customer completion != delivery completion).');
 console.log('   ✅ Replay progression preserves completion state without resetting flags.');
+
+// 5. First-Visit Device Tracking & Auto-Launch Guards
+console.log('\n5. First-Visit Device Tracking & Auto-Launch Tests:');
+mockStorage.clear();
+mockSessionStorage.clear();
+
+// Test A: Existing user or returning device MUST NOT auto-launch
+mockStorage.set('foody_has_visited_app', 'true');
+initAppVisitTracking();
+assert.strictEqual(isFirstDeviceVisit(), false, 'Returning device must NOT be considered first device visit');
+
+const existingUser = 'user-existing-999';
+markNewUserTutorialEligible(existingUser, 'customer');
+assert.strictEqual(
+  shouldAutoLaunchTutorial(existingUser, 'customer'),
+  false,
+  'Returning device registration MUST NOT trigger tutorial auto-launch'
+);
+console.log('   ✅ Returning device / existing visitor correctly BLOCKED from auto-tour.');
+
+// Test B: Brand-new device on first visit + brand-new registration MUST auto-launch
+mockStorage.clear();
+mockSessionStorage.clear();
+
+// App boots for first time ever on clean device
+initAppVisitTracking();
+assert.strictEqual(isFirstDeviceVisit(), true, 'Clean device on first open must be first device visit');
+assert.strictEqual(mockStorage.get('foody_has_visited_app'), 'true', 'Device visit must be recorded');
+
+const freshUser = 'user-fresh-108';
+markNewUserTutorialEligible(freshUser, 'customer');
+assert.strictEqual(
+  shouldAutoLaunchTutorial(freshUser, 'customer'),
+  true,
+  'Brand-new user on first device visit MUST be eligible for auto-launch'
+);
+
+// Consumption / dismissal clears eligibility
+clearNewUserTutorialEligibility();
+assert.strictEqual(
+  shouldAutoLaunchTutorial(freshUser, 'customer'),
+  false,
+  'Once consumed or cleared, tutorial MUST NOT re-trigger'
+);
+
+// Marking completed prevents future launch
+markTutorialCompleted(freshUser, 'customer');
+markNewUserTutorialEligible(freshUser, 'customer'); // Even if accidentally triggered again
+assert.strictEqual(
+  shouldAutoLaunchTutorial(freshUser, 'customer'),
+  false,
+  'Completed user must NEVER re-trigger auto-launch'
+);
+console.log('   ✅ Brand new user on first device visit correctly triggered once and never again.');
 
 console.log('\n🎉 ALL ROLE & TUTORIAL VERIFICATION TESTS PASSED SUCCESSFULLY!\n');

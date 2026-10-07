@@ -464,3 +464,80 @@ export function resetTutorial(userId, role) {
     } catch (_) {}
   }
 }
+
+/**
+ * Initializes device visit tracking on app startup.
+ * Marks whether this specific browser session is the very first visit ever to the app.
+ */
+export function initAppVisitTracking() {
+  if (typeof window === 'undefined') return;
+  try {
+    const hasVisited = localStorage.getItem('foody_has_visited_app');
+    if (!hasVisited) {
+      // Very first visit ever on this device!
+      sessionStorage.setItem('foody_is_first_device_visit', 'true');
+      localStorage.setItem('foody_has_visited_app', 'true');
+      localStorage.setItem('foody_first_visit_at', new Date().toISOString());
+    }
+  } catch (_) {}
+}
+
+/**
+ * Checks whether the current browser session is the first time the app has ever been visited
+ */
+export function isFirstDeviceVisit() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return sessionStorage.getItem('foody_is_first_device_visit') === 'true';
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Marks a newly registered/first-time logged-in user as eligible for the tutorial,
+ * ONLY IF they have never visited the app previously on this device.
+ */
+export function markNewUserTutorialEligible(userId, role = 'customer') {
+  if (typeof window === 'undefined' || !userId) return;
+  try {
+    // Strictly require that this device is on its first visit
+    if (isFirstDeviceVisit()) {
+      sessionStorage.setItem('foody_eligible_new_user_tutorial', 'true');
+      sessionStorage.setItem('foody_tutorial_target_user', String(userId));
+    }
+  } catch (_) {}
+}
+
+/**
+ * Determines whether the tutorial tour should automatically pop up.
+ * Returns true ONLY for brand-new users who just registered on their first visit,
+ * and have not already completed/dismissed the tutorial.
+ */
+export function shouldAutoLaunchTutorial(userId, role) {
+  if (!userId || !role || typeof window === 'undefined') return false;
+  try {
+    const isEligible = sessionStorage.getItem('foody_eligible_new_user_tutorial') === 'true';
+    if (!isEligible) return false;
+
+    const targetUser = sessionStorage.getItem('foody_tutorial_target_user');
+    if (targetUser && String(targetUser) !== String(userId)) return false;
+
+    if (isTutorialCompleted(userId, role)) return false;
+
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * Clears new-user tutorial eligibility so it never auto-triggers again
+ */
+export function clearNewUserTutorialEligibility() {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem('foody_eligible_new_user_tutorial');
+    sessionStorage.removeItem('foody_tutorial_target_user');
+  } catch (_) {}
+}

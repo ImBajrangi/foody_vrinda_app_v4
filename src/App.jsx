@@ -11,7 +11,14 @@ import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
 import CompleteProfileModal from './components/CompleteProfileModal';
 import AppUpdateModal from './components/AppUpdateModal';
 import RoleBasedTutorialModal from './components/RoleBasedTutorialModal';
-import { isTutorialCompleted, getTutorialKeyForRole } from './services/tutorialService';
+import { 
+  isTutorialCompleted, 
+  getTutorialKeyForRole, 
+  markTutorialCompleted, 
+  initAppVisitTracking, 
+  shouldAutoLaunchTutorial, 
+  clearNewUserTutorialEligibility 
+} from './services/tutorialService';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -166,7 +173,12 @@ export default function App() {
     };
   }, []);
 
-  // Panel-Specific First-Time User Tutorial (Auto-tour on first authenticated login per panel)
+  // Initialize device first-visit tracking on app boot
+  useEffect(() => {
+    initAppVisitTracking();
+  }, []);
+
+  // Panel-Specific First-Time User Tutorial (Auto-tour ONLY for eligible brand-new users on first visit)
   useEffect(() => {
     // 1. Guard against unauthenticated state or pending auth resolution
     if (authLoading || !isAuthenticated) return;
@@ -178,9 +190,10 @@ export default function App() {
     const activePanel = currentTab || 'customer';
     if (!getTutorialKeyForRole(activePanel)) return;
 
-    // 3. Auto-launch tutorial only if not already completed by this user for this panel
+    // 3. Auto-launch tutorial ONLY if brand-new registered user on first visit & not completed
     try {
-      if (!isTutorialCompleted(uid, activePanel)) {
+      if (shouldAutoLaunchTutorial(uid, activePanel)) {
+        clearNewUserTutorialEligibility();
         const timer = setTimeout(() => {
           setTutorialPanel(activePanel);
           setIsTutorialOpen(true);
@@ -560,8 +573,18 @@ export default function App() {
       <RoleBasedTutorialModal
         isOpen={isTutorialOpen}
         forceRole={tutorialPanel || currentTab}
-        onClose={() => setIsTutorialOpen(false)}
-        onComplete={() => setIsTutorialOpen(false)}
+        onClose={() => {
+          const uid = user?.id || userData?.id;
+          const panel = tutorialPanel || currentTab || 'customer';
+          if (uid) markTutorialCompleted(uid, panel);
+          setIsTutorialOpen(false);
+        }}
+        onComplete={() => {
+          const uid = user?.id || userData?.id;
+          const panel = tutorialPanel || currentTab || 'customer';
+          if (uid) markTutorialCompleted(uid, panel);
+          setIsTutorialOpen(false);
+        }}
       />
     </div>
   );
