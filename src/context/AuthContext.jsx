@@ -4,6 +4,7 @@ import {
   supabase,
   getCloudShops,
   getCachedShops,
+  subscribeCloudShops,
   getCloudUsers,
   createCloudUser,
   updateCloudUser,
@@ -152,7 +153,19 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    // 1. Authoritative fetch from database once on initial mount
     loadShops();
+
+    // 2. Realtime delta updates: only update changed records on subsequent events
+    const unsubscribe = subscribeCloudShops((firstArg, secondArg) => {
+      const shops = Array.isArray(firstArg) ? firstArg : (Array.isArray(secondArg) ? secondArg : null);
+      if (shops && shops.length > 0) {
+        setAllShops(prev => areShopsEqual(prev, shops) ? prev : [...shops]);
+      }
+    });
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   // Listen for real-time shop configuration updates (e.g. online/offline and payment toggles)

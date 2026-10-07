@@ -108,8 +108,10 @@ export default function Header({
       if (parts.length > 0) return parts;
     }
 
-    // 2. Check active/selected shop name or area
-    const activeShop = allShops?.find(s => s.id === currentUserShopId) || allShops?.[0];
+    // 2. Check active/selected shop name or area (strictly non-deleted active shops)
+    const activeShop = allShops?.find(s => s.id === currentUserShopId && s.is_active !== false && !s.is_deleted) 
+      || allShops?.find(s => s.is_active !== false && !s.is_deleted) 
+      || allShops?.[0];
     if (activeShop?.address) {
       const parts = activeShop.address.split(',')[0].trim();
       if (parts.length > 0) return parts;

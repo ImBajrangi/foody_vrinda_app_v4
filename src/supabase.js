@@ -120,56 +120,8 @@ if (typeof supabase !== 'undefined' && supabase?.auth) {
   } catch (_) { }
 }
 
-// Seed data constants for zero-latency local fallback & instant hydration
-export const SEED_SHOPS = [
-  {
-    id: 'shop-vrinda-main',
-    name: 'Vrinda Cloud Kitchen (Main)',
-    address: 'Near ISKCON Temple, Raman Reti, Vrindavan',
-    phone: '+91 9876543210',
-    coordinates: { lat: 27.5706, lng: 77.6593 },
-    isOpen: true,
-    minimumOrderAmount: 0,
-    deliveryCharge: 0,
-    gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true },
-    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
-    onlinePaymentsEnabled: true,
-    codEnabled: true
-  },
-  {
-    id: 'shop-prem-mandir',
-    name: 'Prem Mandir Prasad Kitchen',
-    address: 'Chatikara Road, Raman Reti, Vrindavan',
-    phone: '+91 9876543211',
-    coordinates: { lat: 27.5715, lng: 77.6740 },
-    isOpen: true,
-    minimumOrderAmount: 50,
-    deliveryCharge: 20,
-    gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: true, deliveryReady: true },
-    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
-    onlinePaymentsEnabled: true,
-    codEnabled: true
-  },
-  {
-    id: 'shop-banke-bihari',
-    name: 'Shri Banke Bihari Dham Kitchen',
-    address: 'Godowlia Marg, Vrindavan',
-    phone: '+91 9876543212',
-    coordinates: { lat: 27.5815, lng: 77.6990 },
-    isOpen: true,
-    minimumOrderAmount: 100,
-    deliveryCharge: 0,
-    gstPercentage: 5,
-    alarmSettings: { kitchenNew: true, kitchenReady: false, deliveryReady: true },
-    paymentSettings: { onlinePaymentsEnabled: true, codEnabled: true },
-    onlinePaymentsEnabled: true,
-    codEnabled: true
-  }
-];
-
-
+// Pure Database-Driven Architecture: Zero hardcoded shops
+export const SEED_SHOPS = [];
 
 // Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
 export function resolveDishCutout(image, name = '', category = '') {
@@ -318,7 +270,7 @@ const safeStorage = {
         }
         keysToRemove.forEach(k => window.localStorage.removeItem(k));
       }
-    } catch (_) {}
+    } catch (_) { }
     for (const k of Array.from(memoryStore.keys())) {
       if (k.startsWith(prefix)) memoryStore.delete(k);
     }
@@ -492,7 +444,7 @@ export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders =
       const hasCoords = Boolean((rider.coordinates?.lat && rider.coordinates?.lng) || (rider.lat && rider.lng));
       const riderLat = Number(rider.coordinates?.lat || rider.lat || 0);
       const riderLng = Number(rider.coordinates?.lng || rider.lng || 0);
-      
+
       // GPS Freshness verification (< 5 minutes)
       const lastSeen = rider.last_location_at || rider.lastLocationAt || rider.lastSeenAt || rider.last_seen_at;
       const isLocationFresh = Boolean(
@@ -555,14 +507,17 @@ export function isShopCurrentlyOpen(shop) {
 }
 
 export function getDeletedShopIds() {
+  const set = new Set();
   try {
     const raw = safeStorage.getItem('foody_deleted_shop_ids');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return new Set(parsed);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(id => set.add(id));
+      }
     }
   } catch (e) { }
-  return new Set();
+  return set;
 }
 
 export function addDeletedShopId(id) {
@@ -595,7 +550,7 @@ export function getCachedShops() {
       }
     }
   } catch (e) { }
-  return (SEED_SHOPS || []).filter(s => !deletedSet.has(s.id)).map(normalizeShop);
+  return [];
 }
 
 export function saveCachedShops(shopsList) {
@@ -606,6 +561,12 @@ export function saveCachedShops(shopsList) {
     safeStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: Date.now() }));
   } catch (e) { }
   return normalized;
+}
+
+export function getDefaultActiveShopId() {
+  const list = getCachedShops();
+  const valid = list.find(s => s.isOpen !== false && s.is_deleted !== true) || list[0];
+  return valid ? valid.id : '';
 }
 
 export function setCachedItem(type, key, data) {
@@ -833,7 +794,7 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
 
   let calculatedSubtotal = 0;
   const verifiedItems = [];
-  
+
   for (const item of items) {
     // Strictly find dish within the target shop's menu catalog (ZERO client price fallback)
     const dishMatch = shopCatalog.find(d => String(d.id) === String(item.id));
@@ -936,7 +897,7 @@ function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
     } catch (err) {
       console.debug('Background push notification notice (non-fatal):', err?.message || err);
     }
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 export async function createCloudOrder(orderData) {
@@ -978,7 +939,7 @@ export async function createCloudOrder(orderData) {
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const rawFulfillment = orderData.fulfillmentType || orderData.fulfillment_type || 'delivery';
     const fulfillmentType = (rawFulfillment === 'self_pickup' || rawFulfillment === 'pickup') ? 'pickup' : 'delivery';
-    
+
     // Authoritative Server-Side Total Calculation from Database Catalog
     const totals = calculateAuthoritativeOrderTotals(shopId, orderData.items || [], fulfillmentType, orderData.discount || 0);
     const verifiedItems = (totals.verifiedItems && totals.verifiedItems.length > 0) ? totals.verifiedItems : (orderData.items || []);
@@ -987,7 +948,7 @@ export async function createCloudOrder(orderData) {
     const gstPercent = Number(targetShop.gst_percentage ?? 5);
     const gstAmount = totals.gstAmount > 0 ? totals.gstAmount : Math.round(subtotal * gstPercent / 100);
     const totalAmount = totals.totalAmount > 0 ? totals.totalAmount : (subtotal + deliveryCharge + gstAmount - (orderData.discount || 0));
-    
+
     // Generate secure cryptographic OTPs
     const generatedPickupOtp = generateSecureOrderOTP();
     const generatedDeliveryOtp = generateSecureOrderOTP();
@@ -1040,7 +1001,7 @@ export async function createCloudOrder(orderData) {
     try {
       safeStorage.setItem(`foody_order_otp_${orderId}_pickup`, generatedPickupOtp);
       safeStorage.setItem(`foody_order_otp_${orderId}_delivery`, generatedDeliveryOtp);
-    } catch (_) {}
+    } catch (_) { }
 
     const normalizedCreated = {
       ...orderData,
@@ -1096,7 +1057,7 @@ export async function createCloudOrder(orderData) {
     try {
       const { data: rpcData, error: rpcError } = await supabase.rpc('create_validated_order', {
         p_order_id: dbPayload.id,
-        p_shop_id: dbPayload.shop_id || 'shop-vrinda-main',
+        p_shop_id: dbPayload.shop_id || getDefaultActiveShopId(),
         p_customer_name: dbPayload.customer_name || 'Devotee Customer',
         p_customer_phone: dbPayload.customer_phone || '9999999999',
         p_delivery_address: dbPayload.delivery_address || 'Vrindavan Dham',
@@ -1284,9 +1245,9 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
           finalData = dd;
         }
       } else if (payload.status === 'cancelled') {
-        const { data: od, error: oe } = await supabase.rpc('owner_reject_order', { 
-          p_order_id: orderId, 
-          p_reason: extra?.reason || extra?.cooking_notes || 'Cancelled by staff' 
+        const { data: od, error: oe } = await supabase.rpc('owner_reject_order', {
+          p_order_id: orderId,
+          p_reason: extra?.reason || extra?.cooking_notes || 'Cancelled by staff'
         });
         if (!oe && od) {
           rpcSuccess = true;
@@ -1766,7 +1727,7 @@ class RealtimeMultiplexer {
     const isCombo = Boolean(raw.is_combo || nut.isCombo || raw.category === 'Combo Offers');
     const normalized = {
       id: raw.id,
-      shopId: raw.shop_id || 'shop-vrinda-main',
+      shopId: raw.shop_id || getDefaultActiveShopId(),
       name: raw.name,
       subtitle: raw.subtitle || '',
       description: raw.description || '',
@@ -1815,9 +1776,10 @@ class RealtimeMultiplexer {
     if (!raw) return;
 
     const normalized = normalizeShop(raw);
+    const deletedSet = getDeletedShopIds();
     const current = getCachedShops();
     let next;
-    if (payload.eventType === 'DELETE') {
+    if (payload.eventType === 'DELETE' || raw.is_deleted === true || deletedSet.has(raw.id)) {
       next = current.filter(s => s.id !== raw.id);
     } else {
       const idx = current.findIndex(s => s.id === raw.id);
@@ -1837,7 +1799,7 @@ class RealtimeMultiplexer {
     });
 
     this.shopListeners.forEach(cb => {
-      try { cb(normalized, next, payload.eventType); } catch (e) { console.error('Shop listener error:', e); }
+      try { cb(next, normalized, payload.eventType); } catch (e) { console.error('Shop listener error:', e); }
     });
   }
 
@@ -1941,8 +1903,8 @@ class RealtimeMultiplexer {
       phone: raw.phone || '',
       avatarUrl: raw.avatar_url || '',
       role: raw.role || 'customer',
-      shopId: raw.shop_id || raw.shopId || 'shop-vrinda-main',
-      shopIds: raw.shop_ids || raw.shopIds || (raw.shop_id ? [raw.shop_id] : ['shop-vrinda-main']),
+      shopId: raw.shop_id || raw.shopId || getDefaultActiveShopId(),
+      shopIds: raw.shop_ids || raw.shopIds || (raw.shop_id ? [raw.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
       devPermissions: raw.dev_permissions || [],
       lastLoginAt: raw.last_login_at || raw.created_at,
       createdAt: raw.created_at,
@@ -2563,7 +2525,7 @@ export async function deleteCloudPreset(presetId) {
 }
 
 export function subscribeCloudPresets(callback) {
-  if (typeof window === 'undefined') return () => {};
+  if (typeof window === 'undefined') return () => { };
   const handler = (e) => {
     if (typeof callback === 'function') {
       callback(e?.detail?.presets || getCachedPresets(), e?.detail);
@@ -2600,7 +2562,7 @@ export async function createCloudMenuItem(itemData) {
 
     const payload = {
       id: itemId,
-      shop_id: itemData.shopId || itemData.shop_id || 'shop-vrinda-main',
+      shop_id: itemData.shopId || itemData.shop_id || getDefaultActiveShopId(),
       name: itemData.name,
       subtitle: itemData.subtitle || itemData.category || '',
       description: itemData.description || '',
@@ -3012,16 +2974,17 @@ export async function deleteCloudShop(shopId) {
 
   try {
     // 1. Reassign menu foreign keys if needed
+    const fallbackShop = getDefaultActiveShopId();
     try {
-      if (!isTableWriteForbidden('foody_menus')) await supabase.from('foody_menus').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_menus') && fallbackShop) await supabase.from('foody_menus').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
     } catch (e) { }
 
     try {
-      if (!isTableWriteForbidden('foody_logged_users')) await supabase.from('foody_logged_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_logged_users') && fallbackShop) await supabase.from('foody_logged_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
     } catch (e) { }
 
     try {
-      if (!isTableWriteForbidden('foody_users')) await supabase.from('foody_users').update({ shop_id: 'shop-vrinda-main' }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_users') && fallbackShop) await supabase.from('foody_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
     } catch (e) { }
 
     // 2. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)
@@ -3051,44 +3014,8 @@ export async function markCloudOrderCashCollected(orderId) {
 // SUPABASE CLOUD USERS & ROLE MANAGEMENT
 // ==========================================
 
-export const SEED_USERS = [
-  {
-    id: 'master_dev_108',
-    displayName: 'Master Developer (Foody Vrinda)',
-    email: 'developer@foodyvrinda.com',
-    phone: '9876543210',
-    role: 'developer',
-    shopId: 'shop-vrinda-main',
-    shopIds: ['shop-vrinda-main', 'shop-prem-mandir', 'shop-banke-bihari']
-  },
-  {
-    id: 'store_owner_main',
-    displayName: 'Vrinda Store Owner',
-    email: 'owner@foodyvrinda.com',
-    phone: '9876543211',
-    role: 'owner',
-    shopId: 'shop-vrinda-main',
-    shopIds: ['shop-vrinda-main']
-  },
-  {
-    id: 'kitchen_chef_radhe',
-    displayName: 'Head Chef Radhe',
-    email: 'chef@foodyvrinda.com',
-    phone: '9876543212',
-    role: 'kitchen',
-    shopId: 'shop-vrinda-main',
-    shopIds: ['shop-vrinda-main']
-  },
-  {
-    id: 'rider_sarathi_gopal',
-    displayName: 'Sarathi Gopal',
-    email: 'sarathi@foodyvrinda.com',
-    phone: '9876543213',
-    role: 'delivery',
-    shopId: 'shop-vrinda-main',
-    shopIds: ['shop-vrinda-main', 'shop-prem-mandir', 'shop-banke-bihari']
-  }
-];
+// Zero hardcoded seed users: pure database-driven role resolution
+export const SEED_USERS = [];
 
 export function getCachedUsers() {
   try {
@@ -3379,11 +3306,11 @@ export async function getCloudUsers(forceRefresh = false) {
           // Merge with higher priority record
           const prev = deduplicatedUsers[existingIdx];
           const bestRole = (prev.role === 'grand_admin' || userCandidate.role === 'grand_admin') ? 'grand_admin' :
-                           (prev.role === 'developer' || userCandidate.role === 'developer') ? 'developer' :
-                           (prev.role === 'owner' || userCandidate.role === 'owner') ? 'owner' :
-                           (prev.role === 'kitchen' || userCandidate.role === 'kitchen') ? 'kitchen' :
-                           (prev.role === 'delivery' || userCandidate.role === 'delivery') ? 'delivery' :
-                           (userCandidate.role || prev.role || 'customer');
+            (prev.role === 'developer' || userCandidate.role === 'developer') ? 'developer' :
+              (prev.role === 'owner' || userCandidate.role === 'owner') ? 'owner' :
+                (prev.role === 'kitchen' || userCandidate.role === 'kitchen') ? 'kitchen' :
+                  (prev.role === 'delivery' || userCandidate.role === 'delivery') ? 'delivery' :
+                    (userCandidate.role || prev.role || 'customer');
 
           deduplicatedUsers[existingIdx] = {
             ...prev,
@@ -3393,8 +3320,8 @@ export async function getCloudUsers(forceRefresh = false) {
             email: cleanEmail || prev.email,
             phone: userCandidate.phone || prev.phone,
             role: bestRole,
-            shopId: userCandidate.shopId || prev.shopId || 'shop-vrinda-main',
-            shopIds: userCandidate.shopIds?.length ? userCandidate.shopIds : (prev.shopIds || ['shop-vrinda-main'])
+            shopId: userCandidate.shopId || prev.shopId || getDefaultActiveShopId(),
+            shopIds: userCandidate.shopIds?.length ? userCandidate.shopIds : (prev.shopIds || [getDefaultActiveShopId()].filter(Boolean))
           };
         } else {
           deduplicatedUsers.push(userCandidate);
@@ -3418,8 +3345,8 @@ export async function getCloudUsers(forceRefresh = false) {
           avatarUrl: u.avatar_url || '',
           address: u.address || '',
           role: u.role || 'customer',
-          shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
-          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
+          shopId: u.shop_id || u.shopId || getDefaultActiveShopId(),
+          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
@@ -3440,8 +3367,8 @@ export async function getCloudUsers(forceRefresh = false) {
           avatarUrl: u.avatar_url || '',
           address: u.address || '',
           role: u.role || 'customer',
-          shopId: u.shop_id || u.shopId || 'shop-vrinda-main',
-          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : ['shop-vrinda-main']),
+          shopId: u.shop_id || u.shopId || getDefaultActiveShopId(),
+          shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
@@ -3498,8 +3425,8 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         avatarUrl: data.avatar_url || '',
         address: data.address || '',
         role: data.role || 'customer',
-        shopId: data.shop_id || 'shop-vrinda-main',
-        shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : ['shop-vrinda-main']),
+        shopId: data.shop_id || getDefaultActiveShopId(),
+        shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: data.dev_permissions || [],
         isActive: data.is_active ?? true,
         isLoggedInUser: true
@@ -3526,8 +3453,8 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         avatarUrl: uData.avatar_url || '',
         address: uData.address || '',
         role: uData.role || 'customer',
-        shopId: uData.shop_id || 'shop-vrinda-main',
-        shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : ['shop-vrinda-main']),
+        shopId: uData.shop_id || getDefaultActiveShopId(),
+        shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: uData.dev_permissions || [],
         isActive: uData.is_active ?? true,
         isLoggedInUser: true
@@ -3546,8 +3473,8 @@ export async function recordLoggedInUser(userProfile) {
   const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
   const cleanName = userProfile.displayName || userProfile.name || cleanEmail.split('@')[0] || `User (${cleanId.slice(0, 6)})`;
   const cleanAvatar = userProfile.avatar_url || userProfile.photoURL || userProfile.avatarUrl || '';
-  const cleanShop = userProfile.shopId || 'shop-vrinda-main';
-  const cleanShops = userProfile.shopIds || [cleanShop];
+  const cleanShop = userProfile.shopId || getDefaultActiveShopId();
+  const cleanShops = userProfile.shopIds || (cleanShop ? [cleanShop] : []);
   const loginMethod = userProfile.loginMethod || (cleanEmail ? 'email' : (cleanPhone ? 'phone' : 'google'));
 
   const current = getCachedUsers();
@@ -3684,8 +3611,8 @@ export async function createCloudUser(userData) {
     avatarUrl: userData.avatarUrl || userData.avatar_url || '',
     address: userData.address || '',
     role: userData.role || 'customer',
-    shopId: userData.shopId || 'shop-vrinda-main',
-    shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : ['shop-vrinda-main']),
+    shopId: userData.shopId || getDefaultActiveShopId(),
+    shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : [getDefaultActiveShopId()].filter(Boolean)),
     devPermissions: userData.devPermissions || userData.dev_permissions || [],
     isActive: userData.isActive ?? userData.is_active ?? true,
     lastLoginAt: nowIso,
@@ -3816,8 +3743,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       avatarUrl: updates.avatarUrl || updates.avatar_url || '',
       address: updates.address || '',
       role: updates.role || 'customer',
-      shopId: updates.shopId || updates.shop_id || 'shop-vrinda-main',
-      shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || 'shop-vrinda-main'],
+      shopId: updates.shopId || updates.shop_id || getDefaultActiveShopId(),
+      shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || getDefaultActiveShopId()].filter(Boolean),
       devPermissions: updates.devPermissions || updates.dev_permissions || [],
       isActive: updates.isActive ?? updates.is_active ?? true,
       ...updates,
@@ -3846,8 +3773,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     avatar_url: updates.avatarUrl || updates.avatar_url || userExists?.avatarUrl || '',
     address: updates.address !== undefined ? updates.address : (userExists?.address || ''),
     role: updates.role || userExists?.role || 'customer',
-    shop_id: updates.shopId || updates.shop_id || userExists?.shopId || 'shop-vrinda-main',
-    shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || ['shop-vrinda-main'],
+    shop_id: updates.shopId || updates.shop_id || userExists?.shopId || getDefaultActiveShopId(),
+    shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || [getDefaultActiveShopId()].filter(Boolean),
     dev_permissions: updates.devPermissions || updates.dev_permissions || userExists?.devPermissions || [],
     trust_score: Number(resolvedTrust),
     cibil_score: Number(resolvedTrust),
@@ -3928,7 +3855,7 @@ export async function adminBlockUser(userId, reason = 'Administrative block') {
       p_reason: reason
     });
     if (error) throw error;
-    
+
     // Update local cache
     const currentUsers = getCachedUsers();
     const updatedList = currentUsers.map(u => u.id === userId ? { ...u, isActive: false, is_active: false } : u);
@@ -3949,7 +3876,7 @@ export async function adminUnblockUser(userId, reason = 'Administrative unblock'
       p_reason: reason
     });
     if (error) throw error;
-    
+
     // Update local cache
     const currentUsers = getCachedUsers();
     const updatedList = currentUsers.map(u => u.id === userId ? { ...u, isActive: true, is_active: true } : u);
@@ -3970,7 +3897,7 @@ export async function adminRevokeUser(userId, reason = 'Privileges revoked by de
       p_reason: reason
     });
     if (error) throw error;
-    
+
     // Update local cache
     const currentUsers = getCachedUsers();
     const updatedList = currentUsers.map(u => u.id === userId ? {
@@ -4132,7 +4059,7 @@ export async function createCloudReview(reviewData) {
   try {
     const payload = {
       order_id: reviewData.order_id || reviewData.orderId || `REV-${Date.now()}`,
-      shop_id: reviewData.shop_id || reviewData.shopId || 'shop-vrinda-main',
+      shop_id: reviewData.shop_id || reviewData.shopId || getDefaultActiveShopId(),
       customer_name: reviewData.customer_name || reviewData.customerName || 'Devotee Customer',
       rating: Number(reviewData.rating || 5),
       tags: reviewData.tags || [],
@@ -4247,7 +4174,7 @@ export function sha256PureJs(ascii) {
   words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
   words[words[lengthProperty]] = asciiBitLength;
 
-  for (j = 0; j < words[lengthProperty]; ) {
+  for (j = 0; j < words[lengthProperty];) {
     const w = words.slice(j, (j += 16));
     const oldHash = hash;
     hash = hash.slice(0, 8);
@@ -4267,10 +4194,10 @@ export function sha256PureJs(ascii) {
           i < 16
             ? w[i]
             : (w[i - 16] +
-                (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
-                w[i - 7] +
-                (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
-              0);
+              (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+              w[i - 7] +
+              (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
+            0);
       const temp2 =
         (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
         ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
@@ -4307,7 +4234,7 @@ export async function computeSha256Hex(text) {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-  } catch (_) {}
+  } catch (_) { }
   return sha256PureJs(str);
 }
 
@@ -4365,7 +4292,7 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   let attempts = 0;
   try {
     attempts = parseInt(safeStorage.getItem(attemptKey) || '0', 10);
-  } catch (_) {}
+  } catch (_) { }
 
   if (attempts >= 5) {
     console.warn(`[Security] Maximum OTP attempts (5/5) exceeded for order ${orderId}`);
@@ -4377,8 +4304,8 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
 
   // Hash-first fallback check if order object contains SHA-256 hash
   if (!isMatch && typeof orderOrId === 'object' && orderOrId !== null) {
-    const hashCol = type === 'pickup' 
-      ? (orderOrId.pickupOtpHash || orderOrId.pickup_otp_hash) 
+    const hashCol = type === 'pickup'
+      ? (orderOrId.pickupOtpHash || orderOrId.pickup_otp_hash)
       : (orderOrId.deliveryOtpHash || orderOrId.delivery_otp_hash);
     if (hashCol) {
       isMatch = sha256PureJs(cleanEntered) === hashCol;
@@ -4388,14 +4315,14 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   if (!isMatch) {
     try {
       safeStorage.setItem(attemptKey, String(attempts + 1));
-    } catch (_) {}
+    } catch (_) { }
     return false;
   }
 
   // Success: Clear attempt counter
   try {
     safeStorage.removeItem(attemptKey);
-  } catch (_) {}
+  } catch (_) { }
   return true;
 }
 
@@ -4404,8 +4331,8 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
  * Formatted as SR-XXXX (e.g. SR-8921) changing automatically every 24 hours.
  */
 export function getDailySarathiCode(riderIdOrUser) {
-  const riderId = typeof riderIdOrUser === 'string' 
-    ? riderIdOrUser 
+  const riderId = typeof riderIdOrUser === 'string'
+    ? riderIdOrUser
     : (riderIdOrUser?.id || riderIdOrUser?.email || 'sarathi_rider');
   const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   let hash = 0;
@@ -4466,7 +4393,7 @@ export function exportDeliveryAuditReportCSV(orders = []) {
       try {
         const diffMs = new Date(deliveredDate) - new Date(pickedDate);
         durationMins = Math.max(1, Math.round(diffMs / (1000 * 60))).toString();
-      } catch (_) {}
+      } catch (_) { }
     }
 
     return [
@@ -4520,8 +4447,8 @@ export function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {
   const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
   const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return Math.round(R * c);
@@ -4549,8 +4476,8 @@ export function checkDeliveryGeofence(riderCoords, deliveryCoords, maxDistanceMe
   }
 
   const isWithin = distance <= maxDistanceMeters;
-  const formatted = distance > 1000 
-    ? `${(distance / 1000).toFixed(1)} km away` 
+  const formatted = distance > 1000
+    ? `${(distance / 1000).toFixed(1)} km away`
     : `${distance} meters away`;
 
   return {
@@ -4594,8 +4521,8 @@ export function calculateOptimalDispatchWindow(order, riderCoords, avgPrepMins =
     optimalDispatchTime: new Date(optimalDispatchTime).toISOString(),
     isDispatchReady,
     waitMins,
-    statusText: isDispatchReady 
-      ? 'Optimal Pickup Window Active' 
+    statusText: isDispatchReady
+      ? 'Optimal Pickup Window Active'
       : `Dispatch in ${waitMins} mins (Food Cooking)`
   };
 }
@@ -4632,7 +4559,7 @@ export function recordCODCashTransaction({
   try {
     const key = `foody_cod_tx_${orderId}`;
     safeStorage.setItem(key, JSON.stringify(transactionRecord));
-  } catch (_) {}
+  } catch (_) { }
 
   return transactionRecord;
 }
@@ -4688,7 +4615,7 @@ export function queueOfflineOrderMutation(orderId, nextStatus, payload = {}) {
       queuedAt: new Date().toISOString()
     });
     safeStorage.setItem('foody_offline_mutation_queue', JSON.stringify(queue));
-  } catch (_) {}
+  } catch (_) { }
 }
 
 export async function processOfflineOrderQueue() {
@@ -4707,7 +4634,7 @@ export async function processOfflineOrderQueue() {
       }
     }
     safeStorage.removeItem('foody_offline_mutation_queue');
-  } catch (_) {}
+  } catch (_) { }
 }
 
 if (typeof window !== 'undefined') {
@@ -4837,7 +4764,7 @@ export async function recordCashSettlement({ riderId, shopId, expectedAmount, re
   try {
     const settlementPayload = {
       rider_id: cleanId,
-      shop_id: shopId || 'shop-vrinda-main',
+      shop_id: shopId || getDefaultActiveShopId(),
       expected_amount: expected,
       received_amount: received,
       status: status,
@@ -4899,7 +4826,7 @@ export async function recordMultiStaffReview({
   // 3. Save comprehensive review in Supabase
   const combinedReview = {
     order_id: orderId || `REV-${Date.now()}`,
-    shop_id: shopId || 'shop-vrinda-main',
+    shop_id: shopId || getDefaultActiveShopId(),
     customer_name: customerName,
     rating: Math.round(((Number(chefRating) + Number(riderRating)) / 2) * 10) / 10,
     tags: [...chefTags, ...riderTags],

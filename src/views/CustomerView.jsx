@@ -713,12 +713,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearTimeout(timer);
   }, [checkoutPhone]);
 
-  // Set default active shop if none selected (picks first active, non-deleted shop)
+  // Dynamic Database Shop Selection: Ensure valid active branch from database is always selected
   useEffect(() => {
-    if (!selectedShopId && allShops && allShops.length > 0) {
-      const firstActive = allShops.find(s => s.is_active !== false && !s.is_deleted);
-      if (firstActive) {
-        setSelectedShopId(firstActive.id);
+    if (allShops && allShops.length > 0) {
+      const activeValidShops = allShops.filter(s => s.is_active !== false && !s.is_deleted);
+      const isCurrentValid = activeValidShops.some(s => s.id === selectedShopId);
+      if (!isCurrentValid && activeValidShops.length > 0) {
+        setSelectedShopId(activeValidShops[0].id);
       }
     }
   }, [allShops, selectedShopId, setSelectedShopId]);
@@ -1451,7 +1452,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           >
             <MapPin size={15} className="text-amber-600 dark:text-[#E0FF33] flex-shrink-0" />
             <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
-              {activeShop?.name || 'Vrinda Cloud Kitchen'}
+              {activeShop?.name || allShops?.find(s => s.is_active !== false && !s.is_deleted)?.name || 'Select Branch'}
             </span>
             {activeShop?.estimatedWaitTime && (
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
@@ -2708,11 +2709,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
-                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#E0FF33] truncate">{activeShop?.name || 'Foody Vrinda Main Kitchen'}</p>
+                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#E0FF33] truncate">{activeShop?.name || 'Counter Pickup'}</p>
                       </div>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
-                      {activeShop?.address || 'Near ISKCON Temple, Raman Reti, Vrindavan'}
+                      {activeShop?.address || 'Pickup counter'}
                     </p>
 
                     {/* Anti-Fake Orders Notice for Shop Type */}
@@ -2733,26 +2734,29 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                   <div className="grid grid-cols-2 gap-2.5">
                     {/* Online Pay Option */}
-                    {/* Online Pay Option */}
                     <button
                       type="button"
                       disabled={!onlineAvailable}
-                      onClick={() => setPaymentMethod('online')}
-                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!onlineAvailable
-                        ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
-                        : paymentMethod === 'online'
-                          ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                          : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
-                        }`}
+                      onClick={() => onlineAvailable && setPaymentMethod('online')}
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target relative overflow-hidden ${
+                        !onlineAvailable
+                          ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
+                          : paymentMethod === 'online'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30 cursor-pointer'
+                            : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
+                      }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'online'
-                          ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                          : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
-                          }`}>
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                          !onlineAvailable
+                            ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
+                            : paymentMethod === 'online'
+                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                              : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
+                        }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
-                        {paymentMethod === 'online' && (
+                        {onlineAvailable && paymentMethod === 'online' && (
                           <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
@@ -2760,16 +2764,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${paymentMethod === 'online'
-                            ? 'text-stone-950 dark:text-[#121011]'
-                            : 'text-stone-950 dark:text-white'
-                          }`}>
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
+                          !onlineAvailable
+                            ? 'text-stone-400 dark:text-zinc-500'
+                            : paymentMethod === 'online'
+                              ? 'text-stone-950 dark:text-[#121011]'
+                              : 'text-stone-950 dark:text-white'
+                        }`}>
                           Online Pay
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'online'
-                          ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
-                          : 'text-stone-600 dark:text-zinc-400'
-                          }`}>
+                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${
+                          !onlineAvailable
+                            ? 'text-rose-600 dark:text-rose-400 font-semibold'
+                            : paymentMethod === 'online'
+                              ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                              : 'text-stone-600 dark:text-zinc-400'
+                        }`}>
                           {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
                         </p>
                       </div>
@@ -2779,22 +2789,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <button
                       type="button"
                       disabled={!isCodAvailableForOrder}
-                      onClick={() => setPaymentMethod('cash')}
-                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target cursor-pointer relative overflow-hidden ${!isCodAvailableForOrder
-                        ? 'bg-stone-200/50 dark:bg-[#151314]/50 text-stone-400 dark:text-zinc-600 border border-stone-300/40 dark:border-white/5 cursor-not-allowed opacity-50'
-                        : paymentMethod === 'cash'
-                          ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30'
-                          : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#181617] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20'
-                        }`}
+                      onClick={() => isCodAvailableForOrder && setPaymentMethod('cash')}
+                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target relative overflow-hidden ${
+                        !isCodAvailableForOrder
+                          ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
+                          : paymentMethod === 'cash'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30 cursor-pointer'
+                            : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
+                      }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${paymentMethod === 'cash'
-                          ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
-                          : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
-                          }`}>
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                          !isCodAvailableForOrder
+                            ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
+                            : paymentMethod === 'cash'
+                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                              : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
+                        }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
-                        {paymentMethod === 'cash' && (
+                        {isCodAvailableForOrder && paymentMethod === 'cash' && (
                           <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
@@ -2802,16 +2816,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${paymentMethod === 'cash'
-                            ? 'text-stone-950 dark:text-[#121011]'
-                            : 'text-stone-950 dark:text-white'
-                          }`}>
+                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
+                          !isCodAvailableForOrder
+                            ? 'text-stone-400 dark:text-zinc-500'
+                            : paymentMethod === 'cash'
+                              ? 'text-stone-950 dark:text-[#121011]'
+                              : 'text-stone-950 dark:text-white'
+                        }`}>
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${paymentMethod === 'cash'
-                          ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
-                          : 'text-stone-600 dark:text-zinc-400'
-                          }`}>
+                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${
+                          !isCodAvailableForOrder
+                            ? 'text-rose-600 dark:text-rose-400 font-semibold'
+                            : paymentMethod === 'cash'
+                              ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                              : 'text-stone-600 dark:text-zinc-400'
+                        }`}>
                           {!isCodAvailableForOrder ? 'COD Disabled' : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
                         </p>
                       </div>
@@ -2829,7 +2849,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <Zap size={13} className="text-amber-600 dark:text-[#E0FF33]" />
                   <span className="font-bold text-stone-700 dark:text-neutral-300">Live GPS tracking included</span>
                 </div>
-                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">Vrinda Cloud Kitchen</span>
+                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">{activeShop?.name || 'Foody Vrinda'}</span>
               </div>
 
               <button
