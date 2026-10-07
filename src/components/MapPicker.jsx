@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { MapPin, X, Navigation, Compass, Check } from 'lucide-react';
 
 export default function MapPicker({ initialCoords, initialLat, initialLng, onClose, onLocationSelect, onSelect }) {

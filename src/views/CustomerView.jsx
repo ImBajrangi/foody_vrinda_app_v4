@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -11,9 +11,16 @@ import {
   resolveOrderCoordinates,
   DEFAULT_VRINDA_COORDS
 } from '../utils/addressUtils';
-import MapPicker from '../components/MapPicker';
+import { lazyWithRetry } from '../utils/lazyWithRetry';
 import BouncingLoader from '../components/ui/BouncingLoader';
 import DynamicToast from '../components/ui/DynamicToast';
+
+// Dynamically loaded sub-components and Leaflet-dependent modals
+const MapPicker = lazyWithRetry(() => import('../components/MapPicker'));
+const ActiveOrderTrackingModal = lazyWithRetry(() => import('../components/ActiveOrderTrackingModal'));
+const QuantityPickerSheet = lazyWithRetry(() => import('../components/QuantityPickerSheet'));
+const OrderHistoryDrawer = lazyWithRetry(() => import('../components/OrderHistoryDrawer'));
+const ReviewModal = lazyWithRetry(() => import('../components/ReviewModal'));
 import {
   MapPin,
   ChevronDown,
@@ -50,11 +57,7 @@ import {
   Globe,
   ArrowRight
 } from 'lucide-react';
-import ActiveOrderTrackingModal from '../components/ActiveOrderTrackingModal';
 import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
-import QuantityPickerSheet from '../components/QuantityPickerSheet';
-import OrderHistoryDrawer from '../components/OrderHistoryDrawer';
-import ReviewModal from '../components/ReviewModal';
 import SocialLinksBar from '../components/ui/SocialLinksBar';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import {
@@ -1412,32 +1415,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   return (
     <div className="w-full flex-1 flex flex-col pb-6 text-white">
-      {/* MAP PICKER MODAL */}
+      {/* MAP PICKER MODAL (Lazy loaded on user click) */}
       {showMapPicker && (
-        <MapPicker
-          initialCoords={deliveryCoords}
-          onLocationSelect={async (coords) => {
-            if (isValidCoordinates(coords)) {
-              setDeliveryCoords(coords);
-              setCoordinateSource('gps');
-              try {
-                localStorage.setItem('deliveryCoords', JSON.stringify(coords));
-              } catch (_) {}
-            }
-            setShowMapPicker(false);
-            showToast("Location Pinned", "success");
-            try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`);
-              const data = await res.json();
-              if (data && (data.display_name || data.name)) {
-                setCheckoutAddress(data.display_name || data.name);
+        <Suspense fallback={null}>
+          <MapPicker
+            initialCoords={deliveryCoords}
+            onLocationSelect={async (coords) => {
+              if (isValidCoordinates(coords)) {
+                setDeliveryCoords(coords);
+                setCoordinateSource('gps');
+                try {
+                  localStorage.setItem('deliveryCoords', JSON.stringify(coords));
+                } catch (_) {}
               }
-            } catch (e) {
-              console.warn("Reverse geocoding error:", e);
-            }
-          }}
-          onClose={() => setShowMapPicker(false)}
-        />
+              setShowMapPicker(false);
+              showToast("Location Pinned", "success");
+              try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`);
+                const data = await res.json();
+                if (data && (data.display_name || data.name)) {
+                  setCheckoutAddress(data.display_name || data.name);
+                }
+              } catch (e) {
+                console.warn("Reverse geocoding error:", e);
+              }
+            }}
+            onClose={() => setShowMapPicker(false)}
+          />
+        </Suspense>
       )}
 
       {/* DYNAMIC UNIFIED LOCATION & SEARCH BAR (Apple HIG Clean Standard) */}
@@ -2876,72 +2881,81 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         document.body
       )}
 
-      {/* Order History Drawer (My Orders) */}
-      <OrderHistoryDrawer
-        isOpen={isOrderHistoryOpen}
-        onClose={() => setIsOrderHistoryOpen(false)}
-        userId={user?.id}
-        userPhone={userData?.phone || user?.phone || (user?.isAnonymous ? checkoutPhone : '')}
-        allShops={allShops}
-        onTrackOrder={(order) => {
-          if (order?.id && setTrackingOrderId) {
-            setTrackingOrderId(order.id);
-          }
-          setTrackingOrder(order);
-          setIsTrackingModalOpen(true);
-        }}
-        onRateOrder={(order) => {
-          setReviewOrderTarget(order);
-          setIsReviewModalOpen(true);
-        }}
-        onToast={showToast}
-      />
+      {/* Modals and Drawers (Loaded on demand via Suspense) */}
+      <Suspense fallback={null}>
+        {/* Order History Drawer (My Orders) */}
+        {isOrderHistoryOpen && (
+          <OrderHistoryDrawer
+            isOpen={isOrderHistoryOpen}
+            onClose={() => setIsOrderHistoryOpen(false)}
+            userId={user?.id}
+            userPhone={userData?.phone || user?.phone || (user?.isAnonymous ? checkoutPhone : '')}
+            allShops={allShops}
+            onTrackOrder={(order) => {
+              if (order?.id && setTrackingOrderId) {
+                setTrackingOrderId(order.id);
+              }
+              setTrackingOrder(order);
+              setIsTrackingModalOpen(true);
+            }}
+            onRateOrder={(order) => {
+              setReviewOrderTarget(order);
+              setIsReviewModalOpen(true);
+            }}
+            onToast={showToast}
+          />
+        )}
 
-      {/* 5-Star Customer Review & Rating Modal */}
-      <ReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => {
-          setIsReviewModalOpen(false);
-          setReviewOrderTarget(null);
-        }}
-        order={reviewOrderTarget}
-        shopId={reviewOrderTarget?.shop_id || reviewOrderTarget?.shopId || activeShop?.id}
-        shopName={reviewOrderTarget?.shopName || activeShop?.name}
-        orderId={reviewOrderTarget?.id}
-        onReviewSubmitted={() => {
-          showToast("Review Submitted", "success", "5-Star Rating Shared");
-        }}
-      />
+        {/* 5-Star Customer Review & Rating Modal */}
+        {isReviewModalOpen && (
+          <ReviewModal
+            isOpen={isReviewModalOpen}
+            onClose={() => {
+              setIsReviewModalOpen(false);
+              setReviewOrderTarget(null);
+            }}
+            order={reviewOrderTarget}
+            shopId={reviewOrderTarget?.shop_id || reviewOrderTarget?.shopId || activeShop?.id}
+            shopName={reviewOrderTarget?.shopName || activeShop?.name}
+            orderId={reviewOrderTarget?.id}
+            onReviewSubmitted={() => {
+              showToast("Review Submitted", "success", "5-Star Rating Shared");
+            }}
+          />
+        )}
 
-      {/* Live Order CARTO Map Tracking HUD Modal (Exact Screenshot Layout) */}
-      {isTrackingModalOpen && trackingOrder && (
-        <ActiveOrderTrackingModal
-          order={trackingOrder}
-          allShops={allShops}
-          onToast={showToast}
-          onClose={() => setIsTrackingModalOpen(false)}
-          onRateOrder={(order) => {
-            setIsTrackingModalOpen(false);
-            setReviewOrderTarget(order);
-            setIsReviewModalOpen(true);
-          }}
-        />
-      )}
+        {/* Live Order CARTO Map Tracking HUD Modal (Exact Screenshot Layout) */}
+        {isTrackingModalOpen && trackingOrder && (
+          <ActiveOrderTrackingModal
+            order={trackingOrder}
+            allShops={allShops}
+            onToast={showToast}
+            onClose={() => setIsTrackingModalOpen(false)}
+            onRateOrder={(order) => {
+              setIsTrackingModalOpen(false);
+              setReviewOrderTarget(order);
+              setIsReviewModalOpen(true);
+            }}
+          />
+        )}
 
-      {/* Apple / Nike iOS Quantity Picker Sheet Modal */}
-      <QuantityPickerSheet
-        isOpen={!!editingQuantityItem}
-        item={editingQuantityItem}
-        onClose={() => setEditingQuantityItem(null)}
-        onUpdateQuantity={(itemId, qty) => {
-          setExactQuantity(itemId, qty);
-          showToast(`Qty: ${qty}`, 'info', 'Updated');
-        }}
-        onRemoveItem={(itemId) => {
-          removeFromCart(itemId);
-          showToast('Item Removed', 'info', 'From basket');
-        }}
-      />
+        {/* Apple / Nike iOS Quantity Picker Sheet Modal */}
+        {!!editingQuantityItem && (
+          <QuantityPickerSheet
+            isOpen={!!editingQuantityItem}
+            item={editingQuantityItem}
+            onClose={() => setEditingQuantityItem(null)}
+            onUpdateQuantity={(itemId, qty) => {
+              setExactQuantity(itemId, qty);
+              showToast(`Qty: ${qty}`, 'info', 'Updated');
+            }}
+            onRemoveItem={(itemId) => {
+              removeFromCart(itemId);
+              showToast('Item Removed', 'info', 'From basket');
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* Dynamic Island Toast Notification (Vrinda Tours Physics) */}
       {toast && (

@@ -3,8 +3,6 @@
 
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 @variant light (&:where([data-theme="light"], [data-theme="light"] *, .light, .light *));
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
-@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *, .light, .light *));
 
 @theme {
   --font-outfit: 'Outfit', sans-serif;

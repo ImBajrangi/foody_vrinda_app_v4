@@ -3,14 +3,18 @@ import { useAuth } from './context/AuthContext';
 import { useCart } from './context/CartContext';
 import { useAudioAlarm } from './hooks/useAudioAlarm';
 import Header from './components/Header';
-import AuthModal from './components/AuthModal';
-import NotificationPanel from './components/NotificationPanel';
-import UnifiedSearchModal from './components/UnifiedSearchModal';
-import RewardsModal from './components/RewardsModal';
-import UnauthorizedAccessScreen from './components/UnauthorizedAccessScreen';
-import CompleteProfileModal from './components/CompleteProfileModal';
-import AppUpdateModal from './components/AppUpdateModal';
-import RoleBasedTutorialModal from './components/RoleBasedTutorialModal';
+import { lazyWithRetry } from './utils/lazyWithRetry';
+
+// Code-split overlay modals to load strictly on demand
+const AuthModal = lazyWithRetry(() => import('./components/AuthModal'));
+const NotificationPanel = lazyWithRetry(() => import('./components/NotificationPanel'));
+const UnifiedSearchModal = lazyWithRetry(() => import('./components/UnifiedSearchModal'));
+const RewardsModal = lazyWithRetry(() => import('./components/RewardsModal'));
+const UnauthorizedAccessScreen = lazyWithRetry(() => import('./components/UnauthorizedAccessScreen'));
+const CompleteProfileModal = lazyWithRetry(() => import('./components/CompleteProfileModal'));
+const AppUpdateModal = lazyWithRetry(() => import('./components/AppUpdateModal'));
+const RoleBasedTutorialModal = lazyWithRetry(() => import('./components/RoleBasedTutorialModal'));
+
 import { 
   isTutorialCompleted, 
   getTutorialKeyForRole, 
@@ -21,8 +25,6 @@ import {
 } from './services/tutorialService';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
-
-import { lazyWithRetry } from './utils/lazyWithRetry';
 
 // Code-split all role views to reduce initial boot payload with auto-retry on stale deployments
 const CustomerView = lazyWithRetry(() => import('./views/CustomerView'));
@@ -527,65 +529,81 @@ export default function App() {
         </ErrorBoundary>
       </main>
 
-      {/* OVERLAY MODALS */}
-      <AuthModal 
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        initialMode={authInitialMode}
-      />
+      {/* OVERLAY MODALS (Dynamically loaded on demand) */}
+      <Suspense fallback={null}>
+        {isAuthOpen && (
+          <AuthModal 
+            isOpen={isAuthOpen}
+            onClose={() => setIsAuthOpen(false)}
+            initialMode={authInitialMode}
+          />
+        )}
 
-      <CompleteProfileModal
-        isOpen={isCompleteProfileOpen}
-        onClose={() => setIsCompleteProfileOpen(false)}
-        onSaveComplete={() => {
-          setIsCompleteProfileOpen(false);
-        }}
-      />
+        {isCompleteProfileOpen && (
+          <CompleteProfileModal
+            isOpen={isCompleteProfileOpen}
+            onClose={() => setIsCompleteProfileOpen(false)}
+            onSaveComplete={() => {
+              setIsCompleteProfileOpen(false);
+            }}
+          />
+        )}
 
-      <RewardsModal 
-        isOpen={isRewardsOpen}
-        onClose={() => setIsRewardsOpen(false)}
-      />
+        {isRewardsOpen && (
+          <RewardsModal 
+            isOpen={isRewardsOpen}
+            onClose={() => setIsRewardsOpen(false)}
+          />
+        )}
 
-      <NotificationPanel 
-        isOpen={isNotificationsOpen}
-        onClose={() => setIsNotificationsOpen(false)}
-        onNotificationClick={handleNotificationOrderClick}
-      />
+        {isNotificationsOpen && (
+          <NotificationPanel 
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+            onNotificationClick={handleNotificationOrderClick}
+          />
+        )}
 
-      <UnifiedSearchModal 
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        initialQuery={searchInitialQuery}
-        onSelectShop={(shopId) => {
-          if (shopId) setSelectedShopId(shopId);
-          setCurrentTab('customer');
-        }}
-        onSelectOrder={handleSearchOrderSelect}
-      />
+        {isSearchOpen && (
+          <UnifiedSearchModal 
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            initialQuery={searchInitialQuery}
+            onSelectShop={(shopId) => {
+              if (shopId) setSelectedShopId(shopId);
+              setCurrentTab('customer');
+            }}
+            onSelectOrder={handleSearchOrderSelect}
+          />
+        )}
 
-      <AppUpdateModal
-        isOpen={isUpdateOpen}
-        updateInfo={updateInfo}
-        onClose={() => setIsUpdateOpen(false)}
-      />
+        {isUpdateOpen && (
+          <AppUpdateModal
+            isOpen={isUpdateOpen}
+            updateInfo={updateInfo}
+            onClose={() => setIsUpdateOpen(false)}
+          />
+        )}
 
-      <RoleBasedTutorialModal
-        isOpen={isTutorialOpen}
-        forceRole={tutorialPanel || currentTab}
-        onClose={() => {
-          const uid = user?.id || userData?.id;
-          const panel = tutorialPanel || currentTab || 'customer';
-          if (uid) markTutorialCompleted(uid, panel);
-          setIsTutorialOpen(false);
-        }}
-        onComplete={() => {
-          const uid = user?.id || userData?.id;
-          const panel = tutorialPanel || currentTab || 'customer';
-          if (uid) markTutorialCompleted(uid, panel);
-          setIsTutorialOpen(false);
-        }}
-      />
+        {isTutorialOpen && (
+          <RoleBasedTutorialModal
+            isOpen={isTutorialOpen}
+            forceRole={tutorialPanel || currentTab}
+            onClose={() => {
+              const uid = user?.id || userData?.id;
+              const panel = tutorialPanel || currentTab || 'customer';
+              if (uid) markTutorialCompleted(uid, panel);
+              setIsTutorialOpen(false);
+            }}
+            onComplete={() => {
+              const uid = user?.id || userData?.id;
+              const panel = tutorialPanel || currentTab || 'customer';
+              if (uid) markTutorialCompleted(uid, panel);
+              setIsTutorialOpen(false);
+            }}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
