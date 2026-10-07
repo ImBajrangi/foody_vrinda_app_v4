@@ -18,20 +18,66 @@ class AppUpdateService {
    */
   async checkForUpdates() {
     try {
-      // 1. Fetch remote release descriptor from Supabase Cloud
+      // 1. Primary: Direct GitHub Releases API (Public, unauthenticated, zero RLS restriction)
       let latestConfig = null;
       try {
-        const { data, error } = await supabase
-          .from('foody_shops')
-          .select('payment_settings')
-          .limit(1)
-          .maybeSingle();
+        const ghRes = await fetch('https://api.github.com/repos/ImBajrangi/foody_vrinda_app_v4/releases/latest', {
+          headers: { 'Accept': 'application/vnd.github.v3+json' },
+          cache: 'no-store'
+        });
+        if (ghRes.ok) {
+          const ghData = await ghRes.json();
+          const rawTag = (ghData.tag_name || '').replace(/^v/, '');
+          const buildMatch = (ghData.name || '').match(/Build\s*(\d+)/i) || (ghData.body || '').match(/Build\s*(\d+)/i);
+          const remoteVersionCode = buildMatch ? parseInt(buildMatch[1], 10) : 0;
+          
+          const apkAsset = ghData.assets?.find(a => a.name?.endsWith('.apk'));
+          const apkUrl = apkAsset?.browser_download_url || 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
 
-        if (!error && data?.payment_settings?.app_release) {
-          latestConfig = data.payment_settings.app_release;
+          let notes = [
+            'Real-time background push notifications with soft acoustic chimes.',
+            '3x faster app loading and memory optimization.',
+            'Enhanced security and permanent root protection.'
+          ];
+          if (ghData.body) {
+            const parsedNotes = ghData.body
+              .split('\n')
+              .map(l => l.replace(/^[-*•\s]+/, '').trim())
+              .filter(l => l.length > 0 && !l.startsWith('#') && !l.startsWith('Download') && !l.startsWith('URL'));
+            if (parsedNotes.length > 0) notes = parsedNotes.slice(0, 5);
+          }
+
+          if (remoteVersionCode > 0) {
+            latestConfig = {
+              versionCode: remoteVersionCode,
+              versionName: rawTag || '1.1.3',
+              apkUrl,
+              releaseNotes: notes,
+              minSupportedVersionCode: 10,
+              isMandatory: (ghData.body || '').toLowerCase().includes('mandatory'),
+              publishedAt: ghData.published_at || new Date().toISOString()
+            };
+          }
         }
-      } catch (e) {
-        console.warn('AppUpdateService remote sync note:', e);
+      } catch (ghErr) {
+        console.warn('GitHub releases fetch note:', ghErr);
+      }
+
+      // 2. Secondary: Fallback to Supabase Cloud if GitHub API was unreachable
+      if (!latestConfig) {
+        try {
+          const { data, error } = await supabase
+            .from('foody_shops')
+            .select('payment_settings')
+            .limit(1)
+            .maybeSingle();
+
+          if (!error && data?.payment_settings?.app_release) {
+            latestConfig = data.payment_settings.app_release;
+          }
+        } catch (e) {
+          console.warn('AppUpdateService remote sync note:', e);
+        }
       }
 
       // Default fallback release descriptor
