@@ -3351,52 +3351,48 @@ label {
 }
 
 /* =========================================================================
-   Satvik Story-Style Mixture Animation (Circle Arcs & Orbiting Jewel Dots)
-   Bespoke theme-colored fluid motion (No generic rainbow, 100% Satvik palette)
+   Instagram-Style True Morph & Merge Story Ring Animation
+   (Elements physically expand, stretch, collapse gaps to 0, and merge into solid ring)
    ========================================================================= */
-@keyframes satvikRingRotate {
+@keyframes satvikMorphAndMerge {
   0% {
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(0.96);
+    stroke-dasharray: 50 6  14 6  10 6  7 6  4 6  1.5 6  1.5 6  1.5 6  1.5 6  1.5 6;
+    stroke-width: 2.8;
+    filter: drop-shadow(0 0 2px rgba(224, 255, 51, 0.25));
+  }
+  30% {
+    /* Expand & Stretch: dashes elongate, dots stretch, overall ring expands */
+    transform: rotate(140deg) scale(1.05);
+    stroke-dasharray: 68 4.5  20 4.5  14 4.5  10 4.5  6 4.5  3 4.5  3 4.5  2.5 4.5  2.5 4.5  2.5 4.5;
+    stroke-width: 3.6;
+    filter: drop-shadow(0 0 7px rgba(224, 255, 51, 0.65)) drop-shadow(0 0 11px rgba(255, 153, 51, 0.4));
+  }
+  65% {
+    /* Closing: gaps collapse rapidly, dashes merge */
+    transform: rotate(280deg) scale(1.02);
+    stroke-dasharray: 105 1.8  28 1.8  18 1.8  12 1.8  8 1.8  4 1.8  3 1.8  2 1.8  2 1.8  2 1.8;
+    stroke-width: 3.4;
+    filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.5));
+  }
+  85% {
+    /* Shrink: gaps hit 0, all elements fully merge into unified solid circle, slight squeeze */
+    transform: rotate(350deg) scale(0.98);
+    stroke-dasharray: 154 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0;
+    stroke-width: 3.2;
+    filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.45));
   }
   100% {
-    transform: rotate(360deg);
+    /* Settle: elastic bounce back to scale(1) resting state with pure solid ring */
+    transform: rotate(360deg) scale(1);
+    stroke-dasharray: 154 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0;
+    stroke-width: 3.0;
+    filter: drop-shadow(0 0 3px rgba(224, 255, 51, 0.35));
   }
 }
 
-@keyframes satvikCounterOrbit {
-  0% {
-    transform: rotate(360deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes satvikArcDashFlow {
-  0% {
-    stroke-dashoffset: 0;
-  }
-  50% {
-    stroke-dashoffset: 48;
-  }
-  100% {
-    stroke-dashoffset: 96;
-  }
-}
-
-@keyframes satvikPulseGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 2.5px rgba(224, 255, 51, 0.4));
-    opacity: 0.95;
-  }
-  50% {
-    filter: drop-shadow(0 0 6.5px rgba(255, 153, 51, 0.65)) drop-shadow(0 0 10px rgba(224, 255, 51, 0.35));
-    opacity: 1;
-  }
-}
-
-.satvik-story-spin {
-  animation: satvikRingRotate 4.8s linear infinite;
+.satvik-story-morph-once {
+  animation: satvikMorphAndMerge 2.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   transform-origin: center;
   transform-box: fill-box;
 }

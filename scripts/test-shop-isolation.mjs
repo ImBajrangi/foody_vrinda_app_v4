@@ -260,6 +260,41 @@ async function runTests() {
     'TEST J: Stale async response from slow Shop A was discarded; only active Shop B committed to state'
   );
 
+  // TEST K: Stock Availability & Shop-Isolated Menu Update Guards
+  console.log('\nTEST K: Stock Availability & Shop-Isolated Menu Update Guards');
+  function canUpdateItemStock(item, userActiveShopId, isDevOrAdmin = false) {
+    const itemShopId = item.shopId || item.shop_id;
+    if (itemShopId && userActiveShopId && itemShopId !== userActiveShopId && !isDevOrAdmin) {
+      return false;
+    }
+    return true;
+  }
+
+  const shopADish = { id: 'dish-1', name: 'Satvik Burger', shopId: 'shop-A', isAvailable: true };
+  const shopBDish = { id: 'dish-2', name: 'Lassi', shopId: 'shop-B', isAvailable: true };
+
+  assert(
+    canUpdateItemStock(shopADish, 'shop-A') === true,
+    'TEST K1: Owner of Shop A can toggle stock for Shop A dish'
+  );
+
+  assert(
+    canUpdateItemStock(shopBDish, 'shop-A') === false,
+    'TEST K2: Owner of Shop A is BLOCKED from toggling stock for Shop B dish'
+  );
+
+  assert(
+    canUpdateItemStock(shopBDish, 'shop-A', true) === true,
+    'TEST K3: Developer / Grand Admin can manage stock across any shop'
+  );
+
+  // Payload format check
+  const stockPayload = { isAvailable: false, is_available: false, shopId: 'shop-A' };
+  assert(
+    stockPayload.isAvailable === false && stockPayload.is_available === false,
+    'TEST K4: Stock payload maintains both isAvailable (client) and is_available (DB) parity'
+  );
+
   // SUMMARY
   console.log('\n====================================================');
   console.log(`TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);

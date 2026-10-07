@@ -1,43 +1,41 @@
 /**
  * Foody Vrinda — Role-Based First-Time User Tutorial Engine
- * Versioned, isolated, and persisted per user + role
+ * Versioned, isolated, and persisted per user + panel
  */
 
 import {
   UtensilsCrossed,
   ShoppingBag,
-  Navigation,
   Coins,
-  Users,
   ShieldCheck,
-  Bike,
   Power,
   CheckCircle2,
   DollarSign,
-  ChefHat,
-  Store,
-  Menu,
-  BellRing,
   TrendingUp,
-  Sparkles,
   Search,
   Plus,
   MapPin,
-  User,
-  Compass
+  Store,
+  Menu,
+  BellRing,
+  Navigation,
+  Compass,
+  Users,
+  User
 } from 'lucide-react';
 
 export const TUTORIAL_VERSIONS = {
   customer: 'customer_v1',
   delivery: 'delivery_v1',
-  restaurant: 'restaurant_v1'
+  restaurant: 'restaurant_v1',
+  owner: 'owner_v1'
 };
 
 export const ROLE_TUTORIAL_DATA = {
   customer_v1: {
     role: 'customer',
     version: 'customer_v1',
-    roleLabel: 'Satvik Customer Guide',
+    roleLabel: 'Store Guide',
     accentColor: '#E0FF33',
     stages: [
       {
@@ -47,13 +45,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 1 • SEARCH',
         title: 'Find your favourite food',
         subtitle: 'Search for Prasadam, sweets, snacks and more across Sri Vrindavan.',
+        description: 'Search for Prasadam, sweets, snacks and more across Sri Vrindavan.',
         icon: Search,
-        badgeText: 'Instant Search',
-        uiElement: 'Universal Search',
-        highlights: [
-          { label: 'Universal Search', desc: 'Find dishes, restaurants or browse daily temple prasadam.' },
-          { label: 'Quick Query', desc: 'Type or speak to locate authentic Satvik delicacies fast.' }
-        ]
+        uiElement: 'Universal Search'
       },
       {
         id: 'categories',
@@ -62,13 +56,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 2 • DISCOVERY',
         title: 'Explore categories',
         subtitle: 'Browse food by category and discover what you want.',
+        description: 'Browse pure vegetarian sweets, chaat, thalis, and dairy preparations.',
         icon: UtensilsCrossed,
-        badgeText: 'Pure Satvik Menus',
-        uiElement: 'Category Strip',
-        highlights: [
-          { label: 'Category Filter', desc: 'Filter Sweets, Chaat, Thalis, Beverages, or Gaushala Dairy items.' },
-          { label: '100% Satvik', desc: 'Every preparation is pure vegetarian, without onion or garlic.' }
-        ]
+        uiElement: 'Category Strip'
       },
       {
         id: 'add_to_cart',
@@ -77,13 +67,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 3 • ORDERING',
         title: 'Add items to your basket',
         subtitle: 'Choose your quantity and build your order.',
+        description: 'Tap + to choose portion quantities with live haptic confirmation.',
         icon: Plus,
-        badgeText: '1-Tap Ordering',
-        uiElement: 'Dish Card + Button',
-        highlights: [
-          { label: 'Portion Control', desc: 'Select portions and customize quantities effortlessly.' },
-          { label: 'Instant Feedback', desc: 'Haptic confirmation and micro-animations on every add.' }
-        ]
+        uiElement: 'Dish Card Button'
       },
       {
         id: 'basket',
@@ -92,13 +78,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 4 • BASKET',
         title: 'Your Basket',
         subtitle: 'Review items, quantity and total before checkout.',
+        description: 'Review dishes, apply promo savings, and checkout in seconds.',
         icon: ShoppingBag,
-        badgeText: 'Live Order Review',
-        uiElement: 'Basket Trigger',
-        highlights: [
-          { label: 'Order Summary', desc: 'Review dishes, applied promo discounts, and transparent totals.' },
-          { label: 'Special Instructions', desc: 'Add sattvic cooking notes for the temple chefs.' }
-        ]
+        uiElement: 'Basket Trigger'
       },
       {
         id: 'address',
@@ -107,13 +89,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 5 • DELIVERY',
         title: 'Choose your delivery address',
         subtitle: 'GPS is optional. You can use your saved or typed address.',
+        description: 'Type your Ashram, Flat, or Landmark — GPS selection is optional.',
         icon: MapPin,
-        badgeText: 'Flexible Address',
-        uiElement: 'Delivery Address',
-        highlights: [
-          { label: 'No Blocker', desc: 'Type your Ashram, Flat, or Landmark name — GPS click is optional.' },
-          { label: 'Safe Delivery', desc: 'Dedicated Sarathi riders deliver hot prasad directly to your doorstep.' }
-        ]
+        uiElement: 'Delivery Address'
       },
       {
         id: 'fv_wallet',
@@ -122,13 +100,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 6 • REWARDS',
         title: 'Earn FV Points',
         subtitle: 'Complete eligible actions and earn FV Points you can redeem.',
+        description: 'Earn points on every order to redeem for instant rupee savings.',
         icon: Coins,
-        badgeText: '1 FV Point = ₹0.10',
-        uiElement: 'FV Points Badge',
-        highlights: [
-          { label: 'Real Value', desc: 'Earn points on every order and referral.' },
-          { label: 'Redeem for Cash Off', desc: 'Use your points at checkout for instant rupee discounts.' }
-        ]
+        uiElement: 'FV Points Badge'
       },
       {
         id: 'profile',
@@ -137,13 +111,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 7 • ACCOUNT',
         title: 'Your account',
         subtitle: 'Manage your profile, orders and settings here.',
+        description: 'Track active orders, view past receipts, or replay this guide anytime.',
         icon: User,
-        badgeText: 'Devotee Console',
-        uiElement: 'Profile Avatar',
-        highlights: [
-          { label: 'Order History', desc: 'Track live orders and view past receipts anytime.' },
-          { label: 'Settings & Replay', desc: 'Replay this tour or update contact details whenever needed.' }
-        ]
+        uiElement: 'Profile Avatar'
       }
     ]
   },
@@ -151,8 +121,8 @@ export const ROLE_TUTORIAL_DATA = {
   delivery_v1: {
     role: 'delivery',
     version: 'delivery_v1',
-    roleLabel: 'Sarathi Delivery Fleet Guide',
-    accentColor: '#06B6D4',
+    roleLabel: 'Rider Guide',
+    accentColor: '#E0FF33',
     stages: [
       {
         id: 'go_online',
@@ -161,13 +131,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 1 • AVAILABILITY',
         title: 'Go Online',
         subtitle: 'Turn on your radar to receive nearby delivery dispatches.',
+        description: 'Switch On Duty to receive nearby delivery dispatches, or Off Duty during breaks.',
         icon: Power,
-        badgeText: 'Shift Radar Switch',
-        uiElement: 'Duty Toggle',
-        highlights: [
-          { label: 'Shift Toggle', desc: 'Toggle Online when ready to ride; go Offline during rest breaks.' },
-          { label: 'Smart Dispatch', desc: 'Nearby orders are automatically routed to your phone.' }
-        ]
+        uiElement: 'Duty Toggle'
       },
       {
         id: 'orders',
@@ -176,13 +142,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 2 • DISPATCH',
         title: 'Available Orders',
         subtitle: 'View live incoming orders, distances and pickup locations.',
+        description: 'View incoming orders, pickup counters, and customer drop locations.',
         icon: Navigation,
-        badgeText: 'Real-Time Feed',
-        uiElement: 'Orders Board',
-        highlights: [
-          { label: 'Live Tickets', desc: 'View distance, customer address, and payout before accepting.' },
-          { label: 'Audio Alarms', desc: 'Loud buzzer chimes ensure zero missed runs.' }
-        ]
+        uiElement: 'Orders Board'
       },
       {
         id: 'accept',
@@ -191,13 +153,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 3 • ACCEPT',
         title: 'Accept Delivery',
         subtitle: 'Inspect kitchen pickup, customer location & earnings.',
+        description: 'Inspect kitchen pickup, customer location, and trip earnings.',
         icon: CheckCircle2,
-        badgeText: '1-Tap Claim',
-        uiElement: 'Accept Button',
-        highlights: [
-          { label: 'Immediate Claim', desc: 'Lock in the order and notify the kitchen team instantly.' },
-          { label: 'Kitchen Counter', desc: 'Head to the kitchen pickup counter for packaged prasad.' }
-        ]
+        uiElement: 'Accept Button'
       },
       {
         id: 'navigation',
@@ -206,13 +164,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 4 • NAVIGATION',
         title: 'Live Navigation',
         subtitle: '1-Tap turn-by-turn map directions straight to kitchen and customer.',
+        description: '1-Tap turn-by-turn map directions straight to kitchen and customer.',
         icon: Compass,
-        badgeText: 'Carto Map HUD',
-        uiElement: 'Map Route',
-        highlights: [
-          { label: 'Turn-by-Turn', desc: 'Optimized routing through Sri Vrindavan streets and Parikrama Marg.' },
-          { label: 'Live Location Sync', desc: 'Customer sees your real-time ETA in their active tracking modal.' }
-        ]
+        uiElement: 'Carto HUD'
       },
       {
         id: 'complete',
@@ -221,13 +175,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 5 • DOORSTEP',
         title: 'Complete Delivery',
         subtitle: 'Safe doorstep drop verification with 4-digit OTP code.',
+        description: 'Safe doorstep drop verification with 4-digit OTP code.',
         icon: ShieldCheck,
-        badgeText: '4-Digit OTP Guard',
-        uiElement: 'OTP Modal',
-        highlights: [
-          { label: 'Customer OTP', desc: 'Ask customer for 4-digit code to securely verify handover.' },
-          { label: 'COD Cash Collection', desc: 'Collect exact cash amount and record with 1 tap.' }
-        ]
+        uiElement: 'OTP Modal'
       },
       {
         id: 'earnings',
@@ -236,13 +186,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 6 • PAYOUTS',
         title: 'Earnings',
         subtitle: 'Transparent ledger of daily completed orders & tips.',
+        description: 'Track cash collections with zero-spill reconciliation against ₹3,000 cap.',
         icon: DollarSign,
-        badgeText: 'Daily Settlement',
-        uiElement: 'Earnings Ledger',
-        highlights: [
-          { label: 'Trip Ledger', desc: 'Track per-drop payments and peak darshan multipliers.' },
-          { label: 'Fast Payouts', desc: 'Direct transfers to your bank account or UPI ID.' }
-        ]
+        uiElement: 'COD Ledger'
       },
       {
         id: 'referral',
@@ -251,14 +197,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 7 • MILESTONES',
         title: 'Refer Delivery Partners',
         subtitle: 'Bring fellow delivery partners and unlock tiered cash bonuses: 1st (+10 FV), 5th (+25 FV), and 15th (+35 FV).',
+        description: 'Invite new riders to the fleet and earn bonus points for every completed order.',
         icon: Users,
-        badgeText: 'Up to +70 FV Milestone Rewards',
-        uiElement: 'Milestones Hub',
-        highlights: [
-          { label: '1st Completed Delivery Milestone', desc: 'New rider earns +10 FV • Referrer earns +5 FV bonus.' },
-          { label: '5th Completed Deliveries Milestone', desc: 'Rider earns +25 FV • Referrer earns +20 FV bonus.' },
-          { label: '15th Completed Deliveries Milestone', desc: 'Rider earns +35 FV • Referrer earns +25 FV bonus.' }
-        ]
+        uiElement: 'Referral Hub'
       }
     ]
   },
@@ -266,8 +207,8 @@ export const ROLE_TUTORIAL_DATA = {
   restaurant_v1: {
     role: 'restaurant',
     version: 'restaurant_v1',
-    roleLabel: 'Kitchen & Store Partner Guide',
-    accentColor: '#F59E0B',
+    roleLabel: 'Kitchen Guide',
+    accentColor: '#E0FF33',
     stages: [
       {
         id: 'setup',
@@ -276,13 +217,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 1 • SETTINGS',
         title: 'Restaurant Setup',
         subtitle: 'Configure store hours, operational switches and prep buffers.',
+        description: 'Toggle Online to receive orders, or Rush mode for +15 min prep buffers.',
         icon: Store,
-        badgeText: 'Kitchen Switch',
-        uiElement: 'Store Setup',
-        highlights: [
-          { label: 'Store Switch', desc: 'Open and close your kitchen with one tap.' },
-          { label: 'Payment Toggles', desc: 'Accept Cash on Delivery, Online UPI, or both.' }
-        ]
+        uiElement: 'Presence Toggle'
       },
       {
         id: 'menu',
@@ -291,13 +228,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 2 • CATALOG',
         title: 'Menu',
         subtitle: 'Add signature dishes, pricing, food cutouts & stock toggles.',
+        description: 'Tap Stock to 86 out-of-stock dishes across customer apps in realtime.',
         icon: Menu,
-        badgeText: 'Catalog Management',
-        uiElement: 'Menu Grid',
-        highlights: [
-          { label: 'Instant Creation', desc: 'Manage dish names, descriptions, cutouts, and rupee prices.' },
-          { label: 'Stock Toggle', desc: 'Mark dishes out of stock instantly if ingredients run out.' }
-        ]
+        uiElement: 'Stock & Menu'
       },
       {
         id: 'orders',
@@ -306,13 +239,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 3 • KDS',
         title: 'Incoming Orders',
         subtitle: 'Live kitchen display screen with loud buzzer sound trials.',
+        description: 'Live incoming KDS tickets ring chimes; check items and mark ready.',
         icon: BellRing,
-        badgeText: 'Live KDS Tickets',
-        uiElement: 'KDS Display',
-        highlights: [
-          { label: 'Instant Chime', desc: 'Loud alarm alerts the kitchen whenever a customer places an order.' },
-          { label: 'Clear Tickets', desc: 'View item quantities, customizations, and packaging notes.' }
-        ]
+        uiElement: 'KDS Display'
       },
       {
         id: 'manage_orders',
@@ -321,13 +250,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 4 • STATIONS',
         title: 'Manage Orders',
         subtitle: 'Move tickets through Preparing, Ready, and Rider handoff.',
+        description: 'Move tickets through Preparing, Ready, and Rider handoff.',
         icon: CheckCircle2,
-        badgeText: 'Station Workflow',
-        uiElement: 'Order Stations',
-        highlights: [
-          { label: 'Mark Ready', desc: 'Notify assigned Sarathi rider immediately when food is packaged.' },
-          { label: 'Rider Pickup', desc: 'Verify rider OTP and hand over sacred prasad.' }
-        ]
+        uiElement: 'Order Stations'
       },
       {
         id: 'sales',
@@ -336,13 +261,9 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 5 • REVENUE',
         title: 'Sales',
         subtitle: 'Real-time revenue analytics & transparent accounting.',
+        description: 'Track completed preparations and daily kitchen dispatch volume.',
         icon: DollarSign,
-        badgeText: 'Revenue Dashboard',
-        uiElement: 'Sales Accounting',
-        highlights: [
-          { label: 'Daily Sales', desc: 'Track gross turnover, orders completed, and average order value.' },
-          { label: 'Reconciliation', desc: 'Clear accounting for Cash on Delivery and digital prepayments.' }
-        ]
+        uiElement: 'Daily Volume Card'
       },
       {
         id: 'grow',
@@ -351,28 +272,79 @@ export const ROLE_TUTORIAL_DATA = {
         tag: 'STAGE 6 • GROWTH',
         title: 'Grow',
         subtitle: 'Boost ratings, customer reviews & festive promotions.',
+        description: 'Join the official WhatsApp channel for festive broadcasts & chef tips.',
         icon: TrendingUp,
-        badgeText: 'Reputation & Outreach',
-        uiElement: 'Growth Hub',
-        highlights: [
-          { label: 'Devotee Reviews', desc: 'Monitor ratings and customer feedback from pilgrims.' },
-          { label: 'Festival Promos', desc: 'Promote special festival thalis on the Foody Vrinda WhatsApp broadcast.' }
-        ]
+        uiElement: 'Growth Hub Card'
+      }
+    ]
+  },
+
+  owner_v1: {
+    role: 'owner',
+    version: 'owner_v1',
+    roleLabel: 'Owner Guide',
+    accentColor: '#A855F7',
+    stages: [
+      {
+        id: 'stores',
+        dataTour: 'owner-stores',
+        stageNumber: 1,
+        tag: 'STAGE 1 • STORE',
+        title: 'Store Profile & Branches',
+        subtitle: 'Manage kitchen profiles, branch addresses & online availability.',
+        description: 'Edit branch profiles, phone numbers, and toggle kitchen availability.',
+        icon: Store,
+        uiElement: 'Store Profile'
+      },
+      {
+        id: 'revenue',
+        dataTour: 'owner-sales',
+        stageNumber: 2,
+        tag: 'STAGE 2 • REVENUE',
+        title: 'Revenue & Settlements',
+        subtitle: 'Track real-time gross revenue, COD reconciliations, and payout ledgers.',
+        description: 'Track real-time gross revenue, COD reconciliations, and payout ledgers.',
+        icon: DollarSign,
+        uiElement: 'Analytics Dashboard'
+      },
+      {
+        id: 'menu',
+        dataTour: 'owner-menu',
+        stageNumber: 3,
+        tag: 'STAGE 3 • CATALOG',
+        title: 'Menu Catalog & Pricing',
+        subtitle: 'Create signature dishes, upload images & update item prices in realtime.',
+        description: 'Create signature dishes, upload images & update item prices in realtime.',
+        icon: UtensilsCrossed,
+        uiElement: 'Menu Catalog'
+      },
+      {
+        id: 'staff',
+        dataTour: 'owner-staff',
+        stageNumber: 4,
+        tag: 'STAGE 4 • ACCESS',
+        title: 'Staff & Role Management',
+        subtitle: 'Assign kitchen chefs, cashiers & delivery partner credentials securely.',
+        description: 'Assign kitchen chefs, cashiers & delivery partner credentials securely.',
+        icon: Users,
+        uiElement: 'Staff & Roles'
       }
     ]
   }
 };
 
 /**
- * Resolves the canonical role string (customer, delivery, restaurant)
+ * Resolves the canonical role string (customer, delivery, restaurant, owner)
  */
 export function getCanonicalRole(role) {
-  if (!role) return null;
-  const clean = String(role).toLowerCase().trim();
-  if (['delivery', 'delivery_partner', 'rider'].includes(clean)) return 'delivery';
+  if (!role || typeof role !== 'string') return null;
+  const clean = role.toLowerCase().trim();
+  if (!clean) return null;
+  if (['delivery', 'delivery_partner', 'rider', 'transport'].includes(clean)) return 'delivery';
   if (['kitchen', 'restaurant', 'chef'].includes(clean)) return 'restaurant';
-  if (clean === 'customer') return 'customer';
-  // Administrative, developer, owner, and invalid roles have no tutorial
+  if (['owner', 'shop_owner', 'store_owner', 'franchise'].includes(clean)) return 'owner';
+  if (clean === 'customer' || clean === 'store') return 'customer';
+  // Administrative and developer roles have no auto-tutorial
   return null;
 }
 
@@ -482,8 +454,13 @@ export function saveTutorialProgress(userId, role, currentStep = 0) {
 }
 
 /**
- * Resets tutorial session state (for manual replay) without corrupting historical records
+ * Resets tutorial session state (for manual replay)
  */
 export function resetTutorial(userId, role) {
-  // Manual replay simply re-opens the flow in UI without deleting historical ledger/milestone state
+  const storageKey = getTutorialStorageKey(userId, role);
+  if (storageKey && typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (_) {}
+  }
 }

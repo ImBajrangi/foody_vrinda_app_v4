@@ -173,6 +173,9 @@ export const SEED_SHOPS = [
 
 // Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
 export function resolveDishCutout(image, name = '', category = '') {
+  const lowerName = (name || '').toLowerCase().trim();
+  const lowerCat = (category || '').toLowerCase().trim();
+
   // 1. If a valid custom user image or upload is supplied, ALWAYS honor and preserve it
   if (image && typeof image === 'string') {
     const trimmed = image.trim();
@@ -184,6 +187,32 @@ export function resolveDishCutout(image, name = '', category = '') {
       trimmed.startsWith('/') ||
       trimmed.startsWith('./')
     ) {
+      // Intelligently upgrade legacy fallbacks or misaligned images:
+      // a) Upgrade simple rice fallback (/dishes/rice.png, /dishes/rice.webp) to high-definition Biryani cutout
+      if ((trimmed.endsWith('/rice.png') || trimmed.endsWith('/rice.webp')) && (lowerName.includes('biryani') || lowerName.includes('pulao'))) {
+        return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+      }
+      // b) Upgrade legacy pizza.png to optimized preset
+      if (trimmed.endsWith('/pizza.png')) {
+        return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
+      }
+      // c) Upgrade legacy rice.png to 12KB lightweight rice.webp
+      if (trimmed.endsWith('/rice.png')) {
+        return '/dishes/rice.webp';
+      }
+      // d) Upgrade samosa fallback to authentic Kachori platter
+      if (trimmed.includes('crispy-samosas-basket.webp') && lowerName.includes('kachori')) {
+        return '/dishes/presets/golden-kachori-platter.webp';
+      }
+      // e) Upgrade generic thali or naan fallback to authentic Roti basket
+      if ((trimmed.includes('thali.webp') || trimmed.includes('garlic-naan')) && (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka'))) {
+        return '/dishes/presets/woven-basket-charred-rotis.webp';
+      }
+      // f) Upgrade generic curry to authentic Matar Paneer copper bowl
+      if (trimmed.includes('curry.webp') && (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer'))) {
+        return '/dishes/presets/matar-paneer-copper-bowl.webp';
+      }
+
       // Don't override user's image unless it's a known generic unsplash placeholder
       if (!trimmed.includes('unsplash.com/photo-1546833999-b9f581a1996d')) {
         return trimmed;
@@ -191,14 +220,16 @@ export function resolveDishCutout(image, name = '', category = '') {
     }
   }
 
-// 2. Fallback to smart cutouts based on item keywords if no image is supplied
-  const lowerName = (name || '').toLowerCase();
-  const lowerCat = (category || '').toLowerCase();
-
+  // 2. Fallback to smart cutouts based on item keywords if no image is supplied
+  if (lowerName.includes('biryani') || lowerName.includes('dum biryani')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+  if (lowerName.includes('kachori') || lowerName.includes('khasta kachori')) return '/dishes/presets/golden-kachori-platter.webp';
+  if (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer')) return '/dishes/presets/matar-paneer-copper-bowl.webp';
+  if (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka')) return '/dishes/presets/woven-basket-charred-rotis.webp';
   if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
   if (lowerName.includes('bhature') || lowerName.includes('chole bhature')) return '/dishes/presets/golden-chole-bhature-feast.webp';
   if (lowerName.includes('chole') && lowerName.includes('naan')) return '/dishes/presets/chole-curry-naan-platter.webp';
-  if (lowerName.includes('garlic naan') || lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
+  if (lowerName.includes('garlic naan')) return '/dishes/presets/basket-golden-garlic-naan.webp';
+  if (lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
   if (lowerName.includes('samosa')) return '/dishes/presets/crispy-samosas-basket.webp';
   if (lowerName.includes('spring roll') || lowerName.includes('roll')) return '/dishes/presets/crispy-spring-rolls.webp';
   if (lowerName.includes('schezwan') && lowerName.includes('noodle')) return '/dishes/presets/schezwan-veggie-noodles.webp';
@@ -222,8 +253,8 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.webp';
   if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.webp';
   if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.webp';
-  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('biryani') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.png';
-  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('kachori') || lowerName.includes('pakora')) return '/dishes/presets/crispy-samosas-basket.webp';
+  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.webp';
+  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('pakora')) return '/dishes/presets/crispy-samosas-basket.webp';
 
   return '/dishes/thali.webp';
 }
@@ -2675,6 +2706,11 @@ export async function updateCloudMenuItem(itemId, itemData) {
       payload.is_available = itemData.isAvailable ?? itemData.is_available;
     }
 
+    const clientPayload = {
+      ...payload,
+      ...(payload.is_available !== undefined ? { isAvailable: payload.is_available } : {})
+    };
+
     // Update in-memory & localStorage caches across all shop buckets
     if (payload.shop_id) {
       Object.keys(memoryCache.menus).forEach(key => {
@@ -2682,9 +2718,9 @@ export async function updateCloudMenuItem(itemId, itemData) {
           if (key === payload.shop_id || key === 'all') {
             const existing = memoryCache.menus[key].data.find(m => m.id === itemId);
             if (existing) {
-              memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, shopId: payload.shop_id, image: payload.image || m.image } : m);
+              memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...clientPayload, shopId: payload.shop_id, image: payload.image || m.image } : m);
             } else {
-              memoryCache.menus[key].data = [{ id: itemId, ...payload, shopId: payload.shop_id }, ...memoryCache.menus[key].data];
+              memoryCache.menus[key].data = [{ id: itemId, ...clientPayload, shopId: payload.shop_id }, ...memoryCache.menus[key].data];
             }
           } else {
             memoryCache.menus[key].data = memoryCache.menus[key].data.filter(m => m.id !== itemId);
@@ -2694,13 +2730,13 @@ export async function updateCloudMenuItem(itemId, itemData) {
     } else {
       Object.keys(memoryCache.menus).forEach(key => {
         if (Array.isArray(memoryCache.menus[key]?.data)) {
-          memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...payload, image: payload.image || m.image } : m);
+          memoryCache.menus[key].data = memoryCache.menus[key].data.map(m => m.id === itemId ? { ...m, ...clientPayload, image: payload.image || m.image } : m);
         }
       });
     }
 
     invalidateCache('menus');
-    dispatchSafeEvent('foody_menus_changed', { itemId, updates: payload, item: { id: itemId, ...payload } });
+    dispatchSafeEvent('foody_menus_changed', { itemId, updates: clientPayload, item: { id: itemId, ...clientPayload } });
 
     if (!isTableMissing('foody_menus')) {
       const { data, error } = await supabase

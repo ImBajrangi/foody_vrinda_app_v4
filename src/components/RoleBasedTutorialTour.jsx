@@ -3,27 +3,9 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Sparkles,
   CheckCircle2,
-  Compass,
-  ArrowRight,
-  ShieldCheck,
-  Search,
-  UtensilsCrossed,
-  Plus,
-  ShoppingBag,
-  MapPin,
-  Coins,
-  User,
-  Power,
-  Navigation,
-  DollarSign,
-  Users,
-  ChefHat,
-  Store,
-  Menu,
-  BellRing,
-  TrendingUp
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -34,7 +16,7 @@ import {
   saveTutorialProgress
 } from '../services/tutorialService';
 
-// Comprehensive valid CSS fallback selector map per stage
+// Comprehensive valid CSS fallback selector map per stage across all 5 panels
 const SELECTOR_FALLBACKS = {
   // Customer stages
   'customer-search': [
@@ -74,14 +56,33 @@ const SELECTOR_FALLBACKS = {
     'button[title*="FV" i]',
     'button[title*="Points" i]'
   ],
-  'customer-profile': [
-    '[data-tour~="customer-profile"]',
-    '[data-tour*="profile"]',
-    'button[title*="Profile" i]',
-    'button[title*="Account" i]'
+
+  // Kitchen stages
+  'restaurant-setup': [
+    '[data-tour~="restaurant-setup"]',
+    'button[title*="Availability" i]',
+    'button[title*="Online" i]'
   ],
-  
-  // Delivery stages
+  'restaurant-menu': [
+    '[data-tour~="restaurant-menu"]',
+    'button[title*="Stock" i]',
+    'button[title*="Menu" i]',
+    'button[title*="Order" i]'
+  ],
+  'restaurant-orders': [
+    '[data-tour~="restaurant-orders"]',
+    '[data-tour*="orders"]'
+  ],
+  'restaurant-sales': [
+    '[data-tour~="restaurant-sales"]',
+    '[data-tour*="sales"]'
+  ],
+  'restaurant-grow': [
+    '[data-tour~="restaurant-grow"]',
+    '[data-tour*="grow"]'
+  ],
+
+  // Delivery / Rider stages
   'delivery-go-online': [
     '[data-tour~="delivery-go-online"]',
     'button[title*="Duty" i]',
@@ -92,61 +93,118 @@ const SELECTOR_FALLBACKS = {
     '[data-tour*="orders"]',
     'button[title*="Orders" i]'
   ],
-  'delivery-accept': [
-    '[data-tour~="delivery-accept"]',
-    '[data-tour*="accept"]',
-    '[data-tour*="claim"]',
-    '[data-tour~="delivery-orders"]'
-  ],
   'delivery-navigation': [
     '[data-tour~="delivery-navigation"]',
     'button[title*="HUD" i]',
     'button[title*="Map" i]',
     'button[title*="Navigation" i]'
   ],
-  'delivery-complete': [
-    '[data-tour~="delivery-complete"]',
-    '[data-tour*="complete"]',
-    '[data-tour*="otp"]',
-    '[data-tour~="delivery-go-online"]'
-  ],
   'delivery-earnings': [
     '[data-tour~="delivery-earnings"]',
-    '[data-tour*="earnings"]'
+    '[data-tour*="earnings"]',
+    '[data-tour*="cash"]'
   ],
-  'delivery-referral': [
-    '[data-tour~="delivery-referral"]',
-    '[data-tour*="referral"]'
+  'delivery-report': [
+    '[data-tour~="delivery-report"]',
+    'button[title*="Slip" i]',
+    'button[title*="Report" i]',
+    'button[title*="PDF" i]',
+    'button[title*="Statement" i]'
   ],
 
-  // Restaurant / Kitchen stages
-  'restaurant-setup': [
-    '[data-tour~="restaurant-setup"]',
-    'button[title*="Availability" i]',
-    'button[title*="Online" i]'
+  // Owner stages
+  'owner-stores': [
+    '[data-tour~="owner-stores"]',
+    'button[title*="Store" i]',
+    'button[title*="Kitchen" i]',
+    'header'
   ],
-  'restaurant-menu': [
-    '[data-tour~="restaurant-menu"]',
+  'owner-sales': [
+    '[data-tour~="owner-sales"]',
+    '[data-tour*="sales"]',
+    'div[class*="metric"]',
+    'div[class*="stat"]'
+  ],
+  'owner-menu': [
+    '[data-tour~="owner-menu"]',
     'button[title*="Menu" i]',
-    'button[title*="Dishes" i]'
+    'div[class*="menu"]'
   ],
-  'restaurant-orders': [
-    '[data-tour~="restaurant-orders"]',
-    '[data-tour*="orders"]'
+  'owner-staff': [
+    '[data-tour~="owner-staff"]',
+    'button[title*="Staff" i]',
+    'button[title*="Role" i]'
   ],
-  'restaurant-manage-orders': [
-    '[data-tour~="restaurant-manage-orders"]',
-    '[data-tour~="restaurant-orders"]'
+
+  // Developer stages
+  'dev-console': [
+    '[data-tour~="dev-console"]',
+    'header',
+    'div[class*="terminal"]'
   ],
-  'restaurant-sales': [
-    '[data-tour~="restaurant-sales"]',
-    '[data-tour*="sales"]'
+  'dev-realtime': [
+    '[data-tour~="dev-realtime"]',
+    'div[class*="realtime"]',
+    'div[class*="stream"]'
   ],
-  'restaurant-grow': [
-    '[data-tour~="restaurant-grow"]',
-    '[data-tour*="grow"]'
+  'dev-audit': [
+    '[data-tour~="dev-audit"]',
+    'button[title*="Audit" i]',
+    'button[title*="DR" i]'
   ]
 };
+
+/**
+ * Speech Bubble Tail Component (iOS / iMessage style curved tail)
+ */
+function SpeechBubbleTail({ placement, arrowLeft, isLight }) {
+  const bg = isLight ? '#FAF5EB' : '#282526';
+  const border = isLight ? 'rgba(217, 119, 6, 0.4)' : 'rgba(224, 255, 51, 0.35)';
+
+  if (placement === 'bottom') {
+    // Bubble is below target -> Tail on TOP edge pointing UP
+    return (
+      <div
+        style={{ left: `${arrowLeft}px` }}
+        className="absolute -top-[11px] -translate-x-1/2 z-30 pointer-events-none"
+      >
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="none">
+          <path
+            d="M 2 12 C 7 12, 9 7, 11 1 C 13 7, 15 12, 20 12 Z"
+            fill={bg}
+          />
+          <path
+            d="M 2 12 C 7 12, 9 7, 11 1 C 13 7, 15 12, 20 12"
+            stroke={border}
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  // Bubble is above target -> Tail on BOTTOM edge pointing DOWN
+  return (
+    <div
+      style={{ left: `${arrowLeft}px` }}
+      className="absolute -bottom-[11px] -translate-x-1/2 z-30 pointer-events-none"
+    >
+      <svg width="22" height="12" viewBox="0 0 22 12" fill="none">
+        <path
+          d="M 2 0 C 7 0, 9 5, 11 11 C 13 5, 15 0, 20 0 Z"
+          fill={bg}
+        />
+        <path
+          d="M 2 0 C 7 0, 9 5, 11 11 C 13 5, 15 0, 20 0"
+          stroke={border}
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
 
 export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, forceRole = null }) {
   const { user, userData, userRole } = useAuth();
@@ -156,8 +214,8 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
   // Determine active role & tutorial dataset
   const resolvedRole = forceRole || userRole || 'customer';
   const tutorialKey = getTutorialKeyForRole(resolvedRole) || 'customer_v1';
-  const tutorialData = ROLE_TUTORIAL_DATA[tutorialKey] || ROLE_TUTORIAL_DATA.customer_v1;
-  const stages = tutorialData.stages || [];
+  const tutorialData = ROLE_TUTORIAL_DATA[tutorialKey] || ROLE_TUTORIAL_DATA.customer_v1 || { stages: [], roleLabel: 'Guide' };
+  const stages = tutorialData?.stages || [];
 
   const [currentStep, setCurrentStep] = useState(0);
   const [closing, setClosing] = useState(false);
@@ -198,219 +256,239 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     const rect = el.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return false;
     const style = window.getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+    return true;
   };
 
-  // Safe element finder that handles space-separated and compound data-tour values
-  const findElementForStage = useCallback((dataTour) => {
-    if (!dataTour) return null;
+  // Find target element with fallback cascades
+  const locateTargetElement = useCallback((dataTourTag) => {
+    if (!dataTourTag) return null;
 
-    // 1. Direct attribute selectors (word match, contains match, exact match)
-    const primarySelectors = [
-      `[data-tour~="${dataTour}"]`,
-      `[data-tour*="${dataTour}"]`,
-      `[data-tour="${dataTour}"]`
-    ];
+    // 1. Direct query
+    const directEls = Array.from(document.querySelectorAll(`[data-tour~="${dataTourTag}"]`));
+    const visibleDirect = directEls.find(isElementVisible);
+    if (visibleDirect) return visibleDirect;
 
-    for (const sel of primarySelectors) {
+    // 2. Fallback candidates from mapping table
+    const fallbackSelectors = SELECTOR_FALLBACKS[dataTourTag] || [];
+    for (const sel of fallbackSelectors) {
       try {
-        const matches = document.querySelectorAll(sel);
-        for (const m of matches) {
-          if (isElementVisible(m)) return m;
-        }
+        const foundList = Array.from(document.querySelectorAll(sel));
+        const firstVisible = foundList.find(isElementVisible);
+        if (firstVisible) return firstVisible;
       } catch (_) {}
     }
 
-    // 2. Fallback selectors
-    const fallbacks = SELECTOR_FALLBACKS[dataTour] || [];
-    for (const sel of fallbacks) {
-      try {
-        const matches = document.querySelectorAll(sel);
-        for (const m of matches) {
-          if (isElementVisible(m)) return m;
-        }
-      } catch (_) {}
+    // 3. Heuristic matching by tag tokens
+    const tokens = dataTourTag.split('-');
+    const lastToken = tokens[tokens.length - 1];
+    if (lastToken && lastToken.length > 2) {
+      const fuzzyEls = Array.from(document.querySelectorAll(`[data-tour*="${lastToken}"]`));
+      const fuzzyVisible = fuzzyEls.find(isElementVisible);
+      if (fuzzyVisible) return fuzzyVisible;
     }
 
     return null;
   }, []);
 
-  // Element Finder and Measurement
-  const updateTargetRect = useCallback(() => {
-    if (!isOpen || !activeStage?.dataTour) {
-      setTargetRect(null);
-      setTargetFound(false);
-      return null;
-    }
+  // Update target rect with scroll sync
+  const updateTargetPosition = useCallback(() => {
+    if (!isOpen || !activeStage) return;
 
-    const el = findElementForStage(activeStage.dataTour);
+    const el = locateTargetElement(activeStage.dataTour);
 
     if (el) {
-      const rect = el.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
+      // Smoothly scroll target into visible viewport if occluded
+      const r = el.getBoundingClientRect();
+      const inView = (
+        r.top >= 60 &&
+        r.bottom <= window.innerHeight - 60 &&
+        r.left >= 10 &&
+        r.right <= window.innerWidth - 10
+      );
+
+      if (!inView) {
+        try {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch (_) {}
+      }
+
+      // Re-read fresh bounding box after potential scroll adjustments
+      setTimeout(() => {
+        if (!el.isConnected) return;
+        const freshRect = el.getBoundingClientRect();
         setTargetRect({
-          top: rect.top,
-          left: rect.left,
-          bottom: rect.bottom,
-          right: rect.right,
-          width: rect.width,
-          height: rect.height,
-          x: rect.x,
-          y: rect.y
+          top: freshRect.top,
+          left: freshRect.left,
+          width: freshRect.width,
+          height: freshRect.height,
+          bottom: freshRect.bottom,
+          right: freshRect.right
         });
         setTargetFound(true);
-        return el;
-      }
+      }, 80);
+    } else {
+      setTargetRect(null);
+      setTargetFound(false);
     }
+  }, [isOpen, activeStage, locateTargetElement]);
 
-    setTargetRect(null);
-    setTargetFound(false);
-    return null;
-  }, [isOpen, activeStage?.dataTour, findElementForStage]);
+  // Helper to emit close event
+  const dispatchCloseEvent = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent('foody:tutorial-closed', {
+        detail: { role: resolvedRole }
+      })
+    );
+  }, [resolvedRole]);
 
-  // Scroll into view & continuous rAF tracking on stage change
+  // Emit event whenever step changes or tour opens so active panels auto-open their tabs/drawers
+  useEffect(() => {
+    if (!isOpen || stages.length === 0) return;
+    const stage = stages[currentStep] || stages[0];
+    if (!stage) return;
+
+    window.dispatchEvent(
+      new CustomEvent('foody:tutorial-step-active', {
+        detail: {
+          stage,
+          tag: stage.dataTour || '',
+          step: currentStep,
+          role: resolvedRole
+        }
+      })
+    );
+
+    // Give the view component a tick to render newly opened tab/drawer before locating rect
+    const timer = setTimeout(() => {
+      updateTargetPosition();
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, currentStep, resolvedRole, stages, updateTargetPosition]);
+
+  // Recalculate target position whenever stage changes or on window scroll
   useEffect(() => {
     if (!isOpen) return;
 
-    let animationFrameId;
-    let cancelTimer;
-    const startTime = Date.now();
-
-    const trackElement = () => {
-      updateTargetRect();
-      if (Date.now() - startTime < 650) {
-        animationFrameId = requestAnimationFrame(trackElement);
-      }
-    };
-
-    // Locate and scroll into view if needed
-    cancelTimer = setTimeout(() => {
-      const el = updateTargetRect();
-      if (el) {
-        const style = window.getComputedStyle(el);
-        const isFixedOrSticky = style.position === 'fixed' || style.position === 'sticky';
-        const r = el.getBoundingClientRect();
-        const isInComfortableViewport = r.top >= 50 && r.bottom <= window.innerHeight - 50;
-
-        if (!isInComfortableViewport && !isFixedOrSticky) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        }
-      }
-      animationFrameId = requestAnimationFrame(trackElement);
+    const timer = setTimeout(() => {
+      updateTargetPosition();
     }, 40);
 
-    const onScroll = () => {
-      updateTargetRect();
+    const handleScroll = () => {
+      updateTargetPosition();
     };
 
-    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     return () => {
-      clearTimeout(cancelTimer);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('scroll', onScroll, { capture: true });
-      window.removeEventListener('resize', onScroll);
+      clearTimeout(timer);
+      window.removeEventListener('scroll', handleScroll, { capture: true });
     };
-  }, [isOpen, currentStep, updateTargetRect]);
+  }, [isOpen, currentStep, updateTargetPosition]);
 
-  const handleAnimatedClose = useCallback(() => {
-    if (closing) return;
-    setClosing(true);
-    setTimeout(() => {
-      setClosing(false);
-      onClose();
-    }, 220);
-  }, [closing, onClose]);
+  // Clean-up on unmount if tour was active
+  useEffect(() => {
+    return () => {
+      if (isOpen) {
+        dispatchCloseEvent();
+      }
+    };
+  }, [isOpen, dispatchCloseEvent]);
 
-  const handleFinish = () => {
-    if (userId) {
-      markTutorialCompleted(userId, resolvedRole, currentStep);
-    }
-    if (onComplete) onComplete();
-    handleAnimatedClose();
-  };
-
-  const handleSkip = () => {
-    if (userId) {
-      markTutorialCompleted(userId, resolvedRole, currentStep);
-    }
-    handleAnimatedClose();
-  };
-
+  // Advance to next step or complete
   const handleNext = () => {
     if (currentStep < stages.length - 1) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
-      if (userId) {
-        saveTutorialProgress(userId, resolvedRole, nextStep);
-      }
+      saveTutorialProgress(userId, resolvedRole, nextStep);
     } else {
-      handleFinish();
+      // Completed all steps
+      setClosing(true);
+      markTutorialCompleted(userId, resolvedRole, stages.length);
+      dispatchCloseEvent();
+      setTimeout(() => {
+        if (onComplete) onComplete();
+        if (onClose) onClose();
+      }, 180);
     }
   };
 
+  // Step back
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      saveTutorialProgress(userId, resolvedRole, prevStep);
     }
+  };
+
+  // Skip tutorial
+  const handleSkip = () => {
+    setClosing(true);
+    markTutorialCompleted(userId, resolvedRole, currentStep);
+    dispatchCloseEvent();
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 180);
   };
 
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
+
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         handleSkip();
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
         handleNext();
       } else if (e.key === 'ArrowLeft') {
         handleBack();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentStep, stages.length]);
 
-  if (!isOpen) return null;
+  if (!isOpen || stages.length === 0) return null;
 
-  const IconComponent = activeStage.icon || Sparkles;
   const isLast = currentStep === stages.length - 1;
+  const IconComponent = activeStage.icon || HelpCircle;
 
-  // Spotlight Cutout Coordinates with ergonomic padding
-  const pad = 8;
+  // Responsive Message Bubble Positioning Engine
+  const cardWidth = Math.min(350, windowDims.width - 24);
+  const cardEstimatedHeight = 160;
+
+  // Compute spotlight cutout rectangle with padding
+  const padding = 8;
   const cutout = targetRect ? {
-    x: Math.max(0, targetRect.left - pad),
-    y: Math.max(0, targetRect.top - pad),
-    w: targetRect.width + (pad * 2),
-    h: targetRect.height + (pad * 2)
+    x: Math.max(0, targetRect.left - padding),
+    y: Math.max(0, targetRect.top - padding),
+    w: targetRect.width + (padding * 2),
+    h: targetRect.height + (padding * 2)
   } : null;
 
-  // Card Positioning Calculations
-  const cardWidth = Math.min(windowDims.width - 24, 380);
-  const cardHeight = cardRef.current?.offsetHeight || 290;
-
-  let placement = 'center';
-  let cardTop = Math.max(16, (windowDims.height - cardHeight) / 2);
-  let cardLeft = Math.max(12, (windowDims.width - cardWidth) / 2);
+  let placement = 'bottom';
+  let cardTop = windowDims.height - cardEstimatedHeight - 24;
+  let cardLeft = (windowDims.width - cardWidth) / 2;
   let arrowLeft = cardWidth / 2;
 
-  if (targetRect && targetFound) {
+  if (targetRect) {
     const spaceBelow = windowDims.height - targetRect.bottom;
     const spaceAbove = targetRect.top;
-    const gap = 14;
+    const gap = 16;
 
-    if (spaceBelow >= cardHeight + gap) {
+    if (spaceBelow >= cardEstimatedHeight + gap) {
       placement = 'bottom';
       cardTop = targetRect.bottom + gap;
-    } else if (spaceAbove >= cardHeight + gap) {
+    } else if (spaceAbove >= cardEstimatedHeight + gap) {
       placement = 'top';
-      cardTop = Math.max(12, targetRect.top - cardHeight - gap);
+      cardTop = Math.max(12, targetRect.top - cardEstimatedHeight - gap);
     } else {
       placement = spaceBelow > spaceAbove ? 'bottom' : 'top';
-      cardTop = placement === 'bottom' 
-        ? Math.min(windowDims.height - cardHeight - 12, targetRect.bottom + gap)
-        : Math.max(12, targetRect.top - cardHeight - gap);
+      cardTop = placement === 'bottom'
+        ? Math.min(windowDims.height - cardEstimatedHeight - 12, targetRect.bottom + gap)
+        : Math.max(12, targetRect.top - cardEstimatedHeight - gap);
     }
 
     // Align horizontally with target center, clamped inside viewport
@@ -421,7 +499,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
   }
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 z-[9999999] overflow-hidden select-none transition-opacity duration-200 ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       style={{ touchAction: 'none', background: 'transparent' }}
     >
@@ -433,7 +511,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
             left: `${cutout.x}px`,
             width: `${cutout.w}px`,
             height: `${cutout.h}px`,
-            borderRadius: '20px',
+            borderRadius: '18px',
             boxShadow: isLight
               ? '0 0 0 9999px rgba(25, 20, 22, 0.62), 0 0 25px rgba(245, 158, 11, 0.40)'
               : '0 0 0 9999px rgba(10, 8, 9, 0.84), 0 0 30px rgba(224, 255, 51, 0.45)',
@@ -445,15 +523,15 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           }`}
         />
       ) : (
-        /* Fallback Backdrop if target element is currently not detected on screen */
-        <div 
+        /* Fallback Backdrop if target element is not in view */
+        <div
           className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-300 ${
             isLight ? 'bg-black/60' : 'bg-black/80'
           }`}
         />
       )}
 
-      {/* Responsive Callout Card Container */}
+      {/* CHAT MESSAGE BUBBLE CONTAINER */}
       <div
         ref={cardRef}
         style={{
@@ -461,218 +539,129 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           left: `${cardLeft}px`,
           width: `${cardWidth}px`
         }}
-        className={`fixed z-20 flex flex-col rounded-[28px] sm:rounded-[32px] overflow-hidden transition-all duration-300 apple-modal-spring ${
+        className={`fixed z-20 flex flex-col rounded-[24px] sm:rounded-[28px] p-4 sm:p-4.5 transition-all duration-300 apple-modal-spring shadow-2xl relative ${
           isLight
-            ? 'bg-[#FAF5EB] text-stone-900 border border-amber-400/50 shadow-[0_25px_80px_rgba(0,0,0,0.35),0_0_40px_rgba(245,158,11,0.2)]'
-            : 'bg-[#1E1B1C] text-white border border-[#E0FF33]/30 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(224,255,51,0.15)]'
+            ? 'bg-[#FAF5EB] text-stone-900 border border-amber-400/40 shadow-[0_20px_50px_rgba(0,0,0,0.25)]'
+            : 'bg-[#282526] text-white border border-[#E0FF33]/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
         } ${closing ? 'closing' : ''}`}
       >
-        {/* Directional Arrow pointing towards the highlighted element */}
-        {targetFound && placement === 'bottom' && (
-          <div
-            style={{ left: `${arrowLeft}px` }}
-            className={`absolute -top-2 -translate-x-1/2 w-4 h-4 rotate-45 z-30 ${
-              isLight
-                ? 'bg-[#FAF5EB] border-t border-l border-amber-400/60'
-                : 'bg-[#1E1B1C] border-t border-l border-[#E0FF33]/40'
-            }`}
-          />
-        )}
-        {targetFound && placement === 'top' && (
-          <div
-            style={{ left: `${arrowLeft}px` }}
-            className={`absolute -bottom-2 -translate-x-1/2 w-4 h-4 rotate-45 z-30 ${
-              isLight
-                ? 'bg-[#FAF5EB] border-b border-r border-amber-400/60'
-                : 'bg-[#1E1B1C] border-b border-r border-[#E0FF33]/40'
-            }`}
+        {/* Authentic Chat Speech Tail pointing at the element */}
+        {targetFound && (
+          <SpeechBubbleTail
+            placement={placement}
+            arrowLeft={arrowLeft}
+            isLight={isLight}
           />
         )}
 
-        {/* Ambient Top Glow Accent */}
-        <div
-          className={`absolute top-0 inset-x-0 h-1.5 opacity-90 ${
-            isLight
-              ? 'bg-gradient-to-r from-transparent via-amber-500 to-transparent'
-              : 'bg-gradient-to-r from-transparent via-[#E0FF33] to-transparent'
-          }`}
-        />
-
-        {/* Header Ribbon: Stage Tag + Step Counter + Close */}
-        <div
-          className={`px-5 pt-4 pb-2.5 flex items-center justify-between gap-2 border-b ${
-            isLight ? 'border-stone-300/60' : 'border-white/5'
-          }`}
-        >
-          <div className="flex items-center gap-2">
+        {/* Top Mini Header: Step Chip & Close */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-1.5">
             <span
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-['Outfit'] border ${
+              className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider font-outfit border ${
                 isLight
                   ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
                   : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
               }`}
             >
-              {activeStage.tag || `STAGE ${currentStep + 1}`}
-            </span>
-            <span
-              className={`text-[11px] font-bold font-mono ${
-                isLight ? 'text-stone-500' : 'text-zinc-400'
-              }`}
-            >
-              {currentStep + 1} / {stages.length}
+              {tutorialData?.roleLabel || 'Guide'} • {currentStep + 1}/{stages.length}
             </span>
           </div>
 
           <button
             onClick={handleSkip}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 ${
+            className={`w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 ${
               isLight
-                ? 'bg-stone-200/80 hover:bg-stone-300 text-stone-600 hover:text-stone-950'
+                ? 'bg-stone-200/80 hover:bg-stone-300 text-stone-600'
                 : 'bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white'
             }`}
             title="Skip Tour"
             aria-label="Skip Tour"
           >
-            <X size={14} strokeWidth={2.5} />
+            <X size={12} strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Body Content */}
-        <div className="p-5 space-y-3.5">
-          {/* Title Row with Stage Icon */}
-          <div className="flex items-start gap-3">
+        {/* 1 to 2 Liner Message Body */}
+        <div className="space-y-1 my-1">
+          <div className="flex items-center gap-2">
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${
+              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${
                 isLight
                   ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
                   : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
               }`}
             >
-              <IconComponent size={20} strokeWidth={2.5} />
+              <IconComponent size={13} strokeWidth={2.5} />
             </div>
-            <div className="min-w-0 flex-1">
-              <h3
-                className={`text-base sm:text-lg font-black font-['Outfit'] tracking-tight leading-snug ${
-                  isLight ? 'text-stone-950' : 'text-white'
-                }`}
-              >
-                {activeStage.title}
-              </h3>
-              <p
-                className={`text-xs font-medium leading-relaxed mt-1 ${
-                  isLight ? 'text-stone-600' : 'text-zinc-300'
-                }`}
-              >
-                {activeStage.subtitle}
-              </p>
-            </div>
+            <h3 className="text-xs sm:text-sm font-black font-outfit tracking-tight truncate">
+              {activeStage.title}
+            </h3>
           </div>
 
-          {/* Highlights / Features list */}
-          {activeStage.highlights && activeStage.highlights.length > 0 && (
-            <div
-              className={`rounded-2xl p-3 border space-y-2 ${
-                isLight
-                  ? 'bg-stone-200/60 border-stone-300/80 text-stone-800'
-                  : 'bg-[#151314] border-white/5 text-zinc-300'
-              }`}
-            >
-              {activeStage.highlights.map((h, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                      isLight ? 'bg-amber-600' : 'bg-[#E0FF33]'
-                    }`}
-                  />
-                  <div className="leading-snug">
-                    <strong className={isLight ? 'text-stone-950 font-bold' : 'text-white font-bold'}>
-                      {h.label}:
-                    </strong>{' '}
-                    <span className={isLight ? 'text-stone-600' : 'text-zinc-400'}>{h.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Target Element Fallback notice if element not in current viewport */}
-          {!targetFound && (
-            <div
-              className={`px-3 py-1.5 rounded-xl border text-[11px] font-medium flex items-center gap-1.5 ${
-                isLight
-                  ? 'bg-amber-500/10 border-amber-500/25 text-amber-900'
-                  : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
-              }`}
-            >
-              <Sparkles size={12} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-              <span>Target feature: {activeStage.uiElement || 'Platform Control'}</span>
-            </div>
-          )}
-
-          {/* Progress Bar */}
-          <div
-            className={`w-full h-1.5 rounded-full overflow-hidden ${
-              isLight ? 'bg-stone-300/70' : 'bg-white/10'
+          {/* Strictly 1 to 2 Lines Max */}
+          <p
+            className={`text-[11px] sm:text-xs font-medium leading-snug line-clamp-2 pl-8 ${
+              isLight ? 'text-stone-600' : 'text-zinc-300'
             }`}
           >
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                isLight ? 'bg-amber-600' : 'bg-[#E0FF33]'
-              }`}
-              style={{ width: `${((currentStep + 1) / stages.length) * 100}%` }}
-            />
-          </div>
+            {activeStage.description || activeStage.subtitle}
+          </p>
         </div>
 
-        {/* Action Controls Bar */}
-        <div
-          className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 ${
-            isLight
-              ? 'bg-stone-100/90 border-stone-200'
-              : 'bg-[#151314] border-white/10'
-          }`}
-        >
+        {/* Relative Navigation Controls Bar: Skip, Back, Next */}
+        <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-stone-200/60 dark:border-white/10">
           {/* Skip Button */}
           <button
             onClick={handleSkip}
-            className={`text-xs font-bold transition-colors cursor-pointer px-2 py-1 ${
-              isLight
-                ? 'text-stone-500 hover:text-stone-900'
-                : 'text-zinc-400 hover:text-white'
-            }`}
+            className="text-[11px] font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer px-1 py-0.5"
           >
-            Skip Tour
+            Skip
           </button>
 
+          {/* Progress dots */}
+          <div className="flex items-center gap-1">
+            {stages.map((_, idx) => (
+              <span
+                key={idx}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                  idx === currentStep
+                    ? isLight
+                      ? 'bg-amber-600 w-3'
+                      : 'bg-[#E0FF33] w-3'
+                    : isLight
+                      ? 'bg-stone-300'
+                      : 'bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
+
           {/* Next / Back cluster */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {currentStep > 0 && (
               <button
                 onClick={handleBack}
-                className={`h-9 px-3 rounded-full font-bold text-xs flex items-center gap-1 transition-all cursor-pointer active:scale-95 border ${
-                  isLight
-                    ? 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 border-stone-300'
-                    : 'bg-white/10 hover:bg-white/15 text-white border-white/10'
-                }`}
+                className="h-7 px-2.5 rounded-full font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95 border bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/10"
               >
-                <ChevronLeft size={14} />
+                <ChevronLeft size={12} />
                 <span>Back</span>
               </button>
             )}
 
             <button
               onClick={handleNext}
-              className={`h-9 px-4 rounded-full font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 font-['Outfit'] shadow-md ${
+              className={`h-7 px-3 rounded-full font-black text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95 font-outfit shadow-sm ${
                 isLight
-                  ? 'bg-stone-900 hover:bg-stone-800 text-white shadow-stone-900/20'
-                  : 'bg-[#E0FF33] hover:bg-[#CCFF00] text-black shadow-[0_4px_16px_rgba(224,255,51,0.3)]'
+                  ? 'bg-stone-900 hover:bg-stone-800 text-white'
+                  : 'bg-[#E0FF33] hover:bg-[#CCFF00] text-[#121011]'
               }`}
             >
-              <span>{isLast ? 'Got it! Finish' : 'Next'}</span>
+              <span>{isLast ? 'Done' : 'Next'}</span>
               {isLast ? (
-                <CheckCircle2 size={14} strokeWidth={2.8} />
+                <CheckCircle2 size={12} strokeWidth={2.8} />
               ) : (
-                <ChevronRight size={14} strokeWidth={2.8} />
+                <ChevronRight size={12} strokeWidth={2.8} />
               )}
             </button>
           </div>

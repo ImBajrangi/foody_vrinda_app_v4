@@ -167,7 +167,7 @@ export default function Header({
                   aria-label={isAuthenticated ? "Profile and Settings" : "Sign in to Foody Vrinda"}
                 >
                   <div className="relative flex items-center justify-center p-[3px]">
-                    {/* Instagram-Style Continuous Story Ring: Solid Arc -> Decaying Dashes -> Dots */}
+                    {/* Instagram-Style True Morph & Merge Story Ring: Expands, Shrinks Gaps, and Merges Solid on Open */}
                     <svg 
                       className="absolute -inset-[4px] w-[calc(100%+8px)] h-[calc(100%+8px)] pointer-events-none" 
                       viewBox="0 0 56 56"
@@ -181,27 +181,23 @@ export default function Header({
                         </linearGradient>
                       </defs>
 
-                      {/* Continuous One-Loop Rotating Track */}
-                      <g className="satvik-story-spin">
-                        {/* Faint Base Guide Track */}
-                        <circle 
-                          cx="28" cy="28" r="24.5" 
-                          fill="none" 
-                          stroke="url(#satvikThemeRingGrad)" 
-                          strokeWidth="1.2" 
-                          strokeOpacity="0.2" 
-                        />
+                      {/* Faint Base Guide Track */}
+                      <circle 
+                        cx="28" cy="28" r="24.5" 
+                        fill="none" 
+                        stroke="url(#satvikThemeRingGrad)" 
+                        strokeWidth="1.2" 
+                        strokeOpacity="0.18" 
+                      />
 
-                        {/* Continuous Signature Stroke: Solid Arc (130°) -> Decaying Dashes -> Jewel Dots */}
-                        <circle 
-                          cx="28" cy="28" r="24.5" 
-                          fill="none" 
-                          stroke="url(#satvikThemeRingGrad)" 
-                          strokeWidth="3.2" 
-                          strokeLinecap="round" 
-                          strokeDasharray="56 5.5 13 5.5 10 5.5 7 5.5 4 5.5 1 5.5 1 5.5 1 5.5 1 5.5 1 5.5 1 5.5" 
-                        />
-                      </g>
+                      {/* Morphing & Merging Signature Circle Path */}
+                      <circle 
+                        cx="28" cy="28" r="24.5" 
+                        fill="none" 
+                        stroke="url(#satvikThemeRingGrad)" 
+                        strokeLinecap="round" 
+                        className="satvik-story-morph-once" 
+                      />
                     </svg>
 
                     {/* Inner Avatar Frame */}
@@ -385,8 +381,8 @@ export default function Header({
           ) : (
             /* Logged-In User Controls */
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* FV Dynasty Rewards Badge */}
-              {onToggleRewards && (
+              {/* FV Dynasty Rewards Badge (Hidden when items are in bag to avoid crowding on mobile) */}
+              {onToggleRewards && totalQty === 0 && (
                 <button
                   data-tour="customer-fv-wallet"
                   onClick={onToggleRewards}

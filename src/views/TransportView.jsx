@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
@@ -25,9 +25,9 @@ import {
   getDailySarathiCode,
   checkDeliveryGeofence,
   calculateOptimalDispatchWindow,
-  exportDeliveryAuditReportCSV,
   generateWhatsAppOrderShareLink
 } from '../supabase';
+import { printVerifiedDriverStatementPDF } from '../utils/deliveryReportUtils';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
@@ -67,7 +67,9 @@ import {
   Lock,
   Unlock,
   ShieldAlert,
-  Download
+  Download,
+  FileText,
+  FileDown
 } from 'lucide-react';
 
 export default function TransportView() {
@@ -91,6 +93,33 @@ export default function TransportView() {
       localStorage.setItem('foody_transport_view_mode', viewMode);
     } catch (e) { }
   }, [viewMode]);
+
+  // Onboarding Tour Auto Open/Close Coordinator for Delivery Partner
+  useEffect(() => {
+    const handleTutorialStep = (e) => {
+      const tourTag = e?.detail?.tag || e?.detail?.stage?.dataTour || '';
+      if (tourTag.includes('delivery-navigation')) {
+        setViewMode('map');
+      } else if (
+        tourTag.includes('delivery-orders') ||
+        tourTag.includes('delivery-accept') ||
+        tourTag.includes('delivery-complete') ||
+        tourTag.includes('delivery-earnings') ||
+        tourTag.includes('delivery-report') ||
+        tourTag.includes('delivery-referral')
+      ) {
+        setViewMode('list');
+        if (tourTag.includes('delivery-orders') || tourTag.includes('delivery-accept')) {
+          setRiderTab('active');
+        }
+      }
+    };
+
+    window.addEventListener('foody:tutorial-step-active', handleTutorialStep);
+    return () => {
+      window.removeEventListener('foody:tutorial-step-active', handleTutorialStep);
+    };
+  }, []);
 
   const [isRiderOnDuty, setIsRiderOnDuty] = useState(() => {
     try {
@@ -927,6 +956,24 @@ export default function TransportView() {
     });
   }, [tabOrders, searchQuery]);
 
+  // Download / Print verified shift order report as PDF
+  const handleDownloadShiftSlip = useCallback(() => {
+    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    const riderTrustScore = getUserTrustScore(riderId);
+    const riderLedger = getRiderCashLedger(riderId);
+    const riderDetails = {
+      name: activeUser?.name || activeUser?.email || 'Govind Das (Sarathi)',
+      id: activeUser?.id ? `FV-SRT-${activeUser.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase()}` : 'FV-SARATHI-108',
+      phone: activeUser?.phone || '+91 98765 43210',
+      trustScore: riderTrustScore,
+      cashInHand: riderLedger?.cashInHand || 0
+    };
+    const success = printVerifiedDriverStatementPDF(orders, riderDetails);
+    if (success) {
+      showToast("Opening Delivery Slip (PDF)...", "success");
+    }
+  }, [activeUser, orders]);
+
   return (
     <div className="space-y-6 pb-24">
       {/* Dynamic Tactile Alarm Banner (Apple Dynamic Island Style) */}
@@ -952,141 +999,7 @@ export default function TransportView() {
         />
       )}
 
-      {/* 1. RIDER FINANCIAL & TRUST METRICS (Grand Stat Cards Matching Platform standards) */}
-      {(() => {
-        const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
-        const ledger = getRiderCashLedger(riderId);
-        const cashCheck = isRiderCashLimitExceeded(riderId);
-        const trustScore = getUserTrustScore(riderId);
-        const cashPercent = Math.min(100, Math.round((ledger.cashInHand / RIDER_MAX_CASH_LIMIT) * 100));
-        const trustPercent = Math.min(100, Math.round((trustScore / 900) * 100));
-
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Card 1: COD Cash in Hand */}
-            <div data-tour="delivery-earnings" className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
-                ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
-                : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
-              }`}>
-              {/* Row 1: Icon + Title on Left, Status Badge on Right */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
-                    }`}>
-                    <Banknote size={19} strokeWidth={2.5} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] truncate">
-                      COD Cash In Hand
-                    </p>
-                  </div>
-                </div>
-
-                {cashCheck.isExceeded ? (
-                  <span className="text-[10px] font-black bg-rose-500 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-sm shrink-0 whitespace-nowrap">
-                    Limit Reached
-                  </span>
-                ) : (
-                  <span className="text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-emerald-500/30 shadow-xs shrink-0 whitespace-nowrap">
-                    Ready for Delivery
-                  </span>
-                )}
-              </div>
-
-              {/* Row 2: Metric Amount + Cap Limit across full width with ZERO line-wrapping */}
-              <div className="flex items-baseline justify-between gap-2 mt-3 mb-2.5">
-                <div className="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
-                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
-                    ₹{ledger.cashInHand}
-                  </span>
-                  <span className="text-xs font-semibold text-stone-500 dark:text-zinc-400 font-mono">
-                    / ₹{RIDER_MAX_CASH_LIMIT} Cap
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-zinc-400 shrink-0">
-                  {cashPercent}%
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${cashCheck.isExceeded ? 'bg-rose-500' : 'bg-amber-500 dark:bg-[#E0FF33]'}`}
-                  style={{ width: `${cashPercent}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Card 2: Sarathi Trust & CIBIL Score */}
-            <div className="p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
-              {/* Row 1: Icon + Title on Left, Badge on Right */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-2xl bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold shadow-sm shrink-0">
-                    <Star size={19} strokeWidth={2.5} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-['Outfit'] truncate">
-                      Sarathi Trust Score
-                    </p>
-                  </div>
-                </div>
-
-                <span className={`text-[10px] sm:text-[11px] font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap ${trustScore >= 750 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
-                  }`}>
-                  {trustScore >= 750 ? 'Top Sarathi' : 'Active Partner'}
-                </span>
-              </div>
-
-              {/* Row 2: Score + Total Pts with zero wrapping */}
-              <div className="flex items-baseline justify-between gap-2 mt-3 mb-2.5">
-                <div className="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
-                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
-                    {trustScore}
-                  </span>
-                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">
-                    / 900 Pts
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono font-bold text-stone-500 dark:text-zinc-400 shrink-0">
-                  {trustPercent}%
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full bg-stone-300/70 dark:bg-white/10 h-2 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500"
-                  style={{ width: `${trustPercent}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Banner: Sarathi Fleet Dynasty Referrals */}
-            <div data-tour="delivery-referral" className="md:col-span-2 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-emerald-50/80 dark:bg-gradient-to-r dark:from-emerald-950/40 dark:via-[#282526] dark:to-[#1E1B1C] border border-emerald-500/25 dark:border-emerald-500/30 shadow-sm dark:shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3.5">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
-                  <Users size={19} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Sarathi Fleet Referral Hub</h4>
-                  <p className="text-xs text-stone-600 dark:text-zinc-400">Invite new riders to the Foody Vrinda fleet and earn 100 FV points per completed order.</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
-                className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-['Outfit'] flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
-              >
-                <MessageCircle size={14} />
-                <span>Join Fleet Channel</span>
-              </button>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* 2. MAIN OPERATIONS HEADER BAR (Grand Scale Matching Kitchen Operations) */}
+      {/* MAIN OPERATIONS HEADER BAR (Grand Scale Matching Kitchen Operations) */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden">
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
@@ -1107,44 +1020,23 @@ export default function TransportView() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 w-full xl:w-auto">
-          {/* Action Controls: 2-column balanced grid on mobile, inline flex on desktop */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-            {/* Rider Duty Presence Toggle */}
-            <button
-              data-tour="delivery-go-online"
-              type="button"
-              onClick={toggleRiderDuty}
-              className={`h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRiderOnDuty
-                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-                }`}
-              title="Toggle Rider Duty Availability"
-            >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <span className="whitespace-nowrap font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
-            </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full xl:w-auto">
+          {/* Rider Duty Presence Toggle */}
+          <button
+            data-tour="delivery-go-online"
+            type="button"
+            onClick={toggleRiderDuty}
+            className={`h-10 sm:h-11 px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isRiderOnDuty
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25 shadow-xs'
+              : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+              }`}
+            title="Toggle Rider Duty Availability"
+          >
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+            <span className="whitespace-nowrap font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+          </button>
 
-            {/* Download Full Delivery Audit Report CSV */}
-            <button
-              type="button"
-              onClick={() => {
-                const success = exportDeliveryAuditReportCSV(orders);
-                if (success) {
-                  setToast({ message: 'Delivery Audit Report downloaded!', type: 'success' });
-                } else {
-                  setToast({ message: 'No orders available to export', type: 'info' });
-                }
-              }}
-              className="h-10 sm:h-11 px-3 sm:px-4 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 bg-stone-100 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 transition-all cursor-pointer apple-tap-target shrink-0 shadow-xs"
-              title="Download CSV Delivery Audit Trail Report"
-            >
-              <Download size={14} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
-              <span className="whitespace-nowrap font-['Outfit']">Export CSV</span>
-            </button>
-          </div>
-
-          {/* List vs Carto View Switcher: Ergonomic full-width segmented control on mobile, compact on desktop */}
+          {/* List vs Carto View Switcher: Ergonomic segmented control */}
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner w-full sm:w-auto shrink-0">
             <button
               data-tour="delivery-orders"
@@ -1174,62 +1066,75 @@ export default function TransportView() {
 
       {/* 3. SARATHI FLEET OPERATIONS SEGMENTED TABS (Independent Fleet) */}
       <div className="space-y-3">
-        {/* Tab Switcher Pills (Matching Signature Foody Vrinda Theme) */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 overflow-x-auto no-scrollbar shadow-inner">
-          <button
-            onClick={() => setRiderTab('active')}
-            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
+        {/* Tab Switcher Pills & Direct Order Slip Trigger */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 overflow-x-auto no-scrollbar shadow-inner flex-1 min-w-0">
+            <button
+              onClick={() => setRiderTab('active')}
+              className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
                 ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
-              }`}
-          >
-            <Truck size={14} />
-            <span>Today's Orders</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
-              {activeTrips.length}
-            </span>
-          </button>
+                }`}
+            >
+              <Truck size={14} />
+              <span>Today's Orders</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+                {activeTrips.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setRiderTab('upcoming')}
-            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
+            <button
+              onClick={() => setRiderTab('upcoming')}
+              className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
                 ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
-              }`}
-          >
-            <Clock size={14} />
-            <span>Upcoming</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
-              {upcomingPickups.length}
-            </span>
-          </button>
+                }`}
+            >
+              <Clock size={14} />
+              <span>Upcoming</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+                {upcomingPickups.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setRiderTab('completed')}
-            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
+            <button
+              onClick={() => setRiderTab('completed')}
+              className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
                 ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
-              }`}
-          >
-            <CheckCircle2 size={14} />
-            <span>Completed Today</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
-              {completedToday.length}
-            </span>
-          </button>
+                }`}
+            >
+              <CheckCircle2 size={14} />
+              <span>Completed Today</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+                {completedToday.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setRiderTab('all')}
-            className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
+            <button
+              onClick={() => setRiderTab('all')}
+              className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
                 ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
-              }`}
+                }`}
+            >
+              <List size={14} />
+              <span>Order History</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+                {orders.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Direct 1-Tap Order Slip Trigger */}
+          <button
+            type="button"
+            onClick={handleDownloadShiftSlip}
+            className="h-10 px-4 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-[#E0FF33] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
+            title="Download or Print Today's Order Report as PDF"
           >
-            <List size={14} />
-            <span>Order History</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
-              {orders.length}
-            </span>
+            <FileDown size={15} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
+            <span className="whitespace-nowrap">Order Slip (PDF)</span>
           </button>
         </div>
       </div>
@@ -1732,6 +1637,182 @@ export default function TransportView() {
         </div>
       )}
 
+      {/* RIDER FINANCIAL & TRUST METRICS — Positioned below orders so rider sees active delivery tasks and navigation first */}
+      {(() => {
+        const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+        const ledger = getRiderCashLedger(riderId);
+        const cashCheck = isRiderCashLimitExceeded(riderId);
+        const trustScore = getUserTrustScore(riderId);
+        const cashPercent = Math.min(100, Math.round((ledger.cashInHand / RIDER_MAX_CASH_LIMIT) * 100));
+        const trustPercent = Math.min(100, Math.round((trustScore / 900) * 100));
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2">
+            {/* Card 1: COD Cash in Hand */}
+            <div data-tour="delivery-earnings" className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
+              ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+              : 'bg-stone-200/90 dark:bg-[#282526] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white'
+              }`}>
+              {/* Row 1: Icon + Title on Left, Status Badge on Right */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
+                    }`}>
+                    <Banknote size={19} strokeWidth={2.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit truncate">
+                      COD Cash In Hand
+                    </p>
+                  </div>
+                </div>
+
+                {cashCheck.isExceeded ? (
+                  <span className="text-[10px] font-black bg-rose-500 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-sm shrink-0 whitespace-nowrap">
+                    Limit Reached
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 shadow-xs shrink-0 whitespace-nowrap font-outfit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Ready for Delivery</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Row 2: Metric Amount + Cap Limit across full width with ZERO line-wrapping */}
+              <div className="flex items-baseline justify-between gap-2 mt-4 mb-2.5">
+                <div className="flex items-baseline gap-2 flex-nowrap whitespace-nowrap">
+                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-outfit tracking-tight">
+                    ₹{ledger.cashInHand}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-stone-500 dark:text-zinc-400 font-outfit">
+                    / ₹{RIDER_MAX_CASH_LIMIT} Cap
+                  </span>
+                </div>
+                <span className="text-xs font-black font-outfit text-stone-600 dark:text-zinc-400 shrink-0">
+                  {cashPercent}%
+                </span>
+              </div>
+
+              {/* Recessed Luxury Progress Bar Track */}
+              <div className="w-full bg-stone-300/80 dark:bg-[#151314] h-2.5 rounded-full border border-stone-300 dark:border-white/5 p-0.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 min-w-[4px] ${cashCheck.isExceeded ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-amber-500 dark:bg-[#E0FF33] shadow-[0_0_10px_rgba(224,255,51,0.4)]'}`}
+                  style={{ width: `${Math.max(2, cashPercent)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Card 2: Sarathi Trust & CIBIL Score */}
+            <div className="p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
+              {/* Row 1: Icon + Title on Left, Badge on Right */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <Star size={19} strokeWidth={2.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit truncate">
+                      Sarathi Trust Score
+                    </p>
+                  </div>
+                </div>
+
+                <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black px-3 py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap font-outfit ${trustScore >= 750 ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                  }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${trustScore >= 750 ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>{trustScore >= 750 ? 'Top Sarathi' : 'Active Partner'}</span>
+                </span>
+              </div>
+
+              {/* Row 2: Score + Total Pts with zero wrapping */}
+              <div className="flex items-baseline justify-between gap-2 mt-4 mb-2.5">
+                <div className="flex items-baseline gap-2 flex-nowrap whitespace-nowrap">
+                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-outfit tracking-tight">
+                    {trustScore}
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 font-outfit">
+                    / 900 Pts
+                  </span>
+                </div>
+                <span className="text-xs font-black font-outfit text-purple-600 dark:text-purple-400 shrink-0">
+                  {trustPercent}%
+                </span>
+              </div>
+
+              {/* Recessed Luxury Progress Bar Track */}
+              <div className="w-full bg-stone-300/80 dark:bg-[#151314] h-2.5 rounded-full border border-stone-300 dark:border-white/5 p-0.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-fuchsia-500 transition-all duration-500 shadow-[0_0_12px_rgba(168,85,247,0.4)]"
+                  style={{ width: `${Math.max(2, trustPercent)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Card 3: Foody Vrinda Verified Shift Delivery Slip & Order Summary (PDF) */}
+            <div data-tour="delivery-report" className="md:col-span-2 p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden transition-all hover:border-[#E0FF33]/30 group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 dark:bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+              <div className="flex items-center gap-3.5 min-w-0 relative z-10 w-full sm:w-auto">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+                  <FileText size={20} strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit">
+                    Shift Orders & Delivery Report
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                    <h4 className="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white font-outfit">
+                      Today's Delivery
+                    </h4>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25">
+                      Official Slip
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-600 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Download or print complete itemized orders, customer addresses & COD cash collected.
+                  </p>
+                </div>
+              </div>
+
+              {/* Single Clear Action Button: Download Slip (PDF) */}
+              <div className="flex items-center w-full sm:w-auto shrink-0 relative z-10">
+                <button
+                  type="button"
+                  onClick={handleDownloadShiftSlip}
+                  className="h-11 px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 apple-tap-target w-full sm:w-auto"
+                  title="Download and Print Today's Order Report as PDF"
+                >
+                  <FileDown size={16} strokeWidth={2.5} />
+                  <span>Download Slip (PDF)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Banner: Sarathi Fleet Dynasty Referrals */}
+            <div data-tour="delivery-referral" className="md:col-span-2 p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden transition-all hover:border-emerald-500/30 group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+              <div className="flex items-center gap-3.5 min-w-0 relative z-10 w-full sm:w-auto">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+                  <Users size={20} strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white font-outfit">Sarathi Fleet Referral Hub</h4>
+                  <p className="text-xs text-stone-600 dark:text-zinc-400 mt-0.5 leading-relaxed">Invite new riders to the Foody Vrinda fleet and earn 100 FV points per completed order.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
+                className="h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target w-full sm:w-auto"
+              >
+                <MessageCircle size={15} />
+                <span>Join Fleet Channel</span>
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* 🔐 TWO-STAGE OTP VERIFICATION MODAL (Pickup from Kitchen & Doorstep Delivery) */}
       {otpModalState.isOpen && otpModalState.order && (
         <div
@@ -1751,8 +1832,8 @@ export default function TransportView() {
               <div className="flex items-center gap-3">
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${otpModalState.type === 'pickup'
-                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                      : 'bg-[#E0FF33]/15 border-[#E0FF33]/30 text-[#E0FF33]'
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                    : 'bg-[#E0FF33]/15 border-[#E0FF33]/30 text-[#E0FF33]'
                     }`}
                 >
                   {otpModalState.type === 'pickup' ? (
@@ -1765,8 +1846,8 @@ export default function TransportView() {
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${otpModalState.type === 'pickup'
-                          ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-[#E0FF33]/20 text-[#E0FF33]'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : 'bg-[#E0FF33]/20 text-[#E0FF33]'
                         }`}
                     >
                       {otpModalState.type === 'pickup' ? 'Stage 1: Kitchen Pickup' : 'Stage 2: Customer Handover'}
@@ -1883,10 +1964,10 @@ export default function TransportView() {
                     disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
                     autoComplete="one-time-code"
                     className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${otpModalState.isSuccess
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
-                        : digit
-                          ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                          : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                      : digit
+                        ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                        : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
                       }`}
                   />
                 ))}
@@ -1916,8 +1997,8 @@ export default function TransportView() {
                 onClick={() => verifyAndSubmitOtp()}
                 disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${otpModalState.type === 'pickup'
-                    ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
-                    : 'bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] shadow-[#E0FF33]/20'
+                  ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
+                  : 'bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] shadow-[#E0FF33]/20'
                   }`}
               >
                 {otpModalState.isSubmitting ? (

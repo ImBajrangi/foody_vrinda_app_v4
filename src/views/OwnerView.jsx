@@ -66,6 +66,8 @@ import {
   Truck,
   ShieldCheck,
   CheckCircle2,
+  PackageCheck,
+  PackageX,
   X,
   FileSpreadsheet,
   BarChart3,
@@ -151,11 +153,36 @@ export default function OwnerView() {
   const activeShopId = activeShop?.id || null;
   const currentShop = activeShop;
 
-  // Tab Navigation: 'analytics' | 'menu' | 'settings' | 'history'
-  const [activeTab, setActiveTab] = useState('analytics');
+  // Tab Navigation: 'orders' | 'summary' | 'shops' | 'menu' | 'staff' | 'audit'
+  const [activeTab, setActiveTab] = useState('summary');
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
+
+  // Responsive Onboarding Tour Tab Auto-Switch Listener
+  useEffect(() => {
+    const handleTutorialStep = (e) => {
+      const tourTag = e?.detail?.tag || e?.detail?.stage?.dataTour || '';
+      if (tourTag.includes('owner-sales')) {
+        setActiveTab('summary'); // Opens Analytics / Revenue & Settlements!
+      } else if (tourTag.includes('owner-menu')) {
+        setActiveTab('menu'); // Opens Menu Catalog!
+      } else if (tourTag.includes('owner-staff')) {
+        setActiveTab('staff'); // Opens Staff & Roles!
+      } else if (tourTag.includes('owner-stores')) {
+        setActiveTab('shops'); // Opens Store Profile!
+        if (activeShop) {
+          handleEditShopClick(activeShop);
+        }
+      } else if (tourTag.includes('owner-orders')) {
+        setActiveTab('orders'); // Opens Live Orders!
+      } else if (tourTag.includes('owner-audit')) {
+        setActiveTab('audit'); // Opens Cash Audit!
+      }
+    };
+    window.addEventListener('foody:tutorial-step-active', handleTutorialStep);
+    return () => window.removeEventListener('foody:tutorial-step-active', handleTutorialStep);
+  }, [activeShop]);
 
   // Mobile / Section Collapsible States for peaceful UI & focused workflow
   const [isMenuFormCollapsed, setIsMenuFormCollapsed] = useState(false);
@@ -199,6 +226,22 @@ export default function OwnerView() {
       return { onlinePaymentsEnabled: true, codEnabled: true };
     }
   });
+
+  // Keep paymentsConfig synchronized in real-time with platform settings
+  useEffect(() => {
+    const handleConfigChanged = () => {
+      try {
+        const saved = localStorage.getItem('foody_payment_config');
+        if (saved) setPaymentsConfig(JSON.parse(saved));
+      } catch (e) { }
+    };
+    window.addEventListener('foody_payment_config_changed', handleConfigChanged);
+    window.addEventListener('storage', handleConfigChanged);
+    return () => {
+      window.removeEventListener('foody_payment_config_changed', handleConfigChanged);
+      window.removeEventListener('storage', handleConfigChanged);
+    };
+  }, []);
 
   // Modals & UI States
   const [isEditShopModalOpen, setIsEditShopModalOpen] = useState(false);
@@ -500,6 +543,18 @@ export default function OwnerView() {
   const [inlineEditingPrice, setInlineEditingPrice] = useState('');
 
   const handleQuickPriceChange = async (dishId, newPrice) => {
+    const targetItem = menuItems.find(m => m.id === dishId);
+    const itemShopId = targetItem?.shopId || targetItem?.shop_id;
+    const currentActiveShop = activeShopId || currentUserShopId;
+
+    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isDevOrAdmin) {
+      setToast({
+        message: 'Access Restricted: You can only update price for your own shop!',
+        type: 'error'
+      });
+      return;
+    }
+
     const cleanPrice = Math.max(0, Math.round(Number(newPrice) || 0));
     // Optimistic update for instant UI feedback
     setMenuItems(prev => prev.map(m => m.id === dishId ? { ...m, price: cleanPrice } : m));
@@ -510,10 +565,53 @@ export default function OwnerView() {
     });
 
     try {
-      await updateCloudMenuItem(dishId, { price: cleanPrice });
+      await updateCloudMenuItem(dishId, { price: cleanPrice, shopId: itemShopId || currentActiveShop });
     } catch (err) {
       console.error('Failed to update price in cloud:', err);
       setToast({ message: "Failed to update price in cloud", type: "error" });
+    }
+  };
+
+  // 1-Tap Out of Stock / In Stock Toggle with Strict Shop Isolation
+  const handleToggleDishAvailability = async (item) => {
+    if (!item || !item.id) return;
+
+    // Strict Shop Isolation Guard: Verify dish strictly belongs to current active kitchen
+    const itemShopId = item.shopId || item.shop_id;
+    const currentActiveShop = activeShopId || currentUserShopId;
+
+    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isDevOrAdmin) {
+      setToast({
+        message: 'Access Restricted: You can only update stock for your own shop!',
+        type: 'error'
+      });
+      return;
+    }
+
+    const currentAvailable = item.isAvailable !== undefined
+      ? item.isAvailable
+      : (item.is_available !== undefined ? item.is_available : true);
+    const newAvailable = !currentAvailable;
+
+    // Optimistic UI update (Cache-first SWR pattern)
+    setMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: newAvailable, is_available: newAvailable } : m));
+
+    setToast({
+      message: `${item.name} is now marked ${newAvailable ? 'In Stock' : 'Out of Stock'}!`,
+      type: newAvailable ? 'success' : 'info'
+    });
+
+    try {
+      await updateCloudMenuItem(item.id, {
+        isAvailable: newAvailable,
+        is_available: newAvailable,
+        shopId: itemShopId || currentActiveShop
+      });
+    } catch (err) {
+      console.error('Failed to update stock status in cloud:', err);
+      // Revert optimistic update on failure
+      setMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: currentAvailable, is_available: currentAvailable } : m));
+      setToast({ message: 'Failed to update stock status in cloud', type: 'error' });
     }
   };
 
@@ -549,7 +647,8 @@ export default function OwnerView() {
     const newDish = {
       id: dishId,
       name: preset.name,
-      description: preset.description || 'Authentic Satvik preparation cooked with pure desi ghee.',
+      subtitle: preset.subtitle || preset.description || 'Authentic Satvik preparation',
+      description: preset.description || preset.subtitle || 'Authentic Satvik preparation cooked with pure desi ghee.',
       price: priceToSet,
       originalPrice: originalPriceToSet,
       category: preset.category || 'Snacks',
@@ -707,19 +806,38 @@ export default function OwnerView() {
         item.description?.toLowerCase().includes(q) ||
         item.category?.toLowerCase().includes(q);
 
+      const isOutOfStock = item.isAvailable === false || item.is_available === false;
       const matchCategory = categoryFilter === 'All' ||
-        item.category === categoryFilter ||
-        (categoryFilter === 'Meals' && item.category === 'Main') ||
-        (categoryFilter === 'Sweets' && item.category === 'Sweets & Prasad');
+        (categoryFilter === 'Out of Stock' ? isOutOfStock : (
+          item.category === categoryFilter ||
+          (categoryFilter === 'Meals' && item.category === 'Main') ||
+          (categoryFilter === 'Sweets' && item.category === 'Sweets & Prasad')
+        ));
 
       return matchSearch && matchCategory;
     });
   }, [menuItems, searchQuery, categoryFilter]);
 
-  // Update Payment Config for active kitchen
+  // Update Payment Config for active kitchen with strict platform guards
   const handleToggleKitchenPayment = async (key, value) => {
     const targetShop = editingShop || currentShop;
     if (!targetShop?.id) return;
+
+    // Hard Platform Guard: When globally disabled by Platform Admin, kitchen cannot enable
+    if (key === 'onlinePaymentsEnabled' && paymentsConfig.onlinePaymentsEnabled === false && value === true) {
+      setToast({
+        message: 'Online Gateway is disabled platform-wide by Platform Admin.',
+        type: 'error'
+      });
+      return;
+    }
+    if (key === 'codEnabled' && paymentsConfig.codEnabled === false && value === true) {
+      setToast({
+        message: 'Cash on Delivery (COD) is disabled platform-wide by Platform Admin.',
+        type: 'error'
+      });
+      return;
+    }
 
     const currentOnline = targetShop?.paymentSettings?.onlinePaymentsEnabled ?? targetShop?.onlinePaymentsEnabled ?? true;
     const currentCod = targetShop?.paymentSettings?.codEnabled ?? targetShop?.codEnabled ?? true;
@@ -729,13 +847,23 @@ export default function OwnerView() {
       codEnabled: key === 'codEnabled' ? value : currentCod
     };
 
+    // Optimistically update editingShop if modal is open
+    if (editingShop && editingShop.id === targetShop.id) {
+      setEditingShop(prev => ({
+        ...prev,
+        paymentSettings: updated,
+        onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+        codEnabled: updated.codEnabled
+      }));
+    }
+
+    // Persist to Supabase and cache without causing a full-page provider reload
     await updateCloudShop(targetShop.id, {
       paymentSettings: updated,
       onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
       codEnabled: updated.codEnabled
     });
 
-    if (refreshShops) await refreshShops();
     setToast({
       message: `${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'enabled' : 'disabled'} for ${targetShop?.name || 'this kitchen'}!`,
       type: "success"
@@ -988,6 +1116,7 @@ export default function OwnerView() {
       price: item.price || 0,
       category: item.category || 'Main',
       shopId: item.shopId || item.shop_id || currentUserShopId,
+      isAvailable: item.isAvailable !== undefined ? item.isAvailable : (item.is_available !== undefined ? item.is_available : true),
       isSatvik: item.isSatvik !== undefined ? item.isSatvik : true,
       isDailySpecial: item.isDailySpecial || false,
       spicyLevel: item.spicyLevel || 'Mild',
@@ -1017,6 +1146,7 @@ export default function OwnerView() {
       price: '',
       category: 'Snacks',
       shopId: currentUserShopId,
+      isAvailable: true,
       isSatvik: true,
       isDailySpecial: false,
       spicyLevel: 'Mild',
@@ -1033,13 +1163,16 @@ export default function OwnerView() {
   const handleSaveMenuForm = async (e) => {
     e.preventDefault();
     try {
-      const targetShopId = menuForm.shopId || currentUserShopId;
+      const targetShopId = isDevOrAdmin ? (menuForm.shopId || currentUserShopId) : currentUserShopId;
+      const isAvailableVal = menuForm.isAvailable !== undefined ? menuForm.isAvailable : true;
       const payload = {
         name: menuForm.name,
         description: menuForm.description,
         price: parseFloat(menuForm.price) || 0,
         category: menuForm.category,
         shopId: targetShopId,
+        isAvailable: isAvailableVal,
+        is_available: isAvailableVal,
         isSatvik: menuForm.isSatvik,
         isDailySpecial: menuForm.isDailySpecial,
         spicyLevel: menuForm.spicyLevel,
@@ -1049,6 +1182,13 @@ export default function OwnerView() {
       };
 
       if (editingMenuItem) {
+        // Strict Shop Isolation Guard: Only allow modifying dishes that belong to active shop
+        const itemShopId = editingMenuItem.shopId || editingMenuItem.shop_id;
+        if (itemShopId && currentUserShopId && itemShopId !== currentUserShopId && !isDevOrAdmin) {
+          setToast({ message: "Access Restricted: You can only edit dishes for your own shop!", type: "error" });
+          return;
+        }
+
         // Supabase Cloud update
         await updateCloudMenuItem(editingMenuItem.id, payload);
 
@@ -1078,6 +1218,7 @@ export default function OwnerView() {
         price: '',
         category: 'Snacks',
         shopId: currentUserShopId,
+        isAvailable: true,
         isSatvik: true,
         isDailySpecial: false,
         spicyLevel: 'Mild',
@@ -1237,19 +1378,21 @@ export default function OwnerView() {
             id: 'orders',
             label: 'Live Orders',
             icon: ShoppingBag,
-            badge: isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length
+            badge: isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length,
+            dataTour: 'owner-orders'
           },
-          { id: 'summary', label: 'Analytics', icon: BarChart3 },
-          { id: 'shops', label: 'Store Profile', icon: Store },
-          { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed },
-          { id: 'staff', label: 'Staff & Roles', icon: Users },
-          { id: 'audit', label: 'Cash Audit', icon: Receipt },
+          { id: 'summary', label: 'Analytics', icon: BarChart3, dataTour: 'owner-sales' },
+          { id: 'shops', label: 'Store Profile', icon: Store, dataTour: 'owner-stores' },
+          { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed, dataTour: 'owner-menu' },
+          { id: 'staff', label: 'Staff & Roles', icon: Users, dataTour: 'owner-staff' },
+          { id: 'audit', label: 'Cash Audit', icon: Receipt, dataTour: 'owner-audit' },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              data-tour={tab.dataTour}
               onClick={() => {
                 setActiveTab(tab.id);
                 if (tab.id === 'shops' && currentShop) {
@@ -1591,10 +1734,10 @@ export default function OwnerView() {
                 </div>
               </div>
 
-              {/* Payment Settings & Plan Tier */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Payment Settings */}
+              <div className="w-full">
                 {/* Payment Gateway Configurations */}
-                <div className="lg:col-span-2 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
+                <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 space-y-4 shadow-xl">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">Payment Gateways & Collection</h3>
@@ -1616,80 +1759,126 @@ export default function OwnerView() {
 
                     return (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        {/* Online Gateway Card */}
                         <div
-                          onClick={() => handleToggleKitchenPayment('onlinePaymentsEnabled', !shopOnline)}
-                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${shopOnline
-                            ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm'
-                            : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60'
-                            }`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (isGlobalOnlineOff) {
+                              setToast({
+                                message: 'Online Gateway is globally disabled by Platform Admin.',
+                                type: 'error'
+                              });
+                              return;
+                            }
+                            handleToggleKitchenPayment('onlinePaymentsEnabled', !shopOnline);
+                          }}
+                          className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                            isGlobalOnlineOff
+                              ? 'bg-stone-100/60 dark:bg-[#1E1B1C]/40 border-stone-200/50 dark:border-white/5 opacity-60 cursor-not-allowed select-none'
+                              : shopOnline
+                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50'
+                                : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60 cursor-pointer hover:opacity-90'
+                          }`}
                         >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <CreditCard className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
-                              <p className="font-bold text-sm text-stone-900 dark:text-white">Online Gateway</p>
+                          <div className="space-y-1 pr-2 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <CreditCard className={`w-4 h-4 ${isGlobalOnlineOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#E0FF33]'}`} />
+                              <p className={`font-bold text-sm ${isGlobalOnlineOff ? 'text-stone-500 dark:text-neutral-400' : 'text-stone-900 dark:text-white'}`}>
+                                Online Gateway
+                              </p>
                               {isGlobalOnlineOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30">
-                                  Platform Disabled
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-400/30">
+                                  <Lock className="w-2.5 h-2.5" />
+                                  Platform Locked
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-stone-500 dark:text-neutral-400">UPI, Cards & Netbanking via Razorpay</p>
+                            <p className="text-xs text-stone-500 dark:text-neutral-400">
+                              {isGlobalOnlineOff
+                                ? 'Globally disabled by platform admin.'
+                                : 'UPI, Cards & Netbanking via Razorpay'}
+                            </p>
                           </div>
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${shopOnline ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black' : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
-                            }`}>
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          
+                          {/* Indicator */}
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isGlobalOnlineOff
+                                ? 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-neutral-600 border border-stone-300/40 dark:border-white/5'
+                                : (shopOnline && !isGlobalOnlineOff)
+                                  ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-sm'
+                                  : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
+                            }`}
+                          >
+                            {isGlobalOnlineOff ? (
+                              <Lock className="w-3 h-3 text-stone-400 dark:text-neutral-500" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            )}
                           </div>
                         </div>
 
+                        {/* Cash on Delivery (COD) Card */}
                         <div
-                          onClick={() => handleToggleKitchenPayment('codEnabled', !shopCod)}
-                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${shopCod
-                            ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm'
-                            : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60'
-                            }`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (isGlobalCodOff) {
+                              setToast({
+                                message: 'Cash on Delivery (COD) is globally disabled by Platform Admin.',
+                                type: 'error'
+                              });
+                              return;
+                            }
+                            handleToggleKitchenPayment('codEnabled', !shopCod);
+                          }}
+                          className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
+                            isGlobalCodOff
+                              ? 'bg-stone-100/60 dark:bg-[#1E1B1C]/40 border-stone-200/50 dark:border-white/5 opacity-60 cursor-not-allowed select-none'
+                              : shopCod
+                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50'
+                                : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60 cursor-pointer hover:opacity-90'
+                          }`}
                         >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <DollarSign className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
-                              <p className="font-bold text-sm text-stone-900 dark:text-white">Cash on Delivery (COD)</p>
+                          <div className="space-y-1 pr-2 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <DollarSign className={`w-4 h-4 ${isGlobalCodOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#E0FF33]'}`} />
+                              <p className={`font-bold text-sm ${isGlobalCodOff ? 'text-stone-500 dark:text-neutral-400' : 'text-stone-900 dark:text-white'}`}>
+                                Cash on Delivery (COD)
+                              </p>
                               {isGlobalCodOff && (
-                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30">
-                                  Platform Disabled
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300 border border-amber-400/30">
+                                  <Lock className="w-2.5 h-2.5" />
+                                  Platform Locked
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-stone-500 dark:text-neutral-400">Physical collection upon delivery</p>
+                            <p className="text-xs text-stone-500 dark:text-neutral-400">
+                              {isGlobalCodOff
+                                ? 'Globally disabled by platform admin.'
+                                : 'Physical collection upon delivery'}
+                            </p>
                           </div>
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${shopCod ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black' : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
-                            }`}>
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          
+                          {/* Indicator */}
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isGlobalCodOff
+                                ? 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-neutral-600 border border-stone-300/40 dark:border-white/5'
+                                : (shopCod && !isGlobalCodOff)
+                                  ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-sm'
+                                  : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
+                            }`}
+                          >
+                            {isGlobalCodOff ? (
+                              <Lock className="w-3 h-3 text-stone-400 dark:text-neutral-500" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            )}
                           </div>
                         </div>
                       </div>
                     );
                   })()}
-                </div>
-
-                {/* Merchant Plan Status */}
-                <div className="bg-white dark:bg-gradient-to-br dark:from-[#282526] dark:to-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-3xl p-6 flex flex-col justify-between shadow-sm dark:shadow-xl">
-                  <div>
-                    <span className="bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-[#E0FF33]/10 dark:text-[#E0FF33] dark:border-[#E0FF33]/20 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-block mb-3">
-                      Active Tier
-                    </span>
-                    <h4 className="text-xl font-black text-stone-900 dark:text-white font-['Outfit']">Premium Kitchen Fleet</h4>
-                    <p className="text-xs text-stone-600 dark:text-neutral-400 mt-1">Unlimited dish items, live ringer alarms, and priority delivery routing.</p>
-                    <div className="mt-4">
-                      <span className="text-2xl font-black text-stone-900 dark:text-white font-['Outfit']">₹1,999</span>
-                      <span className="text-xs text-stone-500 dark:text-neutral-500"> / month</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setToast({ message: 'Kitchen is active with all premium features enabled!', type: 'success' })}
-                    className="w-full mt-6 py-2.5 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-900 dark:text-white text-xs font-bold transition-all border border-stone-200 dark:border-white/5 cursor-pointer"
-                  >
-                    Subscription Active
-                  </button>
                 </div>
               </div>
             </div>
@@ -2929,6 +3118,43 @@ export default function OwnerView() {
                               <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
+
+                          {/* Stock Availability Toggle */}
+                          <div
+                            onClick={() => setMenuForm(prev => ({ ...prev, isAvailable: prev.isAvailable !== undefined ? !prev.isAvailable : false }))}
+                            className={`p-3 rounded-2xl border transition-all flex items-center justify-between cursor-pointer select-none ${
+                              menuForm.isAvailable !== false
+                                ? 'bg-stone-50 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15'
+                                : 'bg-rose-500/10 dark:bg-rose-500/15 border-rose-500/30'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${
+                                menuForm.isAvailable !== false
+                                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                              }`}>
+                                {menuForm.isAvailable !== false ? (
+                                  <PackageCheck className="w-4 h-4" />
+                                ) : (
+                                  <PackageX className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-stone-900 dark:text-white leading-tight">
+                                  {menuForm.isAvailable !== false ? 'In Stock (Available)' : 'Out of Stock (Unavailable)'}
+                                </p>
+                                <p className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">
+                                  {menuForm.isAvailable !== false ? 'Customers can view & order immediately' : 'Temporarily blocked for ordering'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Custom Animated Toggle Switch */}
+                            <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isAvailable !== false ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-stone-300 dark:bg-white/10'}`}>
+                              <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isAvailable !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                          </div>
                         </div>
 
                         {/* Submit CTA */}
@@ -3005,19 +3231,32 @@ export default function OwnerView() {
 
                     {/* Category Filter Chips */}
                     <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                      {['All', 'Meals', 'Sweets', 'Snacks', 'Drinks'].map(cat => {
+                      {['All', 'Meals', 'Sweets', 'Snacks', 'Drinks', 'Out of Stock'].map(cat => {
                         const isActive = categoryFilter === cat;
+                        const isOutOfStockTab = cat === 'Out of Stock';
+                        const outOfStockCount = menuItems.filter(m => m.isAvailable === false || m.is_available === false).length;
                         return (
                           <button
                             key={cat}
                             type="button"
                             onClick={() => setCategoryFilter(cat)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none ${isActive
-                              ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
-                              : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5'
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none inline-flex items-center gap-1.5 ${isActive
+                              ? (isOutOfStockTab
+                                ? 'bg-rose-600 text-white border-rose-600 dark:bg-rose-500 dark:text-white font-black shadow-sm'
+                                : 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm')
+                              : (isOutOfStockTab
+                                ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30'
+                                : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5')
                               }`}
                           >
-                            {cat}
+                            <span>{cat}</span>
+                            {isOutOfStockTab && outOfStockCount > 0 && (
+                              <span className={`w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center ${
+                                isActive ? 'bg-white text-rose-700' : 'bg-rose-500 text-white'
+                              }`}>
+                                {outOfStockCount}
+                              </span>
+                            )}
                           </button>
                         );
                       })}
@@ -3035,12 +3274,15 @@ export default function OwnerView() {
                     ) : (
                       filteredMenuItems.map(item => {
                         const isBeingEdited = editingMenuItem?.id === item.id;
+                        const isItemAvailable = item.isAvailable !== false && item.is_available !== false;
                         return (
                           <div
                             key={item.id}
                             className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
                               ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
-                              : 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
+                              : isItemAvailable
+                                ? 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
+                                : 'bg-stone-50/90 dark:bg-[#1E1B1C]/90 border border-rose-500/30 opacity-90'
                               }`}
                           >
                             <div className="flex items-start gap-3">
@@ -3048,7 +3290,7 @@ export default function OwnerView() {
                                 <img
                                   src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
                                   alt={item.name}
-                                  className="w-full h-full object-contain"
+                                  className={`w-full h-full object-contain ${!isItemAvailable ? 'opacity-60 grayscale-[30%]' : ''}`}
                                   loading="lazy"
                                 />
                                 {isBeingEdited && (
@@ -3142,9 +3384,16 @@ export default function OwnerView() {
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-0.5">{item.description || 'No description provided'}</p>
+                                <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-1 mt-0.5">{item.subtitle || item.description || 'Authentic Satvik preparation'}</p>
 
                                 <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                                  <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-md whitespace-nowrap border ${isItemAvailable
+                                    ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-400/20'
+                                    : 'bg-rose-500/20 text-rose-800 dark:bg-rose-400/20 dark:text-rose-300 border-rose-500/30'
+                                    }`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                    {isItemAvailable ? 'In Stock' : 'Out of Stock'}
+                                  </span>
                                   <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-stone-200 dark:bg-white/5 text-stone-800 dark:text-neutral-300 border border-stone-300 dark:border-white/10 whitespace-nowrap">
                                     {item.category}
                                   </span>
@@ -3162,24 +3411,38 @@ export default function OwnerView() {
                               </div>
                             </div>
 
-                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
+                            <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-white/5">
                               <button
-                                onClick={() => handleEditMenuItem(item)}
-                                className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
-                                  ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
-                                  : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
+                                type="button"
+                                onClick={() => handleToggleDishAvailability(item)}
+                                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border active:scale-95 ${isItemAvailable
+                                  ? 'bg-stone-200/90 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10'
+                                  : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border-rose-500/30 font-black'
                                   }`}
+                                title={isItemAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
                               >
-                                <Edit2 className="w-3.5 h-3.5" />
-                                <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
+                                <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                <span>{isItemAvailable ? 'In Stock' : 'Out of Stock'}</span>
                               </button>
-                              <button
-                                onClick={() => setDeleteTargetId(item.id)}
-                                className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span>Delete</span>
-                              </button>
+                              <div className="flex items-center gap-2 flex-1 justify-end">
+                                <button
+                                  onClick={() => handleEditMenuItem(item)}
+                                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
+                                    ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
+                                    : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
+                                    }`}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>{isBeingEdited ? 'Editing Above...' : 'Edit'}</span>
+                                </button>
+                                <button
+                                  onClick={() => setDeleteTargetId(item.id)}
+                                  className="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-red-500/20"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Delete</span>
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );
@@ -3196,6 +3459,7 @@ export default function OwnerView() {
                             <th className="py-3.5 px-4 whitespace-nowrap">Dish</th>
                             <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
                             <th className="py-3.5 px-4 whitespace-nowrap">Price</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap">Stock Status</th>
                             <th className="py-3.5 px-4 whitespace-nowrap">Badges</th>
                             <th className="py-3.5 px-4 text-right whitespace-nowrap">Actions</th>
                           </tr>
@@ -3203,7 +3467,7 @@ export default function OwnerView() {
                         <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
                           {filteredMenuItems.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                              <td colSpan={6} className="py-12 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
                                 {menuItems.length === 0
                                   ? "No dishes added yet. Use the form to add dishes."
                                   : "No dishes match your search or category filter."}
@@ -3212,12 +3476,15 @@ export default function OwnerView() {
                           ) : (
                             filteredMenuItems.map(item => {
                               const isBeingEdited = editingMenuItem?.id === item.id;
+                              const isItemAvailable = item.isAvailable !== false && item.is_available !== false;
                               return (
                                 <tr
                                   key={item.id}
                                   className={`transition-all duration-150 group ${isBeingEdited
                                     ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-l-4 border-l-amber-500 dark:border-l-[#E0FF33]'
-                                    : 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
+                                    : isItemAvailable
+                                      ? 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
+                                      : 'bg-rose-500/[0.02] hover:bg-rose-500/[0.05]'
                                     }`}
                                 >
                                   <td className="py-3.5 px-4">
@@ -3227,7 +3494,7 @@ export default function OwnerView() {
                                         <img
                                           src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
                                           alt={item.name}
-                                          className="w-full h-full object-contain"
+                                          className={`w-full h-full object-contain ${!isItemAvailable ? 'opacity-60 grayscale-[30%]' : ''}`}
                                           loading="lazy"
                                         />
                                       </div>
@@ -3311,6 +3578,20 @@ export default function OwnerView() {
                                         </button>
                                       </div>
                                     )}
+                                  </td>
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleDishAvailability(item)}
+                                      className={`px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border transition-all cursor-pointer active:scale-95 shadow-2xs ${isItemAvailable
+                                        ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
+                                        : 'bg-rose-500/15 text-rose-800 dark:bg-rose-400/15 dark:text-rose-300 border-rose-500/35 hover:bg-rose-500/25 font-black'
+                                        }`}
+                                      title={isItemAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
+                                    >
+                                      <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                      <span>{isItemAvailable ? 'In Stock' : 'Out of Stock'}</span>
+                                    </button>
                                   </td>
                                   <td className="py-3.5 px-4 whitespace-nowrap">
                                     <div className="flex items-center gap-1.5">
@@ -4301,27 +4582,27 @@ export default function OwnerView() {
 
       {/* 24 Curated Presets Master Catalog Modal */}
       {showPresetCatalogModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-          <div className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 md:p-6 animate-fadeIn">
+          <div className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-3xl w-full max-w-6xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scaleUp">
             {/* Modal Header */}
-            <div className="p-4 sm:p-6 border-b border-stone-200 dark:border-white/10 flex items-center justify-between gap-3 bg-stone-50 dark:bg-[#252223]">
+            <div className="p-4 sm:p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between gap-3 bg-stone-50 dark:bg-[#252223]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
-                    Master Satvik Dish Presets (24 Items)
+                    Master Satvik Dish Presets ({PRESET_DISHES.length} Items)
                   </h3>
                   <p className="text-xs text-stone-500 dark:text-neutral-400">
-                    Pre-configured gourmet Satvik recipes with high-res WebP cutouts & nutritional data.
+                    Curated gourmet recipes with high-definition WebP cutouts & pre-set nutrition data.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowPresetCatalogModal(false)}
-                className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-700 dark:text-white transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center text-stone-700 dark:text-white transition-colors cursor-pointer"
                 title="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -4337,7 +4618,7 @@ export default function OwnerView() {
                     key={cat}
                     type="button"
                     onClick={() => setPresetModalCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border ${presetModalCategory === cat
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border ${presetModalCategory === cat
                       ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
                       : 'bg-white hover:bg-stone-100 text-stone-700 dark:bg-[#282526] dark:hover:bg-white/10 dark:text-neutral-300 border-stone-200 dark:border-white/10'
                       }`}
@@ -4348,7 +4629,7 @@ export default function OwnerView() {
               </div>
 
               {/* Search Bar */}
-              <div className="relative w-full sm:w-64">
+              <div className="relative w-full sm:w-72">
                 <Search className="w-4 h-4 text-stone-400 dark:text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -4369,9 +4650,9 @@ export default function OwnerView() {
               </div>
             </div>
 
-            {/* Presets Grid Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {/* Presets Grid Body - Spacious Responsive 2/3 Column Grid */}
+            <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-6 no-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4.5 sm:gap-5">
                 {PRESET_DISHES
                   .filter((p) => {
                     const matchCat = presetModalCategory === 'All' || p.category === presetModalCategory;
@@ -4384,18 +4665,23 @@ export default function OwnerView() {
                   .map((preset) => (
                     <div
                       key={preset.id}
-                      className="bg-stone-50 dark:bg-[#252223] border border-stone-200 dark:border-white/10 rounded-2xl p-3.5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 transition-all hover:shadow-lg group"
+                      className="bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 transition-all hover:shadow-xl group"
                     >
                       <div>
-                        {/* Top Cutout & Badges */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-black/40 p-1 flex items-center justify-center shrink-0 border border-stone-200 dark:border-white/5 shadow-inner">
+                        {/* Top Section: Cutout Image + Info with Zero Clipping */}
+                        <div className="flex items-start gap-3.5 sm:gap-4">
+                          {/* Cutout Image with Glass Backdrop */}
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-stone-100 dark:bg-[#1A1819] p-2 flex items-center justify-center shrink-0 border border-stone-200/80 dark:border-white/5 shadow-inner relative group-hover:scale-[1.03] transition-transform duration-200">
+                            {/* Satvik Veg Icon Badge */}
+                            <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border border-emerald-600 bg-white dark:bg-[#1E1B1C] rounded-sm p-[1.5px] flex items-center justify-center shadow-xs" title="100% Satvik Pure Veg">
+                              <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
+                            </div>
                             <img
                               src={preset.image}
                               alt={preset.name}
                               loading="lazy"
                               decoding="async"
-                              className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-200 pointer-events-none"
+                              className="w-full h-full object-contain drop-shadow-md pointer-events-none"
                               onError={(e) => {
                                 if (preset.cdnImage && e.target.src !== preset.cdnImage) {
                                   e.target.src = preset.cdnImage;
@@ -4403,69 +4689,102 @@ export default function OwnerView() {
                               }}
                             />
                           </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]">
-                              {preset.tag || preset.category}
-                            </span>
-                            <span className="text-xs font-mono font-bold text-stone-500 dark:text-neutral-400">
-                              {preset.calories}
-                            </span>
+
+                          {/* Info Column */}
+                          <div className="min-w-0 flex-1 flex flex-col justify-center">
+                            {/* Badges Row */}
+                            <div className="flex items-center justify-between gap-1.5 mb-1 flex-wrap">
+                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/20 dark:border-[#E0FF33]/20 whitespace-nowrap">
+                                {preset.tag || preset.category}
+                              </span>
+                              <span className="text-xs font-bold text-stone-500 dark:text-neutral-400 font-['Outfit'] shrink-0 flex items-center gap-1">
+                                {preset.calories}
+                              </span>
+                            </div>
+
+                            {/* Full Dish Name */}
+                            <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white line-clamp-2 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors leading-snug">
+                              {preset.name}
+                            </h4>
+
+                            {/* Clean 1-Liner Subtitle / Description */}
+                            <p className="text-xs text-stone-500 dark:text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
+                              {preset.subtitle || preset.description}
+                            </p>
                           </div>
                         </div>
-
-                        {/* Title & Description */}
-                        <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white line-clamp-1 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
-                          {preset.name}
-                        </h4>
-                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
-                          {preset.description}
-                        </p>
                       </div>
 
-                      {/* Pricing & Actions */}
-                      <div className="pt-3 mt-3 border-t border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400 dark:text-neutral-500">
-                            Your Selling Price
-                          </span>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <span className="text-xs font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit']">₹</span>
-                            <input
-                              type="number"
-                              value={presetPriceOverrides[preset.id] ?? preset.price}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
-                              }}
-                              className="w-16 px-1.5 py-0.5 rounded-lg bg-white dark:bg-black/60 border border-stone-300 dark:border-white/10 text-xs font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#E0FF33] focus:outline-none"
-                              placeholder={String(preset.price)}
-                            />
-                            {preset.price && (
-                              <span className="text-[9px] text-stone-400 dark:text-neutral-500 whitespace-nowrap" title="Suggested Base Price">
-                                (base ₹{preset.price})
-                              </span>
-                            )}
+                      {/* Pricing & Actions Responsive Row */}
+                      <div className="pt-3.5 mt-3.5 border-t border-stone-200/80 dark:border-white/5 flex flex-wrap items-center justify-between gap-3">
+                        {/* Selling Price Stepper Control with Clear Label */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
+                              Selling Price {preset.price && <span className="opacity-75 font-normal text-[9px]">(Base ₹{preset.price})</span>}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const current = Number(presetPriceOverrides[preset.id] ?? preset.price);
+                                  setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: Math.max(0, current - 10) }));
+                                }}
+                                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
+                                title="Decrease price by ₹10"
+                              >
+                                -
+                              </button>
+
+                              <div className="relative flex items-center">
+                                <span className="absolute left-2.5 text-xs font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit'] pointer-events-none">₹</span>
+                                <input
+                                  type="number"
+                                  value={presetPriceOverrides[preset.id] ?? preset.price}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
+                                  }}
+                                  className="w-18 sm:w-20 h-8 pl-6 pr-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#E0FF33] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center font-['Outfit'] shadow-inner"
+                                  placeholder={String(preset.price)}
+                                />
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const current = Number(presetPriceOverrides[preset.id] ?? preset.price);
+                                  setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: current + 10 }));
+                                }}
+                                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
+                                title="Increase price by ₹10"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Action Buttons: Edit + Add with Generous Tap Targets */}
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                           <button
                             type="button"
                             onClick={() => {
                               handleApplyPresetTemplate(preset, presetPriceOverrides[preset.id]);
                               setShowPresetCatalogModal(false);
                             }}
-                            className="px-2.5 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-[10px] font-bold transition-all cursor-pointer"
-                            title="Load into Edit Form"
+                            className="h-8.5 sm:h-9 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 border border-stone-200 dark:border-white/10"
+                            title="Load into Edit Form to customize"
                           >
                             Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleQuickAddPresetDish(preset, presetPriceOverrides[preset.id])}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-black text-[10px] font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1"
+                            className="h-8.5 sm:h-9 px-4 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1.5"
+                            title="Add directly to menu"
                           >
-                            <Plus className="w-3 h-3 stroke-[3]" />
+                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
                             <span>Add</span>
                           </button>
                         </div>
@@ -4493,11 +4812,11 @@ export default function OwnerView() {
                       await handleQuickAddPresetDish(p);
                     }
                     setShowPresetCatalogModal(false);
-                    setToast({ message: 'All 24 presets added to menu catalog!', type: 'success' });
+                    setToast({ message: `All ${PRESET_DISHES.length} presets added to menu catalog!`, type: 'success' });
                   }}
                   className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  Add All 24 Presets to Menu
+                  Add All {PRESET_DISHES.length} Presets to Menu
                 </button>
                 <button
                   type="button"

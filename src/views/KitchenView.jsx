@@ -10,6 +10,7 @@ import {
   createCloudOrder,
   subscribeCloudOrders,
   getCloudMenus,
+  updateCloudMenuItem,
   createCloudNotification,
   getOrderItemSummary,
   getOrderCustomerName,
@@ -41,6 +42,7 @@ import {
   Trash2,
   Store,
   PackageCheck,
+  PackageX,
   AlertTriangle,
   TrendingUp,
   Sparkles
@@ -225,16 +227,95 @@ export default function KitchenView() {
     });
   }, [orders, activeShopId]);
 
-  // Load menu items for manual order creation
+  // Kitchen Stock & Menu State strictly isolated to activeShopId
+  const [kitchenMenuItems, setKitchenMenuItems] = useState([]);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockSearch, setStockSearch] = useState('');
+  const [stockFilterTab, setStockFilterTab] = useState('all'); // 'all' | 'in_stock' | 'out_of_stock'
+
+  // Load menu items for manual order creation and stock management
   const fetchMenu = async () => {
     if (!activeShopId) return;
     try {
       const cloudItems = await getCloudMenus(activeShopId);
       if (cloudItems && cloudItems.length > 0) {
-        setManualCart(cloudItems.filter(m => (m.shop_id ?? m.shopId) === activeShopId).map(i => ({ ...i, quantity: 0 })));
+        const isolated = cloudItems.filter(m => (m.shop_id ?? m.shopId) === activeShopId);
+        setKitchenMenuItems(isolated);
+        setManualCart(isolated.map(i => ({ ...i, quantity: 0 })));
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeShopId) {
+      fetchMenu();
+    } else {
+      setKitchenMenuItems([]);
+      setManualCart([]);
+    }
+  }, [activeShopId]);
+
+  // Onboarding Tour Auto Open/Close Coordinator for Kitchen
+  useEffect(() => {
+    let tourOpenedStock = false;
+
+    const handleTutorialStep = (e) => {
+      const tourTag = e?.detail?.tag || e?.detail?.stage?.dataTour || '';
+      if (tourTag.includes('restaurant-menu')) {
+        fetchMenu();
+        setShowStockModal(true);
+        tourOpenedStock = true;
+      } else if (tourOpenedStock) {
+        setShowStockModal(false);
+        tourOpenedStock = false;
+      }
+    };
+
+    const handleTutorialClosed = () => {
+      if (tourOpenedStock) {
+        setShowStockModal(false);
+        tourOpenedStock = false;
+      }
+    };
+
+    window.addEventListener('foody:tutorial-step-active', handleTutorialStep);
+    window.addEventListener('foody:tutorial-closed', handleTutorialClosed);
+    return () => {
+      window.removeEventListener('foody:tutorial-step-active', handleTutorialStep);
+      window.removeEventListener('foody:tutorial-closed', handleTutorialClosed);
+    };
+  }, [activeShopId]);
+
+  // Strict Shop-Isolated 1-Tap Stock Toggle for Kitchen Staff
+  const handleToggleKitchenItemStock = async (item) => {
+    const itemShopId = item.shopId || item.shop_id;
+    if (itemShopId && activeShopId && itemShopId !== activeShopId && !isDevOrAdmin) {
+      showToast("Access Denied: Cannot modify stock of another shop", "error");
+      return;
+    }
+
+    const currentAvailability = (item.isAvailable !== false && item.is_available !== false);
+    const nextAvailability = !currentAvailability;
+
+    // Optimistic SWR local state update for zero perceived latency
+    setKitchenMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: nextAvailability, is_available: nextAvailability } : m));
+    setManualCart(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: nextAvailability, is_available: nextAvailability } : m));
+    showToast(nextAvailability ? `${item.name} · In Stock` : `${item.name} · Out of Stock`, nextAvailability ? "success" : "warning");
+
+    try {
+      await updateCloudMenuItem(item.id, {
+        isAvailable: nextAvailability,
+        is_available: nextAvailability,
+        shopId: itemShopId || activeShopId
+      });
+    } catch (err) {
+      console.error("Failed to update item stock in kitchen:", err);
+      // Rollback on error
+      setKitchenMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: currentAvailability, is_available: currentAvailability } : m));
+      setManualCart(prev => prev.map(m => m.id === item.id ? { ...m, isAvailable: currentAvailability, is_available: currentAvailability } : m));
+      showToast("Failed to update stock", "error");
     }
   };
 
@@ -438,64 +519,99 @@ export default function KitchenView() {
       )}
 
       {/* HEADER OPERATIONS BAR */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden relative">
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
           <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
             <ChefHat size={22} strokeWidth={2.5} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-outfit font-sans leading-snug">
+              <h1 className="text-base sm:text-xl lg:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-outfit font-sans leading-snug">
                 {currentShop ? `${currentShop.name} — Operations` : (currentUserShopId ? 'Assigned Kitchen Unavailable' : 'Kitchen Operations')}
               </h1>
-              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
-                {isolatedOrders.length} Active
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${
+                isolatedOrders.length > 0
+                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs'
+                  : 'bg-stone-300/60 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border border-stone-300 dark:border-white/10'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isolatedOrders.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
+                <span>{isolatedOrders.length} Active</span>
               </span>
             </div>
-            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-0.5">
-              {currentShop ? (currentShop.address || 'Live Satvik preparation board & instant kitchen dispatch') : 'Assigned kitchen is inactive or unavailable'}
+            <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-1 flex items-center gap-1.5">
+              <MapPin size={12} className="text-amber-600 dark:text-[#E0FF33] shrink-0 opacity-80" />
+              <span className="truncate">{currentShop ? (currentShop.address || 'Live Satvik preparation board & instant kitchen dispatch') : 'Assigned kitchen is inactive or unavailable'}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full xl:w-auto flex-wrap">
-          {/* Realtime Kitchen Presence Toggle */}
-          <button
-            data-tour="restaurant-setup"
-            type="button"
-            onClick={handleToggleKitchenOnline}
-            className={`h-10 px-3 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isShopOnline
-              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-              : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-              }`}
-            title="Toggle Live Kitchen Availability"
-          >
-            <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-            <span>{isShopOnline ? 'Online' : 'Offline'}</span>
-          </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto shrink-0">
+          {/* Top Row on mobile: Presence + Rush + Stock side-by-side filling width evenly */}
+          <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+            {/* Realtime Kitchen Presence Toggle */}
+            <button
+              data-tour="restaurant-setup"
+              type="button"
+              onClick={handleToggleKitchenOnline}
+              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isShopOnline
+                ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25 shadow-xs'
+                : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                }`}
+              title="Toggle Live Kitchen Availability"
+            >
+              <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-rose-500'}`} />
+              <span className="font-outfit">{isShopOnline ? 'Online' : 'Offline'}</span>
+            </button>
 
-          {/* Rush Mode (+15 Mins) Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsRushMode(prev => !prev);
-              showToast(!isRushMode ? "+15 Mins" : "Rush OFF", !isRushMode ? "warning" : "info");
-            }}
-            className={`h-10 px-3 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 border transition-all cursor-pointer apple-tap-target shrink-0 ${isRushMode
-              ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 shadow-sm'
-              : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-800 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
-              }`}
-            title="Extend prep time by +15 mins during rush hours"
-          >
-            <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
-            <span>{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
-          </button>
+            {/* Rush Mode (+15 Mins) Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsRushMode(prev => !prev);
+                showToast(!isRushMode ? "+15 Mins Prep Added" : "Rush Mode Off", !isRushMode ? "warning" : "info");
+              }}
+              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isRushMode
+                ? 'bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/40 shadow-sm'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
+                }`}
+              title="Extend prep time by +15 mins during rush hours"
+            >
+              <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
+              <span className="font-outfit">{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
+            </button>
 
-          {/* Primary CTA: Create Manual Order */}
+            {/* Quick 86 / Stock Availability Manager */}
+            <button
+              data-tour="restaurant-menu restaurant-stock"
+              type="button"
+              onClick={() => {
+                fetchMenu();
+                setShowStockModal(true);
+              }}
+              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
+                ? 'bg-amber-500/15 text-amber-800 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-amber-500/30'
+                }`}
+              title="Manage Dish Stock & 86 Availability for this Kitchen"
+            >
+              {kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0 ? (
+                <PackageX size={15} className="text-amber-500 shrink-0" />
+              ) : (
+                <PackageCheck size={15} className="text-emerald-500 shrink-0" />
+              )}
+              <span className="font-outfit truncate">
+                {kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
+                  ? `${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length} Out`
+                  : 'Stock'}
+              </span>
+            </button>
+          </div>
+
+          {/* Primary CTA: Create Manual Order - Fills width on mobile, inline on desktop */}
           <button
             data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-4 rounded-full flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer apple-tap-target shrink-0 font-outfit font-sans tracking-wide"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(224,255,51,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="whitespace-nowrap">Create Order</span>
@@ -519,47 +635,6 @@ export default function KitchenView() {
           </div>
         </div>
       )}
-
-      {/* KITCHEN BUSINESS & REVENUE OVERVIEW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Sales & Revenue Card */}
-        <div data-tour="restaurant-sales" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0">
-              <TrendingUp size={20} strokeWidth={2.5} />
-            </div>
-            <div>
-              <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans">Daily Orders & Volume</p>
-              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans mt-0.5">{isolatedOrders.length} Active Orders</h3>
-            </div>
-          </div>
-          <span className="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-mono">
-            Live Queue
-          </span>
-        </div>
-
-        {/* Growth & Promos Card */}
-        <div data-tour="restaurant-grow" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-emerald-50/80 dark:bg-gradient-to-r dark:from-emerald-950/40 dark:via-[#282526] dark:to-[#1E1B1C] border border-emerald-500/25 dark:border-emerald-500/30 shadow-sm dark:shadow-lg flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
-              <Sparkles size={20} strokeWidth={2.5} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider font-outfit font-sans">Kitchen Growth Hub</p>
-              <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-outfit font-sans leading-tight">Festive Broadcasts</h4>
-            </div>
-          </div>
-          <a
-            href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="h-8.5 px-3 rounded-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-bold font-outfit font-sans flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
-          >
-            <MessageCircle size={13} />
-            <span>Channel</span>
-          </a>
-        </div>
-      </div>
 
       {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
       {isDevOrAdmin && allShops.length > 1 && (
@@ -600,9 +675,9 @@ export default function KitchenView() {
           </p>
         </div>
       ) : isolatedOrders.length === 0 ? (
-        <div data-tour="restaurant-orders restaurant-manage-orders" className="bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-10 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200/90 dark:border-white/5 flex flex-col items-center justify-center shadow-sm">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center mb-3.5 border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs">
-            <CheckCircle2 size={28} strokeWidth={2.5} />
+        <div data-tour="restaurant-orders restaurant-manage-orders" className="bg-white dark:bg-[#282526] rounded-2xl sm:rounded-[36px] p-6 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200/90 dark:border-white/5 flex flex-col items-center justify-center shadow-sm">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center mb-3 border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs">
+            <CheckCircle2 size={24} className="sm:w-7 sm:h-7" strokeWidth={2.5} />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-outfit font-sans">All Orders Prepared</p>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-zinc-400 mt-1 font-['Plus_Jakarta_Sans']">Kitchen queue is clear. Radhe Radhe!</p>
@@ -822,6 +897,51 @@ export default function KitchenView() {
         </div>
       )}
 
+      {/* KITCHEN BUSINESS & REVENUE OVERVIEW — Positioned below orders so orders are immediately visible first */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        {/* Sales & Revenue Card */}
+        <div data-tour="restaurant-sales" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+              <TrendingUp size={20} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-[10px] sm:text-[11px] font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans">Daily Orders & Volume</p>
+              <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans mt-0.5">{isolatedOrders.length} Active Orders</h3>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-outfit shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Live Queue</span>
+          </span>
+        </div>
+
+        {/* Growth & Promos Card */}
+        <div data-tour="restaurant-grow" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex items-center justify-between gap-3 relative overflow-hidden transition-all hover:border-emerald-500/30 group">
+          <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+          <div className="flex items-center gap-3 min-w-0 relative z-10">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+              <Sparkles size={20} strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider font-outfit font-sans">Kitchen Growth Hub</p>
+              <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-outfit font-sans leading-tight mt-0.5 truncate">Festive Broadcasts & Tips</h4>
+            </div>
+          </div>
+          <a
+            href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target"
+          >
+            <MessageCircle size={14} />
+            <span>Channel</span>
+          </a>
+        </div>
+      </div>
+
+
+
       {/* MODAL: MANUAL ORDER ENTRY */}
       {showCreateModal && (
         <div
@@ -931,7 +1051,14 @@ export default function KitchenView() {
                     {filteredMenuItems.map(item => (
                       <div key={item.id} className="pt-2 flex justify-between items-center gap-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-stone-900 dark:text-white text-xs truncate">{item.name}</p>
+                          <p className="font-bold text-stone-900 dark:text-white text-xs truncate">
+                            {item.name}
+                            {(item.isAvailable === false || item.is_available === false) && (
+                              <span className="ml-1.5 text-[9px] text-rose-500 font-bold uppercase bg-rose-500/10 px-1.5 py-0.5 rounded-md">
+                                Out of Stock
+                              </span>
+                            )}
+                          </p>
                           <p className="text-[10px] text-stone-500 dark:text-zinc-400">₹{item.price}</p>
                         </div>
 
@@ -983,6 +1110,166 @@ export default function KitchenView() {
                 <span>Confirm & Create Kitchen Order</span>
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 86 / STOCK AVAILABILITY MODAL FOR KITCHEN STAFF */}
+      {showStockModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-[32px] w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <PackageCheck size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-stone-900 dark:text-white font-outfit font-sans flex items-center gap-2">
+                    Kitchen Stock Manager (86)
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      {currentShop?.name || 'Assigned Kitchen'}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-zinc-400">
+                    Instantly toggle dishes in or out of stock for this kitchen
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStockModal(false)}
+                className="w-9 h-9 rounded-full bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 flex items-center justify-center text-stone-500 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white transition-all cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Controls: Search + Filter Tabs */}
+            <div className="p-4 border-b border-stone-200 dark:border-white/10 space-y-3 bg-stone-50 dark:bg-[#151314]">
+              <div className="relative">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500" />
+                <input
+                  type="text"
+                  placeholder="Search kitchen dishes..."
+                  value={stockSearch}
+                  onChange={(e) => setStockSearch(e.target.value)}
+                  className="w-full text-xs bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'all', label: 'All Items', count: kitchenMenuItems.length },
+                  { id: 'in_stock', label: 'In Stock', count: kitchenMenuItems.filter(i => i.isAvailable !== false && i.is_available !== false).length },
+                  { id: 'out_of_stock', label: 'Out of Stock', count: kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setStockFilterTab(tab.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${stockFilterTab === tab.id
+                      ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-sm'
+                      : 'bg-stone-200/60 dark:bg-white/5 text-stone-700 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-white/10'
+                      }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${stockFilterTab === tab.id
+                      ? 'bg-black/20 text-white dark:bg-black/20 dark:text-[#1E1B1C]'
+                      : 'bg-stone-300 dark:bg-white/10 text-stone-600 dark:text-zinc-400'
+                      }`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dishes List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 divide-y divide-stone-100 dark:divide-white/5">
+              {kitchenMenuItems
+                .filter(item => {
+                  const matchesSearch = item.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
+                    (item.category && item.category.toLowerCase().includes(stockSearch.toLowerCase()));
+                  const isOut = item.isAvailable === false || item.is_available === false;
+                  if (stockFilterTab === 'in_stock') return matchesSearch && !isOut;
+                  if (stockFilterTab === 'out_of_stock') return matchesSearch && isOut;
+                  return matchesSearch;
+                })
+                .map(item => {
+                  const isOutOfStock = item.isAvailable === false || item.is_available === false;
+                  return (
+                    <div key={item.id} className="pt-2.5 first:pt-0 flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className={`font-bold text-xs truncate ${isOutOfStock ? 'text-stone-400 dark:text-zinc-500 line-through' : 'text-stone-900 dark:text-white'}`}>
+                            {item.name}
+                          </p>
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${isOutOfStock
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            }`}>
+                            {isOutOfStock ? 'Out of Stock' : 'In Stock'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-stone-500 dark:text-zinc-400 mt-0.5">
+                          <span>₹{item.price}</span>
+                          {item.category && (
+                            <>
+                              <span>•</span>
+                              <span>{item.category}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 1-Tap Toggle Action Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleKitchenItemStock(item)}
+                        className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0 ${isOutOfStock
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
+                          : 'bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-500/30'
+                          }`}
+                        title={isOutOfStock ? "Mark dish back In Stock" : "Mark dish Out of Stock (86)"}
+                      >
+                        {isOutOfStock ? (
+                          <>
+                            <PackageCheck size={13} />
+                            <span>Set In Stock</span>
+                          </>
+                        ) : (
+                          <>
+                            <PackageX size={13} />
+                            <span>Set Out of Stock</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+
+              {kitchenMenuItems.length === 0 && (
+                <div className="text-center py-8 text-stone-400 dark:text-zinc-500 text-xs">
+                  No dishes found for this kitchen.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3.5 border-t border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#151314] flex items-center justify-between">
+              <span className="text-[11px] text-stone-500 dark:text-zinc-400">
+                Changes apply instantly across customer apps in realtime
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowStockModal(false)}
+                className="px-4 py-2 rounded-full bg-stone-900 dark:bg-white text-white dark:text-[#1E1B1C] font-black text-xs cursor-pointer hover:opacity-90"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

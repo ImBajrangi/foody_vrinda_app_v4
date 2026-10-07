@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useCart } from './context/CartContext';
 import { useAudioAlarm } from './hooks/useAudioAlarm';
@@ -114,6 +114,7 @@ export default function App() {
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialPanel, setTutorialPanel] = useState(null);
 
   useEffect(() => {
     const handleOpenSearch = (e) => {
@@ -165,34 +166,38 @@ export default function App() {
     };
   }, []);
 
-  // Role-Based First-Time User Tutorial (Auto-tour on first authenticated login per role)
+  // Panel-Specific First-Time User Tutorial (Auto-tour on first authenticated login per panel)
   useEffect(() => {
     // 1. Guard against unauthenticated state or pending auth resolution
-    if (authLoading) return;
-    if (!isAuthenticated) return;
+    if (authLoading || !isAuthenticated) return;
 
-    // 2. Ensure real user ID and determined role exist
+    // 2. Ensure real user ID exists
     const uid = user?.id || userData?.id;
-    if (!uid || !userRole) return;
+    if (!uid) return;
 
-    // 3. Strictly verify this role is eligible for a tutorial
-    const tutorialKey = getTutorialKeyForRole(userRole);
-    if (!tutorialKey) return; // Administrative or unresolved roles are not auto-assigned
+    const activePanel = currentTab || 'customer';
+    if (!getTutorialKeyForRole(activePanel)) return;
 
-    // 4. Auto-launch tutorial only if not already completed by this user for this role
+    // 3. Auto-launch tutorial only if not already completed by this user for this panel
     try {
-      if (!isTutorialCompleted(uid, userRole)) {
+      if (!isTutorialCompleted(uid, activePanel)) {
         const timer = setTimeout(() => {
+          setTutorialPanel(activePanel);
           setIsTutorialOpen(true);
-        }, 1200);
+        }, 800);
         return () => clearTimeout(timer);
       }
     } catch (_) {}
-  }, [authLoading, isAuthenticated, user?.id, userData?.id, userRole]);
+  }, [authLoading, isAuthenticated, user?.id, userData?.id, currentTab]);
+
+  const currentTabRef = useRef(currentTab);
+  currentTabRef.current = currentTab;
 
   // Replay Tutorial event listener (triggered from Settings / Profile / Help)
   useEffect(() => {
-    const handleOpenTutorial = () => {
+    const handleOpenTutorial = (e) => {
+      const targetPanel = e?.detail?.panel || currentTabRef.current || 'customer';
+      setTutorialPanel(targetPanel);
       setIsTutorialOpen(true);
     };
     window.addEventListener('foody:open-tutorial', handleOpenTutorial);
@@ -554,7 +559,9 @@ export default function App() {
 
       <RoleBasedTutorialModal
         isOpen={isTutorialOpen}
+        forceRole={tutorialPanel || currentTab}
         onClose={() => setIsTutorialOpen(false)}
+        onComplete={() => setIsTutorialOpen(false)}
       />
     </div>
   );

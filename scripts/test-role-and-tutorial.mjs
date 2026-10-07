@@ -25,7 +25,7 @@ console.log('🧪 Running Comprehensive Role Resolution & Tutorial Matrix Tests.
 
 // 1. Role Resolution Negative Tests
 console.log('1. Negative Role Resolution Tests:');
-const negativeRoles = [null, undefined, '', '   ', 'admin', 'grand_admin', 'owner', 'developer', 'dev', 'unknown', 'guest', 'hacker'];
+const negativeRoles = [null, undefined, '', '   ', 'admin', 'grand_admin', 'developer', 'dev', 'unknown', 'guest', 'hacker'];
 for (const r of negativeRoles) {
   const canonical = getCanonicalRole(r);
   const key = getTutorialKeyForRole(r);
@@ -34,7 +34,7 @@ for (const r of negativeRoles) {
   // Also verify isTutorialCompleted returns true (meaning no auto-prompt)
   assert.strictEqual(isTutorialCompleted('user-test-123', r), true, `Role "${r}" should not prompt tutorial`);
 }
-console.log('   ✅ All 12 negative roles correctly resolve to NULL (NO tutorial).');
+console.log('   ✅ All negative/admin roles correctly resolve to NULL (NO tutorial).');
 
 // 2. Role Resolution Positive Tests
 console.log('\n2. Positive Role Resolution Tests:');
@@ -52,13 +52,20 @@ for (const res of restaurantAliases) {
   assert.strictEqual(getCanonicalRole(res), 'restaurant');
   assert.strictEqual(getTutorialKeyForRole(res), 'restaurant_v1');
 }
-console.log('   ✅ Customer, Delivery, and Restaurant aliases correctly resolve to their respective canonical roles and v1 keys.');
+
+const ownerAliases = ['owner', 'shop_owner', 'store_owner', 'franchise', ' OWNER '];
+for (const ow of ownerAliases) {
+  assert.strictEqual(getCanonicalRole(ow), 'owner');
+  assert.strictEqual(getTutorialKeyForRole(ow), 'owner_v1');
+}
+console.log('   ✅ Customer, Delivery, Restaurant, and Owner aliases correctly resolve to their respective canonical roles and v1 keys.');
 
 // 3. Dataset Content Isolation Tests
 console.log('\n3. Dataset Content & Flow Verification:');
 const customerStages = ROLE_TUTORIAL_DATA.customer_v1.stages;
 const deliveryStages = ROLE_TUTORIAL_DATA.delivery_v1.stages;
 const restaurantStages = ROLE_TUTORIAL_DATA.restaurant_v1.stages;
+const ownerStages = ROLE_TUTORIAL_DATA.owner_v1.stages;
 
 // Customer stages: Search -> Categories -> Add to Cart -> Basket -> Address -> FV Wallet -> Profile
 assert.strictEqual(customerStages.length, 7);
@@ -88,7 +95,14 @@ assert.strictEqual(restaurantStages[2].title, 'Incoming Orders');
 assert.strictEqual(restaurantStages[3].title, 'Manage Orders');
 assert.strictEqual(restaurantStages[4].title, 'Sales');
 assert.strictEqual(restaurantStages[5].title, 'Grow');
-console.log('   ✅ All 3 tutorial flows match requirements with exact required stages.');
+
+// Owner stages: Store Profile & Branches -> Revenue & Settlements -> Menu Catalog & Pricing -> Staff & Role Management
+assert.strictEqual(ownerStages.length, 4);
+assert.strictEqual(ownerStages[0].title, 'Store Profile & Branches');
+assert.strictEqual(ownerStages[1].title, 'Revenue & Settlements');
+assert.strictEqual(ownerStages[2].title, 'Menu Catalog & Pricing');
+assert.strictEqual(ownerStages[3].title, 'Staff & Role Management');
+console.log('   ✅ All 4 tutorial flows match requirements with exact required stages.');
 
 // 4. Persistence & Isolation Tests
 console.log('\n4. User & Role Persistence Isolation Tests:');
