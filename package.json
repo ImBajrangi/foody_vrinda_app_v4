@@ -10,6 +10,7 @@
     "android": "node scripts/run-android.js",
     "android:open": "npx cap open android",
     "android:build": "npm run build && npx cap sync && cd android && ./gradlew assembleDebug",
+    "release:apk": "node scripts/release-apk.mjs",
     "lint": "eslint .",
     "lint:migrations": "node scripts/lint-migrations.js",
     "seed:beta": "node scripts/seed-synthetic-beta-data.js",
