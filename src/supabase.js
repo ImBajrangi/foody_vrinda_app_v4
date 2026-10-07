@@ -172,41 +172,61 @@ export function resolveDishCutout(image, name = '', category = '') {
     }
   }
 
-  // 2. Fallback to smart cutouts based on item keywords if no image is supplied
-  if (lowerName.includes('biryani') || lowerName.includes('dum biryani')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
-  if (lowerName.includes('kachori') || lowerName.includes('khasta kachori')) return '/dishes/presets/golden-kachori-platter.webp';
-  if (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer')) return '/dishes/presets/matar-paneer-copper-bowl.webp';
-  if (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka')) return '/dishes/presets/woven-basket-charred-rotis.webp';
-  if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
-  if (lowerName.includes('bhature') || lowerName.includes('chole bhature')) return '/dishes/presets/golden-chole-bhature-feast.webp';
-  if (lowerName.includes('chole') && lowerName.includes('naan')) return '/dishes/presets/chole-curry-naan-platter.webp';
+  // 2. Comprehensive smart cutout resolution based on item name and category keywords
+  // A. Biryani, Pulao & Rice Feasts
+  if (lowerName.includes('biryani') || lowerName.includes('dum biryani') || lowerName.includes('hyderabadi')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+  if (lowerName.includes('pulao') || lowerName.includes('fried rice') || lowerName.includes('jeera rice')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+
+  // B. North Indian Breads & Kachoris
   if (lowerName.includes('garlic naan')) return '/dishes/presets/basket-golden-garlic-naan.webp';
+  if ((lowerName.includes('chole') && lowerName.includes('naan')) || lowerName.includes('kulcha') || lowerName.includes('chole kulche')) return '/dishes/presets/chole-curry-naan-platter.webp';
   if (lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
-  if (lowerName.includes('samosa')) return '/dishes/presets/crispy-samosas-basket.webp';
-  if (lowerName.includes('spring roll') || lowerName.includes('roll')) return '/dishes/presets/crispy-spring-rolls.webp';
-  if (lowerName.includes('schezwan') && lowerName.includes('noodle')) return '/dishes/presets/schezwan-veggie-noodles.webp';
-  if (lowerName.includes('noodle') || lowerName.includes('chowmein') || lowerName.includes('maggi') || lowerName.includes('hakka')) return '/dishes/presets/glossy-stir-fried-noodles.webp';
-  if (lowerName.includes('momo') || lowerName.includes('dimsum')) return '/dishes/presets/steamed-veggie-momos.webp';
-  if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries')) return '/dishes/presets/seasoned-crispy-fries.webp';
-  if (lowerName.includes('jalebi') || lowerName.includes('imarti')) return '/dishes/presets/glossy-kesar-jalebi.webp';
-  if (lowerName.includes('kaju') || lowerName.includes('katli')) return '/dishes/presets/silver-vark-kaju-katli.webp';
-  if (lowerName.includes('barfi') || lowerName.includes('burfi') || lowerName.includes('pista barfi')) return '/dishes/presets/pista-khoya-barfi.webp';
-  if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
-  if (lowerName.includes('tikki') || lowerName.includes('aloo tikki')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
-  if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
-  if (lowerName.includes('club sandwich') || lowerName.includes('bombay sandwich')) return '/dishes/presets/grilled-veg-cheese-sandwich-platter.webp';
-  if (lowerName.includes('grilled cheese')) return '/dishes/presets/gooey-grilled-cheese-tomato-basil.webp';
+  if (lowerName.includes('kachori') || lowerName.includes('khasta') || lowerName.includes('bedmi')) return '/dishes/presets/golden-kachori-platter.webp';
+  if (lowerName.includes('bhature') || lowerName.includes('chole bhature') || lowerName.includes('poori') || lowerName.includes('puri')) return '/dishes/presets/golden-chole-bhature-feast.webp';
+  if (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka') || lowerName.includes('paratha')) return '/dishes/presets/woven-basket-charred-rotis.webp';
+
+  // C. Paneer, Curries & Dals
+  if (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer') || lowerName.includes('aloo matar') || lowerName.includes('paneer bhurji')) return '/dishes/presets/matar-paneer-copper-bowl.webp';
+  if (lowerName.includes('handi paneer') || lowerName.includes('korma') || lowerName.includes('dal makhani') || lowerName.includes('dal tadka') || lowerName.includes('yellow dal') || lowerName.includes('rajma') || lowerName.includes('chana masala')) return '/dishes/presets/handi-paneer-curry.webp';
+  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer makhani') || lowerName.includes('kadai paneer') || lowerName.includes('kadhai paneer') || lowerName.includes('paneer lababdar') || lowerName.includes('malai kofta') || lowerName.includes('kofta')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
+
+  // D. Burgers, Pizzas & Sandwiches
+  if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
+  if (lowerName.includes('farmhouse pizza') || lowerName.includes('cheese burst') || lowerName.includes('supreme pizza') || lowerName.includes('double cheese')) return '/dishes/presets/loaded-farmhouse-pizza.webp';
+  if (lowerName.includes('pizza') || lowerName.includes('margherita') || lowerName.includes('calzone')) return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
+  if (lowerName.includes('club sandwich') || lowerName.includes('bombay sandwich') || lowerName.includes('jumbo sandwich')) return '/dishes/presets/grilled-veg-cheese-sandwich-platter.webp';
+  if (lowerName.includes('grilled cheese') || lowerName.includes('cheese toast')) return '/dishes/presets/gooey-grilled-cheese-tomato-basil.webp';
   if (lowerName.includes('sandwich') || lowerName.includes('toast')) return '/dishes/presets/grilled-veggie-cheese-sandwich.webp';
+
+  // E. Momos, Chinese & Street Snacks
+  if (lowerName.includes('momo') || lowerName.includes('dimsum') || lowerName.includes('dumpling')) return '/dishes/presets/steamed-veggie-momos.webp';
+  if (lowerName.includes('schezwan') || lowerName.includes('manchurian') || lowerName.includes('chilli paneer') || lowerName.includes('chilli potato') || lowerName.includes('chilli garlic')) return '/dishes/presets/schezwan-veggie-noodles.webp';
+  if (lowerName.includes('noodle') || lowerName.includes('chowmein') || lowerName.includes('maggi') || lowerName.includes('hakka') || lowerName.includes('pasta') || lowerName.includes('macaroni')) return '/dishes/presets/glossy-stir-fried-noodles.webp';
+  if (lowerName.includes('spring roll') || lowerName.includes('roll') || lowerName.includes('frankie') || lowerName.includes('wrap')) return '/dishes/presets/crispy-spring-rolls.webp';
   if (lowerName.includes('puff') || lowerName.includes('patties') || lowerName.includes('patty')) return '/dishes/presets/golden-cheesy-triangle-puff.webp';
-  if (lowerName.includes('farmhouse pizza') || lowerName.includes('cheese pizza')) return '/dishes/presets/loaded-farmhouse-pizza.webp';
-  if (lowerName.includes('pizza')) return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
-  if (lowerName.includes('handi paneer') || lowerName.includes('korma')) return '/dishes/presets/handi-paneer-curry.webp';
-  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer curry')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
-  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerCat.includes('thali') || lowerCat.includes('meal')) return '/dishes/thali.webp';
-  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('drink') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert')) return '/dishes/sweet.webp';
-  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy')) return '/dishes/curry.webp';
-  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('bhog') || lowerName.includes('khichdi')) return '/dishes/rice.webp';
-  if (lowerCat.includes('snack') || lowerName.includes('snack') || lowerName.includes('pakora')) return '/dishes/presets/crispy-samosas-basket.webp';
+  if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries') || lowerName.includes('wedges') || lowerName.includes('nugget')) return '/dishes/presets/seasoned-crispy-fries.webp';
+
+  // F. Chaat & Street Food
+  if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla') || lowerName.includes('dahi pakodi')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
+  if (lowerName.includes('tikki') || lowerName.includes('aloo tikki') || lowerName.includes('cutlet') || lowerName.includes('ragda')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
+  if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel') || lowerName.includes('pani puri') || lowerName.includes('golgappe') || lowerName.includes('puchka')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+  if (lowerName.includes('samosa') || lowerName.includes('pakora') || lowerName.includes('pakoda') || lowerName.includes('bhajiya') || lowerName.includes('fritter')) return '/dishes/presets/crispy-samosas-basket.webp';
+
+  // G. Traditional Sweets & Mithai
+  if (lowerName.includes('jalebi') || lowerName.includes('imarti') || lowerName.includes('ghevar') || lowerName.includes('malpua')) return '/dishes/presets/glossy-kesar-jalebi.webp';
+  if (lowerName.includes('kaju') || lowerName.includes('katli')) return '/dishes/presets/silver-vark-kaju-katli.webp';
+  if (lowerName.includes('barfi') || lowerName.includes('burfi') || lowerName.includes('pista') || lowerName.includes('khoya') || lowerName.includes('milk cake') || lowerName.includes('kalakand') || lowerName.includes('peda')) return '/dishes/presets/pista-khoya-barfi.webp';
+
+  // H. South Indian, Thalis & Meals
+  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerName.includes('dosa') || lowerName.includes('idli') || lowerName.includes('uttapam') || lowerName.includes('sambar') || lowerCat.includes('thali') || lowerCat.includes('meal') || lowerCat.includes('south indian')) return '/dishes/thali.webp';
+
+  // I. Sweets, Desserts & Beverages
+  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('gulab jamun') || lowerName.includes('rasgulla') || lowerName.includes('rasmalai') || lowerName.includes('halwa') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('coffee') || lowerName.includes('tea') || lowerName.includes('chai') || lowerName.includes('thandai') || lowerName.includes('juice') || lowerName.includes('drink') || lowerName.includes('beverage') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert') || lowerCat.includes('drink')) return '/dishes/sweet.webp';
+
+  // J. Curries & Rice Fallbacks
+  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy') || lowerCat.includes('curry') || lowerCat.includes('main')) return '/dishes/curry.webp';
+  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('bhog') || lowerName.includes('khichdi') || lowerCat.includes('rice')) return '/dishes/rice.webp';
+  if (lowerCat.includes('snack') || lowerName.includes('snack')) return '/dishes/presets/crispy-samosas-basket.webp';
 
   return '/dishes/thali.webp';
 }
