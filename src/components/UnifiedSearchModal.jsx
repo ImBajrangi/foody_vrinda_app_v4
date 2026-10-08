@@ -23,7 +23,7 @@ const POPULAR_CATEGORIES = [
 const RECENT_SEARCHES_KEY = 'foody_vrinda_recent_searches_v2';
 
 export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSelectOrder, initialQuery = '' }) {
-  const { user, userData, userRole, currentUserShopId, allShops } = useAuth();
+  const { user, userData, isAuthenticated, allShops } = useAuth();
   const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState(initialQuery || '');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
@@ -177,61 +177,126 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       // Semantic ranking with Vedic ontology weights
       matchedMenuItems = HitSoochiService.rankItems(matchedMenuItems, cleanTerm);
 
-      // 3. Search Orders (Role-based & strictly user-isolated)
+      // 3. Search Orders (Strictly isolated to CURRENT USER's own orders only - Zero Data Leak)
       let matchedOrders = [];
       try {
-        const cleanPhone = (userData?.phone || user?.phone || user?.user_metadata?.phone)
-          ? String(userData?.phone || user?.phone || user?.user_metadata?.phone).replace(/\D/g, '')
-          : '';
+        const userPhoneRaw = userData?.phone || user?.phone || user?.user_metadata?.phone || (typeof window !== 'undefined' ? localStorage.getItem('foody_user_phone') : '');
+        const cleanPhone = userPhoneRaw ? String(userPhoneRaw).replace(/\D/g, '') : '';
         const currentUserId = user?.id || user?.uid || userData?.id;
+        const isUserLoggedIn = Boolean(isAuthenticated || (currentUserId && !String(currentUserId).startsWith('guest-')));
+
         const sessionOrderIds = (() => {
           try {
-            return JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+            const list = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+            return Array.isArray(list) ? list.filter(Boolean) : [];
           } catch {
             return [];
           }
         })();
 
-        let queryBuilder = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
-
-        if (['kitchen', 'owner', 'delivery'].includes(userRole) && currentUserShopId) {
-          queryBuilder = queryBuilder.eq('shop_id', currentUserShopId);
-        } else if (['admin', 'master_admin', 'developer'].includes(userRole)) {
-          // Admins search across orders
-        } else {
-          // Customer / Guest isolation
-          if (currentUserId && cleanPhone && cleanPhone.length >= 10) {
-            queryBuilder = queryBuilder.or(`user_id.eq.${currentUserId},customer_phone.eq.${cleanPhone}`);
-          } else if (currentUserId) {
-            queryBuilder = queryBuilder.eq('user_id', currentUserId);
-          } else if (cleanPhone && cleanPhone.length >= 10) {
-            queryBuilder = queryBuilder.eq('customer_phone', cleanPhone);
-          } else if (sessionOrderIds.length > 0) {
-            queryBuilder = queryBuilder.in('id', sessionOrderIds);
-          } else {
-            queryBuilder = null;
+        const cachedUserOrders = (() => {
+          try {
+            const cached = JSON.parse(localStorage.getItem('foody_customer_orders_cache') || '[]');
+            return Array.isArray(cached) ? cached : [];
+          } catch {
+            return [];
           }
-        }
+        })();
 
-        if (queryBuilder) {
-          const { data: ordersData } = await queryBuilder;
-          if (ordersData) {
-            matchedOrders = ordersData.filter(order => {
-              const itemsString = order.items?.map(i => (i.name || '').toLowerCase()).join(' ') || '';
-              const orderId = (order.id || '').toLowerCase();
-              const custName = (order.customer_name || order.customerName || '').toLowerCase();
-              const custPhone = (order.customer_phone || order.customerPhone || '');
-              return (
-                orderId.includes(cleanTerm) ||
-                custName.includes(cleanTerm) ||
-                custPhone.includes(cleanTerm) ||
-                itemsString.includes(cleanTerm)
-              );
+        // STRICT OWNERSHIP VERIFIER: An order MUST definitively belong to this user
+        const isOwnOrder = (order) => {
+          if (!order || !order.id) return false;
+          const orderUid = order.user_id || order.userId;
+          const orderPhone = String(order.customer_phone || order.customerPhone || '').replace(/\D/g, '');
+
+          // Check user ID match
+          if (isUserLoggedIn && currentUserId && orderUid && orderUid === currentUserId) {
+            return true;
+          }
+          // Check phone number match (last 10 digits)
+          if (cleanPhone && cleanPhone.length >= 10 && orderPhone && orderPhone.endsWith(cleanPhone.slice(-10))) {
+            return true;
+          }
+          // Check session orders explicitly created on this device
+          if (sessionOrderIds.includes(order.id)) {
+            return true;
+          }
+          // Check locally cached orders previously retrieved for this user
+          if (cachedUserOrders.some(c => c.id === order.id)) {
+            return true;
+          }
+          return false;
+        };
+
+        const userOrdersMap = new Map();
+
+        // 1. Populate from local verified cache first
+        cachedUserOrders.forEach(ord => {
+          if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
+        });
+
+        // 2. Fetch authenticated or phone-based orders from Supabase ONLY for this user
+        if (isUserLoggedIn && currentUserId) {
+          let q = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(25);
+          if (cleanPhone && cleanPhone.length >= 10) {
+            q = q.or(`user_id.eq.${currentUserId},customer_phone.eq.${cleanPhone}`);
+          } else {
+            q = q.eq('user_id', currentUserId);
+          }
+          const { data: dbOrders } = await q;
+          if (Array.isArray(dbOrders)) {
+            dbOrders.forEach(ord => {
+              if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
+            });
+          }
+        } else if (cleanPhone && cleanPhone.length >= 10) {
+          const { data: dbOrders } = await supabase
+            .from('foody_orders')
+            .select('*')
+            .eq('customer_phone', cleanPhone)
+            .order('created_at', { ascending: false })
+            .limit(20);
+          if (Array.isArray(dbOrders)) {
+            dbOrders.forEach(ord => {
+              if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
             });
           }
         }
+
+        // 3. Fetch any missing session orders placed on this device
+        if (sessionOrderIds.length > 0) {
+          const missingSessionIds = sessionOrderIds.filter(id => !userOrdersMap.has(id));
+          if (missingSessionIds.length > 0) {
+            const { data: sessionOrders } = await supabase
+              .from('foody_orders')
+              .select('*')
+              .in('id', missingSessionIds.slice(0, 15));
+            if (Array.isArray(sessionOrders)) {
+              sessionOrders.forEach(ord => {
+                if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
+              });
+            }
+          }
+        }
+
+        // 4. Strict search matching on the current user's isolated orders ONLY
+        const userOrdersList = Array.from(userOrdersMap.values());
+        const strippedTerm = cleanTerm.replace(/^#/, '');
+
+        matchedOrders = userOrdersList.filter(order => {
+          if (!isOwnOrder(order)) return false;
+          const itemsString = order.items?.map(i => (i.name || '').toLowerCase()).join(' ') || '';
+          const orderId = String(order.id || '').toLowerCase();
+          const shortId = orderId.slice(-6);
+
+          return (
+            itemsString.includes(cleanTerm) ||
+            orderId.includes(strippedTerm) ||
+            shortId.includes(strippedTerm)
+          );
+        });
       } catch (err) {
-        console.warn("Orders search fallback:", err);
+        console.warn("User orders search isolation fallback:", err);
       }
 
       setResults({
@@ -244,7 +309,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
     } finally {
       setLoading(false);
     }
-  }, [allShops, currentUserShopId, user, userData, userRole]);
+  }, [allShops, user, userData, isAuthenticated]);
 
   // Handle live search matching
   useEffect(() => {
@@ -827,7 +892,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               <div>
                 <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
                   <Receipt size={13} />
-                  Matched Orders
+                  Your Matched Orders
                   <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.orders.length})</span>
                 </h4>
 
@@ -865,14 +930,22 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-3 animate-fade-in">
                           <div className="flex items-center justify-between text-xs">
                             <div>
-                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Customer</p>
-                              <p className="font-bold text-stone-900 dark:text-white">{order.customer_name || order.customerName || 'Guest'}</p>
+                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Placed At</p>
+                              <p className="font-bold text-stone-900 dark:text-white">
+                                {order.created_at ? new Date(order.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+                              </p>
                             </div>
                             <div className="text-right">
                               <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Order Total</p>
                               <p className="font-black text-amber-700 dark:text-[#E0FF33] text-sm">₹{order.total_amount || order.totalAmount || 0}</p>
                             </div>
                           </div>
+
+                          {Array.isArray(order.items) && order.items.length > 0 && (
+                            <div className="text-[11px] text-stone-600 dark:text-zinc-300 bg-stone-100/70 dark:bg-white/5 p-2 rounded-xl border border-stone-200/60 dark:border-white/5">
+                              {order.items.map((it) => `${it.name || 'Item'} × ${it.quantity || 1}`).join(' • ')}
+                            </div>
+                          )}
 
                           <button
                             onClick={(e) => {

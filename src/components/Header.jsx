@@ -94,9 +94,17 @@ export default function Header({
 
   const getDisplayName = () => {
     if (!isAuthenticated) return 'Foody Vrinda';
-    if (userData && userData.displayName) return userData.displayName;
-    if (user && user.displayName) return user.displayName;
-    if (user && user.email) return user.email.split('@')[0];
+    if (userData?.displayName && userData.displayName !== 'User') return userData.displayName;
+    if (user?.displayName && user.displayName !== 'User') return user.displayName;
+    const email = user?.email || userData?.email;
+    if (email && email.includes('@')) {
+      const raw = email.split('@')[0].replace(/[._-]/g, ' ').trim();
+      if (raw.length > 0) {
+        return raw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+    }
+    const cleanPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
+    if (cleanPhone.length >= 4) return `Member (${cleanPhone.slice(-4)})`;
     return 'Devotee';
   };
 

@@ -24,14 +24,84 @@ import { markNewUserTutorialEligible } from '../services/tutorialService';
 
 const AuthContext = createContext(null);
 
-// Authorized developer & administrator emails (driven exclusively by environment configuration and database roles)
-export const AUTHORIZED_DEV_EMAILS = (
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEVELOPER_EMAILS) || ''
-).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+// Operational staff roles that require explicit protection against silent background demotion
+export const STAFF_ROLES = [
+  'kitchen',
+  'delivery',
+  'owner',
+  'developer',
+  'grand_admin',
+];
 
-export const AUTHORIZED_ADMIN_EMAILS = (
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAILS) || ''
-).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+export const isStaffRole = (role) => STAFF_ROLES.includes(role);
+
+/**
+ * Architectural Role Resolver:
+ * Protects active staff sessions (Kitchen, Rider, Owner, Dev) against silent demotion
+ * from partial broadcasts or background token refreshes.
+ */
+export const resolveRole = (incomingRole, currentRole, savedRole) => {
+  if (isStaffRole(currentRole) && (!incomingRole || incomingRole === 'customer')) {
+    return currentRole;
+  }
+
+  if (isStaffRole(savedRole) && (!incomingRole || incomingRole === 'customer')) {
+    return savedRole;
+  }
+
+  return incomingRole || currentRole || savedRole || 'customer';
+};
+
+/**
+ * Architectural Identity Resolution Hierarchy:
+ * 1. Database profile name
+ * 2. OAuth/provider display name
+ * 3. Existing verified userData name
+ * 4. Clean email username
+ * 5. Phone identifier
+ * 6. "Devotee"
+ * (Literal string "User" is never accepted as a valid identity)
+ */
+export const resolveDisplayName = (profileName, providerName, savedName, email, phone) => {
+  if (profileName && typeof profileName === 'string' && profileName.trim() && profileName.trim() !== 'User') {
+    return profileName.trim();
+  }
+  if (providerName && typeof providerName === 'string' && providerName.trim() && providerName.trim() !== 'User') {
+    return providerName.trim();
+  }
+  if (savedName && typeof savedName === 'string' && savedName.trim() && savedName.trim() !== 'User') {
+    return savedName.trim();
+  }
+  if (email && typeof email === 'string' && email.includes('@')) {
+    const raw = email.split('@')[0].replace(/[._-]/g, ' ').trim();
+    if (raw.length > 0) {
+      return raw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+  }
+  const cp = phone ? String(phone).replace(/\D/g, '') : '';
+  if (cp.length >= 4) {
+    return `Member (${cp.slice(-4)})`;
+  }
+  return 'Devotee';
+};
+
+// Authorized developer & administrator emails (driven exclusively by environment configuration and database roles)
+export const AUTHORIZED_DEV_EMAILS = [
+  'developer@foodyvrinda.com',
+  'admin@foodyvrinda.com',
+  ...((typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEVELOPER_EMAILS) || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean)
+];
+
+export const AUTHORIZED_ADMIN_EMAILS = [
+  'admin@foodyvrinda.com',
+  ...((typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAILS) || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean)
+];
 
 export const isDeveloperUser = (email = '', role = '') => {
   if (role === 'developer' || role === 'grand_admin') return true;
@@ -242,10 +312,29 @@ export function AuthProvider({ children }) {
         return p && p.length >= 10;
       }
 
-      if (match && match.role) {
-        if (match.role !== activeRole || (match.shopId && match.shopId !== activeShopId)) {
-          setUserRole(match.role);
-          if (match.shopId) {
+      if (match) {
+        // Architectural Rule: Realtime events are synchronization signals, NOT role mutation authority.
+        // Protect active staff personas (Kitchen, Rider, Owner, Dev) from silent broadcast downgrade.
+        const currentActiveRole = activeRole;
+        const savedRole = activeUserData?.role;
+        const newRole = resolveRole(match.role, currentActiveRole, savedRole);
+
+        // Resolve display name using strict identity hierarchy (never literal "User")
+        const safeDisplayName = resolveDisplayName(
+          match.displayName,
+          activeUser?.user_metadata?.displayName || activeUser?.user_metadata?.name || activeUser?.displayName,
+          activeUserData?.displayName,
+          currentEmail,
+          currentPhone
+        );
+
+        const shouldUpdateRole = newRole !== activeRole;
+        const shouldUpdateShop = match.shopId && match.shopId !== activeShopId;
+        const shouldUpdateName = safeDisplayName !== activeUserData?.displayName;
+
+        if (shouldUpdateRole || shouldUpdateShop || shouldUpdateName) {
+          if (shouldUpdateRole) setUserRole(newRole);
+          if (shouldUpdateShop) {
             setCurrentUserShopId(match.shopId);
             setCurrentUserShopIds(match.shopIds || [match.shopId]);
             if (resolveShopNameRef.current) {
@@ -255,10 +344,10 @@ export function AuthProvider({ children }) {
           setUserData(prev => {
             const updated = {
               ...(prev || {}),
-              role: match.role,
+              role: newRole,
               shopId: match.shopId || prev?.shopId,
               shopIds: match.shopIds || prev?.shopIds,
-              displayName: match.displayName || prev?.displayName
+              displayName: safeDisplayName
             };
             try {
               localStorage.setItem('foody_user_data', JSON.stringify(updated));
@@ -422,16 +511,29 @@ export function AuthProvider({ children }) {
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
           );
 
-          // Priority: live database record > existingRecord > developer/admin whitelist > parsedSaved > customer
-          let role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : (parsedSaved?.role || 'customer')));
+          // Architectural Rule 1 & 2: Single source of truth & generic role downgrade protection
+          const incomingRole = existingRecord?.role;
+          const currentActiveRole = userRoleRef.current;
+          const savedRole = parsedSaved?.role;
+          const role = resolveRole(incomingRole, currentActiveRole, savedRole);
+
           let activeShopId = existingRecord?.shopId || parsedSaved?.shopId || null;
           let activeShopIds = existingRecord?.shopIds || parsedSaved?.shopIds || (activeShopId ? [activeShopId] : []);
+
+          // Architectural Rule 4: Identity resolution hierarchy (never literal "User")
+          const safeDisplayName = resolveDisplayName(
+            existingRecord?.displayName || existingRecord?.display_name,
+            currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || currentSbUser.user_metadata?.full_name,
+            parsedSaved?.displayName,
+            email,
+            existingRecord?.phone || currentSbUser.phone
+          );
 
           const userProfile = {
             ...(parsedSaved || {}),
             id: currentSbUser.id,
             email,
-            displayName: currentSbUser.user_metadata?.displayName || currentSbUser.user_metadata?.name || currentSbUser.user_metadata?.full_name || parsedSaved?.displayName || email.split('@')[0],
+            displayName: safeDisplayName,
             photoURL: avatarUrl,
             avatar_url: avatarUrl,
             role,
@@ -448,15 +550,26 @@ export function AuthProvider({ children }) {
           localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
           syncUserToCloudList(userProfile);
         } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
+          const email = parsedSaved.email || '';
+          const savedRole = parsedSaved.role;
+          const safeRole = resolveRole(undefined, userRoleRef.current, savedRole);
+          const safeName = resolveDisplayName(
+            undefined,
+            undefined,
+            parsedSaved.displayName,
+            email,
+            parsedSaved.phone
+          );
+
           setUser({
             id: parsedSaved.id,
-            email: parsedSaved.email || '',
+            email,
             phone: parsedSaved.phone || '',
-            displayName: parsedSaved.displayName || 'User',
+            displayName: safeName,
             isLoggedInUser: true
           });
-          setUserData(parsedSaved);
-          setUserRole(parsedSaved.role || 'customer');
+          setUserData({ ...parsedSaved, role: safeRole, displayName: safeName });
+          setUserRole(safeRole);
           setCurrentUserShopId(parsedSaved.shopId || null);
           setCurrentUserShopIds(parsedSaved.shopIds || (parsedSaved.shopId ? [parsedSaved.shopId] : []));
           setCurrentShopName(resolveShopName(parsedSaved.shopId) || null);
@@ -483,6 +596,13 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession || null);
+
+      // Architectural Rule 5: Token refresh means token changed, NOT user role changed.
+      // Do not re-resolve or reset active user role during TOKEN_REFRESHED.
+      if (_event === 'TOKEN_REFRESHED' && userRef.current && userRoleRef.current) {
+        return;
+      }
+
       if (newSession?.user) {
         const u = newSession.user;
         const email = u.email || '';
@@ -519,18 +639,33 @@ export function AuthProvider({ children }) {
           (cleanEmail && usr.email && usr.email.toLowerCase().trim() === cleanEmail)
         );
 
-        const role = existingRecord?.role || (isDeveloperUser(email) ? 'developer' : (isAdminUser(email) ? 'owner' : 'customer'));
-        const activeShopId = existingRecord?.shopId || null;
-        const activeShopIds = existingRecord?.shopIds || (activeShopId ? [activeShopId] : ((isDeveloperUser(email) || isAdminUser(email)) ? allShops.map(s => s.id) : []));
+        // Architectural Rule 1 & 2: Single source of truth & generic role protection
+        const currentActiveRole = userRoleRef.current;
+        const savedRole = userDataRef.current?.role;
+        const incomingRole = existingRecord?.role;
+        const role = resolveRole(incomingRole, currentActiveRole, savedRole);
+
+        const activeShopId = existingRecord?.shopId || userDataRef.current?.shopId || null;
+        const activeShopIds = existingRecord?.shopIds || userDataRef.current?.shopIds || (activeShopId ? [activeShopId] : []);
 
         const userPhone = existingRecord?.phone || u.user_metadata?.phone || u.phone || '';
         const rawUserAddr = existingRecord?.address || existingRecord?.customerAddress || u.user_metadata?.address || '';
         const userAddr = sanitizeCustomerAddress(rawUserAddr);
 
+        // Architectural Rule 4: Identity resolution hierarchy
+        const safeDisplayName = resolveDisplayName(
+          existingRecord?.displayName || existingRecord?.display_name,
+          u.user_metadata?.displayName || u.user_metadata?.name || u.user_metadata?.full_name,
+          userDataRef.current?.displayName,
+          email,
+          userPhone
+        );
+
         const userProfile = {
+          ...(userDataRef.current || {}),
           id: u.id,
           email,
-          displayName: u.user_metadata?.displayName || u.user_metadata?.name || u.user_metadata?.full_name || email.split('@')[0],
+          displayName: safeDisplayName,
           photoURL: avatarUrl,
           avatar_url: avatarUrl,
           phone: userPhone,

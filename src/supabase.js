@@ -1916,31 +1916,41 @@ class RealtimeMultiplexer {
     const raw = payload.new || payload.old;
     if (!raw) return;
 
-    const normalized = {
-      id: raw.id,
-      displayName: raw.display_name || raw.displayName || 'User',
-      email: raw.email || '',
-      phone: raw.phone || '',
-      avatarUrl: raw.avatar_url || '',
-      role: raw.role || 'customer',
-      shopId: raw.shop_id || raw.shopId || getDefaultActiveShopId(),
-      shopIds: raw.shop_ids || raw.shopIds || (raw.shop_id ? [raw.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
-      devPermissions: raw.dev_permissions || [],
-      lastLoginAt: raw.last_login_at || raw.created_at,
-      createdAt: raw.created_at,
-      updatedAt: raw.updated_at
+    // Architectural Rule: Realtime payloads must be partial and non-destructive.
+    // Missing fields do NOT imply 'customer' role or 'User' displayName.
+    const cleanId = raw.id ? String(raw.id).trim() : '';
+    const rawName = (raw.display_name || raw.displayName || '').trim();
+    const cleanDisplayName = (rawName && rawName !== 'User') ? rawName : undefined;
+    const cleanRole = (raw.role && typeof raw.role === 'string' && raw.role.trim()) ? raw.role.trim() : undefined;
+    const cleanEmail = raw.email ? String(raw.email).toLowerCase().trim() : undefined;
+    const cleanPhone = raw.phone ? String(raw.phone).replace(/\D/g, '') : undefined;
+    const cleanAvatar = raw.avatar_url || raw.avatarUrl || undefined;
+    const cleanShopId = raw.shop_id || raw.shopId || undefined;
+    const cleanShopIds = raw.shop_ids || raw.shopIds || undefined;
+    const cleanPermissions = raw.dev_permissions || raw.devPermissions || undefined;
+
+    const normalizedUpdates = {
+      ...(cleanId ? { id: cleanId } : {}),
+      ...(cleanDisplayName ? { displayName: cleanDisplayName } : {}),
+      ...(cleanRole ? { role: cleanRole } : {}),
+      ...(cleanEmail !== undefined ? { email: cleanEmail } : {}),
+      ...(cleanPhone !== undefined ? { phone: cleanPhone } : {}),
+      ...(cleanAvatar !== undefined ? { avatarUrl: cleanAvatar } : {}),
+      ...(cleanShopId !== undefined ? { shopId: cleanShopId } : {}),
+      ...(cleanShopIds !== undefined ? { shopIds: cleanShopIds } : {}),
+      ...(cleanPermissions !== undefined ? { devPermissions: cleanPermissions } : {}),
+      ...(raw.last_login_at ? { lastLoginAt: raw.last_login_at } : {}),
+      ...(raw.updated_at ? { updatedAt: raw.updated_at } : {})
     };
 
     // 1. In-memory & local cache sync with zero egress
     const current = getCachedUsers();
     let next;
+    let mergedUserObj;
     if (payload.eventType === 'DELETE') {
       next = current.filter(u => u.id !== raw.id);
+      mergedUserObj = { id: raw.id, ...normalizedUpdates };
     } else {
-      const cleanId = String(raw.id || '').trim();
-      const cleanEmail = (raw.email || '').toLowerCase().trim();
-      const cleanPhone = (raw.phone || '').replace(/\D/g, '');
-
       const idx = current.findIndex(u =>
         (cleanId && String(u.id).trim() === cleanId) ||
         (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
@@ -1948,10 +1958,38 @@ class RealtimeMultiplexer {
       );
 
       if (idx >= 0) {
+        const existing = current[idx];
+        // Protect staff roles from silent downgrade via partial broadcasts
+        const STAFF_ROLES = ['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'];
+        const existingIsStaff = STAFF_ROLES.includes(existing.role);
+        const resolvedRole = (existingIsStaff && (!normalizedUpdates.role || normalizedUpdates.role === 'customer'))
+          ? existing.role
+          : (normalizedUpdates.role || existing.role || 'customer');
+
+        mergedUserObj = {
+          ...existing,
+          ...normalizedUpdates,
+          role: resolvedRole,
+          displayName: normalizedUpdates.displayName || existing.displayName || (existing.email ? existing.email.split('@')[0] : 'Devotee')
+        };
         next = [...current];
-        next[idx] = { ...next[idx], ...normalized };
+        next[idx] = mergedUserObj;
       } else {
-        next = [normalized, ...current];
+        const fallbackName = cleanDisplayName || (cleanEmail ? cleanEmail.split('@')[0] : (cleanPhone ? `Member (${cleanPhone.slice(-4)})` : 'Devotee'));
+        mergedUserObj = {
+          id: cleanId,
+          displayName: fallbackName,
+          email: cleanEmail || '',
+          phone: cleanPhone || '',
+          avatarUrl: cleanAvatar || '',
+          role: cleanRole || 'customer',
+          shopId: cleanShopId || getDefaultActiveShopId(),
+          shopIds: cleanShopIds || (cleanShopId ? [cleanShopId] : []),
+          devPermissions: cleanPermissions || [],
+          createdAt: raw.created_at || new Date().toISOString(),
+          updatedAt: raw.updated_at || new Date().toISOString()
+        };
+        next = [mergedUserObj, ...current];
       }
     }
 
@@ -1962,12 +2000,12 @@ class RealtimeMultiplexer {
     clearTimeout(this.userDebounceTimer);
     this.userDebounceTimer = setTimeout(() => {
       dispatchSafeEvent('foody_users_changed', {
-        users: next, updatedUser: normalized, eventType: payload.eventType
+        users: next, updatedUser: mergedUserObj, eventType: payload.eventType
       });
 
       this.userListeners.forEach(listener => {
         try {
-          listener(next, normalized, payload.eventType);
+          listener(next, mergedUserObj, payload.eventType);
         } catch (e) {
           console.error('User listener error:', e);
         }
@@ -3414,7 +3452,6 @@ export async function getCloudUsers(forceRefresh = false) {
 }
 
 // Fetch single user live role & profile directly from Supabase with zero egress overhead
-// Fetch single user live role & profile directly from Supabase with zero egress overhead
 export async function getLiveUserRoleAndProfile(userId, email, phone) {
   const cleanId = String(userId || '').trim();
   const cleanEmail = (email || '').toLowerCase().trim();
@@ -3426,6 +3463,21 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
   if (cleanId) filters.push(`id.eq.${cleanId}`);
   if (cleanEmail) filters.push(`email.eq.${cleanEmail}`);
   if (cleanPhone && cleanPhone.length >= 10) filters.push(`phone.eq.${cleanPhone}`);
+
+  const resolveCleanName = (rawName, uEmail, uPhone) => {
+    if (rawName && typeof rawName === 'string' && rawName.trim() && rawName.trim() !== 'User') {
+      return rawName.trim();
+    }
+    if (uEmail && typeof uEmail === 'string' && uEmail.includes('@')) {
+      const raw = uEmail.split('@')[0].replace(/[._-]/g, ' ').trim();
+      if (raw.length > 0) {
+        return raw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+    }
+    const cp = uPhone ? String(uPhone).replace(/\D/g, '') : '';
+    if (cp.length >= 4) return `Member (${cp.slice(-4)})`;
+    return 'Devotee';
+  };
 
   try {
     let query = supabase.from('foody_logged_users').select('*');
@@ -3439,12 +3491,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     if (!error && data) {
       return {
         id: data.id,
-        displayName: data.display_name || data.email?.split('@')[0] || 'User',
+        displayName: resolveCleanName(data.display_name, data.email, data.phone),
         email: data.email || '',
         phone: data.phone || '',
         avatarUrl: data.avatar_url || '',
         address: data.address || '',
-        role: data.role || 'customer',
+        role: data.role || undefined,
         shopId: data.shop_id || getDefaultActiveShopId(),
         shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: data.dev_permissions || [],
@@ -3467,12 +3519,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     if (!uErr && uData) {
       return {
         id: uData.id,
-        displayName: uData.display_name || uData.email?.split('@')[0] || 'User',
+        displayName: resolveCleanName(uData.display_name, uData.email, uData.phone),
         email: uData.email || '',
         phone: uData.phone || '',
         avatarUrl: uData.avatar_url || '',
         address: uData.address || '',
-        role: uData.role || 'customer',
+        role: uData.role || undefined,
         shopId: uData.shop_id || getDefaultActiveShopId(),
         shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: uData.dev_permissions || [],
@@ -3755,9 +3807,15 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       return u;
     });
   } else {
+    const resolvedName = (updates.displayName && updates.displayName !== 'User')
+      ? updates.displayName
+      : ((updates.display_name && updates.display_name !== 'User')
+          ? updates.display_name
+          : (resolvedEmail ? resolvedEmail.split('@')[0] : (resolvedPhone ? `Member (${resolvedPhone.slice(-4)})` : 'Devotee')));
+
     const newUser = {
       id: targetId,
-      displayName: updates.displayName || updates.display_name || 'User',
+      displayName: resolvedName,
       email: resolvedEmail,
       phone: resolvedPhone,
       avatarUrl: updates.avatarUrl || updates.avatar_url || '',
