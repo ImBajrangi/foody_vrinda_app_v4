@@ -1,48 +1,701 @@
-export * from './services/supabase/client.js';
-import {
-  supabase,
-  isTableMissing,
-  markTableMissing,
-  isTableError,
-  isTableWriteForbidden,
-  markTableWriteForbidden,
-  resetForbiddenTables,
-  isForbiddenError,
-  SEED_SHOPS,
-  resolveDishCutout
-} from './services/supabase/client.js';
+import { createClient } from '@supabase/supabase-js';
 
+// Supabase Cloud Project Configuration (Foody Vrinda Production Database)
+const SUPABASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 'https://mrsxliwyqodtwjuyqmts.supabase.co';
+const SUPABASE_ANON_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yc3hsaXd5cW9kdHdqdXlxbXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NzQxMjcsImV4cCI6MjEwNDQ1MDEyN30.UZteyeZ3LtuVpMJoUqZogPKffmSlHN3Hn9fLtis7lBg';
 
-export * from './services/supabase/cache.js';
-import {
-  CACHE_TTL_MS,
-  memoryCache,
-  pendingRequests,
-  safeStorage,
-  dispatchSafeEvent,
-  getCachedItem,
-  setCachedItem,
-  invalidateCache,
-  normalizeShop,
-  calculateDistanceKm,
-  getRecommendedRiders,
-  isShopCurrentlyOpen,
-  getDeletedShopIds,
-  addDeletedShopId,
-  removeDeletedShopId,
-  getCachedShops,
-  saveCachedShops,
-  getDefaultActiveShopId
-} from './services/supabase/cache.js';
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+});
 
-export * from './services/supabase/shops.service.js';
-import {
-  getCloudShops,
-  checkShopOperatingStatus,
-  createCloudShop,
-  updateCloudShop,
-  deleteCloudShop
-} from './services/supabase/shops.service.js';
+// Track tables confirmed as missing in Supabase to avoid repeated 404 network errors
+const _missingTables = new Set();
+function isTableMissing(tableName) { return _missingTables.has(tableName); }
+function markTableMissing(tableName) { _missingTables.add(tableName); }
+function isTableError(error) {
+  if (!error) return false;
+  const code = error.code || '';
+  const msg = (error.message || '').toLowerCase();
+  const hint = (error.hint || '').toLowerCase();
+  // Only flag genuine missing tables/relations (42P01 or relation does not exist), NOT column errors (PGRST204)
+  return code === '42P01' ||
+    (msg.includes('relation') && msg.includes('does not exist')) ||
+    (hint.includes('relation') && hint.includes('does not exist'));
+}
+
+// Track tables blocked by RLS / 403 Forbidden permissions to prevent continuous network spam and console errors
+const FORBIDDEN_WRITE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooldown before retry
+const _forbiddenWriteTables = new Map();
+
+export function isTableWriteForbidden(tableName) {
+  // Check in-memory map first
+  const last403Mem = _forbiddenWriteTables.get(tableName);
+  if (last403Mem) {
+    if (Date.now() - last403Mem < FORBIDDEN_WRITE_COOLDOWN_MS) {
+      return true;
+    }
+    _forbiddenWriteTables.delete(tableName);
+  }
+
+  // Check sessionStorage for cross-component / refresh persistence
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const stored = sessionStorage.getItem(`foody_forbidden_write_${tableName}`);
+      if (stored) {
+        const timestamp = Number(stored);
+        if (Date.now() - timestamp < FORBIDDEN_WRITE_COOLDOWN_MS) {
+          _forbiddenWriteTables.set(tableName, timestamp);
+          return true;
+        }
+        sessionStorage.removeItem(`foody_forbidden_write_${tableName}`);
+      }
+    }
+  } catch (_) { }
+
+  return false;
+}
+
+export function markTableWriteForbidden(tableName) {
+  const now = Date.now();
+  _forbiddenWriteTables.set(tableName, now);
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.setItem(`foody_forbidden_write_${tableName}`, String(now));
+    }
+  } catch (_) { }
+}
+
+export function resetForbiddenTables() {
+  _forbiddenWriteTables.clear();
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('foody_forbidden_write_')) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    }
+  } catch (_) { }
+}
+
+export function isForbiddenError(error) {
+  if (!error) return false;
+  const status = Number(error.status || error.statusCode || 0);
+  const code = String(error.code || '');
+  const msg = String(error.message || '').toLowerCase();
+  const details = String(error.details || '').toLowerCase();
+
+  return (
+    status === 403 ||
+    status === 401 ||
+    code === '42501' || // PostgreSQL insufficient privilege
+    code === 'PGRST301' ||
+    msg.includes('permission denied') ||
+    msg.includes('row-level security') ||
+    msg.includes('not authorized') ||
+    msg.includes('403') ||
+    details.includes('permission denied') ||
+    details.includes('row-level security')
+  );
+}
+
+// Reset forbidden tables when user authenticates or token changes
+if (typeof supabase !== 'undefined' && supabase?.auth) {
+  try {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        resetForbiddenTables();
+      }
+    });
+  } catch (_) { }
+}
+
+// Pure Database-Driven Architecture: Zero hardcoded shops
+export const SEED_SHOPS = [];
+
+// Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
+export function resolveDishCutout(image, name = '', category = '') {
+  const lowerName = (name || '').toLowerCase().trim();
+  const lowerCat = (category || '').toLowerCase().trim();
+
+  // 1. If a valid custom user image or upload is supplied, ALWAYS honor and preserve it
+  if (image && typeof image === 'string') {
+    const trimmed = image.trim();
+    if (
+      trimmed.startsWith('data:image/') ||
+      trimmed.startsWith('blob:') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('/') ||
+      trimmed.startsWith('./')
+    ) {
+      // Intelligently upgrade legacy fallbacks or misaligned images:
+      // a) Upgrade simple rice fallback (/dishes/rice.png, /dishes/rice.webp) to high-definition Biryani cutout
+      if ((trimmed.endsWith('/rice.png') || trimmed.endsWith('/rice.webp')) && (lowerName.includes('biryani') || lowerName.includes('pulao'))) {
+        return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+      }
+      // b) Upgrade legacy pizza.png to optimized preset
+      if (trimmed.endsWith('/pizza.png')) {
+        return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
+      }
+      // c) Upgrade legacy rice.png to 12KB lightweight rice.webp
+      if (trimmed.endsWith('/rice.png')) {
+        return '/dishes/rice.webp';
+      }
+      // d) Upgrade samosa fallback to authentic Kachori platter
+      if (trimmed.includes('crispy-samosas-basket.webp') && lowerName.includes('kachori')) {
+        return '/dishes/presets/golden-kachori-platter.webp';
+      }
+      // e) Upgrade generic thali or naan fallback to authentic Roti basket
+      if ((trimmed.includes('thali.webp') || trimmed.includes('garlic-naan')) && (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka'))) {
+        return '/dishes/presets/woven-basket-charred-rotis.webp';
+      }
+      // f) Upgrade generic curry to authentic Matar Paneer copper bowl
+      if (trimmed.includes('curry.webp') && (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer'))) {
+        return '/dishes/presets/matar-paneer-copper-bowl.webp';
+      }
+
+      // Don't override user's image unless it's a known generic unsplash placeholder
+      if (!trimmed.includes('unsplash.com/photo-1546833999-b9f581a1996d')) {
+        return trimmed;
+      }
+    }
+  }
+
+  // 2. Comprehensive smart cutout resolution based on item name and category keywords
+  // A. Biryani, Pulao & Rice Feasts
+  if (lowerName.includes('biryani') || lowerName.includes('dum biryani') || lowerName.includes('hyderabadi')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+  if (lowerName.includes('pulao') || lowerName.includes('fried rice') || lowerName.includes('jeera rice')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
+
+  // B. North Indian Breads & Kachoris
+  if (lowerName.includes('garlic naan')) return '/dishes/presets/basket-golden-garlic-naan.webp';
+  if ((lowerName.includes('chole') && lowerName.includes('naan')) || lowerName.includes('kulcha') || lowerName.includes('chole kulche')) return '/dishes/presets/chole-curry-naan-platter.webp';
+  if (lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
+  if (lowerName.includes('kachori') || lowerName.includes('khasta') || lowerName.includes('bedmi')) return '/dishes/presets/golden-kachori-platter.webp';
+  if (lowerName.includes('bhature') || lowerName.includes('chole bhature') || lowerName.includes('poori') || lowerName.includes('puri')) return '/dishes/presets/golden-chole-bhature-feast.webp';
+  if (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka') || lowerName.includes('paratha')) return '/dishes/presets/woven-basket-charred-rotis.webp';
+
+  // C. Paneer, Curries & Dals
+  if (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer') || lowerName.includes('aloo matar') || lowerName.includes('paneer bhurji')) return '/dishes/presets/matar-paneer-copper-bowl.webp';
+  if (lowerName.includes('handi paneer') || lowerName.includes('korma') || lowerName.includes('dal makhani') || lowerName.includes('dal tadka') || lowerName.includes('yellow dal') || lowerName.includes('rajma') || lowerName.includes('chana masala')) return '/dishes/presets/handi-paneer-curry.webp';
+  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer makhani') || lowerName.includes('kadai paneer') || lowerName.includes('kadhai paneer') || lowerName.includes('paneer lababdar') || lowerName.includes('malai kofta') || lowerName.includes('kofta')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
+
+  // D. Burgers, Pizzas & Sandwiches
+  if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
+  if (lowerName.includes('farmhouse pizza') || lowerName.includes('cheese burst') || lowerName.includes('supreme pizza') || lowerName.includes('double cheese')) return '/dishes/presets/loaded-farmhouse-pizza.webp';
+  if (lowerName.includes('pizza') || lowerName.includes('margherita') || lowerName.includes('calzone')) return '/dishes/presets/cheesy-veggie-pizza-slice.webp';
+  if (lowerName.includes('club sandwich') || lowerName.includes('bombay sandwich') || lowerName.includes('jumbo sandwich')) return '/dishes/presets/grilled-veg-cheese-sandwich-platter.webp';
+  if (lowerName.includes('grilled cheese') || lowerName.includes('cheese toast')) return '/dishes/presets/gooey-grilled-cheese-tomato-basil.webp';
+  if (lowerName.includes('sandwich') || lowerName.includes('toast')) return '/dishes/presets/grilled-veggie-cheese-sandwich.webp';
+
+  // E. Momos, Chinese & Street Snacks
+  if (lowerName.includes('momo') || lowerName.includes('dimsum') || lowerName.includes('dumpling')) return '/dishes/presets/steamed-veggie-momos.webp';
+  if (lowerName.includes('schezwan') || lowerName.includes('manchurian') || lowerName.includes('chilli paneer') || lowerName.includes('chilli potato') || lowerName.includes('chilli garlic')) return '/dishes/presets/schezwan-veggie-noodles.webp';
+  if (lowerName.includes('noodle') || lowerName.includes('chowmein') || lowerName.includes('maggi') || lowerName.includes('hakka') || lowerName.includes('pasta') || lowerName.includes('macaroni')) return '/dishes/presets/glossy-stir-fried-noodles.webp';
+  if (lowerName.includes('spring roll') || lowerName.includes('roll') || lowerName.includes('frankie') || lowerName.includes('wrap')) return '/dishes/presets/crispy-spring-rolls.webp';
+  if (lowerName.includes('puff') || lowerName.includes('patties') || lowerName.includes('patty')) return '/dishes/presets/golden-cheesy-triangle-puff.webp';
+  if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries') || lowerName.includes('wedges') || lowerName.includes('nugget')) return '/dishes/presets/seasoned-crispy-fries.webp';
+
+  // F. Chaat & Street Food
+  if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla') || lowerName.includes('dahi pakodi')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
+  if (lowerName.includes('tikki') || lowerName.includes('aloo tikki') || lowerName.includes('cutlet') || lowerName.includes('ragda')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
+  if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel') || lowerName.includes('pani puri') || lowerName.includes('golgappe') || lowerName.includes('puchka')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+  if (lowerName.includes('samosa') || lowerName.includes('pakora') || lowerName.includes('pakoda') || lowerName.includes('bhajiya') || lowerName.includes('fritter')) return '/dishes/presets/crispy-samosas-basket.webp';
+
+  // G. Traditional Sweets & Mithai
+  if (lowerName.includes('jalebi') || lowerName.includes('imarti') || lowerName.includes('ghevar') || lowerName.includes('malpua')) return '/dishes/presets/glossy-kesar-jalebi.webp';
+  if (lowerName.includes('kaju') || lowerName.includes('katli')) return '/dishes/presets/silver-vark-kaju-katli.webp';
+  if (lowerName.includes('barfi') || lowerName.includes('burfi') || lowerName.includes('pista') || lowerName.includes('khoya') || lowerName.includes('milk cake') || lowerName.includes('kalakand') || lowerName.includes('peda')) return '/dishes/presets/pista-khoya-barfi.webp';
+
+  // H. South Indian, Thalis & Meals
+  if (lowerName.includes('thali') || lowerName.includes('platter') || lowerName.includes('meal') || lowerName.includes('dosa') || lowerName.includes('idli') || lowerName.includes('uttapam') || lowerName.includes('sambar') || lowerCat.includes('thali') || lowerCat.includes('meal') || lowerCat.includes('south indian')) return '/dishes/thali.webp';
+
+  // I. Sweets, Desserts & Beverages
+  if (lowerName.includes('kheer') || lowerName.includes('rabdi') || lowerName.includes('gulab jamun') || lowerName.includes('rasgulla') || lowerName.includes('rasmalai') || lowerName.includes('halwa') || lowerName.includes('lassi') || lowerName.includes('shake') || lowerName.includes('coffee') || lowerName.includes('tea') || lowerName.includes('chai') || lowerName.includes('thandai') || lowerName.includes('juice') || lowerName.includes('drink') || lowerName.includes('beverage') || lowerCat.includes('sweet') || lowerCat.includes('beverage') || lowerCat.includes('dessert') || lowerCat.includes('drink')) return '/dishes/sweet.webp';
+
+  // J. Curries & Rice Fallbacks
+  if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy') || lowerCat.includes('curry') || lowerCat.includes('main')) return '/dishes/curry.webp';
+  if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('bhog') || lowerName.includes('khichdi') || lowerCat.includes('rice')) return '/dishes/rice.webp';
+  if (lowerCat.includes('snack') || lowerName.includes('snack')) return '/dishes/presets/crispy-samosas-basket.webp';
+
+  return '/dishes/thali.webp';
+}
+
+// ========================================================================
+// 1. FREE-TIER OPTIMIZER: IN-MEMORY & SWR CACHE LAYER
+// ========================================================================
+const CACHE_TTL_MS = {
+  SHOPS: 60 * 60 * 1000,    // 1 hour
+  MENUS: 30 * 60 * 1000,    // 30 minutes
+  PRESETS: 60 * 60 * 1000,  // 1 hour
+  ORDERS: 45 * 1000,        // 45 seconds (refreshed live via Realtime)
+  USERS: 2 * 60 * 1000      // 2 minutes (refreshed live via Realtime)
+};
+
+const memoryCache = {
+  shops: { data: null, timestamp: 0 },
+  menus: {},  // [shopId]: { data, timestamp }
+  presets: { data: null, timestamp: 0 },
+  orders: {}, // [shopId]: { data, timestamp }
+  users: { data: null, timestamp: 0 }
+};
+
+// In-flight request deduplication map
+const pendingRequests = new Map();
+
+// Safe storage wrapper that works cleanly in browser and Node environments
+const memoryStore = new Map();
+const safeStorage = {
+  getItem: (key) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch (e) { }
+    return memoryStore.get(key) || null;
+  },
+  setItem: (key, val) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, val);
+      }
+    } catch (e) { }
+    memoryStore.set(key, String(val));
+  },
+  removeItem: (key) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (e) { }
+    memoryStore.delete(key);
+  },
+  removeByPrefix: (prefix) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keysToRemove = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.startsWith(prefix)) keysToRemove.push(k);
+        }
+        keysToRemove.forEach(k => window.localStorage.removeItem(k));
+      }
+    } catch (_) { }
+    for (const k of Array.from(memoryStore.keys())) {
+      if (k.startsWith(prefix)) memoryStore.delete(k);
+    }
+  }
+};
+
+function dispatchSafeEvent(name, detail = {}) {
+  try {
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent(name, { detail }));
+    }
+  } catch (e) { }
+}
+
+export function getCachedItem(type, key = 'default') {
+  const now = Date.now();
+  if (type === 'shops') {
+    if (memoryCache.shops.data && (now - memoryCache.shops.timestamp < CACHE_TTL_MS.SHOPS)) {
+      return memoryCache.shops.data;
+    }
+    const local = safeStorage.getItem('foody_cache_shops');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.SHOPS)) {
+          memoryCache.shops = parsed;
+          return parsed.data;
+        }
+      } catch (e) { }
+    }
+  } else if (type === 'menus') {
+    const entry = memoryCache.menus[key];
+    if (entry && (now - entry.timestamp < CACHE_TTL_MS.MENUS)) {
+      return entry.data;
+    }
+    const local = safeStorage.getItem(`foody_cache_menu_${key}`);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.MENUS)) {
+          memoryCache.menus[key] = parsed;
+          return parsed.data;
+        }
+      } catch (e) { }
+    }
+  } else if (type === 'orders') {
+    const entry = memoryCache.orders[key];
+    if (entry && (now - entry.timestamp < CACHE_TTL_MS.ORDERS)) {
+      return entry.data;
+    }
+    const local = safeStorage.getItem(`foody_cache_orders_${key}`);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.ORDERS)) {
+          memoryCache.orders[key] = parsed;
+          return parsed.data;
+        }
+      } catch (e) { }
+    }
+  } else if (type === 'users') {
+    if (memoryCache.users.data && (now - memoryCache.users.timestamp < CACHE_TTL_MS.USERS)) {
+      return memoryCache.users.data;
+    }
+    const local = safeStorage.getItem('foody_cached_users');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          memoryCache.users = { data: parsed, timestamp: now };
+          return parsed;
+        }
+      } catch (e) { }
+    }
+    return null;
+  }
+  return null;
+}
+
+export function normalizeShop(s) {
+  if (!s) return s;
+
+  // Extract payment settings handling nested object or top-level properties
+  const onlinePaymentsEnabled = s.paymentSettings?.onlinePaymentsEnabled
+    ?? s.payment_settings?.onlinePaymentsEnabled
+    ?? s.onlinePaymentsEnabled
+    ?? s.online_payments_enabled
+    ?? true;
+
+  const codEnabled = s.paymentSettings?.codEnabled
+    ?? s.payment_settings?.codEnabled
+    ?? s.codEnabled
+    ?? s.cod_enabled
+    ?? true;
+
+  const paymentSettings = {
+    onlinePaymentsEnabled,
+    codEnabled
+  };
+
+  const alarmSettings = s.alarm_settings ?? s.alarmSettings ?? { kitchenNew: true, kitchenReady: false, deliveryReady: true };
+  const shopType = s.shop_type || s.shopType || s.payment_settings?.shopType || 'hotel'; // 'hotel' (Restaurant/Kitchen) | 'shop' (Retail Prasad Stall)
+  const openingTime = s.opening_time || s.openingTime || '08:00';
+  const closingTime = s.closing_time || s.closingTime || '22:30';
+  const isOnline = s.is_online ?? s.isOnline ?? (s.isOpen ?? s.is_open ?? true);
+
+  return {
+    ...s,
+    id: s.id,
+    name: s.name || '',
+    address: s.address || '',
+    phone: s.phone || '',
+    coordinates: s.coordinates || { lat: 27.5706, lng: 77.6593 },
+    isOpen: s.is_open ?? s.isOpen ?? true,
+    is_open: s.is_open ?? s.isOpen ?? true,
+    isOnline,
+    is_online: isOnline,
+    isStaffOnline: isOnline,
+    shopType,
+    shop_type: shopType,
+    openingTime,
+    opening_time: openingTime,
+    closingTime,
+    closing_time: closingTime,
+    minimumOrderAmount: Number(s.minimum_order_amount ?? s.minimumOrderAmount ?? 0),
+    minimum_order_amount: Number(s.minimum_order_amount ?? s.minimumOrderAmount ?? 0),
+    deliveryCharge: Number(s.delivery_charge ?? s.deliveryCharge ?? 0),
+    delivery_charge: Number(s.delivery_charge ?? s.deliveryCharge ?? 0),
+    gstPercentage: Number(s.gst_percentage ?? s.gstPercentage ?? 5),
+    gst_percentage: Number(s.gst_percentage ?? s.gstPercentage ?? 5),
+    alarmSettings,
+    alarm_settings: alarmSettings,
+    paymentSettings,
+    payment_settings: paymentSettings,
+    onlinePaymentsEnabled,
+    online_payments_enabled: onlinePaymentsEnabled,
+    codEnabled,
+    cod_enabled: codEnabled
+  };
+}
+
+/**
+ * Calculates geographical distance between two coordinates in kilometers using Haversine formula
+ */
+export function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  if (typeof lat1 !== 'number' || typeof lon1 !== 'number' || typeof lat2 !== 'number' || typeof lon2 !== 'number') return null;
+  const R = 6371; // Earth's mean radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
+/**
+ * Smart Geolocation-based Realtime Rider Recommendation Engine
+ * Evaluates proximity, active load, and ETA to recommend the best delivery Sarathi
+ */
+export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders = []) {
+  if (!Array.isArray(ridersList) || ridersList.length === 0) return [];
+
+  const shopLat = Number(shopCoords?.lat) || 27.5706;
+  const shopLng = Number(shopCoords?.lng) || 77.6593;
+
+  return ridersList
+    .filter(r => (r.role === 'delivery' || r.role === 'rider') && r.is_active !== false && r.isOnline !== false)
+    .map(rider => {
+      const hasCoords = Boolean((rider.coordinates?.lat && rider.coordinates?.lng) || (rider.lat && rider.lng));
+      const riderLat = Number(rider.coordinates?.lat || rider.lat || 0);
+      const riderLng = Number(rider.coordinates?.lng || rider.lng || 0);
+
+      // GPS Freshness verification (< 5 minutes)
+      const lastSeen = rider.last_location_at || rider.lastLocationAt || rider.lastSeenAt || rider.last_seen_at;
+      const isLocationFresh = Boolean(
+        hasCoords &&
+        riderLat !== 0 &&
+        riderLng !== 0 &&
+        lastSeen &&
+        (Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000)
+      );
+
+      // If location is fresh, compute actual distance; otherwise place at a penalized distance
+      const distanceKm = isLocationFresh
+        ? (calculateDistanceKm(shopLat, shopLng, riderLat, riderLng) || 1.0)
+        : 5.0; // Penalize stale/unverified location
+
+      const riderOrders = activeOrders.filter(o => o.rider_id === rider.id && !['completed', 'cancelled'].includes(o.status));
+      const activeCount = riderOrders.length;
+      const etaMins = isLocationFresh ? Math.max(4, Math.round(distanceKm * 4 + 3)) : 15;
+
+      // Weighted score: 1.2x distance + 2.5x active order burden + penalty for stale location
+      const recommendationScore = (distanceKm * 1.2) + (activeCount * 2.5) + (isLocationFresh ? 0 : 10);
+
+      return {
+        ...rider,
+        distanceKm,
+        isLocationFresh,
+        activeOrdersCount: activeCount,
+        etaMins,
+        recommendationScore
+      };
+    })
+    .sort((a, b) => a.recommendationScore - b.recommendationScore);
+}
+
+/**
+ * Evaluates whether a shop is operational based on open flag, staff online presence, and time schedule
+ */
+export function isShopCurrentlyOpen(shop) {
+  if (!shop) return false;
+  if (shop.isOpen === false || shop.is_open === false) return false;
+  if (shop.isOnline === false || shop.is_online === false) return false;
+
+  const openTime = shop.openingTime || shop.opening_time || shop.operating_hours?.openTime || shop.payment_settings?.openingTime || '08:00';
+  const closeTime = shop.closingTime || shop.closing_time || shop.operating_hours?.closeTime || shop.payment_settings?.closingTime || '22:30';
+
+  if (openTime && closeTime) {
+    const now = new Date();
+    const currentTotalMins = now.getHours() * 60 + now.getMinutes();
+
+    const [oH, oM] = String(openTime).split(':').map(Number);
+    const [cH, cM] = String(closeTime).split(':').map(Number);
+    const openTotalMins = (isNaN(oH) ? 8 : oH) * 60 + (isNaN(oM) ? 0 : oM);
+    const closeTotalMins = (isNaN(cH) ? 22 : cH) * 60 + (isNaN(cM) ? 30 : cM);
+
+    if (currentTotalMins < openTotalMins || currentTotalMins > closeTotalMins) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function getDeletedShopIds() {
+  const set = new Set();
+  try {
+    const raw = safeStorage.getItem('foody_deleted_shop_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(id => set.add(id));
+      }
+    }
+  } catch (e) { }
+  return set;
+}
+
+export function addDeletedShopId(id) {
+  if (!id) return;
+  try {
+    const set = getDeletedShopIds();
+    set.add(id);
+    safeStorage.setItem('foody_deleted_shop_ids', JSON.stringify(Array.from(set)));
+  } catch (e) { }
+}
+
+export function removeDeletedShopId(id) {
+  if (!id) return;
+  try {
+    const set = getDeletedShopIds();
+    set.delete(id);
+    safeStorage.setItem('foody_deleted_shop_ids', JSON.stringify(Array.from(set)));
+  } catch (e) { }
+}
+
+export function getCachedShops() {
+  const deletedSet = getDeletedShopIds();
+  try {
+    const raw = safeStorage.getItem('foody_cached_shops') || safeStorage.getItem('foody_cache_shops');
+    if (raw !== null && raw !== undefined) {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : parsed?.data;
+      if (Array.isArray(list) && list.length > 0) {
+        return list.filter(s => !deletedSet.has(s.id)).map(normalizeShop);
+      }
+    }
+  } catch (e) { }
+  return [];
+}
+
+export function saveCachedShops(shopsList) {
+  const deletedSet = getDeletedShopIds();
+  const normalized = (shopsList || []).filter(s => !deletedSet.has(s.id)).map(normalizeShop);
+  try {
+    safeStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
+    safeStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: Date.now() }));
+  } catch (e) { }
+  return normalized;
+}
+
+export function getDefaultActiveShopId() {
+  const list = getCachedShops();
+  const valid = list.find(s => s.isOpen !== false && s.is_deleted !== true) || list[0];
+  return valid ? valid.id : '';
+}
+
+export function setCachedItem(type, key, data) {
+  const now = Date.now();
+  if (type === 'shops') {
+    const normalized = Array.isArray(data) ? data.map(normalizeShop) : data;
+    memoryCache.shops = { data: normalized, timestamp: now };
+    try {
+      safeStorage.setItem('foody_cached_shops', JSON.stringify(normalized));
+      safeStorage.setItem('foody_cache_shops', JSON.stringify({ data: normalized, timestamp: now }));
+    } catch (e) { }
+  } else if (type === 'menus') {
+    memoryCache.menus[key] = { data, timestamp: now };
+    try {
+      safeStorage.setItem(`foody_cache_menu_${key}`, JSON.stringify({ data, timestamp: now }));
+    } catch (e) { }
+  } else if (type === 'orders') {
+    memoryCache.orders[key] = { data, timestamp: now };
+    try {
+      safeStorage.setItem(`foody_cache_orders_${key}`, JSON.stringify({ data, timestamp: now }));
+    } catch (e) { }
+  } else if (type === 'users') {
+    memoryCache.users = { data, timestamp: now };
+    try {
+      safeStorage.setItem('foody_cached_users', JSON.stringify(data));
+    } catch (e) { }
+  }
+}
+
+export function invalidateCache(type, key) {
+  if (type === 'shops') {
+    memoryCache.shops = { data: null, timestamp: 0 };
+    safeStorage.removeItem('foody_cache_shops');
+    safeStorage.removeItem('foody_cached_shops');
+  } else if (type === 'menus') {
+    if (key) {
+      delete memoryCache.menus[key];
+      delete memoryCache.menus['all'];
+      safeStorage.removeItem(`foody_cache_menu_${key}`);
+      safeStorage.removeItem(`foody_customer_menu_v3_${key}`);
+      safeStorage.removeItem(`foody_cache_menu_all`);
+      safeStorage.removeItem(`foody_customer_menu_v3_all`);
+    } else {
+      memoryCache.menus = {};
+      safeStorage.removeByPrefix('foody_cache_menu_');
+      safeStorage.removeByPrefix('foody_customer_menu_v3_');
+    }
+  } else if (type === 'orders') {
+    if (key) {
+      delete memoryCache.orders[key];
+      safeStorage.removeItem(`foody_cache_orders_${key}`);
+    } else {
+      memoryCache.orders = {};
+      safeStorage.removeByPrefix('foody_cache_orders_');
+    }
+  } else if (type === 'users') {
+    memoryCache.users = { data: null, timestamp: 0 };
+    safeStorage.removeItem('foody_cached_users');
+  } else if (type === 'presets') {
+    memoryCache.presets = { data: null, timestamp: 0 };
+    safeStorage.removeItem('foody_cached_presets');
+    safeStorage.removeItem('foody_cache_presets');
+  }
+}
+
+// ========================================================================
+// 2. SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
+// ========================================================================
+export async function getCloudShops() {
+  if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data) && memoryCache.shops.data.length > 0) {
+    return memoryCache.shops.data;
+  }
+
+  // Deduplicate concurrent in-flight calls
+  if (pendingRequests.has('getCloudShops')) {
+    return pendingRequests.get('getCloudShops');
+  }
+
+  const promise = (async () => {
+    try {
+      let res = await supabase.from('foody_shops').select('*').order('name');
+      if (res.error || !res.data || res.data.length === 0) {
+        res = await supabase.from('public_shop_catalog').select('*').order('name');
+      }
+
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+        const deletedSet = getDeletedShopIds();
+        const activeOnly = res.data.filter(d => d.is_active !== false && d.is_deleted !== true && !deletedSet.has(d.id));
+        const normalized = activeOnly.map(d => normalizeShop(d));
+        const finalShops = saveCachedShops(normalized);
+        memoryCache.shops = { data: finalShops, timestamp: Date.now() };
+        return finalShops;
+      }
+      const localCached = getCachedShops();
+      memoryCache.shops = { data: localCached, timestamp: Date.now() };
+      return localCached;
+    } catch (err) {
+      console.warn('Supabase getCloudShops notice:', err?.message);
+      const localCached = getCachedShops();
+      memoryCache.shops = { data: localCached, timestamp: Date.now() };
+      return localCached;
+    } finally {
+      pendingRequests.delete('getCloudShops');
+    }
+  })();
+
+  pendingRequests.set('getCloudShops', promise);
+  return promise;
+}
 
 // ========================================================================
 // 3. MENUS CLOUD APIS (PER-SHOP CACHING WITH DEDUPLICATION)
@@ -196,6 +849,55 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
     totalAmount,
     verifiedItems
   };
+}
+
+/**
+ * Validates whether a kitchen is currently open based on operating schedule and manual online status
+ */
+export function checkShopOperatingStatus(shop) {
+  if (!shop) return { isOpen: true, reason: 'ok' };
+
+  // 1. Manual switch check
+  if (shop.is_open === false || shop.isOpen === false || shop.is_online === false || shop.isOnline === false) {
+    return {
+      isOpen: false,
+      reason: 'manual_closed',
+      message: 'Kitchen is currently taking a break'
+    };
+  }
+
+  // 2. Schedule Operating Hours Check
+  const openTime = shop.operating_hours?.openTime || shop.payment_settings?.openingTime || shop.openingTime || '08:00';
+  const closeTime = shop.operating_hours?.closeTime || shop.payment_settings?.closingTime || shop.closingTime || '22:30';
+
+  const now = new Date();
+  const istFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false
+  });
+  const parts = istFormatter.formatToParts(now);
+  const curHour = parseInt(parts.find(p => p.type === 'hour')?.value || String(now.getHours()), 10);
+  const curMin = parseInt(parts.find(p => p.type === 'minute')?.value || String(now.getMinutes()), 10);
+  const curTotalMinutes = curHour * 60 + curMin;
+
+  const [openH, openM] = openTime.split(':').map(Number);
+  const [closeH, closeM] = closeTime.split(':').map(Number);
+  const openTotalMinutes = (openH || 8) * 60 + (openM || 0);
+  const closeTotalMinutes = (closeH || 22) * 60 + (closeM || 30);
+
+  if (curTotalMinutes < openTotalMinutes || curTotalMinutes > closeTotalMinutes) {
+    return {
+      isOpen: false,
+      reason: 'outside_hours',
+      message: `Kitchen closed. Opens daily at ${openTime}`,
+      openingTime: openTime,
+      closingTime: closeTime
+    };
+  }
+
+  return { isOpen: true, reason: 'ok', openingTime: openTime, closingTime: closeTime };
 }
 
 /**
@@ -2145,6 +2847,221 @@ export async function deleteCloudMenuItem(itemId, shopId = null) {
     console.error('deleteCloudMenuItem exception:', err);
     return false;
   }
+}
+
+// -------------------------------------------------------------
+// SHOPS & KITCHENS CRUD
+// -------------------------------------------------------------
+
+export async function createCloudShop(shopData) {
+  const shopId = shopData.id || `shop-vrinda-${Date.now().toString(36)}`;
+  removeDeletedShopId(shopId);
+  const onlinePayments = shopData.paymentSettings?.onlinePaymentsEnabled ?? shopData.onlinePaymentsEnabled ?? true;
+  const cod = shopData.paymentSettings?.codEnabled ?? shopData.codEnabled ?? true;
+
+  const normalized = normalizeShop({
+    id: shopId,
+    name: shopData.name || 'New Vrinda Kitchen',
+    address: shopData.address || 'Vrindavan Dham',
+    phone: shopData.phone || '+91 9876543210',
+    coordinates: shopData.coordinates || { lat: 27.5706, lng: 77.6593 },
+    isOpen: shopData.isOpen ?? true,
+    minimumOrderAmount: Number(shopData.minimumOrderAmount || 0),
+    deliveryCharge: Number(shopData.deliveryCharge || 0),
+    gstPercentage: Number(shopData.gstPercentage || 5),
+    paymentSettings: { onlinePaymentsEnabled: onlinePayments, codEnabled: cod },
+    onlinePaymentsEnabled: onlinePayments,
+    codEnabled: cod,
+    alarmSettings: shopData.alarmSettings || { kitchenNew: true, kitchenReady: false, deliveryReady: true }
+  });
+
+  const current = getCachedShops();
+  const nextList = [normalized, ...current.filter(s => s.id !== shopId)];
+  saveCachedShops(nextList);
+  memoryCache.shops = { data: nextList, timestamp: Date.now() };
+
+  dispatchSafeEvent('foody_shops_changed', {
+    shopId, shopData: normalized, shops: nextList
+  });
+
+  try {
+    const payload = {
+      id: normalized.id,
+      name: normalized.name,
+      address: normalized.address,
+      phone: normalized.phone,
+      coordinates: normalized.coordinates,
+      is_open: normalized.isOpen,
+      is_online: normalized.isOnline,
+      shop_type: normalized.shopType,
+      minimum_order_amount: normalized.minimumOrderAmount,
+      delivery_charge: normalized.deliveryCharge,
+      gst_percentage: normalized.gstPercentage,
+      operating_hours: {
+        openTime: normalized.openingTime,
+        closeTime: normalized.closingTime,
+        autoSchedule: true
+      },
+      payment_settings: {
+        ...normalized.paymentSettings,
+        shopType: normalized.shopType,
+        openingTime: normalized.openingTime,
+        closingTime: normalized.closingTime,
+        isOnline: normalized.isOnline
+      },
+      alarm_settings: normalized.alarmSettings,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase.from('foody_shops').upsert(payload, { onConflict: 'id' });
+    if (error) console.warn("createCloudShop cloud error:", error.message);
+  } catch (e) {
+    console.warn("createCloudShop cloud notice:", e);
+  }
+
+  return normalized;
+}
+
+export async function updateCloudShop(shopId, shopData) {
+  if (!shopId) return null;
+  try {
+    const currentList = getCachedShops();
+    let updatedShop = null;
+    let found = false;
+
+    const nextList = currentList.map(s => {
+      if (s.id === shopId) {
+        found = true;
+        const merged = { ...s, ...shopData };
+
+        if (shopData.paymentSettings) {
+          merged.paymentSettings = {
+            onlinePaymentsEnabled: shopData.paymentSettings.onlinePaymentsEnabled !== undefined ? shopData.paymentSettings.onlinePaymentsEnabled : (s.paymentSettings?.onlinePaymentsEnabled ?? true),
+            codEnabled: shopData.paymentSettings.codEnabled !== undefined ? shopData.paymentSettings.codEnabled : (s.paymentSettings?.codEnabled ?? true)
+          };
+          merged.onlinePaymentsEnabled = merged.paymentSettings.onlinePaymentsEnabled;
+          merged.codEnabled = merged.paymentSettings.codEnabled;
+        } else if (shopData.onlinePaymentsEnabled !== undefined || shopData.codEnabled !== undefined) {
+          merged.paymentSettings = {
+            onlinePaymentsEnabled: shopData.onlinePaymentsEnabled !== undefined ? shopData.onlinePaymentsEnabled : (s.onlinePaymentsEnabled ?? true),
+            codEnabled: shopData.codEnabled !== undefined ? shopData.codEnabled : (s.codEnabled ?? true)
+          };
+          merged.onlinePaymentsEnabled = merged.paymentSettings.onlinePaymentsEnabled;
+          merged.codEnabled = merged.paymentSettings.codEnabled;
+        }
+
+        updatedShop = normalizeShop(merged);
+        return updatedShop;
+      }
+      return normalizeShop(s);
+    });
+
+    if (!found) {
+      updatedShop = normalizeShop({ id: shopId, ...shopData });
+      nextList.push(updatedShop);
+    }
+
+    const saved = saveCachedShops(nextList);
+    memoryCache.shops = { data: saved, timestamp: Date.now() };
+
+    dispatchSafeEvent('foody_shops_changed', {
+      shopId, shopData: updatedShop, shops: saved
+    });
+
+    try {
+      const fullShopPayload = {
+        id: updatedShop.id,
+        name: updatedShop.name,
+        address: updatedShop.address,
+        phone: updatedShop.phone,
+        coordinates: updatedShop.coordinates,
+        is_open: updatedShop.isOpen,
+        is_online: updatedShop.isOnline,
+        shop_type: updatedShop.shopType,
+        minimum_order_amount: updatedShop.minimumOrderAmount,
+        delivery_charge: updatedShop.deliveryCharge,
+        gst_percentage: updatedShop.gstPercentage,
+        operating_hours: {
+          openTime: updatedShop.openingTime,
+          closeTime: updatedShop.closingTime,
+          autoSchedule: true
+        },
+        payment_settings: {
+          onlinePaymentsEnabled: updatedShop.onlinePaymentsEnabled,
+          codEnabled: updatedShop.codEnabled,
+          shopType: updatedShop.shopType,
+          openingTime: updatedShop.openingTime,
+          closingTime: updatedShop.closingTime,
+          isOnline: updatedShop.isOnline
+        },
+        alarm_settings: updatedShop.alarmSettings,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('foody_shops')
+        .upsert(fullShopPayload, { onConflict: 'id' });
+
+      if (error) {
+        console.warn("Supabase shop update note:", error.message);
+      }
+    } catch (sbErr) {
+      console.warn("Supabase shop update note:", sbErr?.message);
+    }
+
+    return updatedShop;
+  } catch (err) {
+    console.warn('updateCloudShop exception:', err.message);
+    return null;
+  }
+}
+
+export async function deleteCloudShop(shopId) {
+  if (!shopId) return false;
+  addDeletedShopId(shopId);
+
+  const current = getCachedShops();
+  const nextList = current.filter(s => s.id !== shopId);
+  saveCachedShops(nextList);
+  memoryCache.shops = { data: nextList, timestamp: Date.now() };
+
+  dispatchSafeEvent('foody_shops_changed', {
+    shopId, deleted: true, shops: nextList
+  });
+
+  try {
+    // 1. Reassign menu foreign keys if needed
+    const fallbackShop = getDefaultActiveShopId();
+    try {
+      if (!isTableWriteForbidden('foody_menus') && fallbackShop) await supabase.from('foody_menus').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+    } catch (e) { }
+
+    try {
+      if (!isTableWriteForbidden('foody_logged_users') && fallbackShop) await supabase.from('foody_logged_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+    } catch (e) { }
+
+    try {
+      if (!isTableWriteForbidden('foody_users') && fallbackShop) await supabase.from('foody_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+    } catch (e) { }
+
+    // 2. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)
+    try {
+      const { error } = await supabase.from('foody_shops').delete().eq('id', shopId);
+      if (error) {
+        // Fallback: Soft-delete in foody_shops
+        await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+      }
+    } catch (e) {
+      try {
+        await supabase.from('foody_shops').update({ is_active: false, is_deleted: true, is_online: false }).eq('id', shopId);
+      } catch (err) { }
+    }
+  } catch (e) {
+    console.warn("deleteCloudShop notice:", e);
+  }
+
+  return true;
 }
 
 export async function markCloudOrderCashCollected(orderId) {

@@ -15,6 +15,7 @@
     "lint:migrations": "node scripts/lint-migrations.js",
     "seed:beta": "node scripts/seed-synthetic-beta-data.js",
     "dr:verify": "node scripts/verify-dr-integrity.js",
+    "parity:verify": "node scripts/verify-supabase-parity.js",
     "test:db": "node scripts/test-database-sync.js",
     "test:security": "node scripts/test-adversarial-security.js",
     "test": "npm run test:db && npm run test:security",
