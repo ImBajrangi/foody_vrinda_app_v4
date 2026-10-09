@@ -225,17 +225,17 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 onClick={() => setActiveFilter(tab.id)}
                 className={`flex-1 py-2 px-3 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none border ${
                   isActive 
-                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#121011] border-amber-600 dark:border-[#FD9139] font-black shadow-sm' 
-                    : 'bg-stone-200/90 text-stone-800 dark:bg-[#282526] dark:text-zinc-200 border-stone-300/80 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/80'
+                    ? 'bg-[#FD9139] text-white border-[#FD9139] font-black shadow-md shadow-[#FD9139]/20' 
+                    : 'bg-white text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:text-zinc-200 border-stone-200 dark:border-white/10 dark:hover:text-white hover:bg-orange-50/60'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span className={`text-xs px-2 py-0.5 min-w-[20px] rounded-full font-black shrink-0 transition-all text-center inline-flex items-center justify-center leading-none ${
                   isActive 
-                    ? 'bg-white !text-[#1C1917] dark:bg-black dark:!text-[#FD9139] shadow-xs ring-1 ring-black/10 dark:ring-[#FD9139]/30' 
-                    : 'bg-stone-300/90 !text-[#1C1917] dark:bg-white/15 dark:!text-white'
+                    ? 'bg-white/25 text-white shadow-xs' 
+                    : 'bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
                 }`}>
-                  <span className="badge-count !text-[#1C1917] dark:!text-[#FD9139] font-black">
+                  <span className={`badge-count font-black ${isActive ? 'text-white' : 'text-stone-700 dark:text-zinc-300'}`}>
                     {tab.count}
                   </span>
                 </span>
@@ -341,7 +341,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                           e.stopPropagation();
                           handleNotificationItemClick(n.id, n.orderId);
                         }}
-                        className="h-9 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-95"
+                        className="h-9 px-4 rounded-xl bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-[#FD9139]/20 active:scale-95"
                       >
                         <span>Track Order</span>
                         <ArrowRight size={13} className="stroke-[3]" />

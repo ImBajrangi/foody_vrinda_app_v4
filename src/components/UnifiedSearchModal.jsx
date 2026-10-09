@@ -713,7 +713,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
                                 isAdded 
                                   ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-black' 
-                                  : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121011]'
+                                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-white'
                               }`}
                               title="Quick add to basket"
                             >
@@ -778,13 +778,13 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                                 </button>
                               </div>
 
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddDishWithQty(item, dishQty);
-                                }}
-                                className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
-                              >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddDishWithQty(item, dishQty);
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-2 bg-[#FD9139] hover:bg-[#FCA65E] text-white text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-md shadow-[#FD9139]/20"
+                                >
                                 <ShoppingBag size={14} />
                                 Add {dishQty > 1 ? `${dishQty} items` : ''} · ₹{item.price * dishQty}
                               </button>
@@ -953,7 +953,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               onSelectOrder(order.id, order);
                               handleAnimatedClose();
                             }}
-                            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
+                            className="w-full flex items-center justify-center gap-2 bg-[#FD9139] hover:bg-[#FCA65E] text-white text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-md shadow-[#FD9139]/20"
                           >
                             <Receipt size={13} />
                             {['delivered', 'cancelled'].includes(order.status) ? 'View Order Summary' : 'Live Track Order'}

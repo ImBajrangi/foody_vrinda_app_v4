@@ -1170,14 +1170,14 @@ export default function KitchenView() {
                     type="button"
                     onClick={() => setStockFilterTab(tab.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${stockFilterTab === tab.id
-                      ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] shadow-sm'
-                      : 'bg-stone-200/60 dark:bg-white/5 text-stone-700 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-white/10'
+                      ? 'bg-[#FD9139] text-white font-black shadow-sm'
+                      : 'bg-white hover:bg-orange-50/60 dark:bg-white/5 text-stone-700 dark:text-zinc-300 dark:hover:bg-white/10 border border-stone-200 dark:border-transparent'
                       }`}
                   >
                     <span>{tab.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${stockFilterTab === tab.id
-                      ? 'bg-black/20 text-white dark:bg-black/20 dark:text-[#1E1B1C]'
-                      : 'bg-stone-300 dark:bg-white/10 text-stone-600 dark:text-zinc-400'
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${stockFilterTab === tab.id
+                      ? 'bg-white/25 text-white'
+                      : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-zinc-400'
                       }`}>
                       {tab.count}
                     </span>

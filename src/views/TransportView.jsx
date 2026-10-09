@@ -1038,13 +1038,13 @@ export default function TransportView() {
           </button>
 
           {/* List vs Carto View Switcher: Ergonomic segmented control */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-stone-300/70 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-300 dark:border-white/10 shadow-inner w-full sm:w-auto shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-white/95 dark:bg-[#1E1B1C] p-1 rounded-full border border-stone-200 dark:border-white/10 shadow-sm w-full sm:w-auto shrink-0">
             <button
               data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
-                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-[#FD9139] text-white font-black shadow-sm'
+                : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
               <List size={14} className="shrink-0" />
@@ -1054,8 +1054,8 @@ export default function TransportView() {
               data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
-                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-[#FD9139] text-white font-black shadow-sm'
+                : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
               <Map size={14} className="shrink-0" />
@@ -1069,17 +1069,17 @@ export default function TransportView() {
       <div className="space-y-3">
         {/* Tab Switcher Pills & Direct Order Slip Trigger */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-stone-200/90 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 overflow-x-auto no-scrollbar shadow-inner flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/95 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 overflow-x-auto no-scrollbar shadow-sm flex-1 min-w-0">
             <button
               onClick={() => setRiderTab('active')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
-                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-white font-black shadow-[0_4px_20px_rgba(253,145,57,0.3)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
                 }`}
             >
               <Truck size={14} />
               <span>Today's Orders</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {activeTrips.length}
               </span>
             </button>
@@ -1087,13 +1087,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('upcoming')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
-                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-white font-black shadow-[0_4px_20px_rgba(253,145,57,0.3)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
                 }`}
             >
               <Clock size={14} />
               <span>Upcoming</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {upcomingPickups.length}
               </span>
             </button>
@@ -1101,13 +1101,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('completed')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
-                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-white font-black shadow-[0_4px_20px_rgba(253,145,57,0.3)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
                 }`}
             >
               <CheckCircle2 size={14} />
               <span>Completed Today</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {completedToday.length}
               </span>
             </button>
@@ -1115,13 +1115,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('all')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
-                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
-                : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-white font-black shadow-[0_4px_20px_rgba(253,145,57,0.3)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
                 }`}
             >
               <List size={14} />
               <span>Order History</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-black text-white' : 'bg-stone-300 dark:bg-white/10 text-stone-700 dark:text-neutral-300'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {orders.length}
               </span>
             </button>
@@ -1131,10 +1131,10 @@ export default function TransportView() {
           <button
             type="button"
             onClick={handleDownloadShiftSlip}
-            className="h-10 px-4 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
+            className="h-10 px-4 rounded-full bg-white hover:bg-orange-50/70 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-[#FD9139] dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
             title="Download or Print Today's Order Report as PDF"
           >
-            <FileDown size={15} className="text-amber-600 dark:text-[#FD9139]" strokeWidth={2.5} />
+            <FileDown size={15} className="text-[#FD9139]" strokeWidth={2.5} />
             <span className="whitespace-nowrap">Order Slip (PDF)</span>
           </button>
         </div>

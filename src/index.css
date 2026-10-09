@@ -2902,36 +2902,36 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 /* Active Store / Tab / Category pill */
 .dark .category-pill-active,
 [data-theme="dark"] .category-pill-active {
-  background-color: #FD9139 !important;
+  background: linear-gradient(135deg, #FD9139 0%, #FCA65E 100%) !important;
   color: #121011 !important;
   font-weight: 900 !important;
-  border-color: #FD9139 !important;
-  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  /* box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important; */
 }
 
-.dark .category-pill-active>span:not([class*="bg-black"]):not([class*="bg-stone"]):not(.badge-count),
-[data-theme="dark"] .category-pill-active>span:not([class*="bg-black"]):not([class*="bg-stone"]):not(.badge-count) {
-  color: #121011 !important;
-}
+
 
 .light .category-pill-active,
-[data-theme="light"] .category-pill-active {
-  background-color: #1C1917 !important;
+[data-theme="light"] .category-pill-active,
+.dark .category-pill-active,
+[data-theme="dark"] .category-pill-active,
+.category-pill-active {
+  background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
   color: #FFFFFF !important;
-  font-weight: 900 !important;
-  border-color: #1C1917 !important;
-  box-shadow: none !important;
+  font-weight: 800 !important;
+  border-color: #FD9139 !important;
+  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
 }
 
-.light .category-pill-active>span:not([class*="bg-white"]):not([class*="bg-stone"]):not(.badge-count),
-[data-theme="light"] .category-pill-active>span:not([class*="bg-white"]):not([class*="bg-stone"]):not(.badge-count) {
+.category-pill-active *,
+.light .category-pill-active *,
+.dark .category-pill-active * {
   color: #FFFFFF !important;
 }
 
 .light .bg-white.text-\[\#1E1B1C\] {
-  background-color: #1C1917 !important;
+  background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: none !important;
 }
 
 /* 7. Modal & Drawer Containers in Light Mode */
@@ -2970,19 +2970,21 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #44403C !important;
 }
 
-/* Order Now CTA button inside dish cards must stay obsidian with crisp white text */
-.light [class*="bg-[#CEF3E7]"] button[class*="bg-[#1E1B1C]"],
-.light [class*="bg-[#FFF2E6]"] button[class*="bg-[#1E1B1C]"],
-.light [class*="bg-[#CEF3E7]"] div[class*="bg-[#1E1B1C]"],
-.light [class*="bg-[#FFF2E6]"] div[class*="bg-[#1E1B1C]"] {
-  background-color: #1E1B1C !important;
+/* Order Now CTA button inside dish cards: Swiggy radiant orange on light & dark surfaces with crisp white text */
+.dish-card-order-btn,
+.light .dish-card-order-btn,
+.dark .dish-card-order-btn,
+.light [class*="bg-[#CEF3E7]"] button.dish-card-order-btn,
+.light [class*="bg-[#FFF2E6]"] button.dish-card-order-btn {
+  background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
   color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
 }
 
-.light [class*="bg-[#CEF3E7]"] button[class*="bg-[#1E1B1C]"] *,
-.light [class*="bg-[#FFF2E6]"] button[class*="bg-[#1E1B1C]"] *,
-.light [class*="bg-[#CEF3E7]"] div[class*="bg-[#1E1B1C]"] *,
-.light [class*="bg-[#FFF2E6]"] div[class*="bg-[#1E1B1C]"] * {
+.dish-card-order-btn *,
+.light .dish-card-order-btn *,
+.dark .dish-card-order-btn * {
   color: #FFFFFF !important;
 }
 
@@ -3020,28 +3022,21 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 
 /* 10b. Platform-Wide Light Mode Visibility Guardians (Zero Washed-Out Contrast) */
 
-/* A. High-Contrast Obsidian Enforcement for Dark Elements in Light Mode */
+/* A. High-Contrast Enforcement for Category Pills */
 .category-pill-active,
 .light .category-pill-active,
 [data-theme="light"] .category-pill-active,
-.light button.category-pill-active,
-.light .category-pill-active *,
-.light button.category-pill-active * {
-  background-color: #1C1917 !important;
-  color: #FFFFFF !important;
-  font-weight: 800 !important;
-  border-color: #1C1917 !important;
-}
-
 .dark .category-pill-active,
 [data-theme="dark"] .category-pill-active,
+.light button.category-pill-active,
 .dark button.category-pill-active,
-.dark .category-pill-active *,
-.dark button.category-pill-active * {
-  background-color: #FD9139 !important;
-  color: #121011 !important;
+.light .category-pill-active *,
+.dark .category-pill-active * {
+  background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
+  color: #FFFFFF !important;
   font-weight: 800 !important;
   border-color: #FD9139 !important;
+  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
 }
 
 /* Guaranteed High-Contrast Text for Dark CTAs in Light Mode (Without breaking light surfaces) */
@@ -3145,33 +3140,47 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* Dedicated Stepper Capsule Styling (Theme-Adaptive CSS) */
-.stepper-capsule {
-  background-color: #1C1917 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+.stepper-capsule,
+.light .stepper-capsule,
+.dark .stepper-capsule {
+  background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
+  border-color: #FD9139 !important;
+  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
 }
 
-.light .stepper-capsule {
-  background-color: #1C1917 !important;
-  border-color: rgba(0, 0, 0, 0.15) !important;
-}
-
-.stepper-capsule .stepper-btn-minus {
-  background-color: #292524 !important;
-}
-
-.stepper-capsule .stepper-btn-plus {
-  background-color: var(--accent-primary) !important;
-  color: var(--accent-text) !important;
-}
-
-.stepper-capsule .stepper-btn-plus * {
-  color: var(--accent-text) !important;
-  stroke: var(--accent-text) !important;
-}
-
-.stepper-capsule .stepper-qty {
+.stepper-capsule .stepper-btn-minus,
+.light .stepper-capsule .stepper-btn-minus,
+.dark .stepper-capsule .stepper-btn-minus {
+  background-color: rgba(0, 0, 0, 0.15) !important;
   color: #FFFFFF !important;
-  font-weight: 800 !important;
+}
+
+.stepper-capsule .stepper-btn-minus *,
+.light .stepper-capsule .stepper-btn-minus *,
+.dark .stepper-capsule .stepper-btn-minus * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+.stepper-capsule .stepper-btn-plus,
+.light .stepper-capsule .stepper-btn-plus,
+.dark .stepper-capsule .stepper-btn-plus {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+}
+
+.stepper-capsule .stepper-btn-plus *,
+.light .stepper-capsule .stepper-btn-plus *,
+.dark .stepper-capsule .stepper-btn-plus * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+.stepper-capsule .stepper-qty,
+.light .stepper-capsule .stepper-qty,
+.dark .stepper-capsule .stepper-qty {
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
 }
 
 /* B. Non-Button High-Contrast Text Mapping for Light Mode Containers */
@@ -3416,7 +3425,7 @@ label {
   position: absolute;
   inset: -3px;
   border-radius: 9999px;
-  background: conic-gradient(from 0deg, #FD9139, #FF9933, #F59E0B, #10B981, #FD9139);
+  background: conic-gradient(from 0deg, #FD9139, #FCA65E, #AD4728, #FD9139);
   animation: satvikRingRotate 6s linear infinite;
   z-index: 0;
 }

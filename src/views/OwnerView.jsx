@@ -1372,7 +1372,7 @@ export default function OwnerView() {
       </div>
 
       {/* Dedicated Full-Width Segmented Tab Navigation */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 overflow-x-auto no-scrollbar shadow-xl">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/95 dark:bg-[#282526] border border-stone-200/90 dark:border-white/5 overflow-x-auto no-scrollbar shadow-md">
         {[
           {
             id: 'orders',
@@ -1400,14 +1400,14 @@ export default function OwnerView() {
                 }
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${isActive
-                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-lg font-black'
-                : 'text-stone-700 hover:text-stone-950 hover:bg-stone-300/60 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-[#322E30]'
+                ? 'bg-[#FD9139] text-white shadow-lg shadow-[#FD9139]/20 font-black'
+                : 'text-stone-700 hover:text-[#FD9139] hover:bg-orange-50/60 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-[#322E30]'
                 }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
               {Boolean(tab.badge) && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-amber-300 dark:bg-black dark:text-[#FD9139]' : 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black'
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-white/25 text-white' : 'bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-neutral-300'
                   }`}>
                   {tab.badge}
                 </span>
@@ -1482,15 +1482,15 @@ export default function OwnerView() {
                         key={f.id}
                         onClick={() => setOrderStatusFilter(f.id)}
                         className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 select-none whitespace-nowrap active:scale-95 ${isActive
-                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm'
-                          : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 hover:border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
+                          ? 'bg-[#FD9139] text-white border-[#FD9139] font-black shadow-md shadow-[#FD9139]/20'
+                          : 'bg-white hover:bg-orange-50/60 text-stone-700 hover:text-stone-950 border-stone-200 hover:border-orange-200 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
                           }`}
                       >
                         <span className="hidden sm:inline">{f.label}</span>
                         <span className="sm:hidden">{f.shortLabel}</span>
                         <span className={`text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full font-black tracking-wide ${isActive
-                          ? 'bg-white text-stone-900 dark:bg-black dark:text-[#FD9139] shadow-xs'
-                          : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
+                          ? 'bg-white/25 text-white'
+                          : 'bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-neutral-300'
                           }`}>
                           {f.count}
                         </span>

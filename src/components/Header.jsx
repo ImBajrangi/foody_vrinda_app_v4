@@ -185,9 +185,9 @@ export default function Header({
                       <defs>
                         <linearGradient id="satvikThemeRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#FD9139" />
-                          <stop offset="35%" stopColor="#FF9933" />
-                          <stop offset="70%" stopColor="#F59E0B" />
-                          <stop offset="100%" stopColor="#10B981" />
+                          <stop offset="35%" stopColor="#FCA65E" />
+                          <stop offset="70%" stopColor="#AD4728" />
+                          <stop offset="100%" stopColor="#FD9139" />
                         </linearGradient>
                       </defs>
 
@@ -291,13 +291,13 @@ export default function Header({
 
         {/* Operational View Switcher (Desktop md+ Pill Strip) */}
         {hasStaffOrSpecialRole && (
-          <div data-tour="role-switcher" className="hidden md:flex bg-stone-200/90 dark:bg-[#282526] p-1 rounded-full border border-stone-300 dark:border-white/10 gap-1 shadow-sm">
+          <div data-tour="role-switcher" className="hidden md:flex bg-white/95 dark:bg-[#282526] p-1 rounded-full border border-stone-200 dark:border-white/10 gap-1 shadow-sm">
             <button 
               onClick={() => setCurrentTab('customer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'customer' 
-                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
-                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                  ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-xs' 
+                  : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Store
@@ -308,8 +308,8 @@ export default function Header({
                 onClick={() => setCurrentTab('kitchen')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'kitchen' 
-                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
-                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                    ? 'bg-[#FD9139] text-white font-black shadow-sm' 
+                    : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Kitchen
@@ -321,8 +321,8 @@ export default function Header({
                 onClick={() => setCurrentTab('delivery')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'delivery' 
-                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
-                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                    ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-xs' 
+                    : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Rider
@@ -335,7 +335,7 @@ export default function Header({
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'owner' 
                     ? 'bg-purple-600 dark:bg-[#A855F7] text-white font-black shadow-sm' 
-                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                    : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Owner
@@ -348,7 +348,7 @@ export default function Header({
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'developer' 
                     ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-black shadow-sm' 
-                    : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                    : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
                 Dev
@@ -368,8 +368,8 @@ export default function Header({
               title="Open Basket"
               aria-label="Open Basket"
             >
-              <ShoppingBag size={17} className="text-amber-600 dark:text-[#FD9139]" />
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
+              <ShoppingBag size={17} className="text-[#FD9139]" />
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FD9139] text-white text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
                 {totalQty}
               </span>
             </button>
@@ -382,10 +382,10 @@ export default function Header({
             /* Logged-Out Quick Sign In Button */
             <button
               onClick={() => onToggleAuth?.('login')}
-              className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] hover:opacity-90 font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
               title="Sign in to your account"
             >
-              <LogIn size={13} className="text-white dark:text-[#121011]" />
+              <LogIn size={13} className="text-white" />
               <span>Sign In</span>
             </button>
           ) : (
@@ -399,7 +399,7 @@ export default function Header({
                   className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/15 hover:bg-amber-500/20 dark:hover:bg-[#FD9139]/25 border border-amber-500/30 dark:border-[#FD9139]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
                   title="FV Dynasty Rewards & Referral Hub"
                 >
-                  <Coins size={15} className="text-amber-600 dark:text-[#FD9139]" />
+                  <Coins size={15} className="text-[#FD9139]" />
                   <span className="text-xs font-black font-outfit font-sans text-amber-700 dark:text-[#FD9139]">
                     {walletData?.available_points ?? 0}
                     <span className="hidden sm:inline ml-0.5 text-[10px] font-bold text-stone-500 dark:text-zinc-400">FV</span>
@@ -416,7 +416,7 @@ export default function Header({
               >
                 <Bell size={16} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 dark:bg-[#FD9139] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-[#FD9139] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm"></span>
                 )}
               </button>
             </div>
@@ -426,13 +426,13 @@ export default function Header({
 
       {/* Mobile Dedicated Operational View Switcher (Full-Width Flexible Grid with balanced touch targets) */}
       {hasStaffOrSpecialRole && (
-        <div className="grid grid-flow-col auto-cols-fr md:hidden bg-stone-200/90 dark:bg-[#282526] p-1 rounded-2xl border border-stone-300 dark:border-white/10 shadow-sm mt-1.5 mb-2.5 w-full gap-1">
+        <div className="grid grid-flow-col auto-cols-fr md:hidden bg-white/95 dark:bg-[#282526] p-1 rounded-2xl border border-stone-200 dark:border-white/10 shadow-sm mt-1.5 mb-2.5 w-full gap-1">
           <button 
             onClick={() => setCurrentTab('customer')}
             className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
               currentTab === 'customer' 
-                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
-                : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs' 
+                : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
             }`}
           >
             Store
@@ -443,8 +443,8 @@ export default function Header({
               onClick={() => setCurrentTab('kitchen')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'kitchen' 
-                  ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] font-black shadow-xs' 
-                  : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                  ? 'bg-[#FD9139] text-white font-black shadow-xs' 
+                  : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
               Kitchen

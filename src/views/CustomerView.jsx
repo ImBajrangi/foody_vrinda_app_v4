@@ -138,7 +138,7 @@ const MenuItemCard = memo(function MenuItemCard({
               Out of Stock
             </span>
           ) : item.isCombo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#FD9139] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FD9139]/15 dark:bg-[#FD9139]/20 text-[#FD9139] border border-[#FD9139]/30 text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
               <Sparkles size={11} className="text-[#FD9139]" />
               {item.tag || 'Combo Offer'}
             </span>
@@ -165,7 +165,7 @@ const MenuItemCard = memo(function MenuItemCard({
       <div className="mt-3 sm:mt-4 z-10">
         <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
           <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
-            quantityInCart > 0 ? 'text-amber-600 dark:text-[#FD9139]' : 'text-stone-900 dark:text-white'
+            quantityInCart > 0 ? 'text-[#FD9139]' : 'text-stone-900 dark:text-white'
           }`}>
             ₹{activePrice}
           </span>
@@ -192,7 +192,7 @@ const MenuItemCard = memo(function MenuItemCard({
               e.stopPropagation();
               onAddToCart(item);
             }}
-            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
+            className="dish-card-order-btn h-10 sm:h-11 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-md shadow-[#FD9139]/25 transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
           >
             <span>Order Now</span>
             <ChevronRight size={14} strokeWidth={3} />
@@ -201,7 +201,7 @@ const MenuItemCard = memo(function MenuItemCard({
           <div
             data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
             onClick={(e) => e.stopPropagation()}
-            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-stone-900 dark:bg-[#1E1B1C] border border-stone-800 dark:border-white/10 rounded-full p-1 shadow-md select-none touch-manipulation"
+            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-[#FD9139] text-white rounded-full p-1 shadow-md shadow-[#FD9139]/30 select-none touch-manipulation gap-0.5"
           >
             <button
               type="button"
@@ -209,20 +209,19 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
               }}
-              style={{ backgroundColor: '#292524' }}
-              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-stone-700 active:scale-85 active:bg-red-500/25 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/15 hover:bg-black/25 active:scale-85 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0 text-white"
               title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
               aria-label="Decrease quantity"
             >
               {quantityInCart === 1 ? (
-                <Trash2 size={15} strokeWidth={2.5} className="text-red-400 stroke-red-400" />
+                <Trash2 size={15} strokeWidth={2.5} className="text-white stroke-white" />
               ) : (
                 <Minus size={15} strokeWidth={3} className="text-white" />
               )}
             </button>
 
             <span
-              className="stepper-qty px-2.5 sm:px-3 text-xs sm:text-sm font-extrabold !text-white font-['Outfit'] min-w-[28px] sm:min-w-[32px] text-center select-none"
+              className="stepper-qty px-2 sm:px-2.5 text-xs sm:text-sm font-black !text-white font-['Outfit'] min-w-[24px] sm:min-w-[28px] text-center select-none"
             >
               {quantityInCart}
             </span>
@@ -233,11 +232,11 @@ const MenuItemCard = memo(function MenuItemCard({
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-sm text-stone-950 font-black touch-manipulation apple-tap-target shrink-0"
+              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/25 hover:bg-white/35 active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-xs text-white font-black touch-manipulation apple-tap-target shrink-0"
               title="Add another"
               aria-label="Increase quantity"
             >
-              <Plus size={16} strokeWidth={3.5} />
+              <Plus size={16} strokeWidth={3.5} className="text-white" />
             </button>
           </div>
         )}
@@ -1744,11 +1743,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
-                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs'
-                  : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
+                  ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-md shadow-[#FD9139]/25'
+                  : 'bg-white hover:bg-orange-50/60 text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-200 dark:border-white/10 shadow-xs'
                   }`}
               >
-                <span className={isSelected ? 'text-white dark:text-[#121011]' : ''}>{cat}</span>
+                <span>{cat}</span>
               </button>
             );
           })}
@@ -1812,10 +1811,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs shadow-md shadow-[#FD9139]/25 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
               >
-                <span className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
-                  <Navigation className="w-3 h-3 text-white dark:text-[#121011] fill-current" />
+                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <Navigation className="w-3 h-3 text-white fill-current" />
                 </span>
                 <span>Live Map Track</span>
               </button>
@@ -1843,7 +1842,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       ) : filteredMenuItems.length === 0 ? (
         <div className="bg-stone-100 dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-8 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200 dark:border-white/5 flex flex-col items-center justify-center animate-fade-in shadow-xs">
           <div className="w-14 h-14 rounded-2xl bg-stone-200/80 dark:bg-white/5 flex items-center justify-center mb-3">
-            <Soup size={32} className="text-amber-600 dark:text-[#FD9139]" />
+            <Soup size={32} className="text-[#FD9139]" />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
             {menuSearch ? `No "${menuSearch}" found in this kitchen` : 'No items found'}
@@ -1859,7 +1858,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
               }}
-              className="mt-4 px-4.5 py-2.5 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black text-xs flex items-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all hover:opacity-90"
+              className="mt-4 px-4.5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs flex items-center gap-2 shadow-md shadow-[#FD9139]/25 cursor-pointer active:scale-95 transition-all"
             >
               <Globe size={14} />
               <span>Search "{menuSearch}" in All Vrindavan Kitchens</span>

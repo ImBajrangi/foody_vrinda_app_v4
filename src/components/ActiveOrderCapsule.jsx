@@ -245,7 +245,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
 
       {/* Trailing Theme-Native Time Pill & Expand Trigger */}
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 pl-0.5">
-        <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
+        <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black font-['Outfit'] bg-[#FD9139] hover:bg-[#FCA65E] text-white shadow-xs shrink-0 transition-colors">
           <Clock className="w-3 h-3 stroke-[2.8]" />
           <span>{isCompleted ? 'Done' : statusInfo.timeText}</span>
         </div>
