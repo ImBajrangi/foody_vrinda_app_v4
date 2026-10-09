@@ -500,9 +500,9 @@ export default function KitchenView() {
             const el = document.getElementById(`kitchen-order-${alert.orderId}`);
             if (el) {
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              el.classList.add('ring-4', 'ring-[#E0FF33]', 'scale-[1.02]');
+              el.classList.add('ring-4', 'ring-[#FD9139]', 'scale-[1.02]');
               setTimeout(() => {
-                el.classList.remove('ring-4', 'ring-[#E0FF33]', 'scale-[1.02]');
+                el.classList.remove('ring-4', 'ring-[#FD9139]', 'scale-[1.02]');
               }, 2500);
             }
           }
@@ -521,7 +521,7 @@ export default function KitchenView() {
       {/* HEADER OPERATIONS BAR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden relative">
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-sm">
             <ChefHat size={22} strokeWidth={2.5} />
           </div>
           <div className="min-w-0 flex-1">
@@ -531,7 +531,7 @@ export default function KitchenView() {
               </h1>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${
                 isolatedOrders.length > 0
-                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs'
+                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs'
                   : 'bg-stone-300/60 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border border-stone-300 dark:border-white/10'
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${isolatedOrders.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
@@ -539,7 +539,7 @@ export default function KitchenView() {
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-medium mt-1 flex items-center gap-1.5">
-              <MapPin size={12} className="text-amber-600 dark:text-[#E0FF33] shrink-0 opacity-80" />
+              <MapPin size={12} className="text-amber-600 dark:text-[#FD9139] shrink-0 opacity-80" />
               <span className="truncate">{currentShop ? (currentShop.address || 'Live Satvik preparation board & instant kitchen dispatch') : 'Assigned kitchen is inactive or unavailable'}</span>
             </p>
           </div>
@@ -611,7 +611,7 @@ export default function KitchenView() {
           <button
             data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(224,255,51,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(253, 145, 57,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="whitespace-nowrap">Create Order</span>
@@ -640,7 +640,7 @@ export default function KitchenView() {
       {isDevOrAdmin && allShops.length > 1 && (
         <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
           <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-outfit font-sans">
-            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
             Switch Kitchen:
           </span>
           <SearchableDropdown
@@ -676,7 +676,7 @@ export default function KitchenView() {
         </div>
       ) : isolatedOrders.length === 0 ? (
         <div data-tour="restaurant-orders restaurant-manage-orders" className="bg-white dark:bg-[#282526] rounded-2xl sm:rounded-[36px] p-6 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200/90 dark:border-white/5 flex flex-col items-center justify-center shadow-sm">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center mb-3 border border-amber-500/30 dark:border-[#E0FF33]/30 shadow-xs">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center mb-3 border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs">
             <CheckCircle2 size={24} className="sm:w-7 sm:h-7" strokeWidth={2.5} />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg font-outfit font-sans">All Orders Prepared</p>
@@ -692,7 +692,7 @@ export default function KitchenView() {
                 key={order.id}
                 id={`kitchen-order-${order.id}`}
                 style={{ animationDelay: `${idx * 60}ms` }}
-                className={`customer-card-pop bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20 shadow-[0_10px_30px_rgba(217,119,6,0.08)] dark:shadow-[0_10px_30px_rgba(224,255,51,0.06)]' : 'border-stone-300 dark:border-white/10'
+                className={`customer-card-pop bg-white dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-5 sm:p-6 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all duration-300 ${isNew ? 'border-amber-500/40 dark:border-[#FD9139]/40 ring-1 ring-amber-500/20 dark:ring-[#FD9139]/20 shadow-[0_10px_30px_rgba(217,119,6,0.08)] dark:shadow-[0_10px_30px_rgba(253, 145, 57,0.06)]' : 'border-stone-300 dark:border-white/10'
                   }`}
               >
                 <div>
@@ -700,7 +700,7 @@ export default function KitchenView() {
                   <div className="flex justify-between items-start gap-2 mb-3">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <ShoppingBag size={15} className="text-amber-600 dark:text-[#E0FF33]" />
+                        <ShoppingBag size={15} className="text-amber-600 dark:text-[#FD9139]" />
                         <h3 className="font-black text-stone-900 dark:text-white text-sm sm:text-base font-outfit font-sans">
                           Order #{order.id.slice(-6).toUpperCase()}
                         </h3>
@@ -712,7 +712,7 @@ export default function KitchenView() {
                     </div>
 
                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
-                      ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-xs'
+                      ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] shadow-xs'
                       : ['ready_for_pickup', 'ready'].includes(order.status)
                         ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
                         : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
@@ -745,7 +745,7 @@ export default function KitchenView() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <a
                             href={`tel:${order.customerPhone}`}
-                            className="text-amber-700 dark:text-[#E0FF33] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                            className="text-amber-700 dark:text-[#FD9139] hover:underline flex items-center gap-1 font-bold text-[11px]"
                             title="Call Customer"
                           >
                             <Phone size={11} />
@@ -817,7 +817,7 @@ export default function KitchenView() {
                       {order.items?.map((item, i) => (
                         <div key={item.id || i} className="py-2 text-xs flex justify-between items-start gap-2">
                           <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <span className="w-5 h-5 rounded-full bg-stone-200 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-[#E0FF33] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded-full bg-stone-200 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-[#FD9139] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                               {item.quantity}x
                             </span>
                             <div className="min-w-0 flex-1">
@@ -826,13 +826,13 @@ export default function KitchenView() {
                                   {item.name}
                                 </span>
                                 {(item.isCombo || item.comboItems) && (
-                                  <span className="text-[8.5px] font-black uppercase bg-amber-500/15 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-1.5 py-0.2 rounded font-bold">
+                                  <span className="text-[8.5px] font-black uppercase bg-amber-500/15 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-1.5 py-0.2 rounded font-bold">
                                     Combo
                                   </span>
                                 )}
                               </div>
                               {item.comboItems && (
-                                <div className="text-[10px] text-stone-600 dark:text-zinc-400 mt-0.5 space-y-0.5 pl-1 border-l border-amber-500/40 dark:border-[#E0FF33]/30">
+                                <div className="text-[10px] text-stone-600 dark:text-zinc-400 mt-0.5 space-y-0.5 pl-1 border-l border-amber-500/40 dark:border-[#FD9139]/30">
                                   {item.comboItems.map((ci, cidx) => (
                                     <p key={cidx}>• {ci}</p>
                                   ))}
@@ -862,13 +862,13 @@ export default function KitchenView() {
                 {/* Status Update Action Button */}
                 <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">
                   {['ready_for_pickup', 'ready'].includes(order.status) ? (
-                    <div className="w-full bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/30 rounded-2xl p-3 text-center space-y-1">
-                      <div className="flex items-center justify-center gap-1.5 text-amber-700 dark:text-[#E0FF33] font-black text-xs uppercase tracking-wider">
+                    <div className="w-full bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 rounded-2xl p-3 text-center space-y-1">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-700 dark:text-[#FD9139] font-black text-xs uppercase tracking-wider">
                         <PackageCheck size={15} />
                         <span>Awaiting Sarathi Pickup</span>
                       </div>
                       <p className="text-[11px] text-stone-600 dark:text-zinc-400">
-                        Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#E0FF33] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#E0FF33]/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                        Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#FD9139] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#FD9139]/20">{getOrderOTP(order.id, 'pickup')}</strong>
                       </p>
                     </div>
                   ) : isNew ? (
@@ -902,7 +902,7 @@ export default function KitchenView() {
         {/* Sales & Revenue Card */}
         <div data-tour="restaurant-sales" className="p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
               <TrendingUp size={20} strokeWidth={2.5} />
             </div>
             <div>
@@ -932,7 +932,7 @@ export default function KitchenView() {
             href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
             target="_blank"
             rel="noopener noreferrer"
-            className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target"
+            className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target"
           >
             <MessageCircle size={14} />
             <span>Channel</span>
@@ -955,7 +955,7 @@ export default function KitchenView() {
             {/* Header */}
             <div className="flex justify-between items-center pb-4 border-b border-stone-200 dark:border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33]">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139]">
                   <Plus size={20} strokeWidth={3} />
                 </div>
                 <div>
@@ -1030,7 +1030,7 @@ export default function KitchenView() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-outfit font-sans">Select Satvik Dishes</h4>
-                    <span className="text-[11px] text-amber-700 dark:text-[#E0FF33] font-bold">
+                    <span className="text-[11px] text-amber-700 dark:text-[#FD9139] font-bold">
                       {manualCart.filter(i => i.quantity > 0).length} selected
                     </span>
                   </div>
@@ -1076,13 +1076,13 @@ export default function KitchenView() {
                               <Minus size={11} strokeWidth={2.5} />
                             )}
                           </button>
-                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#E0FF33] font-outfit font-sans select-none">
+                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#FD9139] font-outfit font-sans select-none">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleUpdateManualQty(item.id, 1)}
-                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#ccff00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
                           >
                             <Plus size={11} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
@@ -1095,7 +1095,7 @@ export default function KitchenView() {
                   {/* Total Bill Box */}
                   <div className="bg-stone-100 dark:bg-[#151314] rounded-2xl p-3.5 border border-stone-200 dark:border-white/5 flex justify-between items-center mt-3">
                     <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider">Total Bill (COD)</span>
-                    <span className="text-lg font-black text-stone-950 dark:text-[#E0FF33]">
+                    <span className="text-lg font-black text-stone-950 dark:text-[#FD9139]">
                       ₹{manualCart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
                     </span>
                   </div>
@@ -1104,7 +1104,7 @@ export default function KitchenView() {
 
               <button
                 type="submit"
-                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
+                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
               >
                 <Check size={18} strokeWidth={3} />
                 <span>Confirm & Create Kitchen Order</span>
@@ -1170,7 +1170,7 @@ export default function KitchenView() {
                     type="button"
                     onClick={() => setStockFilterTab(tab.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${stockFilterTab === tab.id
-                      ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-sm'
+                      ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] shadow-sm'
                       : 'bg-stone-200/60 dark:bg-white/5 text-stone-700 dark:text-zinc-400 hover:bg-stone-200 dark:hover:bg-white/10'
                       }`}
                   >

@@ -100,18 +100,18 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
     }
     if (text.includes('sarathi') || text.includes('rider') || text.includes('on the way') || text.includes('dispatched') || text.includes('on way')) {
       return {
-        icon: <Bike size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+        icon: <Bike size={18} className="text-amber-600 dark:text-[#FD9139] stroke-[2.3]" />,
         iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
         tag: 'On Way',
-        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/35'
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/35'
       };
     }
     if (text.includes('cooking') || text.includes('prep') || text.includes('kitchen') || text.includes('prasad') || text.includes('bhog')) {
       return {
-        icon: <Utensils size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+        icon: <Utensils size={18} className="text-amber-600 dark:text-[#FD9139] stroke-[2.3]" />,
         iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
         tag: 'Kitchen',
-        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/35'
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/35'
       };
     }
     if (text.includes('placed') || text.includes('order')) {
@@ -131,7 +131,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
       };
     }
     return {
-      icon: <Sparkles size={18} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.3]" />,
+      icon: <Sparkles size={18} className="text-amber-600 dark:text-[#FD9139] stroke-[2.3]" />,
       iconBg: 'bg-amber-500/15 dark:bg-white/10 border-amber-500/30 dark:border-white/15',
       tag: 'System',
       tagBg: 'bg-stone-200/90 text-stone-800 dark:bg-white/15 dark:text-zinc-100 border-stone-300 dark:border-white/15'
@@ -182,7 +182,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
           className="px-5 py-4 flex justify-between items-center bg-[#FAF7F2] dark:bg-[#1E1B1C] select-none"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-white/10 border border-amber-500/30 dark:border-white/15 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-white/10 border border-amber-500/30 dark:border-white/15 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs shrink-0">
               <Bell size={20} className="stroke-[2.3]" />
             </div>
             <div>
@@ -191,7 +191,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                   Notifications
                 </h3>
                 {unreadCount > 0 && (
-                  <span className="bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black text-xs font-black px-2.5 py-0.5 rounded-full leading-tight shadow-xs">
+                  <span className="bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black text-xs font-black px-2.5 py-0.5 rounded-full leading-tight shadow-xs">
                     {unreadCount} new
                   </span>
                 )}
@@ -225,17 +225,17 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 onClick={() => setActiveFilter(tab.id)}
                 className={`flex-1 py-2 px-3 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer select-none border ${
                   isActive 
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] font-black shadow-sm' 
+                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#121011] border-amber-600 dark:border-[#FD9139] font-black shadow-sm' 
                     : 'bg-stone-200/90 text-stone-800 dark:bg-[#282526] dark:text-zinc-200 border-stone-300/80 dark:border-white/10 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/80'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span className={`text-xs px-2 py-0.5 min-w-[20px] rounded-full font-black shrink-0 transition-all text-center inline-flex items-center justify-center leading-none ${
                   isActive 
-                    ? 'bg-white !text-[#1C1917] dark:bg-black dark:!text-[#E0FF33] shadow-xs ring-1 ring-black/10 dark:ring-[#E0FF33]/30' 
+                    ? 'bg-white !text-[#1C1917] dark:bg-black dark:!text-[#FD9139] shadow-xs ring-1 ring-black/10 dark:ring-[#FD9139]/30' 
                     : 'bg-stone-300/90 !text-[#1C1917] dark:bg-white/15 dark:!text-white'
                 }`}>
-                  <span className="badge-count !text-[#1C1917] dark:!text-[#E0FF33] font-black">
+                  <span className="badge-count !text-[#1C1917] dark:!text-[#FD9139] font-black">
                     {tab.count}
                   </span>
                 </span>
@@ -246,9 +246,9 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
 
         {/* Global OS / System Notification Permission Banner */}
         {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
-          <div className="mx-4 mt-3.5 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-between gap-3">
+          <div className="mx-4 mt-3.5 p-3.5 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-2xl bg-amber-500/20 dark:bg-[#E0FF33]/20 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-inner">
+              <div className="w-9 h-9 rounded-2xl bg-amber-500/20 dark:bg-[#FD9139]/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-inner">
                 <BellRing size={18} />
               </div>
               <div className="space-y-0.5 min-w-0">
@@ -259,7 +259,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
             <button
               type="button"
               onClick={requestSystemNotificationPermission}
-              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-xs active:scale-95 shrink-0 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-xs active:scale-95 shrink-0 cursor-pointer"
             >
               Enable
             </button>
@@ -300,7 +300,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                   onClick={() => handleNotificationItemClick(n.id, n.orderId)}
                   className={`p-4 rounded-3xl transition-all cursor-pointer border relative group ${
                     isUnread 
-                      ? 'bg-white dark:bg-[#282526] border-amber-500/35 dark:border-[#E0FF33]/30 shadow-md hover:shadow-lg' 
+                      ? 'bg-white dark:bg-[#282526] border-amber-500/35 dark:border-[#FD9139]/30 shadow-md hover:shadow-lg' 
                       : 'bg-[#F4EFE6]/70 dark:bg-[#242021]/80 border-stone-200/80 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15 opacity-90 hover:opacity-100'
                   }`}
                 >
@@ -341,7 +341,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                           e.stopPropagation();
                           handleNotificationItemClick(n.id, n.orderId);
                         }}
-                        className="h-9 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-95"
+                        className="h-9 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-95"
                       >
                         <span>Track Order</span>
                         <ArrowRight size={13} className="stroke-[3]" />
@@ -361,7 +361,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                         className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm border transition-all cursor-pointer ${
                           n.read 
                             ? 'text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 border-stone-300/80 dark:border-white/15' 
-                            : 'text-white dark:text-black bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] border-amber-600 dark:border-[#E0FF33] shadow-sm hover:scale-105 active:scale-95'
+                            : 'text-white dark:text-black bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] border-amber-600 dark:border-[#FD9139] shadow-sm hover:scale-105 active:scale-95'
                         }`}
                         title={n.read ? "Mark as unread" : "Mark as read"}
                       >
@@ -386,7 +386,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
 
                   {/* Subtle Unread Glow Indicator */}
                   {isUnread && (
-                    <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-[#E0FF33] shadow-[0_0_10px_rgba(224,255,51,0.8)] pointer-events-none animate-pulse" />
+                    <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-[#FD9139] shadow-[0_0_10px_rgba(253, 145, 57,0.8)] pointer-events-none animate-pulse" />
                   )}
                 </div>
               );
@@ -401,7 +401,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
               onClick={markAllRead}
               className="text-xs sm:text-sm font-black text-stone-800 hover:text-stone-950 dark:text-neutral-200 dark:hover:text-white flex items-center gap-2 px-4 py-2 rounded-2xl bg-stone-200/80 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/15 border border-stone-300/70 dark:border-white/10 transition-all active:scale-95 cursor-pointer shadow-xs"
             >
-              <CheckCheck size={16} className="text-amber-600 dark:text-[#E0FF33]" />
+              <CheckCheck size={16} className="text-amber-600 dark:text-[#FD9139]" />
               <span>Mark all read</span>
             </button>
 

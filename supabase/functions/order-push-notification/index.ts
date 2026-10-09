@@ -111,7 +111,7 @@ async function sendFCMMessage(
           default_vibrate_timings: true,
           priority: "PRIORITY_MAX",
           visibility: "PUBLIC",
-          color: "#E0FF33",
+          color: "#FD9139",
           icon: "ic_stat_notification",
         },
       },

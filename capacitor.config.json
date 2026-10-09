@@ -10,7 +10,7 @@
   "plugins": {
     "LocalNotifications": {
       "smallIcon": "ic_stat_notification",
-      "iconColor": "#E0FF33",
+      "iconColor": "#FD9139",
       "sound": "kitchen_alert.wav"
     },
     "PushNotifications": {

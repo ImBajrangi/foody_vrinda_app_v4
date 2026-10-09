@@ -508,7 +508,7 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
           transition: border-color 0.2s;
         }
         .search-input:focus {
-          border-color: #E0FF33;
+          border-color: #FD9139;
         }
         .filter-btn {
           background: #2E282A;
@@ -522,12 +522,12 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
           transition: all 0.2s;
         }
         .filter-btn.active, .filter-btn:hover {
-          background: #E0FF33;
+          background: #FD9139;
           color: #121011;
-          border-color: #E0FF33;
+          border-color: #FD9139;
         }
         .btn-print {
-          background: #E0FF33;
+          background: #FD9139;
           color: #121011;
           font-weight: 900;
           font-size: 11px;
@@ -543,7 +543,7 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
           transition: transform 0.1s, background 0.2s;
         }
         .btn-print:hover {
-          background: #d4f828;
+          background: #FCA65E;
           transform: translateY(-1px);
         }
         .btn-csv {
@@ -588,7 +588,7 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
       <div class="no-print">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div>
-            <div style="font-weight: 800; font-size: 12px; color: #E0FF33;">🌿 FOODY VRINDA FLEET LOGISTICS</div>
+            <div style="font-weight: 800; font-size: 12px; color: #FD9139;">🌿 FOODY VRINDA FLEET LOGISTICS</div>
             <div style="font-size: 9.5px; color: #9CA3AF;" id="activeRecordCount">Showing ${totalDeliveries} of ${totalDeliveries} trips</div>
           </div>
         </div>

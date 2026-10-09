@@ -63,18 +63,18 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
         return {
           title: 'Order Confirmed',
           icon: PackageCheck,
-          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
-          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
-          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          accentClass: 'text-amber-600 dark:text-[#FD9139]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#FD9139]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#FD9139]/30',
           timeText: '3–9m'
         };
       case 'preparing':
         return {
           title: 'Cooking in Ghee',
           icon: Utensils,
-          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
-          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
-          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          accentClass: 'text-amber-600 dark:text-[#FD9139]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#FD9139]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#FD9139]/30',
           timeText: '5–12m'
         };
       case 'ready_for_pickup':
@@ -90,9 +90,9 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
         return {
           title: 'Sarathi on the way',
           icon: Bike,
-          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
-          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
-          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          accentClass: 'text-amber-600 dark:text-[#FD9139]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#FD9139]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#FD9139]/30',
           timeText: 'Arriving'
         };
       case 'completed':
@@ -109,9 +109,9 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
         return {
           title: 'Active Order',
           icon: Utensils,
-          accentClass: 'text-amber-600 dark:text-[#E0FF33]',
-          bgClass: 'bg-amber-500/10 dark:bg-[#E0FF33]/15',
-          borderClass: 'border-amber-500/25 dark:border-[#E0FF33]/30',
+          accentClass: 'text-amber-600 dark:text-[#FD9139]',
+          bgClass: 'bg-amber-500/10 dark:bg-[#FD9139]/15',
+          borderClass: 'border-amber-500/25 dark:border-[#FD9139]/30',
           timeText: '3–9m'
         };
     }
@@ -225,7 +225,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
       }
       className={`${
         isEmbedded ? 'relative max-w-full' : 'fixed left-1/2 z-[45] max-w-[calc(100vw-24px)]'
-      } flex items-center justify-between gap-2 sm:gap-2.5 h-[44px] px-3 sm:px-3.5 rounded-full bg-white/95 dark:bg-[#1E1B1C]/95 text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 shadow-[0_10px_30px_rgba(28,25,23,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl cursor-pointer select-none hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 active:scale-[0.98] transition-all box-border`}
+      } flex items-center justify-between gap-2 sm:gap-2.5 h-[44px] px-3 sm:px-3.5 rounded-full bg-white/95 dark:bg-[#1E1B1C]/95 text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 shadow-[0_10px_30px_rgba(28,25,23,0.12)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.6)] backdrop-blur-2xl cursor-pointer select-none hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 active:scale-[0.98] transition-all box-border`}
     >
       {/* Theme Status Glyph Node */}
       <div className={`flex items-center justify-center w-7 h-7 rounded-full ${statusInfo.bgClass} border ${statusInfo.borderClass} shrink-0`}>
@@ -245,7 +245,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
 
       {/* Trailing Theme-Native Time Pill & Expand Trigger */}
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 pl-0.5">
-        <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
+        <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-black font-['Outfit'] bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] shadow-xs shrink-0 transition-colors">
           <Clock className="w-3 h-3 stroke-[2.8]" />
           <span>{isCompleted ? 'Done' : statusInfo.timeText}</span>
         </div>

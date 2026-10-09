@@ -917,9 +917,9 @@ export default function OwnerView() {
     datasets: [{
       label: 'Sales (₹)',
       data: sortedDates.map(d => salesByDate[d]),
-      backgroundColor: '#E0FF33',
+      backgroundColor: '#FD9139',
       borderRadius: 8,
-      hoverBackgroundColor: '#d2f323'
+      hoverBackgroundColor: '#FCA65E'
     }]
   };
 
@@ -933,7 +933,7 @@ export default function OwnerView() {
       tooltip: {
         backgroundColor: '#1E1B1C',
         titleColor: '#fff',
-        bodyColor: '#E0FF33',
+        bodyColor: '#FD9139',
         borderColor: 'rgba(255,255,255,0.1)',
         borderWidth: 1,
         padding: 12,
@@ -966,7 +966,7 @@ export default function OwnerView() {
         '#10b981', // Ready
         '#06b6d4', // Delivery
         '#6366f1', // Completed
-        '#e0ff33'  // New
+        '#fd9139'  // New
       ],
       borderWidth: 0
     }]
@@ -1274,7 +1274,7 @@ export default function OwnerView() {
       <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 p-6 sm:p-7 rounded-3xl relative z-20 shadow-xl space-y-4">
         {/* Top Minimal Bar */}
         <div className="flex items-center justify-between gap-3 relative z-10 flex-wrap">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-300/60 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-semibold text-amber-700 dark:text-[#E0FF33]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-300/60 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-semibold text-amber-700 dark:text-[#FD9139]">
             <Store className="w-3.5 h-3.5" />
             <span>Store Owner Console</span>
           </div>
@@ -1293,13 +1293,13 @@ export default function OwnerView() {
                 });
               }}
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm active:scale-95 ${ownerSoundAlerts
-                ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/30 hover:bg-amber-500/25'
+                ? 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/30 hover:bg-amber-500/25'
                 : 'bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
                 }`}
               title={ownerSoundAlerts ? 'Rings phone with custom sound when orders arrive. Click to silence.' : 'Ringtone silenced. Click to enable staff order alerts.'}
             >
               {ownerSoundAlerts ? (
-                <Bell className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                <Bell className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
               ) : (
                 <BellOff className="w-3.5 h-3.5 text-stone-500 dark:text-neutral-400" />
               )}
@@ -1337,7 +1337,7 @@ export default function OwnerView() {
               <span>{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
             </button>
             {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 text-xs font-black text-amber-700 dark:text-[#E0FF33] shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 text-xs font-black text-amber-700 dark:text-[#FD9139] shadow-sm">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length} Active Orders
               </span>
@@ -1349,7 +1349,7 @@ export default function OwnerView() {
         {isDevOrAdmin && allShops.length > 1 && (
           <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-30">
             <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
-              <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+              <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
               Switch Kitchen:
             </span>
             <SearchableDropdown
@@ -1400,14 +1400,14 @@ export default function OwnerView() {
                 }
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${isActive
-                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-lg font-black'
+                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-lg font-black'
                 : 'text-stone-700 hover:text-stone-950 hover:bg-stone-300/60 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-[#322E30]'
                 }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>
               {Boolean(tab.badge) && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-amber-300 dark:bg-black dark:text-[#E0FF33]' : 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black'
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-black text-amber-300 dark:bg-black dark:text-[#FD9139]' : 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black'
                   }`}>
                   {tab.badge}
                 </span>
@@ -1431,7 +1431,7 @@ export default function OwnerView() {
             </p>
           </div>
           {isDevOrAdmin && allShops.length > 0 && (
-            <div className="mt-2 p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-xs font-bold text-amber-700 dark:text-[#E0FF33]">
+            <div className="mt-2 p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-xs font-bold text-amber-700 dark:text-[#FD9139]">
               Use the "Switch Kitchen" selector above to switch to an active branch.
             </div>
           )}
@@ -1445,7 +1445,7 @@ export default function OwnerView() {
               <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 shadow-xl space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/20 flex items-center justify-center">
                       <ShoppingBag className="w-5 h-5" />
                     </div>
                     <div>
@@ -1462,7 +1462,7 @@ export default function OwnerView() {
                       value={orderSearch}
                       onChange={(e) => setOrderSearch(e.target.value)}
                       placeholder="Search order #, customer, phone..."
-                      className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans'] transition-colors"
+                      className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 font-['Plus_Jakarta_Sans'] transition-colors"
                     />
                   </div>
                 </div>
@@ -1482,14 +1482,14 @@ export default function OwnerView() {
                         key={f.id}
                         onClick={() => setOrderStatusFilter(f.id)}
                         className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 select-none whitespace-nowrap active:scale-95 ${isActive
-                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm'
                           : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 hover:border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
                           }`}
                       >
                         <span className="hidden sm:inline">{f.label}</span>
                         <span className="sm:hidden">{f.shortLabel}</span>
                         <span className={`text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full font-black tracking-wide ${isActive
-                          ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                          ? 'bg-white text-stone-900 dark:bg-black dark:text-[#FD9139] shadow-xs'
                           : 'bg-stone-200 text-stone-800 dark:bg-white/10 dark:text-neutral-300'
                           }`}>
                           {f.count}
@@ -1543,7 +1543,7 @@ export default function OwnerView() {
                       return (
                         <div
                           key={o.id}
-                          className={`bg-stone-100/90 dark:bg-[#282526] rounded-3xl p-5 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${isNew ? 'border-amber-500/40 dark:border-[#E0FF33]/40 shadow-md ring-1 ring-amber-500/20 dark:ring-[#E0FF33]/20' : 'border-stone-200 dark:border-white/10'
+                          className={`bg-stone-100/90 dark:bg-[#282526] rounded-3xl p-5 border flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden transition-all ${isNew ? 'border-amber-500/40 dark:border-[#FD9139]/40 shadow-md ring-1 ring-amber-500/20 dark:ring-[#FD9139]/20' : 'border-stone-200 dark:border-white/10'
                             }`}
                         >
                           <div className="space-y-3">
@@ -1552,7 +1552,7 @@ export default function OwnerView() {
                               <span className="font-mono text-xs font-black px-2.5 py-1 rounded-xl bg-stone-200/80 dark:bg-white/10 text-stone-900 dark:text-white border border-stone-300/80 dark:border-white/10">
                                 #{shortId}
                               </span>
-                              <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${isNew ? 'bg-amber-500/15 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] border-amber-500/30 dark:border-[#E0FF33]/30 font-black' :
+                              <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${isNew ? 'bg-amber-500/15 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/30 font-black' :
                                 isPreparing ? 'bg-orange-500/15 dark:bg-amber-400/20 text-orange-700 dark:text-amber-300 border-orange-500/30 dark:border-amber-400/30' :
                                   o.status === 'ready' || o.status === 'ready_for_pickup' ? 'bg-cyan-500/15 dark:bg-cyan-400/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/30 dark:border-cyan-400/30' :
                                     'bg-emerald-500/15 dark:bg-emerald-400/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 dark:border-emerald-400/30'
@@ -1585,7 +1585,7 @@ export default function OwnerView() {
                                 </div>
                               ))}
                               {Array.isArray(o.items) && o.items.length > 3 && (
-                                <p className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-bold">
+                                <p className="text-[10px] text-amber-700 dark:text-[#FD9139] font-bold">
                                   +{o.items.length - 3} more items...
                                 </p>
                               )}
@@ -1621,7 +1621,7 @@ export default function OwnerView() {
                               onClick={() => setSelectedAuditOrder(o)}
                               className="flex-1 py-2.5 px-3 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs border border-stone-200 dark:border-white/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                             >
-                              <Receipt className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                              <Receipt className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                               <span>View Ticket</span>
                             </button>
 
@@ -1632,7 +1632,7 @@ export default function OwnerView() {
                                   await updateCloudOrderStatus(o.id, 'preparing');
                                   setToast({ message: `Order #${shortId} moved to kitchen prep!`, type: 'success' });
                                 }}
-                                className="flex-1 py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d4f820] text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
+                                className="flex-1 py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer active:scale-95"
                               >
                                 <span>Accept</span>
                               </button>
@@ -1668,7 +1668,7 @@ export default function OwnerView() {
                 <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-amber-500/30 dark:hover:border-white/10 transition-all shadow-xl">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Total Revenue</span>
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] flex items-center justify-center">
                       <DollarSign className="w-5 h-5" />
                     </div>
                   </div>
@@ -1704,7 +1704,7 @@ export default function OwnerView() {
                 <div className="lg:col-span-3 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-stone-900 dark:text-white text-sm font-['Outfit']">Daily Sales Timeline</h3>
-                    <span className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] px-2 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20">LIVE METRIC</span>
+                    <span className="text-[10px] font-bold text-amber-800 dark:text-[#FD9139] px-2 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20">LIVE METRIC</span>
                   </div>
                   <div className="flex-1 w-full relative">
                     {sortedDates.length > 0 ? (
@@ -1742,7 +1742,7 @@ export default function OwnerView() {
                     <div>
                       <h3 className="text-base font-bold text-stone-900 dark:text-white font-['Outfit']">Payment Gateways & Collection</h3>
                       <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
-                        Managing payments for <span className="text-amber-700 dark:text-[#E0FF33] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
+                        Managing payments for <span className="text-amber-700 dark:text-[#FD9139] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
                       </p>
                     </div>
                     <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10 self-start sm:self-auto">
@@ -1776,13 +1776,13 @@ export default function OwnerView() {
                             isGlobalOnlineOff
                               ? 'bg-stone-100/60 dark:bg-[#1E1B1C]/40 border-stone-200/50 dark:border-white/5 opacity-60 cursor-not-allowed select-none'
                               : shopOnline
-                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50'
+                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#FD9139]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#FD9139]/50'
                                 : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60 cursor-pointer hover:opacity-90'
                           }`}
                         >
                           <div className="space-y-1 pr-2 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <CreditCard className={`w-4 h-4 ${isGlobalOnlineOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#E0FF33]'}`} />
+                              <CreditCard className={`w-4 h-4 ${isGlobalOnlineOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#FD9139]'}`} />
                               <p className={`font-bold text-sm ${isGlobalOnlineOff ? 'text-stone-500 dark:text-neutral-400' : 'text-stone-900 dark:text-white'}`}>
                                 Online Gateway
                               </p>
@@ -1806,7 +1806,7 @@ export default function OwnerView() {
                               isGlobalOnlineOff
                                 ? 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-neutral-600 border border-stone-300/40 dark:border-white/5'
                                 : (shopOnline && !isGlobalOnlineOff)
-                                  ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-sm'
+                                  ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black shadow-sm'
                                   : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
                             }`}
                           >
@@ -1835,13 +1835,13 @@ export default function OwnerView() {
                             isGlobalCodOff
                               ? 'bg-stone-100/60 dark:bg-[#1E1B1C]/40 border-stone-200/50 dark:border-white/5 opacity-60 cursor-not-allowed select-none'
                               : shopCod
-                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#E0FF33]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50'
+                                ? 'bg-amber-500/10 dark:bg-[#1E1B1C] border-amber-500/30 dark:border-[#FD9139]/30 shadow-sm cursor-pointer hover:border-amber-500/50 dark:hover:border-[#FD9139]/50'
                                 : 'bg-stone-50 dark:bg-[#1E1B1C]/50 border-stone-200 dark:border-white/5 opacity-60 cursor-pointer hover:opacity-90'
                           }`}
                         >
                           <div className="space-y-1 pr-2 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <DollarSign className={`w-4 h-4 ${isGlobalCodOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#E0FF33]'}`} />
+                              <DollarSign className={`w-4 h-4 ${isGlobalCodOff ? 'text-stone-400' : 'text-amber-600 dark:text-[#FD9139]'}`} />
                               <p className={`font-bold text-sm ${isGlobalCodOff ? 'text-stone-500 dark:text-neutral-400' : 'text-stone-900 dark:text-white'}`}>
                                 Cash on Delivery (COD)
                               </p>
@@ -1865,7 +1865,7 @@ export default function OwnerView() {
                               isGlobalCodOff
                                 ? 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-neutral-600 border border-stone-300/40 dark:border-white/5'
                                 : (shopCod && !isGlobalCodOff)
-                                  ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-sm'
+                                  ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black shadow-sm'
                                   : 'bg-stone-200 dark:bg-white/10 text-stone-500 dark:text-neutral-500'
                             }`}
                           >
@@ -1896,9 +1896,9 @@ export default function OwnerView() {
                   <button
                     type="button"
                     onClick={expandAllShopSections}
-                    className="group px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
+                    className="group px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-white dark:bg-[#252223] dark:hover:bg-[#2c2829] text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-white text-[11px] font-bold font-['Outfit'] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex items-center gap-1.5 transition-all duration-200 shadow-xs active:scale-95 cursor-pointer select-none"
                   >
-                    <div className="w-4.5 h-4.5 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                    <div className="w-4.5 h-4.5 rounded-lg bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                       <Maximize2 className="w-3 h-3 stroke-[2.5]" />
                     </div>
                     <span>Expand All</span>
@@ -1925,11 +1925,11 @@ export default function OwnerView() {
                     className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-stone-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                         <Store className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                           1. Brand Identity & Location
                         </h4>
                         <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
@@ -1960,11 +1960,11 @@ export default function OwnerView() {
                             type="button"
                             onClick={() => setShopForm({ ...shopForm, shopType: 'hotel' })}
                             className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${shopForm.shopType === 'hotel' || !shopForm.shopType
-                              ? 'bg-amber-500/10 border-amber-500 text-stone-900 dark:text-white dark:bg-[#E0FF33]/10 dark:border-[#E0FF33] shadow-sm'
+                              ? 'bg-amber-500/10 border-amber-500 text-stone-900 dark:text-white dark:bg-[#FD9139]/10 dark:border-[#FD9139] shadow-sm'
                               : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300 dark:bg-[#282526] dark:border-white/10 dark:text-neutral-400 dark:hover:border-white/20'
                               }`}
                           >
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${shopForm.shopType === 'hotel' || !shopForm.shopType ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${shopForm.shopType === 'hotel' || !shopForm.shopType ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-stone-950' : 'bg-stone-200 text-stone-600 dark:bg-white/5 dark:text-neutral-400'
                               }`}>
                               <UtensilsCrossed className="w-4 h-4" />
                             </div>
@@ -2007,7 +2007,7 @@ export default function OwnerView() {
                             value={shopForm.name}
                             onChange={(e) => setShopForm({ ...shopForm, name: e.target.value })}
                             required
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
 
@@ -2020,7 +2020,7 @@ export default function OwnerView() {
                             value={shopForm.address}
                             onChange={(e) => setShopForm({ ...shopForm, address: e.target.value })}
                             required
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
                       </div>
@@ -2035,7 +2035,7 @@ export default function OwnerView() {
                             value={shopForm.imageUrl}
                             onChange={(e) => setShopForm({ ...shopForm, imageUrl: e.target.value })}
                             placeholder="https://images.unsplash.com/..."
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                           {shopForm.imageUrl && (
                             <div className="w-12 h-12 rounded-xl overflow-hidden border border-stone-200 dark:border-white/10 shrink-0 bg-black/40">
@@ -2098,7 +2098,7 @@ export default function OwnerView() {
                               value={shopForm.minimumOrderAmount}
                               onChange={(e) => setShopForm({ ...shopForm, minimumOrderAmount: e.target.value })}
                               required
-                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                             />
                           </div>
                         </div>
@@ -2114,7 +2114,7 @@ export default function OwnerView() {
                               value={shopForm.deliveryCharge}
                               onChange={(e) => setShopForm({ ...shopForm, deliveryCharge: e.target.value })}
                               required
-                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl pl-8 pr-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                             />
                           </div>
                         </div>
@@ -2129,7 +2129,7 @@ export default function OwnerView() {
                               value={shopForm.gstPercentage}
                               onChange={(e) => setShopForm({ ...shopForm, gstPercentage: e.target.value })}
                               required
-                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                              className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-neutral-500 font-bold text-sm">%</span>
                           </div>
@@ -2185,7 +2185,7 @@ export default function OwnerView() {
                           }}
                           className="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-800 dark:text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
                         >
-                          <Compass className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                          <Compass className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                           <span>Pin on Google Maps</span>
                         </button>
                       </div>
@@ -2197,7 +2197,7 @@ export default function OwnerView() {
                             type="text"
                             value={shopForm.lat}
                             onChange={(e) => setShopForm({ ...shopForm, lat: e.target.value })}
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white font-mono focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white font-mono focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all"
                           />
                         </div>
                         <div>
@@ -2206,7 +2206,7 @@ export default function OwnerView() {
                             type="text"
                             value={shopForm.lng}
                             onChange={(e) => setShopForm({ ...shopForm, lng: e.target.value })}
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white font-mono focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white font-mono focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all"
                           />
                         </div>
                       </div>
@@ -2253,7 +2253,7 @@ export default function OwnerView() {
                           onClick={() => setShopForm(prev => ({ ...prev, alwaysOpen: !prev.alwaysOpen }))}
                           className="flex items-center gap-2.5 cursor-pointer select-none py-1.5 px-3 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 transition-all"
                         >
-                          <div className={`w-10 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${shopForm.alwaysOpen ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-stone-700'}`}>
+                          <div className={`w-10 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${shopForm.alwaysOpen ? 'bg-amber-500 dark:bg-[#FD9139]' : 'bg-stone-300 dark:bg-stone-700'}`}>
                             <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ${shopForm.alwaysOpen ? 'translate-x-4' : 'translate-x-0'}`} />
                           </div>
                           <span className="text-xs font-bold text-stone-800 dark:text-neutral-200">Open 24/7 Always</span>
@@ -2293,7 +2293,7 @@ export default function OwnerView() {
                             <button
                               type="button"
                               onClick={() => setShopForm({ ...shopForm, timePeriods: ['morning', 'forenoon', 'afternoon', 'evening', 'night'] })}
-                              className="text-[10px] font-bold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
+                              className="text-[10px] font-bold text-amber-600 dark:text-[#FD9139] hover:underline cursor-pointer"
                             >
                               Select All
                             </button>
@@ -2330,19 +2330,19 @@ export default function OwnerView() {
                                   setShopForm({ ...shopForm, timePeriods: updated });
                                 }}
                                 className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[95px] cursor-pointer active:scale-95 ${isSelected
-                                  ? 'bg-amber-500/10 border-2 border-amber-500 dark:bg-[#E0FF33]/15 dark:border-[#E0FF33] shadow-sm'
+                                  ? 'bg-amber-500/10 border-2 border-amber-500 dark:bg-[#FD9139]/15 dark:border-[#FD9139] shadow-sm'
                                   : 'bg-stone-50 hover:bg-stone-100 border border-stone-200 dark:bg-[#282526] dark:border-white/5 dark:hover:border-white/15'
                                   }`}
                               >
                                 <div className="flex items-center justify-between w-full">
                                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected
-                                    ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-stone-950 shadow-sm'
+                                    ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-stone-950 shadow-sm'
                                     : 'bg-stone-200 text-stone-700 dark:bg-white/5 dark:text-neutral-400'
                                     }`}>
                                     <Icon className="w-4 h-4" />
                                   </div>
                                   <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${isSelected
-                                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-stone-950'
+                                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-stone-950'
                                     : 'bg-stone-200 text-stone-700 dark:bg-white/5 dark:text-neutral-400'
                                     }`}>
                                     {period.time}
@@ -2371,7 +2371,7 @@ export default function OwnerView() {
                             <button
                               type="button"
                               onClick={() => setShopForm({ ...shopForm, daysOpen: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] })}
-                              className="text-[10px] font-bold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
+                              className="text-[10px] font-bold text-amber-600 dark:text-[#FD9139] hover:underline cursor-pointer"
                             >
                               All 7 Days
                             </button>
@@ -2401,7 +2401,7 @@ export default function OwnerView() {
                                   setShopForm({ ...shopForm, daysOpen: updated });
                                 }}
                                 className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all border cursor-pointer active:scale-95 ${isSelected
-                                  ? 'bg-amber-500 border-amber-500 text-white dark:bg-[#E0FF33] dark:border-[#E0FF33] dark:text-black shadow-sm'
+                                  ? 'bg-amber-500 border-amber-500 text-white dark:bg-[#FD9139] dark:border-[#FD9139] dark:text-black shadow-sm'
                                   : 'bg-stone-100 border-stone-200 text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:border-white/10 dark:text-neutral-400 dark:hover:text-white dark:hover:border-white/20'
                                   }`}
                               >
@@ -2423,11 +2423,11 @@ export default function OwnerView() {
                     className="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-stone-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                         <Sparkles className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                           5. Service Speed & Promotional Offers
                         </h4>
                         <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
@@ -2458,7 +2458,7 @@ export default function OwnerView() {
                             value={shopForm.estimatedWaitTime}
                             onChange={(e) => setShopForm({ ...shopForm, estimatedWaitTime: e.target.value })}
                             placeholder="15-20 min"
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
 
@@ -2471,7 +2471,7 @@ export default function OwnerView() {
                             value={shopForm.discountTag}
                             onChange={(e) => setShopForm({ ...shopForm, discountTag: e.target.value })}
                             placeholder="20% OFF"
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
 
@@ -2484,7 +2484,7 @@ export default function OwnerView() {
                             value={shopForm.discountDescription}
                             onChange={(e) => setShopForm({ ...shopForm, discountDescription: e.target.value })}
                             placeholder="On Sacred Sweets & Thalis"
-                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
                       </div>
@@ -2499,8 +2499,8 @@ export default function OwnerView() {
                               <span>{shopForm.estimatedWaitTime || '15-20'} min</span>
                             </span>
                             {shopForm.discountTag && (
-                              <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-800 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 text-xs font-black flex items-center gap-1.5">
-                                <Gift className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                              <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 dark:bg-[#FD9139]/20 text-amber-800 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 text-xs font-black flex items-center gap-1.5">
+                                <Gift className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                                 <span>{shopForm.discountTag} {shopForm.discountDescription ? `• ${shopForm.discountDescription}` : ''}</span>
                               </span>
                             )}
@@ -2520,7 +2520,7 @@ export default function OwnerView() {
 
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#d2f323] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 font-['Outfit']"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 font-['Outfit']"
                   >
                     <Check className="w-4 h-4 stroke-[3]" />
                     <span>Save Kitchen Settings</span>
@@ -2535,9 +2535,9 @@ export default function OwnerView() {
             <div className="space-y-4">
               {/* Mobile Quick Expand Banner when Form is Collapsed */}
               {isMenuFormCollapsed && !editingMenuItem && (
-                <div className="bg-stone-100/90 dark:bg-[#282526] border border-amber-500/30 dark:border-[#E0FF33]/30 rounded-3xl p-4 flex items-center justify-between gap-3 shadow-lg lg:hidden animate-fadeIn">
+                <div className="bg-stone-100/90 dark:bg-[#282526] border border-amber-500/30 dark:border-[#FD9139]/30 rounded-3xl p-4 flex items-center justify-between gap-3 shadow-lg lg:hidden animate-fadeIn">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-2xl bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center font-black">
+                    <div className="w-8 h-8 rounded-2xl bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black flex items-center justify-center font-black">
                       <Plus className="w-4 h-4 stroke-[3]" />
                     </div>
                     <div>
@@ -2548,7 +2548,7 @@ export default function OwnerView() {
                   <button
                     type="button"
                     onClick={() => setIsMenuFormCollapsed(false)}
-                    className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md"
+                    className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:text-black text-xs font-black uppercase tracking-wider transition-all active:scale-95 cursor-pointer shadow-md"
                   >
                     Open Form
                   </button>
@@ -2560,7 +2560,7 @@ export default function OwnerView() {
                 <div
                   ref={menuFormRef}
                   className={`bg-stone-100/90 dark:bg-[#282526] rounded-3xl p-4 sm:p-6 shadow-xl h-fit transition-all duration-300 ${editingMenuItem
-                    ? 'border-2 border-amber-500 dark:border-[#E0FF33] shadow-lg ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
+                    ? 'border-2 border-amber-500 dark:border-[#FD9139] shadow-lg ring-2 ring-amber-500/20 dark:ring-[#FD9139]/30'
                     : 'border border-stone-200 dark:border-white/5'
                     }`}
                 >
@@ -2570,11 +2570,11 @@ export default function OwnerView() {
                     className="w-full flex items-center justify-between pb-4 border-b border-stone-200 dark:border-white/5 mb-4 text-left cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                         <UtensilsCrossed className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                        <h3 className="text-base font-black text-stone-900 dark:text-white font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                           {editingMenuItem ? 'Edit Dish Catalog' : 'Add New Dish'}
                         </h3>
                         {isMenuFormCollapsed && (
@@ -2584,7 +2584,7 @@ export default function OwnerView() {
                     </div>
                     <div className="flex items-center gap-2">
                       {editingMenuItem && (
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-md uppercase tracking-wider">
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] shadow-md uppercase tracking-wider">
                           EDITING LIVE
                         </span>
                       )}
@@ -2598,13 +2598,13 @@ export default function OwnerView() {
                     <>
                       {/* Prominent Active Edit Notice Banner */}
                       {editingMenuItem && (
-                        <div className="mb-4 p-3.5 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
+                        <div className="mb-4 p-3.5 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/40 flex items-center justify-between gap-2.5 animate-fade-in shadow-inner">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
+                            <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] flex items-center justify-center shrink-0 shadow-sm">
                               <Edit2 size={15} strokeWidth={3} />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[10px] uppercase font-black tracking-wider text-amber-800 dark:text-[#E0FF33]">Now Editing Dish</p>
+                              <p className="text-[10px] uppercase font-black tracking-wider text-amber-800 dark:text-[#FD9139]">Now Editing Dish</p>
                               <p className="text-xs font-bold text-stone-900 dark:text-white truncate">{editingMenuItem.name}</p>
                             </div>
                           </div>
@@ -2620,16 +2620,16 @@ export default function OwnerView() {
 
                       <form onSubmit={handleSaveMenuForm} className="space-y-4">
                         {/* Quick Preset Templates Strip */}
-                        <div className="bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 p-3 rounded-2xl space-y-2">
+                        <div className="bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 p-3 rounded-2xl space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-[#E0FF33] flex items-center gap-1.5 font-['Outfit']">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-[#FD9139] flex items-center gap-1.5 font-['Outfit']">
                               <Sparkles className="w-3.5 h-3.5" />
                               ⚡ Quick-Fill from Preset Dish Template (24 Items)
                             </span>
                             <button
                               type="button"
                               onClick={() => setShowPresetCatalogModal(true)}
-                              className="text-[10px] font-bold text-amber-800 dark:text-[#E0FF33] underline hover:no-underline cursor-pointer"
+                              className="text-[10px] font-bold text-amber-800 dark:text-[#FD9139] underline hover:no-underline cursor-pointer"
                             >
                               View All Presets
                             </button>
@@ -2640,7 +2640,7 @@ export default function OwnerView() {
                                 key={p.id}
                                 type="button"
                                 onClick={() => handleApplyPresetTemplate(p)}
-                                className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+                                className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#FD9139] dark:hover:text-black border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
                                 title={p.description}
                               >
                                 <img src={p.image} alt={p.name} className="w-4 h-4 object-contain" />
@@ -2650,7 +2650,7 @@ export default function OwnerView() {
                             <button
                               type="button"
                               onClick={() => setShowPresetCatalogModal(true)}
-                              className="px-2.5 py-1 rounded-xl bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black text-[10px] font-black uppercase tracking-wider shrink-0 shadow-xs cursor-pointer"
+                              className="px-2.5 py-1 rounded-xl bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black text-[10px] font-black uppercase tracking-wider shrink-0 shadow-xs cursor-pointer"
                             >
                               + More
                             </button>
@@ -2670,8 +2670,8 @@ export default function OwnerView() {
                             placeholder="e.g. Shahi Vrindavan Thali"
                             required
                             className={`w-full bg-stone-50 dark:bg-[#1E1B1C] border rounded-2xl px-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-600 focus:outline-none transition-all font-['Plus_Jakarta_Sans'] ${editingMenuItem
-                              ? 'border-amber-500 dark:border-[#E0FF33]/50 ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
-                              : 'border-stone-200 dark:border-white/10 focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10'
+                              ? 'border-amber-500 dark:border-[#FD9139]/50 ring-2 ring-amber-500/20 dark:ring-[#FD9139]/20'
+                              : 'border-stone-200 dark:border-white/10 focus:border-amber-500 dark:focus:border-[#FD9139]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#FD9139]/10'
                               }`}
                           />
                         </div>
@@ -2688,7 +2688,7 @@ export default function OwnerView() {
                               </span>
                             )}
                           </div>
-                          <div className="relative bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all shadow-inner overflow-hidden">
+                          <div className="relative bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/15 transition-all shadow-inner overflow-hidden">
                             <textarea
                               ref={descriptionInputRef}
                               rows={3}
@@ -2721,22 +2721,22 @@ export default function OwnerView() {
                               <button
                                 type="button"
                                 onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 10 }))}
-                                className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#FD9139]/10 dark:hover:bg-[#FD9139]/20 dark:text-[#FD9139] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#FD9139]/20 cursor-pointer"
                               >
                                 +₹10
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setMenuForm(prev => ({ ...prev, price: Number(prev.price || 0) + 50 }))}
-                                className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#E0FF33]/10 dark:hover:bg-[#E0FF33]/20 dark:text-[#E0FF33] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#E0FF33]/20 cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:bg-[#FD9139]/10 dark:hover:bg-[#FD9139]/20 dark:text-[#FD9139] text-[10px] font-bold transition-all border border-amber-500/30 dark:border-[#FD9139]/20 cursor-pointer"
                               >
                                 +₹50
                               </button>
                             </div>
                           </div>
 
-                          <div className="relative flex items-center bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 transition-all px-4 py-2.5 shadow-inner">
-                            <span className="text-base font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit'] pr-3 border-r border-stone-200 dark:border-white/10 select-none">
+                          <div className="relative flex items-center bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl focus-within:border-amber-500 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/15 transition-all px-4 py-2.5 shadow-inner">
+                            <span className="text-base font-black text-amber-600 dark:text-[#FD9139] font-['Outfit'] pr-3 border-r border-stone-200 dark:border-white/10 select-none">
                               ₹
                             </span>
                             <input
@@ -2755,7 +2755,7 @@ export default function OwnerView() {
                           <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
                             <span>Target Kitchen (Branch)</span>
                             {allShops.length > 1 && (
-                              <span className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-semibold lowercase">
+                              <span className="text-[10px] text-amber-700 dark:text-[#FD9139] font-semibold lowercase">
                                 assigns dish to selected kitchen
                               </span>
                             )}
@@ -2769,7 +2769,7 @@ export default function OwnerView() {
                                   type="button"
                                   onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
                                   className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
-                                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] border-amber-600 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30 font-black'
+                                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#121011] border-amber-600 dark:border-[#FD9139] shadow-md ring-2 ring-amber-500/20 dark:ring-[#FD9139]/30 font-black'
                                     : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
                                     }`}
                                 >
@@ -2808,7 +2808,7 @@ export default function OwnerView() {
                                   type="button"
                                   onClick={() => setMenuForm({ ...menuForm, category: cat.id })}
                                   className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all duration-100 ease-out flex items-center justify-center gap-2 select-none cursor-pointer whitespace-nowrap active:scale-[0.98] ${isSelected
-                                    ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] font-black shadow-xs'
+                                    ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#FD9139] dark:text-[#121011] dark:border-[#FD9139] font-black shadow-xs'
                                     : 'bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-950 border-stone-200/80 dark:bg-[#1E1B1C] dark:text-zinc-300 dark:border-white/5 dark:hover:text-white dark:hover:border-white/15'
                                     }`}
                                 >
@@ -2851,7 +2851,7 @@ export default function OwnerView() {
                               type="button"
                               onClick={() => fileInputRef.current?.click()}
                               disabled={imageUploadLoading}
-                              className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33]/25 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
+                              className="flex-1 py-2.5 px-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:bg-[#FD9139]/15 dark:hover:bg-[#FD9139]/25 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98"
                             >
                               <Upload className="w-4 h-4 shrink-0" />
                               <span>{imageUploadLoading ? 'Optimizing AI Photo...' : 'Upload Photo / AI Image from Device'}</span>
@@ -2880,7 +2880,7 @@ export default function OwnerView() {
                               value={menuForm.imageUrl}
                               onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
                               placeholder="Or paste image URL (https://... or /dishes/...)"
-                              className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                              className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-4 pr-12 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                             />
                             {menuForm.imageUrl && (
                               <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FAF5EB] dark:bg-black/60 p-0.5 overflow-hidden shadow-sm flex items-center justify-center">
@@ -2894,11 +2894,11 @@ export default function OwnerView() {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                               <div>
                                 <span className="text-[11px] font-black text-stone-700 dark:text-neutral-200 uppercase tracking-wider font-['Outfit'] flex items-center gap-1.5">
-                                  <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-[#E0FF33]" />
+                                  <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-[#FD9139]" />
                                   Select Preset Dish Cutout (24 Presets)
                                 </span>
                                 <p className="text-[10px] text-stone-500 dark:text-neutral-400">
-                                  Tap any dish to set image, or click <span className="text-amber-600 dark:text-[#E0FF33] font-bold">Auto-Fill</span> to populate all fields.
+                                  Tap any dish to set image, or click <span className="text-amber-600 dark:text-[#FD9139] font-bold">Auto-Fill</span> to populate all fields.
                                 </p>
                               </div>
 
@@ -2910,7 +2910,7 @@ export default function OwnerView() {
                                   value={presetCutoutSearch}
                                   onChange={(e) => setPresetCutoutSearch(e.target.value)}
                                   placeholder="Search 24 presets..."
-                                  className="w-full bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-6 py-1.5 text-[11px] text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                                  className="w-full bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-6 py-1.5 text-[11px] text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50"
                                 />
                                 {presetCutoutSearch && (
                                   <button
@@ -2932,7 +2932,7 @@ export default function OwnerView() {
                                   type="button"
                                   onClick={() => setPresetCutoutCategory(cat)}
                                   className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${presetCutoutCategory === cat
-                                    ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
+                                    ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black border-amber-600 dark:border-[#FD9139] shadow-xs'
                                     : 'bg-stone-200/70 hover:bg-stone-300/70 text-stone-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-neutral-400 border-stone-300/60 dark:border-white/5'
                                     }`}
                                 >
@@ -2957,8 +2957,8 @@ export default function OwnerView() {
                                     <div
                                       key={preset.id}
                                       className={`rounded-2xl p-2 border transition-all duration-100 ease-out flex flex-col items-center justify-between relative group cursor-pointer active:scale-95 min-h-[96px] ${isSelected
-                                        ? 'bg-amber-500/10 dark:bg-[#E0FF33]/15 border-amber-600 dark:border-[#E0FF33] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/30'
-                                        : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#E0FF33]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
+                                        ? 'bg-amber-500/10 dark:bg-[#FD9139]/15 border-amber-600 dark:border-[#FD9139] shadow-sm ring-2 ring-amber-500/20 dark:ring-[#FD9139]/30'
+                                        : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#FD9139]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
                                         }`}
                                     >
                                       <button
@@ -2981,13 +2981,13 @@ export default function OwnerView() {
                                             }}
                                           />
                                         </div>
-                                        <span className={`text-[10px] font-bold mt-1 text-center truncate w-full leading-tight ${isSelected ? 'text-amber-900 dark:text-[#E0FF33] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
+                                        <span className={`text-[10px] font-bold mt-1 text-center truncate w-full leading-tight ${isSelected ? 'text-amber-900 dark:text-[#FD9139] font-black' : 'text-stone-700 dark:text-neutral-300'}`}>
                                           {preset.name}
                                         </span>
                                       </button>
 
                                       {isSelected && (
-                                        <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center shadow-xs">
+                                        <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black flex items-center justify-center shadow-xs">
                                           <Check size={10} className="stroke-[3]" />
                                         </div>
                                       )}
@@ -2999,7 +2999,7 @@ export default function OwnerView() {
                                           e.stopPropagation();
                                           handleApplyPresetTemplate(preset);
                                         }}
-                                        className="w-full mt-1.5 py-0.5 px-1 rounded-md bg-stone-100 hover:bg-amber-500 hover:text-white dark:bg-white/5 dark:hover:bg-[#E0FF33] dark:hover:text-black text-[9px] font-bold text-stone-600 dark:text-neutral-400 transition-colors cursor-pointer border border-stone-200 dark:border-white/5 truncate"
+                                        className="w-full mt-1.5 py-0.5 px-1 rounded-md bg-stone-100 hover:bg-amber-500 hover:text-white dark:bg-white/5 dark:hover:bg-[#FD9139] dark:hover:text-black text-[9px] font-bold text-stone-600 dark:text-neutral-400 transition-colors cursor-pointer border border-stone-200 dark:border-white/5 truncate"
                                         title={`Auto-fill form with ${preset.name}`}
                                       >
                                         ✨ Auto-Fill
@@ -3071,7 +3071,7 @@ export default function OwnerView() {
                             value={menuForm.nutrition}
                             onChange={(e) => setMenuForm({ ...menuForm, nutrition: e.target.value })}
                             placeholder="e.g. 260 kcal, 14g Protein, 100% Satvik"
-                            className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 transition-all font-['Plus_Jakarta_Sans']"
+                            className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#FD9139]/10 transition-all font-['Plus_Jakarta_Sans']"
                           />
                         </div>
 
@@ -3093,7 +3093,7 @@ export default function OwnerView() {
                             </div>
 
                             {/* Custom Animated Toggle Switch */}
-                            <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isSatvik ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
+                            <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isSatvik ? 'bg-amber-500 dark:bg-[#FD9139]' : 'bg-stone-300 dark:bg-white/10'}`}>
                               <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isSatvik ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
@@ -3114,7 +3114,7 @@ export default function OwnerView() {
                             </div>
 
                             {/* Custom Animated Toggle Switch */}
-                            <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isDailySpecial ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-white/10'}`}>
+                            <div className={`w-11 h-6 rounded-full p-0.5 transition-colors relative flex items-center ${menuForm.isDailySpecial ? 'bg-amber-500 dark:bg-[#FD9139]' : 'bg-stone-300 dark:bg-white/10'}`}>
                               <div className={`w-5 h-5 rounded-full bg-white dark:bg-[#18181A] shadow-md transition-transform duration-200 ${menuForm.isDailySpecial ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
@@ -3161,7 +3161,7 @@ export default function OwnerView() {
                         <div className="flex gap-2 pt-2">
                           <button
                             type="submit"
-                            className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#d2f323] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
+                            className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] flex items-center justify-center gap-1.5"
                           >
                             <CheckCircle2 size={16} />
                             <span>{editingMenuItem ? 'Save & Update Dish' : 'Publish Dish to Menu'}</span>
@@ -3194,12 +3194,12 @@ export default function OwnerView() {
                       <button
                         type="button"
                         onClick={() => setShowPresetCatalogModal(true)}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Presets Catalog (24)</span>
                       </button>
-                      <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      <span className="text-[11px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
                         {menuItems.length} Dishes Live
                       </span>
                     </div>
@@ -3214,7 +3214,7 @@ export default function OwnerView() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search dishes by name or ingredients..."
-                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
                       />
                       {searchQuery && (
                         <button
@@ -3243,7 +3243,7 @@ export default function OwnerView() {
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border select-none inline-flex items-center gap-1.5 ${isActive
                               ? (isOutOfStockTab
                                 ? 'bg-rose-600 text-white border-rose-600 dark:bg-rose-500 dark:text-white font-black shadow-sm'
-                                : 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm')
+                                : 'bg-stone-900 text-white border-stone-900 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm')
                               : (isOutOfStockTab
                                 ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30'
                                 : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:text-white dark:hover:bg-white/5')
@@ -3279,7 +3279,7 @@ export default function OwnerView() {
                           <div
                             key={item.id}
                             className={`rounded-2xl p-3.5 space-y-3 shadow-md transition-all duration-300 ${isBeingEdited
-                              ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#E0FF33] shadow-md ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20'
+                              ? 'bg-stone-50 dark:bg-[#1E1B1C] border-2 border-amber-500 dark:border-[#FD9139] shadow-md ring-2 ring-amber-500/20 dark:ring-[#FD9139]/20'
                               : isItemAvailable
                                 ? 'bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10'
                                 : 'bg-stone-50/90 dark:bg-[#1E1B1C]/90 border border-rose-500/30 opacity-90'
@@ -3294,7 +3294,7 @@ export default function OwnerView() {
                                   loading="lazy"
                                 />
                                 {isBeingEdited && (
-                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center">
+                                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black flex items-center justify-center">
                                     <Check size={10} className="stroke-[3]" />
                                   </div>
                                 )}
@@ -3304,7 +3304,7 @@ export default function OwnerView() {
                                   <div className="min-w-0 flex-1">
                                     <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit'] truncate">{item.name}</p>
                                     {isBeingEdited && (
-                                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
+                                      <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#FD9139] uppercase tracking-wider">
                                         <Edit2 size={10} className="stroke-[2.5]" /> Active in Form
                                       </span>
                                     )}
@@ -3313,7 +3313,7 @@ export default function OwnerView() {
                                   {/* Quick Inline Price Controls on Mobile */}
                                   <div className="shrink-0 flex items-center">
                                     {inlineEditingDishId === item.id ? (
-                                      <div className="flex items-center gap-1 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33]">
+                                      <div className="flex items-center gap-1 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#FD9139]">
                                         <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
                                         <input
                                           type="number"
@@ -3363,7 +3363,7 @@ export default function OwnerView() {
                                             setInlineEditingDishId(item.id);
                                             setInlineEditingPrice(String(item.price || 0));
                                           }}
-                                          className="px-1.5 py-0.5 text-xs font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] hover:underline cursor-pointer flex items-center gap-1"
+                                          className="px-1.5 py-0.5 text-xs font-black text-stone-950 dark:text-[#FD9139] font-['Outfit'] hover:underline cursor-pointer flex items-center gap-1"
                                           title="Click to edit price directly"
                                         >
                                           <span>₹{item.price}</span>
@@ -3428,7 +3428,7 @@ export default function OwnerView() {
                                 <button
                                   onClick={() => handleEditMenuItem(item)}
                                   className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${isBeingEdited
-                                    ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] font-black shadow-md'
+                                    ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#FD9139] dark:text-[#1E1B1C] dark:border-[#FD9139] font-black shadow-md'
                                     : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/5'
                                     }`}
                                 >
@@ -3481,7 +3481,7 @@ export default function OwnerView() {
                                 <tr
                                   key={item.id}
                                   className={`transition-all duration-150 group ${isBeingEdited
-                                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-l-4 border-l-amber-500 dark:border-l-[#E0FF33]'
+                                    ? 'bg-amber-500/10 dark:bg-[#FD9139]/10 border-l-4 border-l-amber-500 dark:border-l-[#FD9139]'
                                     : isItemAvailable
                                       ? 'hover:bg-amber-500/5 dark:hover:bg-white/[0.04]'
                                       : 'bg-rose-500/[0.02] hover:bg-rose-500/[0.05]'
@@ -3489,7 +3489,7 @@ export default function OwnerView() {
                                 >
                                   <td className="py-3.5 px-4">
                                     <div className="flex items-center gap-3">
-                                      <div className={`w-11 h-11 rounded-2xl bg-stone-100 dark:bg-[#282526] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs ${isBeingEdited ? 'border-2 border-amber-500 dark:border-[#E0FF33]' : 'border border-stone-200 dark:border-white/10'
+                                      <div className={`w-11 h-11 rounded-2xl bg-stone-100 dark:bg-[#282526] overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-2xs ${isBeingEdited ? 'border-2 border-amber-500 dark:border-[#FD9139]' : 'border border-stone-200 dark:border-white/10'
                                         }`}>
                                         <img
                                           src={resolveDishCutout(item.imageUrl || item.image, item.name, item.category)}
@@ -3502,7 +3502,7 @@ export default function OwnerView() {
                                         <p className="font-black text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] truncate">{item.name}</p>
                                         <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">{item.description || 'No description provided'}</p>
                                         {isBeingEdited && (
-                                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#E0FF33] uppercase">
+                                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-[#FD9139] uppercase">
                                             <Edit2 size={10} className="stroke-[2.5]" /> Editing
                                           </span>
                                         )}
@@ -3516,7 +3516,7 @@ export default function OwnerView() {
                                   </td>
                                   <td className="py-3.5 px-4 whitespace-nowrap">
                                     {inlineEditingDishId === item.id ? (
-                                      <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#E0FF33] w-fit">
+                                      <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-black/80 p-1 rounded-xl border border-amber-500 dark:border-[#FD9139] w-fit">
                                         <span className="text-xs font-bold text-stone-500 dark:text-neutral-400">₹</span>
                                         <input
                                           type="number"
@@ -3562,7 +3562,7 @@ export default function OwnerView() {
                                             setInlineEditingDishId(item.id);
                                             setInlineEditingPrice(String(item.price || 0));
                                           }}
-                                          className="px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#E0FF33]/10 border border-stone-200 dark:border-white/10 font-black text-stone-950 dark:text-[#E0FF33] text-sm font-['Outfit'] cursor-pointer flex items-center gap-1.5 group/price shadow-2xs"
+                                          className="px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#FD9139]/10 border border-stone-200 dark:border-white/10 font-black text-stone-950 dark:text-[#FD9139] text-sm font-['Outfit'] cursor-pointer flex items-center gap-1.5 group/price shadow-2xs"
                                           title="Click to edit price directly"
                                         >
                                           <span>₹{item.price}</span>
@@ -3613,7 +3613,7 @@ export default function OwnerView() {
                                         type="button"
                                         onClick={() => handleEditMenuItem(item)}
                                         className={`w-8 h-8 rounded-xl transition-all cursor-pointer border flex items-center justify-center shadow-2xs active:scale-95 ${isBeingEdited
-                                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#E0FF33] dark:text-[#1E1B1C] dark:border-[#E0FF33] shadow-md font-bold'
+                                          ? 'bg-amber-500 text-white border-amber-500 dark:bg-[#FD9139] dark:text-[#1E1B1C] dark:border-[#FD9139] shadow-md font-bold'
                                           : 'bg-stone-200/90 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-white/10 dark:hover:bg-white/20 dark:text-neutral-200 dark:hover:text-white dark:border-white/10'
                                           }`}
                                         title={isBeingEdited ? "Editing in form above" : "Edit Dish"}
@@ -3652,7 +3652,7 @@ export default function OwnerView() {
                   <p className="text-xs text-stone-500 dark:text-neutral-400">Reconcile physical cash receipts collected by couriers</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                  <span className="text-[11px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
                     {isolatedOrders.filter(o => o.paymentMethod === 'cash').length} COD Tickets
                   </span>
                 </div>
@@ -3699,7 +3699,7 @@ export default function OwnerView() {
                             </div>
                             <div className="text-right">
                               <p className="text-[10px] text-stone-500 dark:text-neutral-400 uppercase font-semibold">Amount</p>
-                              <p className="font-black text-stone-950 dark:text-[#E0FF33] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
+                              <p className="font-black text-stone-950 dark:text-[#FD9139] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
                             </div>
                           </div>
 
@@ -3707,7 +3707,7 @@ export default function OwnerView() {
                             {!isCollected ? (
                               <button
                                 onClick={() => handleMarkCashCollected(order.id)}
-                                className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                               >
                                 <CheckCircle2 className="w-4 h-4" />
                                 <span>Confirm Cash Received</span>
@@ -3768,7 +3768,7 @@ export default function OwnerView() {
                                 <p className="font-semibold text-xs text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
                                 <p className="text-[10px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
                               </td>
-                              <td className="py-3.5 pr-4 font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit'] text-sm whitespace-nowrap">
+                              <td className="py-3.5 pr-4 font-black text-stone-950 dark:text-[#FD9139] font-['Outfit'] text-sm whitespace-nowrap">
                                 ₹{order.totalAmount || order.total_amount || 0}
                               </td>
                               <td className="py-3.5 pr-4 whitespace-nowrap">
@@ -3783,7 +3783,7 @@ export default function OwnerView() {
                                 {!isCollected ? (
                                   <button
                                     onClick={() => handleMarkCashCollected(order.id)}
-                                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
+                                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5" />
                                     <span>Confirm Cash Received</span>
@@ -3824,7 +3824,7 @@ export default function OwnerView() {
 
                 <button
                   onClick={() => setIsAddingStaff(!isAddingStaff)}
-                  className="px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
+                  className="px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>{isAddingStaff ? 'Cancel' : 'Add Staff Member'}</span>
@@ -3833,7 +3833,7 @@ export default function OwnerView() {
 
               {/* Add Staff Form */}
               {isAddingStaff && (
-                <form onSubmit={handleAddStaffMember} className="p-5 bg-stone-100/90 dark:bg-[#282526] rounded-3xl border border-amber-500/40 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn shadow-xl">
+                <form onSubmit={handleAddStaffMember} className="p-5 bg-stone-100/90 dark:bg-[#282526] rounded-3xl border border-amber-500/40 dark:border-[#FD9139]/30 space-y-4 animate-fadeIn shadow-xl">
                   <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-white/5">
                     <span className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">
                       Assign Staff to {currentShop?.name}
@@ -3850,7 +3850,7 @@ export default function OwnerView() {
                         value={newStaffName}
                         onChange={(e) => setNewStaffName(e.target.value)}
                         placeholder="e.g. Shyam Cook"
-                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]"
+                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]"
                       />
                     </div>
                     <div>
@@ -3861,7 +3861,7 @@ export default function OwnerView() {
                         onChange={(e) => setNewStaffPhone(e.target.value)}
                         placeholder="9876543210"
                         required
-                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]"
+                        className="w-full bg-stone-50 dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]"
                       />
                     </div>
                     <div>
@@ -3881,7 +3881,7 @@ export default function OwnerView() {
                     <div className="flex items-end">
                       <button
                         type="submit"
-                        className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                        className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
                       >
                         Save Staff
                       </button>
@@ -3949,7 +3949,7 @@ export default function OwnerView() {
                           value={staffSearch}
                           onChange={(e) => setStaffSearch(e.target.value)}
                           placeholder="Search store staff by name, phone, or UID..."
-                          className="w-full bg-stone-50 dark:bg-[#282526] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                          className="w-full bg-stone-50 dark:bg-[#282526] text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 border border-stone-200 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50"
                         />
                       </div>
 
@@ -3968,14 +3968,14 @@ export default function OwnerView() {
                               type="button"
                               onClick={() => setStaffRoleFilter(tab.id)}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                                ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                                ? 'bg-stone-900 text-white border-stone-900 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm'
                                 : 'bg-stone-200/80 hover:bg-stone-300 text-stone-700 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/10 dark:hover:text-white dark:hover:border-white/20'
                                 }`}
                             >
                               <IconComp size={13} className={isActive ? 'text-white dark:text-black stroke-[2.5]' : 'text-stone-500 dark:text-neutral-400'} />
                               <span>{tab.label}</span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${isActive
-                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#FD9139] shadow-xs'
                                 : 'bg-stone-300 dark:bg-white/10 text-stone-800 dark:text-neutral-300'
                                 }`}>
                                 {tab.count}
@@ -4193,7 +4193,7 @@ export default function OwnerView() {
               {/* Header */}
               <div className="p-4 sm:p-5 border-b border-stone-200 dark:border-white/5 flex items-center justify-between bg-stone-50 dark:bg-[#221F20] shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
                     <Receipt className="w-5 h-5" />
                   </div>
                   <div>
@@ -4207,7 +4207,7 @@ export default function OwnerView() {
                           navigator.clipboard.writeText(o.id);
                           setToast({ message: `Copied #${shortId}`, type: 'info' });
                         }}
-                        className="text-stone-500 hover:text-amber-600 dark:text-neutral-400 dark:hover:text-[#E0FF33] p-1 rounded-md transition-colors cursor-pointer"
+                        className="text-stone-500 hover:text-amber-600 dark:text-neutral-400 dark:hover:text-[#FD9139] p-1 rounded-md transition-colors cursor-pointer"
                         title="Copy full UUID"
                       >
                         <Copy size={13} />
@@ -4312,7 +4312,7 @@ export default function OwnerView() {
                   </div>
 
                   <div className="pt-2.5 border-t border-stone-200 dark:border-white/5 flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
-                    <MapPin size={14} className="text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                    <MapPin size={14} className="text-amber-600 dark:text-[#FD9139] shrink-0 mt-0.5" />
                     <span>{o.delivery_address || o.deliveryAddress || o.customerAddress || 'Direct Pickup / Dine-in'}</span>
                   </div>
 
@@ -4345,7 +4345,7 @@ export default function OwnerView() {
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             </span>
                             <span className="text-stone-900 dark:text-white font-medium truncate">{item.name}</span>
-                            <span className="text-amber-700 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/20 font-bold px-2 py-0.5 rounded-full text-[11px] shrink-0">
+                            <span className="text-amber-700 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20 font-bold px-2 py-0.5 rounded-full text-[11px] shrink-0">
                               ×{qty}
                             </span>
                           </div>
@@ -4367,9 +4367,9 @@ export default function OwnerView() {
                         <span className="font-mono">₹{o.delivery_fee || o.deliveryFee}</span>
                       </div>
                     )}
-                    <div className="p-3 rounded-2xl bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 flex justify-between items-center mt-2">
+                    <div className="p-3 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex justify-between items-center mt-2">
                       <span className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">Total Paid / Bill</span>
-                      <span className="text-amber-700 dark:text-[#E0FF33] font-mono text-base font-black">₹{totalAmount}</span>
+                      <span className="text-amber-700 dark:text-[#FD9139] font-mono text-base font-black">₹{totalAmount}</span>
                     </div>
                   </div>
                 </div>
@@ -4393,7 +4393,7 @@ export default function OwnerView() {
                           </div>
                         </div>
                         {recommendedRiders.length === 1 && (
-                          <span className="text-[10px] font-bold bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold bg-amber-500/20 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-2 py-0.5 rounded-full">
                             Auto-Recommended
                           </span>
                         )}
@@ -4411,13 +4411,13 @@ export default function OwnerView() {
                               <div
                                 key={rider.id || rIdx}
                                 className={`flex items-center justify-between gap-3 p-3 rounded-xl transition-all ${isTop
-                                  ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/30 dark:border-[#E0FF33]/40 shadow-sm'
+                                  ? 'bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/40 shadow-sm'
                                   : 'bg-white dark:bg-white/[0.03] border border-stone-200 dark:border-white/5 hover:bg-stone-100 dark:hover:bg-white/[0.06]'
                                   }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <div className={`w-8 h-8 rounded-full border flex items-center justify-center font-black text-xs shrink-0 ${isTop
-                                    ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33]'
+                                    ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black border-amber-600 dark:border-[#FD9139]'
                                     : 'bg-cyan-400/10 text-cyan-600 dark:text-cyan-300 border-cyan-400/30'
                                     }`}>
                                     {(rider.name || rider.displayName)?.slice(0, 2).toUpperCase() || 'RD'}
@@ -4426,11 +4426,11 @@ export default function OwnerView() {
                                     <div className="flex items-center gap-2">
                                       <p className="text-xs font-bold text-stone-900 dark:text-white truncate">{rider.name || rider.displayName || 'Delivery Sarathi'}</p>
                                       {isOnlyOne ? (
-                                        <span className="text-[9px] font-black bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                        <span className="text-[9px] font-black bg-amber-500/20 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-1.5 py-0.2 rounded">
                                           Only Option (Auto)
                                         </span>
                                       ) : isTop && (
-                                        <span className="text-[9px] font-black bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                        <span className="text-[9px] font-black bg-amber-500/20 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-1.5 py-0.2 rounded flex items-center gap-0.5">
                                           ★ Recommended
                                         </span>
                                       )}
@@ -4458,7 +4458,7 @@ export default function OwnerView() {
                                     setToast({ message: `Assigned to ${riderName} & Dispatched!`, type: 'success' });
                                   }}
                                   className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all cursor-pointer shadow-md shrink-0 active:scale-95 ${isTop
-                                    ? 'bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-black'
+                                    ? 'bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-black'
                                     : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white'
                                     }`}
                                 >
@@ -4501,7 +4501,7 @@ export default function OwnerView() {
                       }}
                       className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${isCollected
                         ? 'bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-400 dark:hover:text-white border border-stone-300 dark:border-white/10'
-                        : 'bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] shadow-md'
+                        : 'bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] shadow-md'
                         }`}
                     >
                       {isCollected ? (
@@ -4530,7 +4530,7 @@ export default function OwnerView() {
                       setSelectedAuditOrder(prev => ({ ...prev, status: 'preparing' }));
                       setToast({ message: `Order #${shortId} moved to Kitchen Prep!`, type: 'success' });
                     }}
-                    className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <ChefHat size={14} />
                     <span>Start Preparation</span>
@@ -4560,7 +4560,7 @@ export default function OwnerView() {
                       setSelectedAuditOrder(prev => ({ ...prev, status: 'out_for_delivery' }));
                       setToast({ message: `Order #${shortId} handed over to rider!`, type: 'success' });
                     }}
-                    className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#E0FF33] hover:bg-amber-600 dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="flex-1 py-3.5 px-5 rounded-2xl bg-amber-500 dark:bg-[#FD9139] hover:bg-amber-600 dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <Truck size={14} />
                     <span>Handover To Rider</span>
@@ -4587,7 +4587,7 @@ export default function OwnerView() {
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between gap-3 bg-stone-50 dark:bg-[#252223]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
@@ -4619,7 +4619,7 @@ export default function OwnerView() {
                     type="button"
                     onClick={() => setPresetModalCategory(cat)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap border ${presetModalCategory === cat
-                      ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black border-amber-600 dark:border-[#E0FF33] shadow-xs'
+                      ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black border-amber-600 dark:border-[#FD9139] shadow-xs'
                       : 'bg-white hover:bg-stone-100 text-stone-700 dark:bg-[#282526] dark:hover:bg-white/10 dark:text-neutral-300 border-stone-200 dark:border-white/10'
                       }`}
                   >
@@ -4636,7 +4636,7 @@ export default function OwnerView() {
                   value={presetModalSearch}
                   onChange={(e) => setPresetModalSearch(e.target.value)}
                   placeholder="Search preset dishes..."
-                  className="w-full bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-xl pl-9 pr-7 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50"
+                  className="w-full bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-xl pl-9 pr-7 py-2 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50"
                 />
                 {presetModalSearch && (
                   <button
@@ -4665,7 +4665,7 @@ export default function OwnerView() {
                   .map((preset) => (
                     <div
                       key={preset.id}
-                      className="bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 transition-all hover:shadow-xl group"
+                      className="bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#FD9139]/50 transition-all hover:shadow-xl group"
                     >
                       <div>
                         {/* Top Section: Cutout Image + Info with Zero Clipping */}
@@ -4694,7 +4694,7 @@ export default function OwnerView() {
                           <div className="min-w-0 flex-1 flex flex-col justify-center">
                             {/* Badges Row */}
                             <div className="flex items-center justify-between gap-1.5 mb-1 flex-wrap">
-                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/20 dark:border-[#E0FF33]/20 whitespace-nowrap">
+                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/20 whitespace-nowrap">
                                 {preset.tag || preset.category}
                               </span>
                               <span className="text-xs font-bold text-stone-500 dark:text-neutral-400 font-['Outfit'] shrink-0 flex items-center gap-1">
@@ -4703,7 +4703,7 @@ export default function OwnerView() {
                             </div>
 
                             {/* Full Dish Name */}
-                            <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white line-clamp-2 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors leading-snug">
+                            <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white line-clamp-2 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors leading-snug">
                               {preset.name}
                             </h4>
 
@@ -4737,7 +4737,7 @@ export default function OwnerView() {
                               </button>
 
                               <div className="relative flex items-center">
-                                <span className="absolute left-2.5 text-xs font-black text-amber-600 dark:text-[#E0FF33] font-['Outfit'] pointer-events-none">₹</span>
+                                <span className="absolute left-2.5 text-xs font-black text-amber-600 dark:text-[#FD9139] font-['Outfit'] pointer-events-none">₹</span>
                                 <input
                                   type="number"
                                   value={presetPriceOverrides[preset.id] ?? preset.price}
@@ -4745,7 +4745,7 @@ export default function OwnerView() {
                                     const val = e.target.value;
                                     setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
                                   }}
-                                  className="w-18 sm:w-20 h-8 pl-6 pr-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#E0FF33] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center font-['Outfit'] shadow-inner"
+                                  className="w-18 sm:w-20 h-8 pl-6 pr-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#FD9139] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center font-['Outfit'] shadow-inner"
                                   placeholder={String(preset.price)}
                                 />
                               </div>
@@ -4781,7 +4781,7 @@ export default function OwnerView() {
                           <button
                             type="button"
                             onClick={() => handleQuickAddPresetDish(preset, presetPriceOverrides[preset.id])}
-                            className="h-8.5 sm:h-9 px-4 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1.5"
+                            className="h-8.5 sm:h-9 px-4 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1.5"
                             title="Add directly to menu"
                           >
                             <Plus className="w-3.5 h-3.5 stroke-[3]" />
@@ -4821,7 +4821,7 @@ export default function OwnerView() {
                 <button
                   type="button"
                   onClick={() => setShowPresetCatalogModal(false)}
-                  className="px-4 py-2 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black font-black text-xs uppercase tracking-wider transition-all cursor-pointer"
                 >
                   Done
                 </button>

@@ -49,9 +49,9 @@ const DESK_CONFIG = {
     title: 'My Account',
     subtitle: 'Verified Satvik Member • Foody Vrinda',
     badge: 'Customer',
-    color: '#E0FF33',
-    accentBg: 'rgba(224, 255, 51, 0.12)',
-    border: 'rgba(224, 255, 51, 0.25)'
+    color: '#FD9139',
+    accentBg: 'rgba(253, 145, 57, 0.12)',
+    border: 'rgba(253, 145, 57, 0.25)'
   },
   kitchen: {
     icon: ChefHat,
@@ -85,9 +85,9 @@ const DESK_CONFIG = {
     title: 'Developer Master Console',
     subtitle: 'Full system root access, live simulation & master telemetry',
     badge: 'Developer',
-    color: '#E0FF33',
-    accentBg: 'rgba(224, 255, 51, 0.15)',
-    border: 'rgba(224, 255, 51, 0.3)'
+    color: '#FD9139',
+    accentBg: 'rgba(253, 145, 57, 0.15)',
+    border: 'rgba(253, 145, 57, 0.3)'
   }
 };
 
@@ -490,7 +490,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3.5 min-w-0">
             {isAuthenticated && !showLoginView ? (
-              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#E0FF33]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#E0FF33]/80 shrink-0 shadow-[0_2px_12px_rgba(224,255,51,0.2)]">
+              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253, 145, 57,0.2)]">
                 <div className="w-full h-full rounded-full overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-[#1E1B1C] flex items-center justify-center">
                   {userAvatar ? (
                     <img
@@ -511,7 +511,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               </div>
             ) : (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#E0FF33]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#E0FF33]/80 shrink-0 shadow-[0_2px_14px_rgba(224,255,51,0.25)] flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253, 145, 57,0.25)] flex items-center justify-center">
                 <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] flex items-center justify-center">
                   <img
                     src="/foody-vrinda-logo.webp"
@@ -542,7 +542,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {isLight ? (
                 <Moon size={14} className="text-amber-600" />
               ) : (
-                <Sun size={14} className="text-[#E0FF33]" />
+                <Sun size={14} className="text-[#FD9139]" />
               )}
             </button>
 
@@ -579,7 +579,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             {/* 1. MASTER DEVOTEE IDENTITY CARD */}
             <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/10 shadow-sm relative overflow-hidden space-y-3.5">
               {/* Ambient Glow */}
-              <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 dark:bg-[#E0FF33]/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 dark:bg-[#FD9139]/5 rounded-full blur-2xl pointer-events-none" />
 
               {/* Top: Devotee Name, Role Badge & Email */}
               <div className="flex items-start justify-between gap-3 relative z-10">
@@ -595,7 +595,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setNameInput(userData?.displayName || user.displayName || '');
                           setIsEditingName(true);
                         }}
-                        className="w-7 h-7 rounded-lg bg-stone-200/70 hover:bg-stone-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-stone-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-[#E0FF33] flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-stone-200/70 hover:bg-stone-300/80 dark:bg-white/5 dark:hover:bg-white/10 text-stone-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-[#FD9139] flex items-center justify-center transition-colors cursor-pointer"
                         title="Edit Name"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -621,8 +621,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
                           effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
                             effectiveDisplayRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
-                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
-                                'bg-emerald-500/15 text-emerald-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-emerald-500/30 dark:border-[#E0FF33]/30'
+                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30' :
+                                'bg-emerald-500/15 text-emerald-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-emerald-500/30 dark:border-[#FD9139]/30'
                         }`}>
                         {isMasterAdmin ? 'Grand Admin' :
                           effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
@@ -637,17 +637,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
               {/* Dedicated Full-Width Name Editor (Shown when editing name) */}
               {isEditingName && (
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#E0FF33]/40 shadow-sm space-y-3 animate-fade-in relative z-10 w-full">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#FD9139]/40 shadow-sm space-y-3 animate-fade-in relative z-10 w-full">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
-                      <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                      <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                       Update Devotee Name
                     </span>
                     <span className="text-[11px] text-stone-400 dark:text-zinc-500 font-medium">Public profile name</span>
                   </div>
 
                   {/* Full-width Roomy Input */}
-                  <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#E0FF33] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 px-3.5 shadow-inner">
+                  <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#FD9139] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/15 px-3.5 shadow-inner">
                     <input
                       type="text"
                       value={nameInput}
@@ -670,7 +670,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="button"
                       onClick={handleSaveName}
                       disabled={!nameInput.trim()}
-                      className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                      className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
                     >
                       <Check className="w-4 h-4 stroke-[3]" />
                       <span>Save Name</span>
@@ -683,18 +683,18 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1.5 border-t border-stone-200 dark:border-white/5 relative z-10">
                 {/* Phone: Full-Width Editor OR Collapsed Quick Pill */}
                 {isEditingPhone ? (
-                  <div className="col-span-1 sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#E0FF33]/40 shadow-sm space-y-3 animate-fade-in w-full">
+                  <div className="col-span-1 sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#FD9139]/40 shadow-sm space-y-3 animate-fade-in w-full">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
-                        <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                        <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                         Update Mobile Number
                       </span>
                       <span className="text-[11px] font-mono text-stone-400 dark:text-zinc-500">10 digits required</span>
                     </div>
 
                     {/* Full-width Phone Input */}
-                    <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#E0FF33] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/15 px-3.5 shadow-inner">
-                      <span className="text-sm font-black text-stone-900 dark:text-[#E0FF33] pr-3 mr-3 border-r border-stone-300 dark:border-white/15 select-none font-['Outfit']">
+                    <div className="flex items-center h-12 w-full bg-stone-50 dark:bg-[#141213] rounded-xl border border-stone-300 dark:border-white/20 focus-within:border-amber-500 dark:focus-within:border-[#FD9139] focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/15 px-3.5 shadow-inner">
+                      <span className="text-sm font-black text-stone-900 dark:text-[#FD9139] pr-3 mr-3 border-r border-stone-300 dark:border-white/15 select-none font-['Outfit']">
                         +91
                       </span>
                       <input
@@ -720,7 +720,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         type="button"
                         onClick={handleSavePhone}
                         disabled={phoneEditInput.length < 10}
-                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>Save Phone</span>
@@ -731,12 +731,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
                           <Phone className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
-                          <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#E0FF33] font-semibold'}`}>
+                          <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#FD9139] font-semibold'}`}>
                             {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : '+ Add phone'}
                           </span>
                         </div>
@@ -747,7 +747,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setPhoneEditInput(cleanMob.slice(-10));
                           setIsEditingPhone(true);
                         }}
-                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] cursor-pointer shrink-0 transition-colors"
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#FD9139] cursor-pointer shrink-0 transition-colors"
                       >
                         {hasValidPhone ? 'Edit' : '+ Add'}
                       </button>
@@ -757,10 +757,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
                 {/* Address: Full-Width In-Place Editor OR Collapsed Quick Pill */}
                 {isEditingAddress ? (
-                  <div className="col-span-1 sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-amber-500/50 dark:border-[#E0FF33]/40 space-y-3.5 relative z-10 animate-fade-in shadow-md w-full">
+                  <div className="col-span-1 sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-amber-500/50 dark:border-[#FD9139]/40 space-y-3.5 relative z-10 animate-fade-in shadow-md w-full">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
-                        <MapPin className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                        <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
                         Delivery Address in Vrindavan Dham
                       </span>
                       <button
@@ -778,7 +778,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       value={addressInput}
                       onChange={(e) => setAddressInput(e.target.value)}
                       placeholder="House/Room No., Building, Street, Ashram, or Landmark in Vrindavan..."
-                      className="w-full min-h-[92px] bg-stone-50 dark:bg-[#141213] text-sm sm:text-base text-stone-900 dark:text-white p-3.5 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33] focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#E0FF33]/10 resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-500 leading-relaxed shadow-inner"
+                      className="w-full min-h-[92px] bg-stone-50 dark:bg-[#141213] text-sm sm:text-base text-stone-900 dark:text-white p-3.5 rounded-xl border border-stone-300 dark:border-white/20 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139] focus:ring-2 focus:ring-amber-500/10 dark:focus:ring-[#FD9139]/10 resize-none font-['Plus_Jakarta_Sans'] font-medium placeholder-stone-400 dark:placeholder-zinc-500 leading-relaxed shadow-inner"
                     />
 
                     {/* Quick Landmark Chips (Balanced 2-Column Grid) */}
@@ -797,9 +797,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                             key={i}
                             type="button"
                             onClick={() => setAddressInput(loc.value)}
-                            className="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#E0FF33]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#E0FF33] border border-stone-200 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-95 text-left flex items-center gap-1.5 truncate"
+                            className="px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-[#FD9139]/20 text-stone-800 dark:text-zinc-200 dark:hover:text-[#FD9139] border border-stone-200 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all shadow-xs active:scale-95 text-left flex items-center gap-1.5 truncate"
                           >
-                            <span className="text-amber-600 dark:text-[#E0FF33] text-xs font-black shrink-0">+</span>
+                            <span className="text-amber-600 dark:text-[#FD9139] text-xs font-black shrink-0">+</span>
                             <span className="truncate">{loc.label}</span>
                           </button>
                         ))}
@@ -819,7 +819,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         type="button"
                         onClick={handleSaveAddress}
                         disabled={!addressInput.trim()}
-                        className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                        className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>Save Address</span>
@@ -830,12 +830,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
                           <MapPin className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
-                          <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#E0FF33] font-semibold'}`}>
+                          <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#FD9139] font-semibold'}`}>
                             {hasValidAddress ? userAddress : '+ Set address'}
                           </span>
                         </div>
@@ -846,7 +846,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
                           setIsEditingAddress(true);
                         }}
-                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] cursor-pointer shrink-0 transition-colors"
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#FD9139] cursor-pointer shrink-0 transition-colors"
                       >
                         {hasValidAddress ? 'Edit' : '+ Add'}
                       </button>
@@ -858,7 +858,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {/* Bottom: Integrated Prasad Rewards Strip */}
               <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
                 <div className="flex items-center gap-2 pr-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
@@ -895,7 +895,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   {isLight ? (
                     <Sun className="w-4 h-4 text-amber-500 shrink-0" />
                   ) : (
-                    <Moon className="w-4 h-4 text-[#E0FF33] shrink-0" />
+                    <Moon className="w-4 h-4 text-[#FD9139] shrink-0" />
                   )}
                   <span>App Theme</span>
                 </div>
@@ -915,7 +915,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     type="button"
                     onClick={() => setTheme('dark')}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${isDark
-                      ? 'bg-[#E0FF33] text-black shadow-xs font-black'
+                      ? 'bg-[#FD9139] text-black shadow-xs font-black'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
@@ -928,7 +928,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {/* Notification Chime Preference Row */}
               <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
-                  <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#E0FF33] shrink-0" />
+                  <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#FD9139] shrink-0" />
                   <span>Notification Sound</span>
                 </div>
                 <button
@@ -937,7 +937,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   className="px-3 py-1.5 rounded-full text-xs font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <span>{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
-                  <span className="text-[10px] text-amber-600 dark:text-[#E0FF33] font-black">Change &gt;</span>
+                  <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-black">Change &gt;</span>
                 </button>
               </div>
 
@@ -950,7 +950,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                  <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
                   <span>My Orders & Live Tracking</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
@@ -983,12 +983,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-4 h-4 text-amber-500 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                  <div className="w-4 h-4 text-amber-500 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                     <Gamepad2 className="w-4 h-4" />
                   </div>
                   <span>App Guide & Role Onboarding</span>
                 </div>
-                <span className="text-[10px] text-amber-800 dark:text-[#E0FF33] font-black bg-amber-500/15 dark:bg-[#E0FF33]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/30">
+                <span className="text-[10px] text-amber-800 dark:text-[#FD9139] font-black bg-amber-500/15 dark:bg-[#FD9139]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/30">
                   Replay Tutorial
                 </span>
               </button>
@@ -1081,7 +1081,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 <button
                   type="button"
                   onClick={() => setShowLoginView(false)}
-                  className="text-xs text-amber-600 dark:text-[#E0FF33] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-amber-600 dark:text-[#FD9139] hover:underline font-bold flex items-center gap-1 cursor-pointer"
                 >
                   <span>← Back to Active Profile</span>
                 </button>
@@ -1113,7 +1113,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                         }`}
                     >
-                      <Icon className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#E0FF33]" />
+                      <Icon className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-[#FD9139]" />
                       <span className="truncate">{tab.label}</span>
                     </button>
                   );
@@ -1132,7 +1132,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                     }`}
                 >
-                  <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33] shrink-0" />
+                  <Phone className="w-3 h-3 text-amber-600 dark:text-[#FD9139] shrink-0" />
                   <span className="truncate">Mobile Number</span>
                 </button>
 
@@ -1166,9 +1166,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           if (s.step < signupStep) setSignupStep(s.step);
                         }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-['Outfit'] transition-all ${signupStep === s.step
-                          ? 'bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black shadow-md scale-105'
+                          ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black shadow-md scale-105'
                           : signupStep > s.step
-                            ? 'bg-amber-500/20 text-amber-800 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 cursor-pointer'
+                            ? 'bg-amber-500/20 text-amber-800 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 cursor-pointer'
                             : 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-zinc-500 border border-stone-300 dark:border-white/5'
                           }`}
                       >
@@ -1179,13 +1179,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         {s.label}
                       </span>
                       {idx < 2 && (
-                        <div className={`w-3 sm:w-5 h-0.5 rounded-full ${signupStep > s.step ? 'bg-amber-500/60 dark:bg-[#E0FF33]/60' : 'bg-stone-300 dark:bg-white/10'
+                        <div className={`w-3 sm:w-5 h-0.5 rounded-full ${signupStep > s.step ? 'bg-amber-500/60 dark:bg-[#FD9139]/60' : 'bg-stone-300 dark:bg-white/10'
                           }`} />
                       )}
                     </div>
                   ))}
                 </div>
-                <span className="text-[10px] font-black text-amber-600 dark:text-[#E0FF33] font-mono">
+                <span className="text-[10px] font-black text-amber-600 dark:text-[#FD9139] font-mono">
                   {signupStep}/3
                 </span>
               </div>
@@ -1195,8 +1195,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             {!isSignup && loginMethod === 'phone' && (
               <form onSubmit={handlePhoneSubmit} className="space-y-4 pt-1">
                 <div className="space-y-2">
-                  <div className="flex items-center min-h-[52px] sm:min-h-[56px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/15 rounded-2xl sm:rounded-[20px] focus-within:border-stone-900 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#E0FF33]/20 transition-all px-4 py-1.5 shadow-xs">
-                    <span className="text-sm sm:text-base font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit'] pr-3 mr-2 border-r border-stone-300 dark:border-white/15 select-none tracking-wide flex items-center gap-1.5">
+                  <div className="flex items-center min-h-[52px] sm:min-h-[56px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/15 rounded-2xl sm:rounded-[20px] focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/20 transition-all px-4 py-1.5 shadow-xs">
+                    <span className="text-sm sm:text-base font-black text-stone-900 dark:text-[#FD9139] font-['Outfit'] pr-3 mr-2 border-r border-stone-300 dark:border-white/15 select-none tracking-wide flex items-center gap-1.5">
                       +91
                     </span>
                     <input
@@ -1217,7 +1217,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 <button
                   type="submit"
                   disabled={loading || phoneInput.length < 10}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
                 >
                   <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1236,7 +1236,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
                         Personal Details
                       </span>
-                      <span className="text-[10px] text-amber-600 dark:text-[#E0FF33] font-bold">Step 1 of 3</span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 1 of 3</span>
                     </div>
 
                     <div className="space-y-3">
@@ -1248,13 +1248,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           onChange={(e) => setDisplayName(e.target.value)}
                           placeholder="Full Name (e.g. Radhe Shyam)"
                           required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
 
-                      <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl focus-within:border-stone-900 dark:focus-within:border-[#E0FF33]/40 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#E0FF33]/10 transition-all px-4 py-1.5">
+                      <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/40 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/10 transition-all px-4 py-1.5">
                         <Phone className="w-4 h-4 text-stone-400 dark:text-zinc-500 shrink-0 mr-2.5" />
-                        <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-[#E0FF33] pr-2.5 border-r border-stone-300 dark:border-white/10 select-none font-['Outfit']">+91</span>
+                        <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-[#FD9139] pr-2.5 border-r border-stone-300 dark:border-white/10 select-none font-['Outfit']">+91</span>
                         <input
                           type="tel"
                           value={signupPhone}
@@ -1280,7 +1280,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
                         Account Security
                       </span>
-                      <span className="text-[10px] text-amber-600 dark:text-[#E0FF33] font-bold">Step 2 of 3</span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 2 of 3</span>
                     </div>
 
                     <div className="space-y-3">
@@ -1292,7 +1292,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Email Address (e.g. user@example.com)"
                           required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
 
@@ -1304,7 +1304,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Create Password (min 6 chars)"
                           required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -1323,17 +1323,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
                         Default Delivery
                       </span>
-                      <span className="text-[10px] text-amber-600 dark:text-[#E0FF33] font-bold">Step 3 of 3</span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 3 of 3</span>
                     </div>
 
                     <div className="relative">
-                      <MapPin className="w-4 h-4 text-amber-600 dark:text-[#E0FF33] absolute left-3.5 top-3.5" />
+                      <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139] absolute left-3.5 top-3.5" />
                       <textarea
                         rows={2}
                         value={signupAddress}
                         onChange={(e) => setSignupAddress(e.target.value)}
                         placeholder="Delivery Address (e.g. Flat 204, Near ISKCON Temple, Raman Reti)"
-                        className="w-full bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
+                        className="w-full bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
                       />
                     </div>
 
@@ -1353,9 +1353,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                             key={i}
                             type="button"
                             onClick={() => setSignupAddress(loc.value)}
-                            className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-800 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-[#E0FF33]/15 dark:hover:text-[#E0FF33] dark:border-white/10 dark:hover:border-[#E0FF33]/30 text-xs font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs truncate text-left flex items-center gap-1.5"
+                            className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-800 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-[#FD9139]/15 dark:hover:text-[#FD9139] dark:border-white/10 dark:hover:border-[#FD9139]/30 text-xs font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs truncate text-left flex items-center gap-1.5"
                           >
-                            <span className="text-amber-600 dark:text-[#E0FF33] text-xs font-black shrink-0">+</span>
+                            <span className="text-amber-600 dark:text-[#FD9139] text-xs font-black shrink-0">+</span>
                             <span className="truncate">{loc.label}</span>
                           </button>
                         ))}
@@ -1370,7 +1370,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-stone-500 dark:text-zinc-400">Mobile:</span>
-                        <span className="font-bold text-stone-900 dark:text-[#E0FF33] font-['Outfit']">+91 {signupPhone}</span>
+                        <span className="font-bold text-stone-900 dark:text-[#FD9139] font-['Outfit']">+91 {signupPhone}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-stone-500 dark:text-zinc-400">Email:</span>
@@ -1391,7 +1391,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Email Address (e.g. user@example.com)"
                         required
-                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                       />
                     </div>
                     <div className="relative">
@@ -1402,7 +1402,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
                         required
-                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#E0FF33]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#E0FF33]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                       />
                     </div>
                   </div>
@@ -1425,7 +1425,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     type={isSignup && signupStep < 3 ? "button" : "submit"}
                     onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
                     disabled={loading}
-                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
+                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
                   >
                     <span>
                       {loading
@@ -1451,7 +1451,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     className="text-xs text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
                   >
                     {isSignup ? 'Already registered? ' : "Don't have an account? "}
-                    <span className="text-amber-600 hover:text-amber-700 dark:text-[#E0FF33] font-bold underline ml-1">
+                    <span className="text-amber-600 hover:text-amber-700 dark:text-[#FD9139] font-bold underline ml-1">
                       {isSignup ? 'Log In Instead' : 'Register in 3 Steps'}
                     </span>
                   </button>

@@ -138,8 +138,8 @@ const MenuItemCard = memo(function MenuItemCard({
               Out of Stock
             </span>
           ) : item.isCombo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#E0FF33] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
-              <Sparkles size={11} className="text-[#E0FF33]" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-900 dark:bg-stone-800 text-[#FD9139] text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+              <Sparkles size={11} className="text-[#FD9139]" />
               {item.tag || 'Combo Offer'}
             </span>
           ) : null}
@@ -165,7 +165,7 @@ const MenuItemCard = memo(function MenuItemCard({
       <div className="mt-3 sm:mt-4 z-10">
         <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
           <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
-            quantityInCart > 0 ? 'text-amber-600 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'
+            quantityInCart > 0 ? 'text-amber-600 dark:text-[#FD9139]' : 'text-stone-900 dark:text-white'
           }`}>
             ₹{activePrice}
           </span>
@@ -192,7 +192,7 @@ const MenuItemCard = memo(function MenuItemCard({
               e.stopPropagation();
               onAddToCart(item);
             }}
-            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#d4f526] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
+            className="h-10 sm:h-11 bg-stone-900 hover:bg-black dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-stone-950 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
           >
             <span>Order Now</span>
             <ChevronRight size={14} strokeWidth={3} />
@@ -1227,7 +1227,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           email: user?.email || '',
           contact: checkoutPhone
         },
-        theme: { color: "#E0FF33" },
+        theme: { color: "#FD9139" },
         modal: {
           ondismiss: () => showToast("Payment cancelled", 'info')
         }
@@ -1455,7 +1455,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             className={`flex-1 min-w-0 h-11 flex items-center gap-2 bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] border border-stone-300 dark:border-white/10 px-3.5 rounded-full text-xs shadow-xs transition-all apple-tap-target ${allShops.length > 1 ? 'cursor-pointer' : 'cursor-default'}`}
             title={allShops.length > 1 ? "Switch Kitchen Branch" : "Current Branch"}
           >
-            <MapPin size={15} className="text-amber-600 dark:text-[#E0FF33] flex-shrink-0" />
+            <MapPin size={15} className="text-amber-600 dark:text-[#FD9139] flex-shrink-0" />
             <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate flex-1 text-left min-w-0">
               {activeShop?.name || allShops?.find(s => s.is_active !== false && !s.is_deleted)?.name || 'Select Branch'}
             </span>
@@ -1475,7 +1475,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             className="h-11 px-3.5 sm:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold shadow-xs transition-all cursor-pointer apple-tap-target flex items-center gap-1.5 shrink-0"
             title="Past Orders & Tracking"
           >
-            <History size={15} className="text-amber-600 dark:text-[#E0FF33]" />
+            <History size={15} className="text-amber-600 dark:text-[#FD9139]" />
             <span className="hidden sm:inline">My Orders</span>
           </button>
         </div>
@@ -1512,7 +1512,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             autoCorrect="off"
             spellCheck="false"
             aria-label="Search dishes and prasad"
-            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#E0FF33]/70 rounded-full pl-11 pr-28 sm:pr-32 text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
+            className="w-full h-12 bg-stone-200/90 dark:bg-[#252223] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 focus:border-amber-600 dark:focus:border-[#FD9139]/70 rounded-full pl-11 pr-28 sm:pr-32 text-sm text-stone-900 dark:text-white placeholder-stone-500 dark:placeholder-zinc-400 shadow-inner focus:outline-none transition-all font-medium"
           />
 
           {/* Right Action Controls inside Search Bar */}
@@ -1533,7 +1533,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   onClick={() => {
                     window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
                   }}
-                  className="h-8 px-2.5 sm:px-3 rounded-full bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#121011] text-[11px] font-black flex items-center gap-1 shadow-sm cursor-pointer active:scale-95 transition-all"
+                  className="h-8 px-2.5 sm:px-3 rounded-full bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#121011] text-[11px] font-black flex items-center gap-1 shadow-sm cursor-pointer active:scale-95 transition-all"
                   title="Search across all Vrindavan kitchens"
                   aria-label="Search across all Vrindavan kitchens"
                 >
@@ -1551,7 +1551,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 title="Search all Vrindavan kitchens & delicacies"
                 aria-label="Search all Vrindavan kitchens and delicacies"
               >
-                <Globe size={13} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
+                <Globe size={13} className="text-amber-600 dark:text-[#FD9139] shrink-0" />
                 <span className="font-outfit font-sans text-[10.5px] sm:text-[11px] font-bold">All Shops</span>
               </button>
             )}
@@ -1587,7 +1587,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Header — Single clean line */}
                 <div className="px-5 pt-3 sm:pt-4 pb-3 flex items-center justify-between border-b border-stone-200/60 dark:border-white/5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 flex items-center justify-center text-amber-600 dark:text-[#E0FF33]">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 flex items-center justify-center text-amber-600 dark:text-[#FD9139]">
                       <Store size={17} />
                     </div>
                     <div>
@@ -1619,7 +1619,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       value={shopSearch}
                       onChange={(e) => setShopSearch(e.target.value)}
                       placeholder="Search by kitchen name or area…"
-                      className="w-full h-10 bg-stone-100/90 dark:bg-white/[.05] border border-stone-200/60 dark:border-white/[.08] focus:border-amber-500 dark:focus:border-[#E0FF33]/50 rounded-xl pl-9 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium font-['Outfit']"
+                      className="w-full h-10 bg-stone-100/90 dark:bg-white/[.05] border border-stone-200/60 dark:border-white/[.08] focus:border-amber-500 dark:focus:border-[#FD9139]/50 rounded-xl pl-9 pr-8 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none transition-all font-medium font-['Outfit']"
                     />
                     {shopSearch && (
                       <button
@@ -1646,7 +1646,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     </p>
                     <button
                       onClick={() => setShopSearch('')}
-                      className="text-xs font-bold text-amber-600 dark:text-[#E0FF33] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-amber-600 dark:text-[#FD9139] hover:underline cursor-pointer"
                     >
                       Clear search
                     </button>
@@ -1667,7 +1667,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           }}
                           className={`w-full text-left p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all duration-200 apple-tap-target group relative ${
                             isSelected
-                              ? 'bg-amber-500/[0.05] dark:bg-[#E0FF33]/[0.05] border border-amber-500/40 dark:border-[#E0FF33]/35 shadow-xs'
+                              ? 'bg-amber-500/[0.05] dark:bg-[#FD9139]/[0.05] border border-amber-500/40 dark:border-[#FD9139]/35 shadow-xs'
                               : 'bg-stone-50/80 dark:bg-white/[0.03] border border-stone-200/70 dark:border-white/[0.07] hover:bg-stone-100/80 dark:hover:bg-white/[0.06] hover:border-stone-300 dark:hover:border-white/15'
                           }`}
                           aria-pressed={isSelected}
@@ -1678,7 +1678,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             {/* Outlet Icon Avatar */}
                             <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                               isSelected
-                                ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/25'
+                                ? 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/25'
                                 : 'bg-stone-200/70 dark:bg-white/[0.06] text-stone-600 dark:text-zinc-400 group-hover:bg-stone-300/80 dark:group-hover:bg-white/10'
                             }`}>
                               <Store size={18} strokeWidth={2.2} />
@@ -1688,7 +1688,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             <div className="min-w-0 flex-1">
                               <h4 className={`text-sm sm:text-[15px] font-bold tracking-tight truncate font-['Outfit'] ${
                                 isSelected
-                                  ? 'text-amber-900 dark:text-[#E0FF33]'
+                                  ? 'text-amber-900 dark:text-[#FD9139]'
                                   : 'text-stone-900 dark:text-white'
                               }`}>
                                 {s.name}
@@ -1714,7 +1714,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             {/* Radio Checkmark */}
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                               isSelected
-                                ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-stone-950 shadow-xs'
+                                ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-stone-950 shadow-xs'
                                 : 'border border-stone-300 dark:border-white/20 group-hover:border-stone-400 dark:group-hover:border-white/40'
                             }`}>
                               {isSelected && (
@@ -1744,7 +1744,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
-                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs'
+                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs'
                   : 'bg-stone-200/90 hover:bg-stone-300 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-300/80 dark:border-white/10 shadow-xs'
                   }`}
               >
@@ -1757,16 +1757,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
       {trackingOrder && (
-        <div className="mb-6 bg-stone-100/95 dark:bg-[#282526] border border-stone-200/90 dark:border-[#E0FF33]/30 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-2xl relative apple-modal-spring overflow-hidden">
+        <div className="mb-6 bg-stone-100/95 dark:bg-[#282526] border border-stone-200/90 dark:border-[#FD9139]/30 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-2xl relative apple-modal-spring overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             {/* Left: Icon & Status Text */}
             <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-inner">
+              <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0 shadow-inner">
                 <Navigation className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-3 py-0.5 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20">
+                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 px-3 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/20">
                     Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                   </span>
                   <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 capitalize">
@@ -1804,7 +1804,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     setReviewOrderTarget(trackingOrder);
                     setIsReviewModalOpen(true);
                   }}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] font-black text-xs hover:bg-amber-600 dark:hover:bg-[#ccff00] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] font-black text-xs hover:bg-amber-600 dark:hover:bg-[#fca65e] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <Star className="w-3.5 h-3.5 fill-current" />
                   <span>Rate & Review</span>
@@ -1812,7 +1812,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121011] font-black text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
               >
                 <span className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
                   <Navigation className="w-3 h-3 text-white dark:text-[#121011] fill-current" />
@@ -1843,7 +1843,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       ) : filteredMenuItems.length === 0 ? (
         <div className="bg-stone-100 dark:bg-[#282526] rounded-[32px] sm:rounded-[36px] p-8 sm:p-14 text-center text-stone-600 dark:text-zinc-400 border border-stone-200 dark:border-white/5 flex flex-col items-center justify-center animate-fade-in shadow-xs">
           <div className="w-14 h-14 rounded-2xl bg-stone-200/80 dark:bg-white/5 flex items-center justify-center mb-3">
-            <Soup size={32} className="text-amber-600 dark:text-[#E0FF33]" />
+            <Soup size={32} className="text-amber-600 dark:text-[#FD9139]" />
           </div>
           <p className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
             {menuSearch ? `No "${menuSearch}" found in this kitchen` : 'No items found'}
@@ -1859,7 +1859,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
               }}
-              className="mt-4 px-4.5 py-2.5 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black text-xs flex items-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all hover:opacity-90"
+              className="mt-4 px-4.5 py-2.5 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black text-xs flex items-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all hover:opacity-90"
             >
               <Globe size={14} />
               <span>Search "{menuSearch}" in All Vrindavan Kitchens</span>
@@ -1894,7 +1894,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       {/* Sleek Native Mobile End-of-Feed Signature */}
       <div className="w-full text-center select-none pt-6 pb-28 sm:pb-32 space-y-1 opacity-70 hover:opacity-100 transition-opacity mt-auto">
         <div className="flex items-center justify-center gap-2">
-          <span className="font-laila text-xs font-bold text-amber-700 dark:text-[#E0FF33]">
+          <span className="font-laila text-xs font-bold text-amber-700 dark:text-[#FD9139]">
             वृन्दोपनिषद्
           </span>
           <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
@@ -1932,15 +1932,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="pointer-events-auto w-full animate-slide-up">
               <div
                 onClick={() => setShowCartDrawer(true)}
-                className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all active:scale-[0.98] group"
+                className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all active:scale-[0.98] group"
               >
                 {/* Left: Icon + Quantity Badge + Price */}
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
                       <ShoppingBag size={18} />
                     </div>
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
                       {cart.reduce((s, i) => s + i.quantity, 0)}
                     </span>
                   </div>
@@ -1954,7 +1954,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         · {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
-                    <p className="hidden sm:block text-xs text-amber-700 dark:text-[#E0FF33] font-bold truncate tracking-wide">
+                    <p className="hidden sm:block text-xs text-amber-700 dark:text-[#FD9139] font-bold truncate tracking-wide">
                       {activeShop?.name || 'Vrinda Prasad'} Basket
                     </p>
                   </div>
@@ -1967,7 +1967,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     setShowCartDrawer(true);
                   }}
-                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <span>View Basket</span>
                   <ChevronRight size={14} strokeWidth={3} />
@@ -2092,7 +2092,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] select-none"
               >
                 {/* Soft ambient plate glow */}
-                <div className="absolute inset-0 bg-radial from-amber-500/10 dark:from-[#E0FF33]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
+                <div className="absolute inset-0 bg-radial from-amber-500/10 dark:from-[#FD9139]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
 
                 <div className="w-40 h-36 xs:w-48 xs:h-40 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
                   <img
@@ -2116,8 +2116,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <span>Currently Out of Stock</span>
                     </span>
                   ) : (
-                    <span className="bg-white/95 dark:bg-[#282526] text-stone-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-stone-200 dark:border-[#E0FF33]/20 flex items-center gap-1 backdrop-blur-sm">
-                      <Sparkles size={11} className="shrink-0 text-amber-600 dark:text-[#E0FF33]" />
+                    <span className="bg-white/95 dark:bg-[#282526] text-stone-900 dark:text-[#FD9139] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-stone-200 dark:border-[#FD9139]/20 flex items-center gap-1 backdrop-blur-sm">
+                      <Sparkles size={11} className="shrink-0 text-amber-600 dark:text-[#FD9139]" />
                       <span>{selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik')}</span>
                     </span>
                   )}
@@ -2134,7 +2134,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Dish Header: Category + Live In-Basket pill */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-amber-800 dark:text-[#E0FF33] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-0.5 rounded-full border border-amber-500/25 dark:border-[#E0FF33]/20">
+                    <span className="text-amber-800 dark:text-[#FD9139] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-500/15 dark:bg-[#FD9139]/10 px-2.5 py-0.5 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20">
                       {selectedDishDetails.category || "Vrinda Meal"}
                     </span>
                     <span className="text-stone-400 dark:text-zinc-500 text-xs">•</span>
@@ -2150,7 +2150,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Price & Clean Energy Row */}
                 <div className="flex justify-between items-center py-1 border-y border-stone-200/80 dark:border-white/5">
                   <div className="flex items-baseline gap-2">
-                    <div className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit']">
+                    <div className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-[#FD9139] font-['Outfit']">
                       ₹{selectedDishDetails.price}
                     </div>
                     {selectedDishDetails.originalPrice && selectedDishDetails.originalPrice > selectedDishDetails.price && (
@@ -2169,14 +2169,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Bundled Combo Items Breakdown (if combo) */}
                 {selectedDishDetails.comboItems && selectedDishDetails.comboItems.length > 0 && (
-                  <div className="bg-stone-50 dark:bg-[#242021] border border-amber-500/25 dark:border-[#E0FF33]/20 rounded-2xl p-3 space-y-2">
+                  <div className="bg-stone-50 dark:bg-[#242021] border border-amber-500/25 dark:border-[#FD9139]/20 rounded-2xl p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] sm:text-xs font-black uppercase text-amber-800 dark:text-[#E0FF33] tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                      <span className="text-[10px] sm:text-xs font-black uppercase text-amber-800 dark:text-[#FD9139] tracking-wider flex items-center gap-1.5 font-['Outfit']">
                         <Sparkles size={12} />
                         Included in this Combo Pack
                       </span>
                       {selectedDishDetails.tag && (
-                        <span className="text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] px-2 py-0.5 rounded-full border border-amber-500/20 dark:border-[#E0FF33]/20">
+                        <span className="text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] px-2 py-0.5 rounded-full border border-amber-500/20 dark:border-[#FD9139]/20">
                           {selectedDishDetails.tag}
                         </span>
                       )}
@@ -2184,7 +2184,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <div className="grid grid-cols-1 gap-1.5 pt-1">
                       {selectedDishDetails.comboItems.map((ci, cidx) => (
                         <div key={cidx} className="flex items-center gap-2 text-xs text-stone-800 dark:text-neutral-200 bg-white dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
-                          <Check size={12} className="text-emerald-600 dark:text-[#E0FF33] shrink-0 stroke-[3]" />
+                          <Check size={12} className="text-emerald-600 dark:text-[#FD9139] shrink-0 stroke-[3]" />
                           <span className="font-semibold">{ci}</span>
                         </div>
                       ))}
@@ -2204,7 +2204,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Vrinda Satvik Guarantee Banner */}
                 <div className="flex items-center gap-2 bg-stone-100 dark:bg-[#282526] px-3 py-2 rounded-xl border border-stone-200/80 dark:border-white/5 text-[11px] sm:text-xs text-stone-700 dark:text-zinc-300">
-                  <span className="text-emerald-600 dark:text-[#E0FF33] font-bold">✓</span>
+                  <span className="text-emerald-600 dark:text-[#FD9139] font-bold">✓</span>
                   <span className="truncate">100% Pure Satvik · Pure Desi Ghee · No Onion, No Garlic</span>
                 </div>
               </div>
@@ -2236,13 +2236,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           >
                             <Minus size={14} strokeWidth={2.5} />
                           </button>
-                          <span className="min-w-[24px] sm:min-w-[28px] text-center font-black text-sm sm:text-base text-stone-900 dark:text-[#E0FF33] font-['Outfit'] select-none">
+                          <span className="min-w-[24px] sm:min-w-[28px] text-center font-black text-sm sm:text-base text-stone-900 dark:text-[#FD9139] font-['Outfit'] select-none">
                             {detailQuantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => setDetailQuantity(detailQuantity + 1)}
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
                             title="Increase quantity"
                           >
@@ -2254,7 +2254,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={handleDetailAddToCart}
-                          className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
+                          className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
                         >
                           <ShoppingBag size={17} className="text-white dark:text-[#1E1B1C] flex-shrink-0" />
                           <span className="text-xs sm:text-sm font-black whitespace-nowrap">
@@ -2304,7 +2304,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               {/* Header Title & Close Button */}
               <div className="flex justify-between items-center pb-3 border-b border-stone-200 dark:border-white/10 select-none">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag size={20} className="text-amber-600 dark:text-[#E0FF33]" />
+                  <ShoppingBag size={20} className="text-amber-600 dark:text-[#FD9139]" />
                   <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-['Outfit']">Your Basket</h3>
                 </div>
                 <button
@@ -2337,11 +2337,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       <button
                         type="button"
                         onClick={() => setEditingQuantityItem(item)}
-                        className="qty-picker-pill h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#E0FF33]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
+                        className="qty-picker-pill h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#FD9139]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
                         title="Change quantity"
                       >
                         <span className="qty-label text-stone-600 dark:text-zinc-400 font-semibold">Qty</span>
-                        <span className="qty-num font-black text-stone-950 dark:text-[#E0FF33] font-['Outfit']">{item.quantity}</span>
+                        <span className="qty-num font-black text-stone-950 dark:text-[#FD9139] font-['Outfit']">{item.quantity}</span>
                         <ChevronDown size={13} className="text-stone-500 dark:text-zinc-400" />
                       </button>
 
@@ -2363,7 +2363,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-900 hover:bg-black dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-900 hover:bg-black dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
@@ -2410,12 +2410,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           <p className="text-[10px] text-stone-500 dark:text-zinc-400">Direct courier with live Sarathi tracking</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30">
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30">
                         {onlineRidersCount > 0 ? 'Active' : 'Busy'}
                       </span>
                     </div>
                     <div className="text-[10px] text-stone-600 dark:text-zinc-500 bg-stone-200/60 dark:bg-white/5 p-2 rounded-xl border border-stone-200 dark:border-white/5 flex items-center gap-1.5">
-                      <ShieldCheck size={12} className="text-amber-600 dark:text-[#E0FF33] shrink-0" />
+                      <ShieldCheck size={12} className="text-amber-600 dark:text-[#FD9139] shrink-0" />
                       <span>Retail Shop: Counter pickup is disabled to protect against uncollected inventory.</span>
                     </div>
                   </div>
@@ -2442,14 +2442,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       type="button"
                       onClick={() => handleSetFulfillmentType('pickup')}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'pickup'
-                        ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] font-black shadow-xs'
                         : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                         }`}
                     >
                       <span className="text-sm">🛍️</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
                       <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${fulfillmentType === 'pickup'
-                        ? 'bg-white text-stone-950 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                        ? 'bg-white text-stone-950 dark:bg-black dark:text-[#FD9139] shadow-xs'
                         : 'bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30'
                         }`}>Free</span>
                     </button>
@@ -2485,13 +2485,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Charge</span>
-                  <span className={`font-bold ${deliveryCharge === 0 ? 'text-emerald-700 dark:text-[#E0FF33]' : 'text-stone-900 dark:text-white'}`}>
+                  <span className={`font-bold ${deliveryCharge === 0 ? 'text-emerald-700 dark:text-[#FD9139]' : 'text-stone-900 dark:text-white'}`}>
                     {deliveryCharge === 0 ? 'FREE (Pickup)' : `₹${deliveryCharge}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-black text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
                   <span>Total</span>
-                  <span className="text-stone-950 dark:text-[#E0FF33]">₹{totalAmount}</span>
+                  <span className="text-stone-950 dark:text-[#FD9139]">₹{totalAmount}</span>
                 </div>
               </div>
 
@@ -2509,9 +2509,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Name Input */}
                 <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'name'
                   ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#FD9139]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20 shadow-2xs'
                   }`}>
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'name' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#FD9139]'
                     }`}>
                     <User size={19} className="stroke-[2.5]" />
                   </div>
@@ -2540,7 +2540,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </div>
                   <div className="flex items-center shrink-0 ml-2">
                     {checkoutName.trim().length >= 2 && /^[a-zA-Z\s'.]+$/.test(checkoutName.trim()) && (
-                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#E0FF33]/20 text-emerald-700 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Name">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#FD9139]/20 text-emerald-700 dark:text-[#FD9139] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Name">
                         <Check size={14} strokeWidth={3} />
                       </span>
                     )}
@@ -2550,9 +2550,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Phone Input */}
                 <div className={`relative flex items-center rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 transition-all ${shakeField === 'phone'
                   ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                  : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#FD9139]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20 shadow-2xs'
                   }`}>
-                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#E0FF33]'
+                  <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 mr-3.5 transition-colors shadow-inner ${shakeField === 'phone' ? 'bg-red-500/20 text-red-400' : 'bg-stone-200/80 dark:bg-white/5 text-amber-600 dark:text-[#FD9139]'
                     }`}>
                     <Phone size={19} className="stroke-[2.5]" />
                   </div>
@@ -2586,7 +2586,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </div>
                   <div className="flex items-center shrink-0 ml-2">
                     {checkoutPhone.length === 10 && (
-                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#E0FF33]/20 text-emerald-700 dark:text-[#E0FF33] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Mobile">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 dark:bg-[#FD9139]/20 text-emerald-700 dark:text-[#FD9139] flex items-center justify-center animate-scale-up shadow-xs" title="Valid Mobile">
                         <Check size={14} strokeWidth={3} />
                       </span>
                     )}
@@ -2598,12 +2598,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <div className="relative">
                     <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${shakeField === 'address'
                       ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
-                      : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#E0FF33]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 shadow-2xs'
+                      : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#FD9139]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20 shadow-2xs'
                       }`}>
                       {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
                       <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33]'
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139]'
                             }`}>
                             <MapPin size={17} className="stroke-[2.5]" />
                           </div>
@@ -2625,7 +2625,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             e.stopPropagation();
                             handleAutoFillLocation();
                           }}
-                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
+                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
                           title="Auto-fill GPS address or pin on map"
                         >
                           <span className="w-4.5 h-4.5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
@@ -2670,7 +2670,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                     {/* OpenStreetMap Nominatim / Vedic Landmark Autocomplete Dropdown */}
                     {showAddressDropdown && addressSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-stone-900 dark:bg-[#201D1E] border border-stone-700 dark:border-[#E0FF33]/30 rounded-2xl p-2 shadow-2xl z-30 max-h-48 overflow-y-auto no-scrollbar space-y-1 backdrop-blur-xl">
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-stone-900 dark:bg-[#201D1E] border border-stone-700 dark:border-[#FD9139]/30 rounded-2xl p-2 shadow-2xl z-30 max-h-48 overflow-y-auto no-scrollbar space-y-1 backdrop-blur-xl">
                         {isFetchingAddress && (
                           <p className="text-xs text-zinc-400 px-3 py-1 font-medium">Searching landmarks...</p>
                         )}
@@ -2696,7 +2696,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             }}
                             className="w-full text-left p-2.5 rounded-xl hover:bg-white/10 transition-all text-xs flex items-start gap-2 text-zinc-200 hover:text-white cursor-pointer"
                           >
-                            <MapPin size={15} className="text-amber-500 dark:text-[#E0FF33] mt-0.5 shrink-0" />
+                            <MapPin size={15} className="text-amber-500 dark:text-[#FD9139] mt-0.5 shrink-0" />
                             <div className="min-w-0">
                               <p className="font-bold text-white truncate text-xs sm:text-sm">{item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}</p>
                               <p className="text-xs text-zinc-400 truncate">{item.address || item.display_name || ''}</p>
@@ -2709,12 +2709,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 ) : (
                   <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/10 space-y-2.5 shadow-2xs animate-fade-in">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center shrink-0 shadow-inner">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-inner">
                         <Store size={20} className="stroke-[2.5]" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
-                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#E0FF33] truncate">{activeShop?.name || 'Counter Pickup'}</p>
+                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139] truncate">{activeShop?.name || 'Counter Pickup'}</p>
                       </div>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
@@ -2734,7 +2734,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between text-xs font-black text-stone-600 dark:text-zinc-400 font-['Outfit'] uppercase tracking-wider px-1">
                     <span>Payment Method</span>
-                    <span className="text-[11px] text-amber-700 dark:text-[#E0FF33] font-bold">100% Secure</span>
+                    <span className="text-[11px] text-amber-700 dark:text-[#FD9139] font-bold">100% Secure</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5">
@@ -2747,7 +2747,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         !onlineAvailable
                           ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
                           : paymentMethod === 'online'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30 cursor-pointer'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-[#121011] dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
                             : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
                       }`}
                     >
@@ -2756,13 +2756,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !onlineAvailable
                             ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
                             : paymentMethod === 'online'
-                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#FD9139]'
                               : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                         }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
                         {onlineAvailable && paymentMethod === 'online' && (
-                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
+                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#FD9139] flex items-center justify-center shadow-xs">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
                         )}
@@ -2799,7 +2799,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         !isCodAvailableForOrder
                           ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
                           : paymentMethod === 'cash'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#E0FF33] dark:text-[#121011] dark:border-[#E0FF33] dark:ring-[#E0FF33]/30 cursor-pointer'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-[#121011] dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
                             : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
                       }`}
                     >
@@ -2808,13 +2808,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !isCodAvailableForOrder
                             ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
                             : paymentMethod === 'cash'
-                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33]'
+                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#FD9139]'
                               : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                         }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
                         {isCodAvailableForOrder && paymentMethod === 'cash' && (
-                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#E0FF33] flex items-center justify-center shadow-xs">
+                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#FD9139] flex items-center justify-center shadow-xs">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
                         )}
@@ -2850,8 +2850,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="shrink-0 pt-2 pb-6 sm:pb-2 border-t border-stone-200/80 dark:border-white/5 space-y-2 safe-area-bottom">
               {/* Seamless Trust & Live Tracking Micro-Indicator */}
               <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
-                <div className="flex items-center gap-1.5 text-amber-700 dark:text-[#E0FF33]">
-                  <Zap size={13} className="text-amber-600 dark:text-[#E0FF33]" />
+                <div className="flex items-center gap-1.5 text-amber-700 dark:text-[#FD9139]">
+                  <Zap size={13} className="text-amber-600 dark:text-[#FD9139]" />
                   <span className="font-bold text-stone-700 dark:text-neutral-300">Live GPS tracking included</span>
                 </div>
                 <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">{activeShop?.name || 'Foody Vrinda'}</span>
@@ -2860,7 +2860,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <button
                 onClick={handlePlaceOrder}
                 disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (isRetailShop && onlineRidersCount === 0)}
-                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
               >
                 <span className="font-black">
                   {!isShopOpen
@@ -2871,7 +2871,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ? 'Kitchen Payments Disabled'
                         : 'Proceed to Place Order'))}
                 </span>
-                <span className="px-3 py-1 rounded-full bg-stone-800 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
+                <span className="px-3 py-1 rounded-full bg-stone-800 text-white dark:bg-[#1E1B1C] dark:text-[#FD9139] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
                   ₹{totalAmount}
                 </span>
               </button>

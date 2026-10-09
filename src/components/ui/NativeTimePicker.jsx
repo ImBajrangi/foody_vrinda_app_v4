@@ -126,7 +126,7 @@ export default function NativeTimePicker({
     <div className={`flex flex-col gap-1.5 relative ${className}`} ref={containerRef}>
       {label && (
         <label className="text-xs font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
-          <Clock size={13} className="text-amber-600 dark:text-[#E0FF33]" />
+          <Clock size={13} className="text-amber-600 dark:text-[#FD9139]" />
           <span>{label}</span>
         </label>
       )}
@@ -148,7 +148,7 @@ export default function NativeTimePicker({
           disabled
             ? 'opacity-50 cursor-not-allowed bg-stone-100 dark:bg-white/5 border-stone-200 dark:border-white/5'
             : isOpen
-            ? 'bg-stone-100 dark:bg-[#252223] border-amber-600 dark:border-[#E0FF33] ring-2 ring-amber-500/20 dark:ring-[#E0FF33]/20 shadow-md'
+            ? 'bg-stone-100 dark:bg-[#252223] border-amber-600 dark:border-[#FD9139] ring-2 ring-amber-500/20 dark:ring-[#FD9139]/20 shadow-md'
             : 'bg-white hover:bg-stone-50 dark:bg-[#1C1A1B] dark:hover:bg-[#252223] border-stone-200/90 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/25 shadow-2xs active:scale-[0.99]'
         }`}
       >
@@ -156,8 +156,8 @@ export default function NativeTimePicker({
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-150 ${
             isOpen
-              ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black scale-105 shadow-sm'
-              : 'bg-amber-500/10 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] group-hover:scale-105'
+              ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black scale-105 shadow-sm'
+              : 'bg-amber-500/10 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] group-hover:scale-105'
           }`}>
             <Clock size={18} strokeWidth={2.3} />
           </div>
@@ -173,12 +173,12 @@ export default function NativeTimePicker({
         </div>
 
         {/* Action Cue */}
-        <div className="flex items-center gap-1.5 text-stone-400 dark:text-neutral-500 group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] text-xs font-semibold">
+        <div className="flex items-center gap-1.5 text-stone-400 dark:text-neutral-500 group-hover:text-amber-600 dark:group-hover:text-[#FD9139] text-xs font-semibold">
           <span className="text-[11px] font-bold">{isOpen ? 'Adjust' : 'Set Time'}</span>
           <div className={`w-2 h-2 rounded-full transition-colors ${
             isOpen
-              ? 'bg-amber-600 dark:bg-[#E0FF33]'
-              : 'bg-amber-500/40 dark:bg-[#E0FF33]/40 group-hover:bg-amber-600 dark:group-hover:bg-[#E0FF33]'
+              ? 'bg-amber-600 dark:bg-[#FD9139]'
+              : 'bg-amber-500/40 dark:bg-[#FD9139]/40 group-hover:bg-amber-600 dark:group-hover:bg-[#FD9139]'
           }`} />
         </div>
 
@@ -205,7 +205,7 @@ export default function NativeTimePicker({
           {/* Header with Close button */}
           <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/5 pb-2.5">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+              <Clock className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
               <span className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">
                 Select Time
               </span>
@@ -226,7 +226,7 @@ export default function NativeTimePicker({
               <button
                 type="button"
                 onClick={() => handleStepHour(1)}
-                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#E0FF33] active:scale-95 transition-colors cursor-pointer"
+                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#FD9139] active:scale-95 transition-colors cursor-pointer"
               >
                 <ChevronUp className="w-4 h-4 stroke-[3]" />
               </button>
@@ -236,7 +236,7 @@ export default function NativeTimePicker({
               <button
                 type="button"
                 onClick={() => handleStepHour(-1)}
-                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#E0FF33] active:scale-95 transition-colors cursor-pointer"
+                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#FD9139] active:scale-95 transition-colors cursor-pointer"
               >
                 <ChevronDown className="w-4 h-4 stroke-[3]" />
               </button>
@@ -251,7 +251,7 @@ export default function NativeTimePicker({
               <button
                 type="button"
                 onClick={() => handleStepMinute(1)}
-                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#E0FF33] active:scale-95 transition-colors cursor-pointer"
+                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#FD9139] active:scale-95 transition-colors cursor-pointer"
               >
                 <ChevronUp className="w-4 h-4 stroke-[3]" />
               </button>
@@ -261,7 +261,7 @@ export default function NativeTimePicker({
               <button
                 type="button"
                 onClick={() => handleStepMinute(-1)}
-                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#E0FF33] active:scale-95 transition-colors cursor-pointer"
+                className="w-8 h-6 flex items-center justify-center text-stone-400 hover:text-amber-600 dark:hover:text-[#FD9139] active:scale-95 transition-colors cursor-pointer"
               >
                 <ChevronDown className="w-4 h-4 stroke-[3]" />
               </button>
@@ -274,7 +274,7 @@ export default function NativeTimePicker({
                 onClick={() => handlePeriodToggle('AM')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   timeState.period === 'AM'
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-xs'
+                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
                     : 'text-stone-600 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white'
                 }`}
               >
@@ -285,7 +285,7 @@ export default function NativeTimePicker({
                 onClick={() => handlePeriodToggle('PM')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   timeState.period === 'PM'
-                    ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-xs'
+                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
                     : 'text-stone-600 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white'
                 }`}
               >
@@ -309,7 +309,7 @@ export default function NativeTimePicker({
                     onClick={() => handleHourSelect(h)}
                     className={`py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
                       isSelected
-                        ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
                         : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-white/10'
                     }`}
                   >
@@ -335,7 +335,7 @@ export default function NativeTimePicker({
                     onClick={() => handleMinuteSelect(m)}
                     className={`py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer text-center ${
                       isSelected
-                        ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
                         : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-white/10'
                     }`}
                   >
@@ -349,7 +349,7 @@ export default function NativeTimePicker({
           {/* Quick Presets */}
           <div className="space-y-1.5 pt-1 border-t border-stone-100 dark:border-white/5">
             <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-500 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5 text-amber-600 dark:text-[#E0FF33]" />
+              <Sparkles className="w-2.5 h-2.5 text-amber-600 dark:text-[#FD9139]" />
               Quick Presets
             </span>
             <div className="flex flex-wrap gap-1">
@@ -360,7 +360,7 @@ export default function NativeTimePicker({
                   onClick={() => onChange?.(preset.value)}
                   className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-all cursor-pointer ${
                     value === preset.value
-                      ? 'bg-amber-600/15 text-amber-700 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-600/30 dark:border-[#E0FF33]/40'
+                      ? 'bg-amber-600/15 text-amber-700 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-600/30 dark:border-[#FD9139]/40'
                       : 'bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200/60 dark:border-white/5'
                   }`}
                 >
@@ -388,7 +388,7 @@ export default function NativeTimePicker({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-black font-black text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer font-['Outfit']"
+              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer font-['Outfit']"
             >
               <Check className="w-3.5 h-3.5 stroke-[3]" />
               <span>Done</span>

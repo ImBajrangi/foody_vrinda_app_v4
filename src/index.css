@@ -17,9 +17,13 @@
   --color-obsidian-800: #2A2627;
   --color-obsidian-700: #332E30;
 
-  --color-neon-lime: #E0FF33;
-  --color-neon-lime-hover: #CCFF00;
-  --color-neon-lime-dim: rgba(224, 255, 51, 0.15);
+  --color-neon-lime: #FD9139;
+  --color-neon-lime-hover: #FCA65E;
+  --color-neon-lime-dim: rgba(253, 145, 57, 0.15);
+
+  --color-terracotta: #FD9139;
+  --color-terracotta-hover: #FCA65E;
+  --color-terracotta-dim: rgba(253, 145, 57, 0.15);
 
   --color-mint-card: #CEF3E7;
   --color-cream-card: #FFF2E6;
@@ -55,9 +59,9 @@
   --text-muted: #71717A;
   --border-app: rgba(255, 255, 255, 0.1);
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --accent-primary: #E0FF33;
+  --accent-primary: #FD9139;
   --accent-text: #1E1B1C;
-  --selection-bg: #E0FF33;
+  --selection-bg: #FD9139;
   --selection-color: #1E1B1C;
   --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
@@ -196,8 +200,8 @@
   textarea:not(.bg-transparent):focus {
     outline: none;
     background: #232328;
-    border-color: #D2F832;
-    box-shadow: 0 0 0 3px rgba(210, 248, 50, 0.2);
+    border-color: #FD9139;
+    box-shadow: 0 0 0 3px rgba(253, 145, 57, 0.2);
   }
 
   .light input[type="text"]:not(.bg-transparent):focus,
@@ -516,7 +520,7 @@
 
 .btn-primary,
 .btn-neon {
-  background: #D2F832 !important;
+  background: #FD9139 !important;
   color: #121214 !important;
   font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 700 !important;
@@ -529,14 +533,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 18px rgba(210, 248, 50, 0.25) !important;
+  box-shadow: 0 4px 18px rgba(253, 145, 57, 0.25) !important;
   transition: transform 0.1s ease-out, background-color 0.1s ease-out, box-shadow 0.1s ease-out !important;
 }
 
 .btn-primary:hover:not(:disabled),
 .btn-neon:hover:not(:disabled) {
   background: #C0E824 !important;
-  box-shadow: 0 6px 24px rgba(210, 248, 50, 0.35) !important;
+  box-shadow: 0 6px 24px rgba(253, 145, 57, 0.35) !important;
 }
 
 /* Hide scrollbar for category pills */
@@ -1534,7 +1538,7 @@
 .dark .card-premium-product:hover {
   background-color: #2C2829 !important;
   box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.6) !important;
-  border-color: rgba(224, 255, 51, 0.25) !important;
+  border-color: rgba(253, 145, 57, 0.25) !important;
 }
 
 .card-premium-image-wrapper {
@@ -2111,7 +2115,7 @@
 
 @media (hover: hover) {
   .apple-card-interactive:hover {
-    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(224, 255, 51, 0.08) !important;
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), 0 0 20px rgba(253, 145, 57, 0.08) !important;
   }
 }
 
@@ -2211,7 +2215,7 @@
 .specular-shimmer-text {
   background: linear-gradient(90deg,
       rgba(255, 255, 255, 0.7) 0%,
-      rgba(224, 255, 51, 1) 50%,
+      rgba(253, 145, 57, 1) 50%,
       rgba(255, 255, 255, 0.7) 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -2239,13 +2243,13 @@ path.animated-delivery-route,
 .leaflet-pane path.animated-delivery-route,
 .leaflet-overlay-pane svg path.animated-delivery-route,
 .leaflet-interactive.animated-delivery-route {
-  stroke: #E0FF33 !important;
+  stroke: #FD9139 !important;
   stroke-dasharray: 6px 9px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
   stroke-width: 3.5px !important;
   animation: flowRouteDash 0.75s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.75)) !important;
+  filter: drop-shadow(0 0 6px rgba(253, 145, 57, 0.75)) !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2289,13 +2293,13 @@ path.animated-walking-dots,
 .leaflet-pane path.animated-walking-dots,
 .leaflet-overlay-pane svg path.animated-walking-dots,
 .leaflet-interactive.animated-walking-dots {
-  stroke: #E0FF33 !important;
+  stroke: #FD9139 !important;
   stroke-dasharray: 1px 16px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
   stroke-width: 4.5px !important;
   animation: flowWalkingDots 1.15s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.85)) !important;
+  filter: drop-shadow(0 0 6px rgba(253, 145, 57, 0.85)) !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2353,11 +2357,11 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(224, 255, 51, 0);
+    box-shadow: 0 0 0 0 rgba(253, 145, 57, 0);
   }
 
   50% {
-    box-shadow: 0 0 16px 4px rgba(224, 255, 51, 0.15);
+    box-shadow: 0 0 16px 4px rgba(253, 145, 57, 0.15);
   }
 }
 
@@ -2367,7 +2371,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   }
 
   50% {
-    border-color: rgba(224, 255, 51, 0.2);
+    border-color: rgba(253, 145, 57, 0.2);
   }
 
   100% {
@@ -2453,8 +2457,8 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 .dev-stat-card:hover {
-  box-shadow: 0 0 16px 4px rgba(224, 255, 51, 0.12);
-  border-color: rgba(224, 255, 51, 0.15) !important;
+  box-shadow: 0 0 16px 4px rgba(253, 145, 57, 0.12);
+  border-color: rgba(253, 145, 57, 0.15) !important;
 }
 
 .dev-section-expand {
@@ -2568,8 +2572,8 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   /* Specular shimmer text fallback: clear, sharp static neon chartreuse */
   .specular-shimmer-text {
     background: none !important;
-    -webkit-text-fill-color: #E0FF33 !important;
-    color: #E0FF33 !important;
+    -webkit-text-fill-color: #FD9139 !important;
+    color: #FD9139 !important;
   }
 
   /* 4. Mobile GPU Efficiency: Avoid Heavy Real-Time Backdrop Blurs in WebViews */
@@ -2632,13 +2636,13 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 .otp-code-pill,
 .light .otp-code-pill {
   background-color: #181617 !important;
-  color: #E0FF33 !important;
-  border-color: rgba(224, 255, 51, 0.4) !important;
+  color: #FD9139 !important;
+  border-color: rgba(253, 145, 57, 0.4) !important;
 }
 
 .otp-code-pill span,
 .light .otp-code-pill span {
-  color: #E0FF33 !important;
+  color: #FD9139 !important;
 }
 
 /* Secondary Elevated Cards & Panels -> Warm Soft Cream / Ivory */
@@ -2662,7 +2666,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 [data-theme="light"] .preserve-dark {
   background-color: #1E1B1C !important;
   color: #FFFFFF !important;
-  border-color: rgba(224, 255, 51, 0.35) !important;
+  border-color: rgba(253, 145, 57, 0.35) !important;
 }
 
 .preserve-dark *,
@@ -2851,8 +2855,8 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* Universal Light Mode Hover Rules (Prevent White-on-White or Low-Contrast on Hover) */
-.light button:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover,
-.light a:not([class*="bg-amber"]):not([class*="bg-[#E0FF33]"]):not([class*="bg-[#CCFF00]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover,
+.light button:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover,
+.light a:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover,
 .light div[class*="hover:text-white"]:hover,
 .light span[class*="hover:text-white"]:hover {
   color: #1C1917 !important;
@@ -2898,10 +2902,10 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 /* Active Store / Tab / Category pill */
 .dark .category-pill-active,
 [data-theme="dark"] .category-pill-active {
-  background-color: #E0FF33 !important;
+  background-color: #FD9139 !important;
   color: #121011 !important;
   font-weight: 900 !important;
-  border-color: #E0FF33 !important;
+  border-color: #FD9139 !important;
   box-shadow: none !important;
 }
 
@@ -3034,10 +3038,10 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 .dark button.category-pill-active,
 .dark .category-pill-active *,
 .dark button.category-pill-active * {
-  background-color: #E0FF33 !important;
+  background-color: #FD9139 !important;
   color: #121011 !important;
   font-weight: 800 !important;
-  border-color: #E0FF33 !important;
+  border-color: #FD9139 !important;
 }
 
 /* Guaranteed High-Contrast Text for Dark CTAs in Light Mode (Without breaking light surfaces) */
@@ -3129,7 +3133,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 .dark .btn-map-track {
-  background-color: #E0FF33 !important;
+  background-color: #FD9139 !important;
   color: #121011 !important;
 }
 
@@ -3359,7 +3363,7 @@ label {
     transform: rotate(0deg) scale(0.96);
     stroke-dasharray: 50 6 14 6 10 6 7 6 4 6 1.5 6 1.5 6 1.5 6 1.5 6 1.5 6;
     stroke-width: 2.8;
-    filter: drop-shadow(0 0 2px rgba(224, 255, 51, 0.25));
+    filter: drop-shadow(0 0 2px rgba(253, 145, 57, 0.25));
   }
 
   30% {
@@ -3367,7 +3371,7 @@ label {
     transform: rotate(140deg) scale(1.05);
     stroke-dasharray: 68 4.5 20 4.5 14 4.5 10 4.5 6 4.5 3 4.5 3 4.5 2.5 4.5 2.5 4.5 2.5 4.5;
     stroke-width: 3.6;
-    filter: drop-shadow(0 0 7px rgba(224, 255, 51, 0.65)) drop-shadow(0 0 11px rgba(255, 153, 51, 0.4));
+    filter: drop-shadow(0 0 7px rgba(253, 145, 57, 0.65)) drop-shadow(0 0 11px rgba(255, 153, 51, 0.4));
   }
 
   65% {
@@ -3375,7 +3379,7 @@ label {
     transform: rotate(280deg) scale(1.02);
     stroke-dasharray: 105 1.8 28 1.8 18 1.8 12 1.8 8 1.8 4 1.8 3 1.8 2 1.8 2 1.8 2 1.8;
     stroke-width: 3.4;
-    filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.5));
+    filter: drop-shadow(0 0 6px rgba(253, 145, 57, 0.5));
   }
 
   85% {
@@ -3383,7 +3387,7 @@ label {
     transform: rotate(350deg) scale(0.98);
     stroke-dasharray: 154 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
     stroke-width: 3.2;
-    filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.45));
+    filter: drop-shadow(0 0 5px rgba(253, 145, 57, 0.45));
   }
 
   100% {
@@ -3391,7 +3395,7 @@ label {
     transform: rotate(360deg) scale(1);
     stroke-dasharray: 154 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
     stroke-width: 3.0;
-    filter: drop-shadow(0 0 3px rgba(224, 255, 51, 0.35));
+    filter: drop-shadow(0 0 3px rgba(253, 145, 57, 0.35));
   }
 }
 
@@ -3412,7 +3416,7 @@ label {
   position: absolute;
   inset: -3px;
   border-radius: 9999px;
-  background: conic-gradient(from 0deg, #E0FF33, #FF9933, #F59E0B, #10B981, #E0FF33);
+  background: conic-gradient(from 0deg, #FD9139, #FF9933, #F59E0B, #10B981, #FD9139);
   animation: satvikRingRotate 6s linear infinite;
   z-index: 0;
 }

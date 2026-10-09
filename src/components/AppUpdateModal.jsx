@@ -27,7 +27,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
         {/* Header Ribbon & Close Button */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0 shadow-xs">
               <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
             <div>
@@ -35,7 +35,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
                 <h3 className="text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                   Update Available
                 </h3>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:bg-[#E0FF33]/20 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30">
                   v{updateInfo.latestVersion}
                 </span>
               </div>
@@ -66,7 +66,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
           <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-white/[0.03] border border-stone-200/80 dark:border-white/5 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
             {updateInfo.releaseNotes.map((note, index) => (
               <div key={index} className="flex items-start gap-2 text-xs text-stone-700 dark:text-zinc-300 leading-relaxed">
-                <span className="text-amber-500 dark:text-[#E0FF33] font-black shrink-0">•</span>
+                <span className="text-amber-500 dark:text-[#FD9139] font-black shrink-0">•</span>
                 <span>{note}</span>
               </div>
             ))}
@@ -96,8 +96,8 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
             disabled={downloading}
             className={`flex-1 py-3 px-5 rounded-xl font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
               downloading
-                ? 'bg-amber-400 text-stone-950 dark:bg-[#E0FF33] dark:text-black opacity-80 animate-pulse'
-                : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#c9e826] dark:text-black hover:scale-[1.02] active:scale-[0.98]'
+                ? 'bg-amber-400 text-stone-950 dark:bg-[#FD9139] dark:text-black opacity-80 animate-pulse'
+                : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#c9e826] dark:text-black hover:scale-[1.02] active:scale-[0.98]'
             }`}
           >
             <Download size={15} />

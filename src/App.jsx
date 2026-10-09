@@ -488,7 +488,7 @@ export default function App() {
         <ErrorBoundary>
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center min-h-[300px]">
-              <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 dark:border-[#E0FF33]/30 border-t-amber-500 dark:border-t-[#E0FF33] animate-spin" />
+              <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 dark:border-[#FD9139]/30 border-t-amber-500 dark:border-t-[#FD9139] animate-spin" />
             </div>
           }>
             {currentTab === 'customer' && (

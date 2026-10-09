@@ -159,7 +159,7 @@ const SELECTOR_FALLBACKS = {
  */
 function SpeechBubbleTail({ placement, arrowLeft, isLight }) {
   const bg = isLight ? '#FAF5EB' : '#282526';
-  const border = isLight ? 'rgba(217, 119, 6, 0.4)' : 'rgba(224, 255, 51, 0.35)';
+  const border = isLight ? 'rgba(217, 119, 6, 0.4)' : 'rgba(253, 145, 57, 0.35)';
 
   if (placement === 'bottom') {
     // Bubble is below target -> Tail on TOP edge pointing UP
@@ -514,12 +514,12 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
             borderRadius: '18px',
             boxShadow: isLight
               ? '0 0 0 9999px rgba(25, 20, 22, 0.62), 0 0 25px rgba(245, 158, 11, 0.40)'
-              : '0 0 0 9999px rgba(10, 8, 9, 0.84), 0 0 30px rgba(224, 255, 51, 0.45)',
+              : '0 0 0 9999px rgba(10, 8, 9, 0.84), 0 0 30px rgba(253, 145, 57, 0.45)',
           }}
           className={`fixed pointer-events-none z-10 transition-all duration-300 border-2 ${
             isLight
               ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.45)]'
-              : 'border-[#E0FF33] shadow-[0_0_30px_rgba(224,255,51,0.5),inset_0_0_12px_rgba(224,255,51,0.2)]'
+              : 'border-[#FD9139] shadow-[0_0_30px_rgba(253, 145, 57,0.5),inset_0_0_12px_rgba(253, 145, 57,0.2)]'
           }`}
         />
       ) : (
@@ -542,7 +542,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
         className={`fixed z-20 flex flex-col rounded-[24px] sm:rounded-[28px] p-4 sm:p-4.5 transition-all duration-300 apple-modal-spring shadow-2xl relative ${
           isLight
             ? 'bg-[#FAF5EB] text-stone-900 border border-amber-400/40 shadow-[0_20px_50px_rgba(0,0,0,0.25)]'
-            : 'bg-[#282526] text-white border border-[#E0FF33]/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
+            : 'bg-[#282526] text-white border border-[#FD9139]/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
         } ${closing ? 'closing' : ''}`}
       >
         {/* Authentic Chat Speech Tail pointing at the element */}
@@ -561,7 +561,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
               className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider font-outfit border ${
                 isLight
                   ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
-                  : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
+                  : 'bg-[#FD9139]/15 text-[#FD9139] border-[#FD9139]/30'
               }`}
             >
               {tutorialData?.roleLabel || 'Guide'} • {currentStep + 1}/{stages.length}
@@ -589,7 +589,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
               className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${
                 isLight
                   ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
-                  : 'bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30'
+                  : 'bg-[#FD9139]/15 text-[#FD9139] border-[#FD9139]/30'
               }`}
             >
               <IconComponent size={13} strokeWidth={2.5} />
@@ -628,7 +628,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
                   idx === currentStep
                     ? isLight
                       ? 'bg-amber-600 w-3'
-                      : 'bg-[#E0FF33] w-3'
+                      : 'bg-[#FD9139] w-3'
                     : isLight
                       ? 'bg-stone-300'
                       : 'bg-white/20'
@@ -654,7 +654,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
               className={`h-7 px-3 rounded-full font-black text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95 font-outfit shadow-sm ${
                 isLight
                   ? 'bg-stone-900 hover:bg-stone-800 text-white'
-                  : 'bg-[#E0FF33] hover:bg-[#CCFF00] text-[#121011]'
+                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-[#121011]'
               }`}
             >
               <span>{isLast ? 'Done' : 'Next'}</span>

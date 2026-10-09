@@ -53,7 +53,7 @@ export class ErrorBoundary extends React.Component {
 
             <button
               onClick={this.handleReset}
-              className="w-full max-w-xs py-3.5 px-8 rounded-full bg-[#E0FF33] hover:bg-[#d4f820] text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(224,255,51,0.35)] active:scale-95 transition-all cursor-pointer font-['Outfit']"
+              className="w-full max-w-xs py-3.5 px-8 rounded-full bg-[#FD9139] hover:bg-[#fca65e] text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_4px_20px_rgba(253, 145, 57,0.35)] active:scale-95 transition-all cursor-pointer font-['Outfit']"
             >
               <RefreshCw size={16} className="stroke-[2.5]" />
               <span>{isChunkError ? "Update & Reload" : "Reload View"}</span>

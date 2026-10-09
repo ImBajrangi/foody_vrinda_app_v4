@@ -344,15 +344,15 @@ export default function TransportView() {
           width: 36px;
           height: 36px;
           background: #181617;
-          border: 2.5px solid #E0FF33;
+          border: 2.5px solid #FD9139;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 10px rgba(224,255,51,0.25);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 10px rgba(253, 145, 57,0.25);
           cursor: pointer;
         ">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FD9139" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
             <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
@@ -415,8 +415,8 @@ export default function TransportView() {
               width: 36px;
               height: 36px;
               border-radius: 50%;
-              border: 1.5px solid #E0FF33;
-              background: rgba(224, 255, 51, 0.12);
+              border: 1.5px solid #FD9139;
+              background: rgba(253, 145, 57, 0.12);
               pointer-events: none;
             "></div>
             <div style="
@@ -424,7 +424,7 @@ export default function TransportView() {
               width: 36px;
               height: 36px;
               background: #181617;
-              border: 2.5px solid #E0FF33;
+              border: 2.5px solid #FD9139;
               border-radius: 50%;
               display: flex;
               align-items: center;
@@ -432,7 +432,7 @@ export default function TransportView() {
               box-shadow: 0 4px 14px rgba(0,0,0,0.45);
               cursor: pointer;
             ">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FD9139" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="18.5" cy="17.5" r="2.5"></circle>
                 <circle cx="5.5" cy="17.5" r="2.5"></circle>
                 <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
@@ -509,7 +509,7 @@ export default function TransportView() {
 
     // Glowing Animated Neon Driving Road Line
     const routeLine = L.polyline(currentRouteCoords, {
-      color: '#E0FF33',
+      color: '#FD9139',
       weight: 3.5,
       dashArray: '6, 9',
       className: 'animated-delivery-route',
@@ -532,7 +532,7 @@ export default function TransportView() {
     group.addLayer(startConnectorCasing);
 
     const startConnector = L.polyline([], {
-      color: '#E0FF33',
+      color: '#FD9139',
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',
@@ -555,7 +555,7 @@ export default function TransportView() {
     group.addLayer(destConnectorCasing);
 
     const destConnector = L.polyline([], {
-      color: '#E0FF33',
+      color: '#FD9139',
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',
@@ -1003,7 +1003,7 @@ export default function TransportView() {
       {/* MAIN OPERATIONS HEADER BAR (Grand Scale Matching Kitchen Operations) */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-200/90 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-300 dark:border-white/10 shadow-xl overflow-hidden">
         <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-sm">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-sm">
             <Truck size={22} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -1011,7 +1011,7 @@ export default function TransportView() {
               <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
                 Delivery Fleet
               </h1>
-              <span className="bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
+              <span className="bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 {orders.length} Active {orders.length === 1 ? 'Trip' : 'Trips'}
               </span>
             </div>
@@ -1043,7 +1043,7 @@ export default function TransportView() {
               data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
-                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
+                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-sm'
                 : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
@@ -1054,7 +1054,7 @@ export default function TransportView() {
               data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
-                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-sm'
+                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-sm'
                 : 'text-stone-700 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
             >
@@ -1073,7 +1073,7 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('active')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
-                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
                 }`}
             >
@@ -1087,7 +1087,7 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('upcoming')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
-                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
                 }`}
             >
@@ -1101,7 +1101,7 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('completed')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
-                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
                 }`}
             >
@@ -1115,7 +1115,7 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('all')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
-                ? 'bg-[#E0FF33] text-[#121011] font-black shadow-[0_4px_20px_rgba(224,255,51,0.25)]'
+                ? 'bg-[#FD9139] text-[#121011] font-black shadow-[0_4px_20px_rgba(253, 145, 57,0.25)]'
                 : 'text-stone-700 dark:text-neutral-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/40 dark:hover:bg-white/5'
                 }`}
             >
@@ -1131,10 +1131,10 @@ export default function TransportView() {
           <button
             type="button"
             onClick={handleDownloadShiftSlip}
-            className="h-10 px-4 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-[#E0FF33] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
+            className="h-10 px-4 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-stone-950 dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
             title="Download or Print Today's Order Report as PDF"
           >
-            <FileDown size={15} className="text-amber-600 dark:text-[#E0FF33]" strokeWidth={2.5} />
+            <FileDown size={15} className="text-amber-600 dark:text-[#FD9139]" strokeWidth={2.5} />
             <span className="whitespace-nowrap">Order Slip (PDF)</span>
           </button>
         </div>
@@ -1160,8 +1160,8 @@ export default function TransportView() {
               </button>
 
               <div className="flex items-center gap-2 pointer-events-auto">
-                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1E1B1C]/90 backdrop-blur-md text-[#E0FF33] border border-white/15 text-[11px] font-black shadow-lg">
-                  <span className="w-2 h-2 rounded-full bg-[#E0FF33] animate-pulse" />
+                <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1E1B1C]/90 backdrop-blur-md text-[#FD9139] border border-white/15 text-[11px] font-black shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-[#FD9139] animate-pulse" />
                   Live GPS Route
                 </span>
                 <button
@@ -1177,14 +1177,14 @@ export default function TransportView() {
             {/* BOTTOM FLOATING ROUTE RIBBON */}
             <div className="absolute bottom-4 inset-x-4 z-20 pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-white/95 dark:bg-[#1E1B1C]/90 backdrop-blur-md border border-stone-200/90 dark:border-white/10 shadow-xl text-xs text-stone-900 dark:text-white">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] text-[10px] font-black border border-amber-500/30 dark:border-[#E0FF33]/30">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] text-[10px] font-black border border-amber-500/30 dark:border-[#FD9139]/30">
                   ORIGIN
                 </span>
                 <span className="font-bold truncate max-w-[140px] text-stone-900 dark:text-white">
                   {activeShop?.name || 'Kitchen Store'}
                 </span>
               </div>
-              <ArrowRight size={14} className="text-amber-600 dark:text-[#E0FF33] stroke-[2.5]" />
+              <ArrowRight size={14} className="text-amber-600 dark:text-[#FD9139] stroke-[2.5]" />
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-black border border-emerald-500/30">
                   DROP-OFF
@@ -1203,7 +1203,7 @@ export default function TransportView() {
               {/* Customer Profile & Direct Contact Actions */}
               <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-stone-200 dark:border-white/5">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#1E1B1C] border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#E0FF33] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#1E1B1C] border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#FD9139] overflow-hidden shrink-0 shadow-md flex items-center justify-center">
                     <User size={18} className="stroke-[2.2]" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1246,7 +1246,7 @@ export default function TransportView() {
                       className="w-9 h-9 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-white border border-stone-300 dark:border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-sm"
                       title="Call Customer"
                     >
-                      <Phone className="w-4 h-4 text-amber-600 dark:text-[#E0FF33] stroke-[2]" />
+                      <Phone className="w-4 h-4 text-amber-600 dark:text-[#FD9139] stroke-[2]" />
                     </a>
                   )}
                 </div>
@@ -1256,7 +1256,7 @@ export default function TransportView() {
               <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-white/5 text-amber-700 dark:text-white flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
@@ -1265,16 +1265,16 @@ export default function TransportView() {
                     </h5>
                   </div>
                 </div>
-                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-amber-800 bg-amber-500/15 border-amber-500/30 dark:text-[#E0FF33] dark:bg-[#E0FF33]/15 px-2.5 py-1 rounded-full border dark:border-[#E0FF33]/30 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-[#E0FF33] animate-pulse"></span>
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-amber-800 bg-amber-500/15 border-amber-500/30 dark:text-[#FD9139] dark:bg-[#FD9139]/15 px-2.5 py-1 rounded-full border dark:border-[#FD9139]/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-[#FD9139] animate-pulse"></span>
                   Live Active
                 </span>
               </div>
 
               {/* Destination Address */}
               <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30 dark:bg-[#FD9139]/15 dark:text-[#FD9139] dark:border-[#FD9139]/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
@@ -1340,7 +1340,7 @@ export default function TransportView() {
                     rel="noopener noreferrer"
                     className="w-full py-3.5 px-4 rounded-2xl bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 border border-stone-300 dark:border-white/10 hover:border-stone-400 dark:hover:border-white/20 text-stone-900 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
-                    <Compass className="w-4 h-4 text-amber-600 dark:text-[#E0FF33]" />
+                    <Compass className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
                     <span>Open Live On Google Maps</span>
                   </a>
                 )}
@@ -1348,7 +1348,7 @@ export default function TransportView() {
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
                     onClick={() => handleInitiatePickup(activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <span>Pick Up & Start Delivery</span>
                     <ArrowRight className="w-4 h-4 shrink-0" />
@@ -1356,7 +1356,7 @@ export default function TransportView() {
                 ) : (
                   <button
                     onClick={() => handleInitiateDelivery(activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                    className="w-full py-4 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5] shrink-0" />
                     <span>Mark as Delivered</span>
@@ -1383,7 +1383,7 @@ export default function TransportView() {
                         key={o.id}
                         onClick={() => setSelectedOrder(o)}
                         className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${isCur
-                          ? 'bg-amber-500/10 border-amber-500 dark:bg-[#1E1B1C] dark:border-[#E0FF33] shadow-md ring-1 ring-amber-500 dark:ring-[#E0FF33]'
+                          ? 'bg-amber-500/10 border-amber-500 dark:bg-[#1E1B1C] dark:border-[#FD9139] shadow-md ring-1 ring-amber-500 dark:ring-[#FD9139]'
                           : 'bg-stone-50 dark:bg-[#1E1B1C]/60 border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 hover:bg-stone-100 dark:hover:bg-[#1E1B1C]'
                           }`}
                       >
@@ -1395,7 +1395,7 @@ export default function TransportView() {
                             {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
                           </p>
                         </div>
-                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30' : 'bg-[#E0FF33]/20 text-stone-900 dark:text-[#E0FF33] border border-[#E0FF33]/30'
+                        <span className={`px-2 py-0.5 text-[9px] font-black rounded-full uppercase shrink-0 ${isReadyOrder ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-400/30' : 'bg-[#FD9139]/20 text-stone-900 dark:text-[#FD9139] border border-[#FD9139]/30'
                           }`}>
                           {isReadyOrder ? 'Ready' : 'In Transit'}
                         </span>
@@ -1419,13 +1419,13 @@ export default function TransportView() {
               placeholder="Search by order ID, customer name, or dish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-500 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans'] shadow-inner"
+              className="w-full h-12 bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-500 dark:placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans'] shadow-inner"
             />
           </div>
 
           {filteredOrders.length === 0 ? (
             <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-[32px] p-12 sm:p-16 text-center shadow-md flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-3xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] mb-4 shadow-sm">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] mb-4 shadow-sm">
                 <PackageCheck size={32} strokeWidth={2.2} />
               </div>
               <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">All Deliveries Caught Up!</h3>
@@ -1449,7 +1449,7 @@ export default function TransportView() {
                     className="bg-white dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/40 dark:hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
                     {/* Status Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-[#E0FF33]'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-[#FD9139]'}`} />
 
                     <div className="space-y-3.5">
                       {/* Header: Order ID & Status Pill */}
@@ -1459,7 +1459,7 @@ export default function TransportView() {
                             #{order.id.slice(-6).toUpperCase()}
                           </span>
                           <p className="text-xs font-semibold text-stone-600 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5 font-['Plus_Jakarta_Sans']">
-                            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                            <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                             <span>{shopName}</span>
                           </p>
                         </div>
@@ -1472,9 +1472,9 @@ export default function TransportView() {
                         ) : (
                           <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
                             ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                            : 'bg-[#E0FF33]/15 text-stone-900 dark:text-[#E0FF33] border-[#E0FF33]/30'
+                            : 'bg-[#FD9139]/15 text-stone-900 dark:text-[#FD9139] border-[#FD9139]/30'
                             }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-[#E0FF33]'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-[#FD9139]'}`} />
                             <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
                           </span>
                         )}
@@ -1485,7 +1485,7 @@ export default function TransportView() {
                         <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-amber-500/20 rounded-2xl p-4 space-y-2.5 text-xs text-stone-800 dark:text-neutral-300 font-['Plus_Jakarta_Sans'] shadow-inner">
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-bold text-stone-900 dark:text-white text-sm flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                              <User className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                               <span>{order.customerName || 'Customer'}</span>
                             </span>
                             <span className="px-2.5 py-0.5 rounded-full bg-stone-200 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-[10px] text-stone-600 dark:text-neutral-400 font-mono">
@@ -1494,7 +1494,7 @@ export default function TransportView() {
                           </div>
 
                           <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
-                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139] shrink-0 mt-0.5" />
                             <div>
                               <p className="font-bold text-stone-900 dark:text-white">Delivery Vicinity: <span className="font-normal text-amber-600 dark:text-amber-400">{order.deliveryArea || order.deliveryAddress || 'Vrindavan Vicinity'}</span></p>
                               <p className="text-[10px] text-stone-500 dark:text-neutral-500 mt-0.5">🔒 Exact customer address & phone will unlock upon claiming</p>
@@ -1503,10 +1503,10 @@ export default function TransportView() {
 
                           <div className="flex items-center justify-between text-xs text-stone-700 dark:text-neutral-300 pt-0.5">
                             <span className="font-semibold text-stone-800 dark:text-neutral-300 flex items-center gap-1.5">
-                              <Navigation className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
+                              <Navigation className="w-3 h-3 text-amber-600 dark:text-[#FD9139]" />
                               <span>Pickup Distance:</span>
                             </span>
-                            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-800 dark:text-[#E0FF33] font-mono font-bold text-[11px] border border-amber-500/20 dark:border-[#E0FF33]/20">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-800 dark:text-[#FD9139] font-mono font-bold text-[11px] border border-amber-500/20 dark:border-[#FD9139]/20">
                               {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km away` : 'Nearby Vrindavan'}
                             </span>
                           </div>
@@ -1534,14 +1534,14 @@ export default function TransportView() {
                                 href={`tel:${order.customerPhone}`}
                                 className="px-3 py-1 rounded-full bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
                               >
-                                <Phone className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
+                                <Phone className="w-3 h-3 text-amber-600 dark:text-[#FD9139]" />
                                 <span>{order.customerPhone}</span>
                               </a>
                             )}
                           </div>
 
                           <div className="flex items-start gap-2 text-xs text-stone-700 dark:text-neutral-300">
-                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                            <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139] shrink-0 mt-0.5" />
                             <p className="line-clamp-2 leading-relaxed">{order.customerAddress || order.deliveryAddress || 'Vrindavan Delivery Location'}</p>
                           </div>
 
@@ -1587,7 +1587,7 @@ export default function TransportView() {
                           type="button"
                           onClick={() => handleClaimOrder(order.id)}
                           disabled={isClaimingOrderId === order.id}
-                          className="w-full py-3.5 px-4 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer disabled:opacity-50"
+                          className="w-full py-3.5 px-4 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(253, 145, 57,0.25)] hover:shadow-[0_6px_22px_rgba(253, 145, 57,0.4)] cursor-pointer disabled:opacity-50"
                         >
                           {isClaimingOrderId === order.id ? (
                             <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -1606,14 +1606,14 @@ export default function TransportView() {
                           }}
                           className="flex-1 py-3.5 px-3 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-white/10 hover:border-white/20"
                         >
-                          <Map className="w-4 h-4 text-[#E0FF33]" />
+                          <Map className="w-4 h-4 text-[#FD9139]" />
                           <span>Map View</span>
                         </button>
 
                         {isReady ? (
                           <button
                             onClick={() => handleInitiatePickup(order)}
-                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
+                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(253, 145, 57,0.25)] hover:shadow-[0_6px_22px_rgba(253, 145, 57,0.4)] cursor-pointer"
                           >
                             <span>Start Ride</span>
                             <ArrowRight className="w-4 h-4" />
@@ -1622,7 +1622,7 @@ export default function TransportView() {
                           <button
                             data-tour="delivery-complete"
                             onClick={() => handleInitiateDelivery(order)}
-                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(224,255,51,0.25)] hover:shadow-[0_6px_22px_rgba(224,255,51,0.4)] cursor-pointer"
+                            className="flex-1 py-3.5 px-3 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(253, 145, 57,0.25)] hover:shadow-[0_6px_22px_rgba(253, 145, 57,0.4)] cursor-pointer"
                           >
                             <Check className="w-4 h-4 stroke-[3]" />
                             <span>Delivered</span>
@@ -1657,7 +1657,7 @@ export default function TransportView() {
               {/* Row 1: Icon + Title on Left, Status Badge on Right */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30'
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-sm shrink-0 ${cashCheck.isExceeded ? 'bg-rose-500 text-white' : 'bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30'
                     }`}>
                     <Banknote size={19} strokeWidth={2.5} />
                   </div>
@@ -1698,7 +1698,7 @@ export default function TransportView() {
               {/* Recessed Luxury Progress Bar Track */}
               <div className="w-full bg-stone-300/80 dark:bg-[#151314] h-2.5 rounded-full border border-stone-300 dark:border-white/5 p-0.5 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 min-w-[4px] ${cashCheck.isExceeded ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-amber-500 dark:bg-[#E0FF33] shadow-[0_0_10px_rgba(224,255,51,0.4)]'}`}
+                  className={`h-full rounded-full transition-all duration-500 min-w-[4px] ${cashCheck.isExceeded ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-amber-500 dark:bg-[#FD9139] shadow-[0_0_10px_rgba(253, 145, 57,0.4)]'}`}
                   style={{ width: `${Math.max(2, cashPercent)}%` }}
                 />
               </div>
@@ -1751,10 +1751,10 @@ export default function TransportView() {
             </div>
 
             {/* Card 3: Foody Vrinda Verified Shift Delivery Slip & Order Summary (PDF) */}
-            <div data-tour="delivery-report" className="md:col-span-2 p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden transition-all hover:border-[#E0FF33]/30 group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 dark:bg-[#E0FF33]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div data-tour="delivery-report" className="md:col-span-2 p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden transition-all hover:border-[#FD9139]/30 group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 dark:bg-[#FD9139]/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
               <div className="flex items-center gap-3.5 min-w-0 relative z-10 w-full sm:w-auto">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center font-bold shrink-0 shadow-sm">
                   <FileText size={20} strokeWidth={2.5} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1780,7 +1780,7 @@ export default function TransportView() {
                 <button
                   type="button"
                   onClick={handleDownloadShiftSlip}
-                  className="h-11 px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 apple-tap-target w-full sm:w-auto"
+                  className="h-11 px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 apple-tap-target w-full sm:w-auto"
                   title="Download and Print Today's Order Report as PDF"
                 >
                   <FileDown size={16} strokeWidth={2.5} />
@@ -1804,7 +1804,7 @@ export default function TransportView() {
               <button
                 type="button"
                 onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
-                className="h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target w-full sm:w-auto"
+                className="h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target w-full sm:w-auto"
               >
                 <MessageCircle size={15} />
                 <span>Join Fleet Channel</span>
@@ -1834,7 +1834,7 @@ export default function TransportView() {
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${otpModalState.type === 'pickup'
                     ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                    : 'bg-[#E0FF33]/15 border-[#E0FF33]/30 text-[#E0FF33]'
+                    : 'bg-[#FD9139]/15 border-[#FD9139]/30 text-[#FD9139]'
                     }`}
                 >
                   {otpModalState.type === 'pickup' ? (
@@ -1848,7 +1848,7 @@ export default function TransportView() {
                     <span
                       className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${otpModalState.type === 'pickup'
                         ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-[#E0FF33]/20 text-[#E0FF33]'
+                        : 'bg-[#FD9139]/20 text-[#FD9139]'
                         }`}
                     >
                       {otpModalState.type === 'pickup' ? 'Stage 1: Kitchen Pickup' : 'Stage 2: Customer Handover'}
@@ -1967,8 +1967,8 @@ export default function TransportView() {
                     className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${otpModalState.isSuccess
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
                       : digit
-                        ? 'border-[#E0FF33] text-[#E0FF33] shadow-[0_0_12px_rgba(224,255,51,0.2)]'
-                        : 'border-white/15 text-white focus:border-[#E0FF33] focus:shadow-[0_0_12px_rgba(224,255,51,0.2)]'
+                        ? 'border-[#FD9139] text-[#FD9139] shadow-[0_0_12px_rgba(253, 145, 57,0.2)]'
+                        : 'border-white/15 text-white focus:border-[#FD9139] focus:shadow-[0_0_12px_rgba(253, 145, 57,0.2)]'
                       }`}
                   />
                 ))}
@@ -1999,7 +1999,7 @@ export default function TransportView() {
                 disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${otpModalState.type === 'pickup'
                   ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
-                  : 'bg-[#E0FF33] hover:bg-[#d8fa26] text-[#121214] shadow-[#E0FF33]/20'
+                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-[#121214] shadow-[#FD9139]/20'
                   }`}
               >
                 {otpModalState.isSubmitting ? (

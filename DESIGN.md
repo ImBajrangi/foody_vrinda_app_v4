@@ -15,10 +15,10 @@ The system operates strictly on **two deliberate, non-clashing aesthetic modes**
 | Mode | Theme Personality | Primary Accent | Accent Fallback/Contrast | Base Canvas | Elevated Card Surface |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Light Mode** | *Vedic Divine Light* — Warm, devotional, temple-grade purity & saffron warmth | **Royal Saffron Amber** (`#D97706` / `#B45309`) | Deep Amber (`#92400E`) / White Text | `#FAF7F2` (Ivory Cream) | `#FFFFFF` (Pure White) |
-| **Dark Mode** | *Obsidian Luxury* — Modern, state-of-the-art cyber-vedic dark UI | **Cyber Neon Lime** (`#E0FF33`) | Deep Obsidian (`#121011`) | `#1E1B1C` (Obsidian 900) | `#282526` (Obsidian 850) |
+| **Dark Mode** | *Obsidian Luxury* — Modern, state-of-the-art cyber-vedic dark UI | **Cyber Neon Lime** (`#FD9139`) | Deep Obsidian (`#121011`) | `#1E1B1C` (Obsidian 900) | `#282526` (Obsidian 850) |
 
 > [!IMPORTANT]
-> **Zero Neon Lime in Light Mode**: Neon Lime (`#E0FF33`) is strictly forbidden in Light Mode. On light/white backgrounds, `#E0FF33` has almost zero contrast ratio (~1.2:1), making buttons, map routes, and text unreadable. In Light Mode, all primary accents automatically translate to **Royal Saffron Amber (`#D97706` / `#B45309`)**.
+> **Zero Neon Lime in Light Mode**: Neon Lime (`#FD9139`) is strictly forbidden in Light Mode. On light/white backgrounds, `#FD9139` has almost zero contrast ratio (~1.2:1), making buttons, map routes, and text unreadable. In Light Mode, all primary accents automatically translate to **Royal Saffron Amber (`#D97706` / `#B45309`)**.
 
 ---
 
@@ -38,8 +38,8 @@ All UI components must bind to standard CSS variables and Tailwind semantic util
        • Surface: #FFFFFF                      • Surface: #282526
        • Card: #FFFFFF                         • Card: #242021
        • Text Primary: #1C1917                 • Text Primary: #FFFFFF
-       • Primary Accent: #D97706 (Amber)       • Primary Accent: #E0FF33 (Neon Lime)
-       • Map Route: #D97706 (Amber/Saffron)    • Map Route: #E0FF33 (Neon Lime)
+       • Primary Accent: #D97706 (Amber)       • Primary Accent: #FD9139 (Neon Lime)
+       • Map Route: #D97706 (Amber/Saffron)    • Map Route: #FD9139 (Neon Lime)
        • Radio/Active: Amber 600               • Radio/Active: Neon Lime
 ```
 
@@ -114,13 +114,14 @@ All UI components must bind to standard CSS variables and Tailwind semantic util
   /* Borders & Dividers */
   --border-app: rgba(255, 255, 255, 0.10);
   --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-focus: #E0FF33;
+  --border-focus: #FCA65E;
 
-  /* Primary Brand Accent */
-  --accent-primary: #E0FF33;     /* Cyber Neon Lime */
-  --accent-hover: #CCFF00;
-  --accent-bg-subtle: rgba(224, 255, 51, 0.12);
-  --accent-border: rgba(224, 255, 51, 0.30);
+  /* Primary Brand Accent (Swiggy Palette) */
+  --accent-primary: #FD9139;     /* Swiggy Vibrant Orange (#FD9139 | RGB 253, 145, 57) */
+  --accent-hover: #FCA65E;       /* Swiggy Soft Warm Orange (#FCA65E | RGB 252, 166, 94) */
+  --accent-deep: #AD4728;        /* Swiggy Deep Rust Brick (#AD4728 | RGB 173, 71, 40) */
+  --accent-bg-subtle: rgba(253, 145, 57, 0.12);
+  --accent-border: rgba(253, 145, 57, 0.30);
   --accent-text: #121011;
 
   /* Semantic Status Colors */
@@ -134,9 +135,9 @@ All UI components must bind to standard CSS variables and Tailwind semantic util
   --color-info-bg: rgba(96, 165, 250, 0.12);
 
   /* Map Navigation Elements */
-  --map-route-line: #E0FF33;     /* Solid Cyber Neon Lime */
-  --map-rider-pin: #E0FF33;
-  --map-rider-radar: rgba(224, 255, 51, 0.45);
+  --map-route-line: #FD9139;     /* Solid Cyber Neon Lime */
+  --map-rider-pin: #FD9139;
+  --map-rider-radar: rgba(253, 145, 57, 0.45);
   --map-store-pin: #FAF7F2;
   --map-customer-pin: #4ADE80;
 
@@ -197,8 +198,8 @@ The system follows an **8pt fluid baseline grid** optimized for seamless ergonom
 
 | Icon Context | Size (px) | Stroke Width | Primary Colors (Light / Dark) |
 | :--- | :--- | :--- | :--- |
-| **Header Actions** (Search, Bell, Moon, Sun) | 16px – 17px | 2.0 | Amber 600 / Neon Lime (`#E0FF33`) |
-| **Cart Bag Icon** | 17px | 2.2 | Amber 600 / Neon Lime (`#E0FF33`) |
+| **Header Actions** (Search, Bell, Moon, Sun) | 16px – 17px | 2.0 | Amber 600 / Neon Lime (`#FD9139`) |
+| **Cart Bag Icon** | 17px | 2.2 | Amber 600 / Neon Lime (`#FD9139`) |
 | **Search / Input Lead Icon** | 16px – 18px | 2.0 | Stone 500 / Zinc 400 |
 | **Card Status & Meta Icons** (Clock, Star, MapPin) | 13px – 14px | 1.8 | Stone 600 / Zinc 400 |
 | **Chevron / Dropdown Arrows** | 15px – 16px | 2.0 | Stone 500 / Zinc 400 |
@@ -221,7 +222,7 @@ To ensure barrier-free accessibility for all users:
    - Dynamic badges use `aria-live="polite"` for non-intrusive updates.
    - Interactive dropdowns and accordions include `aria-expanded="true/false"`.
 4. **Focus & Keyboard Navigation**:
-   - Custom outline focus ring: `focus-visible:ring-2 focus-visible:ring-amber-500 dark:focus-visible:ring-[#E0FF33] focus-visible:outline-none`.
+   - Custom outline focus ring: `focus-visible:ring-2 focus-visible:ring-amber-500 dark:focus-visible:ring-[#FD9139] focus-visible:outline-none`.
 5. **Reduced Motion & Fluidity**:
    - Supports `prefers-reduced-motion: reduce` by dampening heavy spring physics to instant opacity transitions.
 
@@ -233,9 +234,9 @@ To ensure barrier-free accessibility for all users:
 
 | Hierarchy Tier | Light Mode Styling | Dark Mode Styling | Usage |
 | :--- | :--- | :--- | :--- |
-| **Primary Action (CTA)** | `bg-amber-600 hover:bg-amber-700 text-white font-black shadow-md` | `bg-[#E0FF33] hover:bg-[#d4f828] text-[#121011] font-black shadow-md` | Add to Cart, Checkout, Accept Order, Place Order |
+| **Primary Action (CTA)** | `bg-amber-600 hover:bg-amber-700 text-white font-black shadow-md` | `bg-[#FD9139] hover:bg-[#d4f828] text-[#121011] font-black shadow-md` | Add to Cart, Checkout, Accept Order, Place Order |
 | **Secondary Action** | `bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-200` | `bg-white/10 hover:bg-white/15 text-white border border-white/10` | Cancel, Filter, View Menu, Secondary Navigation |
-| **Selected/Active Pill** | `bg-amber-500/15 border-amber-500/40 text-amber-900 font-bold` | `bg-[#E0FF33]/15 border-[#E0FF33]/40 text-[#E0FF33] font-bold` | Active filter chips, selected tab, selected kitchen |
+| **Selected/Active Pill** | `bg-amber-500/15 border-amber-500/40 text-amber-900 font-bold` | `bg-[#FD9139]/15 border-[#FD9139]/40 text-[#FD9139] font-bold` | Active filter chips, selected tab, selected kitchen |
 | **Destructive Action** | `bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border border-red-500/20` | `bg-red-500/15 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30` | Reject Order, Delete Item, Cancel Booking |
 
 ---
@@ -251,8 +252,8 @@ To ensure barrier-free accessibility for all users:
                ▼                                         ▼
       [ LIGHT MODE MAP ]                        [ DARK MODE MAP ]
       • Tile Style: Positron / Crisp Light      • Tile Style: Dark Matter / Obsidian
-      • Route Line: #D97706 (Solid Saffron)     • Route Line: #E0FF33 (Neon Lime)
-      • Route Glow: rgba(217, 119, 6, 0.25)     • Route Glow: rgba(224, 255, 51, 0.25)
+      • Route Line: #D97706 (Solid Saffron)     • Route Line: #FD9139 (Neon Lime)
+      • Route Glow: rgba(217, 119, 6, 0.25)     • Route Glow: rgba(253, 145, 57, 0.25)
       • Rider Pin: Deep Amber + Saffron Radar   • Rider Pin: Dark Puck + Lime Radar
       • Route Ribbon: White/95 + Saffron Badges • Route Ribbon: Obsidian/95 + Lime Badges
 ```
@@ -260,7 +261,7 @@ To ensure barrier-free accessibility for all users:
 - **Polyline Stroke**: Solid 4.5px vector line with zero dotted casing beads.
 - **Route Glow**: 7px semi-transparent shadow beneath the main polyline.
 - **Origin & Drop-off Badges**:
-  - `ORIGIN`: Light mode `bg-amber-500/15 text-amber-700 border-amber-500/30` | Dark mode `bg-[#E0FF33]/15 text-[#E0FF33] border-[#E0FF33]/30`
+  - `ORIGIN`: Light mode `bg-amber-500/15 text-amber-700 border-amber-500/30` | Dark mode `bg-[#FD9139]/15 text-[#FD9139] border-[#FD9139]/30`
   - `DROP-OFF`: Light mode `bg-emerald-500/15 text-emerald-700 border-emerald-500/30` | Dark mode `bg-emerald-500/15 text-emerald-400 border-emerald-500/30`
 
 ---
@@ -272,7 +273,7 @@ To ensure barrier-free accessibility for all users:
   - Dark mode: `bg-[#1E1B1C]/90 backdrop-blur-md border-b border-white/10`
 - **Active Role Tab**:
   - Light mode: `bg-amber-600 text-white font-black shadow-xs`
-  - Dark mode: `bg-[#E0FF33] text-[#121011] font-black shadow-xs`
+  - Dark mode: `bg-[#FD9139] text-[#121011] font-black shadow-xs`
 - **Inactive Role Tabs**:
   - Light mode: `bg-transparent text-stone-600 hover:text-stone-900 hover:bg-stone-200/50`
   - Dark mode: `bg-transparent text-zinc-400 hover:text-white hover:bg-white/5`
@@ -312,17 +313,17 @@ All modals must adhere to standard layering and gesture controls:
 ## 6. Specific View Audit & Normalization Plan
 
 ### 6.1 Kitchen Desk (`KitchenView.jsx`)
-- **Current Issue**: "Accept & Start Cooking" is currently rendered with neon lime `#E0FF33` even in Light Mode while surrounding headers/tabs are orange.
+- **Current Issue**: "Accept & Start Cooking" is currently rendered with neon lime `#FD9139` even in Light Mode while surrounding headers/tabs are orange.
 - **Normalization Rule**:
   - Light mode: Primary order accept button becomes `bg-amber-600 hover:bg-amber-700 text-white font-black`.
-  - Dark mode: Primary order accept button becomes `bg-[#E0FF33] hover:bg-[#d4f828] text-[#121011] font-black`.
+  - Dark mode: Primary order accept button becomes `bg-[#FD9139] hover:bg-[#d4f828] text-[#121011] font-black`.
   - OTP & Rider Pickup badge: In light mode, uses `bg-stone-100 text-stone-900 border border-stone-300 font-mono font-black` (no black obsidian pill in light mode).
 
 ### 6.2 Transport / Rider Desk (`TransportView.jsx`)
 - **Current Issue**: Map line and markers used neon lime on bright white tiles.
 - **Normalization Rule**:
   - Light mode: Map route uses Royal Saffron (`#D97706`), rider marker uses amber radar ping, route ribbon uses `bg-white/95 text-stone-900 border-stone-200`.
-  - Dark mode: Map route uses Cyber Neon Lime (`#E0FF33`), rider marker uses lime radar ping, route ribbon uses `bg-[#1E1B1C]/90 text-white border-white/10`.
+  - Dark mode: Map route uses Cyber Neon Lime (`#FD9139`), rider marker uses lime radar ping, route ribbon uses `bg-[#1E1B1C]/90 text-white border-white/10`.
 
 ### 6.3 Owner Desk (`OwnerView.jsx`) & Developer Desk (`DeveloperView.jsx`)
 - **Normalization Rule**:

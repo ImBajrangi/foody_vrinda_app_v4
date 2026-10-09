@@ -29,7 +29,7 @@ export default function UnauthorizedAccessScreen({
         <div className="w-full pt-3 space-y-2.5">
           <button
             onClick={onAuthenticate}
-            className="w-full py-3.5 px-5 rounded-full bg-[#E0FF33] hover:bg-[#CCFF00] text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md cursor-pointer font-['Outfit']"
+            className="w-full py-3.5 px-5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-[#1E1B1C] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md cursor-pointer font-['Outfit']"
           >
             <LogIn className="w-4 h-4" />
             <span>Sign In with Staff / Admin Account</span>

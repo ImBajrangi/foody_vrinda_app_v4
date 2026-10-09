@@ -183,7 +183,7 @@ export default function OrderHistoryDrawer({
       case 'cancelled':
         return { label: 'Cancelled', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' };
       default:
-        return { label: 'Order Placed', color: 'bg-[#E0FF33]/20 text-amber-800 dark:text-[#E0FF33] border-[#E0FF33]/40' };
+        return { label: 'Order Placed', color: 'bg-[#FD9139]/20 text-amber-800 dark:text-[#FD9139] border-[#FD9139]/40' };
     }
   };
 
@@ -218,7 +218,7 @@ export default function OrderHistoryDrawer({
             className="px-5 py-4 sm:p-6 border-b border-stone-200/80 dark:border-white/10 flex items-center justify-between bg-[#F4EFE6] dark:bg-[#282526] select-none"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs shrink-0">
                 <Receipt className="w-5 h-5" />
               </div>
               <div>
@@ -262,12 +262,12 @@ export default function OrderHistoryDrawer({
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 no-scrollbar">
             {loading ? (
               <div className="py-20 text-center space-y-3">
-                <div className="w-8 h-8 border-2 border-amber-500 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin mx-auto" />
+                <div className="w-8 h-8 border-2 border-amber-500 dark:border-[#FD9139] border-t-transparent rounded-full animate-spin mx-auto" />
                 <p className="text-xs text-stone-500 dark:text-neutral-400 font-medium">Loading your orders...</p>
               </div>
             ) : orders.length === 0 ? (
               <div className="py-20 text-center space-y-3">
-                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-white/5 border border-amber-500/20 dark:border-white/5 mx-auto flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-xs">
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/10 dark:bg-white/5 border border-amber-500/20 dark:border-white/5 mx-auto flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs">
                   <ShoppingBag size={28} />
                 </div>
                 <h4 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">No Orders Yet</h4>
@@ -314,10 +314,10 @@ export default function OrderHistoryDrawer({
                         <div key={idx} className="space-y-0.5">
                           <div className="flex justify-between items-center">
                             <span className="truncate pr-2 flex items-center gap-1.5 font-medium">
-                              <span className="text-amber-600 dark:text-[#E0FF33] font-black">{it.quantity || 1}x</span>
+                              <span className="text-amber-600 dark:text-[#FD9139] font-black">{it.quantity || 1}x</span>
                               <span>{it.name}</span>
                               {(it.isCombo || it.comboItems) && (
-                                <span className="text-[9px] font-black uppercase bg-amber-500/15 dark:bg-[#E0FF33]/20 text-amber-700 dark:text-[#E0FF33] px-1.5 py-0.2 rounded">
+                                <span className="text-[9px] font-black uppercase bg-amber-500/15 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-1.5 py-0.2 rounded">
                                   Combo
                                 </span>
                               )}
@@ -351,7 +351,7 @@ export default function OrderHistoryDrawer({
                               onTrackOrder(order);
                               handleAnimatedClose();
                             }}
-                            className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] text-white dark:text-[#121011] text-xs font-black flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
+                            className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] text-xs font-black flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer font-['Outfit'] whitespace-nowrap shrink-0"
                           >
                             <span className="w-4.5 h-4.5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
                               <Navigation size={10} className="fill-current text-white dark:text-[#121011]" />
@@ -368,7 +368,7 @@ export default function OrderHistoryDrawer({
                             className="h-8 px-2.5 sm:px-3 rounded-xl bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-800 dark:text-white text-xs font-bold flex items-center gap-1.5 border border-stone-200/80 dark:border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
                             title="View full order details & receipt"
                           >
-                            <Receipt size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                            <Receipt size={12} className="text-amber-600 dark:text-[#FD9139]" />
                             <span>Receipt</span>
                           </button>
                         )}
@@ -386,7 +386,7 @@ export default function OrderHistoryDrawer({
                             }}
                             className="h-8 px-2.5 sm:px-3 rounded-xl bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-800 dark:text-white text-xs font-bold flex items-center gap-1.5 border border-stone-200/80 dark:border-white/10 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
                           >
-                            <Star size={12} className="text-amber-500 dark:text-[#E0FF33] fill-amber-500 dark:fill-[#E0FF33]" />
+                            <Star size={12} className="text-amber-500 dark:text-[#FD9139] fill-amber-500 dark:fill-[#FD9139]" />
                             <span>Rate</span>
                           </button>
                         )}

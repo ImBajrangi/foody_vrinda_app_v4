@@ -71,7 +71,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
           width: 38px;
           height: 38px;
           background: #1E1B1C;
-          border: 2px solid #E0FF33;
+          border: 2px solid #FD9139;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
           display: flex;
@@ -82,7 +82,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
           <div style="
             width: 14px;
             height: 14px;
-            background: #E0FF33;
+            background: #FD9139;
             border-radius: 50%;
             transform: rotate(45deg);
           "></div>
@@ -158,8 +158,8 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#E0FF33]/15 border border-[#E0FF33]/30 flex items-center justify-center">
-              <Compass className="w-5 h-5 text-[#E0FF33]" />
+            <div className="w-9 h-9 rounded-2xl bg-[#FD9139]/15 border border-[#FD9139]/30 flex items-center justify-center">
+              <Compass className="w-5 h-5 text-[#FD9139]" />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-white leading-tight font-['Outfit']">
@@ -188,7 +188,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
             onClick={handleLocateMe}
             className="absolute bottom-4 right-4 z-[1000] px-3.5 py-2 rounded-xl bg-[#1E1B1C]/90 hover:bg-[#1E1B1C] text-white border border-white/15 text-xs font-bold shadow-xl flex items-center gap-2 backdrop-blur-md active:scale-95 transition-all"
           >
-            <Navigation className="w-3.5 h-3.5 text-[#E0FF33]" />
+            <Navigation className="w-3.5 h-3.5 text-[#FD9139]" />
             <span>Locate Me</span>
           </button>
         </div>
@@ -196,7 +196,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
         {/* Footer info & action */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pt-1">
           <div className="text-xs font-mono text-neutral-400 flex items-center gap-2 bg-[#151314] px-3 py-1.5 rounded-xl border border-white/5">
-            <MapPin size={13} className="text-[#E0FF33]" />
+            <MapPin size={13} className="text-[#FD9139]" />
             <span>Lat: <strong className="text-white">{coords.lat}</strong></span>
             <span>•</span>
             <span>Lng: <strong className="text-white">{coords.lng}</strong></span>
@@ -211,7 +211,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
             </button>
             <button 
               onClick={handleSave} 
-              className="flex-1 sm:flex-none px-6 py-2.5 rounded-2xl bg-[#E0FF33] hover:bg-[#d8fa26] text-black font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] text-black font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
             >
               <Check className="w-4 h-4" />
               <span>Confirm Location</span>

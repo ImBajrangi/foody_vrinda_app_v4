@@ -195,7 +195,7 @@ export default function QuantityPickerSheet({
                 {item?.name || 'Dish'}
               </h3>
               <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">
-                ₹{item?.price} each · Total: <span className="text-amber-700 dark:text-[#E0FF33] font-bold">₹{(item?.price || 0) * selectedQty}</span>
+                ₹{item?.price} each · Total: <span className="text-amber-700 dark:text-[#FD9139] font-bold">₹{(item?.price || 0) * selectedQty}</span>
               </p>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function QuantityPickerSheet({
                 onClick={() => scrollToQty(num)}
                 className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
                   selectedQty === num
-                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
+                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#FD9139]'
                     : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
                 }`}
               >
@@ -247,7 +247,7 @@ export default function QuantityPickerSheet({
                 onClick={() => scrollToQty(num)}
                 className={`flex-1 py-2 rounded-xl font-['Outfit'] font-black text-xs transition-all cursor-pointer apple-tap-target ${
                   selectedQty === num
-                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#E0FF33]'
+                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] shadow-md ring-1 ring-amber-600 dark:ring-[#FD9139]'
                     : 'bg-stone-200/70 dark:bg-[#282526] text-stone-700 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white border border-stone-300/40 dark:border-white/5'
                 }`}
               >
@@ -269,7 +269,7 @@ export default function QuantityPickerSheet({
             </button>
 
             <div className="text-center">
-              <span className="text-xl font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit'] leading-none">
+              <span className="text-xl font-black text-amber-700 dark:text-[#FD9139] font-['Outfit'] leading-none">
                 {selectedQty}
               </span>
               <span className="text-[10px] text-stone-500 dark:text-zinc-400 block font-medium mt-0.5">
@@ -281,7 +281,7 @@ export default function QuantityPickerSheet({
               type="button"
               onClick={() => scrollToQty(Math.min(10, selectedQty + 1))}
               disabled={selectedQty >= 10}
-              className="w-10 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] flex items-center justify-center transition-all cursor-pointer apple-tap-target active:scale-90 shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
               title="Increase"
             >
               <Plus size={16} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
@@ -293,7 +293,7 @@ export default function QuantityPickerSheet({
         <button
           type="button"
           onClick={handleConfirm}
-          className="w-full py-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#ccff00] dark:text-[#1E1B1C] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] dark:text-[#1E1B1C] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2"
         >
           <Check size={18} strokeWidth={3} />
           <span>Confirm Quantity ({selectedQty})</span>

@@ -431,8 +431,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* Search Input Bar (Ultra-Premium Apple / Arc Style Search Capsule + Crisp Cancel) */}
             <div className="p-3 sm:p-4 pt-1 sm:pt-3.5 flex items-center gap-2.5 sm:gap-3">
               {/* Integrated Search Input Capsule */}
-              <div className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-100/90 dark:bg-[#181617] border border-stone-200/90 dark:border-white/15 rounded-2xl px-3 sm:px-3.5 flex items-center gap-2.5 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#E0FF33]/20 focus-within:bg-white dark:focus-within:bg-[#141213] transition-all shadow-inner">
-                <Search size={18} strokeWidth={2.2} className="text-amber-600 dark:text-[#E0FF33] shrink-0 pointer-events-none" />
+              <div className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-100/90 dark:bg-[#181617] border border-stone-200/90 dark:border-white/15 rounded-2xl px-3 sm:px-3.5 flex items-center gap-2.5 focus-within:border-amber-500/70 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/20 focus-within:bg-white dark:focus-within:bg-[#141213] transition-all shadow-inner">
+                <Search size={18} strokeWidth={2.2} className="text-amber-600 dark:text-[#FD9139] shrink-0 pointer-events-none" />
 
                 <input
                   ref={searchInputRef}
@@ -504,7 +504,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* Loading Indicator */}
             {loading && (
               <div className="text-center py-10 flex flex-col items-center gap-2.5">
-                <div className="w-6 h-6 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-2 border-amber-600 dark:border-[#FD9139] border-t-transparent rounded-full animate-spin"></div>
                 <p className="text-stone-500 dark:text-zinc-400 text-xs font-semibold">Searching freshly prepared satvik dishes & kitchens...</p>
               </div>
             )}
@@ -518,7 +518,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 font-['Outfit']">
-                        <Clock size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                        <Clock size={12} className="text-amber-600 dark:text-[#FD9139]" />
                         Recent Searches
                       </p>
                       <button
@@ -534,7 +534,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         <button
                           key={i}
                           onClick={() => handleSelectSuggestion(term)}
-                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#282526] hover:bg-amber-500/10 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-800 dark:text-zinc-200 hover:text-amber-700 dark:hover:text-[#E0FF33] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#282526] hover:bg-amber-500/10 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-800 dark:text-zinc-200 hover:text-amber-700 dark:hover:text-[#FD9139] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                         >
                           <Search size={11} className="text-stone-400 dark:text-zinc-500" />
                           <span>{term}</span>
@@ -547,7 +547,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 {/* Quick Category Grid (Full Width, Zero Blank Spaces) */}
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5 font-['Outfit']">
-                    <Tag size={12} className="text-amber-600 dark:text-[#E0FF33]" />
+                    <Tag size={12} className="text-amber-600 dark:text-[#FD9139]" />
                     Explore by Category
                   </p>
                   
@@ -556,7 +556,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                       <button
                         key={idx}
                         onClick={() => handleSelectSuggestion(cat.keyword)}
-                        className={`p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br ${cat.color} bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center gap-2.5 transition-all cursor-pointer group shadow-2xs active:scale-[0.98] text-left`}
+                        className={`p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br ${cat.color} bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex items-center gap-2.5 transition-all cursor-pointer group shadow-2xs active:scale-[0.98] text-left`}
                       >
                         <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform shrink-0">{cat.icon}</span>
                         <div className="min-w-0 flex-1">
@@ -583,10 +583,10 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         key={i}
                         type="button"
                         onClick={() => handleSelectSuggestion(sugg.keyword)}
-                        className="p-2.5 rounded-2xl bg-white dark:bg-[#282526] hover:bg-amber-500/5 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 flex items-center justify-between text-left transition-all cursor-pointer group shadow-2xs active:scale-[0.98]"
+                        className="p-2.5 rounded-2xl bg-white dark:bg-[#282526] hover:bg-amber-500/5 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex items-center justify-between text-left transition-all cursor-pointer group shadow-2xs active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                             <Utensils size={13} />
                           </div>
                           <div className="min-w-0">
@@ -594,7 +594,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                             <span className="text-[10px] text-stone-500 dark:text-zinc-400 capitalize font-medium">{sugg.type || 'Pure satvik'}</span>
                           </div>
                         </div>
-                        <TrendingUp size={14} className="text-stone-400 group-hover:text-amber-600 dark:text-zinc-600 dark:group-hover:text-[#E0FF33] shrink-0 ml-2 transition-colors" />
+                        <TrendingUp size={14} className="text-stone-400 group-hover:text-amber-600 dark:text-zinc-600 dark:group-hover:text-[#FD9139] shrink-0 ml-2 transition-colors" />
                       </button>
                     ))}
                   </div>
@@ -608,8 +608,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               <div className="py-10 sm:py-14 text-center px-4">
                 {/* Visual Anchor with subtle glowing aura */}
                 <div className="relative w-16 h-16 mx-auto mb-4">
-                  <div className="absolute inset-0 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 blur-xl"></div>
-                  <div className="relative w-16 h-16 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shadow-md">
+                  <div className="absolute inset-0 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 blur-xl"></div>
+                  <div className="relative w-16 h-16 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-md">
                     <Search size={24} strokeWidth={2.2} />
                   </div>
                 </div>
@@ -629,7 +629,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                     <button
                       key={query}
                       onClick={() => handleSelectSuggestion(query.toLowerCase())}
-                      className="px-4 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 text-xs font-semibold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-[#E0FF33] transition-all cursor-pointer shadow-2xs active:scale-95"
+                      className="px-4 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 text-xs font-semibold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-[#FD9139] transition-all cursor-pointer shadow-2xs active:scale-95"
                     >
                       {query}
                     </button>
@@ -644,7 +644,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                       setSearchTerm('');
                       setResults({ shops: [], menuItems: [], orders: [] });
                     }}
-                    className="text-xs font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-[#E0FF33] transition-colors cursor-pointer inline-flex items-center gap-1 hover:underline"
+                    className="text-xs font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-[#FD9139] transition-colors cursor-pointer inline-flex items-center gap-1 hover:underline"
                   >
                     Clear search query
                   </button>
@@ -656,7 +656,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {!loading && results.menuItems.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                  <h4 className="text-[11px] font-black text-amber-700 dark:text-[#FD9139] uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
                     <Utensils size={13} />
                     Dishes & Prasad
                     <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.menuItems.length})</span>
@@ -692,12 +692,12 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               {item.category && (
                                 <>
                                   <span className="text-stone-300 dark:text-zinc-600">•</span>
-                                  <span className="text-amber-700 dark:text-[#E0FF33] font-medium">{item.category}</span>
+                                  <span className="text-amber-700 dark:text-[#FD9139] font-medium">{item.category}</span>
                                 </>
                               )}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33]">₹{item.price}</span>
+                              <span className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#FD9139]">₹{item.price}</span>
                               {item.kcal && (
                                 <span className="text-[9px] font-bold text-stone-400 dark:text-zinc-500 flex items-center gap-0.5">
                                   <Flame size={9} />{item.kcal} kcal
@@ -713,7 +713,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
                                 isAdded 
                                   ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-black' 
-                                  : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] dark:text-[#121011]'
+                                  : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#121011]'
                               }`}
                               title="Quick add to basket"
                             >
@@ -783,7 +783,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                                   e.stopPropagation();
                                   handleAddDishWithQty(item, dishQty);
                                 }}
-                                className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] text-white dark:text-[#121011] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
+                                className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] text-xs font-black px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-sm"
                               >
                                 <ShoppingBag size={14} />
                                 Add {dishQty > 1 ? `${dishQty} items` : ''} · ₹{item.price * dishQty}
@@ -801,7 +801,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* ─── KITCHENS SECTION ─── */}
             {!loading && results.shops.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#FD9139] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
                   <Store size={13} />
                   Kitchens & Outlets
                   <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.shops.length})</span>
@@ -815,8 +815,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/20 dark:border-[#E0FF33]/20 shrink-0 flex items-center justify-center">
-                            <Store size={18} className="text-amber-600 dark:text-[#E0FF33]" />
+                          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 shrink-0 flex items-center justify-center">
+                            <Store size={18} className="text-amber-600 dark:text-[#FD9139]" />
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">{shop.name}</p>
@@ -835,7 +835,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               onSelectShop(shop.id, shop.name);
                               handleAnimatedClose();
                             }}
-                            className="px-3 py-1.5 bg-stone-100 dark:bg-white/10 hover:bg-amber-600 hover:text-white dark:hover:bg-[#E0FF33] dark:hover:text-black rounded-full text-xs font-bold text-stone-700 dark:text-zinc-200 transition-all cursor-pointer"
+                            className="px-3 py-1.5 bg-stone-100 dark:bg-white/10 hover:bg-amber-600 hover:text-white dark:hover:bg-[#FD9139] dark:hover:text-black rounded-full text-xs font-bold text-stone-700 dark:text-zinc-200 transition-all cursor-pointer"
                           >
                             Open Menu
                           </button>
@@ -848,7 +848,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-2.5 animate-fade-in">
                           {loadingShopMenu ? (
                             <div className="flex items-center justify-center py-4">
-                              <div className="w-5 h-5 border-2 border-amber-600 dark:border-[#E0FF33] border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-5 h-5 border-2 border-amber-600 dark:border-[#FD9139] border-t-transparent rounded-full animate-spin"></div>
                             </div>
                           ) : shopMenuItems.length > 0 ? (
                             <div className="space-y-1.5">
@@ -872,7 +872,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                                     </div>
                                     <span className="text-xs font-bold text-stone-900 dark:text-white truncate">{menuItem.name}</span>
                                   </div>
-                                  <span className="text-xs font-black text-amber-700 dark:text-[#E0FF33] shrink-0 ml-2">₹{menuItem.price}</span>
+                                  <span className="text-xs font-black text-amber-700 dark:text-[#FD9139] shrink-0 ml-2">₹{menuItem.price}</span>
                                 </div>
                               ))}
                             </div>
@@ -890,7 +890,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* ─── ORDERS SECTION ─── */}
             {!loading && results.orders.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
+                <h4 className="text-[11px] font-black text-amber-700 dark:text-[#FD9139] uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-['Outfit']">
                   <Receipt size={13} />
                   Your Matched Orders
                   <span className="text-stone-400 dark:text-zinc-500 font-semibold normal-case tracking-normal ml-1">({results.orders.length})</span>
@@ -911,7 +911,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                             <Clock size={10} className="shrink-0" />
                             <span>{order.items?.length || 0} items</span>
                             <span>•</span>
-                            <span className="font-bold text-amber-700 dark:text-[#E0FF33]">₹{order.total_amount || order.totalAmount || 0}</span>
+                            <span className="font-bold text-amber-700 dark:text-[#FD9139]">₹{order.total_amount || order.totalAmount || 0}</span>
                             <span>•</span>
                             <span className="font-mono">#{order.id.slice(-5).toUpperCase()}</span>
                           </p>
@@ -937,7 +937,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                             </div>
                             <div className="text-right">
                               <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Order Total</p>
-                              <p className="font-black text-amber-700 dark:text-[#E0FF33] text-sm">₹{order.total_amount || order.totalAmount || 0}</p>
+                              <p className="font-black text-amber-700 dark:text-[#FD9139] text-sm">₹{order.total_amount || order.totalAmount || 0}</p>
                             </div>
                           </div>
 
@@ -953,7 +953,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               onSelectOrder(order.id, order);
                               handleAnimatedClose();
                             }}
-                            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d4f828] text-white dark:text-[#121011] text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
+                            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#121011] text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
                           >
                             <Receipt size={13} />
                             {['delivered', 'cancelled'].includes(order.status) ? 'View Order Summary' : 'Live Track Order'}

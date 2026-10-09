@@ -46,7 +46,7 @@ export const SocialLinksBar = ({ compact = false, showLabel = true, className = 
     <div className={`flex flex-col items-center gap-2.5 ${className}`}>
       {showLabel && (
         <div className="flex items-center gap-2 text-stone-600 dark:text-zinc-400 text-xs font-['Outfit'] tracking-wide">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-[#E0FF33]/80" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-[#FD9139]/80" />
           <span className="text-stone-600 dark:text-zinc-400 font-medium">Join our community</span>
           <span className="text-stone-900 dark:text-zinc-200 font-bold bg-stone-200/80 dark:bg-white/5 px-2 py-0.5 rounded-full border border-stone-300 dark:border-white/10 text-[11px]">
             @vrindopnishad

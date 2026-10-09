@@ -106,7 +106,7 @@ export default function ReviewModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-white/10 pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:bg-[#E0FF33]/15 dark:border-[#E0FF33]/30 dark:text-[#E0FF33] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:bg-[#FD9139]/15 dark:border-[#FD9139]/30 dark:text-[#FD9139] flex items-center justify-center">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -199,7 +199,7 @@ export default function ReviewModal({
             <div className="bg-stone-50 dark:bg-[#151314] rounded-2xl p-4 border border-stone-200/80 dark:border-white/5 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-700 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] flex items-center justify-center">
                     <Truck className="w-4 h-4" />
                   </div>
                   <div>
@@ -221,7 +221,7 @@ export default function ReviewModal({
                         size={18} 
                         className={`${
                           (riderHover || riderRating) >= star 
-                            ? 'text-amber-500 fill-amber-500 dark:text-[#E0FF33] dark:fill-[#E0FF33]' 
+                            ? 'text-amber-500 fill-amber-500 dark:text-[#FD9139] dark:fill-[#FD9139]' 
                             : 'text-stone-300 dark:text-zinc-700'
                         }`}
                       />
@@ -241,7 +241,7 @@ export default function ReviewModal({
                       onClick={() => toggleRiderTag(tag)}
                       className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                         isSelected 
-                          ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-black shadow-sm scale-102' 
+                          ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-sm scale-102' 
                           : 'bg-stone-200/80 text-stone-700 hover:bg-stone-300 dark:bg-white/5 dark:text-neutral-400 dark:hover:bg-white/10'
                       }`}
                     >
@@ -263,7 +263,7 @@ export default function ReviewModal({
                 onChange={(e) => setComment(e.target.value)}
                 rows={2}
                 placeholder="Share blessings or suggestions for kitchen & delivery..."
-                className="w-full bg-stone-100 dark:bg-[#151314] border border-stone-200 dark:border-white/10 rounded-xl p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none focus:border-amber-500/80 dark:focus:border-[#E0FF33]/50 transition-all font-['Plus_Jakarta_Sans']"
+                className="w-full bg-stone-100 dark:bg-[#151314] border border-stone-200 dark:border-white/10 rounded-xl p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none focus:border-amber-500/80 dark:focus:border-[#FD9139]/50 transition-all font-['Plus_Jakarta_Sans']"
               />
             </div>
 
@@ -279,7 +279,7 @@ export default function ReviewModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-2 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-black font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-2 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Award size={14} />
                 {isSubmitting ? 'Submitting...' : 'Submit Ratings & Points'}

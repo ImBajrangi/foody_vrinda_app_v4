@@ -36,7 +36,7 @@ export const ROLE_TUTORIAL_DATA = {
     role: 'customer',
     version: 'customer_v1',
     roleLabel: 'Store Guide',
-    accentColor: '#E0FF33',
+    accentColor: '#FD9139',
     stages: [
       {
         id: 'search',
@@ -122,7 +122,7 @@ export const ROLE_TUTORIAL_DATA = {
     role: 'delivery',
     version: 'delivery_v1',
     roleLabel: 'Rider Guide',
-    accentColor: '#E0FF33',
+    accentColor: '#FD9139',
     stages: [
       {
         id: 'go_online',
@@ -208,7 +208,7 @@ export const ROLE_TUTORIAL_DATA = {
     role: 'restaurant',
     version: 'restaurant_v1',
     roleLabel: 'Kitchen Guide',
-    accentColor: '#E0FF33',
+    accentColor: '#FD9139',
     stages: [
       {
         id: 'setup',

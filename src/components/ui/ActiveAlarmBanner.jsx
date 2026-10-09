@@ -120,22 +120,22 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
           icon: Store,
           tag: 'Store Dispatch',
           title: 'New Store Order',
-          iconBox: 'bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 text-lime-700 dark:text-[#E0FF33] shadow-sm dark:shadow-[0_0_15px_rgba(224,255,51,0.15)]',
-          dotColor: 'bg-lime-500 dark:bg-[#E0FF33]',
-          pingColor: 'bg-lime-500 dark:bg-[#E0FF33]',
-          glowBg: 'bg-lime-500/10 dark:bg-[#E0FF33]/10',
-          btnBg: 'bg-[#D4F420] dark:bg-[#E0FF33] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
+          iconBox: 'bg-lime-500/15 dark:bg-[#FD9139]/15 border border-lime-500/30 dark:border-[#FD9139]/30 text-lime-700 dark:text-[#FD9139] shadow-sm dark:shadow-[0_0_15px_rgba(253, 145, 57,0.15)]',
+          dotColor: 'bg-lime-500 dark:bg-[#FD9139]',
+          pingColor: 'bg-lime-500 dark:bg-[#FD9139]',
+          glowBg: 'bg-lime-500/10 dark:bg-[#FD9139]/10',
+          btnBg: 'bg-[#D4F420] dark:bg-[#FD9139] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
         };
       default:
         return {
           icon: BellRing,
           tag: 'Order Alert',
           title: 'Live Order Notification',
-          iconBox: 'bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 text-lime-700 dark:text-[#E0FF33] shadow-sm dark:shadow-[0_0_15px_rgba(224,255,51,0.15)]',
-          dotColor: 'bg-lime-500 dark:bg-[#E0FF33]',
-          pingColor: 'bg-lime-500 dark:bg-[#E0FF33]',
-          glowBg: 'bg-lime-500/10 dark:bg-[#E0FF33]/10',
-          btnBg: 'bg-[#D4F420] dark:bg-[#E0FF33] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
+          iconBox: 'bg-lime-500/15 dark:bg-[#FD9139]/15 border border-lime-500/30 dark:border-[#FD9139]/30 text-lime-700 dark:text-[#FD9139] shadow-sm dark:shadow-[0_0_15px_rgba(253, 145, 57,0.15)]',
+          dotColor: 'bg-lime-500 dark:bg-[#FD9139]',
+          pingColor: 'bg-lime-500 dark:bg-[#FD9139]',
+          glowBg: 'bg-lime-500/10 dark:bg-[#FD9139]/10',
+          btnBg: 'bg-[#D4F420] dark:bg-[#FD9139] hover:bg-[#c2e415] dark:hover:bg-[#d4f624] text-stone-900 shadow-md shadow-lime-500/20 active:shadow-none'
         };
     }
   };
@@ -151,7 +151,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
           <div className="p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-[#1E1B1C]/95 backdrop-blur-2xl border border-stone-200/80 dark:border-white/15 text-stone-900 dark:text-white shadow-[0_12px_40px_-8px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[0_24px_60px_-10px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)] relative overflow-hidden">
             
             {/* Ambient subtle corner glow matching role */}
-            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full ${config.glowBg || 'bg-lime-500/5 dark:bg-[#E0FF33]/5'} blur-2xl pointer-events-none`} />
+            <div className={`absolute -top-12 -right-12 w-28 h-28 rounded-full ${config.glowBg || 'bg-lime-500/5 dark:bg-[#FD9139]/5'} blur-2xl pointer-events-none`} />
 
             {/* Close Button */}
             <button
@@ -190,7 +190,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                     </span>
                   )}
                   {totalAmount > 0 && (
-                    <span className="text-xs font-mono font-black text-lime-700 dark:text-[#E0FF33] ml-auto">
+                    <span className="text-xs font-mono font-black text-lime-700 dark:text-[#FD9139] ml-auto">
                       ₹{totalAmount}
                     </span>
                   )}
@@ -245,7 +245,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between bg-stone-50 dark:bg-[#282526] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-lime-500/15 dark:bg-[#E0FF33]/15 border border-lime-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center text-lime-700 dark:text-[#E0FF33]">
+                <div className="w-10 h-10 rounded-2xl bg-lime-500/15 dark:bg-[#FD9139]/15 border border-lime-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-lime-700 dark:text-[#FD9139]">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
@@ -260,7 +260,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
-                      className="text-stone-400 hover:text-stone-700 dark:text-neutral-400 dark:hover:text-[#E0FF33] p-1 rounded transition-colors"
+                      className="text-stone-400 hover:text-stone-700 dark:text-neutral-400 dark:hover:text-[#FD9139] p-1 rounded transition-colors"
                       title="Copy full order UUID"
                     >
                       {copied ? <CheckCircle2 size={13} className="text-emerald-500 dark:text-emerald-400" /> : <Copy size={13} />}
@@ -303,7 +303,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
                       </span>
                     )}
                   </div>
-                  <span className="text-base font-mono font-black text-lime-700 dark:text-[#E0FF33]">
+                  <span className="text-base font-mono font-black text-lime-700 dark:text-[#FD9139]">
                     ₹{totalAmount}
                   </span>
                 </div>
@@ -342,7 +342,7 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
 
                 {deliveryAddress && (
                   <div className="pt-2 border-t border-stone-100 dark:border-white/5 flex items-start gap-2 text-xs text-stone-600 dark:text-neutral-300">
-                    <MapPin size={14} className="text-lime-600 dark:text-[#E0FF33] shrink-0 mt-0.5" />
+                    <MapPin size={14} className="text-lime-600 dark:text-[#FD9139] shrink-0 mt-0.5" />
                     <span>{deliveryAddress}</span>
                   </div>
                 )}
@@ -384,8 +384,8 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
 
                 {/* Total Summary */}
                 <div className="pt-2 border-t border-stone-200 dark:border-white/10 flex justify-between items-center text-sm font-black text-stone-900 dark:text-white font-['Outfit']">
-                  <span className="text-lime-700 dark:text-[#E0FF33]">Grand Total</span>
-                  <span className="text-lime-700 dark:text-[#E0FF33] font-mono text-base">₹{totalAmount}</span>
+                  <span className="text-lime-700 dark:text-[#FD9139]">Grand Total</span>
+                  <span className="text-lime-700 dark:text-[#FD9139] font-mono text-base">₹{totalAmount}</span>
                 </div>
               </div>
             </div>

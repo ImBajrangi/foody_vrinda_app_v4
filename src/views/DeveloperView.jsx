@@ -1270,14 +1270,14 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* ═══ PREMIUM DASHBOARD HERO HEADER ═══ */}
       <div className="dev-hero-gradient rounded-3xl border border-stone-300 dark:border-white/5 p-5 sm:p-7 relative overflow-hidden shadow-2xl">
         {/* Decorative accent orbs */}
-        <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/[0.05] dark:bg-[#E0FF33]/[0.04] rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-56 h-56 bg-amber-500/[0.05] dark:bg-[#FD9139]/[0.04] rounded-full blur-[80px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-cyan-500/[0.04] dark:bg-cyan-400/[0.03] rounded-full blur-[60px] pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/25 flex items-center justify-center shadow-[0_0_20px_rgba(217,119,6,0.15)] dark:shadow-[0_0_20px_rgba(224,255,51,0.15)]">
-                <Terminal className="w-5 h-5 text-amber-600 dark:text-[#E0FF33]" />
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/25 flex items-center justify-center shadow-[0_0_20px_rgba(217,119,6,0.15)] dark:shadow-[0_0_20px_rgba(253, 145, 57,0.15)]">
+                <Terminal className="w-5 h-5 text-amber-600 dark:text-[#FD9139]" />
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
@@ -1298,9 +1298,9 @@ export default function DeveloperView({ setCurrentTab }) {
             </div>
 
             {/* Auth badge */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/10 border border-amber-500/25 dark:border-[#E0FF33]/25">
-              <Shield className="w-3 h-3 text-amber-600 dark:text-[#E0FF33]" />
-              <span className="text-[10px] font-bold text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/25 dark:border-[#FD9139]/25">
+              <Shield className="w-3 h-3 text-amber-600 dark:text-[#FD9139]" />
+              <span className="text-[10px] font-bold text-amber-700 dark:text-[#FD9139] uppercase tracking-wider">
                 {userData?.role === 'grand_admin' ? 'Grand Admin' : 'Developer'}
               </span>
             </div>
@@ -1311,7 +1311,7 @@ export default function DeveloperView({ setCurrentTab }) {
       {/* ═══ ANIMATED SYSTEM STATISTICS ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {[
-          { icon: Store, value: stats.shops, label: 'Kitchens', color: 'text-amber-600 dark:text-[#E0FF33]', bgColor: 'bg-amber-500/10 dark:bg-[#E0FF33]/10', borderHover: 'hover:border-amber-500/30 dark:hover:border-[#E0FF33]/20' },
+          { icon: Store, value: stats.shops, label: 'Kitchens', color: 'text-amber-600 dark:text-[#FD9139]', bgColor: 'bg-amber-500/10 dark:bg-[#FD9139]/10', borderHover: 'hover:border-amber-500/30 dark:hover:border-[#FD9139]/20' },
           { icon: UtensilsCrossed, value: stats.items, label: 'Dishes Catalog', color: 'text-cyan-600 dark:text-cyan-400', bgColor: 'bg-cyan-500/10 dark:bg-cyan-400/10', borderHover: 'hover:border-cyan-500/30 dark:hover:border-cyan-400/20' },
           { icon: Tag, value: stats.offers, label: 'Active Offers', color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-500/10 dark:bg-emerald-400/10', borderHover: 'hover:border-emerald-500/30 dark:hover:border-emerald-400/20' },
           { icon: Receipt, value: stats.orders, label: 'Total Orders', color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-500/10 dark:bg-amber-400/10', borderHover: 'hover:border-amber-500/30 dark:hover:border-amber-400/20' },
@@ -1335,7 +1335,7 @@ export default function DeveloperView({ setCurrentTab }) {
         <div className="bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-4 sm:p-5 shadow-xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-amber-500/10 dark:bg-[#E0FF33]/10 text-amber-600 dark:text-[#E0FF33] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-600 dark:text-[#FD9139] flex items-center justify-center">
                 <Activity className="w-3.5 h-3.5" />
               </div>
               <h3 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">Recent Activity</h3>
@@ -1389,7 +1389,7 @@ export default function DeveloperView({ setCurrentTab }) {
               type="button"
               onClick={() => setActiveDevTab(tab.id)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer select-none active:scale-95 ${isActive
-                ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] shadow-sm font-black'
+                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] shadow-sm font-black'
                 : 'text-stone-700 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/50 dark:hover:bg-white/5'
                 }`}
             >
@@ -1397,7 +1397,7 @@ export default function DeveloperView({ setCurrentTab }) {
               <span>{tab.label}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
                 <span className={`text-[11px] px-2 py-0.5 rounded-full font-black leading-none flex items-center justify-center min-w-[20px] font-['Outfit'] transition-colors ${isActive
-                  ? 'bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#E0FF33] shadow-xs border border-white/10 dark:border-black/30'
+                  ? 'bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#FD9139] shadow-xs border border-white/10 dark:border-black/30'
                   : 'bg-stone-300/80 text-stone-800 dark:bg-white/10 dark:text-neutral-300 border border-stone-300/60 dark:border-white/5'
                   }`}>
                   {tab.badge}
@@ -1422,11 +1422,11 @@ export default function DeveloperView({ setCurrentTab }) {
               className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/20 flex items-center justify-center shrink-0">
                   <UserCheck className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                     Instant Role Impersonation
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Jump directly into any kitchen, delivery rider, or store owner view.</p>
@@ -1566,12 +1566,12 @@ export default function DeveloperView({ setCurrentTab }) {
                 onClick={() => toggleSection('shops')}
                 className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                   <Store className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                       Kitchens & Store Locations
                     </h3>
                     <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'shops' || !collapsedSections.shops) ? 'rotate-180' : ''}`}>
@@ -1601,7 +1601,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       setIsCreatingShop(true);
                     }
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>{isCreatingShop ? (editingShop ? 'Close Edit' : 'Close Form') : 'Add Kitchen'}</span>
@@ -1613,9 +1613,9 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
                 {/* Create / Edit Shop Form Drawer */}
                 {isCreatingShop && (
-                  <form onSubmit={handleSaveShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-4 animate-fadeIn">
+                  <form onSubmit={handleSaveShop} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#FD9139]/30 space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider flex items-center gap-2">
+                      <h4 className="text-xs font-black text-amber-700 dark:text-[#FD9139] uppercase tracking-wider flex items-center gap-2">
                         <Store className="w-4 h-4" /> {editingShop ? `Edit Kitchen: ${editingShop.name}` : 'Add New Cloud Kitchen Branch'}
                       </h4>
                       <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs to Supabase `foody_shops`</span>
@@ -1627,7 +1627,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <button
                           type="button"
                           onClick={() => setNewShopType('hotel')}
-                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33] dark:border-[#E0FF33]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
+                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#FD9139]/15 dark:text-[#FD9139] dark:border-[#FD9139]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
                             }`}
                         >
                           Hotel / Restaurant
@@ -1646,7 +1646,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">
-                          Kitchen / Shop Name <span className="text-amber-600 dark:text-[#E0FF33]">*</span>
+                          Kitchen / Shop Name <span className="text-amber-600 dark:text-[#FD9139]">*</span>
                         </label>
                         <input
                           type="text"
@@ -1655,7 +1655,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           placeholder="e.g. Govind Dham Annakoot"
                           required
                           minLength={2}
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                         />
                       </div>
 
@@ -1671,7 +1671,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             value={newShopPhone}
                             onChange={e => setNewShopPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                             placeholder="9876543210"
-                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl pl-10 pr-2.5 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl pl-10 pr-2.5 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                           />
                         </div>
                       </div>
@@ -1681,7 +1681,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <select
                           value={newShopPrepTime}
                           onChange={e => setNewShopPrepTime(e.target.value)}
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33] cursor-pointer"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139] cursor-pointer"
                         >
                           <option value="10-15 mins">10-15 mins (Express / Fast)</option>
                           <option value="15-20 mins">15-20 mins (Standard)</option>
@@ -1706,7 +1706,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               setNewShopRadius(val ? `${val} km` : '');
                             }}
                             placeholder="10"
-                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 pr-10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                            className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 pr-10 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                           />
                           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-400 dark:text-neutral-500">km</span>
                         </div>
@@ -1719,7 +1719,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={newShopAddress}
                           onChange={e => setNewShopAddress(e.target.value)}
                           placeholder="Near ISKCON Temple, Raman Reti, Vrindavan"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                         />
                       </div>
 
@@ -1730,7 +1730,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={newShopImage}
                           onChange={e => setNewShopImage(e.target.value)}
                           placeholder="https://..."
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                         />
                       </div>
                     </div>
@@ -1742,7 +1742,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="checkbox"
                             checked={newShopPureVeg}
                             onChange={e => setNewShopPureVeg(e.target.checked)}
-                            className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
+                            className="rounded text-amber-600 dark:text-[#FD9139] focus:ring-0"
                           />
                           <span className="font-bold text-emerald-700 dark:text-emerald-400">100% Pure Satvik Veg</span>
                         </label>
@@ -1752,7 +1752,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="checkbox"
                             checked={newShopIsOpen}
                             onChange={e => setNewShopIsOpen(e.target.checked)}
-                            className="rounded text-amber-600 dark:text-[#E0FF33] focus:ring-0"
+                            className="rounded text-amber-600 dark:text-[#FD9139] focus:ring-0"
                           />
                           <span className="font-bold text-stone-900 dark:text-white">Open for Orders</span>
                         </label>
@@ -1774,7 +1774,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
                           {editingShop ? 'Update Kitchen' : 'Create Kitchen'}
                         </button>
@@ -1792,7 +1792,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       placeholder="Search kitchen by name or address..."
                       value={shopSearch}
                       onChange={e => setShopSearch(e.target.value)}
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50"
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]/50"
                     />
                   </div>
                   <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 px-3 py-2 bg-stone-50 dark:bg-[#1E1B1C] rounded-xl border border-stone-200 dark:border-white/5 shrink-0">
@@ -1850,7 +1850,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                 type="button"
                                 onClick={() => handleEditShop(s)}
                                 title="Edit Kitchen Details"
-                                className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-amber-500/20 dark:bg-white/5 dark:hover:bg-[#E0FF33]/20 text-stone-700 dark:text-neutral-300 hover:text-amber-800 dark:hover:text-[#E0FF33] border border-stone-300 dark:border-white/5 cursor-pointer"
+                                className="p-1.5 rounded-xl bg-stone-200/80 hover:bg-amber-500/20 dark:bg-white/5 dark:hover:bg-[#FD9139]/20 text-stone-700 dark:text-neutral-300 hover:text-amber-800 dark:hover:text-[#FD9139] border border-stone-300 dark:border-white/5 cursor-pointer"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
@@ -1974,7 +1974,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     setToast({ message: `Seeded ${added} Master Presets to ${targetShop}!`, type: 'success' });
                     logActivity(`Seeded 24 Preset dishes to ${targetShop}`, 'success');
                   }}
-                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f826] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                   title="Seed all 24 curated WebP preset dishes to catalog"
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -2053,7 +2053,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             { value: 'Sweets & Desserts', label: 'Sweets & Desserts', icon: Sparkles, badge: 'Sweet', badgeColor: 'bg-pink-500/15 text-pink-700 dark:text-pink-400' },
                             { value: 'Snacks & Chaat', label: 'Snacks & Chaat', icon: Flame, badge: 'Chaat', badgeColor: 'bg-orange-500/15 text-orange-700 dark:text-orange-400' },
                             { value: 'Lassi & Beverages', label: 'Lassi & Beverages', icon: Sparkles, badge: 'Drink', badgeColor: 'bg-blue-500/15 text-blue-700 dark:text-blue-400' },
-                            { value: 'Special Bhog', label: 'Special Bhog', icon: Crown, badge: 'Bhog', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]' },
+                            { value: 'Special Bhog', label: 'Special Bhog', icon: Crown, badge: 'Bhog', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]' },
                             { value: 'Breads & Rice', label: 'Breads & Rice', icon: UtensilsCrossed, badge: 'Grain', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                           ]}
                           align="full"
@@ -2090,14 +2090,14 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={newDishShopId}
                           onChange={val => setNewDishShopId(val)}
                           options={[
-                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                             ...shopsList.map(s => ({
                               value: s.id,
                               label: s.name,
                               sublabel: s.address || 'Vrindavan Kitchen',
                               icon: Store,
                               badge: 'Branch',
-                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                             }))
                           ]}
                           align="full"
@@ -2209,7 +2209,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                 </span>
                               </div>
                               <div className="text-right shrink-0">
-                                <p className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{d.price}</p>
+                                <p className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#FD9139] font-['Outfit']">₹{d.price}</p>
                                 {d.originalPrice && d.originalPrice > d.price && (
                                   <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{d.originalPrice}</p>
                                 )}
@@ -2354,14 +2354,14 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={newComboShopId}
                           onChange={val => setNewComboShopId(val)}
                           options={[
-                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                             ...shopsList.map(s => ({
                               value: s.id,
                               label: s.name,
                               sublabel: s.address || 'Vrindavan Kitchen',
                               icon: Store,
                               badge: 'Branch',
-                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                              badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                             }))
                           ]}
                           align="full"
@@ -2412,7 +2412,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                 </span>
                               </div>
                               <div className="text-right shrink-0">
-                                <p className="text-base font-black text-amber-700 dark:text-[#E0FF33] font-['Outfit']">₹{combo.price}</p>
+                                <p className="text-base font-black text-amber-700 dark:text-[#FD9139] font-['Outfit']">₹{combo.price}</p>
                                 {combo.originalPrice && combo.originalPrice > combo.price && (
                                   <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
                                 )}
@@ -2534,7 +2534,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={newOfferDiscountType}
                           onChange={val => setNewOfferDiscountType(val)}
                           options={[
-                            { value: 'percentage', label: 'Percentage Discount (%)', icon: Percent, badge: '% Off', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                            { value: 'percentage', label: 'Percentage Discount (%)', icon: Percent, badge: '% Off', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                             { value: 'flat', label: 'Flat Amount (₹)', icon: Banknote, badge: '₹ Flat', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' }
                           ]}
                           align="full"
@@ -2698,11 +2698,11 @@ export default function DeveloperView({ setCurrentTab }) {
               className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/10 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/20 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/20 flex items-center justify-center shrink-0">
                   <CreditCard className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                     Payment Gateways Master
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Manage real-time payment methods globally & per-kitchen</p>
@@ -2710,7 +2710,7 @@ export default function DeveloperView({ setCurrentTab }) {
               </div>
 
               <div className="flex items-center gap-2 shrink-0 ml-2">
-                <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#E0FF33]/20 hidden sm:inline">
+                <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#FD9139]/20 hidden sm:inline">
                   Master Switches
                 </span>
                 <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'payments' || !collapsedSections.payments) ? 'rotate-180' : ''}`}>
@@ -2725,7 +2725,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 {/* 1. Global Master Switches */}
                 <div className="space-y-3">
                   <p className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#E0FF33]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#FD9139]" />
                     1. Global Master Switches (All Kitchens)
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2804,7 +2804,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => setSelectedPaymentShopId(s.id)}
                             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
-                              ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-black border-amber-600 dark:border-[#E0FF33] font-black shadow-md'
+                              ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black border-amber-600 dark:border-[#FD9139] font-black shadow-md'
                               : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-white/20'
                               }`}
                           >
@@ -2914,7 +2914,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <Flame className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                   End-to-End Order Simulator
                 </h3>
                 <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Generate simulated tickets into Supabase without going through payment gateways.</p>
@@ -2952,7 +2952,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => handleSimShopChange(s.id)}
                           className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 cursor-pointer shrink-0 select-none ${isSelected
-                            ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] shadow-md font-black'
+                            ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] shadow-md font-black'
                             : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                             }`}
                         >
@@ -2971,7 +2971,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     value={simName}
                     onChange={(e) => setSimName(e.target.value)}
                     required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
@@ -2982,7 +2982,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     value={simAddress}
                     onChange={(e) => setSimAddress(e.target.value)}
                     required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
@@ -2993,7 +2993,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     value={simPhone}
                     onChange={(e) => setSimPhone(e.target.value)}
                     required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl p-3 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]/50 font-['Plus_Jakarta_Sans']"
                   />
                 </div>
 
@@ -3037,7 +3037,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <div key={item.id} className="flex justify-between items-center text-xs py-2 border-b last:border-b-0 border-stone-200 dark:border-white/5">
                           <div className="pr-2">
                             <p className="font-bold text-stone-900 dark:text-white font-['Outfit']">{item.name}</p>
-                            <p className="text-[10px] text-amber-700 dark:text-[#E0FF33] font-bold">₹{item.price}</p>
+                            <p className="text-[10px] text-amber-700 dark:text-[#FD9139] font-bold">₹{item.price}</p>
                           </div>
                           <div className="flex items-center gap-2 bg-stone-200/70 dark:bg-[#282526] rounded-xl border border-stone-300/60 dark:border-white/10 p-1">
                             <button
@@ -3065,7 +3065,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   type="submit"
                   disabled={simMenuItems.length === 0 || isSimulating}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#E0FF33] dark:hover:bg-[#d2f323] disabled:opacity-30 disabled:pointer-events-none text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-30 disabled:pointer-events-none text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>{isSimulating ? 'Creating Order...' : 'Dispatch Simulated Order (Bypass Payment)'}</span>
@@ -3085,12 +3085,12 @@ export default function DeveloperView({ setCurrentTab }) {
                 onClick={() => toggleSection('users')}
                 className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                   <Users className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                       Registered Users & Role Matrix
                     </h3>
                     <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'users' || !collapsedSections.users) ? 'rotate-180' : ''}`}>
@@ -3117,7 +3117,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
                     setIsCreatingUser(!isCreatingUser);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
@@ -3132,7 +3132,7 @@ export default function DeveloperView({ setCurrentTab }) {
               {user && (user.email || user.phone || user.id) && (
                 <div className="p-3.5 bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 dark:bg-white/5 border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 dark:bg-white/5 border border-amber-500/30 dark:border-white/10 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
                       <Terminal className="w-5 h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -3178,7 +3178,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     }}
                     className={`px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 ${isSyncingAccount ? 'opacity-70 pointer-events-none' : ''}`}
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33] ${isSyncingAccount ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 text-amber-700 dark:text-[#FD9139] ${isSyncingAccount ? 'animate-spin' : ''}`} />
                     <span className="hidden sm:inline">{isSyncingAccount ? 'Syncing...' : 'Sync Account'}</span>
                   </button>
                 </div>
@@ -3235,10 +3235,10 @@ export default function DeveloperView({ setCurrentTab }) {
 
                       <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15 transition-all">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] font-bold text-amber-700 dark:text-[#E0FF33] uppercase tracking-wider">Developers</p>
-                          <Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33]" />
+                          <p className="text-[10px] font-bold text-amber-700 dark:text-[#FD9139] uppercase tracking-wider">Developers</p>
+                          <Terminal className="w-3.5 h-3.5 text-amber-700 dark:text-[#FD9139]" />
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-amber-700 dark:text-[#E0FF33] mt-1 font-['Outfit']">{developerCount}</p>
+                        <p className="text-xl sm:text-2xl font-black text-amber-700 dark:text-[#FD9139] mt-1 font-['Outfit']">{developerCount}</p>
                       </div>
 
                       <div className="p-3 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-purple-500/30 dark:hover:border-white/15 transition-all">
@@ -3268,7 +3268,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
                     {/* New User Creation Form */}
                     {isCreatingUser && (
-                      <form onSubmit={handleCreateTestUser} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#E0FF33]/30 space-y-3 animate-fadeIn">
+                      <form onSubmit={handleCreateTestUser} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-[#FD9139]/30 space-y-3 animate-fadeIn">
                         <div className="flex items-center justify-between pb-2 border-b border-stone-200 dark:border-white/5">
                           <span className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">Provision New User / Staff Record</span>
                           <button type="button" onClick={() => setIsCreatingUser(false)} className="text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white">
@@ -3283,7 +3283,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               value={newUserName}
                               onChange={(e) => setNewUserName(e.target.value)}
                               placeholder="e.g. Radhe Chef"
-                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                             />
                           </div>
                           <div>
@@ -3294,7 +3294,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               onChange={(e) => setNewUserPhone(e.target.value)}
                               placeholder="9876543210"
                               required
-                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                              className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                             />
                           </div>
                           <div>
@@ -3306,7 +3306,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                 { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
                                 { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
                                 { value: 'owner', label: 'Store Owner', sublabel: 'Financials & store manager', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
-                                { value: 'developer', label: 'Developer Admin', sublabel: 'Root admin simulation', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                                { value: 'developer', label: 'Developer Admin', sublabel: 'Root admin simulation', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                                 { value: 'customer', label: 'Customer', sublabel: 'Ordering devotee account', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                               ]}
                               align="full"
@@ -3317,7 +3317,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase mb-1">Assigned Kitchen</label>
                             {(newUserRole === 'grand_admin' || newUserRole === 'developer') ? (
                               <div className="w-full bg-stone-100 dark:bg-[#282526] text-xs font-bold text-stone-600 dark:text-neutral-400 border border-stone-300 dark:border-white/10 rounded-xl p-2.5 flex items-center gap-1.5">
-                                <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33]" />
+                                <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#FD9139]" />
                                 <span>Global Access (All Kitchens)</span>
                               </div>
                             ) : newUserRole === 'delivery' ? (
@@ -3339,7 +3339,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                     sublabel: s.address || 'Dedicated to this branch',
                                     icon: Store,
                                     badge: 'Branch Dedicated',
-                                    badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                    badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                                   }))
                                 ]}
                                 align="full"
@@ -3355,7 +3355,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   sublabel: s.address || 'Vrindavan Kitchen',
                                   icon: Store,
                                   badge: newUserRole === 'owner' ? 'Owner Scope' : 'Kitchen Branch',
-                                  badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                  badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                                 }))}
                                 align="full"
                                 searchPlaceholder="Search kitchens..."
@@ -3365,7 +3365,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           <div className="flex items-end">
                             <button
                               type="submit"
-                              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d6f727] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
                             >
                               Save User
                             </button>
@@ -3383,7 +3383,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={userSearch}
                           onChange={(e) => setUserSearch(e.target.value)}
                           placeholder="Search name, phone, email, UID..."
-                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]/50 font-['Plus_Jakarta_Sans']"
+                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]/50 font-['Plus_Jakarta_Sans']"
                         />
                       </div>
 
@@ -3402,13 +3402,13 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={f.id}
                               onClick={() => setUserRoleFilter(f.id)}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                                ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#E0FF33] dark:text-black dark:border-[#E0FF33] font-black shadow-sm'
+                                ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm'
                                 : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                                 }`}
                             >
                               <span>{f.label}</span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${isActive
-                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#E0FF33] shadow-xs'
+                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#FD9139] shadow-xs'
                                 : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
                                 }`}>
                                 {f.count}
@@ -3452,7 +3452,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             <div
                               key={u.id}
                               className={`p-3.5 sm:p-4 bg-stone-50 dark:bg-[#1E1B1C] hover:bg-stone-100 dark:hover:bg-[#232021] rounded-2xl border transition-all space-y-3 shadow-sm ${isCurrentSessionUser
-                                ? 'border-amber-500/50 dark:border-[#E0FF33]/30 bg-amber-50/50 dark:bg-[#1E1B1C]/95'
+                                ? 'border-amber-500/50 dark:border-[#FD9139]/30 bg-amber-50/50 dark:bg-[#1E1B1C]/95'
                                 : 'border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-white/15'
                                 }`}
                             >
@@ -3464,7 +3464,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   title="Click to view detailed user profile"
                                 >
                                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs shrink-0 transition-transform group-hover/user:scale-105 shadow-sm ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                                    role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                    role === 'developer' ? 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30' :
                                       role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
                                         role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
                                           role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
@@ -3480,11 +3480,11 @@ export default function DeveloperView({ setCurrentTab }) {
 
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white group-hover/user:text-amber-600 dark:group-hover/user:text-[#E0FF33] transition-colors truncate font-['Outfit']">
+                                      <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white group-hover/user:text-amber-600 dark:group-hover/user:text-[#FD9139] transition-colors truncate font-['Outfit']">
                                         {u.displayName || (u.email ? u.email.split('@')[0] : `User (${(u.phone || '').slice(-4)})`)}
                                       </p>
                                       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shrink-0 ${role === 'grand_admin' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
-                                        role === 'developer' ? 'bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30' :
+                                        role === 'developer' ? 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30' :
                                           role === 'owner' ? 'bg-purple-500/15 dark:bg-purple-400/15 text-purple-800 dark:text-purple-300 border border-purple-500/30 dark:border-purple-400/30' :
                                             role === 'kitchen' ? 'bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30' :
                                               role === 'delivery' ? 'bg-cyan-500/15 dark:bg-cyan-400/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 dark:border-cyan-400/30' :
@@ -3498,7 +3498,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                                   'Customer'}
                                       </span>
                                       {isCurrentSessionUser && (
-                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 dark:bg-[#E0FF33]/20 text-amber-900 dark:text-[#E0FF33] border border-amber-500/40 dark:border-[#E0FF33]/30 shrink-0">
+                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 dark:bg-[#FD9139]/20 text-amber-900 dark:text-[#FD9139] border border-amber-500/40 dark:border-[#FD9139]/30 shrink-0">
                                           You
                                         </span>
                                       )}
@@ -3662,7 +3662,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                         { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
                                         { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
                                         { value: 'owner', label: 'Store Owner', sublabel: 'Store manager & analytics', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
-                                        { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#E0FF33]' },
+                                        { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                                         { value: 'customer', label: 'Customer', sublabel: 'Devotee user profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                                       ]}
                                       size="sm"
@@ -3691,7 +3691,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                           sublabel: s.address || 'Dedicated branch',
                                           icon: Store,
                                           badge: 'Branch',
-                                          badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                          badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                                         }))
                                       ]}
                                       size="sm"
@@ -3708,7 +3708,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                         sublabel: s.address || 'Vrindavan Kitchen',
                                         icon: Store,
                                         badge: role === 'owner' ? 'Owner Scope' : 'Kitchen Branch',
-                                        badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#E0FF33]'
+                                        badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
                                       }))}
                                       size="sm"
                                       searchPlaceholder="Assign branch..."
@@ -3716,7 +3716,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                     />
                                   ) : (role === 'grand_admin' || role === 'developer') ? (
                                     <div className="px-3 py-2 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
-                                      <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#E0FF33] shrink-0" />
+                                      <Globe className="w-3.5 h-3.5 text-amber-700 dark:text-[#FD9139] shrink-0" />
                                       <span className="whitespace-nowrap font-bold">Global Access</span>
                                     </div>
                                   ) : (
@@ -3748,7 +3748,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                   type="button"
                                   onClick={() => handleQuickImpersonateUser(u)}
                                   title={`Sign in as ${u.displayName || u.email || 'user'}`}
-                                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33]/15 dark:hover:bg-[#E0FF33] dark:text-[#E0FF33] dark:hover:text-black font-black text-xs border border-amber-600 dark:border-[#E0FF33]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+                                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139]/15 dark:hover:bg-[#FD9139] dark:text-[#FD9139] dark:hover:text-black font-black text-xs border border-amber-600 dark:border-[#FD9139]/30 flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
                                 >
                                   <Play className="w-3 h-3 fill-current shrink-0" />
                                   <span>Test Login</span>
@@ -3780,7 +3780,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <Volume2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                     Audio Synthesizer & Telemetry
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">Test real-time acoustic alarms, WebAudio frequency sweeps & push alerts.</p>
@@ -3812,7 +3812,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     {!audioUnlocked && (
                       <button
                         onClick={warmUpAudio}
-                        className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#d4f820] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
+                        className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:text-black dark:hover:bg-[#fca65e] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
                       >
                         Unlock Audio
                       </button>
@@ -3827,7 +3827,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         step="0.05"
                         value={volume}
                         onChange={(e) => setVolume(parseFloat(e.target.value))}
-                        className="w-16 accent-amber-600 dark:accent-[#E0FF33] cursor-pointer"
+                        className="w-16 accent-amber-600 dark:accent-[#FD9139] cursor-pointer"
                       />
                       <span className="text-[10px] font-mono text-stone-700 dark:text-neutral-300">{Math.round(volume * 100)}%</span>
                     </div>
@@ -3863,11 +3863,11 @@ export default function DeveloperView({ setCurrentTab }) {
 
                   <button
                     onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
-                    className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#E0FF33]/20 dark:hover:bg-[#E0FF33]/30 dark:text-[#E0FF33] dark:border-[#E0FF33]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#FD9139]/20 dark:hover:bg-[#FD9139]/30 dark:text-[#FD9139] dark:border-[#FD9139]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
                   >
-                    <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#E0FF33]" />
+                    <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#FD9139]" />
                     <span className="font-['Outfit']">Admin Bell</span>
-                    <span className="text-[9px] text-purple-800/80 dark:text-[#E0FF33]/70 font-medium">Resonant Executive Ping</span>
+                    <span className="text-[9px] text-purple-800/80 dark:text-[#FD9139]/70 font-medium">Resonant Executive Ping</span>
                   </button>
 
                   <button
@@ -3893,12 +3893,12 @@ export default function DeveloperView({ setCurrentTab }) {
               className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0">
                   <Zap className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                       Live App Update & Release Engine
                     </h3>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30">
@@ -3929,7 +3929,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       onChange={e => setReleaseVersionName(e.target.value)}
                       placeholder="e.g. 1.1.3"
                       required
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                     />
                   </div>
 
@@ -3941,7 +3941,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       onChange={e => setReleaseVersionCode(parseInt(e.target.value, 10))}
                       placeholder="e.g. 14"
                       required
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                     />
                   </div>
 
@@ -3951,7 +3951,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         type="checkbox"
                         checked={releaseMandatory}
                         onChange={e => setReleaseMandatory(e.target.checked)}
-                        className="w-4 h-4 rounded accent-amber-600 dark:accent-[#E0FF33]"
+                        className="w-4 h-4 rounded accent-amber-600 dark:accent-[#FD9139]"
                       />
                       <span className="text-xs font-bold text-stone-800 dark:text-zinc-200">Mandatory (Block old versions)</span>
                     </label>
@@ -3966,7 +3966,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     onChange={e => setReleaseApkUrl(e.target.value)}
                     placeholder="https://github.com/.../Foody-Vrinda-Latest.apk"
                     required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33]"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
                   />
                 </div>
 
@@ -3977,7 +3977,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     onChange={e => setReleaseNotes(e.target.value)}
                     rows={3}
                     required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#E0FF33] custom-scrollbar"
+                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139] custom-scrollbar"
                   />
                 </div>
 
@@ -3996,7 +3996,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <button
                     type="submit"
                     disabled={isPublishingRelease}
-                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:text-black dark:hover:bg-[#CCFF00] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:text-black dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     {isPublishingRelease ? 'Publishing to Cloud...' : 'Publish Update to All Devices'}
                   </button>
@@ -4047,7 +4047,7 @@ export default function DeveloperView({ setCurrentTab }) {
           <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl animate-scaleUp relative overflow-hidden">
             <div className="flex items-start justify-between gap-3 border-b border-stone-200 dark:border-white/5 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center font-black text-lg">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center font-black text-lg">
                   {(selectedUserDetail.displayName || selectedUserDetail.email || 'U')[0].toUpperCase()}
                 </div>
                 <div>
@@ -4081,7 +4081,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       </>
                     ) : selectedUserDetail.role === 'developer' ? (
                       <>
-                        <Terminal size={14} className="text-amber-700 dark:text-[#E0FF33] stroke-[2.5]" />
+                        <Terminal size={14} className="text-amber-700 dark:text-[#FD9139] stroke-[2.5]" />
                         <span>Developer</span>
                       </>
                     ) : selectedUserDetail.role === 'owner' ? (
@@ -4103,7 +4103,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       selectedUserDetail.role || 'customer'
                     )}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] font-bold border border-amber-500/30 dark:border-[#E0FF33]/30 font-mono">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] font-bold border border-amber-500/30 dark:border-[#FD9139]/30 font-mono">
                     {selectedUserDetail.role === 'grand_admin' ? 'Level 6 (Permanent)' : selectedUserDetail.role === 'developer' ? 'Level 5 (Admin)' : 'Standard'}
                   </span>
                 </div>
@@ -4133,7 +4133,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       navigator.clipboard.writeText(selectedUserDetail.id);
                       setToast({ message: 'UID copied to clipboard!', type: 'success' });
                     }}
-                    className="text-[10px] text-amber-700 dark:text-[#E0FF33] hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                    className="text-[10px] text-amber-700 dark:text-[#FD9139] hover:underline flex items-center gap-1 cursor-pointer font-bold"
                   >
                     <Copy className="w-3 h-3" /> Copy
                   </button>
@@ -4163,7 +4163,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   handleQuickImpersonateUser(selectedUserDetail);
                   setSelectedUserDetail(null);
                 }}
-                className="flex-1 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d4f820] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
+                className="flex-1 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Switch to this User View</span>

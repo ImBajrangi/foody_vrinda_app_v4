@@ -147,9 +147,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
 
     const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
-    const primaryThemeColor = isDark ? '#E0FF33' : '#D97706';
+    const primaryThemeColor = isDark ? '#FD9139' : '#D97706';
     const pinBg = isDark ? '#181617' : '#FFFFFF';
-    const pinBorder = isDark ? '#E0FF33' : '#D97706';
+    const pinBorder = isDark ? '#FD9139' : '#D97706';
 
     const cartoKey = import.meta.env.VITE_CARTO_BASEMAP_KEY || 'cb1_25xx_1_ef24909b63d9228a6de7508f';
     const cartoSuffix = cartoKey ? `?key=${cartoKey}` : '';
@@ -252,8 +252,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               width: 36px;
               height: 36px;
               border-radius: 50%;
-              border: 1.5px solid #E0FF33;
-              background: rgba(224, 255, 51, 0.12);
+              border: 1.5px solid #FD9139;
+              background: rgba(253, 145, 57, 0.12);
               pointer-events: none;
             "></div>
             <div style="
@@ -261,7 +261,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               width: 36px;
               height: 36px;
               background: #181617;
-              border: 2.5px solid #E0FF33;
+              border: 2.5px solid #FD9139;
               border-radius: 50%;
               display: flex;
               align-items: center;
@@ -269,7 +269,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               box-shadow: 0 4px 14px rgba(0,0,0,0.45);
               cursor: pointer;
             ">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FD9139" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="18.5" cy="17.5" r="2.5"></circle>
                 <circle cx="5.5" cy="17.5" r="2.5"></circle>
                 <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
@@ -746,7 +746,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 e.stopPropagation();
                 handleAnimatedClose(true);
               }}
-              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-[#E0FF33] active:scale-95 flex items-center justify-center border border-[#E0FF33]/40 cursor-pointer backdrop-blur-md transition-all"
+              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-[#FD9139] active:scale-95 flex items-center justify-center border border-[#FD9139]/40 cursor-pointer backdrop-blur-md transition-all"
               title="Minimize to Floating Capsule"
               aria-label="Minimize"
             >
@@ -784,8 +784,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             <div className="w-12 h-1.5 bg-stone-400/80 dark:bg-white/40 hover:bg-stone-300 dark:hover:bg-white/60 rounded-full mb-1.5 transition-colors" />
             <div className="w-full flex items-center justify-between text-stone-500 dark:text-neutral-400 text-[11px] font-bold">
               <span className="flex items-center gap-1.5 text-stone-900 dark:text-white">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-[#E0FF33] animate-pulse" />
-                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-emerald-700 dark:text-[#E0FF33]">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-[#FD9139] animate-pulse" />
+                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-emerald-700 dark:text-[#FD9139]">
                   {milestones.active}
                 </span>
               </span>
@@ -808,7 +808,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               title="Tap to expand details • Drag down to close"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#E0FF33]">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#FD9139]">
                   <Clock size={15} />
                 </div>
                 <div>
@@ -821,7 +821,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </div>
               </div>
 
-              <span className="bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-800 dark:text-[#E0FF33] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#E0FF33]/20 shrink-0">
+              <span className="bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20 shrink-0">
                 {getDynamicArrivalWindow()}
               </span>
             </div>
@@ -835,7 +835,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3.5 relative overflow-hidden">
                 <div className="flex items-start justify-between gap-3 mb-2.5">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-[#E0FF33] font-['Outfit']">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-[#FD9139] font-['Outfit']">
                       Estimated Delivery
                     </p>
                     <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
@@ -848,9 +848,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                   </div>
 
                   {/* Arrival Window Pill */}
-                  <div className="bg-amber-500/15 border border-amber-500/25 dark:bg-[#E0FF33]/15 dark:border-[#E0FF33]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
+                  <div className="bg-amber-500/15 border border-amber-500/25 dark:bg-[#FD9139]/15 dark:border-[#FD9139]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
                     <p className="text-[9px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Arrival in</p>
-                    <p className="text-xs font-black text-amber-800 dark:text-[#E0FF33] font-['Outfit']">
+                    <p className="text-xs font-black text-amber-800 dark:text-[#FD9139] font-['Outfit']">
                       {getDynamicArrivalWindow()}
                     </p>
                   </div>
@@ -869,9 +869,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       const isCurrent = currentStage === idx;
                       return (
                         <div key={idx} className="space-y-1">
-                          <div className={`h-1.5 rounded-full transition-all duration-300 ${isPassed ? 'bg-amber-500 dark:bg-[#E0FF33]' : 'bg-stone-200 dark:bg-white/10'
+                          <div className={`h-1.5 rounded-full transition-all duration-300 ${isPassed ? 'bg-amber-500 dark:bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'
                             }`} />
-                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-amber-800 dark:text-[#E0FF33] font-black' : isPassed ? 'text-stone-800 dark:text-neutral-300' : 'text-stone-400 dark:text-neutral-600'
+                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-amber-800 dark:text-[#FD9139] font-black' : isPassed ? 'text-stone-800 dark:text-neutral-300' : 'text-stone-400 dark:text-neutral-600'
                             }`}>
                             {st.label}
                           </p>
@@ -885,7 +885,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
                   <div className="mt-3 pt-2.5 border-t border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <BellRing className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33] shrink-0 animate-bounce" />
+                      <BellRing className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139] shrink-0 animate-bounce" />
                       <p className="text-[10px] text-stone-700 dark:text-neutral-300 truncate">
                         Get live order updates on lock screen
                       </p>
@@ -893,7 +893,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     <button
                       type="button"
                       onClick={requestSystemNotificationPermission}
-                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#E0FF33] dark:hover:bg-[#CCFF00] dark:text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
                     >
                       Enable
                     </button>
@@ -903,9 +903,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
               {/* 2. Customer Delivery Security OTP Card */}
               {currentOrder?.id && (
-                <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-amber-500/10 dark:from-[#E0FF33]/15 dark:via-emerald-500/10 dark:to-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
+                <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-amber-500/10 dark:from-[#FD9139]/15 dark:via-emerald-500/10 dark:to-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
                       OTP
                     </div>
                     <div className="min-w-0">
@@ -917,8 +917,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       </p>
                     </div>
                   </div>
-                  <div className="otp-code-pill bg-stone-900 dark:bg-[#141213] border border-stone-800 dark:border-[#E0FF33]/50 px-3.5 py-1.5 rounded-xl text-center shrink-0 shadow-sm">
-                    <span className="text-base font-black text-[#E0FF33] tracking-[0.25em] font-mono">
+                  <div className="otp-code-pill bg-stone-900 dark:bg-[#141213] border border-stone-800 dark:border-[#FD9139]/50 px-3.5 py-1.5 rounded-xl text-center shrink-0 shadow-sm">
+                    <span className="text-base font-black text-[#FD9139] tracking-[0.25em] font-mono">
                       {getOrderOTP(currentOrder.id, 'delivery')}
                     </span>
                   </div>
@@ -929,7 +929,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-500/50 dark:border-[#E0FF33]/60 bg-stone-200 dark:bg-[#141213] shrink-0 relative aspect-square">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-500/50 dark:border-[#FD9139]/60 bg-stone-200 dark:bg-[#141213] shrink-0 relative aspect-square">
                     <img
                       src={riderPhoto}
                       alt={riderName}
@@ -942,7 +942,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       <h4 className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] tracking-tight truncate">
                         {riderName}
                       </h4>
-                      <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-[#E0FF33] shrink-0" />
+                      <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-[#FD9139] shrink-0" />
                     </div>
 
                     <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[10px] mt-0.5">
@@ -988,7 +988,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 {/* Origin */}
                 <div className="flex items-start gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-stone-200/70 dark:bg-white/5 text-amber-700 dark:text-white flex items-center justify-center shrink-0 mt-0.5">
-                    <Utensils className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                    <Utensils className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">From Kitchen</p>
@@ -1001,13 +1001,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                 {/* Drop-off Destination */}
                 <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#E0FF33]" />
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
                       <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">{getAddressLabel()} Drop-off</p>
-                      <span className="text-[9px] font-bold text-amber-800 dark:text-[#E0FF33] bg-amber-500/15 dark:bg-[#E0FF33]/10 px-1.5 py-0.2 rounded-md border border-amber-500/25 dark:border-[#E0FF33]/20">
+                      <span className="text-[9px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 px-1.5 py-0.2 rounded-md border border-amber-500/25 dark:border-[#FD9139]/20">
                         {realDistance || '2.2km'}
                       </span>
                     </div>
@@ -1051,7 +1051,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                             />
                             <span className="text-stone-900 dark:text-white font-medium truncate">{it.name} × {it.quantity}</span>
                           </div>
-                          <span className="font-bold text-amber-700 dark:text-[#E0FF33] shrink-0">₹{it.price * it.quantity}</span>
+                          <span className="font-bold text-amber-700 dark:text-[#FD9139] shrink-0">₹{it.price * it.quantity}</span>
                         </div>
                       );
                     })}
@@ -1070,7 +1070,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       </div>
                       <div className="pt-1.5 border-t border-stone-200 dark:border-white/5 flex justify-between items-center font-black text-stone-900 dark:text-white text-xs">
                         <span>Total Amount</span>
-                        <span className="text-amber-700 dark:text-[#E0FF33] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
+                        <span className="text-amber-700 dark:text-[#FD9139] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
                       </div>
                       <div className="pt-1 flex items-center justify-between text-[10px] text-stone-500 dark:text-neutral-400">
                         <span className="uppercase font-bold tracking-wider">Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}</span>
@@ -1088,7 +1088,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     if (onRateOrder) onRateOrder(currentOrder);
                     else onClose();
                   }}
-                  className="w-full py-3 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
+                  className="w-full py-3 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Rate & Review This Prasad Order</span>

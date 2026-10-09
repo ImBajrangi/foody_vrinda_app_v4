@@ -132,7 +132,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
         className={`relative w-full max-w-lg bg-[#FCFBF7] dark:bg-[#1E1B1C] border-2 border-b-6 border-stone-300 dark:border-stone-800 text-stone-900 dark:text-white rounded-[36px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}
       >
         {/* Glow ambient background accents */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 dark:bg-[#E0FF33]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 dark:bg-[#FD9139]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Top Header (Duolingo Banner Style) */}
@@ -184,7 +184,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer select-none ${
                   isActive 
-                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#E0FF33] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
                     : 'bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-950 border-2 border-b-4 border-stone-200 hover:border-stone-300 dark:bg-[#221F20] dark:text-zinc-400 dark:border-stone-800 dark:hover:text-white'
                 }`}
               >
@@ -234,7 +234,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                           <Coins className="w-7 h-7 drop-shadow-xs" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-[#E0FF33] flex items-center gap-1.5">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] flex items-center gap-1.5">
                             <Sparkles size={13} className="text-amber-500 fill-amber-500" /> Available Balance
                           </span>
                           <div className="flex items-baseline gap-2 mt-0.5">
@@ -368,7 +368,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                         <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-black uppercase tracking-wider">
                           Your Exclusive Code
                         </p>
-                        <p className="text-xl font-black text-stone-900 dark:text-[#E0FF33] font-['Outfit'] tracking-wider truncate">
+                        <p className="text-xl font-black text-stone-900 dark:text-[#FD9139] font-['Outfit'] tracking-wider truncate">
                           {referralCode}
                         </p>
                       </div>
@@ -404,7 +404,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                         <p className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider">
                           Active / Qualified
                         </p>
-                        <p className="text-2xl font-black text-amber-900 dark:text-[#E0FF33] font-['Outfit'] mt-0.5">
+                        <p className="text-2xl font-black text-amber-900 dark:text-[#FD9139] font-['Outfit'] mt-0.5">
                           {wallet?.referral_summary?.qualified_referrals ?? 0}
                         </p>
                       </div>
@@ -488,7 +488,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('customer')}
                       className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                         leaderboardRole === 'customer' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#E0FF33] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
@@ -498,7 +498,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('delivery')}
                       className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                         leaderboardRole === 'delivery' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#E0FF33] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
@@ -622,7 +622,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                             </div>
 
                             <div className="text-right shrink-0">
-                              <p className="text-xs font-black text-amber-800 dark:text-[#E0FF33] font-['Outfit']">
+                              <p className="text-xs font-black text-amber-800 dark:text-[#FD9139] font-['Outfit']">
                                 {item.points_earned} FV
                               </p>
                               <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-bold">

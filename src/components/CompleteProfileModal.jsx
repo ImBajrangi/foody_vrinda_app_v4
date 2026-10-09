@@ -168,10 +168,10 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[410px] bg-white dark:bg-[#171516] border border-stone-200 dark:border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(224,255,51,0.08)] relative overflow-hidden"
+        className="w-full max-w-[410px] bg-white dark:bg-[#171516] border border-stone-200 dark:border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(253, 145, 57,0.08)] relative overflow-hidden"
       >
         {/* Soft Ambient Top Glow */}
-        <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-amber-400/60 dark:via-[#E0FF33]/70 to-transparent" />
+        <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-amber-400/60 dark:via-[#FD9139]/70 to-transparent" />
         
         {/* Close Icon */}
         <button
@@ -188,20 +188,20 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
             <img 
               src={avatar} 
               alt={firstName} 
-              className="w-11 h-11 rounded-full border border-amber-400/60 dark:border-[#E0FF33]/60 object-cover shrink-0 shadow-md"
+              className="w-11 h-11 rounded-full border border-amber-400/60 dark:border-[#FD9139]/60 object-cover shrink-0 shadow-md"
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           ) : (
-            <div className="w-11 h-11 rounded-full bg-amber-500/10 dark:bg-[#201D1E] border border-amber-500/40 dark:border-[#E0FF33]/40 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 shadow-md">
+            <div className="w-11 h-11 rounded-full bg-amber-500/10 dark:bg-[#201D1E] border border-amber-500/40 dark:border-[#FD9139]/40 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-md">
               <User size={18} />
             </div>
           )}
           
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[10px] font-bold text-amber-600 dark:text-[#E0FF33] flex items-center gap-1 font-['Outfit']">
+              <span className="text-[10px] font-bold text-amber-600 dark:text-[#FD9139] flex items-center gap-1 font-['Outfit']">
                 <span>Radhe Radhe</span>
-                <Heart size={10} className="fill-amber-500 text-amber-500 dark:fill-[#E0FF33] dark:text-[#E0FF33]" />
+                <Heart size={10} className="fill-amber-500 text-amber-500 dark:fill-[#FD9139] dark:text-[#FD9139]" />
               </span>
             </div>
             <h3 className="text-base font-extrabold text-stone-900 dark:text-white font-['Outfit'] truncate">
@@ -216,8 +216,8 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
         {/* Effortless Form */}
         <form onSubmit={handleSave} className="space-y-3">
           {/* Recipient Name (Compact & Clean) */}
-          <div className="bg-stone-50 dark:bg-[#1D1B1C] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20 rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-200/80 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#E0FF33] shrink-0 border border-stone-300/50 dark:border-white/10">
+          <div className="bg-stone-50 dark:bg-[#1D1B1C] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#FD9139]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20 rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-200/80 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 border border-stone-300/50 dark:border-white/10">
               <User size={15} />
             </div>
             <div className="flex-1 min-w-0">
@@ -238,10 +238,10 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
           <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs ${
             shakeField === 'phone'
               ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-50 dark:bg-red-950/20'
-              : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+              : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#FD9139]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20'
           }`}>
             <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors border ${
-              shakeField === 'phone' ? 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#E0FF33] border-stone-300/50 dark:border-white/10'
+              shakeField === 'phone' ? 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#FD9139] border-stone-300/50 dark:border-white/10'
             }`}>
               <Phone size={15} />
             </div>
@@ -273,7 +273,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
               </div>
             </div>
             {phone.length === 10 && (
-              <span className="w-5 h-5 rounded-full bg-emerald-500 dark:bg-[#E0FF33] text-white dark:text-black flex items-center justify-center animate-scale-up shrink-0 shadow-sm font-black">
+              <span className="w-5 h-5 rounded-full bg-emerald-500 dark:bg-[#FD9139] text-white dark:text-black flex items-center justify-center animate-scale-up shrink-0 shadow-sm font-black">
                 <Check size={12} strokeWidth={3.5} />
               </span>
             )}
@@ -284,10 +284,10 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
             <div className={`border rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 transition-all shadow-xs ${
               shakeField === 'address'
                 ? 'animate-shake border-red-500 ring-2 ring-red-500/30 bg-red-50 dark:bg-red-950/20'
-                : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#E0FF33]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#E0FF33]/20'
+                : 'bg-stone-50 dark:bg-[#1D1B1C] border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/70 dark:focus-within:border-[#FD9139]/50 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20'
             }`}>
               <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors border ${
-                shakeField === 'address' ? 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#E0FF33] border-stone-300/50 dark:border-white/10'
+                shakeField === 'address' ? 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/30' : 'bg-stone-200/80 dark:bg-white/10 text-amber-600 dark:text-[#FD9139] border-stone-300/50 dark:border-white/10'
               }`}>
                 <MapPin size={15} />
               </div>
@@ -316,7 +316,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                 type="button"
                 onClick={handleAutoFillGPS}
                 disabled={isLocating}
-                className="h-7 px-2.5 rounded-xl bg-amber-500/15 dark:bg-[#E0FF33]/15 hover:bg-amber-500/25 dark:hover:bg-[#E0FF33]/25 border border-amber-500/30 dark:border-[#E0FF33]/30 text-amber-700 dark:text-[#E0FF33] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shrink-0 active:scale-95"
+                className="h-7 px-2.5 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 hover:bg-amber-500/25 dark:hover:bg-[#FD9139]/25 border border-amber-500/30 dark:border-[#FD9139]/30 text-amber-700 dark:text-[#FD9139] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shrink-0 active:scale-95"
                 title="Detect GPS Address"
               >
                 <Compass size={12} className={isLocating ? 'animate-spin' : ''} />
@@ -326,7 +326,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
 
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-[#E0FF33]/30 rounded-2xl p-1.5 shadow-2xl z-30 max-h-40 overflow-y-auto no-scrollbar space-y-0.5 backdrop-blur-xl">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#201D1E] border border-stone-200 dark:border-[#FD9139]/30 rounded-2xl p-1.5 shadow-2xl z-30 max-h-40 overflow-y-auto no-scrollbar space-y-0.5 backdrop-blur-xl">
                 {isSearchingAddress && (
                   <p className="text-[10px] text-stone-400 dark:text-zinc-500 px-2.5 py-1">Searching landmarks...</p>
                 )}
@@ -341,7 +341,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
                     }}
                     className="w-full text-left p-2 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 transition-all text-xs flex items-start gap-2 text-stone-700 dark:text-zinc-300 hover:text-stone-900 dark:hover:text-white cursor-pointer"
                   >
-                    <MapPin size={13} className="text-amber-600 dark:text-[#E0FF33] mt-0.5 shrink-0" />
+                    <MapPin size={13} className="text-amber-600 dark:text-[#FD9139] mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-stone-900 dark:text-white truncate text-[11px]">{item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}</p>
                       <p className="text-[9px] text-stone-500 dark:text-zinc-400 truncate">{item.address || item.display_name || ''}</p>
@@ -380,7 +380,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full h-11 px-4 rounded-full bg-[#D4F420] dark:bg-[#E0FF33] hover:bg-[#c2e415] dark:hover:bg-[#D4FF00] text-stone-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md shadow-lime-500/20 dark:shadow-[0_4px_18px_rgba(224,255,51,0.25)]"
+              className="w-full h-11 px-4 rounded-full bg-[#D4F420] dark:bg-[#FD9139] hover:bg-[#c2e415] dark:hover:bg-[#D4FF00] text-stone-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md shadow-lime-500/20 dark:shadow-[0_4px_18px_rgba(253, 145, 57,0.25)]"
             >
               <span>{isSaving ? 'Saving details...' : 'Save & Continue'}</span>
               <ArrowRight size={14} className="stroke-[2.5]" />

@@ -184,7 +184,7 @@ export default function Header({
                     >
                       <defs>
                         <linearGradient id="satvikThemeRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#E0FF33" />
+                          <stop offset="0%" stopColor="#FD9139" />
                           <stop offset="35%" stopColor="#FF9933" />
                           <stop offset="70%" stopColor="#F59E0B" />
                           <stop offset="100%" stopColor="#10B981" />
@@ -240,7 +240,7 @@ export default function Header({
                       e.stopPropagation();
                       handleProfileClick();
                     }}
-                    className="absolute top-[calc(100%+6px)] left-0 z-50 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] text-[10px] font-black shadow-xl border border-stone-700/60 dark:border-white/20 animate-hint-float whitespace-nowrap cursor-pointer select-none"
+                    className="absolute top-[calc(100%+6px)] left-0 z-50 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] text-[10px] font-black shadow-xl border border-stone-700/60 dark:border-white/20 animate-hint-float whitespace-nowrap cursor-pointer select-none"
                   >
                     <span>👆</span>
                     <span>Tap to Sign In</span>
@@ -266,7 +266,7 @@ export default function Header({
                 aria-label="Open Profile and Settings"
               >
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-amber-700 dark:text-[#E0FF33] font-laila tracking-wide shrink-0">
+                  <span className="text-xs font-bold text-amber-700 dark:text-[#FD9139] font-laila tracking-wide shrink-0">
                     वृन्दोपनिषद्
                   </span>
                   <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
@@ -275,11 +275,11 @@ export default function Header({
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#E0FF33] transition-colors">
+                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                     {getDisplayName()}
                   </h2>
                   {!isAuthenticated && (
-                    <span className="text-[10.5px] font-bold text-amber-600 dark:text-[#E0FF33] shrink-0">
+                    <span className="text-[10.5px] font-bold text-amber-600 dark:text-[#FD9139] shrink-0">
                       • Login
                     </span>
                   )}
@@ -296,7 +296,7 @@ export default function Header({
               onClick={() => setCurrentTab('customer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'customer' 
-                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
+                  ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -308,7 +308,7 @@ export default function Header({
                 onClick={() => setCurrentTab('kitchen')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'kitchen' 
-                    ? 'bg-amber-600 dark:bg-[#E0FF33] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
+                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] font-black shadow-sm' 
                     : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -321,7 +321,7 @@ export default function Header({
                 onClick={() => setCurrentTab('delivery')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'delivery' 
-                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
+                    ? 'category-pill-active bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
                     : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -364,12 +364,12 @@ export default function Header({
             <button
               data-tour="customer-basket"
               onClick={onOpenCart}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/40 dark:border-[#E0FF33]/40 hover:border-amber-500/60 dark:hover:border-[#E0FF33]/60 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0 animate-scale-in"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/40 dark:border-[#FD9139]/40 hover:border-amber-500/60 dark:hover:border-[#FD9139]/60 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0 animate-scale-in"
               title="Open Basket"
               aria-label="Open Basket"
             >
-              <ShoppingBag size={17} className="text-amber-600 dark:text-[#E0FF33]" />
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
+              <ShoppingBag size={17} className="text-amber-600 dark:text-[#FD9139]" />
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
                 {totalQty}
               </span>
             </button>
@@ -382,7 +382,7 @@ export default function Header({
             /* Logged-Out Quick Sign In Button */
             <button
               onClick={() => onToggleAuth?.('login')}
-              className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-full bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] hover:opacity-90 font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+              className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] hover:opacity-90 font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
               title="Sign in to your account"
             >
               <LogIn size={13} className="text-white dark:text-[#121011]" />
@@ -396,11 +396,11 @@ export default function Header({
                 <button
                   data-tour="customer-fv-wallet"
                   onClick={onToggleRewards}
-                  className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-full bg-amber-500/10 dark:bg-[#E0FF33]/15 hover:bg-amber-500/20 dark:hover:bg-[#E0FF33]/25 border border-amber-500/30 dark:border-[#E0FF33]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                  className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/15 hover:bg-amber-500/20 dark:hover:bg-[#FD9139]/25 border border-amber-500/30 dark:border-[#FD9139]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
                   title="FV Dynasty Rewards & Referral Hub"
                 >
-                  <Coins size={15} className="text-amber-600 dark:text-[#E0FF33]" />
-                  <span className="text-xs font-black font-outfit font-sans text-amber-700 dark:text-[#E0FF33]">
+                  <Coins size={15} className="text-amber-600 dark:text-[#FD9139]" />
+                  <span className="text-xs font-black font-outfit font-sans text-amber-700 dark:text-[#FD9139]">
                     {walletData?.available_points ?? 0}
                     <span className="hidden sm:inline ml-0.5 text-[10px] font-bold text-stone-500 dark:text-zinc-400">FV</span>
                   </span>
@@ -416,7 +416,7 @@ export default function Header({
               >
                 <Bell size={16} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 dark:bg-[#E0FF33] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 dark:bg-[#FD9139] rounded-full ring-2 ring-[#FAF7F2] dark:ring-[#1E1B1C] shadow-sm"></span>
                 )}
               </button>
             </div>
@@ -431,7 +431,7 @@ export default function Header({
             onClick={() => setCurrentTab('customer')}
             className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
               currentTab === 'customer' 
-                ? 'bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-[#121011] font-black shadow-xs' 
+                ? 'bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] font-black shadow-xs' 
                 : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
             }`}
           >
@@ -443,7 +443,7 @@ export default function Header({
               onClick={() => setCurrentTab('kitchen')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'kitchen' 
-                  ? 'bg-amber-600 text-white dark:bg-[#E0FF33] dark:text-[#1E1B1C] font-black shadow-xs' 
+                  ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] font-black shadow-xs' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >

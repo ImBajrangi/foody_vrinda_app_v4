@@ -44,7 +44,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/10 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 text-amber-700 dark:text-[#E0FF33] border border-amber-500/30 dark:border-[#E0FF33]/30 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0">
               <Volume2 className="w-5 h-5" />
             </div>
             <div>
@@ -75,7 +75,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
               </span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 isDevotional 
-                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#E0FF33]/15 dark:text-[#E0FF33]' 
+                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139]' 
                   : 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
               }`}>
                 {isDevotional ? 'Devotional Tone' : 'Professional Tone'}
@@ -92,7 +92,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
             type="button"
             onClick={handleToggleDevotional}
             className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-              isDevotional ? 'bg-amber-600 dark:bg-[#E0FF33]' : 'bg-stone-300 dark:bg-zinc-700'
+              isDevotional ? 'bg-amber-600 dark:bg-[#FD9139]' : 'bg-stone-300 dark:bg-zinc-700'
             }`}
             title="Toggle devotional notification tone"
           >
@@ -121,7 +121,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                 onClick={() => handleSelectTrial(trial.id)}
                 className={`p-3.5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] ${
                   isSelected
-                    ? 'bg-amber-500/10 dark:bg-[#E0FF33]/10 border-amber-500/40 dark:border-[#E0FF33]/40 shadow-xs'
+                    ? 'bg-amber-500/10 dark:bg-[#FD9139]/10 border-amber-500/40 dark:border-[#FD9139]/40 shadow-xs'
                     : 'bg-stone-50/80 dark:bg-white/[0.03] hover:bg-stone-100 dark:hover:bg-white/[0.06] border-stone-200/80 dark:border-white/5'
                 }`}
               >
@@ -129,11 +129,11 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                   {/* Radio Indicator */}
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                     isSelected
-                      ? 'border-amber-600 dark:border-[#E0FF33] bg-amber-500/20 dark:bg-[#E0FF33]/20'
+                      ? 'border-amber-600 dark:border-[#FD9139] bg-amber-500/20 dark:bg-[#FD9139]/20'
                       : 'border-stone-300 dark:border-white/20'
                   }`}>
                     {isSelected && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-[#E0FF33]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-[#FD9139]" />
                     )}
                   </div>
 
@@ -142,7 +142,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-black font-['Outfit'] truncate ${
                         isSelected
-                          ? 'text-amber-950 dark:text-[#E0FF33]'
+                          ? 'text-amber-950 dark:text-[#FD9139]'
                           : 'text-stone-900 dark:text-white'
                       }`}>
                         {trial.name}
@@ -164,7 +164,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                     onClick={(e) => handlePlayTrial(trial.id, e)}
                     className={`h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
                       isCurrentlyPlaying
-                        ? 'bg-amber-500 text-white dark:bg-[#E0FF33] dark:text-black font-black animate-pulse'
+                        ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black font-black animate-pulse'
                         : 'bg-white dark:bg-white/10 hover:bg-amber-50 dark:hover:bg-white/15 text-stone-800 dark:text-zinc-200 border border-stone-200/80 dark:border-white/10'
                     }`}
                     title="Play sound preview"
@@ -209,13 +209,13 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
             }}
             className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-200 border border-amber-500/30 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
           >
-            <BellRing size={13} className="text-amber-600 dark:text-[#E0FF33]" />
+            <BellRing size={13} className="text-amber-600 dark:text-[#FD9139]" />
             <span>Test OS Push on Device</span>
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#E0FF33] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer text-center"
+            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#FD9139] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer text-center"
           >
             Done
           </button>

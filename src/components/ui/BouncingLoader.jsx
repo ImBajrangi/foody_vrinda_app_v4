@@ -32,8 +32,8 @@ const StyledWrapper = styled.div`
     height: 14px;
     position: absolute;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FFF8CC 0%, #E0FF33 60%, #B8E600 100%);
-    box-shadow: 0 0 10px rgba(224, 255, 51, 0.65), 0 2px 6px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #FFF8CC 0%, #FD9139 60%, #B8E600 100%);
+    box-shadow: 0 0 10px rgba(253, 145, 57, 0.65), 0 2px 6px rgba(0, 0, 0, 0.4);
     left: 18%;
     transform-origin: 50%;
     animation: circle7124 .55s alternate infinite cubic-bezier(0.2, 0.8, 0.4, 1);

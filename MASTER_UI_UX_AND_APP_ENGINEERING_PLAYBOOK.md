@@ -42,13 +42,13 @@ Never mix palettes randomly. The system adheres to two non-clashing, deliberate 
 | **Canvas Background** | `#FAF7F2` (Warm Ivory Cream) | `#1E1B1C` (Deep Obsidian 900) |
 | **Surface / Card** | `#FFFFFF` (Pure Crisp White) | `#282526` (Obsidian 850) |
 | **Elevated Surface** | `#F5EFEB` (Warm Sandstone) | `#322E30` (Obsidian 800) |
-| **Primary Accent** | `#D97706` / `#B45309` (Royal Saffron Amber) | `#E0FF33` (Cyber Neon Lime) |
+| **Primary Accent** | `#D97706` / `#B45309` (Royal Saffron Amber) | `#FD9139` (Cyber Neon Lime) |
 | **Text Primary** | `#1C1917` (Deep Warm Obsidian) | `#FFFFFF` (Pure Bright White) |
 | **Text Secondary** | `#57534E` (Neutral Stone) | `#A8A29E` (Muted Zinc Silver) |
 | **Borders** | `rgba(28, 25, 23, 0.08)` | `rgba(255, 255, 255, 0.10)` |
 
 > [!CRITICAL]
-> **Zero Neon in Light Mode Invariant**: High-luminance neon green/lime (`#E0FF33`) on white backgrounds has an abysmal contrast ratio (~1.2:1). In Light Mode, all primary buttons, badges, and active pills automatically map to **Royal Saffron Amber (`#D97706`)** to guarantee readability.
+> **Zero Neon in Light Mode Invariant**: High-luminance neon green/lime (`#FD9139`) on white backgrounds has an abysmal contrast ratio (~1.2:1). In Light Mode, all primary buttons, badges, and active pills automatically map to **Royal Saffron Amber (`#D97706`)** to guarantee readability.
 
 ### 1.3 Modern Typography Stack
 Default browser system fonts look sterile. Pair purposeful display typefaces with high-legibility geometric sans:
