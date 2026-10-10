@@ -125,8 +125,8 @@ const MenuItemCard = memo(function MenuItemCard({
         isOutOfStock
           ? 'border-stone-200/60 dark:border-white/5 opacity-80 bg-stone-50/50 dark:bg-[#252223]'
           : quantityInCart > 0
-            ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] shadow-md dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-            : 'border-stone-200/90 dark:border-white/10 shadow-sm dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
+            ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+            : 'border-stone-200/90 dark:border-white/10 dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
       {/* Top Row: Dish Name + Combo Tag + Out of Stock Badge */}
@@ -192,7 +192,7 @@ const MenuItemCard = memo(function MenuItemCard({
               e.stopPropagation();
               onAddToCart(item);
             }}
-            className="dish-card-order-btn h-10 sm:h-11 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 shadow-md shadow-[#FD9139]/25 transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
+            className="dish-card-order-btn h-10 sm:h-11 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
           >
             <span>Order Now</span>
             <ChevronRight size={14} strokeWidth={3} />
@@ -201,7 +201,7 @@ const MenuItemCard = memo(function MenuItemCard({
           <div
             data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
             onClick={(e) => e.stopPropagation()}
-            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-[#FD9139] text-white rounded-full p-1 shadow-md shadow-[#FD9139]/30 select-none touch-manipulation gap-0.5"
+            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-[#FD9139] text-white rounded-full p-1 select-none touch-manipulation gap-0.5"
           >
             <button
               type="button"
@@ -1743,8 +1743,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`h-9 sm:h-10 px-4 sm:px-5 rounded-full text-xs font-bold transition-all cursor-pointer flex-shrink-0 apple-tap-target flex items-center justify-center touch-manipulation active:scale-95 ${isSelected
-                  ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-md shadow-[#FD9139]/25'
-                  : 'bg-white hover:bg-orange-50/60 text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-200 dark:border-white/10 shadow-xs'
+                  ? 'category-pill-active bg-[#FD9139] text-white font-black'
+                  : 'bg-white hover:bg-orange-50/60 text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:hover:bg-[#322E30] dark:text-zinc-200 dark:hover:text-white border border-stone-200 dark:border-white/10'
                   }`}
               >
                 <span>{cat}</span>

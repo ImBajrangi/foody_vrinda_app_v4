@@ -2892,7 +2892,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   background-color: #F4EFE8 !important;
   color: #1C1917 !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
 }
 
 .light button[class*="bg-[#282526]"]:not(.preserve-dark):not(.preserve-dark *) * {
@@ -2906,7 +2906,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #121011 !important;
   font-weight: 900 !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
-  /* box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important; */
+  box-shadow: none !important;
 }
 
 /* .dark .category-pill-active>span:not([class*="bg-black"]):not([class*="bg-stone"]):not(.badge-count),
@@ -2923,7 +2923,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #FFFFFF !important;
   font-weight: 800 !important;
   border-color: #FD9139 !important;
-  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
+  box-shadow: none !important;
 }
 
 .category-pill-active *,
@@ -2982,7 +2982,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
   color: #FFFFFF !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
+  box-shadow: none !important;
 }
 
 .dish-card-order-btn *,
@@ -3039,7 +3039,29 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   color: #FFFFFF !important;
   font-weight: 800 !important;
   border-color: #FD9139 !important;
-  box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important;
+  box-shadow: none !important;
+}
+
+/* Platform-Wide Bright Theme Cleanliness: Zero Unnecessary Shadows in Light Mode */
+.light .dish-card-order-btn,
+[data-theme="light"] .dish-card-order-btn,
+.light .stepper-capsule,
+[data-theme="light"] .stepper-capsule,
+.light .category-pill-active,
+[data-theme="light"] .category-pill-active,
+.light [data-tour="role-switcher"],
+[data-theme="light"] [data-tour="role-switcher"],
+.light [data-tour="role-switcher"] button,
+[data-theme="light"] [data-tour="role-switcher"] button,
+.light .food-card-pop,
+[data-theme="light"] .food-card-pop,
+.light .btn-map-track,
+[data-theme="light"] .btn-map-track,
+.light button.category-pill-active,
+[data-theme="light"] button.category-pill-active,
+.light [data-tour="customer-add-to-cart"],
+[data-theme="light"] [data-tour="customer-add-to-cart"] {
+  box-shadow: none !important;
 }
 
 /* Guaranteed High-Contrast Text for Dark CTAs in Light Mode (Without breaking light surfaces) */

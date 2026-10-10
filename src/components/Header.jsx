@@ -291,12 +291,12 @@ export default function Header({
 
         {/* Operational View Switcher (Desktop md+ Pill Strip) */}
         {hasStaffOrSpecialRole && (
-          <div data-tour="role-switcher" className="hidden md:flex bg-white/95 dark:bg-[#282526] p-1 rounded-full border border-stone-200 dark:border-white/10 gap-1 shadow-sm">
+          <div data-tour="role-switcher" className="hidden md:flex bg-white/95 dark:bg-[#282526] p-1 rounded-full border border-stone-200 dark:border-white/10 gap-1">
             <button 
               onClick={() => setCurrentTab('customer')}
               className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                 currentTab === 'customer' 
-                  ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-xs' 
+                  ? 'category-pill-active bg-[#FD9139] text-white font-black' 
                   : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -308,7 +308,7 @@ export default function Header({
                 onClick={() => setCurrentTab('kitchen')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'kitchen' 
-                    ? 'bg-[#FD9139] text-white font-black shadow-sm' 
+                    ? 'bg-[#FD9139] text-white font-black' 
                     : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -321,7 +321,7 @@ export default function Header({
                 onClick={() => setCurrentTab('delivery')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'delivery' 
-                    ? 'category-pill-active bg-[#FD9139] text-white font-black shadow-xs' 
+                    ? 'category-pill-active bg-[#FD9139] text-white font-black' 
                     : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -334,7 +334,7 @@ export default function Header({
                 onClick={() => setCurrentTab('owner')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'owner' 
-                    ? 'bg-purple-600 dark:bg-[#A855F7] text-white font-black shadow-sm' 
+                    ? 'bg-purple-600 dark:bg-[#A855F7] text-white font-black' 
                     : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -347,7 +347,7 @@ export default function Header({
                 onClick={() => setCurrentTab('developer')}
                 className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all apple-tap-target cursor-pointer ${
                   currentTab === 'developer' 
-                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-black shadow-sm' 
+                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white font-black' 
                     : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                 }`}
               >
@@ -426,12 +426,12 @@ export default function Header({
 
       {/* Mobile Dedicated Operational View Switcher (Full-Width Flexible Grid with balanced touch targets) */}
       {hasStaffOrSpecialRole && (
-        <div className="grid grid-flow-col auto-cols-fr md:hidden bg-white/95 dark:bg-[#282526] p-1 rounded-2xl border border-stone-200 dark:border-white/10 shadow-sm mt-1.5 mb-2.5 w-full gap-1">
+        <div className="grid grid-flow-col auto-cols-fr md:hidden bg-white/95 dark:bg-[#282526] p-1 rounded-2xl border border-stone-200 dark:border-white/10 mt-1.5 mb-2.5 w-full gap-1">
           <button 
             onClick={() => setCurrentTab('customer')}
             className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
               currentTab === 'customer' 
-                ? 'bg-[#FD9139] text-white font-black shadow-xs' 
+                ? 'bg-[#FD9139] text-white font-black' 
                 : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
             }`}
           >
@@ -443,7 +443,7 @@ export default function Header({
               onClick={() => setCurrentTab('kitchen')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'kitchen' 
-                  ? 'bg-[#FD9139] text-white font-black shadow-xs' 
+                  ? 'bg-[#FD9139] text-white font-black' 
                   : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -456,7 +456,7 @@ export default function Header({
               onClick={() => setCurrentTab('delivery')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'delivery' 
-                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black shadow-xs' 
+                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -469,7 +469,7 @@ export default function Header({
               onClick={() => setCurrentTab('owner')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'owner' 
-                  ? 'bg-purple-600 text-white dark:bg-[#A855F7] dark:text-white font-black shadow-xs' 
+                  ? 'bg-purple-600 text-white dark:bg-[#A855F7] dark:text-white font-black' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
@@ -482,7 +482,7 @@ export default function Header({
               onClick={() => setCurrentTab('developer')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'developer' 
-                  ? 'bg-emerald-600 text-white dark:bg-[#10B981] dark:text-white font-black shadow-xs' 
+                  ? 'bg-emerald-600 text-white dark:bg-[#10B981] dark:text-white font-black' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >
