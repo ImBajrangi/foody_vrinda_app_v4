@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Coins, 
-  Share2, 
-  Copy, 
-  Check, 
-  ExternalLink, 
-  Trophy, 
-  History, 
-  Users, 
-  Sparkles, 
-  X, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
-  ShieldCheck, 
+import {
+  Coins,
+  Share2,
+  Copy,
+  Check,
+  ExternalLink,
+  Trophy,
+  History,
+  Users,
+  Sparkles,
+  X,
+  ArrowUpRight,
+  ArrowDownLeft,
+  ShieldCheck,
   MessageCircle,
   Clock,
   TrendingUp,
@@ -25,10 +25,11 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  getWalletDashboard, 
-  subscribeUserWallet, 
-  getFVLeaderboard, 
+import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
+import {
+  getWalletDashboard,
+  subscribeUserWallet,
+  getFVLeaderboard,
   getCommunityLinks,
   generateWhatsAppShareUrl,
   ptsToRupees,
@@ -48,14 +49,21 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
   const [copied, setCopied] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  const handleAnimatedClose = useCallback(() => {
+  const handleAnimatedClose = useCallback((isImmediate) => {
+    if (isImmediate === true) {
+      setClosing(false);
+      onClose();
+      return;
+    }
     if (closing) return;
     setClosing(true);
     setTimeout(() => {
       setClosing(false);
       onClose();
-    }, 220);
+    }, 200);
   }, [closing, onClose]);
+
+  const { sheetRef, sheetStyle, handleProps, dismiss } = useBottomSheetDrag(handleAnimatedClose, 35);
 
   // Load wallet dashboard
   useEffect(() => {
@@ -122,44 +130,52 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       onClick={(e) => {
-        if (e.target === e.currentTarget) handleAnimatedClose();
+        if (e.target === e.currentTarget) (dismiss ? dismiss() : handleAnimatedClose());
       }}
-      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md apple-overlay ${closing ? 'closing' : ''}`}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md apple-overlay ${closing ? 'closing' : ''}`}
     >
-      <div 
-        className={`relative w-full max-w-lg bg-[#FCFBF7] dark:bg-[#1E1B1C] border-2 border-b-6 border-stone-300 dark:border-stone-800 text-stone-900 dark:text-white rounded-[36px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}
+      <div
+        ref={sheetRef}
+        style={sheetStyle}
+        className={`relative w-full max-w-lg bg-[#FCFBF7] dark:bg-[#1E1B1C] border-t-2 sm:border-2 border-b-0 sm:border-b-6 border-stone-300 dark:border-stone-800 text-stone-900 dark:text-white rounded-t-[36px] sm:rounded-[44px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] sm:shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.85)] sm:dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
       >
-        {/* Glow ambient background accents */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 dark:bg-[#FFD000]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -top-10 -left-10 w-64 h-64 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Modal Top Header: Simple & Clear */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-200/80 dark:border-white/10 relative z-10 shrink-0 bg-white/80 dark:bg-[#1E1B1C]/80 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            {/* Crown Icon Medallion */}
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-[#FFD84D] to-[#F59E0B] border border-[#C97A00]/40 flex items-center justify-center text-stone-950 shadow-sm shrink-0">
-              <Crown className="w-5 h-5 drop-shadow-xs fill-amber-200" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                FV Rewards
-              </h3>
-              <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">
-                Earn & redeem points on your orders
-              </p>
-            </div>
+        {/* Modal Top Header: Unified Seamless Surface with Fluid Swipe-Down Gesture */}
+        <div 
+          {...handleProps}
+          className="relative z-10 shrink-0 border-b border-stone-200/80 dark:border-white/10 bg-[#FCFBF7] dark:bg-[#1E1B1C] cursor-grab active:cursor-grabbing select-none"
+        >
+          {/* Mobile Top Grab Pill */}
+          <div className="w-full pt-3 pb-1 flex justify-center sm:hidden touch-none select-none">
+            <div className="w-12 h-1.5 rounded-full bg-stone-300/80 dark:bg-white/25 transition-colors" />
           </div>
 
-          {/* Simple Clean Close Button */}
-          <button 
-            onClick={handleAnimatedClose}
-            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 dark:bg-[#282526] dark:hover:bg-[#343031] dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer border border-stone-200/80 dark:border-white/10"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4 stroke-[2]" />
-          </button>
+          <div className="flex items-center justify-between p-4 sm:p-5 pt-1.5 sm:pt-4">
+            <div className="flex items-center gap-3">
+              {/* Crown Icon Medallion */}
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-[#FFD84D] to-[#F59E0B] border border-[#C97A00]/40 flex items-center justify-center text-stone-950 shadow-sm shrink-0">
+                <Crown className="w-5 h-5 drop-shadow-xs fill-amber-200" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                  FV Rewards
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">
+                  Earn & redeem points on your orders
+                </p>
+              </div>
+            </div>
+
+            {/* Simple Clean Close Button */}
+            <button
+              onClick={() => (dismiss ? dismiss() : handleAnimatedClose())}
+              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 dark:bg-[#282526] dark:hover:bg-[#343031] dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer border border-stone-200/80 dark:border-white/10"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 stroke-[2]" />
+            </button>
+          </div>
         </div>
 
         {/* Duolingo Chunky Segmented Nav Bar */}
@@ -177,11 +193,10 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer select-none ${
-                  isActive 
-                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer select-none ${isActive
+                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs'
                     : 'bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-950 border-2 border-b-4 border-stone-200 hover:border-stone-300 dark:bg-[#221F20] dark:text-zinc-400 dark:border-stone-800 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon size={14} className={isActive ? '' : tab.color} />
                 <span>{tab.label}</span>
@@ -481,21 +496,19 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                   <div className="flex items-center p-1.5 bg-stone-100 dark:bg-[#141213] rounded-2xl border-2 border-stone-200 dark:border-stone-800 gap-1.5">
                     <button
                       onClick={() => setLeaderboardRole('customer')}
-                      className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                        leaderboardRole === 'customer' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
+                      className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${leaderboardRole === 'customer'
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs'
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       Top Customers
                     </button>
                     <button
                       onClick={() => setLeaderboardRole('delivery')}
-                      className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                        leaderboardRole === 'delivery' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
+                      className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${leaderboardRole === 'delivery'
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs'
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                        }`}
                     >
                       Top Riders
                     </button>
@@ -506,7 +519,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     const myRankItem = leaderboard.find(item => item.user_id === userId);
                     const myPoints = Number(wallet?.available_points) || 0;
                     const myReferrals = Number(wallet?.referrals_count ?? wallet?.referral_summary?.total_referrals ?? 0);
-                    
+
                     return (
                       <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-[#292212] dark:to-[#221B0E] border-2 border-b-4 border-amber-300 dark:border-amber-800 rounded-3xl flex items-center justify-between gap-3 shadow-2xs">
                         <div className="flex items-center gap-3 min-w-0">
@@ -662,16 +675,15 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                         });
 
                         return (
-                          <div 
+                          <div
                             key={tx.id}
                             className="bg-white dark:bg-[#242021] border-2 border-b-4 border-stone-200 dark:border-stone-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-b-3 ${
-                                isCredit 
-                                  ? 'bg-[#E8F9D7] text-[#2E7D00] border-[#B9E592]' 
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-2 border-b-3 ${isCredit
+                                  ? 'bg-[#E8F9D7] text-[#2E7D00] border-[#B9E592]'
                                   : 'bg-[#FFEBEB] text-[#D32F2F] border-[#FFCDD2]'
-                              }`}>
+                                }`}>
                                 {isCredit ? <ArrowDownLeft size={16} className="stroke-[3]" /> : <ArrowUpRight size={16} className="stroke-[3]" />}
                               </div>
                               <div className="min-w-0">
@@ -685,9 +697,8 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                             </div>
 
                             <div className="text-right shrink-0">
-                              <p className={`text-xs font-black font-['Outfit'] ${
-                                isCredit ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
-                              }`}>
+                              <p className={`text-xs font-black font-['Outfit'] ${isCredit ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                                }`}>
                                 {isCredit ? '+' : ''}{tx.amount} FV
                               </p>
                               <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-bold">
@@ -759,13 +770,13 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
         </div>
 
         {/* Modal Bottom Bar: Simple & Clear Footer */}
-        <div className="p-3.5 sm:p-4 bg-white/90 dark:bg-[#1E1B1C]/90 border-t border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3 shrink-0 backdrop-blur-md">
+        <div className="p-3.5 sm:p-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] bg-[#FCFBF7] dark:bg-[#1E1B1C] border-t border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3 shrink-0">
           <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">
             Points are automatically applied at checkout
           </p>
 
           <button
-            onClick={handleAnimatedClose}
+            onClick={() => (dismiss ? dismiss() : handleAnimatedClose())}
             className="px-5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E2F] dark:text-zinc-200 border border-stone-200/80 dark:border-white/10 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
           >
             Close

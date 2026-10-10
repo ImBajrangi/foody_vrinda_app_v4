@@ -130,8 +130,18 @@ export default function App() {
       setSearchInitialQuery(e?.detail?.query || '');
       setIsSearchOpen(true);
     };
+    const handleOpenRewards = () => {
+      setIsRewardsOpen(true);
+    };
+
     window.addEventListener('foody:open-search', handleOpenSearch);
-    return () => window.removeEventListener('foody:open-search', handleOpenSearch);
+    window.addEventListener('foody_open_rewards', handleOpenRewards);
+    window.addEventListener('foody:open-rewards', handleOpenRewards);
+    return () => {
+      window.removeEventListener('foody:open-search', handleOpenSearch);
+      window.removeEventListener('foody_open_rewards', handleOpenRewards);
+      window.removeEventListener('foody:open-rewards', handleOpenRewards);
+    };
   }, []);
 
   const handleToggleAuth = (mode = 'login') => {

@@ -103,8 +103,12 @@ async function main() {
     throw new Error(`Expected APK not found at: ${BUILT_APK_PATH}`);
   }
 
-  // Copy to Foody-Vrinda-Latest.apk
+  // Copy to Foody-Vrinda-Latest.apk in both foody_vrinda_v3 and project root
   fs.copyFileSync(BUILT_APK_PATH, LATEST_APK_PATH);
+  const PARENT_ROOT = path.resolve(ROOT_DIR, '..');
+  fs.copyFileSync(BUILT_APK_PATH, path.resolve(PARENT_ROOT, 'Foody-Vrinda-Latest.apk'));
+  fs.copyFileSync(BUILT_APK_PATH, path.resolve(PARENT_ROOT, 'FoodyVrinda-v4-release.apk'));
+  fs.copyFileSync(BUILT_APK_PATH, path.resolve(ROOT_DIR, 'FoodyVrinda-v4-release.apk'));
   const apkStats = fs.statSync(LATEST_APK_PATH);
   const sizeMB = (apkStats.size / (1024 * 1024)).toFixed(2);
   log('📦', `Release APK ready: ${LATEST_APK_PATH} (${sizeMB} MB)`);
@@ -130,10 +134,11 @@ async function main() {
 
   log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Dynamic role tutorial tours with automatic section/tab opening & closing.',
-    'Official itemized Daily Delivery Slip (PDF) for Sarathi riders with cash reconciliation.',
-    'Obsidian Dark Luxury UI and ultra-fast real-time channel latency optimization.',
-    'Enhanced offline caching and zero layout shift on mobile devices.'
+    'Native 120fps swipe-down gesture to dismiss FV Rewards bar and modal drawers seamlessly.',
+    'Unified Obsidian dark header surface with zero color discrepancy or blurry seams.',
+    'Direct mobile access to Prasad Rewards & Orders from profile modal and header.',
+    'High-visibility Radiant Yellow selection highlight tokens across the platform.',
+    'Zero layout shift and ultra-fast touch response.'
   ];
 
   const releasePayload = {

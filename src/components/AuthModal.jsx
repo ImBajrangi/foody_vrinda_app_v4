@@ -617,12 +617,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     const effectiveDisplayRole = actualRole || userData?.role || userRole;
                     const isMasterAdmin = effectiveDisplayRole === 'grand_admin' || isGrandAdmin;
                     return (
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${isMasterAdmin ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/30' :
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${isMasterAdmin ? 'bg-yellow-400/15 text-amber-800 dark:bg-[#FFD000]/15 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30' :
                         effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20' :
                           effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/20' :
                             effectiveDisplayRole === 'owner' ? 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 border border-purple-500/20' :
-                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/30' :
-                                'bg-emerald-500/10 text-emerald-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-emerald-500/20 dark:border-[#FD9139]/30'
+                              effectiveDisplayRole === 'developer' ? 'bg-yellow-400/15 text-amber-800 dark:bg-[#FFD000]/15 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30' :
+                                'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-500/20'
                         }`}>
                         {isMasterAdmin ? 'Grand Admin' :
                           effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
@@ -731,12 +731,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-yellow-400/15 dark:bg-[#FFD000]/15 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
                           <Phone className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
-                          <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-600 dark:text-[#FD9139] font-semibold'}`}>
+                          <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-700 dark:text-[#FFD000] font-semibold'}`}>
                             {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : '+ Add phone'}
                           </span>
                         </div>
@@ -747,7 +747,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setPhoneEditInput(cleanMob.slice(-10));
                           setIsEditingPhone(true);
                         }}
-                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#FD9139] cursor-pointer shrink-0 transition-colors"
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-700 hover:text-amber-800 dark:text-[#FFD000] cursor-pointer shrink-0 transition-colors"
                       >
                         {hasValidPhone ? 'Edit' : '+ Add'}
                       </button>
@@ -830,12 +830,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-yellow-400/15 dark:bg-[#FFD000]/15 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
                           <MapPin className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
                           <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
-                          <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#FD9139] font-semibold'}`}>
+                          <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-700 dark:text-[#FFD000] font-semibold'}`}>
                             {hasValidAddress ? userAddress : '+ Set address'}
                           </span>
                         </div>
@@ -846,7 +846,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
                           setIsEditingAddress(true);
                         }}
-                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-[#FD9139] cursor-pointer shrink-0 transition-colors"
+                        className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-700 hover:text-amber-800 dark:text-[#FFD000] cursor-pointer shrink-0 transition-colors"
                       >
                         {hasValidAddress ? 'Edit' : '+ Add'}
                       </button>
@@ -857,19 +857,28 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
               {/* Bottom: Integrated Prasad Rewards Strip */}
               <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
-                <div className="flex items-center gap-2 pr-2">
-                  <div className="w-7 h-7 rounded-lg bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-500/30 dark:border-[#FFD000]/30 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
-                    <Sparkles className="w-3.5 h-3.5" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAnimatedClose();
+                    window.dispatchEvent(new CustomEvent('foody_open_rewards'));
+                  }}
+                  className="flex items-center gap-2 pr-2 text-left p-1 -m-1 rounded-xl hover:bg-stone-200/50 dark:hover:bg-white/5 active:scale-95 transition-all cursor-pointer group"
+                  title="Open FV Rewards & Perks"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/20 dark:bg-[#FFD000]/20 border border-yellow-500/40 dark:border-[#FFD000]/40 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                    <Sparkles className="w-3.5 h-3.5 fill-amber-400/30 dark:fill-[#FFD000]/30" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-black text-stone-900 dark:text-[#FFD000] font-['Outfit'] truncate">
-                      {userData?.coins || 150} Coins
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-black text-stone-900 dark:text-[#FFD000] font-['Outfit'] truncate flex items-center justify-between">
+                      <span>{userData?.coins || 150} Coins</span>
+                      <ChevronRight className="w-3 h-3 text-stone-400 dark:text-yellow-400/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </div>
                     <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                      ₹{Math.floor((userData?.coins || 150) / 10)} savings
+                      ₹{Math.floor((userData?.coins || 150) / 10)} savings • <span className="underline decoration-emerald-500/50">Perks</span>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 <div className="flex items-center gap-2 pl-2">
                   <div className="w-7 h-7 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10 border border-cyan-500/20 dark:border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
@@ -889,6 +898,42 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
             {/* 4. Grouped Navigation & Preference Links */}
             <div className="p-1.5 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5 shadow-xs">
+              {/* Primary User Actions First for Mobile Ergonomics */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleAnimatedClose();
+                  window.dispatchEvent(new CustomEvent('foody-open-orders'));
+                }}
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#FFD000]" />
+                  <span>My Orders & Live Tracking</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAnimatedClose();
+                  window.dispatchEvent(new CustomEvent('foody_open_rewards'));
+                }}
+                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Gift className="w-4 h-4 text-amber-500 dark:text-[#FFD000]" />
+                  <span>Prasad Rewards & Perks</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-800 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30">
+                    {userData?.coins || 150} FV
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+
               {/* Theme Preference Row */}
               <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
@@ -940,36 +985,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-black">Change &gt;</span>
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAnimatedClose();
-                  window.dispatchEvent(new CustomEvent('foody-open-orders'));
-                }}
-                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
-                  <span>My Orders & Live Tracking</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAnimatedClose();
-                  window.dispatchEvent(new CustomEvent('foody_open_rewards'));
-                }}
-                className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Gift className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span>Prasad Rewards & Perks</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
-              </button>
 
               {/* App Guide & Interactive Tutorial */}
               <button
