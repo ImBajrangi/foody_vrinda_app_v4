@@ -132,38 +132,33 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
         className={`relative w-full max-w-lg bg-[#FCFBF7] dark:bg-[#1E1B1C] border-2 border-b-6 border-stone-300 dark:border-stone-800 text-stone-900 dark:text-white rounded-[36px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden apple-modal-spring ${closing ? 'closing' : ''}`}
       >
         {/* Glow ambient background accents */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 dark:bg-[#FD9139]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/15 dark:bg-[#FFD000]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-emerald-400/15 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Modal Top Header (Duolingo Banner Style) */}
-        <div className="flex items-center justify-between p-4.5 sm:p-5.5 border-b-2 border-stone-200/90 dark:border-white/10 relative z-10 shrink-0 bg-white/70 dark:bg-[#1E1B1C]/70 backdrop-blur-md">
+        {/* Modal Top Header: Simple & Clear */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-200/80 dark:border-white/10 relative z-10 shrink-0 bg-white/80 dark:bg-[#1E1B1C]/80 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            {/* Duolingo 3D Golden Medallion */}
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-[#FFD84D] to-[#F59E0B] border-2 border-b-4 border-[#C97A00] flex items-center justify-center text-stone-950 shadow-[0_3px_0_#A86400] shrink-0">
-              <Crown className="w-6 h-6 drop-shadow-xs fill-amber-200" />
+            {/* Crown Icon Medallion */}
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-[#FFD84D] to-[#F59E0B] border border-[#C97A00]/40 flex items-center justify-center text-stone-950 shadow-sm shrink-0">
+              <Crown className="w-5 h-5 drop-shadow-xs fill-amber-200" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                  FV Dynasty
-                </h3>
-                <span className="px-2.5 py-0.5 rounded-xl bg-[#FFC800] border-2 border-b-3 border-[#D99A00] text-stone-950 text-[10px] font-black tracking-wider uppercase shadow-2xs">
-                  1 FV = ₹0.10
-                </span>
-              </div>
-              <p className="text-xs text-stone-600 dark:text-zinc-400 font-bold">
-                Satvik Loyalty Currency & Quests
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                FV Rewards
+              </h3>
+              <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">
+                Earn & redeem points on your orders
               </p>
             </div>
           </div>
 
-          {/* 3D Round Close Button */}
+          {/* Simple Clean Close Button */}
           <button 
             onClick={handleAnimatedClose}
-            className="w-10 h-10 rounded-2xl bg-stone-100 hover:bg-stone-200 border-2 border-b-4 border-stone-300 active:border-b-2 active:translate-y-0.5 text-stone-700 hover:text-stone-950 dark:bg-[#282526] dark:hover:bg-[#343031] dark:border-stone-700 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+            className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 dark:bg-[#282526] dark:hover:bg-[#343031] dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer border border-stone-200/80 dark:border-white/10"
             aria-label="Close"
           >
-            <X className="w-5 h-5 stroke-[2.5]" />
+            <X className="w-4 h-4 stroke-[2]" />
           </button>
         </div>
 
@@ -234,14 +229,14 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                           <Coins className="w-7 h-7 drop-shadow-xs" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] flex items-center gap-1.5">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FFD000] flex items-center gap-1.5">
                             <Sparkles size={13} className="text-amber-500 fill-amber-500" /> Available Balance
                           </span>
                           <div className="flex items-baseline gap-2 mt-0.5">
                             <span className="text-4xl sm:text-5xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                               {availablePoints}
                             </span>
-                            <span className="text-sm font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                            <span className="text-sm font-black text-amber-700 dark:text-[#FFD000] uppercase tracking-wide">
                               FV Points
                             </span>
                           </div>
@@ -249,10 +244,10 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="px-3 py-1.5 rounded-2xl bg-white/95 dark:bg-[#1E1B1C] border-2 border-b-4 border-amber-300 dark:border-amber-700 text-stone-900 dark:text-white font-black text-xs shadow-2xs">
-                          <span className="text-amber-700 dark:text-amber-400">≈ ₹{(availablePoints * 0.1).toFixed(2)}</span>
+                        <div className="px-3 py-1.5 rounded-2xl bg-white/95 dark:bg-[#1E1B1C] border-2 border-b-4 border-amber-300 dark:border-amber-400/60 text-stone-900 dark:text-white font-black text-xs shadow-2xs">
+                          <span className="text-amber-700 dark:text-[#FFD000]">≈ ₹{(availablePoints * 0.1).toFixed(2)}</span>
                         </div>
-                        <div className="mt-1.5 text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider flex items-center justify-end gap-1">
+                        <div className="mt-1.5 text-[10px] font-black text-stone-600 dark:text-amber-300 uppercase tracking-wider flex items-center justify-end gap-1">
                           <Zap size={11} className="text-amber-500 fill-amber-500" /> Instant Redeem
                         </div>
                       </div>
@@ -261,12 +256,12 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     {/* 3 Chunky 3D Stat Blocks */}
                     <div className="grid grid-cols-3 gap-2.5 mt-5 pt-4 border-t-2 border-amber-300/60 dark:border-amber-800/40 relative z-10">
                       {/* Block 1: Pending */}
-                      <div className="bg-white/95 dark:bg-[#1E1A14] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-amber-700/60 text-center shadow-2xs">
-                        <div className="flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-0.5">
+                      <div className="bg-white/95 dark:bg-[#1E1A14] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-amber-400/50 text-center shadow-2xs">
+                        <div className="flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-0.5">
                           <Clock size={11} className="stroke-[2.5]" />
                           <span>Pending</span>
                         </div>
-                        <p className="text-base sm:text-lg font-black text-amber-900 dark:text-amber-300 font-['Outfit']">
+                        <p className="text-base sm:text-lg font-black text-amber-900 dark:text-[#FFD000] font-['Outfit']">
                           {wallet?.pending_points ?? 0}
                         </p>
                       </div>
@@ -365,10 +360,10 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     {/* Code Card */}
                     <div className="bg-stone-50 dark:bg-[#171516] rounded-2xl p-4 border-2 border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-black uppercase tracking-wider">
+                        <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-black uppercase tracking-wider">
                           Your Exclusive Code
                         </p>
-                        <p className="text-xl font-black text-stone-900 dark:text-[#FD9139] font-['Outfit'] tracking-wider truncate">
+                        <p className="text-xl font-black text-stone-900 dark:text-[#FFD000] font-['Outfit'] tracking-wider truncate">
                           {referralCode}
                         </p>
                       </div>
@@ -400,11 +395,11 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                           {wallet?.referral_summary?.total_referrals ?? 0}
                         </p>
                       </div>
-                      <div className="bg-amber-50 dark:bg-[#2A2315] p-3.5 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-amber-900 text-center">
-                        <p className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider">
+                      <div className="bg-amber-50 dark:bg-[#252012] p-3.5 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-amber-400/60 text-center">
+                        <p className="text-[10px] text-amber-800 dark:text-amber-300 font-black uppercase tracking-wider">
                           Active / Qualified
                         </p>
-                        <p className="text-2xl font-black text-amber-900 dark:text-[#FD9139] font-['Outfit'] mt-0.5">
+                        <p className="text-2xl font-black text-amber-900 dark:text-[#FFD000] font-['Outfit'] mt-0.5">
                           {wallet?.referral_summary?.qualified_referrals ?? 0}
                         </p>
                       </div>
@@ -622,7 +617,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                             </div>
 
                             <div className="text-right shrink-0">
-                              <p className="text-xs font-black text-amber-800 dark:text-[#FD9139] font-['Outfit']">
+                              <p className="text-xs font-black text-amber-800 dark:text-[#FFD000] font-['Outfit']">
                                 {item.points_earned} FV
                               </p>
                               <p className="text-[10px] text-stone-500 dark:text-zinc-500 font-bold">
@@ -763,18 +758,15 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Modal Bottom Bar: Duolingo Style Safe Footer */}
-        <div className="p-4 sm:p-5 bg-white/80 dark:bg-[#1E1B1C]/80 border-t-2 border-stone-200 dark:border-white/10 flex items-center justify-between gap-3 shrink-0 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#58CC02] animate-ping" />
-            <span className="text-[11px] text-stone-600 dark:text-zinc-400 font-black uppercase tracking-wide">
-              Safe & Protected
-            </span>
-          </div>
+        {/* Modal Bottom Bar: Simple & Clear Footer */}
+        <div className="p-3.5 sm:p-4 bg-white/90 dark:bg-[#1E1B1C]/90 border-t border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3 shrink-0 backdrop-blur-md">
+          <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">
+            Points are automatically applied at checkout
+          </p>
 
           <button
             onClick={handleAnimatedClose}
-            className="px-5 py-2.5 rounded-2xl bg-stone-200 hover:bg-stone-300 border-2 border-b-4 border-stone-300/90 active:border-b-2 active:translate-y-0.5 text-stone-900 dark:bg-[#282526] dark:hover:bg-[#343031] dark:border-stone-700 dark:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-2xs"
+            className="px-5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 dark:bg-[#282526] dark:hover:bg-[#322E2F] dark:text-zinc-200 border border-stone-200/80 dark:border-white/10 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
           >
             Close
           </button>

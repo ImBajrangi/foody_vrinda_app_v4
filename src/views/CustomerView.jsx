@@ -138,8 +138,8 @@ const MenuItemCard = memo(function MenuItemCard({
               Out of Stock
             </span>
           ) : item.isCombo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FD9139]/15 dark:bg-[#FD9139]/20 text-[#FD9139] border border-[#FD9139]/30 text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
-              <Sparkles size={11} className="text-[#FD9139]" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-700 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30 text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+              <Sparkles size={11} className="text-amber-500 dark:text-[#FFD000]" />
               {item.tag || 'Combo Offer'}
             </span>
           ) : null}
@@ -1763,7 +1763,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 px-3 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/20">
+                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#FFD000] bg-yellow-400/15 dark:bg-[#FFD000]/15 px-3 py-0.5 rounded-full border border-yellow-500/30 dark:border-[#FFD000]/30">
                     Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
                   </span>
                   <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 capitalize">
@@ -2131,7 +2131,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Dish Header: Category + Live In-Basket pill */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-amber-800 dark:text-[#FD9139] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-amber-500/15 dark:bg-[#FD9139]/10 px-2.5 py-0.5 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20">
+                    <span className="text-amber-800 dark:text-[#FFD000] text-[11px] sm:text-xs font-black uppercase tracking-wider bg-yellow-400/15 dark:bg-[#FFD000]/15 px-2.5 py-0.5 rounded-full border border-yellow-400/25 dark:border-[#FFD000]/30">
                       {selectedDishDetails.category || "Vrinda Meal"}
                     </span>
                     <span className="text-stone-400 dark:text-zinc-500 text-xs">•</span>
@@ -2173,7 +2173,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         Included in this Combo Pack
                       </span>
                       {selectedDishDetails.tag && (
-                        <span className="text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] px-2 py-0.5 rounded-full border border-amber-500/20 dark:border-[#FD9139]/20">
+                        <span className="text-[9px] font-bold bg-yellow-400/15 text-amber-800 dark:bg-[#FFD000]/15 dark:text-[#FFD000] px-2 py-0.5 rounded-full border border-yellow-400/20 dark:border-[#FFD000]/30">
                           {selectedDishDetails.tag}
                         </span>
                       )}
@@ -2407,7 +2407,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           <p className="text-[10px] text-stone-500 dark:text-zinc-400">Direct courier with live Sarathi tracking</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30">
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-yellow-400/15 text-amber-700 dark:bg-[#FFD000]/15 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30">
                         {onlineRidersCount > 0 ? 'Active' : 'Busy'}
                       </span>
                     </div>

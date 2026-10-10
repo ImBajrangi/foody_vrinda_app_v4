@@ -826,7 +826,7 @@ export default function KitchenView() {
                                   {item.name}
                                 </span>
                                 {(item.isCombo || item.comboItems) && (
-                                  <span className="text-[8.5px] font-black uppercase bg-amber-500/15 dark:bg-[#FD9139]/20 text-amber-700 dark:text-[#FD9139] px-1.5 py-0.2 rounded font-bold">
+                                  <span className="text-[8.5px] font-black uppercase bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-700 dark:text-[#FFD000] px-1.5 py-0.2 rounded font-bold">
                                     Combo
                                   </span>
                                 )}

@@ -396,13 +396,13 @@ export default function Header({
                 <button
                   data-tour="customer-fv-wallet"
                   onClick={onToggleRewards}
-                  className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/15 hover:bg-amber-500/20 dark:hover:bg-[#FD9139]/25 border border-amber-500/30 dark:border-[#FD9139]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                  className="h-8.5 sm:h-9 px-2.5 sm:px-3 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 hover:bg-yellow-400/25 dark:hover:bg-[#FFD000]/25 border border-yellow-500/35 dark:border-[#FFD000]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
                   title="FV Dynasty Rewards & Referral Hub"
                 >
-                  <Coins size={15} className="text-[#FD9139]" />
-                  <span className="text-xs font-black font-outfit font-sans text-amber-700 dark:text-[#FD9139]">
+                  <Coins size={15} className="text-amber-500 dark:text-[#FFD000]" />
+                  <span className="text-xs font-black font-outfit font-sans text-amber-800 dark:text-[#FFD000]">
                     {walletData?.available_points ?? 0}
-                    <span className="hidden sm:inline ml-0.5 text-[10px] font-bold text-stone-500 dark:text-zinc-400">FV</span>
+                    <span className="hidden sm:inline ml-0.5 text-[10px] font-bold text-amber-700/80 dark:text-yellow-200/90">FV</span>
                   </span>
                 </button>
               )}

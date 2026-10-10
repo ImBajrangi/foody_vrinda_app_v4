@@ -1337,7 +1337,7 @@ export default function OwnerView() {
               <span>{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
             </button>
             {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 text-xs font-black text-amber-700 dark:text-[#FD9139] shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-400/35 dark:border-[#FFD000]/30 text-xs font-black text-amber-700 dark:text-[#FFD000] shadow-sm">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length} Active Orders
               </span>
@@ -1704,7 +1704,7 @@ export default function OwnerView() {
                 <div className="lg:col-span-3 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-6 flex flex-col justify-between h-96 shadow-xl">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-stone-900 dark:text-white text-sm font-['Outfit']">Daily Sales Timeline</h3>
-                    <span className="text-[10px] font-bold text-amber-800 dark:text-[#FD9139] px-2 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20">LIVE METRIC</span>
+                    <span className="text-[10px] font-bold text-amber-800 dark:text-[#FFD000] px-2 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-400/30 dark:border-[#FFD000]/30">LIVE METRIC</span>
                   </div>
                   <div className="flex-1 w-full relative">
                     {sortedDates.length > 0 ? (

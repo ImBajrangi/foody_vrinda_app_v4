@@ -858,11 +858,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {/* Bottom: Integrated Prasad Rewards Strip */}
               <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
                 <div className="flex items-center gap-2 pr-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-500/30 dark:border-[#FFD000]/30 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                    <div className="text-xs font-black text-stone-900 dark:text-[#FFD000] font-['Outfit'] truncate">
                       {userData?.coins || 150} Coins
                     </div>
                     <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">

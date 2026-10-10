@@ -1177,7 +1177,7 @@ export default function TransportView() {
             {/* BOTTOM FLOATING ROUTE RIBBON */}
             <div className="absolute bottom-4 inset-x-4 z-20 pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-white/95 dark:bg-[#1E1B1C]/90 backdrop-blur-md border border-stone-200/90 dark:border-white/10 shadow-xl text-xs text-stone-900 dark:text-white">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] text-[10px] font-black border border-amber-500/30 dark:border-[#FD9139]/30">
+                <span className="px-2 py-0.5 rounded-md bg-yellow-400/15 text-amber-700 dark:bg-[#FFD000]/15 dark:text-[#FFD000] text-[10px] font-black border border-yellow-400/30 dark:border-[#FFD000]/30">
                   ORIGIN
                 </span>
                 <span className="font-bold truncate max-w-[140px] text-stone-900 dark:text-white">
@@ -1265,8 +1265,8 @@ export default function TransportView() {
                     </h5>
                   </div>
                 </div>
-                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-amber-800 bg-amber-500/15 border-amber-500/30 dark:text-[#FD9139] dark:bg-[#FD9139]/15 px-2.5 py-1 rounded-full border dark:border-[#FD9139]/30 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-[#FD9139] animate-pulse"></span>
+                <span className="shrink-0 whitespace-nowrap text-[10px] font-black text-amber-800 bg-yellow-400/15 border-yellow-400/30 dark:text-[#FFD000] dark:bg-[#FFD000]/15 px-2.5 py-1 rounded-full border dark:border-[#FFD000]/30 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#FFD000] animate-pulse"></span>
                   Live Active
                 </span>
               </div>
@@ -1506,7 +1506,7 @@ export default function TransportView() {
                               <Navigation className="w-3 h-3 text-amber-600 dark:text-[#FD9139]" />
                               <span>Pickup Distance:</span>
                             </span>
-                            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-800 dark:text-[#FD9139] font-mono font-bold text-[11px] border border-amber-500/20 dark:border-[#FD9139]/20">
+                            <span className="px-2 py-0.5 rounded-md bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-800 dark:text-[#FFD000] font-mono font-bold text-[11px] border border-yellow-400/30 dark:border-[#FFD000]/30">
                               {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km away` : 'Nearby Vrindavan'}
                             </span>
                           </div>

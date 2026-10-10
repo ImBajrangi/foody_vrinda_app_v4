@@ -27,7 +27,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
         {/* Header Ribbon & Close Button */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-600 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30 flex items-center justify-center shrink-0 shadow-xs">
               <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
             <div>
@@ -35,7 +35,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
                 <h3 className="text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                   Update Available
                 </h3>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-yellow-400/15 text-amber-900 dark:bg-[#FFD000]/15 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30">
                   v{updateInfo.latestVersion}
                 </span>
               </div>
