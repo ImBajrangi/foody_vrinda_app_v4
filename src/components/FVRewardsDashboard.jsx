@@ -224,7 +224,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
               {activeTab === 'wallet' && (
                 <div className="space-y-4">
                   {/* Duolingo Hero Treasure Card */}
-                  <div className="relative rounded-3xl bg-gradient-to-b from-[#FFFDF2] via-[#FFF9E6] to-[#FFF2C6] dark:from-[#2A2415] dark:via-[#221D12] dark:to-[#19150B] border-2 border-b-[6px] border-[#E8D18C] dark:border-[#5C4A19] p-5 sm:p-6 shadow-xs overflow-hidden">
+                  <div className="relative rounded-3xl bg-gradient-to-b from-[#FFFDF2] via-[#FFF9E6] to-[#FFF2C6] dark:from-[#2A2415] dark:via-[#221D12] dark:to-[#19150B] border-2 border-b-[6px] border-[#E8D18C] dark:border-amber-500/50 p-5 sm:p-6 shadow-xs overflow-hidden">
                     <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 rounded-full bg-amber-400/20 blur-2xl pointer-events-none" />
 
                     <div className="flex items-center justify-between gap-4 relative z-10">
@@ -261,7 +261,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                     {/* 3 Chunky 3D Stat Blocks */}
                     <div className="grid grid-cols-3 gap-2.5 mt-5 pt-4 border-t-2 border-amber-300/60 dark:border-amber-800/40 relative z-10">
                       {/* Block 1: Pending */}
-                      <div className="bg-white/95 dark:bg-[#1C1A1B] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-stone-800 text-center shadow-2xs">
+                      <div className="bg-white/95 dark:bg-[#1E1A14] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-amber-200 dark:border-amber-700/60 text-center shadow-2xs">
                         <div className="flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-0.5">
                           <Clock size={11} className="stroke-[2.5]" />
                           <span>Pending</span>
@@ -272,23 +272,23 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       </div>
 
                       {/* Block 2: Lifetime Won */}
-                      <div className="bg-white/95 dark:bg-[#1C1A1B] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-emerald-200 dark:border-stone-800 text-center shadow-2xs">
+                      <div className="bg-white/95 dark:bg-[#111E16] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-emerald-200 dark:border-emerald-700/60 text-center shadow-2xs">
                         <div className="flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 mb-0.5">
                           <Trophy size={11} className="stroke-[2.5]" />
                           <span>Won</span>
                         </div>
-                        <p className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 font-['Outfit']">
+                        <p className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-300 font-['Outfit']">
                           {wallet?.lifetime_earned ?? 0}
                         </p>
                       </div>
 
                       {/* Block 3: Redeemed */}
-                      <div className="bg-white/95 dark:bg-[#1C1A1B] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-blue-200 dark:border-stone-800 text-center shadow-2xs">
+                      <div className="bg-white/95 dark:bg-[#111722] p-2.5 sm:p-3 rounded-2xl border-2 border-b-4 border-blue-200 dark:border-blue-700/60 text-center shadow-2xs">
                         <div className="flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider text-blue-800 dark:text-blue-400 mb-0.5">
                           <Gift size={11} className="stroke-[2.5]" />
                           <span>Used</span>
                         </div>
-                        <p className="text-base sm:text-lg font-black text-stone-800 dark:text-zinc-200 font-['Outfit']">
+                        <p className="text-base sm:text-lg font-black text-blue-800 dark:text-blue-300 font-['Outfit']">
                           {wallet?.lifetime_redeemed ?? 0}
                         </p>
                       </div>
@@ -296,7 +296,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                   </div>
 
                   {/* Duolingo Quest Pass (Referral Card) */}
-                  <div className="rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-[#132219] dark:to-[#17261E] border-2 border-b-5 border-emerald-300 dark:border-emerald-800 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-[#0E2619] dark:via-[#133523] dark:to-[#0E2619] border-2 border-b-5 border-emerald-300 dark:border-emerald-600/70 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-2xl bg-[#58CC02] border-2 border-b-4 border-[#3FA300] flex items-center justify-center text-white shrink-0 shadow-xs">
                         <Flame className="w-5 h-5 fill-white" />
@@ -304,11 +304,11 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       <div className="min-w-0">
                         <p className="text-xs sm:text-sm font-black text-stone-900 dark:text-white uppercase tracking-tight flex items-center gap-1.5">
                           <span>Invite Code</span>
-                          <span className="text-[10px] bg-emerald-200/90 dark:bg-emerald-800/90 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-lg font-black">
+                          <span className="text-[10px] bg-emerald-200/90 dark:bg-emerald-500/25 text-emerald-900 dark:text-emerald-300 border border-emerald-400/40 px-2 py-0.5 rounded-lg font-black">
                             +35 FV
                           </span>
                         </p>
-                        <p className="text-[11px] text-stone-600 dark:text-zinc-400 font-bold truncate">
+                        <p className="text-[11px] text-stone-600 dark:text-emerald-100 font-bold truncate">
                           Share code to earn instant quest rewards!
                         </p>
                       </div>
