@@ -184,7 +184,7 @@ export function maskLeaderboardName(name, isSelf = false) {
 
   let clean = name.trim();
 
-  // 1. Strip student roll number / alphanumeric registration IDs (e.g., '24F2004883 HARSH SHARMA')
+  // 1. Strip student roll number / alphanumeric registration IDs (e.g., '24F2004883 Bajrangi SHARMA')
   clean = clean.replace(/^[0-9][0-9A-Za-z_-]{4,}\s+/i, '');
 
   // 2. Strip internal user role wrappers

@@ -5,10 +5,10 @@ console.log('🧪 Running Comprehensive Leaderboard Privacy & Masking Tests...\n
 
 // 1. Current user should always see their own unmasked name
 assert.strictEqual(maskLeaderboardName('Kunvar Singh', true), 'Kunvar Singh');
-assert.strictEqual(maskLeaderboardName('24F2004883 HARSH SHARMA', true), '24F2004883 HARSH SHARMA');
+assert.strictEqual(maskLeaderboardName('24F2004883 Bajrangi', true), '24F2004883 Bajrangi');
 
 // 2. Roll number & registration ID stripping for other users
-assert.strictEqual(maskLeaderboardName('24F2004883 HARSH SHARMA', false), 'HARSH S***');
+assert.strictEqual(maskLeaderboardName('24F2004883 Bajrangi Sharma', false), 'Bajrangi S***');
 assert.strictEqual(maskLeaderboardName('2023CS108 Gaurav Joshi', false), 'Gaurav J***');
 
 // 3. Indian & English multi-word names masking
@@ -42,7 +42,7 @@ const rawMockDbLeaderboard = [
   { user_id: '1', display_name: 'vrindatest31514', points_earned: 0, referrals_count: 0 },
   { user_id: '2', display_name: 'User (chef_s)', points_earned: 0, referrals_count: 0 },
   { user_id: '3', display_name: 'Kunvar Singh', points_earned: 0, referrals_count: 0 },
-  { user_id: '4', display_name: '24F2004883 HARSH SHARMA', points_earned: 0, referrals_count: 0 },
+  { user_id: '4', display_name: '24F2004883 Bajrangi SHARMA', points_earned: 0, referrals_count: 0 },
   { user_id: '5', display_name: 'Genuine Devotee A', points_earned: 50, referrals_count: 1 },
   { user_id: '6', display_name: 'Genuine Devotee B', points_earned: 120, referrals_count: 3 },
 ];
@@ -51,9 +51,9 @@ const filtered = rawMockDbLeaderboard.filter(item => {
   const hasPoints = Number(item.points_earned) > 0;
   const hasRefs = Number(item.referrals_count) > 0;
   const isInternal = String(item.user_id || '').startsWith('chef_') ||
-                     String(item.user_id || '').startsWith('master-') ||
-                     String(item.display_name || '').toLowerCase().includes('chef_') ||
-                     String(item.display_name || '').toLowerCase().startsWith('vrindatest');
+    String(item.user_id || '').startsWith('master-') ||
+    String(item.display_name || '').toLowerCase().includes('chef_') ||
+    String(item.display_name || '').toLowerCase().startsWith('vrindatest');
   return (hasPoints || hasRefs) && !isInternal;
 });
 
