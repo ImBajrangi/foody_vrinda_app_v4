@@ -246,10 +246,10 @@ export default function DeveloperView({ setCurrentTab }) {
   };
 
   // --- APP RELEASES / AUTO-UPDATE STATE ---
-  const [releaseVersionName, setReleaseVersionName] = useState('1.1.3');
-  const [releaseVersionCode, setReleaseVersionCode] = useState(14);
+  const [releaseVersionName, setReleaseVersionName] = useState('1.1.4');
+  const [releaseVersionCode, setReleaseVersionCode] = useState(15);
   const [releaseApkUrl, setReleaseApkUrl] = useState('https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk');
-  const [releaseNotes, setReleaseNotes] = useState('Fast instantaneous app startup with zero splash delay.\nOptimized real-time notifications with personalized dish summaries.\nDual messaging mode: Professional & Devotional tone toggle.');
+  const [releaseNotes, setReleaseNotes] = useState('Native 120fps swipe-down gesture to dismiss FV Rewards bar seamlessly.\nUnified Obsidian dark header surface with zero color discrepancy.\nDirect mobile access to Prasad Rewards & Orders from profile.\nHigh-visibility Radiant Yellow selection highlight tokens across the platform.');
   const [releaseMandatory, setReleaseMandatory] = useState(false);
   const [isPublishingRelease, setIsPublishingRelease] = useState(false);
 
