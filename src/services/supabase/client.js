@@ -152,9 +152,45 @@ export function resolveDishCutout(image, name = '', category = '') {
       if (trimmed.endsWith('/rice.png')) {
         return '/dishes/rice.webp';
       }
-      // d) Upgrade samosa fallback to authentic Kachori platter
-      if (trimmed.includes('crispy-samosas-basket.webp') && lowerName.includes('kachori')) {
-        return '/dishes/presets/golden-kachori-platter.webp';
+      // d) Upgrade samosa fallback to authentic Kachori platter, Chhole Kulche, or Aalu Chaat
+      if (
+        trimmed.includes('crispy-samosas-basket.webp') ||
+        trimmed.includes('Crispy-Samosas-in-Wicker-Basket.png') ||
+        (trimmed.includes('samosa') && !lowerName.includes('samosa'))
+      ) {
+        if (lowerName.includes('kachori')) {
+          return '/dishes/presets/golden-kachori-platter.webp';
+        }
+        if (
+          lowerName.includes('chhole') ||
+          lowerName.includes('chole') ||
+          lowerName.includes('kulche') ||
+          lowerName.includes('kulcha')
+        ) {
+          return '/dishes/presets/copper-thali-chole-kulche.webp';
+        }
+        if (
+          lowerName.includes('aalu') ||
+          lowerName.includes('aloo chaat') ||
+          lowerName.includes('aalu chaat') ||
+          lowerName.includes('potato chaat')
+        ) {
+          return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
+        }
+      }
+      // d2) Upgrade legacy chole naan to authentic copper thali chole kulche
+      if (
+        (trimmed.includes('chole-curry-naan-platter.webp') || trimmed.includes('Chole-Curry-with-Naan-Platter.png')) &&
+        (lowerName.includes('kulche') || lowerName.includes('kulcha') || lowerName.includes('chhole kulche') || lowerName.includes('chole kulche'))
+      ) {
+        return '/dishes/presets/copper-thali-chole-kulche.webp';
+      }
+      // d3) Upgrade generic chaat bowl to vibrant aalu chaat bowl
+      if (
+        (trimmed.includes('loaded-papdi-chaat-bowl') || trimmed.includes('Loaded-Indian-Chaat-Bowl')) &&
+        (lowerName.includes('aalu') || lowerName.includes('aloo chaat') || lowerName.includes('aalu chaat') || lowerName.includes('potato chaat'))
+      ) {
+        return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
       }
       // e) Upgrade generic thali or naan fallback to authentic Roti basket
       if ((trimmed.includes('thali.webp') || trimmed.includes('garlic-naan')) && (lowerName.includes('roti') || lowerName.includes('chapati') || lowerName.includes('phulka'))) {
@@ -177,9 +213,18 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (lowerName.includes('biryani') || lowerName.includes('dum biryani') || lowerName.includes('hyderabadi')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
   if (lowerName.includes('pulao') || lowerName.includes('fried rice') || lowerName.includes('jeera rice')) return '/dishes/presets/antique-copper-vegetable-biryani.webp';
 
-  // B. North Indian Breads & Kachoris
+  // B. North Indian Breads, Kulchas & Chhole
   if (lowerName.includes('garlic naan')) return '/dishes/presets/basket-golden-garlic-naan.webp';
-  if ((lowerName.includes('chole') && lowerName.includes('naan')) || lowerName.includes('kulcha') || lowerName.includes('chole kulche')) return '/dishes/presets/chole-curry-naan-platter.webp';
+  if (
+    lowerName.includes('chhole kulche') ||
+    lowerName.includes('chole kulche') ||
+    lowerName.includes('chhole') ||
+    lowerName.includes('kulche') ||
+    lowerName.includes('kulcha')
+  ) {
+    return '/dishes/presets/copper-thali-chole-kulche.webp';
+  }
+  if (lowerName.includes('chole') && lowerName.includes('naan')) return '/dishes/presets/chole-curry-naan-platter.webp';
   if (lowerName.includes('naan')) return '/dishes/presets/garlic-naan-three-chutneys.webp';
   if (lowerName.includes('kachori') || lowerName.includes('khasta') || lowerName.includes('bedmi')) return '/dishes/presets/golden-kachori-platter.webp';
   if (lowerName.includes('bhature') || lowerName.includes('chole bhature') || lowerName.includes('poori') || lowerName.includes('puri')) return '/dishes/presets/golden-chole-bhature-feast.webp';
@@ -207,6 +252,15 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries') || lowerName.includes('wedges') || lowerName.includes('nugget')) return '/dishes/presets/seasoned-crispy-fries.webp';
 
   // F. Chaat & Street Food
+  if (
+    lowerName.includes('aalu chaat') ||
+    lowerName.includes('aloo chaat') ||
+    lowerName.includes('potato chaat') ||
+    (lowerName.includes('aalu') && lowerName.includes('chaat')) ||
+    (lowerName.includes('aloo') && lowerName.includes('chaat'))
+  ) {
+    return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
+  }
   if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla') || lowerName.includes('dahi pakodi')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
   if (lowerName.includes('tikki') || lowerName.includes('aloo tikki') || lowerName.includes('cutlet') || lowerName.includes('ragda')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
   if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel') || lowerName.includes('pani puri') || lowerName.includes('golgappe') || lowerName.includes('puchka')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';

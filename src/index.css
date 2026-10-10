@@ -2909,7 +2909,10 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   /* box-shadow: 0 4px 14px -1px rgba(253, 145, 57, 0.35) !important; */
 }
 
-
+/* .dark .category-pill-active>span:not([class*="bg-black"]):not([class*="bg-stone"]):not(.badge-count),
+[data-theme="dark"] .category-pill-active>span:not([class*="bg-black"]):not([class*="bg-stone"]):not(.badge-count) {
+  color: #121011 !important;
+} */
 
 .light .category-pill-active,
 [data-theme="light"] .category-pill-active,

@@ -40,6 +40,23 @@ export const DEFAULT_PRESET_DISHES = [
     isVeg: true
   },
   {
+    id: 'preset-copper-thali-chole-kulche',
+    name: 'Amritsari Chhole Kulche Thali',
+    category: 'Meals',
+    price: 150,
+    originalPrice: 180,
+    subtitle: 'Fluffy butter kulchas with spicy Amritsari chhole',
+    description: 'Authentic Amritsari chhole served in a traditional copper thali with fluffy butter kulchas, pickled onions and green chili.',
+    image: '/dishes/presets/copper-thali-chole-kulche.webp',
+    cdnImage: 'https://i.postimg.cc/KzkssftH/Copper-Thali-with-Chole-Kulche.png',
+    tag: 'Bestseller',
+    rating: 4.9,
+    calories: '450 kcal',
+    nutrition: { carbs: '65g', fat: '14g', protein: '16g', kcal: '450 kcal' },
+    spicyLevel: 'Medium',
+    isVeg: true
+  },
+  {
     id: 'preset-creamy-paneer-curry',
     name: 'Shahi Malai Paneer Bowl',
     category: 'Meals',
@@ -292,6 +309,23 @@ export const DEFAULT_PRESET_DISHES = [
     calories: '270 kcal',
     nutrition: { carbs: '40g', fat: '10g', protein: '6g', kcal: '270 kcal' },
     spicyLevel: 'Mild',
+    isVeg: true
+  },
+  {
+    id: 'preset-vibrant-potato-chaat-bowl',
+    name: 'Vibrant Dilli Aalu Chaat Bowl',
+    category: 'Snacks',
+    price: 90,
+    originalPrice: 120,
+    subtitle: 'Crispy golden potato cubes with tangy chutneys & sev',
+    description: 'Crispy fried golden potato cubes tossed with zesty spices, sweet tamarind, fresh mint chutney, sev, and juicy pomegranate seeds.',
+    image: '/dishes/presets/vibrant-potato-chaat-bowl.webp',
+    cdnImage: 'https://i.postimg.cc/B6Lwwp2w/Vibrant-Garnished-Potato-Chaat-Bowl.png',
+    tag: 'Street Special',
+    rating: 4.9,
+    calories: '240 kcal',
+    nutrition: { carbs: '38g', fat: '8g', protein: '4g', kcal: '240 kcal' },
+    spicyLevel: 'Medium',
     isVeg: true
   },
   {
