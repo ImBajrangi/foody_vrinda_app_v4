@@ -156,7 +156,7 @@ export default function NativeTimePicker({
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-150 ${
             isOpen
-              ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black scale-105 shadow-sm'
+              ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white scale-105 shadow-sm'
               : 'bg-amber-500/10 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] group-hover:scale-105'
           }`}>
             <Clock size={18} strokeWidth={2.3} />
@@ -274,7 +274,7 @@ export default function NativeTimePicker({
                 onClick={() => handlePeriodToggle('AM')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   timeState.period === 'AM'
-                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
+                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-xs'
                     : 'text-stone-600 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white'
                 }`}
               >
@@ -285,7 +285,7 @@ export default function NativeTimePicker({
                 onClick={() => handlePeriodToggle('PM')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   timeState.period === 'PM'
-                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
+                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-xs'
                     : 'text-stone-600 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white'
                 }`}
               >
@@ -309,7 +309,7 @@ export default function NativeTimePicker({
                     onClick={() => handleHourSelect(h)}
                     className={`py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
                       isSelected
-                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-xs'
                         : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-white/10'
                     }`}
                   >
@@ -335,7 +335,7 @@ export default function NativeTimePicker({
                     onClick={() => handleMinuteSelect(m)}
                     className={`py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer text-center ${
                       isSelected
-                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-xs'
                         : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-white/10'
                     }`}
                   >
@@ -388,7 +388,7 @@ export default function NativeTimePicker({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer font-['Outfit']"
+              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer font-['Outfit']"
             >
               <Check className="w-3.5 h-3.5 stroke-[3]" />
               <span>Done</span>

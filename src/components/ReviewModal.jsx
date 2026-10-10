@@ -73,7 +73,7 @@ export default function ReviewModal({
         orderId: targetOrderId,
         shopId: targetShopId,
         customerName: targetCustName,
-        chefId: order?.chefId || `chef_${targetShopId}`,
+        chefId: order?.chefId || order?.chef_id || null,
         chefName: resolvedChefName,
         chefRating,
         chefTags: selectedChefTags,
@@ -241,7 +241,7 @@ export default function ReviewModal({
                       onClick={() => toggleRiderTag(tag)}
                       className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                         isSelected 
-                          ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-sm scale-102' 
+                          ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-sm scale-102' 
                           : 'bg-stone-200/80 text-stone-700 hover:bg-stone-300 dark:bg-white/5 dark:text-neutral-400 dark:hover:bg-white/10'
                       }`}
                     >
@@ -279,7 +279,7 @@ export default function ReviewModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-2 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-2 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Award size={14} />
                 {isSubmitting ? 'Submitting...' : 'Submit Ratings & Points'}

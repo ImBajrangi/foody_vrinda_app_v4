@@ -1011,7 +1011,7 @@ export default function TransportView() {
               <h1 className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] truncate">
                 Delivery Fleet
               </h1>
-              <span className="bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
+              <span className="bg-amber-600 text-white dark:bg-[#FD9139] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0">
                 {orders.length} Active {orders.length === 1 ? 'Trip' : 'Trips'}
               </span>
             </div>
@@ -1299,7 +1299,7 @@ export default function TransportView() {
                         <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 truncate">Prepaid Online</span>
                       </div>
-                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
                         NO CASH DUE
                       </span>
                     </div>
@@ -1312,7 +1312,7 @@ export default function TransportView() {
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 truncate">Cash Paid</span>
                       </div>
-                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 dark:border-emerald-400/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
+                      <span className="font-black text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 shrink-0 whitespace-nowrap uppercase tracking-wider">
                         COLLECTED
                       </span>
                     </div>
@@ -1780,7 +1780,7 @@ export default function TransportView() {
                 <button
                   type="button"
                   onClick={handleDownloadShiftSlip}
-                  className="h-11 px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 apple-tap-target w-full sm:w-auto"
+                  className="h-11 px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 apple-tap-target w-full sm:w-auto"
                   title="Download and Print Today's Order Report as PDF"
                 >
                   <FileDown size={16} strokeWidth={2.5} />
@@ -1804,7 +1804,7 @@ export default function TransportView() {
               <button
                 type="button"
                 onClick={() => window.open('https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q', '_blank')}
-                className="h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target w-full sm:w-auto"
+                className="h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white text-xs font-black font-outfit uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target w-full sm:w-auto"
               >
                 <MessageCircle size={15} />
                 <span>Join Fleet Channel</span>
@@ -1998,8 +1998,8 @@ export default function TransportView() {
                 onClick={() => verifyAndSubmitOtp()}
                 disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
                 className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${otpModalState.type === 'pickup'
-                  ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-amber-500/20'
-                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-[#121214] shadow-[#FD9139]/20'
+                  ? 'bg-amber-500 hover:bg-amber-400 text-white shadow-amber-500/20'
+                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-white shadow-[#FD9139]/20'
                   }`}
               >
                 {otpModalState.isSubmitting ? (

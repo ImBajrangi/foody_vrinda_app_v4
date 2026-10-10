@@ -611,7 +611,7 @@ export default function KitchenView() {
           <button
             data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(253, 145, 57,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(253, 145, 57,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="whitespace-nowrap">Create Order</span>
@@ -712,7 +712,7 @@ export default function KitchenView() {
                     </div>
 
                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
-                      ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] shadow-xs'
+                      ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-xs'
                       : ['ready_for_pickup', 'ready'].includes(order.status)
                         ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
                         : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
@@ -884,7 +884,7 @@ export default function KitchenView() {
                     <button
                       data-tour="restaurant-manage-orders"
                       onClick={() => handleOrderReady(order.id, order)}
-                      className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#1E1B1C] font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
+                      className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
                     >
                       <CheckCircle2 size={16} strokeWidth={2.5} />
                       <span>Food Packed & Ready for Pickup</span>
@@ -932,7 +932,7 @@ export default function KitchenView() {
             href="https://whatsapp.com/channel/0029Vb6UR3Z9mrGcDXbHzA1Q"
             target="_blank"
             rel="noopener noreferrer"
-            className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] text-xs font-black font-outfit uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target"
+            className="h-9 px-4 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white text-xs font-black font-outfit uppercase tracking-wider flex items-center gap-1.5 transition-all shrink-0 shadow-md active:scale-95 relative z-10 apple-tap-target"
           >
             <MessageCircle size={14} />
             <span>Channel</span>
@@ -1082,10 +1082,10 @@ export default function KitchenView() {
                           <button
                             type="button"
                             onClick={() => handleUpdateManualQty(item.id, 1)}
-                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] active:scale-90 flex items-center justify-center text-white cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
                           >
-                            <Plus size={11} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
+                            <Plus size={11} strokeWidth={3.5} className="text-white stroke-current" />
                           </button>
                         </div>
                       </div>
@@ -1104,7 +1104,7 @@ export default function KitchenView() {
 
               <button
                 type="submit"
-                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
+                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
               >
                 <Check size={18} strokeWidth={3} />
                 <span>Confirm & Create Kitchen Order</span>

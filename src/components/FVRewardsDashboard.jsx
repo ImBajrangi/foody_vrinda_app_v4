@@ -184,7 +184,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer select-none ${
                   isActive 
-                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                    ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
                     : 'bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-950 border-2 border-b-4 border-stone-200 hover:border-stone-300 dark:bg-[#221F20] dark:text-zinc-400 dark:border-stone-800 dark:hover:text-white'
                 }`}
               >
@@ -488,7 +488,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('customer')}
                       className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                         leaderboardRole === 'customer' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
@@ -498,7 +498,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
                       onClick={() => setLeaderboardRole('delivery')}
                       className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                         leaderboardRole === 'delivery' 
-                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-stone-950 dark:border-b-4 dark:border-[#AFC812] shadow-xs' 
+                          ? 'bg-stone-900 text-white border-2 border-b-4 border-stone-950 dark:bg-[#FD9139] dark:text-white dark:border-b-4 dark:border-[#D97706] shadow-xs' 
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >

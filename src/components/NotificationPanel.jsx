@@ -191,7 +191,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                   Notifications
                 </h3>
                 {unreadCount > 0 && (
-                  <span className="bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black text-xs font-black px-2.5 py-0.5 rounded-full leading-tight shadow-xs">
+                  <span className="bg-amber-600 dark:bg-[#FD9139] text-white text-xs font-black px-2.5 py-0.5 rounded-full leading-tight shadow-xs">
                     {unreadCount} new
                   </span>
                 )}
@@ -232,7 +232,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                 <span>{tab.label}</span>
                 <span className={`text-xs px-2 py-0.5 min-w-[20px] rounded-full font-black shrink-0 transition-all text-center inline-flex items-center justify-center leading-none ${
                   isActive 
-                    ? 'bg-white/25 text-white shadow-xs' 
+                    ? 'bg-white/25 text-white' 
                     : 'bg-stone-100 text-stone-700 dark:bg-white/10 dark:text-zinc-300'
                 }`}>
                   <span className={`badge-count font-black ${isActive ? 'text-white' : 'text-stone-700 dark:text-zinc-300'}`}>
@@ -259,7 +259,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
             <button
               type="button"
               onClick={requestSystemNotificationPermission}
-              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs uppercase tracking-wider transition-all shadow-xs active:scale-95 shrink-0 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider transition-all shadow-xs active:scale-95 shrink-0 cursor-pointer"
             >
               Enable
             </button>
@@ -361,7 +361,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                         className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm border transition-all cursor-pointer ${
                           n.read 
                             ? 'text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 border-stone-300/80 dark:border-white/15' 
-                            : 'text-white dark:text-black bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] border-amber-600 dark:border-[#FD9139] shadow-sm hover:scale-105 active:scale-95'
+                            : 'text-white bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] border-amber-600 dark:border-[#FD9139] shadow-sm hover:scale-105 active:scale-95'
                         }`}
                         title={n.read ? "Mark as unread" : "Mark as read"}
                       >

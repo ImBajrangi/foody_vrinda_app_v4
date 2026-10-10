@@ -14,6 +14,8 @@ import {
   pendingRequests,
   dispatchSafeEvent,
   invalidateCache,
+  getCachedItem,
+  setCachedItem,
   getDefaultActiveShopId
 } from './cache.js';
 import { multiplexer } from './realtime.service.js';
@@ -25,12 +27,53 @@ import { multiplexer } from './realtime.service.js';
 // Zero hardcoded seed users: pure database-driven role resolution
 export const SEED_USERS = [];
 
+const DEFAULT_DELETED_USER_IDS = ['chef_shop-vrinda-main', 'test-grand-admin'];
+
+export function getDeletedUserIds() {
+  try {
+    const raw = safeStorage.getItem('foody_deleted_user_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return [...new Set([...parsed, ...DEFAULT_DELETED_USER_IDS])];
+      }
+    }
+  } catch (e) { }
+  return [...DEFAULT_DELETED_USER_IDS];
+}
+
+export function saveDeletedUserIds(ids) {
+  try {
+    safeStorage.setItem('foody_deleted_user_ids', JSON.stringify([...new Set([...(ids || []), ...DEFAULT_DELETED_USER_IDS])]));
+  } catch (e) { }
+}
+
+export function isUserDeleted(id) {
+  if (!id) return false;
+  const clean = String(id).trim();
+  const deleted = getDeletedUserIds();
+  return deleted.includes(clean);
+}
+
+export function isDeletedUserRecord(u) {
+  if (!u) return true;
+  const cleanId = String(u.id || '').trim();
+  if (isUserDeleted(cleanId)) return true;
+  const name = String(u.displayName || u.display_name || '');
+  if (name.includes('[DELETED]')) return true;
+  const email = String(u.email || '');
+  if (email.startsWith('deleted_')) return true;
+  return false;
+}
+
 export function getCachedUsers() {
   try {
     const saved = safeStorage.getItem('foody_cached_users');
     if (saved !== null && saved !== undefined) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(u => !isDeletedUserRecord(u));
+      }
     }
   } catch (e) { }
   return [];
@@ -38,7 +81,9 @@ export function getCachedUsers() {
 
 export function saveCachedUsers(users) {
   try {
-    safeStorage.setItem('foody_cached_users', JSON.stringify(users));
+    const cleaned = (Array.isArray(users) ? users : []).filter(u => !isDeletedUserRecord(u));
+    safeStorage.setItem('foody_cached_users', JSON.stringify(cleaned));
+    return cleaned;
   } catch (e) { }
   return users;
 }
@@ -254,7 +299,7 @@ export async function getCloudUsers(forceRefresh = false) {
   if (!forceRefresh) {
     const memCached = getCachedItem('users', 'all');
     if (memCached && Array.isArray(memCached) && memCached.length > 0) {
-      return memCached;
+      return memCached.filter(u => !isDeletedUserRecord(u));
     }
   }
 
@@ -297,7 +342,7 @@ export async function getCloudUsers(forceRefresh = false) {
       const deduplicatedUsers = [];
 
       const addOrMergeUser = (userCandidate) => {
-        if (!userCandidate) return;
+        if (!userCandidate || isDeletedUserRecord(userCandidate)) return;
         const cleanId = String(userCandidate.id || '').trim();
         const cleanEmail = (userCandidate.email || '').toLowerCase().trim();
         const cleanPhone = (userCandidate.phone || '').replace(/\D/g, '');
@@ -343,7 +388,7 @@ export async function getCloudUsers(forceRefresh = false) {
 
       // Overlay foody_users
       usersData.forEach(u => {
-        if (!u) return;
+        if (!u || isDeletedUserRecord(u)) return;
         const cleanId = String(u.id || '').trim();
         addOrMergeUser({
           id: cleanId,
@@ -365,7 +410,7 @@ export async function getCloudUsers(forceRefresh = false) {
 
       // Overlay foody_logged_users (active login table takes highest priority)
       loggedData.forEach(u => {
-        if (!u) return;
+        if (!u || isDeletedUserRecord(u)) return;
         const cleanId = String(u.id || '').trim();
         addOrMergeUser({
           id: cleanId,
@@ -385,13 +430,13 @@ export async function getCloudUsers(forceRefresh = false) {
         });
       });
 
-      const merged = deduplicatedUsers;
+      const merged = deduplicatedUsers.filter(u => !isDeletedUserRecord(u));
       saveCachedUsers(merged);
       setCachedItem('users', 'all', merged);
       return merged;
     } catch (e) {
       console.warn("getCloudUsers exception:", e);
-      return cached;
+      return cached.filter(u => !isDeletedUserRecord(u));
     } finally {
       pendingRequests.delete('getCloudUsers');
     }
@@ -723,8 +768,13 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     updates = updatesObj;
   }
 
-  const currentUsers = getCachedUsers();
   const cleanId = String(userId || '').trim();
+  if (isUserDeleted(cleanId)) {
+    console.warn(`updateCloudUser: Skipped because user ${cleanId} is deleted.`);
+    return null;
+  }
+
+  const currentUsers = getCachedUsers();
   const cleanEmail = (updates.email || '').toLowerCase().trim();
   const cleanPhone = (updates.phone || '').replace(/\D/g, '');
 
@@ -757,6 +807,12 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       return u;
     });
   } else {
+    // CRITICAL: Reject phantom creation if target is deleted, a dummy prefix, or has no valid contact credentials
+    if (isUserDeleted(targetId) || cleanId.startsWith('chef_') || (!resolvedEmail && !resolvedPhone)) {
+      console.warn(`updateCloudUser: Skipping phantom user creation for ${targetId}`);
+      return null;
+    }
+
     const resolvedName = (updates.displayName && updates.displayName !== 'User')
       ? updates.displayName
       : ((updates.display_name && updates.display_name !== 'User')
@@ -986,39 +1042,49 @@ export async function fetchAdminUserActions(limit = 100) {
 }
 
 export async function deleteCloudUser(userId, reason = 'Deleted from Developer Dashboard') {
+  if (!userId) return false;
+  const cleanId = String(userId).trim();
+
+  // Tier 1 Protection: Master developer account is immutable and protected
+  if (cleanId === 'master_dev_108' || cleanId.toLowerCase() === 'developer@foodyvrinda.com') {
+    console.warn('deleteCloudUser: Master Developer account is protected and cannot be deleted.');
+    return false;
+  }
+
+  // 1. Blacklist ID locally so user is never re-hydrated from any query or cache
+  const deletedIds = getDeletedUserIds();
+  if (!deletedIds.includes(cleanId)) {
+    saveDeletedUserIds([...deletedIds, cleanId]);
+  }
+
   const currentUsers = getCachedUsers();
-  const updatedList = currentUsers.filter(u => u.id !== userId);
+  const updatedList = currentUsers.filter(u => String(u.id).trim() !== cleanId);
   saveCachedUsers(updatedList);
   setCachedItem('users', 'all', updatedList);
-  dispatchSafeEvent('foody_users_changed', { users: updatedList, deletedUserId: userId });
+  dispatchSafeEvent('foody_users_changed', { users: updatedList, deletedUserId: cleanId });
 
-  // 1. Primary server-side RPC execution
+  // 2. Primary server-side RPC execution
   try {
     const { data, error } = await supabase.rpc('admin_delete_user', {
-      p_user_id: userId,
+      p_user_id: cleanId,
       p_reason: reason
     });
     if (!error && data?.success) {
-      return true;
-    }
-    if (error) {
+      // Successfully hard-deleted on database
+    } else if (error) {
       console.warn('deleteCloudUser RPC note:', error.message);
     }
   } catch (rpcErr) {
     console.warn('deleteCloudUser RPC exception:', rpcErr.message);
   }
 
-  // 2. Fallback direct table deletion
+  // 3. Fallback direct table deletion
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error } = await supabase.from('foody_logged_users').delete().eq('id', userId);
-      if (error) {
-        if (isForbiddenError(error)) {
-          markTableWriteForbidden('foody_logged_users');
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('deleteCloudUser logged_users note:', error.message);
-        }
+      const { error } = await supabase.from('foody_logged_users').delete().eq('id', cleanId);
+      if (error && isForbiddenError(error)) {
+        markTableWriteForbidden('foody_logged_users');
+        markTableWriteForbidden('foody_users');
       }
     } catch (e) {
       if (isForbiddenError(e)) {
@@ -1030,13 +1096,9 @@ export async function deleteCloudUser(userId, reason = 'Deleted from Developer D
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error } = await supabase.from('foody_users').delete().eq('id', userId);
-      if (error) {
-        if (isForbiddenError(error)) {
-          markTableWriteForbidden('foody_users');
-        } else {
-          console.warn('deleteCloudUser foody_users note:', error.message);
-        }
+      const { error } = await supabase.from('foody_users').delete().eq('id', cleanId);
+      if (error && isForbiddenError(error)) {
+        markTableWriteForbidden('foody_users');
       }
     } catch (e) {
       if (isForbiddenError(e)) {
@@ -1045,18 +1107,49 @@ export async function deleteCloudUser(userId, reason = 'Deleted from Developer D
     }
   }
 
+  // 4. GUARANTEED SOFT-DELETE TOMBSTONE:
+  // If direct DELETE is denied by RLS/table grants (code 42501), perform an UPDATE marking
+  // the record as permanently deleted so subsequent SELECTs never revive it as a valid user!
+  const nowIso = new Date().toISOString();
+  const tombstonePayload = {
+    display_name: '[DELETED] User',
+    email: `deleted_${cleanId}_${Date.now()}@foodyvrinda.com`,
+    phone: '',
+    role: 'customer',
+    is_active: false,
+    updated_at: nowIso
+  };
+
+  try {
+    await supabase.from('foody_logged_users').update(tombstonePayload).eq('id', cleanId);
+  } catch (e) { }
+
+  try {
+    await supabase.from('foody_users').update(tombstonePayload).eq('id', cleanId);
+  } catch (e) { }
+
   return true;
 }
 
 export function subscribeCloudUsers(onUsersUpdate) {
+  const filterDeleted = (users) => {
+    if (!Array.isArray(users)) return [];
+    return users.filter(u => !isDeletedUserRecord(u));
+  };
+
   // Use the single multiplexed Realtime channel for zero egress
   const unsubscribeMultiplexer = multiplexer.subscribeUsers((users, updatedUser, eventType) => {
-    if (onUsersUpdate) onUsersUpdate(users, updatedUser, eventType);
+    if (onUsersUpdate) {
+      if (updatedUser && isDeletedUserRecord(updatedUser)) {
+        return;
+      }
+      onUsersUpdate(filterDeleted(users), updatedUser, eventType);
+    }
   });
 
   const handleLocalChange = (e) => {
     if (e?.detail?.users && onUsersUpdate) {
-      onUsersUpdate(e.detail.users, e?.detail?.updatedUser, e?.detail?.eventType);
+      onUsersUpdate(filterDeleted(e.detail.users), e?.detail?.updatedUser, e?.detail?.eventType);
     }
   };
   if (typeof window !== 'undefined') {

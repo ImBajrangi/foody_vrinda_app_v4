@@ -164,7 +164,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
                     onClick={(e) => handlePlayTrial(trial.id, e)}
                     className={`h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
                       isCurrentlyPlaying
-                        ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-black font-black animate-pulse'
+                        ? 'bg-amber-500 text-white dark:bg-[#FD9139] dark:text-white font-black animate-pulse'
                         : 'bg-white dark:bg-white/10 hover:bg-amber-50 dark:hover:bg-white/15 text-stone-800 dark:text-zinc-200 border border-stone-200/80 dark:border-white/10'
                     }`}
                     title="Play sound preview"
@@ -215,7 +215,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#FD9139] dark:text-black font-black text-xs hover:opacity-90 transition-all cursor-pointer text-center"
+            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-stone-900 text-white dark:bg-[#FD9139] dark:text-white font-black text-xs hover:opacity-90 transition-all cursor-pointer text-center"
           >
             Done
           </button>

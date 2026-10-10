@@ -893,7 +893,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     <button
                       type="button"
                       onClick={requestSystemNotificationPermission}
-                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
                     >
                       Enable
                     </button>
@@ -905,7 +905,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               {currentOrder?.id && (
                 <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-amber-500/10 dark:from-[#FD9139]/15 dark:via-emerald-500/10 dark:to-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
                       OTP
                     </div>
                     <div className="min-w-0">
@@ -1088,7 +1088,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     if (onRateOrder) onRateOrder(currentOrder);
                     else onClose();
                   }}
-                  className="w-full py-3 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
+                  className="w-full py-3 px-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Rate & Review This Prasad Order</span>

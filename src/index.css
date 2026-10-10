@@ -458,8 +458,8 @@
 
 .ios-touch-feedback:active,
 .apple-tap-target:active {
-  transform: scale(0.962);
-  filter: brightness(0.94);
+  transform: scale(0.98);
+  filter: brightness(0.985);
   transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.12s ease;
 }
 
@@ -3041,6 +3041,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   border-color: #FD9139 !important;
   box-shadow: none !important;
 }
+
 
 /* Platform-Wide Bright Theme Cleanliness: Zero Unnecessary Shadows in Light Mode */
 .light .dish-card-order-btn,

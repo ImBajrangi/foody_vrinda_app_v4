@@ -96,8 +96,8 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
             disabled={downloading}
             className={`flex-1 py-3 px-5 rounded-xl font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
               downloading
-                ? 'bg-amber-400 text-stone-950 dark:bg-[#FD9139] dark:text-black opacity-80 animate-pulse'
-                : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#c9e826] dark:text-black hover:scale-[1.02] active:scale-[0.98]'
+                ? 'bg-amber-400 text-white dark:bg-[#FD9139] opacity-80 animate-pulse'
+                : 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] hover:scale-[1.02] active:scale-[0.98]'
             }`}
           >
             <Download size={15} />

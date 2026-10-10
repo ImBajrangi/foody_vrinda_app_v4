@@ -240,7 +240,7 @@ export default function Header({
                       e.stopPropagation();
                       handleProfileClick();
                     }}
-                    className="absolute top-[calc(100%+6px)] left-0 z-50 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-[#121011] text-[10px] font-black shadow-xl border border-stone-700/60 dark:border-white/20 animate-hint-float whitespace-nowrap cursor-pointer select-none"
+                    className="absolute top-[calc(100%+6px)] left-0 z-50 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-white text-[10px] font-black shadow-xl border border-stone-700/60 dark:border-white/20 animate-hint-float whitespace-nowrap cursor-pointer select-none"
                   >
                     <span>👆</span>
                     <span>Tap to Sign In</span>
@@ -456,7 +456,7 @@ export default function Header({
               onClick={() => setCurrentTab('delivery')}
               className={`py-2 px-1 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center ${
                 currentTab === 'delivery' 
-                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-[#1E1B1C] font-black' 
+                  ? 'bg-cyan-600 text-white dark:bg-[#06B6D4] dark:text-white font-black' 
                   : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
               }`}
             >

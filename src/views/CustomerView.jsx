@@ -125,7 +125,7 @@ const MenuItemCard = memo(function MenuItemCard({
         isOutOfStock
           ? 'border-stone-200/60 dark:border-white/5 opacity-80 bg-stone-50/50 dark:bg-[#252223]'
           : quantityInCart > 0
-            ? 'border-amber-500/40 dark:border-white/20 bg-stone-50/70 dark:bg-[#2c282a] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+            ? 'border-amber-500/30 dark:border-white/20 bg-[#FFFDFB] dark:bg-[#2a2728] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
             : 'border-stone-200/90 dark:border-white/10 dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
@@ -164,9 +164,7 @@ const MenuItemCard = memo(function MenuItemCard({
       {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
       <div className="mt-3 sm:mt-4 z-10">
         <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-          <span className={`text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 ${
-            quantityInCart > 0 ? 'text-[#FD9139]' : 'text-stone-900 dark:text-white'
-          }`}>
+          <span className="text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 text-stone-900 dark:text-white">
             ₹{activePrice}
           </span>
           {hasDiscount && (
@@ -1532,7 +1530,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   onClick={() => {
                     window.dispatchEvent(new CustomEvent('foody:open-search', { detail: { query: menuSearch.trim() } }));
                   }}
-                  className="h-8 px-2.5 sm:px-3 rounded-full bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#121011] text-[11px] font-black flex items-center gap-1 shadow-sm cursor-pointer active:scale-95 transition-all"
+                  className="h-8 px-2.5 sm:px-3 rounded-full bg-amber-600 text-white dark:bg-[#FD9139] text-[11px] font-black flex items-center gap-1 shadow-sm cursor-pointer active:scale-95 transition-all"
                   title="Search across all Vrindavan kitchens"
                   aria-label="Search across all Vrindavan kitchens"
                 >
@@ -1713,7 +1711,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             {/* Radio Checkmark */}
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                               isSelected
-                                ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-stone-950 shadow-xs'
+                                ? 'bg-amber-600 dark:bg-[#FD9139] text-white shadow-xs'
                                 : 'border border-stone-300 dark:border-white/20 group-hover:border-stone-400 dark:group-hover:border-white/40'
                             }`}>
                               {isSelected && (
@@ -1803,7 +1801,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     setReviewOrderTarget(trackingOrder);
                     setIsReviewModalOpen(true);
                   }}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#FD9139] text-white dark:text-[#1E1B1C] font-black text-xs hover:bg-amber-600 dark:hover:bg-[#fca65e] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#FD9139] text-white font-black text-xs hover:bg-amber-600 dark:hover:bg-[#fca65e] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <Star className="w-3.5 h-3.5 fill-current" />
                   <span>Rate & Review</span>
@@ -1939,7 +1937,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
                       <ShoppingBag size={18} />
                     </div>
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
                       {cart.reduce((s, i) => s + i.quantity, 0)}
                     </span>
                   </div>
@@ -1966,7 +1964,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     e.stopPropagation();
                     setShowCartDrawer(true);
                   }}
-                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md flex-shrink-0 whitespace-nowrap active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <span>View Basket</span>
                   <ChevronRight size={14} strokeWidth={3} />
@@ -2241,11 +2239,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           <button
                             type="button"
                             onClick={() => setDetailQuantity(detailQuantity + 1)}
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
                             aria-label="Increase quantity"
                             title="Increase quantity"
                           >
-                            <Plus size={15} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
+                            <Plus size={15} strokeWidth={3.5} className="text-white stroke-current" />
                           </button>
                         </div>
 
@@ -2253,9 +2251,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={handleDetailAddToCart}
-                          className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
+                          className="flex-1 min-w-0 h-11 sm:h-12 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
                         >
-                          <ShoppingBag size={17} className="text-white dark:text-[#1E1B1C] flex-shrink-0" />
+                          <ShoppingBag size={17} className="text-white flex-shrink-0" />
                           <span className="text-xs sm:text-sm font-black whitespace-nowrap">
                             {inBasketQty > 0
                               ? (detailQuantity === inBasketQty
@@ -2263,7 +2261,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                                 : `Update Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`)
                               : `Add to Basket · ₹${(selectedDishDetails.price || 0) * detailQuantity}`}
                           </span>
-                          <ChevronRight size={14} strokeWidth={3} className="text-white dark:text-[#1E1B1C] flex-shrink-0" />
+                          <ChevronRight size={14} strokeWidth={3} className="text-white flex-shrink-0" />
                         </button>
                       </>
                     )}
@@ -2362,11 +2360,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-900 hover:bg-black dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] active:scale-90 flex items-center justify-center text-white dark:text-[#1E1B1C] cursor-pointer transition-all shadow-md apple-tap-target"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
                           aria-label="Increase quantity"
                           title="Increase quantity"
                         >
-                          <Plus size={14} strokeWidth={3.5} className="text-white dark:text-[#1E1B1C] stroke-current" />
+                          <Plus size={14} strokeWidth={3.5} className="text-white stroke-current" />
                         </button>
                       </div>
                     </div>
@@ -2441,15 +2439,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       type="button"
                       onClick={() => handleSetFulfillmentType('pickup')}
                       className={`py-2.5 px-2 sm:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer min-w-0 ${fulfillmentType === 'pickup'
-                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] font-black shadow-xs'
+                        ? 'bg-amber-600 text-white dark:bg-[#FD9139] font-black shadow-xs'
                         : 'text-stone-700 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                         }`}
                     >
                       <span className="text-sm">🛍️</span>
                       <span className="truncate whitespace-nowrap font-['Outfit'] font-black">Self-Pickup</span>
                       <span className={`text-[9px] sm:text-[9.5px] px-2 py-0.5 rounded-full font-black shrink-0 transition-all ${fulfillmentType === 'pickup'
-                        ? 'bg-white text-stone-950 dark:bg-black dark:text-[#FD9139] shadow-xs'
-                        : 'bg-emerald-500/20 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-500/20'
                         }`}>Free</span>
                     </button>
                   </div>
@@ -2624,11 +2622,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                             e.stopPropagation();
                             handleAutoFillLocation();
                           }}
-                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-[#1E1B1C] text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
+                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
                           title="Auto-fill GPS address or pin on map"
                         >
-                          <span className="w-4.5 h-4.5 rounded-full bg-white/20 dark:bg-black/15 flex items-center justify-center shrink-0">
-                            <Compass size={11} strokeWidth={2.8} className="text-white dark:text-[#1E1B1C]" />
+                          <span className="w-4.5 h-4.5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                            <Compass size={11} strokeWidth={2.8} className="text-white" />
                           </span>
                           <span>Auto-Fill GPS</span>
                         </button>
@@ -2746,22 +2744,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         !onlineAvailable
                           ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
                           : paymentMethod === 'online'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-[#121011] dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-white dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
                             : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
                           !onlineAvailable
                             ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
                             : paymentMethod === 'online'
-                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#FD9139]'
+                              ? 'bg-amber-600 text-white dark:bg-white/20 dark:text-white'
                               : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                         }`}>
                           <Zap size={19} className="stroke-[2.5]" />
                         </div>
                         {onlineAvailable && paymentMethod === 'online' && (
-                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#FD9139] flex items-center justify-center shadow-xs">
+                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-white/20 dark:text-white flex items-center justify-center">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
                         )}
@@ -2772,7 +2770,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !onlineAvailable
                             ? 'text-stone-400 dark:text-zinc-500'
                             : paymentMethod === 'online'
-                              ? 'text-stone-950 dark:text-[#121011]'
+                              ? 'text-stone-950 dark:text-white'
                               : 'text-stone-950 dark:text-white'
                         }`}>
                           Online Pay
@@ -2781,7 +2779,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !onlineAvailable
                             ? 'text-rose-600 dark:text-rose-400 font-semibold'
                             : paymentMethod === 'online'
-                              ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                              ? 'text-amber-800 dark:text-white/90 font-semibold'
                               : 'text-stone-600 dark:text-zinc-400'
                         }`}>
                           {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
@@ -2798,22 +2796,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         !isCodAvailableForOrder
                           ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
                           : paymentMethod === 'cash'
-                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-[#121011] dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
+                            ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-white dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
                             : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
                           !isCodAvailableForOrder
                             ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
                             : paymentMethod === 'cash'
-                              ? 'bg-amber-600 text-white dark:bg-black dark:text-[#FD9139]'
+                              ? 'bg-amber-600 text-white dark:bg-white/20 dark:text-white'
                               : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
                         }`}>
                           <Banknote size={19} className="stroke-[2.5]" />
                         </div>
                         {isCodAvailableForOrder && paymentMethod === 'cash' && (
-                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-black dark:text-[#FD9139] flex items-center justify-center shadow-xs">
+                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-white/20 dark:text-white flex items-center justify-center">
                             <Check size={14} strokeWidth={3.5} />
                           </div>
                         )}
@@ -2824,7 +2822,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !isCodAvailableForOrder
                             ? 'text-stone-400 dark:text-zinc-500'
                             : paymentMethod === 'cash'
-                              ? 'text-stone-950 dark:text-[#121011]'
+                              ? 'text-stone-950 dark:text-white'
                               : 'text-stone-950 dark:text-white'
                         }`}>
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
@@ -2833,7 +2831,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           !isCodAvailableForOrder
                             ? 'text-rose-600 dark:text-rose-400 font-semibold'
                             : paymentMethod === 'cash'
-                              ? 'text-amber-800 dark:text-[#121011]/85 font-semibold'
+                              ? 'text-amber-800 dark:text-white/90 font-semibold'
                               : 'text-stone-600 dark:text-zinc-400'
                         }`}>
                           {!isCodAvailableForOrder ? 'COD Disabled' : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
@@ -2859,7 +2857,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <button
                 onClick={handlePlaceOrder}
                 disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (isRetailShop && onlineRidersCount === 0)}
-                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+                className="w-full bg-[#FD9139] hover:bg-[#FCA65E] text-white disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
               >
                 <span className="font-black">
                   {!isShopOpen
@@ -2870,7 +2868,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ? 'Kitchen Payments Disabled'
                         : 'Proceed to Place Order'))}
                 </span>
-                <span className="px-3 py-1 rounded-full bg-stone-800 text-white dark:bg-[#1E1B1C] dark:text-[#FD9139] text-xs sm:text-sm font-black shadow-sm flex-shrink-0">
+                <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs sm:text-sm font-black flex-shrink-0">
                   ₹{totalAmount}
                 </span>
               </button>

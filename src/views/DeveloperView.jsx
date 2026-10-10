@@ -1091,6 +1091,7 @@ export default function DeveloperView({ setCurrentTab }) {
     });
     setToast({ message: `User "${targetName}" removed`, type: 'info' });
     await deleteCloudUser(targetId);
+    setUsersList(getCachedUsers());
   };
 
   const handleBlockUser = async (userId, userName) => {
@@ -1389,7 +1390,7 @@ export default function DeveloperView({ setCurrentTab }) {
               type="button"
               onClick={() => setActiveDevTab(tab.id)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer select-none active:scale-95 ${isActive
-                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-[#1E1B1C] shadow-sm font-black'
+                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-sm font-black'
                 : 'text-stone-700 dark:text-neutral-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-300/50 dark:hover:bg-white/5'
                 }`}
             >
@@ -1397,7 +1398,7 @@ export default function DeveloperView({ setCurrentTab }) {
               <span>{tab.label}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
                 <span className={`text-[11px] px-2 py-0.5 rounded-full font-black leading-none flex items-center justify-center min-w-[20px] font-['Outfit'] transition-colors ${isActive
-                  ? 'bg-stone-900 text-white dark:bg-[#1E1B1C] dark:text-[#FD9139] shadow-xs border border-white/10 dark:border-black/30'
+                  ? 'bg-white/20 text-white'
                   : 'bg-stone-300/80 text-stone-800 dark:bg-white/10 dark:text-neutral-300 border border-stone-300/60 dark:border-white/5'
                   }`}>
                   {tab.badge}
@@ -1461,8 +1462,8 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => setSelectedShopId(s.id)}
                             className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                              ? 'bg-amber-500/20 text-amber-900 border-amber-500/40 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/40 shadow-sm'
-                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              ? 'bg-amber-600 text-white border-transparent dark:bg-[#FD9139] dark:text-white shadow-sm font-black'
+                              : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 dark:bg-[#151314] dark:text-neutral-300 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                               }`}
                           >
                             {s.name}
@@ -1474,7 +1475,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <button
                     onClick={() => handleImpersonateShop(selectedShopId)}
                     disabled={!selectedShopId}
-                    className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
+                    className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
                   >
                     <ChefHat className="w-4 h-4" />
                     <span>Launch Kitchen Staff View</span>
@@ -1497,8 +1498,8 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => setSelectedDeliveryShopId(s.id)}
                             className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                              ? 'bg-cyan-500/20 text-cyan-900 border-cyan-500/40 dark:bg-cyan-400/20 dark:text-cyan-300 dark:border-cyan-400/40 shadow-sm'
-                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              ? 'bg-cyan-600 text-white border-transparent dark:bg-cyan-600 dark:text-white shadow-sm font-black'
+                              : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 dark:bg-[#151314] dark:text-neutral-300 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                               }`}
                           >
                             {s.name}
@@ -1510,7 +1511,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <button
                     onClick={() => handleImpersonateDelivery(selectedDeliveryShopId)}
                     disabled={!selectedDeliveryShopId}
-                    className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 dark:bg-cyan-400 dark:hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed text-stone-950 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
+                    className="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 mt-2 shadow-sm"
                   >
                     <Truck className="w-4 h-4" />
                     <span>Launch Sarathi Rider View</span>
@@ -1533,8 +1534,8 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => setSelectedOwnerShopId(s.id)}
                             className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-left cursor-pointer ${isSelected
-                              ? 'bg-purple-500/20 text-purple-900 border-purple-500/40 dark:bg-purple-400/20 dark:text-purple-300 dark:border-purple-400/40 shadow-sm'
-                              : 'bg-stone-200 hover:bg-stone-300 text-stone-800 hover:text-stone-950 border-stone-300 dark:bg-[#282526] dark:text-neutral-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
+                              ? 'bg-purple-600 text-white border-transparent dark:bg-purple-600 dark:text-white shadow-sm font-black'
+                              : 'bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border-stone-200 dark:bg-[#151314] dark:text-neutral-300 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'
                               }`}
                           >
                             {s.name}
@@ -1601,7 +1602,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       setIsCreatingShop(true);
                     }
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>{isCreatingShop ? (editingShop ? 'Close Edit' : 'Close Form') : 'Add Kitchen'}</span>
@@ -1627,7 +1628,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <button
                           type="button"
                           onClick={() => setNewShopType('hotel')}
-                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-[#FD9139]/15 dark:text-[#FD9139] dark:border-[#FD9139]/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
+                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'hotel' ? 'bg-amber-600 text-white border-transparent dark:bg-[#FD9139] dark:text-white font-black shadow-xs' : 'bg-stone-100 dark:bg-[#151314] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
                             }`}
                         >
                           Hotel / Restaurant
@@ -1635,7 +1636,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <button
                           type="button"
                           onClick={() => setNewShopType('shop')}
-                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-500/15 text-amber-900 border-amber-500/40 dark:bg-amber-400/15 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-200/60 dark:bg-black/20 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/5'
+                          className={`p-2 rounded-lg text-xs font-bold border text-left transition-all cursor-pointer ${newShopType === 'shop' ? 'bg-amber-600 text-white border-transparent dark:bg-[#FD9139] dark:text-white font-black shadow-xs' : 'bg-stone-100 dark:bg-[#151314] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/5'
                             }`}
                         >
                           Shop / Retail Stall
@@ -1774,7 +1775,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
                           {editingShop ? 'Update Kitchen' : 'Create Kitchen'}
                         </button>
@@ -1974,7 +1975,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     setToast({ message: `Seeded ${added} Master Presets to ${targetShop}!`, type: 'success' });
                     logActivity(`Seeded 24 Preset dishes to ${targetShop}`, 'success');
                   }}
-                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                   title="Seed all 24 curated WebP preset dishes to catalog"
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -1986,7 +1987,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     if (collapsedSections.dishes) setCollapsedSections(prev => ({ ...prev, dishes: false }));
                     setIsCreatingDish(!isCreatingDish);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-600 dark:hover:bg-cyan-500 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>{isCreatingDish ? 'Close Form' : 'Add Dish'}</span>
@@ -2149,7 +2150,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white dark:bg-cyan-400 dark:hover:bg-cyan-300 font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
                           Add Dish
                         </button>
@@ -2178,7 +2179,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         type="button"
                         onClick={() => setDishCategoryFilter(cat)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
-                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-black font-black shadow-sm'
+                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-white font-black shadow-sm'
                           : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
                           }`}
                       >
@@ -2281,7 +2282,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     if (collapsedSections.combos) setCollapsedSections(prev => ({ ...prev, combos: false }));
                     setIsCreatingCombo(!isCreatingCombo);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-500 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>{isCreatingCombo ? 'Close Form' : 'Build Combo'}</span>
@@ -2385,7 +2386,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
                           Publish Combo Pack
                         </button>
@@ -2495,7 +2496,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     if (collapsedSections.offers) setCollapsedSections(prev => ({ ...prev, offers: false }));
                     setIsCreatingOffer(!isCreatingOffer);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-500 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>{isCreatingOffer ? 'Close Form' : 'New Promo Code'}</span>
@@ -2609,7 +2610,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 dark:text-black font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-400 dark:hover:bg-emerald-300 font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
                         >
                           Create Promo Code
                         </button>
@@ -2804,7 +2805,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => setSelectedPaymentShopId(s.id)}
                             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-2 shrink-0 ${isSelected
-                              ? 'bg-amber-600 dark:bg-[#FD9139] text-white dark:text-black border-amber-600 dark:border-[#FD9139] font-black shadow-md'
+                              ? 'bg-amber-600 dark:bg-[#FD9139] text-white border-amber-600 dark:border-[#FD9139] font-black shadow-md'
                               : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-amber-500/30 dark:hover:border-white/20'
                               }`}
                           >
@@ -2835,7 +2836,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Online Payments (UPI/Cards)</p>
                                 {isGlobalOnlineOff && (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/20">
                                     Disabled Globally
                                   </span>
                                 )}
@@ -2869,7 +2870,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD)</p>
                                 {isGlobalCodOff && (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/20">
                                     Disabled Globally
                                   </span>
                                 )}
@@ -2952,7 +2953,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="button"
                           onClick={() => handleSimShopChange(s.id)}
                           className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 cursor-pointer shrink-0 select-none ${isSelected
-                            ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] shadow-md font-black'
+                            ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:border-[#FD9139] shadow-md font-black'
                             : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                             }`}
                         >
@@ -3065,7 +3066,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   type="submit"
                   disabled={simMenuItems.length === 0 || isSimulating}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-30 disabled:pointer-events-none text-white dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-30 disabled:pointer-events-none text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>{isSimulating ? 'Creating Order...' : 'Dispatch Simulated Order (Bypass Payment)'}</span>
@@ -3117,7 +3118,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     if (collapsedSections.users) setCollapsedSections(prev => ({ ...prev, users: false }));
                     setIsCreatingUser(!isCreatingUser);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">{isCreatingUser ? 'Close Form' : 'Add Staff'}</span>
@@ -3365,7 +3366,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           <div className="flex items-end">
                             <button
                               type="submit"
-                              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider cursor-pointer shadow-md"
                             >
                               Save User
                             </button>
@@ -3402,13 +3403,13 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={f.id}
                               onClick={() => setUserRoleFilter(f.id)}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${isActive
-                                ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:text-black dark:border-[#FD9139] font-black shadow-sm'
+                                ? 'bg-amber-600 text-white border-amber-600 dark:bg-[#FD9139] dark:border-[#FD9139] font-black shadow-sm'
                                 : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 border-stone-200 dark:border-white/10 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
                                 }`}
                             >
                               <span>{f.label}</span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-black tracking-wide ${isActive
-                                ? 'bg-white text-stone-900 dark:bg-black dark:text-[#FD9139] shadow-xs'
+                                ? 'bg-white/20 text-white'
                                 : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300'
                                 }`}>
                                 {f.count}
@@ -3789,8 +3790,8 @@ export default function DeveloperView({ setCurrentTab }) {
 
               <div className="flex items-center gap-2 shrink-0 ml-2">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border hidden sm:inline-flex items-center gap-1.5 ${audioUnlocked
-                  ? 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30 dark:bg-emerald-400/20 dark:text-emerald-300 dark:border-emerald-400/30'
-                  : 'bg-amber-500/15 text-amber-800 border-amber-500/30 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30'
+                  ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-700 border-amber-500/20 dark:bg-[#FD9139]/15 dark:text-[#FD9139] dark:border-[#FD9139]/20'
                   }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${audioUnlocked ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-amber-600 dark:bg-amber-400'}`} />
                   <span>{audioUnlocked ? 'Active' : 'Standby'}</span>
@@ -3812,7 +3813,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     {!audioUnlocked && (
                       <button
                         onClick={warmUpAudio}
-                        className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:text-black dark:hover:bg-[#fca65e] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
+                        className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] font-black text-xs uppercase tracking-wider active:scale-95 cursor-pointer shadow-sm transition-all"
                       >
                         Unlock Audio
                       </button>
@@ -3845,38 +3846,46 @@ export default function DeveloperView({ setCurrentTab }) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <button
                     onClick={() => playRoleAlarm('kitchen', { title: 'TEST KITCHEN SIREN', orderId: 'ord-test-kitchen' }, true)}
-                    className="py-3 px-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 dark:bg-amber-400/20 dark:hover:bg-amber-400/30 dark:text-amber-300 dark:border-amber-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="py-3.5 px-3 rounded-2xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs group"
                   >
-                    <ChefHat className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                    <span className="font-['Outfit']">Kitchen Siren</span>
-                    <span className="text-[9px] text-amber-800/80 dark:text-amber-400/70 font-medium">880/1174Hz Urgent Loop</span>
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ChefHat className="w-4 h-4" />
+                    </div>
+                    <span className="font-['Outfit'] font-bold text-xs text-stone-900 dark:text-white">Kitchen Siren</span>
+                    <span className="text-[9px] text-stone-500 dark:text-neutral-400 font-medium">880/1174Hz Urgent Loop</span>
                   </button>
 
                   <button
                     onClick={() => playRoleAlarm('delivery', { title: 'TEST SARATHI CHIME', orderId: 'ord-test-deliv' }, true)}
-                    className="py-3 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-900 border border-cyan-500/30 dark:bg-cyan-400/20 dark:hover:bg-cyan-400/30 dark:text-cyan-300 dark:border-cyan-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="py-3.5 px-3 rounded-2xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 hover:border-cyan-500/40 dark:hover:border-cyan-400/40 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs group"
                   >
-                    <Truck className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
-                    <span className="font-['Outfit']">Sarathi Chime</span>
-                    <span className="text-[9px] text-cyan-800/80 dark:text-cyan-400/70 font-medium">3-Tone Ascending Ping</span>
+                    <div className="w-8 h-8 rounded-xl bg-cyan-500/10 dark:bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Truck className="w-4 h-4" />
+                    </div>
+                    <span className="font-['Outfit'] font-bold text-xs text-stone-900 dark:text-white">Sarathi Chime</span>
+                    <span className="text-[9px] text-stone-500 dark:text-neutral-400 font-medium">3-Tone Ascending Ping</span>
                   </button>
 
                   <button
                     onClick={() => playRoleAlarm('owner', { title: 'TEST ADMIN PING', orderId: 'ord-test-admin' }, false)}
-                    className="py-3 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-900 border border-purple-500/30 dark:bg-[#FD9139]/20 dark:hover:bg-[#FD9139]/30 dark:text-[#FD9139] dark:border-[#FD9139]/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="py-3.5 px-3 rounded-2xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 hover:border-[#FD9139]/40 dark:hover:border-[#FD9139]/40 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs group"
                   >
-                    <ShieldCheck className="w-4 h-4 text-purple-700 dark:text-[#FD9139]" />
-                    <span className="font-['Outfit']">Admin Bell</span>
-                    <span className="text-[9px] text-purple-800/80 dark:text-[#FD9139]/70 font-medium">Resonant Executive Ping</span>
+                    <div className="w-8 h-8 rounded-xl bg-[#FD9139]/10 dark:bg-[#FD9139]/15 text-[#FD9139] flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <span className="font-['Outfit'] font-bold text-xs text-stone-900 dark:text-white">Admin Bell</span>
+                    <span className="text-[9px] text-stone-500 dark:text-neutral-400 font-medium">Resonant Executive Ping</span>
                   </button>
 
                   <button
                     onClick={() => playRoleAlarm('customer', { title: 'TEST PRASAD CHIME', orderId: 'ord-test-cust' }, false)}
-                    className="py-3 px-3 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-900 border border-emerald-500/30 dark:bg-emerald-400/20 dark:hover:bg-emerald-400/30 dark:text-emerald-300 dark:border-emerald-400/30 font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                    className="py-3.5 px-3 rounded-2xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-400/40 flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs group"
                   >
-                    <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                    <span className="font-['Outfit']">Prasad Blessing</span>
-                    <span className="text-[9px] text-emerald-800/80 dark:text-emerald-400/70 font-medium">528Hz Solfeggio Chime</span>
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <span className="font-['Outfit'] font-bold text-xs text-stone-900 dark:text-white">Prasad Blessing</span>
+                    <span className="text-[9px] text-stone-500 dark:text-neutral-400 font-medium">528Hz Solfeggio Chime</span>
                   </button>
                 </div>
               </div>
@@ -3996,7 +4005,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <button
                     type="submit"
                     disabled={isPublishingRelease}
-                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:text-black dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     {isPublishingRelease ? 'Publishing to Cloud...' : 'Publish Update to All Devices'}
                   </button>
@@ -4163,7 +4172,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   handleQuickImpersonateUser(selectedUserDetail);
                   setSelectedUserDetail(null);
                 }}
-                className="flex-1 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] dark:text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
+                className="flex-1 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer font-['Outfit']"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Switch to this User View</span>

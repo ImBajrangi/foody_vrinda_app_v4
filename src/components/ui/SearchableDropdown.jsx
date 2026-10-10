@@ -311,15 +311,15 @@ export default function SearchableDropdown({
                         onClick={() => handleSelect(opt.value)}
                         className={`w-full flex items-center justify-between px-3 py-2.5 sm:px-2.5 sm:py-2 rounded-xl text-xs font-semibold transition-colors duration-100 ease-out text-left cursor-pointer group select-none active:scale-[0.99] ${
                           isSelected
-                            ? 'bg-amber-500/10 text-stone-950 dark:bg-[#FD9139]/15 dark:text-[#FD9139] font-bold'
-                            : 'text-stone-800 dark:text-neutral-200 hover:bg-stone-100 dark:hover:bg-white/[0.08] hover:text-stone-950 dark:hover:text-white'
+                            ? 'bg-amber-500/[0.08] dark:bg-[#FD9139]/15 border border-amber-500/35 dark:border-[#FD9139]/30 text-stone-950 dark:text-[#FD9139] font-bold shadow-2xs'
+                            : 'border border-transparent text-stone-800 dark:text-neutral-200 hover:bg-stone-100 dark:hover:bg-white/[0.08] hover:text-stone-950 dark:hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           {ItemIcon && (
                             <div className={`shrink-0 flex items-center justify-center w-7 h-7 sm:w-5 sm:h-5 rounded-lg ${
                               isSelected
-                                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-black shadow-xs'
+                                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white shadow-xs'
                                 : 'bg-stone-200/80 dark:bg-white/10 text-stone-600 dark:text-neutral-400 group-hover:text-stone-950 dark:group-hover:text-white'
                             }`}>
                               {renderIcon(ItemIcon, "w-4 h-4 sm:w-3 sm:h-3")}
@@ -327,7 +327,9 @@ export default function SearchableDropdown({
                           )}
                           <div className="min-w-0 flex-1 truncate">
                             <div className="truncate flex items-center gap-1.5">
-                              <span className={isSelected ? 'font-bold' : 'font-medium'}>{opt.label}</span>
+                              <span className={`truncate ${isSelected ? 'font-bold text-stone-950 dark:text-[#FD9139]' : 'font-medium text-stone-800 dark:text-neutral-200'}`}>
+                                {opt.label}
+                              </span>
                               {opt.badge && (
                                 <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded shrink-0 ${
                                   opt.badgeColor || 'bg-stone-100 text-stone-600 dark:bg-white/10 dark:text-neutral-300 border border-stone-200/60 dark:border-white/5'
@@ -337,7 +339,9 @@ export default function SearchableDropdown({
                               )}
                             </div>
                             {opt.sublabel && (
-                              <p className="text-[10px] text-stone-500 dark:text-neutral-400 font-normal truncate mt-0.5">
+                              <p className={`text-[10px] font-normal truncate mt-0.5 ${
+                                isSelected ? 'text-stone-600 dark:text-neutral-300' : 'text-stone-500 dark:text-neutral-400'
+                              }`}>
                                 {opt.sublabel}
                               </p>
                             )}

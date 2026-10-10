@@ -273,7 +273,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
               </div>
             </div>
             {phone.length === 10 && (
-              <span className="w-5 h-5 rounded-full bg-emerald-500 dark:bg-[#FD9139] text-white dark:text-black flex items-center justify-center animate-scale-up shrink-0 shadow-sm font-black">
+              <span className="w-5 h-5 rounded-full bg-emerald-500 dark:bg-[#FD9139] text-white flex items-center justify-center animate-scale-up shrink-0 shadow-sm font-black">
                 <Check size={12} strokeWidth={3.5} />
               </span>
             )}
@@ -380,7 +380,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full h-11 px-4 rounded-full bg-[#D4F420] dark:bg-[#FD9139] hover:bg-[#c2e415] dark:hover:bg-[#D4FF00] text-stone-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md shadow-lime-500/20 dark:shadow-[0_4px_18px_rgba(253, 145, 57,0.25)]"
+              className="w-full h-11 px-4 rounded-full bg-[#D4F420] dark:bg-[#FD9139] hover:bg-[#c2e415] dark:hover:bg-[#D4FF00] text-stone-900 dark:text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 font-['Outfit'] shadow-md shadow-lime-500/20 dark:shadow-[0_4px_18px_rgba(253, 145, 57,0.25)]"
             >
               <span>{isSaving ? 'Saving details...' : 'Save & Continue'}</span>
               <ArrowRight size={14} className="stroke-[2.5]" />

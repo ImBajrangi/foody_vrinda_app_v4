@@ -50,11 +50,13 @@ export async function updateUserTrustScore(userId, changeAmount, reason = '') {
 
   // Mirror to user profile cache & Supabase
   try {
-    await updateCloudUser(cleanId, {
-      trustScore: newScore,
-      cibilScore: newScore,
-      trust_score: newScore
-    });
+    if (!cleanId.startsWith('chef_shop-')) {
+      await updateCloudUser(cleanId, {
+        trustScore: newScore,
+        cibilScore: newScore,
+        trust_score: newScore
+      });
+    }
   } catch (e) { }
 
   dispatchSafeEvent('foody_trust_score_changed', { userId: cleanId, score: newScore, change: changeAmount, reason });

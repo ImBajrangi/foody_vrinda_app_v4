@@ -712,7 +712,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                               onClick={(e) => handleDirectAddToCart(e, item)}
                               className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
                                 isAdded 
-                                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-black' 
+                                  ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white font-black' 
                                   : 'bg-[#FD9139] hover:bg-[#FCA65E] text-white'
                               }`}
                               title="Quick add to basket"

@@ -114,10 +114,9 @@ export async function recordMultiStaffReview({
   const nowIso = new Date().toISOString();
 
   // 1. Award / Deduct CIBIL Points for Chef
-  if (chefId || shopId) {
-    const chefTarget = chefId || `chef_${shopId}`;
+  if (chefId && !String(chefId).startsWith('chef_shop-')) {
     const chefPoints = chefRating >= 4 ? (chefRating === 5 ? 12 : 6) : -15;
-    await updateUserTrustScore(chefTarget, chefPoints, `Customer Food Review (${chefRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
+    await updateUserTrustScore(chefId, chefPoints, `Customer Food Review (${chefRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
   }
 
   // 2. Award / Deduct CIBIL Points for Delivery Sarathi

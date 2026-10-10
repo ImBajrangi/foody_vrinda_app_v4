@@ -617,12 +617,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     const effectiveDisplayRole = actualRole || userData?.role || userRole;
                     const isMasterAdmin = effectiveDisplayRole === 'grand_admin' || isGrandAdmin;
                     return (
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-sm ${isMasterAdmin ? 'bg-amber-500/20 text-amber-900 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-500/40 dark:border-amber-400/40' :
-                        effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30' :
-                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30' :
-                            effectiveDisplayRole === 'owner' ? 'bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-500/30' :
-                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30' :
-                                'bg-emerald-500/15 text-emerald-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-emerald-500/30 dark:border-[#FD9139]/30'
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${isMasterAdmin ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/30' :
+                        effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20' :
+                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/20' :
+                            effectiveDisplayRole === 'owner' ? 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 border border-purple-500/20' :
+                              effectiveDisplayRole === 'developer' ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/30' :
+                                'bg-emerald-500/10 text-emerald-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-emerald-500/20 dark:border-[#FD9139]/30'
                         }`}>
                         {isMasterAdmin ? 'Grand Admin' :
                           effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
@@ -670,7 +670,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="button"
                       onClick={handleSaveName}
                       disabled={!nameInput.trim()}
-                      className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                      className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
                     >
                       <Check className="w-4 h-4 stroke-[3]" />
                       <span>Save Name</span>
@@ -720,7 +720,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         type="button"
                         onClick={handleSavePhone}
                         disabled={phoneEditInput.length < 10}
-                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
+                        className="h-10 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 flex items-center gap-1.5"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>Save Phone</span>
@@ -819,7 +819,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         type="button"
                         onClick={handleSaveAddress}
                         disabled={!addressInput.trim()}
-                        className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white dark:text-black font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                        className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>Save Address</span>
@@ -1166,7 +1166,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           if (s.step < signupStep) setSignupStep(s.step);
                         }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-['Outfit'] transition-all ${signupStep === s.step
-                          ? 'bg-amber-500 dark:bg-[#FD9139] text-white dark:text-black shadow-md scale-105'
+                          ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-md scale-105'
                           : signupStep > s.step
                             ? 'bg-amber-500/20 text-amber-800 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 cursor-pointer'
                             : 'bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-zinc-500 border border-stone-300 dark:border-white/5'
@@ -1217,7 +1217,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 <button
                   type="submit"
                   disabled={loading || phoneInput.length < 10}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
                 >
                   <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1425,7 +1425,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     type={isSignup && signupStep < 3 ? "button" : "submit"}
                     onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
                     disabled={loading}
-                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-[#1E1B1C] font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
+                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
                   >
                     <span>
                       {loading
