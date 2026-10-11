@@ -2877,29 +2877,37 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* 4. Translucent Containers & Secondary Buttons in Light Mode */
-.light [class*="bg-white/5"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
-.light [class*="bg-white/10"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
-.light [class*="bg-white/15"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
-.light [class*="bg-white/20"]:not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *) {
+.light [class*="bg-white/5"]:not([class*="dark:"]):not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/10"]:not([class*="dark:"]):not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/15"]:not([class*="dark:"]):not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *),
+.light [class*="bg-white/20"]:not([class*="dark:"]):not(button):not(a):not(button *):not([role="button"] *):not(.preserve-dark):not(.preserve-dark *) {
   background-color: #F4EFE8 !important;
   border-color: rgba(28, 25, 23, 0.08) !important;
   color: #181617 !important;
 }
 
-.light button[class*="bg-white/5"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
-.light button[class*="bg-white/10"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
-.light a[class*="bg-white/5"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
-.light a[class*="bg-white/10"]:not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *) {
+.light button[class*="bg-white/5"]:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light button[class*="bg-white/10"]:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light a[class*="bg-white/5"]:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *),
+.light a[class*="bg-white/10"]:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.btn-dark *):not(.preserve-dark):not(.preserve-dark *) {
   background-color: #F4EFE8 !important;
   color: #181617 !important;
   border-color: rgba(28, 25, 23, 0.1) !important;
   font-weight: 700 !important;
 }
 
-.light button[class*="bg-white/5"]:hover:not(.preserve-dark):not(.preserve-dark *),
-.light button[class*="bg-white/10"]:hover:not(.preserve-dark):not(.preserve-dark *) {
+.light button[class*="bg-white/5"]:hover:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.preserve-dark):not(.preserve-dark *),
+.light button[class*="bg-white/10"]:hover:not([class*="dark:"]):not(.bg-transparent):not([class*="bg-transparent"]):not(.preserve-dark):not(.preserve-dark *) {
   background-color: #ECE5DC !important;
   color: #000000 !important;
+}
+
+/* Stepper Segments & Transparent Buttons: Zero unwanted color divisions */
+.light button.bg-transparent,
+.light button[class*="bg-transparent"],
+.light .stepper-capsule button,
+.light [class*="rounded-full"] button[class*="bg-transparent"] {
+  background-color: transparent !important;
 }
 
 /* 5. Primary Action Buttons & Capsules */

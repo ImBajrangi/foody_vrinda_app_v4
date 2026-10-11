@@ -762,19 +762,25 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
 
                             {/* Quantity Stepper + Add Button */}
                             <div className="flex items-center justify-between gap-3 pt-1">
-                              <div className="flex items-center bg-white dark:bg-[#282526] rounded-full border border-stone-200 dark:border-white/10 h-9">
+                              <div className="flex items-center bg-stone-100 dark:bg-[#282526] rounded-full border border-stone-200/80 dark:border-white/10 h-9 overflow-hidden">
                                 <button
+                                  type="button"
                                   onClick={(e) => { e.stopPropagation(); setDishQty(q => Math.max(1, q - 1)); }}
-                                  className="w-9 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 rounded-l-full cursor-pointer"
+                                  className="w-9 h-full flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10 rounded-l-full cursor-pointer transition-colors active:bg-black/10"
+                                  title="Decrease quantity"
+                                  aria-label="Decrease quantity"
                                 >
-                                  <Minus size={13} />
+                                  <Minus size={13} strokeWidth={2.5} />
                                 </button>
-                                <span className="w-7 text-center text-xs font-black text-stone-900 dark:text-white">{dishQty}</span>
+                                <span className="w-7 text-center text-xs font-black text-stone-900 dark:text-white bg-transparent select-none font-['Outfit']">{dishQty}</span>
                                 <button
+                                  type="button"
                                   onClick={(e) => { e.stopPropagation(); setDishQty(q => Math.min(10, q + 1)); }}
-                                  className="w-9 h-full flex items-center justify-center text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 rounded-r-full cursor-pointer"
+                                  className="w-9 h-full flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10 rounded-r-full cursor-pointer transition-colors active:bg-black/10"
+                                  title="Increase quantity"
+                                  aria-label="Increase quantity"
                                 >
-                                  <Plus size={13} />
+                                  <Plus size={13} strokeWidth={2.5} />
                                 </button>
                               </div>
 
