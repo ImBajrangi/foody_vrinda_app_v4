@@ -3118,6 +3118,21 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
                 <button
                   type="button"
+                  onClick={() => {
+                    try {
+                      sessionStorage.removeItem('fv_splash_viewed');
+                    } catch (_) {}
+                    window.dispatchEvent(new CustomEvent('foody:show-splash'));
+                  }}
+                  title="Play the pure-vector animated brand splash screen"
+                  className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-[#FD9139] font-bold text-xs border border-amber-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Splash</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleRestoreDefaultAccounts}
                   title="Restore default developer, owner, chef and delivery accounts"
                   className="px-3 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 hover:text-stone-900 dark:hover:text-white font-bold text-xs border border-stone-300 dark:border-white/10 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"

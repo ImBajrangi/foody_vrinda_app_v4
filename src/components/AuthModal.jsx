@@ -1064,9 +1064,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     }}
                     className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group text-left"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 text-amber-500 dark:text-[#FD9139] flex items-center justify-center shrink-0">
-                        <Download className="w-4 h-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl overflow-hidden bg-gradient-to-tr from-[#FF751F] to-[#FD9139] p-[1.5px] shadow-xs shrink-0 flex items-center justify-center">
+                        <img 
+                          src="/foody-vrinda-logo.webp" 
+                          alt="Foody Vrinda" 
+                          className="w-full h-full object-cover rounded-[9px]"
+                        />
                       </div>
                       <div className="flex flex-col text-left">
                         <span>Install Foody Vrinda App</span>

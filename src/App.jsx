@@ -40,6 +40,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+import AnimatedSplashScreen from './components/AnimatedSplashScreen';
 
 export default function App() {
 
@@ -114,6 +115,15 @@ export default function App() {
   }, [currentTab]);
 
   // Modals Visibility
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      const viewed = sessionStorage.getItem('fv_splash_viewed');
+      return !viewed;
+    } catch (_) {
+      return true;
+    }
+  });
+
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState('login');
   const [isCompleteProfileOpen, setIsCompleteProfileOpen] = useState(false);
@@ -128,6 +138,11 @@ export default function App() {
   const [tutorialPanel, setTutorialPanel] = useState(null);
 
   useEffect(() => {
+    const handleReplaySplash = () => {
+      setShowSplash(true);
+    };
+    window.addEventListener('foody:show-splash', handleReplaySplash);
+
     const handleOpenSearch = (e) => {
       setSearchInitialQuery(e?.detail?.query || '');
       setIsSearchOpen(true);
@@ -144,6 +159,7 @@ export default function App() {
     window.addEventListener('foody:open-rewards', handleOpenRewards);
     window.addEventListener('foody:open-install-app', handleOpenInstall);
     return () => {
+      window.removeEventListener('foody:show-splash', handleReplaySplash);
       window.removeEventListener('foody:open-search', handleOpenSearch);
       window.removeEventListener('foody_open_rewards', handleOpenRewards);
       window.removeEventListener('foody:open-rewards', handleOpenRewards);
@@ -477,8 +493,17 @@ export default function App() {
   }, []);
 
   return (
-    <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
-      <Header 
+    <>
+      {/* Interactive Pure-Vector Animated Splash Screen (Zero-load, 60fps, tap to dismiss) */}
+      {showSplash && (
+        <AnimatedSplashScreen
+          onFinish={() => setShowSplash(false)}
+          autoDismiss={true}
+        />
+      )}
+
+      <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
+        <Header 
         audioUnlocked={audioUnlocked}
         enableAudio={enableAudio}
         onToggleSearch={() => setIsSearchOpen(!isSearchOpen)}
@@ -629,5 +654,6 @@ export default function App() {
         )}
       </Suspense>
     </div>
-  );
+  </>
+);
 }

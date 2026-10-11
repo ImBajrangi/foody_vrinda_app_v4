@@ -178,7 +178,7 @@ export default function Header({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
               {/* Instagram-Style Story Animated Ring Avatar Button */}
               <div className="relative shrink-0">
                 <button 
@@ -247,23 +247,23 @@ export default function Header({
               
               <button 
                 onClick={handleProfileClick}
-                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target bg-transparent shadow-none border-0 focus:outline-none focus:shadow-none"
+                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target bg-transparent shadow-none border-0 focus:outline-none focus:shadow-none flex flex-col justify-center gap-1.5 sm:gap-2 py-1"
                 title={isAuthenticated ? "Profile & Settings" : "Sign in / Register"}
                 aria-label="Open Profile and Settings"
               >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs font-bold text-amber-700 dark:text-[#FD9139] font-laila tracking-wide shrink-0">
+                <div className="flex items-center gap-1.5 min-w-0 leading-none">
+                  <span className="text-[11.5px] sm:text-xs font-bold text-amber-600 dark:text-[#FD9139] font-laila tracking-wide shrink-0 leading-none">
                     वृन्दोपनिषद्
                   </span>
-                  <span className="text-stone-400 dark:text-zinc-600 text-[10px] shrink-0">•</span>
-                  <span className="text-[11px] font-semibold text-stone-500 dark:text-zinc-400 truncate">
+                  <span className="text-stone-400 dark:text-zinc-500 text-[9px] sm:text-[10px] shrink-0 leading-none select-none">•</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-stone-500 dark:text-zinc-400 truncate leading-none">
                     {getLocationLabel()}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors flex items-center">
+                <div className="flex items-center min-w-0 leading-none pt-0.5">
+                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors flex items-center leading-none">
                     {getDisplayName() === 'Foody Vrinda' ? (
-                      <FoodyVrindaWordmark className="h-[12px] sm:h-[14px] w-auto inline-block text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139]" />
+                      <FoodyVrindaWordmark className="h-[13.5px] sm:h-[15.5px] w-auto inline-block text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139]" />
                     ) : (
                       getDisplayName()
                     )}
@@ -369,12 +369,22 @@ export default function Header({
               {!Capacitor.isNativePlatform() && (
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('foody:open-install-app'))}
-                  className="h-9 w-9 sm:w-auto px-0 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center sm:justify-start gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                  className="group relative h-9 w-9 sm:w-auto p-1 sm:pl-1.5 sm:pr-3 rounded-[12px] sm:rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/30 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-[#FD9139]/50 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center sm:justify-start gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs hover:shadow-sm cursor-pointer apple-tap-target shrink-0 active:scale-95"
                   title="Install Foody Vrinda App"
-                  aria-label="Install App"
+                  aria-label="Install Foody Vrinda App"
                 >
-                  <Download size={14} className="text-[#FD9139]" />
-                  <span className="text-[11px] font-black hidden sm:inline">Install</span>
+                  {/* Official Foody Vrinda App Icon */}
+                  <div className="w-7 h-7 sm:w-6 sm:h-6 rounded-[8px] sm:rounded-[6px] overflow-hidden bg-gradient-to-tr from-[#FF751F] to-[#FD9139] p-[1px] shadow-xs shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
+                    <img 
+                      src="/foody-vrinda-logo.webp" 
+                      alt="Foody Vrinda App" 
+                      className="w-full h-full object-cover rounded-[7px] sm:rounded-[5px]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[11.5px] font-black tracking-tight font-outfit text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors leading-none hidden sm:inline">
+                    Get App
+                  </span>
                 </button>
               )}
               <button
@@ -393,12 +403,24 @@ export default function Header({
               {!Capacitor.isNativePlatform() && (
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('foody:open-install-app'))}
-                  className="hidden lg:flex h-9 px-2.5 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                  className="hidden lg:flex group relative h-9 pl-1.5 pr-2.5 sm:pr-3 rounded-full bg-white/95 dark:bg-[#282526] border border-amber-500/30 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-[#FD9139]/50 hover:bg-amber-50/50 dark:hover:bg-[#322E30] items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs hover:shadow-sm cursor-pointer apple-tap-target shrink-0 active:scale-95"
                   title="Install Foody Vrinda App"
-                  aria-label="Install App"
+                  aria-label="Install Foody Vrinda App"
                 >
-                  <Download size={14} className="text-[#FD9139]" />
-                  <span className="text-[11px] font-black">Install</span>
+                  <div className="w-6 h-6 rounded-[7px] overflow-hidden bg-gradient-to-tr from-[#FF751F] to-[#FD9139] p-[1px] shadow-xs shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
+                    <img 
+                      src="/foody-vrinda-logo.webp" 
+                      alt="App Icon" 
+                      className="w-full h-full object-cover rounded-[6px]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[11.5px] font-black tracking-tight font-outfit text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors leading-none">
+                    Get App
+                  </span>
+                  <span className="text-[8.5px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/20 dark:text-[#FD9139] leading-none shrink-0 border border-amber-500/25">
+                    Free
+                  </span>
                 </button>
               )}
 

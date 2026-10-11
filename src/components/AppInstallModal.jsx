@@ -61,8 +61,12 @@ export default function AppInstallModal({ isOpen, onClose }) {
         {/* Header Ribbon & Close Button */}
         <div className="px-5 py-4 flex items-center justify-between select-none shrink-0 bg-[#FAF7F2] dark:bg-[#1E1B1C]">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0 shadow-xs">
-              <Smartphone className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF751F] to-[#FD9139] p-[1.5px] shadow-md shrink-0 flex items-center justify-center">
+              <img 
+                src="/foody-vrinda-logo.webp" 
+                alt="Foody Vrinda App" 
+                className="w-full h-full object-cover rounded-[14px]"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -70,11 +74,11 @@ export default function AppInstallModal({ isOpen, onClose }) {
                   Install Foody Vrinda
                 </h3>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
-                  Latest Build
+                  v1.1.6 · Latest
                 </span>
               </div>
               <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5 truncate font-['Plus_Jakarta_Sans'] font-medium">
-                Fastest experience, instant updates & alerts
+                Temple Kitchens of Sri Dham Vrindavan
               </p>
             </div>
           </div>
@@ -140,8 +144,8 @@ export default function AppInstallModal({ isOpen, onClose }) {
               <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200">
                 Android APK Package
               </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-zinc-300">
-                20.2 MB · v1.1.4
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:bg-[#FD9139]/20 dark:text-[#FD9139] border border-amber-500/30">
+                v1.1.6 (Build 17) · Official APK
               </span>
             </div>
             <p className="text-xs text-stone-600 dark:text-zinc-300">
@@ -151,11 +155,11 @@ export default function AppInstallModal({ isOpen, onClose }) {
               type="button"
               onClick={handleApkDownload}
               disabled={downloading}
-              className={`w-full py-2.5 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer font-['Outfit'] ${downloadSuccess
+              className={`w-full py-3 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer font-['Outfit'] ${downloadSuccess
                   ? 'bg-emerald-600 text-white'
                   : downloading
                     ? 'bg-amber-400 text-white animate-pulse'
-                    : 'bg-stone-900 hover:bg-stone-800 text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-stone-800 dark:border-white/15'
+                    : 'bg-[#FD9139] hover:bg-[#FCA65E] text-white shadow-amber-500/25 border-b-[3px] border-[#D6590E] active:border-b-0'
                 }`}
             >
               {downloadSuccess ? (
