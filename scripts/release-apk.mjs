@@ -135,11 +135,11 @@ async function main() {
 
   log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Clean Apple flat UI in bright theme: completely eliminated all muddy drop-shadows and blur artifacts.',
-    'Unified quantity stepper capsule with seamless single-tone styling (zero color discrepancy across segments).',
-    'Optimized button icon contrast and submit state visibility across light and dark themes.',
-    'Prevented header title and subtitle clipping on mobile viewports.',
-    'Enhanced performance, smooth 120fps touch interactions, and zero layout shift.'
+    'Interactive Foody Vrinda Mascot animation system with 4 emotional states (Idle, Happy, Sad, Delivery).',
+    'High-performance 60fps pure vector splash screen with native Capacitor cold-start sync.',
+    'Integrated mascot reactions into order delivery tracking and empty cart view.',
+    'Redesigned app install button & enhanced touch padding across all mobile views.',
+    'Optimized performance with zero layout shift (CLS) and smooth 120fps physics.'
   ];
 
   const releasePayload = {
