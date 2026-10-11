@@ -108,9 +108,9 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   let destLat = parseFloat(rawDest?.lat);
   let destLng = parseFloat(rawDest?.lng);
 
-  if (isNaN(destLat) || isNaN(destLng) || (Math.abs(destLat - shopLat) < 0.004 && Math.abs(destLng - shopLng) < 0.004)) {
-    destLat = shopLat + 0.0135;
-    destLng = shopLng + 0.0098;
+  if (isNaN(destLat) || isNaN(destLng) || (destLat === 0 && destLng === 0) || (Math.abs(destLat - shopLat) < 0.0005 && Math.abs(destLng - shopLng) < 0.0005)) {
+    destLat = shopLat + 0.0095;
+    destLng = shopLng + 0.0075;
   }
 
   const midLat = (shopLat + destLat) / 2;
@@ -278,8 +278,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       group.addLayer(riderMarker);
     }
 
-    // 5. Continuous Route Polyline & Upper Parabolic Arc Walking Pedestrian Connectors (Uber Style)
-    const generateWalkingPath = (start, end, curvature = 0.32) => {
+    // 5. Direct Walking Connector: Guarantees dots always travel straight from road edge directly into pins
+    const generateWalkingPath = (start, end) => {
       if (!start || !end) return [];
       const [lat1, lng1] = start;
       const [lat2, lng2] = end;
@@ -289,34 +289,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       const dist = Math.hypot(dLat, dLng);
       if (dist === 0) return [start, end];
 
-      // Midpoint
-      const midLat = (lat1 + lat2) / 2;
-      const midLng = (lng1 + lng2) / 2;
-
-      // Perpendicular normal vector (-dLng, dLat)
-      let normLat = -dLng / dist;
-      let normLng = dLat / dist;
-
-      // Force upper parabola orientation (crest arches towards positive latitude / upwards like Uber)
-      if (normLat < 0) {
-        normLat = -normLat;
-        normLng = -normLng;
-      }
-
-      // Calculate arc deflection
-      const arcHeight = dist * curvature;
-      const controlLat = midLat + normLat * arcHeight + (Math.abs(dLng) < 0.0002 ? arcHeight * 0.3 : 0);
-      const controlLng = midLng + normLng * arcHeight;
-
-      // Sample 24 quadratic Bézier points along the parabolic curve
+      // Sample points along direct trajectory so dashed dots animate cleanly into the pin
+      const steps = Math.min(24, Math.max(6, Math.round(dist * 1200)));
       const points = [];
-      const steps = 24;
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        const invT = 1 - t;
-        const lat = invT * invT * lat1 + 2 * invT * t * controlLat + t * t * lat2;
-        const lng = invT * invT * lng1 + 2 * invT * t * controlLng + t * t * lng2;
-        points.push([lat, lng]);
+        points.push([
+          lat1 + dLat * t,
+          lng1 + dLng * t
+        ]);
       }
       return points;
     };
@@ -354,7 +335,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     // Start Connector Casing (Kitchen -> Road Start Obsidian Beads)
     const startConnectorCasing = L.polyline([], {
       color: '#121011',
-      weight: 8.5,
+      weight: 6.5,
       dashArray: '1, 16',
       className: 'casing-parabolic-dots',
       opacity: 0.98,
@@ -378,7 +359,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     // Walking Connector Casing (Road End -> Doorstep Obsidian Beads)
     const walkingConnectorCasing = L.polyline([], {
       color: '#121011',
-      weight: 8.5,
+      weight: 6.5,
       dashArray: '1, 16',
       className: 'casing-parabolic-dots',
       opacity: 0.98,
@@ -489,7 +470,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           }
         }
       })
-      .catch(() => { });
+      .catch(() => {
+        currentRouteCoords = [[shopLat, shopLng], [destLat, destLng]];
+        roadCasing.setLatLngs(currentRouteCoords);
+        roadLine.setLatLngs(currentRouteCoords);
+        startConnectorCasing.setLatLngs([]);
+        startConnector.setLatLngs([]);
+        walkingConnectorCasing.setLatLngs([]);
+        walkingConnector.setLatLngs([]);
+      });
 
     // Click on map collapses the bottom sheet to peek mode
     map.on('click', () => {

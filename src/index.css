@@ -2374,7 +2374,8 @@ path.animated-delivery-route,
   stroke-linejoin: round !important;
   stroke-width: 3.5px !important;
   animation: flowRouteDash 0.75s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.75)) !important;
+  filter: none !important;
+  box-shadow: none !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2383,7 +2384,8 @@ html:not(.dark) .leaflet-pane path.animated-delivery-route,
 html:not(.dark) .leaflet-overlay-pane svg path.animated-delivery-route,
 html:not(.dark) .leaflet-interactive.animated-delivery-route {
   stroke: #E0FF33 !important;
-  filter: drop-shadow(0 0 4px rgba(224, 255, 51, 0.65)) !important;
+  filter: none !important;
+  box-shadow: none !important;
 }
 
 /* Animated Pedestrian Walking Dots (Road Drop-off -> Doorstep Pin) */
@@ -2397,7 +2399,7 @@ html:not(.dark) .leaflet-interactive.animated-delivery-route {
   }
 }
 
-/* 🌟 Casing Layer: 8.5px Obsidian Beads */
+/* 🌟 Casing Layer: Crisp Obsidian Ring */
 path.casing-parabolic-dots,
 .leaflet-pane path.casing-parabolic-dots,
 .leaflet-overlay-pane svg path.casing-parabolic-dots,
@@ -2406,14 +2408,15 @@ path.casing-parabolic-dots,
   stroke-dasharray: 1px 16px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
-  stroke-width: 8.5px !important;
+  stroke-width: 6.5px !important;
   opacity: 0.98 !important;
   animation: flowWalkingDots 1.15s linear infinite !important;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45)) !important;
+  filter: none !important;
+  box-shadow: none !important;
   will-change: stroke-dashoffset;
 }
 
-/* 🌟 Core Layer: 4.5px Glowing Circular Neon Beads */
+/* 🌟 Core Layer: Clean Circular Neon Beads (Zero Blur / Zero Shadows) */
 path.animated-walking-dots,
 .leaflet-pane path.animated-walking-dots,
 .leaflet-overlay-pane svg path.animated-walking-dots,
@@ -2424,7 +2427,8 @@ path.animated-walking-dots,
   stroke-linejoin: round !important;
   stroke-width: 4.5px !important;
   animation: flowWalkingDots 1.15s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.85)) !important;
+  filter: none !important;
+  box-shadow: none !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2433,7 +2437,8 @@ html:not(.dark) .leaflet-pane path.animated-walking-dots,
 html:not(.dark) .leaflet-overlay-pane svg path.animated-walking-dots,
 html:not(.dark) .leaflet-interactive.animated-walking-dots {
   stroke: #E0FF33 !important;
-  filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.75)) !important;
+  filter: none !important;
+  box-shadow: none !important;
 }
 
 /* Visual Validation Error Shake Animation */

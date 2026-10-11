@@ -439,8 +439,8 @@ export default function TransportView() {
       group.addLayer(riderMarker);
     }
 
-    // 4. Seamless Continuous Driving Road Polyline & Upper Parabolic Connectors (Uber Style)
-    const generateWalkingPath = (start, end, curvature = 0.32) => {
+    // 4. Direct Walking Connector: Guarantees dots always travel straight from road edge directly into pins
+    const generateWalkingPath = (start, end) => {
       if (!start || !end) return [];
       const [lat1, lng1] = start;
       const [lat2, lng2] = end;
@@ -450,29 +450,14 @@ export default function TransportView() {
       const dist = Math.hypot(dLat, dLng);
       if (dist === 0) return [start, end];
 
-      const midLat = (lat1 + lat2) / 2;
-      const midLng = (lng1 + lng2) / 2;
-
-      let normLat = -dLng / dist;
-      let normLng = dLat / dist;
-
-      if (normLat < 0) {
-        normLat = -normLat;
-        normLng = -normLng;
-      }
-
-      const arcHeight = dist * curvature;
-      const controlLat = midLat + normLat * arcHeight + (Math.abs(dLng) < 0.0002 ? arcHeight * 0.3 : 0);
-      const controlLng = midLng + normLng * arcHeight;
-
+      const steps = Math.min(24, Math.max(6, Math.round(dist * 1200)));
       const points = [];
-      const steps = 24;
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        const invT = 1 - t;
-        const lat = invT * invT * lat1 + 2 * invT * t * controlLat + t * t * lat2;
-        const lng = invT * invT * lng1 + 2 * invT * t * controlLng + t * t * lng2;
-        points.push([lat, lng]);
+        points.push([
+          lat1 + dLat * t,
+          lng1 + dLng * t
+        ]);
       }
       return points;
     };
@@ -504,10 +489,10 @@ export default function TransportView() {
     });
     group.addLayer(routeLine);
 
-    // Parabolic Start Connector (Kitchen -> Road Start)
+    // Direct Start Connector (Kitchen -> Road Start)
     const startConnectorCasing = L.polyline([], {
       color: '#121011',
-      weight: 8.5,
+      weight: 6.5,
       dashArray: '1, 16',
       className: 'casing-parabolic-dots',
       opacity: 0.98,
@@ -527,10 +512,10 @@ export default function TransportView() {
     });
     group.addLayer(startConnector);
 
-    // Parabolic Destination Connector (Road End -> Doorstep)
+    // Direct Destination Connector (Road End -> Doorstep)
     const destConnectorCasing = L.polyline([], {
       color: '#121011',
-      weight: 8.5,
+      weight: 6.5,
       dashArray: '1, 16',
       className: 'casing-parabolic-dots',
       opacity: 0.98,
