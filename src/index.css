@@ -44,7 +44,7 @@
   --accent-text: #FFFFFF;
   --selection-bg: #FFD000;
   --selection-color: #100E0F;
-  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.07);
+  --shadow-card: none;
 }
 
 [data-theme="dark"],
@@ -81,7 +81,8 @@
   --accent-text: #FFFFFF;
   --selection-bg: #FFD000;
   --selection-color: #100E0F;
-  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.07);
+  --shadow-card: none;
+  --shadow-elevated: none;
 }
 
 @layer base {
@@ -193,7 +194,7 @@
     background: #FFFFFF !important;
     border: 1px solid rgba(0, 0, 0, 0.12) !important;
     color: #1C1917 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-shadow: none !important;
   }
 
   .light input::placeholder,
@@ -1532,7 +1533,7 @@
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
   position: relative !important;
   border: 1px solid rgba(217, 119, 6, 0.12) !important;
-  box-shadow: 0 10px 30px -5px rgba(139, 92, 26, 0.04) !important;
+  box-shadow: none !important;
   transform: translateZ(0);
 }
 
@@ -1544,8 +1545,8 @@
 
 .light .card-premium-product:hover {
   background-color: white !important;
-  box-shadow: 0 16px 36px -10px rgba(139, 92, 26, 0.08) !important;
-  border-color: rgba(217, 119, 6, 0.25) !important;
+  box-shadow: none !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
 }
 
 .dark .card-premium-product:hover {
@@ -2930,24 +2931,66 @@ button[disabled] svg {
   color: #181617 !important;
 }
 
-/* Refined, clean micro-elevation in Light Mode */
-.light .shadow-2xl,
-.light .shadow-xl,
-.light .shadow-lg {
-  box-shadow: 0 10px 28px -4px rgba(28, 25, 23, 0.06), 0 4px 12px -2px rgba(28, 25, 23, 0.03) !important;
+/* ==========================================================================
+   CLEAN FLAT APPLE LIGHT THEME: ZERO UNWANTED SHADOWS
+   Completely eradicate all muddy drop shadows, inner shadows, and blur smudges
+   ========================================================================== */
+.light,
+[data-theme="light"] {
+  --shadow-card: none !important;
+  --shadow-elevated: none !important;
 }
 
-.light .shadow-md,
+/* Neutralize all Tailwind shadow utilities across the board in Light Mode */
+.light .shadow,
+.light .shadow-2xs,
+.light .shadow-xs,
 .light .shadow-sm,
-.light .shadow {
-  box-shadow: 0 2px 8px -1px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(28, 25, 23, 0.03) !important;
+.light .shadow-md,
+.light .shadow-lg,
+.light .shadow-xl,
+.light .shadow-2xl,
+.light .shadow-inner,
+.light [class*="shadow-xs"],
+.light [class*="shadow-2xs"],
+.light [class*="shadow-sm"],
+.light [class*="shadow-md"],
+.light [class*="shadow-lg"],
+.light [class*="shadow-xl"],
+.light [class*="shadow-2xl"],
+.light [class*="shadow-inner"],
+.light [class*="shadow-[0_2px"],
+.light [class*="shadow-[0_4px"],
+.light [class*="shadow-[0_6px"],
+.light [class*="shadow-[0_8px"],
+.light [class*="shadow-[0_10px"],
+.light [class*="shadow-[0_12px"],
+.light [class*="shadow-[0_14px"],
+.light [class*="shadow-[0_16px"],
+.light [class*="shadow-[0_20px"],
+.light [class*="shadow-[0_24px"],
+.light [class*="shadow-[0_30px"] {
+  box-shadow: none !important;
 }
 
-/* Clean Flat Buttons: Never inject blanket shadows on header, transparent, or text buttons in Light Mode */
-.light header button,
-.light button.bg-transparent,
-.light button[class*="bg-transparent"],
-.light .apple-tap-target:not([class*="shadow"]):not([class*="bg-stone-9"]):not([class*="bg-black"]) {
+/* Neutralize raster drop-shadow filters in Light Mode */
+.light .dish-blend-mask,
+.light [class*="drop-shadow-sm"],
+.light [class*="drop-shadow-md"],
+.light [class*="drop-shadow-lg"],
+.light [class*="drop-shadow"] {
+  filter: none !important;
+}
+
+/* Absolute Flat UI for Buttons, Inputs, Chips, Badges, Header & Cards in Light Mode */
+.light button:not(.dynamic-island-toast):not(.toast):not(.preserve-shadow),
+.light [role="button"]:not(.dynamic-island-toast):not(.toast):not(.preserve-shadow),
+.light .apple-tap-target:not(.dynamic-island-toast):not(.toast):not(.preserve-shadow),
+.light input:not(:focus),
+.light textarea:not(:focus),
+.light select:not(:focus),
+.light .card-premium-product,
+.light .card-premium-product:hover {
   box-shadow: none !important;
 }
 

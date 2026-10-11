@@ -490,7 +490,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {isAuthenticated && !showLoginView ? (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253,145,57,0.2)]">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0">
                 <div 
                   style={{ backgroundColor: '#1E1B1C' }}
                   className="w-full h-full rounded-[14px] overflow-hidden bg-obsidian-luxury border border-stone-200/50 dark:border-white/10 flex items-center justify-center"
@@ -512,7 +512,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               </div>
             ) : (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253,145,57,0.25)] flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 flex items-center justify-center">
                 <div 
                   style={{ backgroundColor: '#1E1B1C' }}
                   className="w-full h-full rounded-[14px] overflow-hidden bg-obsidian-luxury border border-stone-200/50 dark:border-white/10 flex items-center justify-center p-1.5"
