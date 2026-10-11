@@ -430,7 +430,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const modalSubtitle = (!isAuthenticated || showLoginView)
     ? (showStaffSignIn
       ? (activeDeskTheme.subtitle || 'Authorized personnel login')
-      : (isSignup ? getSignupSubtitle() : (showLoginView ? 'Sign in with another mobile or email' : 'Sign in to track live orders & manage address')))
+      : (isSignup ? getSignupSubtitle() : (showLoginView ? 'Sign in with another mobile or email' : 'Sign in to track live orders')))
     : `${user?.email || user?.phone || userData?.phone || 'Verified Satvik Member'}`;
 
   const rawAvatar = user?.photoURL ||
@@ -488,7 +488,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           {...authHandleProps}
           className="px-5 py-4 flex items-center justify-between gap-3 w-full min-w-0 bg-[#FAF7F2] dark:bg-[#1E1B1C] select-none shrink-0"
         >
-          <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {isAuthenticated && !showLoginView ? (
               <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253,145,57,0.2)]">
                 <div 
@@ -522,10 +522,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h3 className="text-[15px] sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-snug">
+              <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] font-medium mt-0.5 leading-tight line-clamp-2">
+              <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] font-medium mt-0.5 leading-snug">
                 {modalSubtitle}
               </p>
             </div>
@@ -534,7 +534,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           <button
             type="button"
             onClick={handleAnimatedClose}
-            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer shrink-0 ml-3"
+            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer shrink-0"
             title="Close"
             aria-label="Close modal"
           >
@@ -1262,10 +1262,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 <button
                   type="submit"
                   disabled={loading || phoneInput.length < 10}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
                 >
                   <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
                 </button>
               </form>
             )}
@@ -1470,7 +1470,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     type={isSignup && signupStep < 3 ? "button" : "submit"}
                     onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
                     disabled={loading}
-                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-40 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-white/10 dark:disabled:text-zinc-600 disabled:cursor-not-allowed"
+                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed"
                   >
                     <span>
                       {loading
@@ -1479,7 +1479,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           ? (signupStep === 3 ? 'Complete Registration' : `Continue to Step ${signupStep + 1}`)
                           : 'Sign In'}
                     </span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
                   </button>
                 </div>
 

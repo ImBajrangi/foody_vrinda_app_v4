@@ -2912,6 +2912,18 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
   border: 1px solid rgba(28, 25, 23, 0.08) !important;
 }
 
+button:disabled svg,
+button[disabled] svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+
+.light button:disabled svg,
+.light button[disabled] svg {
+  color: #78716C !important;
+  stroke: #78716C !important;
+}
+
 /* Ensure nested badges & counters always have clear dark text on white badges in light mode */
 .light [class*="bg-white"] .badge-count,
 .light [class*="bg-white"] span.badge-count {
@@ -3174,9 +3186,9 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 /* SVGs inside dark buttons in Light Mode */
-.light button[class~="bg-stone-900"]:not(.payment-method-unselected):not(.qty-picker-pill) svg:not(.text-red-400):not(.text-red-500),
-.light button[class~="bg-stone-950"] svg,
-.light button[class~="bg-black"] svg,
+.light button[class~="bg-stone-900"]:not(:disabled):not([disabled]):not(.payment-method-unselected):not(.qty-picker-pill) svg:not(.text-red-400):not(.text-red-500),
+.light button[class~="bg-stone-950"]:not(:disabled):not([disabled]) svg,
+.light button[class~="bg-black"]:not(:disabled):not([disabled]) svg,
 .light .category-pill-active svg {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
