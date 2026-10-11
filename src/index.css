@@ -3573,3 +3573,7 @@ label {
 .animate-hint-float {
   animation: hintFloatBounce 2.4s ease-in-out infinite;
 }
+
+.bg-obsidian-luxury {
+  background-color: #1E1B1C !important;
+}

@@ -4,8 +4,9 @@ import React from 'react';
  * FoodyVrindaLogo
  * High-performance, razor-sharp vector SVG logo component.
  * Completely immune to raster compression artifacts, stale image caching, and gray background boxes.
+ * Supports built-in guaranteed Obsidian Dark luxury background ('circle', 'rounded', or boolean).
  */
-export default function FoodyVrindaLogo({ className = "w-full h-full", ...props }) {
+export default function FoodyVrindaLogo({ className = "w-full h-full", bg = false, ...props }) {
   return (
     <svg 
       viewBox="0 0 321 321" 
@@ -17,6 +18,17 @@ export default function FoodyVrindaLogo({ className = "w-full h-full", ...props 
       role="img"
       {...props}
     >
+      {/* Guaranteed Background Layer (immune to external CSS cascade failures) */}
+      {bg === 'circle' && (
+        <circle cx="160.5" cy="160.5" r="160.5" fill="#1E1B1C" />
+      )}
+      {bg === 'rounded' && (
+        <rect width="321" height="321" rx="64" fill="#1E1B1C" />
+      )}
+      {bg === true && (
+        <rect width="321" height="321" fill="#1E1B1C" />
+      )}
+
       <g transform="matrix(1,0,0,1,-593.672232,-21)">
         <g transform="matrix(1,0,0,1,-174.414947,-36.738269)">
           <g id="chandan" transform="matrix(1.087724,0.002455,-0.002455,1.087724,-81.727765,-24.241083)">
