@@ -247,7 +247,7 @@ export default function Header({
               
               <button 
                 onClick={handleProfileClick}
-                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target"
+                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target bg-transparent shadow-none border-0 focus:outline-none focus:shadow-none"
                 title={isAuthenticated ? "Profile & Settings" : "Sign in / Register"}
                 aria-label="Open Profile and Settings"
               >

@@ -2943,9 +2943,12 @@ button[disabled] svg {
   box-shadow: 0 2px 8px -1px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(28, 25, 23, 0.03) !important;
 }
 
-.light button:not(.no-shadow):not(.preserve-dark),
-.light [role="button"]:not(.no-shadow):not(.preserve-dark) {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+/* Clean Flat Buttons: Never inject blanket shadows on header, transparent, or text buttons in Light Mode */
+.light header button,
+.light button.bg-transparent,
+.light button[class*="bg-transparent"],
+.light .apple-tap-target:not([class*="shadow"]):not([class*="bg-stone-9"]):not([class*="bg-black"]) {
+  box-shadow: none !important;
 }
 
 /* Prevent light hover background from firing in Dark Mode */
