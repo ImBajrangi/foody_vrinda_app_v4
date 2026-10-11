@@ -7,8 +7,8 @@ android {
         applicationId "com.foodyvrinda.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "1.1.5"
+        versionCode 17
+        versionName "1.1.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -24,6 +24,21 @@ android {
             keyPassword 'foodyvrinda108'
             v1SigningEnabled true
             v2SigningEnabled true
+            enableV3Signing = true
+            enableV4Signing = true
+        }
+    }
+    packaging {
+        resources {
+            excludes += [
+                'META-INF/*.version',
+                'META-INF/proguard/*',
+                'META-INF/*.kotlin_module',
+                'META-INF/NOTICE*',
+                'META-INF/LICENSE*',
+                'META-INF/com/android/build/gradle/*',
+                'META-INF/version-control-info.textproto'
+            ]
         }
     }
     buildTypes {

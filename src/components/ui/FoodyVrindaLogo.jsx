@@ -11,7 +11,7 @@ export default function FoodyVrindaLogo({
   className = "w-full h-full", 
   bg = "theme", 
   color = "#FF751F",
-  accentColor = "#FFB020",
+  accentColor = "#FF751F",
   ...props 
 }) {
   return (

@@ -44,6 +44,7 @@ import { Capacitor } from '@capacitor/core';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
 import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
+import FoodyVrindaWordmark from './ui/FoodyVrindaWordmark';
 import SoundTrialsModal from './SoundTrialsModal';
 import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
 
@@ -520,8 +521,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight">
-                {modalTitle}
+              <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight flex items-center gap-1.5 flex-wrap">
+                {modalTitle === 'Welcome to Foody Vrinda' ? (
+                  <>
+                    <span>Welcome to</span>
+                    <FoodyVrindaWordmark className="h-[10px] sm:h-[11.5px] w-auto inline-block -mt-[1px] text-stone-900 dark:text-white" />
+                  </>
+                ) : (
+                  modalTitle
+                )}
               </h3>
               <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] font-medium mt-0.5 leading-snug">
                 {modalSubtitle}

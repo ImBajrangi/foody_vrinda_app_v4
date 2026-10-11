@@ -3,8 +3,8 @@ import { Browser } from '@capacitor/browser';
 import { supabase } from '../supabase.js';
 
 export const CURRENT_APP_VERSION = {
-  versionCode: 16,
-  versionName: '1.1.5',
+  versionCode: 17,
+  versionName: '1.1.6',
   buildDate: '2026-10-11'
 };
 
@@ -123,20 +123,48 @@ class AppUpdateService {
 
   /**
    * Launch direct APK download and package installer
+   * Supports fast direct web host mirror and system browser intent
    */
-  async startUpdate(apkUrl) {
-    const targetUrl = apkUrl || this.cachedUpdate?.apkUrl || 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+  async startUpdate(apkUrl, options = {}) {
+    const isMirror = options.useMirror === true;
+    let targetUrl = apkUrl || this.cachedUpdate?.apkUrl;
     
+    // If mirror requested, use direct host without GitHub Azure SAS redirect
+    if (isMirror || !targetUrl) {
+      if (typeof window !== 'undefined' && window.location?.origin) {
+        targetUrl = `${window.location.origin}/Foody-Vrinda-Latest.apk`;
+      } else {
+        targetUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+      }
+    }
+
     if (Capacitor.isNativePlatform()) {
+      // In native Android, open via system browser so Android DownloadManager processes it in the notification bar
       try {
-        await Browser.open({ url: targetUrl });
-      } catch {
         if (typeof window !== 'undefined') {
           window.open(targetUrl, '_system');
+        } else {
+          await Browser.open({ url: targetUrl, windowName: '_system' });
+        }
+      } catch {
+        try {
+          await Browser.open({ url: targetUrl });
+        } catch (err) {
+          console.warn('Native update trigger error:', err);
         }
       }
     } else {
-      if (typeof window !== 'undefined') {
+      // In web browser, trigger direct download anchor
+      if (typeof document !== 'undefined') {
+        const link = document.createElement('a');
+        link.href = targetUrl;
+        link.download = 'Foody-Vrinda-Latest.apk';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (typeof window !== 'undefined') {
         window.open(targetUrl, '_blank');
       }
     }

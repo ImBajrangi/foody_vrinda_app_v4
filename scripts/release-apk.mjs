@@ -107,6 +107,7 @@ async function main() {
   fs.copyFileSync(BUILT_APK_PATH, LATEST_APK_PATH);
   const PARENT_ROOT = path.resolve(ROOT_DIR, '..');
   fs.copyFileSync(BUILT_APK_PATH, path.resolve(PARENT_ROOT, 'Foody-Vrinda-Latest.apk'));
+  fs.copyFileSync(BUILT_APK_PATH, path.resolve(ROOT_DIR, 'public/Foody-Vrinda-Latest.apk'));
   fs.copyFileSync(BUILT_APK_PATH, path.resolve(PARENT_ROOT, 'FoodyVrinda-v4-release.apk'));
   fs.copyFileSync(BUILT_APK_PATH, path.resolve(ROOT_DIR, 'FoodyVrinda-v4-release.apk'));
   const apkStats = fs.statSync(LATEST_APK_PATH);

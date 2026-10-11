@@ -6,6 +6,7 @@ import { Bell, ShoppingBag, Coins, LogIn, Download, Sparkles, X } from 'lucide-r
 import { getCachedWallet, subscribeUserWallet } from '../services/fvWalletService';
 import { Capacitor } from '@capacitor/core';
 import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
+import FoodyVrindaWordmark from './ui/FoodyVrindaWordmark';
 
 export default function Header({ 
   audioUnlocked, 
@@ -260,8 +261,12 @@ export default function Header({
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
-                    {getDisplayName()}
+                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors flex items-center">
+                    {getDisplayName() === 'Foody Vrinda' ? (
+                      <FoodyVrindaWordmark className="h-[12px] sm:h-[14px] w-auto inline-block text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139]" />
+                    ) : (
+                      getDisplayName()
+                    )}
                   </h2>
                 </div>
               </button>
