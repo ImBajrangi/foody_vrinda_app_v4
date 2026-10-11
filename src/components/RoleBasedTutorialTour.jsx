@@ -474,9 +474,9 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           )}
         </div>
 
-        {/* Fluid Trailing Badge Pill (Inspired by usercursor.tsx from Vrindopnishad) */}
+        {/* Fluid Trailing Badge Pill (Hidden on mobile viewports to prevent input clipping) */}
         <div 
-          className="px-2.5 py-1 rounded-full bg-[#1E1B1C] text-white border border-[#FD9139]/40 shadow-[0_6px_20px_rgba(0,0,0,0.6)] text-[10.5px] font-black font-['Outfit'] tracking-wide whitespace-nowrap flex items-center gap-1.5 animate-hint-float"
+          className="hidden sm:flex px-2.5 py-1 rounded-full bg-[#1E1B1C] text-white border border-[#FD9139]/40 shadow-[0_6px_20px_rgba(0,0,0,0.6)] text-[10.5px] font-black font-['Outfit'] tracking-wide whitespace-nowrap items-center gap-1.5 animate-hint-float"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] animate-pulse" />
           <span>{activeStage.uiElement || activeStage.tag?.split('•')[1]?.trim() || 'Tap Here'}</span>
