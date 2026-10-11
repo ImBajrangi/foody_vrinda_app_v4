@@ -43,6 +43,7 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
+import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
 import SoundTrialsModal from './SoundTrialsModal';
 import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
 
@@ -501,22 +502,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
-                    <img
-                      src="/foody-vrinda-logo.webp"
-                      alt="Foody Vrinda"
-                      className="w-full h-full object-contain p-1.5"
-                    />
+                    <div className="w-full h-full p-1.5 flex items-center justify-center">
+                      <FoodyVrindaLogo className="w-full h-full" />
+                    </div>
                   )}
                 </div>
               </div>
             ) : (
               <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253,145,57,0.25)] flex items-center justify-center">
-                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] border border-stone-200/50 dark:border-white/10 flex items-center justify-center">
-                  <img
-                    src="/foody-vrinda-logo.webp"
-                    alt="Foody Vrinda Logo"
-                    className="w-full h-full object-contain p-1.5"
-                  />
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] border border-stone-200/50 dark:border-white/10 flex items-center justify-center p-1.5">
+                  <FoodyVrindaLogo className="w-full h-full" />
                 </div>
               </div>
             )}

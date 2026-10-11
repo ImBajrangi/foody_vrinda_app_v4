@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { Bell, ShoppingBag, Coins, LogIn, Download, Sparkles, X } from 'lucide-react';
 import { getCachedWallet, subscribeUserWallet } from '../services/fvWalletService';
 import { Capacitor } from '@capacitor/core';
+import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
 
 export default function Header({ 
   audioUnlocked, 
@@ -232,12 +233,9 @@ export default function Header({
                           onError={() => setHeaderAvatarError(true)}
                         />
                       ) : (
-                        <img 
-                          src="/foody-vrinda-logo.webp" 
-                          alt="Foody Vrinda" 
-                          className="w-full h-full object-contain p-1" 
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
+                        <div className="w-full h-full p-1.5 flex items-center justify-center">
+                          <FoodyVrindaLogo className="w-full h-full" />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -250,11 +248,11 @@ export default function Header({
                 title={isAuthenticated ? "Profile & Settings" : "Sign in / Register"}
                 aria-label="Open Profile and Settings"
               >
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs font-bold text-amber-700 dark:text-[#FD9139] font-laila tracking-wide shrink-0">
                     वृन्दोपनिषद्
                   </span>
-                  <span className="text-stone-400 dark:text-zinc-600 text-[10px]">•</span>
+                  <span className="text-stone-400 dark:text-zinc-600 text-[10px] shrink-0">•</span>
                   <span className="text-[11px] font-semibold text-stone-500 dark:text-zinc-400 truncate">
                     {getLocationLabel()}
                   </span>
@@ -364,12 +362,12 @@ export default function Header({
               {!Capacitor.isNativePlatform() && (
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('foody:open-install-app'))}
-                  className="h-9 px-2.5 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                  className="h-9 w-9 sm:w-auto px-0 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center sm:justify-start gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
                   title="Install Foody Vrinda App"
                   aria-label="Install App"
                 >
                   <Download size={14} className="text-[#FD9139]" />
-                  <span className="text-[11px] font-black hidden xs:inline sm:inline">Install</span>
+                  <span className="text-[11px] font-black hidden sm:inline">Install</span>
                 </button>
               )}
               <button
