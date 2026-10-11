@@ -935,8 +935,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               </button>
 
               {/* Theme Preference Row */}
-              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
-                <div className="flex items-center gap-2.5">
+              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between gap-2 text-xs font-bold text-stone-800 dark:text-zinc-200">
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                   {themeMode === 'system' ? (
                     <Laptop className="w-4 h-4 text-[#FD9139] shrink-0" />
                   ) : isLight ? (
@@ -944,63 +944,66 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   ) : (
                     <Moon className="w-4 h-4 text-[#FD9139] shrink-0" />
                   )}
-                  <div className="flex flex-col text-left">
-                    <span>App Theme</span>
-                    <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">
+                  <div className="flex flex-col text-left min-w-0">
+                    <span className="truncate">App Theme</span>
+                    <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">
                       {themeMode === 'system' ? 'System default' : isLight ? 'Divine light' : 'Obsidian dark'}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-stone-200/80 dark:bg-[#252223] p-1 rounded-full border border-stone-300/80 dark:border-white/15">
+                <div className="flex items-center gap-0.5 sm:gap-1 bg-stone-200/80 dark:bg-[#252223] p-0.5 sm:p-1 rounded-full border border-stone-300/80 dark:border-white/15 shrink-0">
                   <button
                     type="button"
                     onClick={() => setTheme('system')}
-                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'system'
-                      ? 'bg-amber-500 text-white shadow-xs font-black'
+                    title="System Default"
+                    className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'system'
+                      ? 'bg-amber-500 text-white shadow-xs'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
                     <Laptop size={11} className={themeMode === 'system' ? "text-white" : "opacity-70"} />
-                    <span>System</span>
+                    <span className="hidden min-[380px]:inline">System</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTheme('light')}
-                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'light'
-                      ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black'
+                    title="Divine Light"
+                    className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'light'
+                      ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
                     <Sun size={11} className={themeMode === 'light' ? "text-amber-500" : "opacity-70"} />
-                    <span>Light</span>
+                    <span className="hidden min-[380px]:inline">Light</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
-                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'dark'
-                      ? 'bg-[#FD9139] text-black shadow-xs font-black'
+                    title="Obsidian Dark"
+                    className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'dark'
+                      ? 'bg-[#FD9139] text-black shadow-xs'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
                     <Moon size={11} className={themeMode === 'dark' ? "text-black" : "opacity-70"} />
-                    <span>Dark</span>
+                    <span className="hidden min-[380px]:inline">Dark</span>
                   </button>
                 </div>
               </div>
 
               {/* Notification Chime Preference Row */}
-              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
-                <div className="flex items-center gap-2.5">
+              <div className="w-full p-2.5 sm:p-3 flex items-center justify-between gap-2 text-xs font-bold text-stone-800 dark:text-zinc-200">
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                   <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#FD9139] shrink-0" />
-                  <span>Notification Sound</span>
+                  <span className="truncate">Notification Sound</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowSoundTrials(true)}
-                  className="px-3 py-1.5 rounded-full text-xs font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shadow-xs shrink-0 max-w-[55%] sm:max-w-none"
                 >
-                  <span>{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
-                  <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-black">Change &gt;</span>
+                  <span className="truncate">{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
+                  <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-black shrink-0">Change &gt;</span>
                 </button>
               </div>
 
