@@ -134,11 +134,11 @@ async function main() {
 
   log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Native 120fps swipe-down gesture to dismiss FV Rewards bar and modal drawers seamlessly.',
-    'Unified Obsidian dark header surface with zero color discrepancy or blurry seams.',
-    'Direct mobile access to Prasad Rewards & Orders from profile modal and header.',
-    'High-visibility Radiant Yellow selection highlight tokens across the platform.',
-    'Zero layout shift and ultra-fast touch response.'
+    'Clean Apple flat UI in bright theme: completely eliminated all muddy drop-shadows and blur artifacts.',
+    'Unified quantity stepper capsule with seamless single-tone styling (zero color discrepancy across segments).',
+    'Optimized button icon contrast and submit state visibility across light and dark themes.',
+    'Prevented header title and subtitle clipping on mobile viewports.',
+    'Enhanced performance, smooth 120fps touch interactions, and zero layout shift.'
   ];
 
   const releasePayload = {
