@@ -364,11 +364,6 @@ export default function TransportView() {
       iconAnchor: [18, 18]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: storeIcon, zIndexOffset: 200 });
-    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -20] });
-    storeMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      storeMarker.toggleTooltip();
-    });
     group.addLayer(storeMarker);
 
     // 2. Destination Customer Home Pin (Clean Luxury Drop-off Puck)
@@ -396,11 +391,6 @@ export default function TransportView() {
       iconAnchor: [18, 18]
     });
     const homeMarker = L.marker([destLat, destLng], { icon: homeIcon, zIndexOffset: 200 });
-    homeMarker.bindTooltip(`${activeOrder.customerName || 'Drop-off Destination'}`, { permanent: false, direction: 'top', offset: [0, -20] });
-    homeMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      homeMarker.toggleTooltip();
-    });
     group.addLayer(homeMarker);
 
     // 3. Live Scooter Rider Vehicle Pin (Animated GPS Pulse) - only in active transit
@@ -446,11 +436,6 @@ export default function TransportView() {
         iconAnchor: [22, 22]
       });
       const riderMarker = L.marker([midLat, midLng], { icon: riderIcon, zIndexOffset: 500 });
-      riderMarker.bindTooltip('Sarathi Rider (Live GPS)', { permanent: false, direction: 'top', offset: [0, -22] });
-      riderMarker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        riderMarker.toggleTooltip();
-      });
       group.addLayer(riderMarker);
     }
 

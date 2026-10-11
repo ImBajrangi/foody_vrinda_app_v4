@@ -8,7 +8,8 @@ import {
   getDeletedShopIds,
   getCachedShops,
   saveCachedShops,
-  getDefaultActiveShopId
+  getDefaultActiveShopId,
+  memoryCache
 } from './cache.js';
 import {
   getCachedOffers,
@@ -481,14 +482,19 @@ export class RealtimeMultiplexer {
   }
 
   subscribeOrders(shopId, callback) {
-    const clean = shopId && typeof shopId === 'string' ? shopId.trim().toLowerCase() : '';
-    if (!shopId || typeof shopId !== 'string' || clean === '' || clean === 'all' || clean === '*' || clean.includes('all shop') || clean.includes('broadcast')) {
-      console.warn('[SHOP ISOLATION] Refusing order subscription without a valid specific shopId:', shopId);
-      return null;
+    if (!shopId || typeof shopId !== 'string') {
+      return () => { };
     }
-    const cleanShopId = shopId.trim();
+    const clean = shopId.trim();
+    if (!clean) {
+      return () => { };
+    }
+    const cleanLower = clean.toLowerCase();
+    const isGlobal = cleanLower === 'all' || cleanLower === '*' || cleanLower.includes('all shop') || cleanLower.includes('broadcast');
+    const targetShopId = isGlobal ? 'all' : clean;
+
     this.ensureSubscribed();
-    const listenerObj = { shopId: cleanShopId, callback };
+    const listenerObj = { shopId: targetShopId, callback };
     this.orderListeners.add(listenerObj);
 
     return () => {
@@ -564,12 +570,16 @@ export class RealtimeMultiplexer {
 export const multiplexer = new RealtimeMultiplexer();
 
 export function subscribeCloudOrders(shopId, onUpdate) {
-  const clean = shopId && typeof shopId === 'string' ? shopId.trim().toLowerCase() : '';
-  if (!shopId || typeof shopId !== 'string' || clean === '') {
-    console.warn('[SHOP ISOLATION] subscribeCloudOrders rejected: invalid shopId', shopId);
-    return null;
+  if (!shopId || typeof shopId !== 'string') {
+    return () => { };
   }
-  return multiplexer.subscribeOrders(clean === 'all' || clean === '*' ? 'all' : shopId, onUpdate);
+  const clean = shopId.trim();
+  if (!clean) {
+    return () => { };
+  }
+  const cleanLower = clean.toLowerCase();
+  const targetShopId = (cleanLower === 'all' || cleanLower === '*' || cleanLower.includes('all shop') || cleanLower.includes('broadcast')) ? 'all' : clean;
+  return multiplexer.subscribeOrders(targetShopId, onUpdate);
 }
 
 export function subscribeSingleCloudOrder(orderId, onUpdate) {

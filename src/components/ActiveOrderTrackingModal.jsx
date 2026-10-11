@@ -198,11 +198,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       iconAnchor: [18, 18]
     });
     const storeMarker = L.marker([shopLat, shopLng], { icon: originIcon, zIndexOffset: 300 });
-    storeMarker.bindTooltip(`${shortShopName} (Kitchen)`, { permanent: false, direction: 'top', offset: [0, -20] });
-    storeMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      storeMarker.toggleTooltip();
-    });
     group.addLayer(storeMarker);
 
     // 3. Destination Pin (Uber-style Seamless Drop-off Hub)
@@ -230,11 +225,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       iconAnchor: [18, 18]
     });
     const destMarker = L.marker([destLat, destLng], { icon: destIcon, zIndexOffset: 400 });
-    destMarker.bindTooltip('Drop-off (Your Location)', { permanent: false, direction: 'top', offset: [0, -20] });
-    destMarker.on('click', (e) => {
-      L.DomEvent.stopPropagation(e);
-      destMarker.toggleTooltip();
-    });
     group.addLayer(destMarker);
 
     // 4. Live Rider Pin (Modern Navigational Vehicle Puck with clean radar ping)
@@ -285,11 +275,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
       const initialRiderPos = [midLat, midLng];
       riderMarker = L.marker(initialRiderPos, { icon: riderIcon, zIndexOffset: 500 });
-      riderMarker.bindTooltip(`${assignedRiderName || 'Sarathi Rider'} (Live Delivery)`, { permanent: false, direction: 'top', offset: [0, -22] });
-      riderMarker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        riderMarker.toggleTooltip();
-      });
       group.addLayer(riderMarker);
     }
 
@@ -422,7 +407,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       fillOpacity: 1,
       weight: 2.5
     });
-    dropOffStopDot.bindTooltip('Vehicle Drop-off (Doorstep Walking Path)', { permanent: false, direction: 'top', offset: [0, -10] });
+
 
     let animInterval = null;
 
@@ -809,12 +794,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               className="px-4 pb-3 flex items-center justify-between cursor-pointer select-none touch-none"
               title="Tap to expand details • Drag down to close"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#FD9139]">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-3">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
                   <Clock size={15} />
                 </div>
-                <div>
-                  <p className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                     Estimated {getDynamicEstimatedTime()}
                   </p>
                   <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
@@ -823,7 +808,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </div>
               </div>
 
-              <span className="bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20 shrink-0">
+              <span className="bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20 shrink-0 whitespace-nowrap">
                 {getDynamicArrivalWindow()}
               </span>
             </div>
@@ -1076,7 +1061,6 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       </div>
                       <div className="pt-1 flex items-center justify-between text-[10px] text-stone-500 dark:text-neutral-400">
                         <span className="uppercase font-bold tracking-wider">Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}</span>
-                        <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">FSSAI Lic: 22724923000108</span>
                       </div>
                     </div>
                   </div>
