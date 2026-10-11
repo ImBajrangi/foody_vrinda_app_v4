@@ -504,19 +504,18 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center p-1.5">
-                      <FoodyVrindaLogo className="w-full h-full" bg="rounded" />
+                    <div className="w-full h-full rounded-[14px] overflow-hidden flex items-center justify-center">
+                      <FoodyVrindaLogo className="w-full h-full" bg="theme" />
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 flex items-center justify-center shadow-sm">
                 <div
-                  style={{ backgroundColor: '#1E1B1C' }}
-                  className="w-full h-full rounded-[14px] overflow-hidden bg-obsidian-luxury border border-stone-200/50 dark:border-white/10 flex items-center justify-center p-1.5"
+                  className="w-full h-full rounded-[14px] overflow-hidden flex items-center justify-center"
                 >
-                  <FoodyVrindaLogo className="w-full h-full" bg="rounded" />
+                  <FoodyVrindaLogo className="w-full h-full" bg="theme" />
                 </div>
               </div>
             )}

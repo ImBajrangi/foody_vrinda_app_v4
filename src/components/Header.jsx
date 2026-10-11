@@ -223,8 +223,7 @@ export default function Header({
 
                     {/* Inner Avatar Frame */}
                     <div 
-                      style={{ backgroundColor: '#1E1B1C' }}
-                      className="relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-obsidian-luxury border border-stone-200/50 dark:border-white/10 flex items-center justify-center shadow-inner"
+                      className="relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center shadow-sm"
                     >
                       {userAvatar ? (
                         <img 
@@ -237,7 +236,7 @@ export default function Header({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <FoodyVrindaLogo className="w-full h-full" bg="circle" />
+                          <FoodyVrindaLogo className="w-full h-full" bg="theme" />
                         </div>
                       )}
                     </div>
