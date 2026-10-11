@@ -2333,13 +2333,13 @@ path.animated-delivery-route,
 .leaflet-pane path.animated-delivery-route,
 .leaflet-overlay-pane svg path.animated-delivery-route,
 .leaflet-interactive.animated-delivery-route {
-  stroke: #FD9139 !important;
+  stroke: #E0FF33 !important;
   stroke-dasharray: 6px 9px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
   stroke-width: 3.5px !important;
   animation: flowRouteDash 0.75s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(253, 145, 57, 0.75)) !important;
+  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.75)) !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2347,8 +2347,8 @@ html:not(.dark) path.animated-delivery-route,
 html:not(.dark) .leaflet-pane path.animated-delivery-route,
 html:not(.dark) .leaflet-overlay-pane svg path.animated-delivery-route,
 html:not(.dark) .leaflet-interactive.animated-delivery-route {
-  stroke: #D97706 !important;
-  filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.45)) !important;
+  stroke: #E0FF33 !important;
+  filter: drop-shadow(0 0 4px rgba(224, 255, 51, 0.65)) !important;
 }
 
 /* Animated Pedestrian Walking Dots (Road Drop-off -> Doorstep Pin) */
@@ -2383,13 +2383,13 @@ path.animated-walking-dots,
 .leaflet-pane path.animated-walking-dots,
 .leaflet-overlay-pane svg path.animated-walking-dots,
 .leaflet-interactive.animated-walking-dots {
-  stroke: #FD9139 !important;
+  stroke: #E0FF33 !important;
   stroke-dasharray: 1px 16px !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
   stroke-width: 4.5px !important;
   animation: flowWalkingDots 1.15s linear infinite !important;
-  filter: drop-shadow(0 0 6px rgba(253, 145, 57, 0.85)) !important;
+  filter: drop-shadow(0 0 6px rgba(224, 255, 51, 0.85)) !important;
   will-change: stroke-dashoffset;
 }
 
@@ -2397,8 +2397,8 @@ html:not(.dark) path.animated-walking-dots,
 html:not(.dark) .leaflet-pane path.animated-walking-dots,
 html:not(.dark) .leaflet-overlay-pane svg path.animated-walking-dots,
 html:not(.dark) .leaflet-interactive.animated-walking-dots {
-  stroke: #D97706 !important;
-  filter: drop-shadow(0 0 5px rgba(217, 119, 6, 0.65)) !important;
+  stroke: #E0FF33 !important;
+  filter: drop-shadow(0 0 5px rgba(224, 255, 51, 0.75)) !important;
 }
 
 /* Visual Validation Error Shake Animation */
@@ -3309,7 +3309,7 @@ button[disabled] svg {
 }
 
 .dark .btn-map-track {
-  background-color: #FD9139 !important;
+  background-color: #E0FF33 !important;
   color: #121011 !important;
 }
 

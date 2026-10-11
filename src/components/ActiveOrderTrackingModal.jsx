@@ -252,8 +252,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               width: 36px;
               height: 36px;
               border-radius: 50%;
-              border: 1.5px solid #FD9139;
-              background: rgba(253, 145, 57, 0.12);
+              border: 1.5px solid #E0FF33;
+              background: rgba(224, 255, 51, 0.12);
               pointer-events: none;
             "></div>
             <div style="
@@ -261,7 +261,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               width: 36px;
               height: 36px;
               background: #181617;
-              border: 2.5px solid #FD9139;
+              border: 2.5px solid #E0FF33;
               border-radius: 50%;
               display: flex;
               align-items: center;
@@ -269,7 +269,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               box-shadow: 0 4px 14px rgba(0,0,0,0.45);
               cursor: pointer;
             ">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FD9139" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0FF33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="18.5" cy="17.5" r="2.5"></circle>
                 <circle cx="5.5" cy="17.5" r="2.5"></circle>
                 <path d="M15 6h-5a2 2 0 0 0-2 2v2"></path>
@@ -352,9 +352,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     });
     group.addLayer(roadCasing);
 
-    // Vibrant Animated Flowing Delivery Route (Neon Lime in Dark, Royal Saffron in Light)
+    const routeColor = '#E0FF33';
+
+    // Vibrant Animated Flowing Delivery Route (Neon Electric Yellow-Green #E0FF33)
     const roadLine = L.polyline(currentRouteCoords, {
-      color: primaryThemeColor,
+      color: routeColor,
       weight: 3.5,
       dashArray: '6, 9',
       className: 'animated-delivery-route',
@@ -378,7 +380,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     // Clean Animated Walking Dots (Kitchen -> Road Start Glowing Beads)
     const startConnector = L.polyline([], {
-      color: primaryThemeColor,
+      color: routeColor,
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',
@@ -402,7 +404,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
     // Walking Connector Foreground (Road End -> Doorstep Glowing Beads)
     const walkingConnector = L.polyline([], {
-      color: primaryThemeColor,
+      color: routeColor,
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',
@@ -416,7 +418,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     const dropOffStopDot = L.circleMarker([destLat, destLng], {
       radius: 5,
       color: '#181617',
-      fillColor: primaryThemeColor,
+      fillColor: routeColor,
       fillOpacity: 1,
       weight: 2.5
     });

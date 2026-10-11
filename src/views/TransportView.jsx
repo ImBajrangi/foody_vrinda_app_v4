@@ -509,7 +509,7 @@ export default function TransportView() {
 
     // Glowing Animated Neon Driving Road Line
     const routeLine = L.polyline(currentRouteCoords, {
-      color: '#FD9139',
+      color: '#E0FF33',
       weight: 3.5,
       dashArray: '6, 9',
       className: 'animated-delivery-route',
@@ -532,7 +532,7 @@ export default function TransportView() {
     group.addLayer(startConnectorCasing);
 
     const startConnector = L.polyline([], {
-      color: '#FD9139',
+      color: '#E0FF33',
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',
@@ -555,7 +555,7 @@ export default function TransportView() {
     group.addLayer(destConnectorCasing);
 
     const destConnector = L.polyline([], {
-      color: '#FD9139',
+      color: '#E0FF33',
       weight: 4.5,
       dashArray: '1, 16',
       className: 'animated-walking-dots',

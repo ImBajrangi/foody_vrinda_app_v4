@@ -1756,78 +1756,96 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
       {trackingOrder && (
-        <div className="mb-6 bg-stone-100/95 dark:bg-[#282526] border border-stone-200/90 dark:border-[#FD9139]/30 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-2xl relative apple-modal-spring overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-            {/* Left: Icon & Status Text */}
-            <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-              <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0 shadow-inner">
-                <Navigation className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-black uppercase text-amber-800 dark:text-[#FFD000] bg-yellow-400/15 dark:bg-[#FFD000]/15 px-3 py-0.5 rounded-full border border-yellow-500/30 dark:border-[#FFD000]/30">
-                    Active Order #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
-                  </span>
-                  <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 capitalize">
-                    • {trackingOrder.status?.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
-                  {trackingOrder.status === 'out_for_delivery'
-                    ? 'Rider is on the way to your location!'
-                    : trackingOrder.status === 'completed'
-                      ? 'Order delivered successfully!'
-                      : 'Order is being prepared in the kitchen.'}
-                </p>
-              </div>
+        <div
+          onClick={() => setIsTrackingModalOpen(true)}
+          className="mb-6 bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#E0FF33]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 transition-all active:scale-[0.99]"
+        >
+          {/* Subtle Accent Glow Line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#E0FF33]/60 to-transparent pointer-events-none" />
 
-              {/* Close Button on mobile (visible top right) */}
-              <button
-                onClick={() => {
-                  setTrackingOrderId(null);
-                  setIsTrackingModalOpen(false);
-                }}
-                className="sm:hidden w-8 h-8 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90 apple-tap-target"
-                title="Dismiss banner"
-                aria-label="Dismiss tracking banner"
-              >
-                <X className="w-4 h-4 stroke-[2.5]" />
-              </button>
+          {/* Top Row: Status Capsule + Order ID on Left | Dismiss X on Right */}
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 text-amber-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#E0FF33] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#E0FF33]"></span>
+                </span>
+                <span>Active Order</span>
+              </span>
+
+              <span className="text-[11px] sm:text-xs font-bold text-stone-600 dark:text-zinc-400 font-mono tracking-tight shrink-0">
+                #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
+              </span>
+
+              <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
+
+              <span className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 capitalize truncate">
+                {trackingOrder.status?.replace(/_/g, ' ')}
+              </span>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            {/* Dismiss X Button (Stops propagation so it doesn't open the modal) */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setTrackingOrderId(null);
+                setIsTrackingModalOpen(false);
+              }}
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
+              title="Dismiss banner"
+              aria-label="Dismiss tracking banner"
+            >
+              <X className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* Main Content & Action Row */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                <Navigation className="w-4.5 h-4.5 fill-current" />
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
+                  {trackingOrder.status === 'out_for_delivery'
+                    ? 'Rider is on the way!'
+                    : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
+                      ? 'Order delivered successfully!'
+                      : 'Cooking in the kitchen...'}
+                </h4>
+                <p className="text-[11px] sm:text-xs text-stone-500 dark:text-zinc-400 truncate font-medium">
+                  {trackingOrder.status === 'out_for_delivery'
+                    ? 'Sarathi is heading to your doorstep'
+                    : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
+                      ? 'Hope you enjoyed your Prasad!'
+                      : 'Fresh satvik meal being prepared'}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               {(trackingOrder.status === 'delivered' || trackingOrder.status === 'completed') && (
                 <button
                   onClick={() => {
                     setReviewOrderTarget(trackingOrder);
                     setIsReviewModalOpen(true);
                   }}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-full bg-amber-500 dark:bg-[#FD9139] text-white font-black text-xs hover:bg-amber-600 dark:hover:bg-[#fca65e] shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  className="px-3 sm:px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs hover:opacity-90 shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer font-['Outfit']"
                 >
                   <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>Rate & Review</span>
+                  <span className="hidden sm:inline">Rate</span>
                 </button>
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="btn-map-track flex-1 sm:flex-initial px-4 py-2 sm:py-2.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs shadow-md shadow-[#FD9139]/25 flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-stone-800 dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
               >
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <Navigation className="w-3 h-3 text-white fill-current" />
-                </span>
-                <span>Live Map Track</span>
-              </button>
-              <button
-                onClick={() => {
-                  setTrackingOrderId(null);
-                  setIsTrackingModalOpen(false);
-                }}
-                className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs apple-tap-target cursor-pointer shrink-0 transition-all active:scale-90"
-                title="Dismiss banner"
-                aria-label="Dismiss tracking banner"
-              >
-                <X className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2.5]" />
+                <Navigation className="w-3 h-3 fill-current shrink-0" />
+                <span className="whitespace-nowrap">Track</span>
+                <ChevronRight className="w-3.5 h-3.5 opacity-70 shrink-0" />
               </button>
             </div>
           </div>
