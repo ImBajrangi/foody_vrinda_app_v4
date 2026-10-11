@@ -23,6 +23,7 @@ import {
   BellRing
 } from 'lucide-react';
 import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP } from '../supabase';
+import FoodyMascot from '../foody/FoodyMascot';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
 import { useBackHandler } from '../hooks/useBackHandler';
@@ -830,6 +831,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       {getDynamicArrivalWindow()}
                     </p>
                   </div>
+                </div>
+
+                {/* Animated Foody Vrinda Mascot Live Stage */}
+                <div className="flex items-center justify-center -my-1 py-1">
+                  <FoodyMascot
+                    state={isOutForDelivery ? 'delivery' : isDelivered ? 'happy' : 'idle'}
+                    width={isOutForDelivery ? 200 : 130}
+                    height={isOutForDelivery ? 120 : 96}
+                  />
                 </div>
 
                 {/* 4-Step Animated Milestone Progress Stepper */}

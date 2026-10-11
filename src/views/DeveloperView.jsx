@@ -62,6 +62,7 @@ import {
   Shield,
   Database
 } from 'lucide-react';
+import FoodyMascot from '../foody/FoodyMascot';
 import {
   updateCloudShop,
   getCloudShops,
@@ -244,6 +245,10 @@ export default function DeveloperView({ setCurrentTab }) {
       [key]: !prev[key]
     }));
   };
+
+  // --- MASCOT STUDIO STATE ---
+  const [isMascotModalOpen, setIsMascotModalOpen] = useState(false);
+  const [mascotPreviewState, setMascotPreviewState] = useState('idle');
 
   // --- APP RELEASES / AUTO-UPDATE STATE ---
   const [releaseVersionName, setReleaseVersionName] = useState('1.1.4');
@@ -3116,19 +3121,39 @@ export default function DeveloperView({ setCurrentTab }) {
               </button>
 
               <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
+
+                <button
+                  type="button"
+                  onClick={() => setIsMascotModalOpen(true)}
+                  title="Open Mascot Studio to preview all 4 states (Idle, Happy, Sad, Delivery)"
+                  className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-[#FD9139] font-bold text-xs border border-amber-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Mascot Studio</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
-                    try {
-                      sessionStorage.removeItem('fv_splash_viewed');
-                    } catch (_) {}
                     window.dispatchEvent(new CustomEvent('foody:show-splash'));
                   }}
-                  title="Play the pure-vector animated brand splash screen"
-                  className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-[#FD9139] font-bold text-xs border border-amber-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                  title="Preview the full-screen animated splash screen"
+                  className="px-3 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-bold text-xs border border-purple-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">Splash</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('foody:test-order-success'));
+                  }}
+                  title="Play the order success squirrel happy hop celebration"
+                  className="px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Order Hop</span>
                 </button>
 
                 <button
@@ -4206,6 +4231,72 @@ export default function DeveloperView({ setCurrentTab }) {
                 <span>Switch to this User View</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mascot Studio Interactive Preview Modal */}
+      {isMascotModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsMascotModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+        >
+          <div className="bg-[#FAF7F2] dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white w-full max-w-md rounded-[32px] p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="w-full flex items-center justify-between pb-3 border-b border-stone-200 dark:border-white/10 mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#FD9139]" />
+                <h3 className="text-lg font-black text-stone-900 dark:text-white font-['Outfit']">Mascot Studio</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMascotModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Mascot Stage */}
+            <div className="w-full bg-stone-100 dark:bg-[#151314] border border-stone-200/80 dark:border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center relative min-h-[280px]">
+              <FoodyMascot
+                state={mascotPreviewState}
+                width={260}
+                height={260}
+              />
+              <span className="mt-2 text-[11px] font-mono font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                State: <span className="text-[#FD9139]">{mascotPreviewState}</span>
+              </span>
+            </div>
+
+            {/* State Switcher Buttons */}
+            <div className="grid grid-cols-4 gap-2 w-full mt-4">
+              {[
+                { id: 'idle', label: 'Idle' },
+                { id: 'happy', label: 'Happy' },
+                { id: 'sad', label: 'Sad' },
+                { id: 'delivery', label: 'Delivery' }
+              ].map(st => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setMascotPreviewState(st.id)}
+                  className={`py-2.5 px-2 rounded-xl font-bold text-xs capitalize transition-all cursor-pointer ${
+                    mascotPreviewState === st.id
+                      ? 'bg-[#FD9139] text-stone-950 shadow-md font-black scale-102'
+                      : 'bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-stone-300'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-4 leading-relaxed">
+              Platform mascot animation rendered via pure vector math & requestAnimationFrame for maximum 60fps performance on all devices.
+            </p>
           </div>
         </div>
       )}

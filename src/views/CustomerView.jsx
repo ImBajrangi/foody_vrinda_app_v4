@@ -22,6 +22,8 @@ const ActiveOrderTrackingModal = lazyWithRetry(() => import('../components/Activ
 const QuantityPickerSheet = lazyWithRetry(() => import('../components/QuantityPickerSheet'));
 const OrderHistoryDrawer = lazyWithRetry(() => import('../components/OrderHistoryDrawer'));
 const ReviewModal = lazyWithRetry(() => import('../components/ReviewModal'));
+const OrderSuccessCelebrationModal = lazyWithRetry(() => import('../components/OrderSuccessCelebrationModal'));
+import FoodyMascot from '../foody/FoodyMascot';
 import {
   MapPin,
   ChevronDown,
@@ -323,6 +325,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [celebrationOrder, setCelebrationOrder] = useState(null);
+
+  // Test event listener to preview Order Success celebration hop on demand
+  useEffect(() => {
+    const handleTestHop = () => {
+      setCelebrationOrder({
+        id: 'ord_vrinda_' + Math.floor(1000 + Math.random() * 9000),
+        shop_name: 'Brajdham Restaurant Barsana',
+        total: 240,
+      });
+    };
+    window.addEventListener('foody:test-order-success', handleTestHop);
+    return () => window.removeEventListener('foody:test-order-success', handleTestHop);
+  }, []);
+
   const [showShopSwitcher, setShowShopSwitcher] = useState(false);
   const [shopSearch, setShopSearch] = useState('');
   const [fulfillmentType, setFulfillmentType] = useState(() => {
@@ -1170,6 +1187,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           }
         } catch (e) { }
 
+        setCelebrationOrder(cloudOrder);
         showToast("Order Placed!", 'success', 'Cash on Delivery');
         clearCart();
         setShowCartDrawer(false);
@@ -1210,6 +1228,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               }
             } catch (e) { }
 
+            setCelebrationOrder(cloudOrder);
             showToast("Order Placed!", 'success', 'Payment confirmed');
             clearCart();
             setShowCartDrawer(false);
@@ -1251,6 +1270,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           }
         } catch (e) { }
 
+        setCelebrationOrder(cloudOrder);
         showToast("Order Placed!", 'success', 'Online Pay Confirmed');
         clearCart();
         setShowCartDrawer(false);
@@ -2343,7 +2363,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar pr-0.5 space-y-4 my-2.5">
               {/* Items List */}
               <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
-                {cart.map(item => (
+                {cart.length === 0 ? (
+                  <div className="py-6 flex flex-col items-center justify-center text-center">
+                    <FoodyMascot state="sad" width={150} height={160} />
+                    <p className="text-sm font-bold text-stone-900 dark:text-white mt-2 font-['Outfit']">
+                      Your sacred basket is empty
+                    </p>
+                    <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">
+                      Add pure Satvik prasad to begin
+                    </p>
+                  </div>
+                ) : (
+                  cart.map(item => (
                   <div key={item.id} className="py-3 flex justify-between items-center gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-sm text-stone-900 dark:text-white truncate">{item.name}</p>
@@ -2390,7 +2421,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
                     </div>
                   </div>
-                ))}
+                )))}
               </div>
 
               {/* KITCHEN CLOSED / OFFLINE NOTICE BANNER */}
@@ -2938,6 +2969,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             orderId={reviewOrderTarget?.id}
             onReviewSubmitted={() => {
               showToast("Review Submitted", "success", "5-Star Rating Shared");
+            }}
+          />
+        )}
+
+        {/* Celebration Order Hop Modal with Squirrel Animation */}
+        {celebrationOrder && (
+          <OrderSuccessCelebrationModal
+            isOpen={!!celebrationOrder}
+            order={celebrationOrder}
+            onClose={() => setCelebrationOrder(null)}
+            onTrackOrder={(orderId) => {
+              setCelebrationOrder(null);
+              if (orderId && setTrackingOrderId) {
+                setTrackingOrderId(orderId);
+                setIsTrackingModalOpen(true);
+              }
             }}
           />
         )}

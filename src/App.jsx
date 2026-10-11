@@ -40,7 +40,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
-import AnimatedSplashScreen from './components/AnimatedSplashScreen';
+import FoodySplash from './foody/FoodySplash';
 
 export default function App() {
 
@@ -494,11 +494,11 @@ export default function App() {
 
   return (
     <>
-      {/* Interactive Pure-Vector Animated Splash Screen (Zero-load, 60fps, tap to dismiss) */}
+      {/* Pure Vector Animated Splash Screen (Zero-load, 60fps, tap to dismiss) */}
       {showSplash && (
-        <AnimatedSplashScreen
-          onFinish={() => setShowSplash(false)}
-          autoDismiss={true}
+        <FoodySplash
+          speed={1.3}
+          onDone={() => setShowSplash(false)}
         />
       )}
 
@@ -654,6 +654,6 @@ export default function App() {
         )}
       </Suspense>
     </div>
-  </>
-);
+    </>
+  );
 }
