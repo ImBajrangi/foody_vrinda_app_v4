@@ -490,7 +490,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
             {isAuthenticated && !showLoginView ? (
               <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253,145,57,0.2)]">
-                <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-[#1E1B1C] flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] border border-stone-200/50 dark:border-white/10 flex items-center justify-center">
                   {userAvatar ? (
                     <img
                       src={userAvatar}
@@ -504,27 +504,27 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     <img
                       src="/foody-vrinda-logo.webp"
                       alt="Foody Vrinda"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1.5"
                     />
                   )}
                 </div>
               </div>
             ) : (
               <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253,145,57,0.25)] flex items-center justify-center">
-                <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-[#1E1B1C] border border-stone-200/50 dark:border-white/10 flex items-center justify-center">
                   <img
                     src="/foody-vrinda-logo.webp"
                     alt="Foody Vrinda Logo"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-1.5"
                   />
                 </div>
               </div>
             )}
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight truncate block max-w-full">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[15px] sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-snug">
                 {modalTitle}
               </h3>
-              <p className="text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] truncate block max-w-full font-medium mt-0.5">
+              <p className="text-[11px] sm:text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] font-medium mt-0.5 leading-tight line-clamp-2">
                 {modalSubtitle}
               </p>
             </div>
@@ -701,7 +701,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         maxLength={10}
                         value={phoneEditInput}
                         onChange={(e) => setPhoneEditInput(e.target.value.replace(/\D/g, ''))}
-                        placeholder="Enter 10-digit mobile number"
+                        placeholder="10-digit mobile number"
                         className="bg-transparent text-stone-900 dark:text-white text-base font-mono font-bold tracking-wider w-full focus:outline-none placeholder:text-stone-400 dark:placeholder:text-zinc-500"
                       />
                     </div>
@@ -1247,7 +1247,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="tel"
                       value={phoneInput}
                       onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter 10-digit mobile number"
+                      placeholder="10-digit mobile number"
                       maxLength={10}
                       required
                       className="w-full bg-transparent py-2 text-sm sm:text-base text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
