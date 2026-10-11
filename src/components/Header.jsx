@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useCart } from '../context/CartContext';
-import { Bell, ShoppingBag, Coins, LogIn } from 'lucide-react';
+import { Bell, ShoppingBag, Coins, LogIn, Download, Sparkles, X } from 'lucide-react';
 import { getCachedWallet, subscribeUserWallet } from '../services/fvWalletService';
+import { Capacitor } from '@capacitor/core';
 
 export default function Header({ 
   audioUnlocked, 
@@ -51,7 +52,7 @@ export default function Header({
       const t = setTimeout(() => {
         setShowLoginHint(false);
         try { localStorage.setItem('foody_login_hint_seen', 'true'); } catch (_) {}
-      }, 6000);
+      }, 15000);
       return () => clearTimeout(t);
     }
   }, [showLoginHint]);
@@ -232,31 +233,6 @@ export default function Header({
                     </div>
                   </div>
                 </button>
-
-                {/* First-Time Visitor Login Hint Callout */}
-                {!isAuthenticated && showLoginHint && (
-                  <div 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleProfileClick();
-                    }}
-                    className="absolute top-[calc(100%+6px)] left-0 z-50 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-900 text-white dark:bg-[#FD9139] dark:text-white text-[10px] font-black shadow-xl border border-stone-700/60 dark:border-white/20 animate-hint-float whitespace-nowrap cursor-pointer select-none"
-                  >
-                    <span>👆</span>
-                    <span>Tap to Sign In</span>
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        dismissLoginHint();
-                      }}
-                      className="ml-0.5 opacity-60 hover:opacity-100 font-bold px-0.5 text-xs"
-                      aria-label="Dismiss hint"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
               </div>
               
               <button 
@@ -357,18 +333,18 @@ export default function Header({
           </div>
         )}
 
-        {/* Right: Actions Cluster (Streamlined & Uncluttered) */}
+        {/* Right: Actions Cluster (Max 2 items on mobile to keep header clean & spacious) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Quick Cart Trigger (Shown strictly when basket has items to reduce top header clutter) */}
+          {/* Quick Cart Trigger (Desktop only to prevent mobile top header crowding; mobile uses Floating Cart Bar) */}
           {onOpenCart && totalQty > 0 && (
             <button
               data-tour="customer-basket"
               onClick={onOpenCart}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/40 dark:border-[#FD9139]/40 hover:border-amber-500/60 dark:hover:border-[#FD9139]/60 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0 animate-scale-in"
+              className="hidden md:flex w-9 h-9 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-amber-500/40 dark:border-[#FD9139]/40 hover:border-amber-500/60 dark:hover:border-[#FD9139]/60 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target active:scale-95 shrink-0 animate-scale-in"
               title="Open Basket"
               aria-label="Open Basket"
             >
-              <ShoppingBag size={17} className="text-[#FD9139]" />
+              <ShoppingBag size={16} className="text-[#FD9139]" />
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FD9139] text-white text-[9.5px] font-black rounded-full flex items-center justify-center shadow-md font-outfit font-sans border-2 border-[#FAF7F2] dark:border-[#1E1B1C] leading-none">
                 {totalQty}
               </span>
@@ -377,26 +353,52 @@ export default function Header({
 
           {/* Authentication & User Controls */}
           {authLoading ? (
-            <div className="h-9 sm:h-10 w-20 rounded-full bg-stone-300/60 dark:bg-white/10 animate-pulse border border-stone-300/40 dark:border-white/5 shrink-0" />
+            <div className="h-9 w-20 rounded-full bg-stone-300/60 dark:bg-white/10 animate-pulse border border-stone-300/40 dark:border-white/5 shrink-0" />
           ) : !isAuthenticated ? (
-            /* Logged-Out Quick Sign In Button */
-            <button
-              onClick={() => onToggleAuth?.('login')}
-              className="h-8.5 sm:h-9 px-3 sm:px-3.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
-              title="Sign in to your account"
-            >
-              <LogIn size={13} className="text-white" />
-              <span>Sign In</span>
-            </button>
-          ) : (
-            /* Logged-In User Controls */
+            /* Logged-Out Controls: Max 2 items (Install App + Sign In) */
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* FV Dynasty Rewards Badge (Always accessible on mobile & desktop) */}
+              {!Capacitor.isNativePlatform() && (
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('foody:open-install-app'))}
+                  className="h-9 px-2.5 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                  title="Install Foody Vrinda App"
+                  aria-label="Install App"
+                >
+                  <Download size={14} className="text-[#FD9139]" />
+                  <span className="text-[11px] font-black hidden xs:inline sm:inline">Install</span>
+                </button>
+              )}
+              <button
+                onClick={() => onToggleAuth?.('login')}
+                className="h-9 px-3 sm:px-3.5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                title="Sign in to your account"
+              >
+                <LogIn size={13} className="text-white" />
+                <span>Sign In</span>
+              </button>
+            </div>
+          ) : (
+            /* Logged-In User Controls: Strictly 2 items on mobile (Rewards Badge + Notifications Trigger) */
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Optional Install button on large desktop screens only */}
+              {!Capacitor.isNativePlatform() && (
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('foody:open-install-app'))}
+                  className="hidden lg:flex h-9 px-2.5 sm:px-3 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] items-center gap-1.5 text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                  title="Install Foody Vrinda App"
+                  aria-label="Install App"
+                >
+                  <Download size={14} className="text-[#FD9139]" />
+                  <span className="text-[11px] font-black">Install</span>
+                </button>
+              )}
+
+              {/* 1. FV Dynasty Rewards Badge */}
               {onToggleRewards && (
                 <button
                   data-tour="customer-fv-wallet"
                   onClick={onToggleRewards}
-                  className="h-8.5 sm:h-9 px-2 sm:px-3 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 hover:bg-yellow-400/25 dark:hover:bg-[#FFD000]/25 border border-yellow-500/35 dark:border-[#FFD000]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
+                  className="h-9 px-2.5 sm:px-3 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 hover:bg-yellow-400/25 dark:hover:bg-[#FFD000]/25 border border-yellow-500/35 dark:border-[#FFD000]/40 flex items-center gap-1.5 text-stone-900 dark:text-white transition-all shadow-xs cursor-pointer apple-tap-target active:scale-95 shrink-0"
                   title="FV Dynasty Rewards & Referral Hub"
                 >
                   <Coins size={14} className="text-amber-500 dark:text-[#FFD000] shrink-0" />
@@ -407,10 +409,10 @@ export default function Header({
                 </button>
               )}
 
-              {/* Notifications Trigger */}
+              {/* 2. Notifications Trigger */}
               <button 
                 onClick={onToggleNotifications}
-                className="w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
+                className="w-9 h-9 rounded-full bg-stone-200/90 dark:bg-[#282526] border border-stone-300 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-white/20 hover:bg-stone-300 dark:hover:bg-[#322E30] flex items-center justify-center text-stone-800 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all shadow-xs relative cursor-pointer apple-tap-target shrink-0 active:scale-95"
                 title="Notifications"
                 aria-label="Notifications"
               >
@@ -423,6 +425,46 @@ export default function Header({
           )}
         </div>
       </header>
+
+      {/* First-Time Visitor Luxury Welcome Strip */}
+      {!isAuthenticated && showLoginHint && (
+        <div className="mt-2 mb-2 w-full p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#FD9139]/10 to-amber-600/15 border border-amber-500/30 dark:border-amber-500/25 backdrop-blur-md flex items-center justify-between gap-2.5 sm:gap-3 shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-[#FD9139] flex items-center justify-center shrink-0">
+              <Sparkles size={16} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-black font-outfit text-stone-900 dark:text-white truncate">
+                  Welcome to Foody Vrinda!
+                </span>
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-500/20 text-amber-700 dark:text-[#FD9139] shrink-0">
+                  +50 Coins
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-600 dark:text-zinc-300 truncate">
+                Sign in with mobile to earn 50 FV Coins & track live orders
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleProfileClick}
+              className="px-3 py-1.5 rounded-xl bg-[#FD9139] hover:bg-[#FCA65E] text-white text-xs font-black transition-all shadow-xs active:scale-95 cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={dismissLoginHint}
+              className="p-1 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-white transition-colors cursor-pointer"
+              aria-label="Dismiss welcome message"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Dedicated Operational View Switcher (Full-Width Flexible Grid with balanced touch targets) */}
       {hasStaffOrSpecialRole && (

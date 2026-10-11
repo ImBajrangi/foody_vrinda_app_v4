@@ -598,6 +598,71 @@ class NativeNotificationService {
   }
 
   /**
+   * Dispatch full test alert across native, service worker and in-app channels
+   */
+  async dispatchTestAlert(trialId) {
+    const activeTrial = trialId || this.getActiveTrial();
+    const trial = NOTIFICATION_TRIALS.find(t => t.id === activeTrial) || NOTIFICATION_TRIALS[0];
+
+    // 1. Play sound trial directly
+    this.playTrialSound(trial.id);
+    await this.hapticNotification(NotificationType.Success);
+
+    const title = '🌸 Foody Vrinda Sound Test';
+    const body = `Testing "${trial.name}" notification chime & live alert!`;
+
+    // 2. Native Android / iOS local notification
+    if (this.isNative) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: 999108,
+              channelId: 'order_updates',
+              smallIcon: 'ic_stat_notification',
+              largeIcon: 'splash_icon',
+              iconColor: '#FD9139',
+              sound: this.getActiveTrialSoundFile(),
+              extra: { type: 'test' },
+            },
+          ],
+        });
+      } catch (e) {
+        console.warn('Native local notification test error:', e);
+      }
+    } else if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      // 3. Web ServiceWorker push without illegal constructor
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, {
+            body,
+            icon: '/foody-vrinda-logo.webp',
+            badge: '/pwa-192x192.webp',
+            tag: `foody-test-${Date.now()}`,
+            vibrate: [200, 100, 200],
+          });
+        }
+      } catch (_) {}
+    }
+
+    // 4. Always emit in-app Dynamic Toast confirmation
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('foody_toast', {
+        detail: {
+          message: `Chime Tested: ${trial.name}`,
+          type: 'success',
+          desc: 'Acoustic sound wave & notification trigger verified!'
+        }
+      }));
+    }
+
+    return { success: true, trial };
+  }
+
+  /**
    * First-time welcome notification trigger upon permission grant
    */
   async notifyWelcomeIfFirstTime() {

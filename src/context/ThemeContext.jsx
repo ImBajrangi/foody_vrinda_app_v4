@@ -3,26 +3,50 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
+  // Theme preference: 'system' | 'light' | 'dark'
+  const [themeMode, setThemeModeState] = useState(() => {
     try {
       const savedTheme = localStorage.getItem('foody_theme');
-      if (savedTheme === 'light' || savedTheme === 'dark') {
+      if (savedTheme === 'system' || savedTheme === 'light' || savedTheme === 'dark') {
         return savedTheme;
       }
-      // Check system preference if no saved theme
-      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        return 'light';
-      }
     } catch (e) {}
-    return 'light'; // Default to pristine Divine Light theme to address dark-theme complaints
+    return 'system'; // Default to modern system theme preference
   });
 
-  // Apply theme to HTML root element, body, and localStorage
+  // Track real-time system color scheme
+  const [systemScheme, setSystemScheme] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e) => {
+      setSystemScheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (mq.addEventListener) {
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    } else if (mq.addListener) {
+      mq.addListener(handler);
+      return () => mq.removeListener(handler);
+    }
+  }, []);
+
+  // Compute effective theme to apply ('light' or 'dark')
+  const resolvedTheme = themeMode === 'system' ? systemScheme : themeMode;
+
+  // Apply resolved theme to HTML root element, body, and storage
   useEffect(() => {
     try {
       const root = document.documentElement;
       const body = document.body;
-      if (theme === 'light') {
+      if (resolvedTheme === 'light') {
         root.classList.remove('dark');
         root.classList.add('light');
         root.setAttribute('data-theme', 'light');
@@ -52,32 +76,41 @@ export function ThemeProvider({ children }) {
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) metaThemeColor.setAttribute('content', '#1E1B1C');
       }
-      localStorage.setItem('foody_theme', theme);
+      localStorage.setItem('foody_theme', themeMode);
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('foody_theme_changed', { detail: { theme } }));
+        window.dispatchEvent(new CustomEvent('foody_theme_changed', { 
+          detail: { theme: resolvedTheme, themeMode } 
+        }));
       }
     } catch (e) {
       console.warn('Could not persist theme:', e);
     }
-  }, [theme]);
+  }, [resolvedTheme, themeMode]);
 
   const toggleTheme = useCallback(() => {
-    setThemeState(prev => (prev === 'light' ? 'dark' : 'light'));
+    setThemeModeState(prev => {
+      if (prev === 'system') return 'light';
+      if (prev === 'light') return 'dark';
+      return 'system';
+    });
   }, []);
 
-  const setTheme = useCallback((newTheme) => {
-    if (newTheme === 'light' || newTheme === 'dark') {
-      setThemeState(newTheme);
+  const setTheme = useCallback((newMode) => {
+    if (newMode === 'system' || newMode === 'light' || newMode === 'dark') {
+      setThemeModeState(newMode);
     }
   }, []);
 
   const value = useMemo(() => ({
-    theme,
-    isLight: theme === 'light',
-    isDark: theme === 'dark',
+    theme: resolvedTheme,
+    themeMode,
+    isLight: resolvedTheme === 'light',
+    isDark: resolvedTheme === 'dark',
+    isSystem: themeMode === 'system',
     toggleTheme,
-    setTheme
-  }), [theme, toggleTheme, setTheme]);
+    setTheme,
+    setThemeMode: setTheme
+  }), [resolvedTheme, themeMode, toggleTheme, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

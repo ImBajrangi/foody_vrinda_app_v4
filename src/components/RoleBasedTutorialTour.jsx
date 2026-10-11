@@ -16,7 +16,7 @@ import {
   saveTutorialProgress
 } from '../services/tutorialService';
 
-// Comprehensive valid CSS fallback selector map per stage across all 5 panels
+// Comprehensive valid CSS fallback selector map per stage across all panels
 const SELECTOR_FALLBACKS = {
   // Customer stages
   'customer-search': [
@@ -154,58 +154,6 @@ const SELECTOR_FALLBACKS = {
   ]
 };
 
-/**
- * Speech Bubble Tail Component (iOS / iMessage style curved tail)
- */
-function SpeechBubbleTail({ placement, arrowLeft, isLight }) {
-  const bg = isLight ? '#FAF5EB' : '#282526';
-  const border = isLight ? 'rgba(217, 119, 6, 0.4)' : 'rgba(253, 145, 57, 0.35)';
-
-  if (placement === 'bottom') {
-    // Bubble is below target -> Tail on TOP edge pointing UP
-    return (
-      <div
-        style={{ left: `${arrowLeft}px` }}
-        className="absolute -top-[11px] -translate-x-1/2 z-30 pointer-events-none"
-      >
-        <svg width="22" height="12" viewBox="0 0 22 12" fill="none">
-          <path
-            d="M 2 12 C 7 12, 9 7, 11 1 C 13 7, 15 12, 20 12 Z"
-            fill={bg}
-          />
-          <path
-            d="M 2 12 C 7 12, 9 7, 11 1 C 13 7, 15 12, 20 12"
-            stroke={border}
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-    );
-  }
-
-  // Bubble is above target -> Tail on BOTTOM edge pointing DOWN
-  return (
-    <div
-      style={{ left: `${arrowLeft}px` }}
-      className="absolute -bottom-[11px] -translate-x-1/2 z-30 pointer-events-none"
-    >
-      <svg width="22" height="12" viewBox="0 0 22 12" fill="none">
-        <path
-          d="M 2 0 C 7 0, 9 5, 11 11 C 13 5, 15 0, 20 0 Z"
-          fill={bg}
-        />
-        <path
-          d="M 2 0 C 7 0, 9 5, 11 11 C 13 5, 15 0, 20 0"
-          stroke={border}
-          strokeWidth="1.2"
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
-  );
-}
-
 export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, forceRole = null }) {
   const { user, userData, userRole } = useAuth();
   const { isLight } = useTheme();
@@ -220,13 +168,12 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
   const [currentStep, setCurrentStep] = useState(0);
   const [closing, setClosing] = useState(false);
   const [targetRect, setTargetRect] = useState(null);
-  const [targetFound, setTargetFound] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: -100, y: -100, isTapping: false });
   const [windowDims, setWindowDims] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768
   });
 
-  const cardRef = useRef(null);
   const activeStage = stages[currentStep] || stages[0] || {};
 
   // Reset step on open
@@ -291,7 +238,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     return null;
   }, []);
 
-  // Update target rect with scroll sync
+  // Update target rect with scroll sync & animate cursor
   const updateTargetPosition = useCallback(() => {
     if (!isOpen || !activeStage) return;
 
@@ -301,8 +248,8 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
       // Smoothly scroll target into visible viewport if occluded
       const r = el.getBoundingClientRect();
       const inView = (
-        r.top >= 60 &&
-        r.bottom <= window.innerHeight - 60 &&
+        r.top >= 70 &&
+        r.bottom <= window.innerHeight - 80 &&
         r.left >= 10 &&
         r.right <= window.innerWidth - 10
       );
@@ -313,7 +260,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
         } catch (_) {}
       }
 
-      // Re-read fresh bounding box after potential scroll adjustments
+      // Read bounding box and set smooth cursor glide position
       setTimeout(() => {
         if (!el.isConnected) return;
         const freshRect = el.getBoundingClientRect();
@@ -325,13 +272,26 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
           bottom: freshRect.bottom,
           right: freshRect.right
         });
-        setTargetFound(true);
-      }, 80);
+
+        // Target center for cursor landing
+        const targetX = freshRect.left + (freshRect.width / 2);
+        const targetY = freshRect.top + (freshRect.height / 2);
+
+        setCursorPos({ x: targetX, y: targetY, isTapping: false });
+
+        // Trigger micro-tap haptic ripple after cursor arrives
+        setTimeout(() => {
+          setCursorPos(prev => ({ ...prev, isTapping: true }));
+          setTimeout(() => {
+            setCursorPos(prev => ({ ...prev, isTapping: false }));
+          }, 350);
+        }, 320);
+      }, 70);
     } else {
       setTargetRect(null);
-      setTargetFound(false);
+      setCursorPos({ x: windowDims.width / 2, y: windowDims.height / 2 - 80, isTapping: false });
     }
-  }, [isOpen, activeStage, locateTargetElement]);
+  }, [isOpen, activeStage, locateTargetElement, windowDims]);
 
   // Helper to emit close event
   const dispatchCloseEvent = useCallback(() => {
@@ -342,7 +302,7 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     );
   }, [resolvedRole]);
 
-  // Emit event whenever step changes or tour opens so active panels auto-open their tabs/drawers
+  // Emit event whenever step changes
   useEffect(() => {
     if (!isOpen || stages.length === 0) return;
     const stage = stages[currentStep] || stages[0];
@@ -359,41 +319,24 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
       })
     );
 
-    // Give the view component a tick to render newly opened tab/drawer before locating rect
     const timer = setTimeout(() => {
       updateTargetPosition();
-    }, 120);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [isOpen, currentStep, resolvedRole, stages, updateTargetPosition]);
 
-  // Recalculate target position whenever stage changes or on window scroll
+  // Recalculate target position on window scroll
   useEffect(() => {
     if (!isOpen) return;
-
-    const timer = setTimeout(() => {
-      updateTargetPosition();
-    }, 40);
 
     const handleScroll = () => {
       updateTargetPosition();
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('scroll', handleScroll, { capture: true });
-    };
-  }, [isOpen, currentStep, updateTargetPosition]);
-
-  // Clean-up on unmount if tour was active
-  useEffect(() => {
-    return () => {
-      if (isOpen) {
-        dispatchCloseEvent();
-      }
-    };
-  }, [isOpen, dispatchCloseEvent]);
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+  }, [isOpen, updateTargetPosition]);
 
   // Advance to next step or complete
   const handleNext = () => {
@@ -402,7 +345,6 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
       setCurrentStep(nextStep);
       saveTutorialProgress(userId, resolvedRole, nextStep);
     } else {
-      // Completed all steps
       setClosing(true);
       markTutorialCompleted(userId, resolvedRole, stages.length);
       dispatchCloseEvent();
@@ -455,12 +397,8 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
   const isLast = currentStep === stages.length - 1;
   const IconComponent = activeStage.icon || HelpCircle;
 
-  // Responsive Message Bubble Positioning Engine
-  const cardWidth = Math.min(350, windowDims.width - 24);
-  const cardEstimatedHeight = 160;
-
-  // Compute spotlight cutout rectangle with padding
-  const padding = 8;
+  // Compute spotlight ring on target
+  const padding = 6;
   const cutout = targetRect ? {
     x: Math.max(0, targetRect.left - padding),
     y: Math.max(0, targetRect.top - padding),
@@ -468,200 +406,171 @@ export default function RoleBasedTutorialTour({ isOpen, onClose, onComplete, for
     h: targetRect.height + (padding * 2)
   } : null;
 
-  let placement = 'bottom';
-  let cardTop = windowDims.height - cardEstimatedHeight - 24;
-  let cardLeft = (windowDims.width - cardWidth) / 2;
-  let arrowLeft = cardWidth / 2;
-
-  if (targetRect) {
-    const spaceBelow = windowDims.height - targetRect.bottom;
-    const spaceAbove = targetRect.top;
-    const gap = 16;
-
-    if (spaceBelow >= cardEstimatedHeight + gap) {
-      placement = 'bottom';
-      cardTop = targetRect.bottom + gap;
-    } else if (spaceAbove >= cardEstimatedHeight + gap) {
-      placement = 'top';
-      cardTop = Math.max(12, targetRect.top - cardEstimatedHeight - gap);
-    } else {
-      placement = spaceBelow > spaceAbove ? 'bottom' : 'top';
-      cardTop = placement === 'bottom'
-        ? Math.min(windowDims.height - cardEstimatedHeight - 12, targetRect.bottom + gap)
-        : Math.max(12, targetRect.top - cardEstimatedHeight - gap);
-    }
-
-    // Align horizontally with target center, clamped inside viewport
-    const targetCenter = targetRect.left + (targetRect.width / 2);
-    const desiredLeft = targetCenter - (cardWidth / 2);
-    cardLeft = Math.max(12, Math.min(windowDims.width - cardWidth - 12, desiredLeft));
-    arrowLeft = Math.max(24, Math.min(cardWidth - 24, targetCenter - cardLeft));
-  }
+  // Determine if target is in bottom half -> place guide capsule at top
+  const isTargetNearBottom = targetRect && targetRect.bottom > windowDims.height - 220;
 
   return (
     <div
-      className={`fixed inset-0 z-[9999999] overflow-hidden select-none transition-opacity duration-200 ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      style={{ touchAction: 'none', background: 'transparent' }}
+      className={`fixed inset-0 z-[9999999] overflow-hidden select-none transition-opacity duration-200 pointer-events-auto ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      style={{ touchAction: 'none' }}
     >
-      {/* Dynamic Theme Spotlight Hole & Backing Scrim */}
-      {cutout ? (
+      {/* 1. Ultra-clean Subtle Backdrop (Zero Clunky Blackout Scrim) */}
+      <div 
+        onClick={handleSkip}
+        className="fixed inset-0 bg-black/30 dark:bg-black/55 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto"
+      />
+
+      {/* 2. Delicate Target Element Spotlight Aura (Zero 9999px box-shadow) */}
+      {cutout && (
         <div
           style={{
             top: `${cutout.y}px`,
             left: `${cutout.x}px`,
             width: `${cutout.w}px`,
             height: `${cutout.h}px`,
-            borderRadius: '18px',
-            boxShadow: isLight
-              ? '0 0 0 9999px rgba(25, 20, 22, 0.62), 0 0 25px rgba(245, 158, 11, 0.40)'
-              : '0 0 0 9999px rgba(10, 8, 9, 0.84), 0 0 30px rgba(253, 145, 57, 0.45)',
+            borderRadius: '22px',
           }}
-          className={`fixed pointer-events-none z-10 transition-all duration-300 border-2 ${
-            isLight
-              ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.45)]'
-              : 'border-[#FD9139] shadow-[0_0_30px_rgba(253, 145, 57,0.5),inset_0_0_12px_rgba(253, 145, 57,0.2)]'
-          }`}
-        />
-      ) : (
-        /* Fallback Backdrop if target element is not in view */
-        <div
-          className={`fixed inset-0 pointer-events-none z-10 transition-opacity duration-300 ${
-            isLight ? 'bg-black/60' : 'bg-black/80'
-          }`}
+          className="fixed pointer-events-none z-10 transition-all duration-300 border-2 border-[#FD9139] shadow-[0_0_25px_rgba(253,145,57,0.55),inset_0_0_15px_rgba(253,145,57,0.25)] ring-4 ring-[#FD9139]/20 animate-pulse"
         />
       )}
 
-      {/* CHAT MESSAGE BUBBLE CONTAINER */}
+      {/* 3. VRINDOPNISHAD-STYLE HARDWARE-ACCELERATED GUIDED CURSOR */}
       <div
-        ref={cardRef}
         style={{
-          top: `${cardTop}px`,
-          left: `${cardLeft}px`,
-          width: `${cardWidth}px`
+          transform: `translate3d(${cursorPos.x}px, ${cursorPos.y}px, 0)`,
+          transition: 'transform 0.42s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        className={`fixed z-20 flex flex-col rounded-[24px] sm:rounded-[28px] p-4 sm:p-4.5 transition-all duration-300 apple-modal-spring shadow-2xl relative ${
-          isLight
-            ? 'bg-[#FAF5EB] text-stone-900 border border-amber-400/40 shadow-[0_20px_50px_rgba(0,0,0,0.25)]'
-            : 'bg-[#282526] text-white border border-[#FD9139]/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
-        } ${closing ? 'closing' : ''}`}
+        className="fixed top-0 left-0 z-30 pointer-events-none -ml-2 -mt-2 flex items-start gap-1.5 will-change-transform"
       >
-        {/* Authentic Chat Speech Tail pointing at the element */}
-        {targetFound && (
-          <SpeechBubbleTail
-            placement={placement}
-            arrowLeft={arrowLeft}
-            isLight={isLight}
-          />
-        )}
+        {/* Soft Animated macOS Pointer Arrow */}
+        <div 
+          style={{
+            transform: cursorPos.isTapping ? 'scale(0.82) rotate(-8deg)' : 'scale(1) rotate(0deg)',
+            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
+          }}
+          className="relative drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+        >
+          <svg
+            width={28}
+            height={28}
+            viewBox="0 0 28 28"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="block overflow-visible"
+          >
+            <path
+              d="M 5.8 3.6 Q 4.5 3.2 4.6 4.6 L 10.2 22.6 Q 10.6 23.9 11.7 23.2 L 14.2 16.6 L 21.8 14.7 Q 23.1 14.4 22.6 13.2 L 6.8 3.8 Z"
+              fill="#FD9139"
+              stroke="#FFFFFF"
+              strokeWidth={1.8}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </svg>
 
-        {/* Top Mini Header: Step Chip & Close */}
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider font-outfit border ${
-                isLight
-                  ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
-                  : 'bg-[#FD9139]/15 text-[#FD9139] border-[#FD9139]/30'
-              }`}
-            >
+          {/* Micro Tap Beacon Ripple */}
+          {cursorPos.isTapping && (
+            <span className="absolute -inset-2 rounded-full border-2 border-[#FD9139] animate-ping pointer-events-none" />
+          )}
+        </div>
+
+        {/* Fluid Trailing Badge Pill (Inspired by usercursor.tsx from Vrindopnishad) */}
+        <div 
+          className="px-2.5 py-1 rounded-full bg-[#1E1B1C] text-white border border-[#FD9139]/40 shadow-[0_6px_20px_rgba(0,0,0,0.6)] text-[10.5px] font-black font-['Outfit'] tracking-wide whitespace-nowrap flex items-center gap-1.5 animate-hint-float"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] animate-pulse" />
+          <span>{activeStage.uiElement || activeStage.tag?.split('•')[1]?.trim() || 'Tap Here'}</span>
+        </div>
+      </div>
+
+      {/* 4. DYNAMIC ISLAND GUIDED HUD CAPSULE (Clean Apple Standard, Non-Occluding) */}
+      <div
+        style={{
+          bottom: isTargetNearBottom ? 'auto' : 'calc(20px + env(safe-area-inset-bottom, 0px))',
+          top: isTargetNearBottom ? 'calc(24px + env(safe-area-inset-top, 0px))' : 'auto',
+        }}
+        className={`fixed left-1/2 -translate-x-1/2 z-40 w-[calc(100%-24px)] max-w-[420px] rounded-[28px] p-4 sm:p-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.9)] transition-all duration-300 border ${
+          isLight
+            ? 'bg-[#FAF5EB]/98 text-stone-900 border-amber-400/40'
+            : 'bg-[#1E1B1C]/98 text-white border-white/10'
+        }`}
+      >
+        {/* Top Header: Role Badge + Progress dots + Skip Close */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider font-['Outfit'] bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/30">
               {tutorialData?.roleLabel || 'Guide'} • {currentStep + 1}/{stages.length}
             </span>
           </div>
 
-          <button
-            onClick={handleSkip}
-            className={`w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 ${
-              isLight
-                ? 'bg-stone-200/80 hover:bg-stone-300 text-stone-600'
-                : 'bg-white/5 hover:bg-white/15 text-zinc-400 hover:text-white'
-            }`}
-            title="Skip Tour"
-            aria-label="Skip Tour"
-          >
-            <X size={12} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* 1 to 2 Liner Message Body */}
-        <div className="space-y-1 my-1">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${
-                isLight
-                  ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
-                  : 'bg-[#FD9139]/15 text-[#FD9139] border-[#FD9139]/30'
-              }`}
-            >
-              <IconComponent size={13} strokeWidth={2.5} />
-            </div>
-            <h3 className="text-xs sm:text-sm font-black font-outfit tracking-tight truncate">
-              {activeStage.title}
-            </h3>
-          </div>
-
-          {/* Strictly 1 to 2 Lines Max */}
-          <p
-            className={`text-[11px] sm:text-xs font-medium leading-snug line-clamp-2 pl-8 ${
-              isLight ? 'text-stone-600' : 'text-zinc-300'
-            }`}
-          >
-            {activeStage.description || activeStage.subtitle}
-          </p>
-        </div>
-
-        {/* Relative Navigation Controls Bar: Skip, Back, Next */}
-        <div className="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-stone-200/60 dark:border-white/10">
-          {/* Skip Button */}
-          <button
-            onClick={handleSkip}
-            className="text-[11px] font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer px-1 py-0.5"
-          >
-            Skip
-          </button>
-
-          {/* Progress dots */}
+          {/* Stepper Dots */}
           <div className="flex items-center gap-1">
             {stages.map((_, idx) => (
               <span
                 key={idx}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                className={`h-1.5 rounded-full transition-all duration-200 ${
                   idx === currentStep
-                    ? isLight
-                      ? 'bg-amber-600 w-3'
-                      : 'bg-[#FD9139] w-3'
-                    : isLight
-                      ? 'bg-stone-300'
-                      : 'bg-white/20'
+                    ? 'w-4 bg-[#FD9139]'
+                    : isLight ? 'w-1.5 bg-stone-300' : 'w-1.5 bg-white/20'
                 }`}
               />
             ))}
           </div>
 
-          {/* Next / Back cluster */}
-          <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleSkip}
+            className="w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90 text-stone-400 hover:text-stone-900 dark:hover:text-white"
+            title="Close Tutorial"
+            aria-label="Close Tutorial"
+          >
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="flex items-start gap-3 my-1">
+          <div className="w-9 h-9 rounded-2xl bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/30 flex items-center justify-center shrink-0">
+            <IconComponent size={18} strokeWidth={2.2} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm sm:text-base font-black font-['Outfit'] tracking-tight truncate">
+              {activeStage.title}
+            </h3>
+            <p className={`text-xs mt-0.5 font-medium leading-relaxed line-clamp-2 ${isLight ? 'text-stone-600' : 'text-zinc-300'}`}>
+              {activeStage.description || activeStage.subtitle}
+            </p>
+          </div>
+        </div>
+
+        {/* Footer Actions Row */}
+        <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-stone-200/60 dark:border-white/10">
+          <button
+            onClick={handleSkip}
+            className="text-xs font-bold text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer px-1 py-1"
+          >
+            Skip Tour
+          </button>
+
+          <div className="flex items-center gap-2">
             {currentStep > 0 && (
               <button
                 onClick={handleBack}
-                className="h-7 px-2.5 rounded-full font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95 border bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/10"
+                className="h-8 px-3 rounded-full font-bold text-xs flex items-center gap-1 transition-all cursor-pointer active:scale-95 border bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-800 dark:text-white border-stone-300 dark:border-white/10"
               >
-                <ChevronLeft size={12} />
+                <ChevronLeft size={13} />
                 <span>Back</span>
               </button>
             )}
 
             <button
               onClick={handleNext}
-              className={`h-7 px-3 rounded-full font-black text-[11px] flex items-center gap-1 transition-all cursor-pointer active:scale-95 font-outfit shadow-sm ${
-                isLight
-                  ? 'bg-stone-900 hover:bg-stone-800 text-white'
-                  : 'bg-[#FD9139] hover:bg-[#FCA65E] text-[#121011]'
-              }`}
+              className="h-8 px-4 rounded-full font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 font-['Outfit'] shadow-md bg-[#FD9139] hover:bg-[#FCA65E] text-white"
             >
               <span>{isLast ? 'Done' : 'Next'}</span>
               {isLast ? (
-                <CheckCircle2 size={12} strokeWidth={2.8} />
+                <CheckCircle2 size={13} strokeWidth={2.8} />
               ) : (
-                <ChevronRight size={12} strokeWidth={2.8} />
+                <ChevronRight size={13} strokeWidth={2.8} />
               )}
             </button>
           </div>

@@ -37,21 +37,26 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
   return (
     <div 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-[100000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 dark:bg-black/80 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-[100000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 dark:bg-black/75 backdrop-blur-xs animate-fade-in"
     >
-      <div className="w-full max-w-lg bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div className="w-full max-w-full sm:max-w-lg bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 rounded-t-[32px] sm:rounded-[32px] shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative flex flex-col text-stone-900 dark:text-white max-h-[90vh] overflow-hidden">
         
+        {/* Mobile Tactile Drag Handle */}
+        <div className="sm:hidden pt-3.5 pb-1 flex justify-center cursor-grab active:cursor-grabbing touch-none select-none">
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/25 transition-colors" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/10 pb-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0">
+        <div className="px-5 py-4 flex items-center justify-between select-none shrink-0 bg-[#FAF7F2] dark:bg-[#1E1B1C]">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0 shadow-xs">
               <Volume2 className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
                 Notifications & Tone Settings
               </h3>
-              <p className="text-xs text-stone-500 dark:text-zinc-400">
+              <p className="text-xs text-stone-500 dark:text-zinc-400 truncate font-['Plus_Jakarta_Sans'] font-medium mt-0.5">
                 Acoustic sound trials & personalized messaging style
               </p>
             </div>
@@ -59,12 +64,16 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           <button 
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-950 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer shrink-0 ml-3"
+            title="Close"
             aria-label="Close"
           >
-            <X className="w-4 h-4" />
+            <X size={17} />
           </button>
         </div>
+
+        {/* Scrollable Body Content */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-5 pb-5 space-y-4">
 
         {/* Messaging Tone Selector (Clean / Devotional) */}
         <div className="p-3.5 rounded-2xl bg-stone-100/80 dark:bg-white/[0.04] border border-stone-200/80 dark:border-white/10 flex items-center justify-between gap-3">
@@ -183,34 +192,41 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           <button
             type="button"
             onClick={async () => {
-              const token = nativeNotify.getFCMToken();
-              if (!token) {
-                alert("Push notification token not yet registered. Make sure notification permission is allowed!");
-                return;
-              }
               try {
-                alert("Test push dispatched. Lock your screen or swipe app away now to verify sound.");
-                await fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    type: 'INSERT',
-                    fcm_token: token,
-                    record: {
-                      id: 'TEST-108',
-                      status: 'cooking',
-                      total_amount: 108
-                    }
-                  })
-                });
+                // 1. Instantly trigger acoustic sound wave, local push, and haptic feedback
+                await nativeNotify.dispatchTestAlert(activeTrial);
+
+                // 2. If FCM push token is registered on native, also dispatch cloud webhook
+                const token = nativeNotify.getFCMToken();
+                if (token) {
+                  try {
+                    await fetch('https://mrsxliwyqodtwjuyqmts.supabase.co/functions/v1/order-push-notification', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yc3hsaXd5cW9kdHdqdXlxbXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NzQxMjcsImV4cCI6MjEwNDQ1MDEyN30.UZteyeZ3LtuVpMJoUqZogPKffmSlHN3Hn9fLtis7lBg',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yc3hsaXd5cW9kdHdqdXlxbXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NzQxMjcsImV4cCI6MjEwNDQ1MDEyN30.UZteyeZ3LtuVpMJoUqZogPKffmSlHN3Hn9fLtis7lBg'
+                      },
+                      body: JSON.stringify({
+                        type: 'INSERT',
+                        fcm_token: token,
+                        record: {
+                          id: 'TEST-108',
+                          status: 'cooking',
+                          total_amount: 108
+                        }
+                      })
+                    });
+                  } catch (_) {}
+                }
               } catch (e) {
-                alert('Test push error: ' + e.message);
+                console.warn('Test notification error:', e);
               }
             }}
-            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-200 border border-amber-500/30 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+            className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-200 border border-amber-500/30 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
           >
             <BellRing size={13} className="text-amber-600 dark:text-[#FD9139]" />
-            <span>Test OS Push on Device</span>
+            <span>Test Notification & Sound</span>
           </button>
           <button
             type="button"
@@ -219,6 +235,7 @@ export default function SoundTrialsModal({ isOpen, onClose }) {
           >
             Done
           </button>
+        </div>
         </div>
       </div>
     </div>

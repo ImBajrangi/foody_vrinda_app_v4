@@ -1253,12 +1253,25 @@ export default function DeveloperView({ setCurrentTab }) {
   const handleTestAlarm = () => {
     playAlarm();
     setToast({ message: "Sound wave trigger active! Click silence to stop.", type: 'warning' });
-    if (Notification && Notification.permission === 'granted') {
-      new Notification('Foody Vrinda Audio Test', {
-        body: 'Sound alarm pipeline triggered successfully!',
-        icon: '/foody-vrinda-logo.webp'
-      });
-    } else if (Notification) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        if (reg && reg.showNotification) {
+          reg.showNotification('Foody Vrinda Audio Test', {
+            body: 'Sound alarm pipeline triggered successfully!',
+            icon: '/foody-vrinda-logo.webp',
+            badge: '/pwa-192x192.webp',
+            vibrate: [200, 100, 200]
+          });
+        }
+      }).catch(() => {});
+    } else if (typeof Notification === 'function' && Notification.permission === 'granted' && !/Android|iPhone|iPad/i.test(navigator.userAgent || '')) {
+      try {
+        new Notification('Foody Vrinda Audio Test', {
+          body: 'Sound alarm pipeline triggered successfully!',
+          icon: '/foody-vrinda-logo.webp'
+        });
+      } catch (_) {}
+    } else if (typeof Notification !== 'undefined' && Notification.requestPermission) {
       Notification.requestPermission();
     }
   };

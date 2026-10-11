@@ -250,22 +250,28 @@ export function NotificationProvider({ children }) {
     };
 
     try {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           registration.showNotification(title, notifOptions);
         }).catch(() => {
-          const fallbackNotif = new Notification(title, notifOptions);
-          fallbackNotif.onclick = () => {
-            window.focus();
-            fallbackNotif.close();
-          };
+          if (!/Android|iPhone|iPad/i.test(navigator.userAgent || '') && typeof Notification === 'function') {
+            try {
+              const fallbackNotif = new Notification(title, notifOptions);
+              fallbackNotif.onclick = () => {
+                window.focus();
+                fallbackNotif.close();
+              };
+            } catch (_) {}
+          }
         });
-      } else {
-        const nativeNotif = new Notification(title, notifOptions);
-        nativeNotif.onclick = () => {
-          window.focus();
-          nativeNotif.close();
-        };
+      } else if (!/Android|iPhone|iPad/i.test(navigator.userAgent || '') && typeof Notification === 'function') {
+        try {
+          const nativeNotif = new Notification(title, notifOptions);
+          nativeNotif.onclick = () => {
+            window.focus();
+            nativeNotif.close();
+          };
+        } catch (_) {}
       }
     } catch (e) {
       console.warn("Direct OS Notification error:", e);

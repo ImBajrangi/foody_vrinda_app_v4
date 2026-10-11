@@ -14,6 +14,7 @@ const UnauthorizedAccessScreen = lazyWithRetry(() => import('./components/Unauth
 const CompleteProfileModal = lazyWithRetry(() => import('./components/CompleteProfileModal'));
 const AppUpdateModal = lazyWithRetry(() => import('./components/AppUpdateModal'));
 const RoleBasedTutorialModal = lazyWithRetry(() => import('./components/RoleBasedTutorialModal'));
+const AppInstallModal = lazyWithRetry(() => import('./components/AppInstallModal'));
 
 import { 
   isTutorialCompleted, 
@@ -120,6 +121,7 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState('');
   const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+  const [isInstallOpen, setIsInstallOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
@@ -133,14 +135,19 @@ export default function App() {
     const handleOpenRewards = () => {
       setIsRewardsOpen(true);
     };
+    const handleOpenInstall = () => {
+      setIsInstallOpen(true);
+    };
 
     window.addEventListener('foody:open-search', handleOpenSearch);
     window.addEventListener('foody_open_rewards', handleOpenRewards);
     window.addEventListener('foody:open-rewards', handleOpenRewards);
+    window.addEventListener('foody:open-install-app', handleOpenInstall);
     return () => {
       window.removeEventListener('foody:open-search', handleOpenSearch);
       window.removeEventListener('foody_open_rewards', handleOpenRewards);
       window.removeEventListener('foody:open-rewards', handleOpenRewards);
+      window.removeEventListener('foody:open-install-app', handleOpenInstall);
     };
   }, []);
 
@@ -611,6 +618,13 @@ export default function App() {
               if (uid) markTutorialCompleted(uid, panel);
               setIsTutorialOpen(false);
             }}
+          />
+        )}
+
+        {isInstallOpen && (
+          <AppInstallModal
+            isOpen={isInstallOpen}
+            onClose={() => setIsInstallOpen(false)}
           />
         )}
       </Suspense>

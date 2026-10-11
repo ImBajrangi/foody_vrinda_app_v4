@@ -36,8 +36,11 @@ import {
   Sun,
   Moon,
   Volume2,
-  Gamepad2
+  Gamepad2,
+  Download,
+  Laptop
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
 import SoundTrialsModal from './SoundTrialsModal';
@@ -112,8 +115,9 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     logout
   } = useAuth();
 
-  const { theme, isLight, isDark, toggleTheme, setTheme } = useTheme();
+  const { theme, themeMode, isLight, isDark, toggleTheme, setTheme } = useTheme();
   const { clearCart } = useCart();
+
 
   const [selectedDesk, setSelectedDesk] = useState('customer');
   const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email'
@@ -454,23 +458,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       onClick={(e) => {
         if (e.target === e.currentTarget) handleAnimatedClose();
       }}
-      className={`fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 transition-opacity duration-200 ${closing ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 dark:bg-black/75 transition-opacity duration-200 ${closing ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
     >
       {/* Modal / Bottom Sheet Box */}
       <div
         ref={authSheetRef}
         style={authSheetStyle}
-        onScroll={() => {
-          if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-            document.activeElement.blur();
-          }
-        }}
-        onTouchMove={() => {
-          if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-            document.activeElement.blur();
-          }
-        }}
-        className={`relative w-full max-w-[440px] bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] p-4 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col gap-3.5 max-h-[92vh] overflow-y-auto no-scrollbar relative overflow-hidden transition-colors ${closing ? 'translate-y-12' : 'translate-y-0'}`}
+        className={`w-full max-w-full sm:max-w-[440px] max-h-[92vh] sm:max-h-[85vh] flex flex-col bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-200 transform ${
+          closing ? 'translate-y-full sm:translate-y-[-8px] opacity-0 sm:scale-95' : 'translate-y-0 opacity-100 sm:scale-100'
+        }`}
       >
         {/* Subtle Ambient Header Accent */}
         <div
@@ -481,17 +477,20 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         {/* Drag Handle Bar (Mobile Only) */}
         <div
           {...authHandleProps}
-          className="w-full pt-1 pb-2 -mt-2 flex justify-center cursor-grab active:cursor-grabbing sm:hidden touch-none select-none"
+          className="sm:hidden pt-3.5 pb-1 flex justify-center cursor-grab active:cursor-grabbing touch-none select-none"
         >
           <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/25 transition-colors" />
         </div>
 
-        {/* Top Header Row */}
-        <div className="flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-3.5 min-w-0">
+        {/* Top Header Row (Matching NotificationPanel Standard) */}
+        <div 
+          {...authHandleProps}
+          className="px-5 py-4 flex items-center justify-between gap-3 w-full min-w-0 bg-[#FAF7F2] dark:bg-[#1E1B1C] select-none shrink-0"
+        >
+          <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
             {isAuthenticated && !showLoginView ? (
-              <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253, 145, 57,0.2)]">
-                <div className="w-full h-full rounded-full overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-[#1E1B1C] flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_12px_rgba(253,145,57,0.2)]">
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-[#1E1B1C] flex items-center justify-center">
                   {userAvatar ? (
                     <img
                       src={userAvatar}
@@ -511,7 +510,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               </div>
             ) : (
-              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253, 145, 57,0.25)] flex items-center justify-center">
+              <div className="relative w-11 h-11 rounded-2xl p-[2px] bg-gradient-to-tr from-amber-500/60 dark:from-[#FD9139]/60 via-stone-300 dark:via-white/20 to-amber-500/80 dark:to-[#FD9139]/80 shrink-0 shadow-[0_2px_14px_rgba(253,145,57,0.25)] flex items-center justify-center">
                 <div className="w-full h-full rounded-[14px] overflow-hidden bg-stone-100 dark:bg-[#1E1B1C] flex items-center justify-center">
                   <img
                     src="/foody-vrinda-logo.webp"
@@ -521,41 +520,41 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               </div>
             )}
-            <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight truncate">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight leading-tight truncate block max-w-full">
                 {modalTitle}
               </h3>
-              <p className="text-[11px] sm:text-xs text-stone-500 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] line-clamp-1 mt-0.5 truncate">
+              <p className="text-xs text-stone-600 dark:text-zinc-400 font-['Plus_Jakarta_Sans'] truncate block max-w-full font-medium mt-0.5">
                 {modalSubtitle}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer"
-              title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
-              aria-label="Toggle App Theme"
-            >
-              {isLight ? (
-                <Moon size={14} className="text-amber-600" />
-              ) : (
-                <Sun size={14} className="text-[#FD9139]" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleAnimatedClose}
-              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all border border-stone-200 dark:border-white/5 active:scale-95 cursor-pointer"
-              aria-label="Close modal"
-            >
-              <X size={15} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleAnimatedClose}
+            className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer shrink-0 ml-3"
+            title="Close"
+            aria-label="Close modal"
+          >
+            <X size={17} />
+          </button>
         </div>
+
+        {/* Scrollable Body Content */}
+        <div 
+          onScroll={() => {
+            if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+              document.activeElement.blur();
+            }
+          }}
+          onTouchMove={() => {
+            if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+              document.activeElement.blur();
+            }
+          }}
+          className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 sm:px-5 pb-5 space-y-3.5"
+        >
 
         {/* ALERTS & STATUS */}
         {error && (
@@ -937,34 +936,52 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {/* Theme Preference Row */}
               <div className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2.5">
-                  {isLight ? (
+                  {themeMode === 'system' ? (
+                    <Laptop className="w-4 h-4 text-[#FD9139] shrink-0" />
+                  ) : isLight ? (
                     <Sun className="w-4 h-4 text-amber-500 shrink-0" />
                   ) : (
                     <Moon className="w-4 h-4 text-[#FD9139] shrink-0" />
                   )}
-                  <span>App Theme</span>
+                  <div className="flex flex-col text-left">
+                    <span>App Theme</span>
+                    <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">
+                      {themeMode === 'system' ? 'System default' : isLight ? 'Divine light' : 'Obsidian dark'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 bg-stone-200/80 dark:bg-[#252223] p-1 rounded-full border border-stone-300/80 dark:border-white/15">
                   <button
                     type="button"
+                    onClick={() => setTheme('system')}
+                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'system'
+                      ? 'bg-amber-500 text-white shadow-xs font-black'
+                      : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
+                  >
+                    <Laptop size={11} className={themeMode === 'system' ? "text-white" : "opacity-70"} />
+                    <span>System</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setTheme('light')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${isLight
+                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'light'
                       ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80 font-black'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
-                    <Sun size={12} className={isLight ? "text-amber-500" : "opacity-70"} />
+                    <Sun size={11} className={themeMode === 'light' ? "text-amber-500" : "opacity-70"} />
                     <span>Light</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTheme('dark')}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${isDark
+                    className={`px-2.5 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'dark'
                       ? 'bg-[#FD9139] text-black shadow-xs font-black'
                       : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                   >
-                    <Moon size={12} className={isDark ? "text-black" : "opacity-70"} />
+                    <Moon size={11} className={themeMode === 'dark' ? "text-black" : "opacity-70"} />
                     <span>Dark</span>
                   </button>
                 </div>
@@ -1025,30 +1042,42 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
                 <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">Join</span>
               </a>
+
+              {/* Install App / Download APK Option for Web */}
+              {!Capacitor.isNativePlatform() && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose?.();
+                    window.dispatchEvent(new CustomEvent('foody:open-install-app'));
+                  }}
+                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 text-amber-500 dark:text-[#FD9139] flex items-center justify-center shrink-0">
+                      <Download className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span>Install Foody Vrinda App</span>
+                      <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Add PWA to home screen or get APK</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-amber-700 dark:text-[#FD9139] font-black bg-amber-500/15 dark:bg-[#FD9139]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/30 shrink-0">
+                    Get App
+                  </span>
+                </button>
+              )}
             </div>
 
-
-            {/* 6. Single Clean Full-Width Sign Out Button */}
-            <div className="mt-1">
+            {/* 6. Clean Dedicated Sign Out Action */}
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] hover:bg-rose-50/60 dark:hover:bg-rose-500/10 border border-stone-200 dark:border-white/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-200 flex items-center justify-between cursor-pointer text-left active:scale-[0.98] shadow-xs group"
+                className="w-full py-3 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/15 active:scale-[0.98] border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 group-hover:bg-rose-500 group-hover:text-white flex items-center justify-center shrink-0 transition-all shadow-xs">
-                    <LogOut className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-black text-stone-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 font-['Outfit'] whitespace-nowrap leading-tight">
-                      Sign Out
-                    </div>
-                    <div className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">
-                      End session securely
-                    </div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-stone-400 dark:text-zinc-500 group-hover:text-rose-500 transition-colors" />
+                <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <span>Sign Out</span>
               </button>
             </div>
 
@@ -1514,6 +1543,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Sound Trials Modal */}

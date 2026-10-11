@@ -121,7 +121,7 @@ const MenuItemCard = memo(function MenuItemCard({
         }
       }}
       style={{ animationDelay: `${Math.min(idx * 55, 450)}ms` }}
-      className={`food-card-pop bg-white dark:bg-[#282526] border rounded-3xl p-5 sm:p-6 relative overflow-hidden cursor-pointer min-h-[190px] sm:min-h-[200px] flex flex-col justify-between apple-tap-target transition-all duration-200 select-none ${
+      className={`food-card-pop bg-white dark:bg-[#282526] border rounded-3xl p-4 sm:p-5 relative overflow-hidden cursor-pointer min-h-[175px] sm:min-h-[190px] flex items-stretch justify-between gap-3 apple-tap-target transition-all duration-200 select-none ${
         isOutOfStock
           ? 'border-stone-200/60 dark:border-white/5 opacity-80 bg-stone-50/50 dark:bg-[#252223]'
           : quantityInCart > 0
@@ -129,119 +129,119 @@ const MenuItemCard = memo(function MenuItemCard({
             : 'border-stone-200/90 dark:border-white/10 dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
-      {/* Top Row: Dish Name + Combo Tag + Out of Stock Badge */}
-      <div className="flex justify-between items-start z-10 gap-2">
-        <div className="max-w-[75%] sm:max-w-[80%]">
+      {/* Left Column: Dish Name + Tags + Price + Stepper Button */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between z-10 pr-1">
+        <div>
           {isOutOfStock ? (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider mb-1.5 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               Out of Stock
             </span>
           ) : item.isCombo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-700 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30 text-[11px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-700 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30 text-[10.5px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
               <Sparkles size={11} className="text-amber-500 dark:text-[#FFD000]" />
               {item.tag || 'Combo Offer'}
             </span>
           ) : null}
-          <h3 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white leading-snug tracking-tight">
+          <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white leading-snug tracking-tight line-clamp-2">
             {item.name}
           </h3>
-          <p className="text-xs sm:text-sm font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
+          <p className="text-xs font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
             {item.subtitle || 'Authentic Satvik preparation'}
           </p>
           {item.comboItems && item.comboItems.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-1.5 flex flex-wrap gap-1">
               {item.comboItems.map((ci, cidx) => (
-                <span key={cidx} className="text-[11px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-2 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
+                <span key={cidx} className="text-[10px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
                   + {ci}
                 </span>
               ))}
             </div>
           )}
         </div>
-      </div>
 
-      {/* Mid & Bottom Row: Price & Order Now / Stepper Button */}
-      <div className="mt-3 sm:mt-4 z-10">
-        <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-          <span className="text-xl sm:text-2xl font-black font-['Outfit'] transition-colors duration-150 text-stone-900 dark:text-white">
-            ₹{activePrice}
-          </span>
-          {hasDiscount && (
-            <span className="text-xs sm:text-sm font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
-              ₹{activeOriginalPrice}
+        {/* Price & Order Now / Stepper Button */}
+        <div className="mt-3">
+          <div className="flex items-baseline gap-1.5 mb-2">
+            <span className="text-lg sm:text-xl font-black font-['Outfit'] transition-colors duration-150 text-stone-900 dark:text-white">
+              ₹{activePrice}
             </span>
-          )}
-        </div>
-
-        {isOutOfStock ? (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="h-10 sm:h-11 bg-stone-200/90 dark:bg-white/10 text-stone-500 dark:text-neutral-400 font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-2 cursor-not-allowed select-none font-['Outfit'] border border-stone-300/80 dark:border-white/10"
-          >
-            <span className="w-2 h-2 rounded-full bg-rose-500" />
-            <span>Out of Stock</span>
+            {hasDiscount && (
+              <span className="text-xs font-medium text-stone-400 dark:text-zinc-500 line-through font-['Outfit']">
+                ₹{activeOriginalPrice}
+              </span>
+            )}
           </div>
-        ) : quantityInCart === 0 ? (
-          <button
-            type="button"
-            data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart(item);
-            }}
-            className="dish-card-order-btn h-10 sm:h-11 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-bold text-xs sm:text-sm px-4 sm:px-5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
-          >
-            <span>Order Now</span>
-            <ChevronRight size={14} strokeWidth={3} />
-          </button>
-        ) : (
-          <div
-            data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
-            onClick={(e) => e.stopPropagation()}
-            className="stepper-capsule h-10 sm:h-11 inline-flex items-center bg-[#FD9139] text-white rounded-full p-1 select-none touch-manipulation gap-0.5"
-          >
+
+          {isOutOfStock ? (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="h-9 sm:h-10 bg-stone-200/90 dark:bg-white/10 text-stone-500 dark:text-neutral-400 font-bold text-xs px-3.5 rounded-full inline-flex items-center gap-1.5 cursor-not-allowed select-none font-['Outfit'] border border-stone-300/80 dark:border-white/10"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              <span>Out of Stock</span>
+            </div>
+          ) : quantityInCart === 0 ? (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
-              }}
-              className="stepper-btn-minus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/15 hover:bg-black/25 active:scale-85 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0 text-white"
-              title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
-              aria-label="Decrease quantity"
-            >
-              {quantityInCart === 1 ? (
-                <Trash2 size={15} strokeWidth={2.5} className="text-white stroke-white" />
-              ) : (
-                <Minus size={15} strokeWidth={3} className="text-white" />
-              )}
-            </button>
-
-            <span
-              className="stepper-qty px-2 sm:px-2.5 text-xs sm:text-sm font-black !text-white font-['Outfit'] min-w-[24px] sm:min-w-[28px] text-center select-none"
-            >
-              {quantityInCart}
-            </span>
-
-            <button
-              type="button"
+              data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToCart(item);
               }}
-              className="stepper-btn-plus w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/25 hover:bg-white/35 active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-xs text-white font-black touch-manipulation apple-tap-target shrink-0"
-              title="Add another"
-              aria-label="Increase quantity"
+              className="dish-card-order-btn h-9 sm:h-10 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-bold text-xs sm:text-sm px-3.5 sm:px-4 rounded-full inline-flex items-center gap-1 transition-all cursor-pointer apple-tap-target active:scale-95 touch-manipulation font-['Outfit']"
             >
-              <Plus size={16} strokeWidth={3.5} className="text-white" />
+              <span>Order Now</span>
+              <ChevronRight size={13} strokeWidth={3} />
             </button>
-          </div>
-        )}
+          ) : (
+            <div
+              data-tour={idx === 0 ? "customer-add-to-cart" : undefined}
+              onClick={(e) => e.stopPropagation()}
+              className="stepper-capsule h-9 sm:h-10 inline-flex items-center bg-[#FD9139] text-white rounded-full p-1 select-none touch-manipulation gap-0.5"
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateQuantity(item.id, -1, item.name, quantityInCart, item.price);
+                }}
+                className="stepper-btn-minus w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/15 hover:bg-black/25 active:scale-85 flex items-center justify-center transition-all cursor-pointer touch-manipulation apple-tap-target shrink-0 text-white"
+                title={quantityInCart === 1 ? "Remove item" : "Decrease quantity"}
+                aria-label="Decrease quantity"
+              >
+                {quantityInCart === 1 ? (
+                  <Trash2 size={13} strokeWidth={2.5} className="text-white stroke-white" />
+                ) : (
+                  <Minus size={13} strokeWidth={3} className="text-white" />
+                )}
+              </button>
+
+              <span
+                className="stepper-qty px-1.5 sm:px-2 text-xs sm:text-sm font-black !text-white font-['Outfit'] min-w-[20px] sm:min-w-[24px] text-center select-none"
+              >
+                {quantityInCart}
+              </span>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToCart(item);
+                }}
+                className="stepper-btn-plus w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/25 hover:bg-white/35 active:scale-85 flex items-center justify-center transition-all cursor-pointer shadow-xs text-white font-black touch-manipulation apple-tap-target shrink-0"
+                title="Add another"
+                aria-label="Increase quantity"
+              >
+                <Plus size={14} strokeWidth={3.5} className="text-white" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right Side Dish Image - Seamless Vignette Blend */}
-      <div className="absolute right-[-6px] bottom-[-6px] sm:right-[-4px] sm:bottom-[-4px] w-36 h-36 xs:w-40 xs:h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 pointer-events-none flex items-center justify-center overflow-hidden rounded-3xl">
+      {/* Right Column: Dedicated Dish Image Container (Zero Overlap with Text/Stepper) */}
+      <div className="w-28 xs:w-32 sm:w-36 md:w-40 shrink-0 self-center flex items-center justify-center relative">
         <img
           src={resolveDishCutout(item.image, item.name, item.category)}
           alt={item.name}
@@ -249,7 +249,7 @@ const MenuItemCard = memo(function MenuItemCard({
             e.target.onerror = null;
             e.target.src = resolveDishCutout('', item.name, item.category);
           }}
-          className={`dish-blend-mask w-full h-full object-contain select-none pointer-events-none ${isOutOfStock ? 'opacity-55 grayscale-[30%]' : ''}`}
+          className={`dish-blend-mask w-full h-28 sm:h-32 object-contain select-none pointer-events-none drop-shadow-sm ${isOutOfStock ? 'opacity-55 grayscale-[30%]' : ''}`}
           loading="lazy"
           decoding="async"
         />
@@ -926,6 +926,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   useEffect(() => {
     const checkRiders = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
         const users = getCachedUsers() || [];
         const riders = users.filter(u => (u.role === 'delivery' || u.role === 'rider') && u.is_active !== false && u.isOnline !== false);
@@ -1469,11 +1470,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           {/* My Orders Button */}
           <button
             onClick={() => setIsOrderHistoryOpen(true)}
-            className="h-11 px-3.5 sm:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold shadow-xs transition-all cursor-pointer apple-tap-target flex items-center gap-1.5 shrink-0"
+            className="h-11 px-3 sm:px-4 rounded-full bg-stone-200/90 dark:bg-[#282526] hover:bg-stone-300 dark:hover:bg-[#322E30] active:scale-95 text-stone-800 dark:text-white border border-stone-300 dark:border-white/10 text-xs font-bold shadow-xs transition-all cursor-pointer apple-tap-target flex items-center gap-1.5 shrink-0"
             title="Past Orders & Tracking"
           >
             <History size={15} className="text-amber-600 dark:text-[#FD9139]" />
-            <span className="hidden sm:inline">My Orders</span>
+            <span className="hidden xs:inline sm:inline">My Orders</span>
           </button>
         </div>
 
