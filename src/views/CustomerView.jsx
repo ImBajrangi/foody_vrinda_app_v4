@@ -12,6 +12,7 @@ import {
   DEFAULT_VRINDA_COORDS
 } from '../utils/addressUtils';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
+import { getPublicShareUrl } from '../utils/urlHelper';
 import BouncingLoader from '../components/ui/BouncingLoader';
 import DynamicToast from '../components/ui/DynamicToast';
 
@@ -1560,7 +1561,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         {showShopSwitcher && allShops.length > 1 && createPortal(
           <div
             ref={shopOverlayRef}
-            className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center apple-overlay transition-opacity duration-150 ${isShopClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
+            className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 apple-overlay transition-opacity duration-150 ${isShopClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'}`}
             onClick={() => handleCloseShopSwitcher()}
             role="dialog"
             aria-modal="true"
@@ -1569,7 +1570,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             <div
               ref={shopSheetRef}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full sm:max-w-md max-h-[85vh] flex flex-col bg-white/95 dark:bg-[#1E1B1C]/98 backdrop-blur-2xl border border-stone-200/50 dark:border-white/[.07] rounded-t-[28px] sm:rounded-[28px] shadow-2xl apple-sheet-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
+              className={`w-full max-w-full sm:max-w-md max-h-[85vh] flex flex-col bg-white/95 dark:bg-[#1E1B1C]/98 backdrop-blur-2xl border-t sm:border border-stone-200/80 dark:border-white/10 rounded-t-[32px] sm:rounded-[28px] shadow-2xl apple-sheet-spring overflow-hidden ${isShopClosing ? 'closing' : ''}`}
               style={{ backdropFilter: 'blur(40px) saturate(180%)' }}
             >
               {/* Drag Handle & Header (Gesture handle for 120fps swipe-down) */}
@@ -1911,11 +1912,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           style={{
             bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))'
           }}
-          className="fixed left-1/2 -translate-x-1/2 z-40 w-[calc(100%-28px)] sm:w-auto sm:min-w-[400px] max-w-[480px] flex flex-col items-center gap-2.5 pointer-events-none select-none transition-all duration-300"
+          className="fixed inset-x-0 z-40 flex flex-col items-center gap-2.5 pointer-events-none select-none px-3.5 transition-all duration-300"
         >
           {/* Active Order Activity Capsule */}
           {!isTrackingModalOpen && trackingOrder && (
-            <div className="pointer-events-auto w-full max-w-full flex justify-center animate-fadeIn">
+            <div className="pointer-events-auto w-full max-w-[480px] flex justify-center animate-fadeIn apple-popup-bar">
               <ActiveOrderCapsule
                 order={trackingOrder}
                 allShops={allShops}
@@ -1927,7 +1928,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
           {/* Floating Cart Bar */}
           {cart.length > 0 && (
-            <div className="pointer-events-auto w-full animate-slide-up">
+            <div className="pointer-events-auto w-full max-w-[480px] animate-slide-up apple-popup-bar">
               <div
                 onClick={() => setShowCartDrawer(true)}
                 className="bg-white/95 dark:bg-[#1E1B1C]/95 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 rounded-full p-2 pl-3.5 sm:pl-4 pr-2 shadow-[0_10px_30px_rgba(28,25,23,0.1)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 cursor-pointer backdrop-blur-2xl transition-all active:scale-[0.98] group"
@@ -1938,7 +1939,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-[#282526] border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shadow-xs group-hover:bg-stone-200 dark:group-hover:bg-[#322E30] transition-colors">
                       <ShoppingBag size={18} />
                     </div>
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-amber-500 dark:bg-[#FD9139] text-white text-xs font-black rounded-full flex items-center justify-center font-['Outfit'] border-2 border-white dark:border-[#1E1B1C] shadow-xs leading-none apple-spring-pop">
                       {cart.reduce((s, i) => s + i.quantity, 0)}
                     </span>
                   </div>
@@ -1988,7 +1989,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         >
           <div
             ref={detailSheetRef}
-            className="bg-white dark:bg-[#1E1B1C] w-full max-w-[480px] md:max-w-3xl lg:max-w-4xl rounded-t-[36px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-stone-200 dark:border-white/10 relative apple-sheet-spring"
+            className="bg-[#FAF7F2] dark:bg-[#1E1B1C] w-full max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-4xl rounded-t-[32px] sm:rounded-[36px] overflow-hidden shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.9)] flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh] border-t sm:border border-stone-200/80 dark:border-white/10 relative apple-sheet-spring"
           >
 
             {/* Close Button (Desktop Only) */}
@@ -2036,15 +2037,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      const shareLink = getPublicShareUrl();
                       if (navigator.share) {
                         navigator.share({
                           title: selectedDishDetails.name,
                           text: `Check out ${selectedDishDetails.name} on Foody Vrinda!`,
-                          url: window.location.href
+                          url: shareLink
                         }).catch(err => {
                           if (err.name !== 'AbortError') {
                             try {
-                              navigator.clipboard?.writeText?.(window.location.href);
+                              navigator.clipboard?.writeText?.(shareLink);
                               showToast("Link Copied to Clipboard", "success");
                             } catch {
                               showToast("Vrinda Dish Shared", "success");
@@ -2053,7 +2055,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         });
                       } else {
                         try {
-                          navigator.clipboard?.writeText?.(window.location.href);
+                          navigator.clipboard?.writeText?.(shareLink);
                           showToast("Link Copied to Clipboard", "success");
                         } catch {
                           showToast("Vrinda Dish Shared", "success");
@@ -2124,7 +2126,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </div>
 
             {/* RIGHT / BOTTOM CONTENT & ACTION DOCK */}
-            <div className="w-full md:w-[54%] lg:w-[56%] bg-white dark:bg-[#1E1B1C] text-stone-900 dark:text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
+            <div className="w-full md:w-[54%] lg:w-[56%] bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white flex-1 flex flex-col justify-between min-h-0 overflow-hidden z-10">
 
               {/* Scrollable Information Body */}
               <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4 no-scrollbar">
@@ -2214,7 +2216,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 const inBasketQty = currentInBasket ? currentInBasket.quantity : 0;
 
                 return (
-                  <div className="bg-white/95 dark:bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-5 border-t border-stone-200/80 dark:border-white/10 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)]">
+                  <div className="bg-[#FAF7F2]/95 dark:bg-[#1E1B1C]/95 backdrop-blur-md p-4 sm:p-5 border-t border-stone-200/80 dark:border-white/10 flex items-center gap-2.5 sm:gap-3 flex-shrink-0 z-30 pb-[max(1.25rem,env(safe-area-inset-bottom)+10px)] apple-popup-bar">
                     {isDetailOutOfStock ? (
                       <div className="w-full h-11 sm:h-12 bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 font-black rounded-full flex items-center justify-center gap-2 select-none font-['Outfit'] text-xs sm:text-sm">
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
@@ -2223,7 +2225,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     ) : (
                       <>
                         {/* Quantity Stepper */}
-                        <div className="bg-stone-100 dark:bg-[#282526] text-stone-900 dark:text-white rounded-full p-1 sm:p-1.5 border border-stone-200 dark:border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0">
+                        <div className="bg-stone-100 dark:bg-[#282526] text-stone-900 dark:text-white rounded-full p-1 sm:p-1.5 border border-stone-200 dark:border-white/10 flex items-center gap-1 sm:gap-2 shadow-inner flex-shrink-0 apple-spring-pop">
                           <button
                             type="button"
                             onClick={() => setDetailQuantity(Math.max(1, detailQuantity - 1))}
@@ -2252,7 +2254,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <button
                           type="button"
                           onClick={handleDetailAddToCart}
-                          className="flex-1 min-w-0 h-11 sm:h-12 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98"
+                          className="flex-1 min-w-0 h-11 sm:h-12 bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black px-3.5 sm:px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target font-['Outfit'] active:scale-98 apple-spring-pop"
                         >
                           <ShoppingBag size={17} className="text-white flex-shrink-0" />
                           <span className="text-xs sm:text-sm font-black whitespace-nowrap">
@@ -2287,7 +2289,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         >
           <div
             ref={cartSheetRef}
-            className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white w-full max-w-[440px] sm:max-w-md md:max-w-lg rounded-t-[36px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_25px_70px_rgba(0,0,0,0.18)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring"
+            className="bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 text-stone-900 dark:text-white w-full max-w-full sm:max-w-md md:max-w-lg rounded-t-[32px] sm:rounded-[44px] p-5 sm:p-7 pb-[max(1.75rem,env(safe-area-inset-bottom)+14px)] shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.8)] flex flex-col max-h-[90vh] overflow-hidden relative apple-sheet-spring"
           >
             {/* Top Fixed Header & Grab Bar */}
             <div {...cartHandleProps} className="shrink-0 select-none cursor-grab active:cursor-grabbing">
@@ -2845,7 +2847,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             </div>
 
             {/* Bottom Fixed Action Footer */}
-            <div className="shrink-0 pt-2 pb-6 sm:pb-2 border-t border-stone-200/80 dark:border-white/5 space-y-2 safe-area-bottom">
+            <div className="shrink-0 pt-2 pb-6 sm:pb-2 border-t border-stone-200/80 dark:border-white/5 space-y-2 safe-area-bottom apple-popup-bar">
               {/* Seamless Trust & Live Tracking Micro-Indicator */}
               <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
                 <div className="flex items-center gap-1.5 text-amber-700 dark:text-[#FD9139]">
@@ -2858,7 +2860,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <button
                 onClick={handlePlaceOrder}
                 disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (isRetailShop && onlineRidersCount === 0)}
-                className="w-full bg-[#FD9139] hover:bg-[#FCA65E] text-white disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit']"
+                className="w-full bg-[#FD9139] hover:bg-[#FCA65E] text-white disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit'] apple-spring-pop"
               >
                 <span className="font-black">
                   {!isShopOpen

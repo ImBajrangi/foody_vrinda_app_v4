@@ -212,8 +212,11 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 6. Developer & Admin Master Consoles: Do not receive customer/kitchen sound alarms unless they placed the order
+    // 6. Developer & Admin Master Consoles: Receive notifications for their active kitchen/store or placed orders
     if (userRole === 'developer' || isAuthorizedDeveloper || userRole === 'grand_admin') {
+      if (!currentUserShopId || currentUserShopId === 'all' || orderShopId === currentUserShopId) {
+        return true;
+      }
       return false;
     }
 
@@ -374,9 +377,9 @@ export function NotificationProvider({ children }) {
     nativeNotify.init();
   }, []);
 
-  // Listen to Realtime Order Events, but STRICTLY notify only the user/staff involved with that order (Single stable subscription)
+  // Listen to Realtime Order Events & Local in-app Order Events (Single stable subscription)
   useEffect(() => {
-    const unsubOrders = subscribeCloudOrders('all', (orderData, eventType) => {
+    const handleOrderEvent = (orderData, eventType) => {
       if (!orderData || !orderData.id) return;
 
       // STRICT CHECK: Ensure this order belongs to the user or their authorized role
@@ -476,10 +479,23 @@ export function NotificationProvider({ children }) {
           skipSound: true // Native notification method above already played the role-specific sound
         });
       }
-    });
+    };
+
+    const unsubOrders = subscribeCloudOrders('all', handleOrderEvent);
+
+    const handleLocalOrderEvent = (e) => {
+      const order = e.detail?.order || e.detail;
+      const eventType = e.detail?.eventType || 'INSERT';
+      if (order && order.id) {
+        handleOrderEvent(order, eventType);
+      }
+    };
+
+    window.addEventListener('foody_order_created', handleLocalOrderEvent);
 
     return () => {
       if (unsubOrders) unsubOrders();
+      window.removeEventListener('foody_order_created', handleLocalOrderEvent);
     };
   }, []);
 

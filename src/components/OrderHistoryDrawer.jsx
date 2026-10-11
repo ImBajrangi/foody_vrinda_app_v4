@@ -200,7 +200,7 @@ export default function OrderHistoryDrawer({
         <div 
           ref={sheetRef}
           style={sheetStyle}
-          className={`w-full sm:max-w-md bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white max-h-[88vh] sm:max-h-full sm:h-full rounded-t-[36px] sm:rounded-none border-t sm:border-t-0 sm:border-l border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.3)] sm:shadow-2xl flex flex-col justify-between overflow-hidden relative transition-all duration-200 transform ${
+          className={`w-full max-w-full sm:max-w-md bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white max-h-[88vh] sm:max-h-full sm:h-full rounded-t-[32px] sm:rounded-none border-t sm:border-t-0 sm:border-l border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.3)] sm:shadow-2xl flex flex-col justify-between overflow-hidden relative transition-all duration-200 transform ${
             closing ? 'translate-y-full sm:translate-x-full opacity-0' : 'translate-y-0 sm:translate-x-0 opacity-100'
           }`}
         >

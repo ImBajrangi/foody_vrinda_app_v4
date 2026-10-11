@@ -168,7 +168,7 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[410px] bg-white dark:bg-[#171516] border border-stone-200 dark:border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(253, 145, 57,0.08)] relative overflow-hidden"
+        className="w-full max-w-[410px] bg-white dark:bg-[#171516] border border-stone-200 dark:border-white/10 rounded-[28px] p-5 sm:p-6 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.9),0_0_25px_rgba(253, 145, 57,0.08)] relative overflow-hidden apple-modal-spring"
       >
         {/* Soft Ambient Top Glow */}
         <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-amber-400/60 dark:via-[#FD9139]/70 to-transparent" />

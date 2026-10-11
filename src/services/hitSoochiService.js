@@ -37,7 +37,7 @@ const LOCAL_SATVIK_ONTOLOGY = {
 };
 
 export class HitSoochiService {
-  static baseUrl = import.meta.env.VITE_HITSOOCHI_URL || 'http://localhost:8000';
+  static baseUrl = import.meta.env.VITE_HITSOOCHI_URL || '';
 
   /**
    * Curated Vedic search intents and popular cravings

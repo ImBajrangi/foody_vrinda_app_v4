@@ -2161,6 +2161,82 @@
   }
 }
 
+/* 5. Apple Floating Action Bars & Pop-Up Standard (Zero Abrupt Snapping, Butter-Smooth Spring & Fade) */
+@keyframes applePopupBarEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.96);
+  }
+  65% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes appleSpringPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes appleFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes appleSlideDown {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -16px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.apple-popup-bar,
+.animate-slide-up {
+  animation: applePopupBarEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.apple-spring-pop,
+.animate-scale-up,
+.animate-scaleUp,
+.animate-scale-in {
+  animation: appleSpringPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.animate-fadeIn,
+.animate-fade-in {
+  animation: appleFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: opacity;
+}
+
+.animate-slide-down {
+  animation: appleSlideDown 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
 /* Leaflet Luxury Map Badges & Tooltip Overrides */
 .leaflet-tooltip {
   background: #181617 !important;

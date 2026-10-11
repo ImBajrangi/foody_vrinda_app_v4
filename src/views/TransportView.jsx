@@ -1027,14 +1027,14 @@ export default function TransportView() {
             data-tour="delivery-go-online"
             type="button"
             onClick={toggleRiderDuty}
-            className={`h-10 sm:h-11 px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isRiderOnDuty
-              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25 shadow-xs'
-              : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+            className={`h-10 sm:h-11 px-4 sm:px-5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
+              ? 'bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border-emerald-600/30 dark:border-emerald-500/30 hover:bg-[#bbf0df] dark:hover:bg-emerald-950/60'
+              : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
               }`}
             title="Toggle Rider Duty Availability"
           >
-            <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            <span className="whitespace-nowrap font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+            <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
+            <span className="whitespace-nowrap font-black font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
           </button>
 
           {/* List vs Carto View Switcher: Ergonomic segmented control */}

@@ -21,6 +21,7 @@ import { nativeNotify } from '../services/nativeNotificationService';
 import { initUserWallet, getWalletDashboard } from '../services/fvWalletService';
 import { isContaminatedPickupAddress, sanitizeCustomerAddress } from '../utils/addressUtils';
 import { markNewUserTutorialEligible } from '../services/tutorialService';
+import { getAuthRedirectUrl } from '../utils/urlHelper';
 
 const AuthContext = createContext(null);
 
@@ -887,10 +888,12 @@ export function AuthProvider({ children }) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
     const cleanName = displayName.trim() || cleanEmail.split('@')[0];
+    const redirectUrl = getAuthRedirectUrl();
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: { displayName: cleanName, phone: cleanPhone, address }
       }
     });
@@ -936,16 +939,7 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     const isNative = Capacitor.isNativePlatform();
-
-    // In native app, use custom scheme callback so Android routes callback right back into the app
-    const redirectUrl = isNative
-      ? 'com.foodyvrinda.app://auth/callback'
-      : (typeof window !== 'undefined' && (
-        window.location.hostname === 'eat.vrindopnishad.in' ||
-        window.location.hostname.includes('vrindopnishad.in')
-      )
-        ? 'https://eat.vrindopnishad.in/'
-        : (typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://eat.vrindopnishad.in/'));
+    const redirectUrl = getAuthRedirectUrl();
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

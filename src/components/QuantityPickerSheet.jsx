@@ -149,8 +149,8 @@ export default function QuantityPickerSheet({
 
   return (
     <div
-      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 transition-opacity duration-150 ${
-        isClosing ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      className={`fixed inset-0 z-[99999999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 transition-opacity duration-150 apple-overlay ${
+        isClosing ? 'closing opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
@@ -161,7 +161,7 @@ export default function QuantityPickerSheet({
           transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,
           transition: dragOffsetY > 0 ? 'none' : 'transform 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        className={`w-full sm:max-w-[400px] bg-stone-50 dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-150 select-none ${
+        className={`w-full max-w-full sm:max-w-[400px] bg-stone-50 dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[36px] px-6 pt-3 pb-8 shadow-2xl overflow-hidden transition-all duration-150 select-none apple-sheet-spring ${
           isClosing ? 'translate-y-full sm:scale-95 sm:opacity-0 pointer-events-none' : 'translate-y-0 sm:scale-100 sm:opacity-100'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -293,7 +293,7 @@ export default function QuantityPickerSheet({
         <button
           type="button"
           onClick={handleConfirm}
-          className="w-full py-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-full bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#fca65e] font-black text-base font-['Outfit'] shadow-xl transition-all cursor-pointer apple-tap-target active:scale-98 flex items-center justify-center gap-2 apple-spring-pop"
         >
           <Check size={18} strokeWidth={3} />
           <span>Confirm Quantity ({selectedQty})</span>

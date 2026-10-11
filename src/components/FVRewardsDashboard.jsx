@@ -139,7 +139,7 @@ export default function FVRewardsDashboard({ isOpen, onClose }) {
       <div
         ref={sheetRef}
         style={sheetStyle}
-        className={`relative w-full max-w-lg bg-[#FCFBF7] dark:bg-[#1E1B1C] border-t-2 sm:border-2 border-b-0 sm:border-b-6 border-stone-300 dark:border-stone-800 text-stone-900 dark:text-white rounded-t-[36px] sm:rounded-[44px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] sm:shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.85)] sm:dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
+        className={`relative w-full max-w-full sm:max-w-lg bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[44px] shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_-12px_48px_rgba(0,0,0,0.85)] sm:dark:shadow-[0_30px_90px_rgba(0,0,0,0.85)] flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
       >
         {/* Modal Top Header: Unified Seamless Surface with Fluid Swipe-Down Gesture */}
         <div 

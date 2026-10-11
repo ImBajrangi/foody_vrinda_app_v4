@@ -289,10 +289,10 @@ export async function createCloudOrder(orderData) {
       // RPC fallback to direct upsert
     }
 
-    // 2. Direct upsert fallback
+    // 2. Direct insert fallback (uses INSERT with least-privilege; never upsert which requires UPDATE permission)
     let { data, error } = await supabase
       .from('foody_orders')
-      .upsert([dbPayload], { onConflict: 'id' })
+      .insert([dbPayload])
       .select()
       .single();
 
@@ -302,7 +302,7 @@ export async function createCloudOrder(orderData) {
       delete hashOnlyPayload.delivery_otp;
       const retry = await supabase
         .from('foody_orders')
-        .upsert([hashOnlyPayload], { onConflict: 'id' })
+        .insert([hashOnlyPayload])
         .select()
         .single();
       data = retry.data;
@@ -310,15 +310,32 @@ export async function createCloudOrder(orderData) {
     }
 
     if (error) {
-      console.warn('Supabase upsert order note:', error.message);
+      console.warn('Supabase insert order note:', error.message);
+      // If direct insert failed, dispatch local event with normalizedCreated so local UI is updated
+      dispatchSafeEvent('foody_order_created', { order: normalizedCreated, eventType: 'INSERT' });
       return normalizedCreated;
     }
 
+    const finalOrder = { ...normalizedCreated, ...(data || {}) };
+
+    // Update in-memory and local cache for both the specific shop and 'all'
+    try {
+      if (orderPayload.shop_id) {
+        const currentShopOrders = getCachedItem('orders', orderPayload.shop_id) || [];
+        setCachedItem('orders', orderPayload.shop_id, [finalOrder, ...currentShopOrders.filter(o => o.id !== orderId)]);
+      }
+      const allOrders = getCachedItem('orders', 'all') || [];
+      setCachedItem('orders', 'all', [finalOrder, ...allOrders.filter(o => o.id !== orderId)]);
+    } catch (_) {}
+
+    // Dispatch synchronous application event for zero-latency UI reactivity across tabs
+    dispatchSafeEvent('foody_order_created', { order: finalOrder, eventType: 'INSERT' });
+
     // Best-effort non-blocking background push notification dispatch
     // Database transaction is already successful; push failure must never block order workflow
-    dispatchOrderPushNotificationAsync('INSERT', { ...normalizedCreated, ...data }, { fcm_token: activeFcmToken });
+    dispatchOrderPushNotificationAsync('INSERT', finalOrder, { fcm_token: activeFcmToken });
 
-    return { ...normalizedCreated, ...data };
+    return finalOrder;
   } catch (err) {
     console.warn('createCloudOrder exception:', err.message);
     return { id: orderData.id || `ord-${Date.now()}`, ...orderData };

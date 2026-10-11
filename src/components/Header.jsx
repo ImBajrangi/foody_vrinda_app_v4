@@ -113,8 +113,11 @@ export default function Header({
     // 1. Check user custom location / delivery address if saved
     const savedAddress = userData?.address || userData?.delivery_address || userData?.city || '';
     if (savedAddress && typeof savedAddress === 'string' && savedAddress.trim().length > 0) {
+      const match = savedAddress.match(/(Barsana|Vrindavan|Chhata|Goverdhan|Mathura)/i);
+      if (match) return match[1];
       const parts = savedAddress.split(',')[0].trim();
-      if (parts.length > 0) return parts;
+      if (parts.length > 0 && parts.length <= 16) return parts;
+      if (parts.length > 16) return parts.slice(0, 16);
     }
 
     // 2. Check active/selected shop name or area (strictly non-deleted active shops)
@@ -122,14 +125,20 @@ export default function Header({
       || allShops?.find(s => s.is_active !== false && !s.is_deleted) 
       || allShops?.[0];
     if (activeShop?.address) {
+      const match = activeShop.address.match(/(Barsana|Vrindavan|Chhata|Goverdhan|Mathura)/i);
+      if (match) return match[1];
       const parts = activeShop.address.split(',')[0].trim();
-      if (parts.length > 0) return parts;
+      if (parts.length > 0 && parts.length <= 16) return parts;
+    }
+    if (activeShop?.tag && activeShop.tag.length <= 14) {
+      return activeShop.tag;
     }
     if (activeShop?.name) {
-      return activeShop.name.replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').trim() || activeShop.name;
+      const shortName = activeShop.name.replace(/^(Shri\s+|Prem\s+Mandir\s+|Radharani\s+|Radha\s+Rani\s+)/i, '').trim();
+      if (shortName.length > 0 && shortName.length <= 16) return shortName;
     }
 
-    return 'Sri Vrindavan Dham';
+    return 'Vrindavan';
   };
 
   const [headerAvatarError, setHeaderAvatarError] = useState(false);
@@ -226,7 +235,7 @@ export default function Header({
                         <img 
                           src="/foody-vrinda-logo.webp" 
                           alt="Foody Vrinda" 
-                          className="w-full h-full object-cover" 
+                          className="w-full h-full object-contain p-1" 
                           onError={(e) => { e.target.style.display = 'none'; }}
                         />
                       )}
@@ -250,15 +259,10 @@ export default function Header({
                     {getLocationLabel()}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight leading-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                     {getDisplayName()}
                   </h2>
-                  {!isAuthenticated && (
-                    <span className="text-[10.5px] font-bold text-amber-600 dark:text-[#FD9139] shrink-0">
-                      • Login
-                    </span>
-                  )}
                 </div>
               </button>
             </div>

@@ -197,9 +197,20 @@ export default function KitchenView() {
       }
     });
 
+    // 3. Local in-app order creation event for instant zero-latency reactivity
+    const handleLocalOrderCreated = (e) => {
+      const order = e.detail?.order || e.detail;
+      const orderShopId = order?.shop_id ?? order?.shopId;
+      if (isCurrent && orderShopId && orderShopId === requestedShopId) {
+        fetchKitchenOrders();
+      }
+    };
+    window.addEventListener('foody_order_created', handleLocalOrderCreated);
+
     return () => {
       isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
+      window.removeEventListener('foody_order_created', handleLocalOrderCreated);
     };
   }, [activeShopId]);
 
@@ -621,13 +632,15 @@ export default function KitchenView() {
 
       {/* INACTIVE ASSIGNED KITCHEN WARNING BANNER */}
       {!activeShopId && (
-        <div className="p-4 sm:p-5 rounded-[28px] bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+        <div className="p-4 sm:p-5 rounded-[28px] bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 text-stone-900 dark:text-stone-100 flex items-start gap-3.5 shadow-sm relative overflow-hidden">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+            <AlertTriangle className="w-5 h-5 stroke-[2.3]" />
+          </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-black font-outfit font-sans text-rose-700 dark:text-rose-300">
+            <h3 className="text-sm sm:text-base font-black font-['Outfit'] text-stone-900 dark:text-white tracking-tight">
               Assigned Kitchen Inactive
             </h3>
-            <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5 leading-relaxed">
+            <p className="text-xs text-stone-600 dark:text-zinc-300 mt-0.5 leading-relaxed font-['Plus_Jakarta_Sans'] font-medium">
               {currentUserShopId
                 ? `Assigned kitchen ID "${currentUserShopId}" is currently deactivated, deleted, or cannot be found. Orders for other kitchens are strictly quarantined.`
                 : 'No kitchen is currently assigned to this account. Please select an active kitchen below.'}
@@ -910,8 +923,8 @@ export default function KitchenView() {
               <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans mt-0.5">{isolatedOrders.length} Active Orders</h3>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-outfit shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-black px-3.5 py-1.5 rounded-full bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border border-emerald-600/30 dark:border-emerald-500/30 font-['Outfit'] shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
             <span>Live Queue</span>
           </span>
         </div>
@@ -1116,22 +1129,27 @@ export default function KitchenView() {
 
       {/* 86 / STOCK AVAILABILITY MODAL FOR KITCHEN STAFF */}
       {showStockModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-          <div className="bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-[32px] w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
+        <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 dark:bg-black/75 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-full sm:max-w-xl max-h-[92vh] sm:max-h-[88vh] flex flex-col bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-200 apple-sheet-spring">
+            {/* Mobile Tactile Drag Handle */}
+            <div className="sm:hidden pt-3.5 pb-1 flex justify-center cursor-grab active:cursor-grabbing touch-none select-none">
+              <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/25 transition-colors" />
+            </div>
+
             {/* Modal Header */}
-            <div className="p-5 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                  <PackageCheck size={20} />
+            <div className="px-5 py-4 border-b border-stone-200/80 dark:border-white/10 flex items-center justify-between bg-[#FAF7F2] dark:bg-[#1E1B1C] select-none shrink-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0 shadow-xs">
+                  <PackageCheck size={20} className="stroke-[2.3]" />
                 </div>
-                <div>
-                  <h3 className="text-base font-black text-stone-900 dark:text-white font-outfit font-sans flex items-center gap-2">
-                    Kitchen Stock Manager (86)
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight flex items-center gap-2 truncate">
+                    <span>Kitchen Stock Manager (86)</span>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30 shrink-0 font-['Outfit']">
                       {currentShop?.name || 'Assigned Kitchen'}
                     </span>
                   </h3>
-                  <p className="text-xs text-stone-500 dark:text-zinc-400">
+                  <p className="text-xs text-stone-600 dark:text-zinc-400 truncate font-['Plus_Jakarta_Sans'] font-medium mt-0.5">
                     Instantly toggle dishes in or out of stock for this kitchen
                   </p>
                 </div>
@@ -1139,14 +1157,16 @@ export default function KitchenView() {
               <button
                 type="button"
                 onClick={() => setShowStockModal(false)}
-                className="w-9 h-9 rounded-full bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 flex items-center justify-center text-stone-500 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white transition-all cursor-pointer"
+                className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 active:scale-95 flex items-center justify-center text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white transition-all border border-stone-300/60 dark:border-white/10 cursor-pointer shrink-0 ml-3"
+                title="Close"
+                aria-label="Close"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
 
             {/* Controls: Search + Filter Tabs */}
-            <div className="p-4 border-b border-stone-200 dark:border-white/10 space-y-3 bg-stone-50 dark:bg-[#151314]">
+            <div className="p-4 border-b border-stone-200/80 dark:border-white/10 space-y-3 bg-[#F4EFE6]/80 dark:bg-[#151314]">
               <div className="relative">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500" />
                 <input
@@ -1154,7 +1174,7 @@ export default function KitchenView() {
                   placeholder="Search kitchen dishes..."
                   value={stockSearch}
                   onChange={(e) => setStockSearch(e.target.value)}
-                  className="w-full text-xs bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none focus:border-amber-500"
+                  className="w-full text-xs bg-white dark:bg-[#1E1B1C] border border-stone-300/80 dark:border-white/10 rounded-2xl py-2.5 pl-9 pr-3 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 focus:outline-none focus:border-amber-500 shadow-xs font-medium"
                 />
               </div>
 
@@ -1170,8 +1190,8 @@ export default function KitchenView() {
                     type="button"
                     onClick={() => setStockFilterTab(tab.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${stockFilterTab === tab.id
-                      ? 'bg-[#FD9139] text-white font-black shadow-sm'
-                      : 'bg-white hover:bg-orange-50/60 dark:bg-white/5 text-stone-700 dark:text-zinc-300 dark:hover:bg-white/10 border border-stone-200 dark:border-transparent'
+                      ? 'bg-[#FD9139] text-white font-black shadow-xs'
+                      : 'bg-stone-200/80 dark:bg-white/5 hover:bg-stone-300/80 text-stone-700 dark:text-zinc-300 border border-stone-300/70 dark:border-white/10'
                       }`}
                   >
                     <span>{tab.label}</span>
@@ -1187,7 +1207,7 @@ export default function KitchenView() {
             </div>
 
             {/* Dishes List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 divide-y divide-stone-100 dark:divide-white/5">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-2.5">
               {kitchenMenuItems
                 .filter(item => {
                   const matchesSearch = item.name.toLowerCase().includes(stockSearch.toLowerCase()) ||
@@ -1200,15 +1220,15 @@ export default function KitchenView() {
                 .map(item => {
                   const isOutOfStock = item.isAvailable === false || item.is_available === false;
                   return (
-                    <div key={item.id} className="pt-2.5 first:pt-0 flex items-center justify-between gap-3">
+                    <div key={item.id} className="p-3.5 rounded-2xl bg-white dark:bg-[#282526] border border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-3 shadow-xs">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <p className={`font-bold text-xs truncate ${isOutOfStock ? 'text-stone-400 dark:text-zinc-500 line-through' : 'text-stone-900 dark:text-white'}`}>
                             {item.name}
                           </p>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${isOutOfStock
-                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-amber-500/15 dark:bg-rose-950/40 text-amber-800 dark:text-rose-300 border border-amber-500/30 dark:border-rose-500/30'
+                            : 'bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border border-emerald-600/20'
                             }`}>
                             {isOutOfStock ? 'Out of Stock' : 'In Stock'}
                           </span>
@@ -1228,9 +1248,9 @@ export default function KitchenView() {
                       <button
                         type="button"
                         onClick={() => handleToggleKitchenItemStock(item)}
-                        className={`h-8 px-3 rounded-full text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0 ${isOutOfStock
-                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
-                          : 'bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-500/30'
+                        className={`h-8 px-3.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0 ${isOutOfStock
+                          ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs'
+                          : 'bg-stone-200 hover:bg-rose-500/15 text-stone-700 hover:text-rose-700 dark:bg-white/10 dark:text-zinc-200 dark:hover:bg-rose-500/20 dark:hover:text-rose-300 border border-stone-300/80 dark:border-white/10'
                           }`}
                         title={isOutOfStock ? "Mark dish back In Stock" : "Mark dish Out of Stock (86)"}
                       >
@@ -1258,14 +1278,14 @@ export default function KitchenView() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-3.5 border-t border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#151314] flex items-center justify-between">
-              <span className="text-[11px] text-stone-500 dark:text-zinc-400">
+            <div className="px-5 py-3.5 border-t border-stone-200/80 dark:border-white/10 bg-[#F4EFE6]/80 dark:bg-[#151314] flex items-center justify-between">
+              <span className="text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
                 Changes apply instantly across customer apps in realtime
               </span>
               <button
                 type="button"
                 onClick={() => setShowStockModal(false)}
-                className="px-4 py-2 rounded-full bg-stone-900 dark:bg-white text-white dark:text-[#1E1B1C] font-black text-xs cursor-pointer hover:opacity-90"
+                className="h-9 px-5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider font-['Outfit'] shadow-md shadow-[#FD9139]/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 Done
               </button>

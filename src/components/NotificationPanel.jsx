@@ -164,7 +164,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
       <div 
         ref={sheetRef}
         style={sheetStyle}
-        className={`w-full max-w-full sm:max-w-[440px] max-h-[85vh] sm:max-h-[82vh] flex flex-col bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-200 transform ${
+        className={`w-full max-w-full sm:max-w-[440px] max-h-[85vh] sm:max-h-[82vh] flex flex-col bg-[#FAF7F2] dark:bg-[#1E1B1C] text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-stone-200/80 dark:border-white/10 shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden transition-all duration-200 transform apple-sheet-spring ${
           closing ? 'translate-y-full sm:translate-y-[-8px] opacity-0 sm:scale-95' : 'translate-y-0 opacity-100 sm:scale-100'
         }`}
       >

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase.js';
+import { getPublicShareUrl } from '../utils/urlHelper';
 
 const SWR_EXPIRY_MS = 60 * 1000; // 1 minute fresh window, render stale immediately
 const CACHE_PREFIX = 'foody_fv_wallet_cache_';
@@ -355,8 +356,7 @@ export function subscribeUserWallet(userId, onUpdate) {
  * Builds WhatsApp share link with referral code
  */
 export function generateWhatsAppShareUrl(referralCode, role = 'customer') {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://foodyvrinda.com';
-  const referralLink = `${origin}/?ref=${encodeURIComponent(referralCode)}`;
+  const referralLink = getPublicShareUrl(`/?ref=${encodeURIComponent(referralCode)}`);
 
   let text = '';
   if (role === 'delivery') {

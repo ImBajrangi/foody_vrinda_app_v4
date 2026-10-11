@@ -99,9 +99,9 @@ export default function ReviewModal({
   return (
     <div 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
-      <div className="w-full max-w-lg bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-[32px] sm:rounded-[40px] p-5 sm:p-7 shadow-[0_25px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.85)] relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div className="w-full max-w-full sm:max-w-lg bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 rounded-t-[32px] sm:rounded-[40px] p-5 sm:p-7 shadow-[0_-12px_48px_rgba(0,0,0,0.25)] sm:shadow-[0_25px_80px_rgba(0,0,0,0.85)] relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up max-h-[90vh] overflow-y-auto custom-scrollbar">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 dark:border-white/10 pb-3">

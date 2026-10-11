@@ -415,7 +415,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
       >
         <div 
           ref={sheetRef}
-          className={`w-full max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
+          className={`w-full max-w-full sm:max-w-2xl bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-t-[32px] sm:rounded-[36px] shadow-2xl relative flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh] overflow-hidden apple-sheet-spring ${closing ? 'closing' : ''}`}
         >
 
           {/* Top Sticky Header (Unified Seamless Container with Consistent Theme & Swipe-Down Gesture) */}

@@ -736,9 +736,20 @@ export default function OwnerView() {
       }
     });
 
+    // 3. Local in-app order creation event for instant zero-latency reactivity
+    const handleLocalOrderCreated = (e) => {
+      const order = e.detail?.order || e.detail;
+      const orderShopId = order?.shop_id ?? order?.shopId;
+      if (isCurrent && orderShopId && (requestedShopId === 'all' || orderShopId === requestedShopId)) {
+        fetchCloudOrders();
+      }
+    };
+    window.addEventListener('foody_order_created', handleLocalOrderCreated);
+
     return () => {
       isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
+      window.removeEventListener('foody_order_created', handleLocalOrderCreated);
     };
   }, [activeShopId]);
 
@@ -1419,9 +1430,9 @@ export default function OwnerView() {
 
       {/* 6. EXPLICIT UNAVAILABLE KITCHEN STATE GUARD */}
       {!activeShopId ? (
-        <div className="p-8 sm:p-12 rounded-[36px] bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300 flex flex-col items-center text-center gap-4 my-6 shadow-xl">
-          <div className="w-16 h-16 rounded-3xl bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
-            <AlertCircle className="w-8 h-8 text-rose-500" />
+        <div className="p-8 sm:p-12 rounded-[36px] bg-amber-500/10 border border-amber-500/30 text-stone-900 dark:text-stone-100 flex flex-col items-center text-center gap-4 my-6 shadow-xl">
+          <div className="w-16 h-16 rounded-3xl bg-amber-500/15 dark:bg-[#FD9139]/15 flex items-center justify-center border border-amber-500/30 text-amber-700 dark:text-[#FD9139]">
+            <AlertCircle className="w-8 h-8 stroke-[2.3]" />
           </div>
           <div className="space-y-1.5 max-w-md">
             <h3 className="font-black text-xl sm:text-2xl font-['Outfit']">Assigned Kitchen Inactive</h3>
@@ -4122,8 +4133,8 @@ export default function OwnerView() {
 
       {/* Delete Confirmation Modal */}
       {deleteTargetId && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-stone-100 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-stone-100 dark:bg-[#282526] border border-stone-300 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl apple-modal-spring">
             <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-red-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>

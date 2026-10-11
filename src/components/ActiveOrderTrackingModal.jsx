@@ -687,7 +687,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       <div
         ref={modalSheetRef}
         style={modalSheetStyle}
-        className={`w-full max-w-[440px] bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
+        className={`w-full max-w-full sm:max-w-[460px] md:max-w-lg bg-[#141213] text-white rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-white/10 overflow-hidden flex flex-col h-[92vh] sm:h-[84vh] relative transition-all duration-200 ${closing ? 'translate-y-12 scale-[0.98]' : 'translate-y-0 scale-100'}`}
       >
 
         {/* Top Header Grab Bar (Drag down to shrink to floating capsule) */}

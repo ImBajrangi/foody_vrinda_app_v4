@@ -22,7 +22,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
     <div className="fixed inset-0 z-[100000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 dark:bg-black/85 backdrop-blur-md animate-fade-in">
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up"
+        className="w-full max-w-full sm:max-w-md bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl relative flex flex-col gap-4 text-stone-900 dark:text-white animate-scale-up"
       >
         {/* Header Ribbon & Close Button */}
         <div className="flex items-start justify-between">

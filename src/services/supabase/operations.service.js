@@ -8,6 +8,7 @@ import { supabase } from './client.js';
 import { safeStorage, dispatchSafeEvent, getDefaultActiveShopId } from './cache.js';
 import { updateCloudUser } from './users.service.js';
 import { getOrderOTP } from './riders.service.js';
+import { getPublicShareUrl } from '../../utils/urlHelper.js';
 
 // ========================================================================
 // 1. FOODY OPERATIONAL TRUST SCORE ENGINE (300 – 900 POINTS)
@@ -212,7 +213,7 @@ export function generateWhatsAppOrderShareLink({
     text += `💰 Total Amount: ₹${totalAmount}\n`;
     text += `🔐 Delivery Verification OTP: *${resolvedOtp}*\n`;
     text += `(Please share this OTP with your Sarathi at doorstep upon arrival)\n\n`;
-    text += `📍 Track Live Prasad Delivery: ${typeof window !== 'undefined' ? window.location.origin : 'https://eat.vrindopnishad.in'}\n`;
+    text += `📍 Track Live Prasad Delivery: ${getPublicShareUrl()}\n`;
   } else if (status === 'out_for_delivery') {
     text += `🛵 *Order #${orderNum} is Out For Delivery!*\n\n`;
     text += `Your Sarathi is on the way with your piping hot prasad meal.\n`;

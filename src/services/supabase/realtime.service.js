@@ -15,6 +15,10 @@ import {
   saveCachedOffers,
   getCachedPresets
 } from './menus.service.js';
+import {
+  getCachedUsers,
+  saveCachedUsers
+} from './users.service.js';
 
 export class RealtimeMultiplexer {
   constructor() {
@@ -96,10 +100,11 @@ export class RealtimeMultiplexer {
               }
             } catch (e) { }
 
-            // Broadcast strictly to desk listeners matching this exact shop_id
+            // Broadcast strictly to desk listeners matching this exact shop_id (or global listeners with 'all')
             this.orderListeners.forEach(listener => {
               try {
-                if (listener.shopId && raw.shop_id && listener.shopId === raw.shop_id) {
+                const isMatch = listener.shopId === 'all' || listener.shopId === '*' || (listener.shopId && raw.shop_id && listener.shopId === raw.shop_id);
+                if (isMatch) {
                   listener.callback(normalized, payload.eventType);
                 }
               } catch (e) {
@@ -560,11 +565,11 @@ export const multiplexer = new RealtimeMultiplexer();
 
 export function subscribeCloudOrders(shopId, onUpdate) {
   const clean = shopId && typeof shopId === 'string' ? shopId.trim().toLowerCase() : '';
-  if (!shopId || typeof shopId !== 'string' || clean === '' || clean === 'all' || clean === '*' || clean.includes('all shop') || clean.includes('broadcast')) {
+  if (!shopId || typeof shopId !== 'string' || clean === '') {
     console.warn('[SHOP ISOLATION] subscribeCloudOrders rejected: invalid shopId', shopId);
     return null;
   }
-  return multiplexer.subscribeOrders(shopId, onUpdate);
+  return multiplexer.subscribeOrders(clean === 'all' || clean === '*' ? 'all' : shopId, onUpdate);
 }
 
 export function subscribeSingleCloudOrder(orderId, onUpdate) {
