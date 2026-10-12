@@ -73,17 +73,19 @@ export function dispatchSafeEvent(name, detail = {}) {
   } catch (e) { }
 }
 
-export function getCachedItem(type, key = 'default') {
+export function getCachedItem(type, key = 'default', ignoreTTL = false) {
   const now = Date.now();
+  const isOffline = (typeof navigator !== 'undefined' && !navigator.onLine) || ignoreTTL;
+
   if (type === 'shops') {
-    if (memoryCache.shops.data && (now - memoryCache.shops.timestamp < CACHE_TTL_MS.SHOPS)) {
+    if (memoryCache.shops.data && (isOffline || (now - memoryCache.shops.timestamp < CACHE_TTL_MS.SHOPS))) {
       return memoryCache.shops.data;
     }
     const local = safeStorage.getItem('foody_cache_shops');
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.SHOPS)) {
+        if (parsed && (isOffline || (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.SHOPS)))) {
           memoryCache.shops = parsed;
           return parsed.data;
         }
@@ -91,14 +93,14 @@ export function getCachedItem(type, key = 'default') {
     }
   } else if (type === 'menus') {
     const entry = memoryCache.menus[key];
-    if (entry && (now - entry.timestamp < CACHE_TTL_MS.MENUS)) {
+    if (entry && (isOffline || (now - entry.timestamp < CACHE_TTL_MS.MENUS))) {
       return entry.data;
     }
     const local = safeStorage.getItem(`foody_cache_menu_${key}`);
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.MENUS)) {
+        if (parsed && (isOffline || (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.MENUS)))) {
           memoryCache.menus[key] = parsed;
           return parsed.data;
         }
@@ -106,21 +108,21 @@ export function getCachedItem(type, key = 'default') {
     }
   } else if (type === 'orders') {
     const entry = memoryCache.orders[key];
-    if (entry && (now - entry.timestamp < CACHE_TTL_MS.ORDERS)) {
+    if (entry && (isOffline || (now - entry.timestamp < CACHE_TTL_MS.ORDERS))) {
       return entry.data;
     }
     const local = safeStorage.getItem(`foody_cache_orders_${key}`);
     if (local) {
       try {
         const parsed = JSON.parse(local);
-        if (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.ORDERS)) {
+        if (parsed && (isOffline || (parsed.timestamp && (now - parsed.timestamp < CACHE_TTL_MS.ORDERS)))) {
           memoryCache.orders[key] = parsed;
           return parsed.data;
         }
       } catch (e) { }
     }
   } else if (type === 'users') {
-    if (memoryCache.users.data && (now - memoryCache.users.timestamp < CACHE_TTL_MS.USERS)) {
+    if (memoryCache.users.data && (isOffline || (now - memoryCache.users.timestamp < CACHE_TTL_MS.USERS))) {
       return memoryCache.users.data;
     }
     const local = safeStorage.getItem('foody_cached_users');

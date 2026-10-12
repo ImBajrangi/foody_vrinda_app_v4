@@ -37,10 +37,8 @@ import {
   Moon,
   Volume2,
   Gamepad2,
-  Download,
   Laptop
 } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
 import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
 import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
@@ -1048,35 +1046,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   </div>
                   <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">Join</span>
                 </a>
-
-                {/* Install App / Download APK Option for Web */}
-                {!Capacitor.isNativePlatform() && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose?.();
-                      window.dispatchEvent(new CustomEvent('foody:open-install-app'));
-                    }}
-                    className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl overflow-hidden bg-gradient-to-tr from-[#FF751F] to-[#FD9139] p-[1.5px] shadow-xs shrink-0 flex items-center justify-center">
-                        <img 
-                          src="/foody-vrinda-logo.webp" 
-                          alt="Foody Vrinda" 
-                          className="w-full h-full object-cover rounded-[9px]"
-                        />
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span>Install Foody Vrinda App</span>
-                        <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Add PWA to home screen or get APK</span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-amber-700 dark:text-[#FD9139] font-black bg-amber-500/15 dark:bg-[#FD9139]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/30 shrink-0">
-                      Get App
-                    </span>
-                  </button>
-                )}
               </div>
 
               {/* 6. Clean Dedicated Sign Out Action */}

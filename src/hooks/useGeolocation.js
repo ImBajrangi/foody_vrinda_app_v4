@@ -31,20 +31,53 @@ export default function useGeolocation() {
   const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) { setDenied(true); return null; }
     setLoading(true);
+
     return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setCoords(loc);
+      // Helper to process valid position
+      const handleSuccess = async (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(loc);
+        try {
           localStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ ...loc, ts: Date.now() }));
-          const addr = await reverseGeocode(loc.lat, loc.lng);
-          setAddress(addr);
-          setLoading(false);
-          setDenied(false);
-          resolve({ coords: loc, address: addr });
+        } catch (_) {}
+        const addr = await reverseGeocode(loc.lat, loc.lng);
+        setAddress(addr);
+        setLoading(false);
+        setDenied(false);
+        resolve({ coords: loc, address: addr });
+      };
+
+      const isMobilePlatform = typeof navigator !== 'undefined' && 
+        (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Boolean(window.Capacitor?.isNativePlatform?.()));
+
+      // On desktop (macOS / PC), enableHighAccuracy: true causes CoreLocation to fail with kCLErrorLocationUnknown
+      // because laptops lack GPS chips. Only mobile devices should attempt high-accuracy GPS first.
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (err) => {
+          if (err && err.code === 1) { // PERMISSION_DENIED
+            setDenied(true);
+            setLoading(false);
+            resolve(null);
+            return;
+          }
+
+          // If mobile high-accuracy failed, fallback to standard cell/WiFi location
+          if (isMobilePlatform) {
+            navigator.geolocation.getCurrentPosition(
+              handleSuccess,
+              () => {
+                setLoading(false);
+                resolve(null);
+              },
+              { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+            );
+          } else {
+            setLoading(false);
+            resolve(null);
+          }
         },
-        () => { setDenied(true); setLoading(false); resolve(null); },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        { enableHighAccuracy: isMobilePlatform, timeout: 8000, maximumAge: 60000 }
       );
     });
   }, [reverseGeocode]);

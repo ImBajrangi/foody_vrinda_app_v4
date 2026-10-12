@@ -168,6 +168,13 @@ export default function CompleteProfileModal({ isOpen, onClose, onSaveComplete }
             : (user?.email ? user.email.split('@')[0] : 'Devotee')))
     : name;
   const firstName = candidateGreetingName.trim().split(' ')[0] || 'Devotee';
+  const avatar = user?.photoURL || 
+    userData?.photoURL || 
+    userData?.avatar_url || 
+    userData?.picture || 
+    user?.user_metadata?.avatar_url || 
+    user?.user_metadata?.picture || 
+    user?.user_metadata?.photoURL || null;
 
   return (
     <div 

@@ -17,8 +17,25 @@ function broadcastAlarm(playing, alert) {
   });
 }
 
+let userHasInteracted = false;
+if (typeof window !== 'undefined') {
+  const onInteraction = () => {
+    userHasInteracted = true;
+    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume().catch(() => {});
+    }
+    window.removeEventListener('click', onInteraction);
+    window.removeEventListener('touchend', onInteraction);
+    window.removeEventListener('keydown', onInteraction);
+  };
+  window.addEventListener('click', onInteraction, { passive: true, once: true });
+  window.addEventListener('touchend', onInteraction, { passive: true, once: true });
+  window.addEventListener('keydown', onInteraction, { passive: true, once: true });
+}
+
 function getAudioContext(createIfMissing = false) {
   if (!globalAudioCtx && createIfMissing && typeof window !== 'undefined') {
+    if (!userHasInteracted) return null; // Avoid autoplay warning before gesture
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (AudioContextClass) {
       try {
@@ -164,14 +181,14 @@ export function useAudioAlarm() {
       unlockAudio();
     };
 
-    window.addEventListener('click', handleFirstInteraction, { passive: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { passive: true });
-    window.addEventListener('keydown', handleFirstInteraction, { passive: true });
+    window.addEventListener('click', handleFirstInteraction, { passive: true, once: true });
+    window.addEventListener('touchend', handleFirstInteraction, { passive: true, once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { passive: true, once: true });
     document.addEventListener('visibilitychange', syncAudioState);
 
     return () => {
       window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('touchend', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
       document.removeEventListener('visibilitychange', syncAudioState);
     };

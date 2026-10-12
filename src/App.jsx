@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useCart } from './context/CartContext';
 import { useAudioAlarm } from './hooks/useAudioAlarm';
@@ -16,17 +16,16 @@ const AppUpdateModal = lazyWithRetry(() => import('./components/AppUpdateModal')
 const RoleBasedTutorialModal = lazyWithRetry(() => import('./components/RoleBasedTutorialModal'));
 const AppInstallModal = lazyWithRetry(() => import('./components/AppInstallModal'));
 
-import { 
-  isTutorialCompleted, 
-  getTutorialKeyForRole, 
-  markTutorialCompleted, 
-  initAppVisitTracking, 
-  shouldAutoLaunchTutorial, 
-  clearNewUserTutorialEligibility 
+import {
+  isTutorialCompleted,
+  getTutorialKeyForRole,
+  markTutorialCompleted,
+  initAppVisitTracking,
+  shouldAutoLaunchTutorial,
+  clearNewUserTutorialEligibility
 } from './services/tutorialService';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import PullToRefresh from './components/PullToRefresh';
 
 // Code-split all role views to reduce initial boot payload with auto-retry on stale deployments
 const CustomerView = lazyWithRetry(() => import('./views/CustomerView'));
@@ -43,17 +42,18 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import FoodySplash from './foody/FoodySplash';
 import ActiveAlarmBanner from './components/ui/ActiveAlarmBanner';
+import OfflineInfoBar from './components/ui/OfflineInfoBar';
 
 export default function App() {
 
-  const { 
-    user, 
-    userData, 
-    userRole, 
-    isAuthenticated, 
-    loading: authLoading, 
-    isAuthorizedAdmin, 
-    isAuthorizedDeveloper 
+  const {
+    user,
+    userData,
+    userRole,
+    isAuthenticated,
+    loading: authLoading,
+    isAuthorizedAdmin,
+    isAuthorizedDeveloper
   } = useAuth();
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio, isPlaying, activeAlert, stopAlarm } = useAudioAlarm();
@@ -66,8 +66,8 @@ export default function App() {
     // Immediately dismiss splash screen as soon as JavaScript boots
     requestAnimationFrame(async () => {
       try {
-        await SplashScreen.hide();
-      } catch (_) {}
+        await SplashScreen.hide({ fadeOutDuration: 120 });
+      } catch (_) { }
     });
 
     const setupNativeUI = async () => {
@@ -103,7 +103,7 @@ export default function App() {
           if (['kitchen', 'delivery', 'owner', 'developer'].includes(parsed.role)) return parsed.role;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'customer';
   });
 
@@ -112,7 +112,7 @@ export default function App() {
     if (currentTab) {
       try {
         localStorage.setItem('foody_active_tab', currentTab);
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [currentTab]);
 
@@ -138,6 +138,10 @@ export default function App() {
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialPanel, setTutorialPanel] = useState(null);
+
+  const handleSplashDone = useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   useEffect(() => {
     const handleReplaySplash = () => {
@@ -202,7 +206,7 @@ export default function App() {
           setUpdateInfo(info);
           setIsUpdateOpen(true);
         }
-      } catch (_) {}
+      } catch (_) { }
     };
 
     window.addEventListener('foody:check-app-update', handleManualCheck);
@@ -240,7 +244,7 @@ export default function App() {
         }, 800);
         return () => clearTimeout(timer);
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [authLoading, isAuthenticated, user?.id, userData?.id, currentTab]);
 
   const currentTabRef = useRef(currentTab);
@@ -273,7 +277,7 @@ export default function App() {
       } else {
         localStorage.removeItem('foody_active_tracking_id');
       }
-    } catch (e) {}
+    } catch (e) { }
   }, [trackingOrderId]);
 
   // Sanitize privileged views if user loses permissions, without disrupting active storefront browsing
@@ -308,7 +312,7 @@ export default function App() {
             // User dismissed recently; keep it side and do not impose on user
             return;
           }
-        } catch (_) {}
+        } catch (_) { }
       }
       setIsCompleteProfileOpen(true);
     };
@@ -333,21 +337,21 @@ export default function App() {
     const hash = window.location.hash || '';
     const search = window.location.search || '';
 
-    const hasAuthParams = 
-      hash.includes('access_token=') || 
-      search.includes('code=') || 
+    const hasAuthParams =
+      hash.includes('access_token=') ||
+      search.includes('code=') ||
       hash.includes('refresh_token=');
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 
     if (hasAuthParams && isMobile) {
       const appDeepLink = `com.foodyvrinda.app://auth/callback${search}${hash}`;
-      
+
       // Auto-bounce back into the native Android app
       const timer = setTimeout(() => {
         try {
           window.location.href = appDeepLink;
-        } catch (_) {}
+        } catch (_) { }
       }, 250);
 
       return () => clearTimeout(timer);
@@ -411,7 +415,7 @@ export default function App() {
 
     return () => {
       if (backListenerPromise) {
-        backListenerPromise.then(l => l.remove()).catch(() => {});
+        backListenerPromise.then(l => l.remove()).catch(() => { });
       }
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -438,21 +442,21 @@ export default function App() {
     if (currentTab !== 'customer') {
       const title = titleMap[currentTab] || "Foody Vrinda";
       const description = descMap[currentTab] || "Authentic Satvik Cloud Kitchen";
-      
+
       document.title = title;
-      
+
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', description);
-      
+
       const ogTitle = document.querySelector('meta[property="og:title"]');
       if (ogTitle) ogTitle.setAttribute('content', title);
-      
+
       const ogDesc = document.querySelector('meta[property="og:description"]');
       if (ogDesc) ogDesc.setAttribute('content', description);
-      
+
       const twitterTitle = document.querySelector('meta[name="twitter:title"]');
       if (twitterTitle) twitterTitle.setAttribute('content', title);
-      
+
       const twitterDesc = document.querySelector('meta[name="twitter:description"]');
       if (twitterDesc) twitterDesc.setAttribute('content', description);
     }
@@ -503,187 +507,189 @@ export default function App() {
         localStorage.setItem('foody_pending_referral_code', cleanCode);
         window.dispatchEvent(new CustomEvent('foody:referral-detected', { detail: { code: cleanCode } }));
       }
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   return (
     <>
+      {/* Chrome-Style Native Top Slide-Down Offline Info Bar */}
+      <OfflineInfoBar />
+
       {/* Pure Vector Animated Splash Screen (Zero-load, 60fps, tap to dismiss) */}
       {showSplash && (
         <FoodySplash
-          speed={1.3}
-          onDone={() => setShowSplash(false)}
+          speed={1.0}
+          onDone={handleSplashDone}
         />
       )}
 
-      <PullToRefresh>
-        <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
-        <Header 
-        audioUnlocked={audioUnlocked}
-        enableAudio={enableAudio}
-        onToggleSearch={() => setIsSearchOpen(!isSearchOpen)}
-        onToggleNotifications={() => setIsNotificationsOpen(!isNotificationsOpen)}
-        onToggleAuth={handleToggleAuth}
-        onToggleRewards={() => setIsRewardsOpen(!isRewardsOpen)}
-        onToggleOrders={() => {
-          setTrackingOrderId(null);
-          setCurrentTab('customer');
-        }}
-        onOpenCart={() => {
-          if (currentTab !== 'customer') {
+      <div className={`mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col transition-opacity duration-300 ease-out ${showSplash ? 'opacity-90' : 'opacity-100'
+        }`}>
+        <Header
+          audioUnlocked={audioUnlocked}
+          enableAudio={enableAudio}
+          onToggleSearch={() => setIsSearchOpen(!isSearchOpen)}
+          onToggleNotifications={() => setIsNotificationsOpen(!isNotificationsOpen)}
+          onToggleAuth={handleToggleAuth}
+          onToggleRewards={() => setIsRewardsOpen(!isRewardsOpen)}
+          onToggleOrders={() => {
+            setTrackingOrderId(null);
             setCurrentTab('customer');
-          }
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('foody-open-cart'));
-          }, 30);
-        }}
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-      />
-
-      <main className="w-full flex-1 flex flex-col">
-        <ErrorBoundary>
-          <Suspense fallback={
-            <div className="flex-1 flex items-center justify-center min-h-[300px]">
-              <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 dark:border-[#FD9139]/30 border-t-amber-500 dark:border-t-[#FD9139] animate-spin" />
-            </div>
-          }>
-            {currentTab === 'customer' && (
-              <CustomerView 
-                trackingOrderId={trackingOrderId}
-                setTrackingOrderId={setTrackingOrderId}
-              />
-            )}
-
-            {currentTab === 'kitchen' && <KitchenView />}
-
-            {currentTab === 'delivery' && <TransportView />}
-
-            {currentTab === 'owner' && (
-              isAuthorizedAdmin ? (
-                <OwnerView />
-              ) : (
-                <UnauthorizedAccessScreen 
-                  requiredRole="Administrator" 
-                  onAuthenticate={() => setIsAuthOpen(true)}
-                  onReturnStore={() => setCurrentTab('customer')}
-                />
-              )
-            )}
-
-            {currentTab === 'developer' && (
-              isAuthorizedDeveloper ? (
-                <DeveloperView setCurrentTab={setCurrentTab} />
-              ) : (
-                <UnauthorizedAccessScreen 
-                  requiredRole="Developer" 
-                  onAuthenticate={() => setIsAuthOpen(true)}
-                  onReturnStore={() => setCurrentTab('customer')}
-                />
-              )
-            )}
-          </Suspense>
-        </ErrorBoundary>
-      </main>
-
-      {/* OVERLAY MODALS (Dynamically loaded on demand) */}
-      <Suspense fallback={null}>
-        {isAuthOpen && (
-          <AuthModal 
-            isOpen={isAuthOpen}
-            onClose={() => setIsAuthOpen(false)}
-            initialMode={authInitialMode}
-          />
-        )}
-
-        {isCompleteProfileOpen && (
-          <CompleteProfileModal
-            isOpen={isCompleteProfileOpen}
-            onClose={() => setIsCompleteProfileOpen(false)}
-            onSaveComplete={() => {
-              setIsCompleteProfileOpen(false);
-            }}
-          />
-        )}
-
-        {isRewardsOpen && (
-          <RewardsModal 
-            isOpen={isRewardsOpen}
-            onClose={() => setIsRewardsOpen(false)}
-          />
-        )}
-
-        {isNotificationsOpen && (
-          <NotificationPanel 
-            isOpen={isNotificationsOpen}
-            onClose={() => setIsNotificationsOpen(false)}
-            onNotificationClick={handleNotificationOrderClick}
-          />
-        )}
-
-        {isSearchOpen && (
-          <UnifiedSearchModal 
-            isOpen={isSearchOpen}
-            onClose={() => setIsSearchOpen(false)}
-            initialQuery={searchInitialQuery}
-            onSelectShop={(shopId) => {
-              if (shopId) setSelectedShopId(shopId);
+          }}
+          onOpenCart={() => {
+            if (currentTab !== 'customer') {
               setCurrentTab('customer');
-            }}
-            onSelectOrder={handleSearchOrderSelect}
-          />
-        )}
+            }
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('foody-open-cart'));
+            }, 30);
+          }}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+        />
 
-        {isUpdateOpen && (
-          <AppUpdateModal
-            isOpen={isUpdateOpen}
-            updateInfo={updateInfo}
-            onClose={() => setIsUpdateOpen(false)}
-          />
-        )}
+        <main className="w-full flex-1 flex flex-col">
+          <ErrorBoundary>
+            <Suspense fallback={
+              <div className="flex-1 flex items-center justify-center min-h-[300px]">
+                <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 dark:border-[#FD9139]/30 border-t-amber-500 dark:border-t-[#FD9139] animate-spin" />
+              </div>
+            }>
+              {currentTab === 'customer' && (
+                <CustomerView
+                  trackingOrderId={trackingOrderId}
+                  setTrackingOrderId={setTrackingOrderId}
+                />
+              )}
 
-        {isTutorialOpen && (
-          <RoleBasedTutorialModal
-            isOpen={isTutorialOpen}
-            forceRole={tutorialPanel || currentTab}
-            onClose={() => {
-              const uid = user?.id || userData?.id;
-              const panel = tutorialPanel || currentTab || 'customer';
-              if (uid) markTutorialCompleted(uid, panel);
-              setIsTutorialOpen(false);
-            }}
-            onComplete={() => {
-              const uid = user?.id || userData?.id;
-              const panel = tutorialPanel || currentTab || 'customer';
-              if (uid) markTutorialCompleted(uid, panel);
-              setIsTutorialOpen(false);
-            }}
-          />
-        )}
+              {currentTab === 'kitchen' && <KitchenView />}
 
-        {isInstallOpen && (
-          <AppInstallModal
-            isOpen={isInstallOpen}
-            onClose={() => setIsInstallOpen(false)}
-          />
-        )}
+              {currentTab === 'delivery' && <TransportView />}
 
-        {['customer', 'developer'].includes(currentTab) && isPlaying && activeAlert && (
-          <ActiveAlarmBanner
-            isPlaying={isPlaying}
-            activeAlert={activeAlert}
-            onSilence={stopAlarm}
-            onActionClick={(alert) => {
-              const targetRole = alert?.role || 'kitchen';
-              if (['kitchen', 'owner', 'delivery'].includes(targetRole)) {
-                setCurrentTab(targetRole);
-              }
-            }}
-          />
-        )}
-      </Suspense>
-        </div>
-      </PullToRefresh>
+              {currentTab === 'owner' && (
+                isAuthorizedAdmin ? (
+                  <OwnerView />
+                ) : (
+                  <UnauthorizedAccessScreen
+                    requiredRole="Administrator"
+                    onAuthenticate={() => setIsAuthOpen(true)}
+                    onReturnStore={() => setCurrentTab('customer')}
+                  />
+                )
+              )}
+
+              {currentTab === 'developer' && (
+                isAuthorizedDeveloper ? (
+                  <DeveloperView setCurrentTab={setCurrentTab} />
+                ) : (
+                  <UnauthorizedAccessScreen
+                    requiredRole="Developer"
+                    onAuthenticate={() => setIsAuthOpen(true)}
+                    onReturnStore={() => setCurrentTab('customer')}
+                  />
+                )
+              )}
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+
+        {/* OVERLAY MODALS (Dynamically loaded on demand) */}
+        <Suspense fallback={null}>
+          {isAuthOpen && (
+            <AuthModal
+              isOpen={isAuthOpen}
+              onClose={() => setIsAuthOpen(false)}
+              initialMode={authInitialMode}
+            />
+          )}
+
+          {isCompleteProfileOpen && (
+            <CompleteProfileModal
+              isOpen={isCompleteProfileOpen}
+              onClose={() => setIsCompleteProfileOpen(false)}
+              onSaveComplete={() => {
+                setIsCompleteProfileOpen(false);
+              }}
+            />
+          )}
+
+          {isRewardsOpen && (
+            <RewardsModal
+              isOpen={isRewardsOpen}
+              onClose={() => setIsRewardsOpen(false)}
+            />
+          )}
+
+          {isNotificationsOpen && (
+            <NotificationPanel
+              isOpen={isNotificationsOpen}
+              onClose={() => setIsNotificationsOpen(false)}
+              onNotificationClick={handleNotificationOrderClick}
+            />
+          )}
+
+          {isSearchOpen && (
+            <UnifiedSearchModal
+              isOpen={isSearchOpen}
+              onClose={() => setIsSearchOpen(false)}
+              initialQuery={searchInitialQuery}
+              onSelectShop={(shopId) => {
+                if (shopId) setSelectedShopId(shopId);
+                setCurrentTab('customer');
+              }}
+              onSelectOrder={handleSearchOrderSelect}
+            />
+          )}
+
+          {isUpdateOpen && (
+            <AppUpdateModal
+              isOpen={isUpdateOpen}
+              updateInfo={updateInfo}
+              onClose={() => setIsUpdateOpen(false)}
+            />
+          )}
+
+          {isTutorialOpen && (
+            <RoleBasedTutorialModal
+              isOpen={isTutorialOpen}
+              forceRole={tutorialPanel || currentTab}
+              onClose={() => {
+                const uid = user?.id || userData?.id;
+                const panel = tutorialPanel || currentTab || 'customer';
+                if (uid) markTutorialCompleted(uid, panel);
+                setIsTutorialOpen(false);
+              }}
+              onComplete={() => {
+                const uid = user?.id || userData?.id;
+                const panel = tutorialPanel || currentTab || 'customer';
+                if (uid) markTutorialCompleted(uid, panel);
+                setIsTutorialOpen(false);
+              }}
+            />
+          )}
+
+          {isInstallOpen && (
+            <AppInstallModal
+              isOpen={isInstallOpen}
+              onClose={() => setIsInstallOpen(false)}
+            />
+          )}
+
+          {['customer', 'developer'].includes(currentTab) && isPlaying && activeAlert && (
+            <ActiveAlarmBanner
+              isPlaying={isPlaying}
+              activeAlert={activeAlert}
+              onSilence={stopAlarm}
+              onActionClick={(alert) => {
+                const targetRole = alert?.role || 'kitchen';
+                if (['kitchen', 'owner', 'delivery'].includes(targetRole)) {
+                  setCurrentTab(targetRole);
+                }
+              }}
+            />
+          )}
+        </Suspense>
+      </div>
     </>
   );
 }

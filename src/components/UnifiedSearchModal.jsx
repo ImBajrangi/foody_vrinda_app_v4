@@ -12,13 +12,77 @@ import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import DynamicToast from './ui/DynamicToast';
 
 const POPULAR_CATEGORIES = [
-  { name: 'Thalis & Meals', keyword: 'thali', icon: '🍛', color: 'from-amber-500/15 to-orange-500/10' },
-  { name: 'Satvik Pizza', keyword: 'pizza', icon: '🍕', color: 'from-red-500/15 to-orange-500/10' },
-  { name: 'Burgers & Wraps', keyword: 'burger', icon: '🍔', color: 'from-yellow-500/15 to-amber-500/10' },
-  { name: 'Sweets & Bhog', keyword: 'kheer', icon: '🍧', color: 'from-pink-500/15 to-rose-500/10' },
-  { name: 'Paneer Specials', keyword: 'paneer', icon: '🧀', color: 'from-emerald-500/15 to-teal-500/10' },
-  { name: 'Drinks & Shakes', keyword: 'shake', icon: '🥤', color: 'from-blue-500/15 to-cyan-500/10' },
+  { 
+    name: 'Thalis & Meals', 
+    tag: 'Full Feast',
+    keyword: 'thali', 
+    icon: '🍛', 
+    cardBg: 'bg-[#FFF8E7] dark:bg-[#2A231A]',
+    border: 'border-[#FF9600] border-b-[#CC7800]',
+    textColor: 'text-[#C97000] dark:text-[#FFAE33]',
+    badgeBg: 'bg-[#FF9600]/15 text-[#C97000] dark:text-[#FFAE33]'
+  },
+  { 
+    name: 'Satvik Pizza', 
+    tag: 'Woodfire',
+    keyword: 'pizza', 
+    icon: '🍕', 
+    cardBg: 'bg-[#FFF1F0] dark:bg-[#2C1B1C]',
+    border: 'border-[#FF4B4B] border-b-[#D42222]',
+    textColor: 'text-[#D42222] dark:text-[#FF6666]',
+    badgeBg: 'bg-[#FF4B4B]/15 text-[#D42222] dark:text-[#FF6666]'
+  },
+  { 
+    name: 'Burgers & Wraps', 
+    tag: 'Crispy Snack',
+    keyword: 'burger', 
+    icon: '🍔', 
+    cardBg: 'bg-[#FFFBEA] dark:bg-[#2C2616]',
+    border: 'border-[#FFC800] border-b-[#CC9F00]',
+    textColor: 'text-[#B88600] dark:text-[#FFD338]',
+    badgeBg: 'bg-[#FFC800]/20 text-[#B88600] dark:text-[#FFD338]'
+  },
+  { 
+    name: 'Sweets & Bhog', 
+    tag: 'Sacred Makkhan',
+    keyword: 'kheer', 
+    icon: '🍧', 
+    cardBg: 'bg-[#FAF2FF] dark:bg-[#28182E]',
+    border: 'border-[#CE82FF] border-b-[#A855F7]',
+    textColor: 'text-[#9A3BE8] dark:text-[#E2A6FF]',
+    badgeBg: 'bg-[#CE82FF]/15 text-[#9A3BE8] dark:text-[#E2A6FF]'
+  },
+  { 
+    name: 'Paneer Specials', 
+    tag: 'Fresh Malai',
+    keyword: 'paneer', 
+    icon: '🧀', 
+    cardBg: 'bg-[#F2FCF3] dark:bg-[#182B1F]',
+    border: 'border-[#58CC02] border-b-[#429E00]',
+    textColor: 'text-[#3B8D00] dark:text-[#6EE80C]',
+    badgeBg: 'bg-[#58CC02]/15 text-[#3B8D00] dark:text-[#6EE80C]'
+  },
+  { 
+    name: 'Drinks & Shakes', 
+    tag: 'Chilled Lassi',
+    keyword: 'shake', 
+    icon: '🥤', 
+    cardBg: 'bg-[#F0F9FF] dark:bg-[#152735]',
+    border: 'border-[#1CB0F6] border-b-[#148CC9]',
+    textColor: 'text-[#0E83C5] dark:text-[#4AC8FF]',
+    badgeBg: 'bg-[#1CB0F6]/15 text-[#0E83C5] dark:text-[#4AC8FF]'
+  },
 ];
+
+const CURATED_CRAVINGS_VISUALS = {
+  thali: { emoji: '🍛', badge: '👑 #1 Top Pick', tag: 'Royal Vedic Feast', iconBg: 'bg-[#FF9600]/15 text-[#FF9600]', accentBorder: 'hover:border-[#FF9600]' },
+  burger: { emoji: '🍔', badge: '🔥 Hot Bite', tag: 'Crispy Satvik Snack', iconBg: 'bg-[#FFC800]/20 text-[#D4A000]', accentBorder: 'hover:border-[#FFC800]' },
+  kheer: { emoji: '🍧', badge: '⭐ Bestseller', tag: 'Kesariya Sweet', iconBg: 'bg-[#CE82FF]/15 text-[#CE82FF]', accentBorder: 'hover:border-[#CE82FF]' },
+  pizza: { emoji: '🍕', badge: '🧀 Cheesy', tag: 'Stonebaked Slice', iconBg: 'bg-[#FF4B4B]/15 text-[#FF4B4B]', accentBorder: 'hover:border-[#FF4B4B]' },
+  prasad: { emoji: '🪷', badge: '✨ Sacred Bhog', tag: 'Govind Offering', iconBg: 'bg-[#FF9600]/15 text-[#FF9600]', accentBorder: 'hover:border-[#FF9600]' },
+  paneer: { emoji: '🍲', badge: '🌟 Chef Pick', tag: 'Rich Creamy Curry', iconBg: 'bg-[#58CC02]/15 text-[#58CC02]', accentBorder: 'hover:border-[#58CC02]' },
+  rice: { emoji: '🍚', badge: '🌾 Fragrant', tag: 'Bhog Basmati Rice', iconBg: 'bg-[#1CB0F6]/15 text-[#1CB0F6]', accentBorder: 'hover:border-[#1CB0F6]' },
+};
 
 const RECENT_SEARCHES_KEY = 'foody_vrinda_recent_searches_v2';
 
@@ -428,11 +492,11 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
               <div className="w-12 h-1.5 bg-stone-300 dark:bg-white/20 rounded-full transition-colors"></div>
             </div>
 
-            {/* Search Input Bar (Ultra-Premium Apple / Arc Style Search Capsule + Crisp Cancel) */}
+            {/* Search Input Bar (Duolingo 3D Tactile Input + Push Cancel) */}
             <div className="p-3 sm:p-4 pt-1 sm:pt-3.5 flex items-center gap-2.5 sm:gap-3">
-              {/* Integrated Search Input Capsule */}
-              <div className="flex-1 min-w-0 h-11 sm:h-12 bg-stone-100/90 dark:bg-[#181617] border border-stone-200/90 dark:border-white/15 rounded-2xl px-3 sm:px-3.5 flex items-center gap-2.5 focus-within:border-amber-500/70 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-amber-500/15 dark:focus-within:ring-[#FD9139]/20 focus-within:bg-white dark:focus-within:bg-[#141213] transition-all shadow-inner">
-                <Search size={18} strokeWidth={2.2} className="text-amber-600 dark:text-[#FD9139] shrink-0 pointer-events-none" />
+              {/* Integrated Search Input Capsule with tactile 3D bottom bevel */}
+              <div className="flex-1 min-w-0 h-12 bg-white dark:bg-[#161415] border-2 border-b-[4px] border-stone-200 dark:border-white/15 focus-within:border-[#FD9139] focus-within:border-b-[#CB785C] rounded-2xl px-3.5 flex items-center gap-2.5 transition-all shadow-inner">
+                <Search size={18} strokeWidth={2.5} className="text-amber-500 dark:text-[#FD9139] shrink-0 pointer-events-none" />
 
                 <input
                   ref={searchInputRef}
@@ -474,11 +538,11 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 )}
               </div>
 
-              {/* Distinct Cancel / Dismiss CTA */}
+              {/* Distinct Tactile 3D Cancel CTA */}
               <button
                 type="button"
                 onClick={() => dismiss()}
-                className="h-9 sm:h-10 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white text-xs sm:text-sm font-black font-['Outfit'] flex items-center justify-center transition-all active:scale-95 cursor-pointer shrink-0 shadow-2xs select-none"
+                className="h-12 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-[#282526] dark:hover:bg-[#322E30] border-2 border-b-[4px] border-stone-200 hover:border-stone-300 dark:border-white/10 active:translate-y-1 active:border-b-2 text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white text-xs sm:text-sm font-black font-['Outfit'] flex items-center justify-center transition-all cursor-pointer shrink-0 select-none shadow-2xs"
                 title="Close search"
               >
                 Cancel
@@ -516,11 +580,15 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 {/* Recent Searches (If Any) */}
                 {recentSearches.length > 0 && (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 font-['Outfit']">
-                        <Clock size={12} className="text-amber-600 dark:text-[#FD9139]" />
-                        Recent Searches
-                      </p>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center text-[10px]">
+                          <Clock size={11} strokeWidth={2.5} />
+                        </span>
+                        <p className="text-[11px] font-black uppercase tracking-wider text-stone-700 dark:text-zinc-300 font-['Outfit']">
+                          Recent Searches
+                        </p>
+                      </div>
                       <button
                         onClick={clearRecentSearches}
                         className="text-[10px] font-bold text-stone-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
@@ -529,12 +597,12 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                       </button>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {recentSearches.map((term, i) => (
                         <button
                           key={i}
                           onClick={() => handleSelectSuggestion(term)}
-                          className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#282526] hover:bg-amber-500/10 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 text-xs font-bold text-stone-800 dark:text-zinc-200 hover:text-amber-700 dark:hover:text-[#FD9139] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#252223] hover:bg-amber-500/10 dark:hover:bg-[#322E30] border-2 border-b-[3px] border-stone-200 dark:border-white/10 hover:border-amber-400 dark:hover:border-[#FD9139]/50 active:translate-y-0.5 active:border-b text-xs font-bold text-stone-800 dark:text-zinc-200 hover:text-amber-700 dark:hover:text-[#FD9139] transition-all flex items-center gap-1.5 cursor-pointer select-none"
                         >
                           <Search size={11} className="text-stone-400 dark:text-zinc-500" />
                           <span>{term}</span>
@@ -544,25 +612,36 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                   </div>
                 )}
 
-                {/* Quick Category Grid (Full Width, Zero Blank Spaces) */}
+                {/* Duolingo 3D Explore By Category Grid */}
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5 font-['Outfit']">
-                    <Tag size={12} className="text-amber-600 dark:text-[#FD9139]" />
-                    Explore by Category
-                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 rounded-lg bg-[#58CC02]/15 text-[#58CC02] flex items-center justify-center text-xs font-black shadow-xs">
+                      🏷️
+                    </div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 font-['Outfit']">
+                      Explore by Category
+                    </h3>
+                  </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                     {POPULAR_CATEGORIES.map((cat, idx) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => handleSelectSuggestion(cat.keyword)}
-                        className={`p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br ${cat.color} bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex items-center gap-2.5 transition-all cursor-pointer group shadow-2xs active:scale-[0.98] text-left`}
+                        className={`p-3 rounded-2xl ${cat.cardBg} border-2 border-b-[4px] ${cat.border} active:translate-y-1 active:border-b-2 flex flex-col justify-between h-[86px] sm:h-[92px] transition-all cursor-pointer group shadow-xs select-none text-left`}
                       >
-                        <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform shrink-0">{cat.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-black text-stone-900 dark:text-white truncate font-['Outfit']">{cat.name}</p>
-                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 font-semibold flex items-center gap-0.5">
-                            Search now <ArrowRight size={9} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-start justify-between w-full">
+                          <span className="text-2xl sm:text-[28px] group-hover:scale-110 group-active:scale-95 transition-transform shrink-0 drop-shadow-xs">
+                            {cat.icon}
+                          </span>
+                          <span className={`text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full ${cat.badgeBg} font-['Outfit'] uppercase tracking-wider shrink-0`}>
+                            {cat.tag}
+                          </span>
+                        </div>
+                        <div className="w-full">
+                          <p className={`text-xs sm:text-[13px] font-black truncate font-['Outfit'] ${cat.textColor}`}>
+                            {cat.name}
                           </p>
                         </div>
                       </button>
@@ -570,33 +649,63 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                   </div>
                 </div>
 
-                {/* Trending Vedic Cravings (Balanced 2-Column Responsive Grid) */}
+                {/* Duolingo 3D Trending Satvik Cravings */}
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-wider text-stone-500 dark:text-zinc-400 mb-2.5 flex items-center gap-1.5 font-['Outfit']">
-                    <Flame size={13} className="text-amber-600 dark:text-orange-500" />
-                    Trending Satvik Cravings
-                  </p>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-[#FF9600]/15 text-[#FF9600] flex items-center justify-center text-xs font-black shadow-xs">
+                        🔥
+                      </div>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 font-['Outfit']">
+                        Trending Satvik Cravings
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-[#FD9139] border border-amber-500/30 font-['Outfit']">
+                      POPULAR NOW
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {HitSoochiService.getCuratedSuggestions().map((sugg, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => handleSelectSuggestion(sugg.keyword)}
-                        className="p-2.5 rounded-2xl bg-white dark:bg-[#282526] hover:bg-amber-500/5 dark:hover:bg-[#322E30] border border-stone-200 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 flex items-center justify-between text-left transition-all cursor-pointer group shadow-2xs active:scale-[0.98]"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
-                            <Utensils size={13} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {HitSoochiService.getCuratedSuggestions().map((sugg, i) => {
+                      const meta = CURATED_CRAVINGS_VISUALS[sugg.keyword] || {
+                        emoji: '🍲',
+                        badge: '🔥 Trending',
+                        tag: sugg.type || 'Satvik Dish',
+                        iconBg: 'bg-[#FF9600]/15 text-[#FF9600]',
+                        accentBorder: 'hover:border-[#FF9600]'
+                      };
+
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(sugg.keyword)}
+                          className={`p-3 rounded-2xl bg-white dark:bg-[#252223] border-2 border-b-[4px] border-stone-200/90 dark:border-white/10 ${meta.accentBorder} dark:${meta.accentBorder}/70 active:translate-y-1 active:border-b-2 flex items-center justify-between text-left transition-all cursor-pointer group shadow-xs select-none`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-11 h-11 rounded-2xl ${meta.iconBg} border border-black/5 dark:border-white/5 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform shadow-xs`}>
+                              {meta.emoji}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-xs sm:text-[13px] font-black text-stone-900 dark:text-white block truncate font-['Outfit']">
+                                {sugg.title}
+                              </span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-zinc-300 font-['Outfit'] shrink-0">
+                                  {meta.badge}
+                                </span>
+                                <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-semibold truncate">
+                                  {meta.tag}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-bold text-stone-900 dark:text-white block truncate">{sugg.title}</span>
-                            <span className="text-[10px] text-stone-500 dark:text-zinc-400 capitalize font-medium">{sugg.type || 'Pure satvik'}</span>
+                          <div className="w-7 h-7 rounded-xl bg-stone-100 dark:bg-white/5 border border-stone-200/80 dark:border-white/10 flex items-center justify-center text-stone-400 dark:text-zinc-500 group-hover:text-amber-500 dark:group-hover:text-[#FD9139] group-hover:bg-amber-500/10 group-hover:scale-110 shrink-0 ml-2 transition-all">
+                            <TrendingUp size={13} strokeWidth={2.5} />
                           </div>
-                        </div>
-                        <TrendingUp size={14} className="text-stone-400 group-hover:text-amber-600 dark:text-zinc-600 dark:group-hover:text-[#FD9139] shrink-0 ml-2 transition-colors" />
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

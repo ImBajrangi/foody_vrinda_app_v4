@@ -92,6 +92,12 @@ function getLocalCustomerMenus(shopId = 'all') {
 }
 function setLocalCustomerMenus(shopId = 'all', items = []) {
   try {
+    if (!Array.isArray(items) || items.length === 0) {
+      const existing = getLocalCustomerMenus(shopId);
+      if (existing && existing.length > 0 && typeof navigator !== 'undefined' && !navigator.onLine) {
+        return;
+      }
+    }
     localStorage.setItem(`${CUSTOMER_MENU_CACHE_PREFIX}_${shopId}`, JSON.stringify(items));
   } catch { }
 }
@@ -770,11 +776,23 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       try {
         const liveItems = await getCloudMenus(shopKey);
         if (isMounted && Array.isArray(liveItems)) {
-          setMenuItems(liveItems);
-          setLocalCustomerMenus(shopKey, liveItems);
+          if (liveItems.length > 0) {
+            setMenuItems(liveItems);
+            setLocalCustomerMenus(shopKey, liveItems);
+          } else {
+            // Keep existing menu if offline or fallback to cache
+            const existingCache = getLocalCustomerMenus(shopKey);
+            if (existingCache && existingCache.length > 0) {
+              setMenuItems(existingCache);
+            }
+          }
         }
       } catch (err) {
         console.warn("Notice fetching cloud menus:", err?.message);
+        const existingCache = getLocalCustomerMenus(shopKey);
+        if (isMounted && existingCache && existingCache.length > 0) {
+          setMenuItems(existingCache);
+        }
       } finally {
         if (isMounted) setMenuLoading(false);
       }
@@ -782,7 +800,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
     fetchLiveMenus();
 
-    // 3. Supabase Postgres Realtime changes subscription on foody_menus
+    // 3. Re-sync automatically when connection comes back online
+    const handleBackOnline = () => {
+      if (isMounted) fetchLiveMenus();
+    };
+    window.addEventListener('online', handleBackOnline);
+
+    // 4. Supabase Postgres Realtime changes subscription on foody_menus
     const unsubscribeMenus = subscribeCloudMenus((incomingItem, eventType) => {
       if (!isMounted || !incomingItem) return;
       setMenuItems(prev => {
@@ -803,7 +827,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       });
     });
 
-    // 4. Also listen to window event for instant local multi-tab / in-app mutations
+    // 5. Also listen to window event for instant local multi-tab / in-app mutations
     const handleLocalMenuEvent = (e) => {
       if (!isMounted) return;
       const detail = e.detail;
@@ -840,6 +864,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => {
       isMounted = false;
       if (typeof unsubscribeMenus === 'function') unsubscribeMenus();
+      window.removeEventListener('online', handleBackOnline);
       window.removeEventListener('foody_menus_changed', handleLocalMenuEvent);
     };
   }, [selectedShopId]);

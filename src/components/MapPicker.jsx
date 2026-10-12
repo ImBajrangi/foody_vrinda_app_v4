@@ -111,12 +111,17 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
 
     // Geolocation fallback
     if (navigator.geolocation && isNaN(parseFloat(initialLat)) && !initialCoords) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const centerLat = pos.coords.latitude;
-        const centerLng = pos.coords.longitude;
-        map.flyTo([centerLat, centerLng], 16, { duration: 1 });
-        updateCoordinates(centerLat, centerLng);
-      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!mapInstanceRef.current) return;
+          const centerLat = pos.coords.latitude;
+          const centerLng = pos.coords.longitude;
+          map.flyTo([centerLat, centerLng], 16, { duration: 1 });
+          updateCoordinates(centerLat, centerLng);
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 }
+      );
     }
 
     return () => {
@@ -129,12 +134,17 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
 
   const handleLocateMe = () => {
     if (!navigator.geolocation || !mapInstanceRef.current) return;
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const centerLat = pos.coords.latitude;
-      const centerLng = pos.coords.longitude;
-      mapInstanceRef.current.flyTo([centerLat, centerLng], 16, { duration: 1.2 });
-      updateCoordinates(centerLat, centerLng);
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!mapInstanceRef.current) return;
+        const centerLat = pos.coords.latitude;
+        const centerLng = pos.coords.longitude;
+        mapInstanceRef.current.flyTo([centerLat, centerLng], 16, { duration: 1.2 });
+        updateCoordinates(centerLat, centerLng);
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 }
+    );
   };
 
   const handleSave = () => {

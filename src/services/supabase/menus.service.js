@@ -23,8 +23,12 @@ import {
 
 export async function getCloudMenus(shopId = 'all') {
   const cached = getCachedItem('menus', shopId);
-  if (cached) return cached;
-  if (isTableMissing('foody_menus')) return [];
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  if (isOffline && cached && Array.isArray(cached) && cached.length > 0) {
+    return cached;
+  }
+  if (cached && !isOffline) return cached;
+  if (isTableMissing('foody_menus')) return cached || [];
 
   const reqKey = `getCloudMenus_${shopId}`;
   if (pendingRequests.has(reqKey)) {
@@ -33,6 +37,11 @@ export async function getCloudMenus(shopId = 'all') {
 
   const promise = (async () => {
     try {
+      if (isOffline) {
+        const offlineFallback = cached || getCachedItem('menus', shopId, true);
+        if (offlineFallback && offlineFallback.length > 0) return offlineFallback;
+      }
+
       let query = supabase.from('foody_menus').select('*');
       if (shopId && shopId !== 'all') {
         query = query.eq('shop_id', shopId);
@@ -49,11 +58,16 @@ export async function getCloudMenus(shopId = 'all') {
       }
       if (error) {
         if (isTableError(error)) markTableMissing('foody_menus');
+        const fallback = cached || getCachedItem('menus', shopId, true);
+        if (fallback && fallback.length > 0) return fallback;
         return [];
       }
       if (!data || data.length === 0) {
-        setCachedItem('menus', shopId, []);
-        return [];
+        if (!isOffline) {
+          setCachedItem('menus', shopId, []);
+        }
+        const fallback = cached || getCachedItem('menus', shopId, true);
+        return fallback && fallback.length > 0 ? fallback : [];
       }
       const mapped = data.map(d => {
         const nut = typeof d.nutrition === 'object' && d.nutrition !== null ? d.nutrition : {};
@@ -82,6 +96,8 @@ export async function getCloudMenus(shopId = 'all') {
       return mapped;
     } catch (err) {
       console.warn('getCloudMenus exception:', err?.message);
+      const fallback = cached || getCachedItem('menus', shopId, true);
+      if (fallback && fallback.length > 0) return fallback;
       return [];
     } finally {
       pendingRequests.delete(reqKey);

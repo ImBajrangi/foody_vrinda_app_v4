@@ -94,6 +94,22 @@ class NativeNotificationService {
     this._continuousAlarmPlaying = false;
     this._continuousAlarmTimer = null;
     this._activeContinuousAlarm = null;
+    this._hasUserGesture = this.isNative;
+
+    if (typeof window !== 'undefined' && !this.isNative) {
+      const unlockAudio = () => {
+        this._hasUserGesture = true;
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+          this.audioCtx.resume().catch(() => {});
+        }
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
+      };
+      window.addEventListener('pointerdown', unlockAudio, { passive: true });
+      window.addEventListener('keydown', unlockAudio, { passive: true });
+      window.addEventListener('touchstart', unlockAudio, { passive: true });
+    }
   }
 
   isContinuousAlarmActive() {
@@ -275,6 +291,10 @@ class NativeNotificationService {
   }
 
   getAudioContext() {
+    if (!this.isNative && !this._hasUserGesture) {
+      // Browser autoplay policy prevents AudioContext before user interaction
+      return null;
+    }
     if (!this.audioCtx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
@@ -299,7 +319,8 @@ class NativeNotificationService {
         audio.volume = 1.0;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(() => {
+          playPromise.catch((err) => {
+            if (err && err.name === 'NotAllowedError') return;
             this._playSynthesizedTrial(trialId);
           });
           return;
@@ -315,6 +336,11 @@ class NativeNotificationService {
    * Play real-time alert audio (HTML5 audio / Web Audio) using active trial
    */
   playChime(type = 'customer') {
+    // If running in browser and user hasn't interacted yet, don't trigger autoplay errors
+    if (!this.isNative && !this._hasUserGesture) {
+      return;
+    }
+
     const nowTs = Date.now();
     if (this._lastChimeType === type && (nowTs - (this._lastChimeTimestamp || 0)) < 1200) {
       return; // Deduplicate rapid fire of same chime to prevent double sound
@@ -340,8 +366,9 @@ class NativeNotificationService {
         audio.volume = 1.0;
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            if (type === 'customer') {
+          playPromise.catch((err) => {
+            if (err && err.name === 'NotAllowedError') return;
+            if (type === 'customer' && this._hasUserGesture) {
               this._playSynthesizedTrial(activeTrialId);
             }
           });
@@ -350,13 +377,14 @@ class NativeNotificationService {
       }
     } catch {
       // fallback to synthesized chime only for customer
-      if (type === 'customer') {
+      if (type === 'customer' && this._hasUserGesture) {
         this._playSynthesizedTrial(this.getActiveTrial());
       }
     }
   }
 
   _playSynthesizedTrial(trialId = 'natural_water_drop') {
+    if (!this.isNative && !this._hasUserGesture) return;
     try {
       const ctx = this.getAudioContext();
       if (!ctx) return;
