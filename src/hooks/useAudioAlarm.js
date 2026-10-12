@@ -1,7 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { nativeNotify } from '../services/nativeNotificationService';
 
 // Global Singleton Web Audio Context to avoid context proliferation
 let globalAudioCtx = null;
+
+// Global Singleton Alarm state across all active React components
+let globalAlarmIsPlaying = false;
+let globalActiveAlert = null;
+const globalAlarmListeners = new Set();
+
+function broadcastAlarm(playing, alert) {
+  globalAlarmIsPlaying = playing;
+  globalActiveAlert = alert;
+  globalAlarmListeners.forEach(fn => {
+    try { fn(playing, alert); } catch (_) {}
+  });
+}
 
 function getAudioContext(createIfMissing = false) {
   if (!globalAudioCtx && createIfMissing && typeof window !== 'undefined') {
@@ -18,8 +32,8 @@ function getAudioContext(createIfMissing = false) {
 export function useAudioAlarm() {
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [audioState, setAudioState] = useState('suspended');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [activeAlert, setActiveAlert] = useState(null); // { role, title, orderId, order }
+  const [isPlaying, setIsPlaying] = useState(globalAlarmIsPlaying);
+  const [activeAlert, setActiveAlert] = useState(globalActiveAlert);
   const [volume, setVolumeState] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_alarm_volume');
@@ -107,6 +121,41 @@ export function useAudioAlarm() {
       } catch (e) {}
     }
   }, [unlockAudio]);
+
+  useEffect(() => {
+    const handleSync = (playing, alert) => {
+      setIsPlaying(playing);
+      setActiveAlert(alert);
+    };
+    globalAlarmListeners.add(handleSync);
+
+    const handleStarted = (e) => {
+      const detail = e.detail || {};
+      broadcastAlarm(true, {
+        role: detail.role,
+        title: detail.title || 'NEW ORDER ALERT',
+        orderId: detail.orderId,
+        order: detail.order
+      });
+    };
+
+    const handleStopped = () => {
+      broadcastAlarm(false, null);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('foody:continuous-alarm-started', handleStarted);
+      window.addEventListener('foody:continuous-alarm-stopped', handleStopped);
+    }
+
+    return () => {
+      globalAlarmListeners.delete(handleSync);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('foody:continuous-alarm-started', handleStarted);
+        window.removeEventListener('foody:continuous-alarm-stopped', handleStopped);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     syncAudioState();
@@ -339,6 +388,8 @@ export function useAudioAlarm() {
     isPlayingRef.current = false;
     setIsPlaying(false);
     setActiveAlert(null);
+    broadcastAlarm(false, null);
+    nativeNotify.stopContinuousAlarm('manual_stop');
   }, []);
 
   // Trigger Role-Tailored Alarm
@@ -348,13 +399,23 @@ export function useAudioAlarm() {
       ctx.resume().catch(() => {});
     }
 
-    if (alertInfo) {
-      setActiveAlert({
-        role,
-        title: alertInfo.title || (role === 'kitchen' ? 'NEW KITCHEN ORDER' : 'ORDER READY FOR PICKUP'),
-        orderId: alertInfo.orderId || alertInfo.order?.id || '',
-        order: alertInfo.order || null
-      });
+    const payload = alertInfo ? {
+      role,
+      title: alertInfo.title || (role === 'kitchen' ? 'NEW KITCHEN ORDER' : (role === 'delivery' ? 'ORDER READY FOR PICKUP' : 'NEW STORE ORDER')),
+      orderId: alertInfo.orderId || alertInfo.order?.id || '',
+      order: alertInfo.order || null
+    } : null;
+
+    if (payload) {
+      setActiveAlert(payload);
+    }
+    setIsPlaying(true);
+    isPlayingRef.current = true;
+    broadcastAlarm(true, payload);
+
+    if (loop && ['kitchen', 'owner', 'delivery'].includes(role)) {
+      nativeNotify.startContinuousAlarm(role, payload?.order || { id: payload?.orderId });
+      return;
     }
 
     const playTone = () => {
@@ -378,15 +439,13 @@ export function useAudioAlarm() {
 
     // Play immediate first blast
     playTone();
-    setIsPlaying(true);
-    isPlayingRef.current = true;
 
     if (loopTimerRef.current) {
       clearInterval(loopTimerRef.current);
     }
 
     if (loop) {
-      const intervalMs = role === 'kitchen' ? 1500 : 2200;
+      const intervalMs = role === 'kitchen' ? 1800 : 2500;
       loopTimerRef.current = setInterval(() => {
         if (isPlayingRef.current) {
           playTone();

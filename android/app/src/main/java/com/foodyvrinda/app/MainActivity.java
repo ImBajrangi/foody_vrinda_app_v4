@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(FoodyContinuousAlarmPlugin.class);
         super.onCreate(savedInstanceState);
 
         // 1. Enable full hardware acceleration on the Window
@@ -42,5 +43,20 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception e) {
             // Graceful fallback
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // User has opened or returned to the app: silence persistent notification alarm immediately
+        FoodyContinuousAlarmPlugin.stopActiveAlarm(this);
+    }
+
+    @Override
+    public void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        // User tapped notification or incoming intent: silence persistent notification alarm
+        FoodyContinuousAlarmPlugin.stopActiveAlarm(this);
     }
 }

@@ -1,7 +1,15 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+
+export const FoodyContinuousAlarm = registerPlugin('FoodyContinuousAlarm', {
+  web: {
+    async startAlarm() { return { success: true, web: true }; },
+    async stopAlarm() { return { success: true, web: true }; },
+    async isAlarmActive() { return { ringing: false }; }
+  }
+});
 
 export const NOTIFICATION_TRIALS = [
   {
@@ -83,6 +91,133 @@ class NativeNotificationService {
     this.isNative = Capacitor.isNativePlatform();
     this.initialized = false;
     this.audioCtx = null;
+    this._continuousAlarmPlaying = false;
+    this._continuousAlarmTimer = null;
+    this._activeContinuousAlarm = null;
+  }
+
+  isContinuousAlarmActive() {
+    return Boolean(this._continuousAlarmPlaying);
+  }
+
+  getActiveContinuousAlarm() {
+    return this._activeContinuousAlarm || null;
+  }
+
+  async startContinuousAlarm(role = 'kitchen', order = null) {
+    const orderDetails = this._getOrderDetails(order);
+    const orderId = order?.id || order?.orderId || '';
+    const soundFile = role === 'kitchen' 
+      ? 'kitchen_alert.wav' 
+      : (role === 'owner' ? 'owner_alert.wav' : 'delivery_alert.wav');
+    const channelId = role === 'kitchen'
+      ? 'kitchen_urgent'
+      : (role === 'owner' ? 'owner_urgent' : 'driver_dispatch');
+    const notifId = role === 'kitchen' ? 108108 : (role === 'owner' ? 108109 : 108110);
+
+    const title = role === 'kitchen'
+      ? `🔔 NEW KITCHEN ORDER: ${orderDetails.itemsSummary}`
+      : (role === 'owner'
+        ? `💰 NEW STORE ORDER: ${orderDetails.itemsSummary} · ₹${orderDetails.total}`
+        : `🛵 READY FOR PICKUP: ${orderDetails.itemsSummary}`);
+
+    const body = role === 'kitchen'
+      ? `Customer: ${orderDetails.customerFullName}. Tap to view & start preparing!`
+      : (role === 'owner'
+        ? `Placed by ${orderDetails.customerFullName}. Total ₹${orderDetails.total}. Tap to view.`
+        : `Order for ${orderDetails.customerFullName} is packed & hot. Tap to navigate.`);
+
+    this._continuousAlarmPlaying = true;
+    this._activeContinuousAlarm = {
+      role,
+      order,
+      orderId,
+      title,
+      body,
+      timestamp: Date.now()
+    };
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('foody_active_unacknowledged_alarm', JSON.stringify({
+          role,
+          orderId,
+          order,
+          timestamp: Date.now()
+        }));
+      } catch (_) {}
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('foody:continuous-alarm-started', {
+        detail: { role, order, orderId, title, body }
+      }));
+    }
+
+    // 1. Native Android Persistent Looping Alarm (FLAG_INSISTENT on notification + looping audio stream)
+    if (this.isNative && Capacitor.getPlatform() === 'android') {
+      try {
+        await FoodyContinuousAlarm.startAlarm({
+          title,
+          body,
+          sound: soundFile,
+          channelId,
+          orderId,
+          id: notifId
+        });
+      } catch (err) {
+        console.warn('Native continuous alarm start note:', err);
+      }
+    }
+
+    // 2. Continuous Loop in Foreground / Web
+    this.playChime(role);
+    this.hapticNotification(NotificationType.Warning);
+
+    if (this._continuousAlarmTimer) {
+      clearInterval(this._continuousAlarmTimer);
+    }
+
+    const intervalMs = role === 'kitchen' ? 1800 : 2500;
+    this._continuousAlarmTimer = setInterval(() => {
+      if (this._continuousAlarmPlaying) {
+        this.playChime(role);
+        this.hapticNotification(NotificationType.Warning);
+      } else {
+        clearInterval(this._continuousAlarmTimer);
+        this._continuousAlarmTimer = null;
+      }
+    }, intervalMs);
+  }
+
+  async stopContinuousAlarm(reason = 'user_action') {
+    this._continuousAlarmPlaying = false;
+    this._activeContinuousAlarm = null;
+
+    if (this._continuousAlarmTimer) {
+      clearInterval(this._continuousAlarmTimer);
+      this._continuousAlarmTimer = null;
+    }
+
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('foody_active_unacknowledged_alarm');
+      } catch (_) {}
+    }
+
+    if (this.isNative && Capacitor.getPlatform() === 'android') {
+      try {
+        await FoodyContinuousAlarm.stopAlarm();
+      } catch (err) {
+        console.warn('Native continuous alarm stop note:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('foody:continuous-alarm-stopped', {
+        detail: { reason }
+      }));
+    }
   }
 
   getActiveTrial() {
@@ -546,12 +681,17 @@ class NativeNotificationService {
             } else if (notifType === 'early_dispatch' || notifType === 'pickup_ready' || notifType === 'driver' || channelId === 'driver_dispatch') {
               chimeTarget = 'delivery';
             }
-            this.playChime(chimeTarget);
-            this.hapticNotification(NotificationType.Success);
+            if (['owner', 'kitchen', 'delivery'].includes(chimeTarget)) {
+              this.startContinuousAlarm(chimeTarget, notification?.data || {});
+            } else {
+              this.playChime(chimeTarget);
+              this.hapticNotification(NotificationType.Success);
+            }
           });
 
           await PushNotifications.addListener('pushNotificationActionPerformed', (notificationAction) => {
             console.log('👆 Push notification tapped:', notificationAction);
+            this.stopContinuousAlarm('push_action_performed');
             const data = notificationAction?.notification?.data;
             if (data?.orderId && typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('foody:open-notification-order', {
@@ -588,6 +728,7 @@ class NativeNotificationService {
         // 5. Register tap action listener on local notifications
         try {
           LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
+            this.stopContinuousAlarm('local_action_performed');
             const extra = notificationAction?.notification?.extra;
             if (extra?.orderId && typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('foody:open-notification-order', {
@@ -597,6 +738,24 @@ class NativeNotificationService {
           });
         } catch (e) {
           console.warn('Local notification listener registration:', e);
+        }
+
+        // 6. Listen for app foreground / resume to silence persistent native alarm
+        if (typeof window !== 'undefined') {
+          const handleResume = () => {
+            if (this.isNative && Capacitor.getPlatform() === 'android') {
+              FoodyContinuousAlarm.stopAlarm().catch(() => {});
+            }
+          };
+          window.addEventListener('focus', handleResume);
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              handleResume();
+            }
+          });
+          window.addEventListener('foody:open-notification-order', () => {
+            this.stopContinuousAlarm('order_modal_opened');
+          });
         }
       }
 
@@ -830,7 +989,7 @@ class NativeNotificationService {
    */
   async notifyKitchenNewOrder(order) {
     await this.hapticNotification(NotificationType.Warning);
-    this.playChime('kitchen');
+    await this.startContinuousAlarm('kitchen', order);
     if (!this.isNative) return;
 
     try {
@@ -847,13 +1006,15 @@ class NativeNotificationService {
           {
             title,
             body,
-            id: Math.floor(Date.now() % 100000),
+            id: 108108,
             channelId: 'kitchen_urgent',
             smallIcon: 'ic_stat_notification',
             largeIcon: 'splash_icon',
             iconColor: '#FF751F',
             sound: 'kitchen_alert.wav',
-            extra: { orderId: order.id, type: 'kitchen' },
+            ongoing: true,
+            autoCancel: true,
+            extra: { orderId: order?.id, type: 'kitchen' },
           },
         ],
       });
@@ -867,7 +1028,7 @@ class NativeNotificationService {
    */
   async notifyOwnerNewOrder(order) {
     await this.hapticNotification(NotificationType.Success);
-    this.playChime('owner');
+    await this.startContinuousAlarm('owner', order);
     if (!this.isNative) return;
 
     try {
@@ -884,13 +1045,15 @@ class NativeNotificationService {
           {
             title,
             body,
-            id: Math.floor(Date.now() % 100000),
+            id: 108109,
             channelId: 'owner_urgent',
             smallIcon: 'ic_stat_notification',
             largeIcon: 'splash_icon',
             iconColor: '#FF751F',
             sound: 'owner_alert.wav',
-            extra: { orderId: order.id, type: 'owner' },
+            ongoing: true,
+            autoCancel: true,
+            extra: { orderId: order?.id, type: 'owner' },
           },
         ],
       });
@@ -904,7 +1067,7 @@ class NativeNotificationService {
    */
   async notifyDriverOrderReady(order) {
     await this.hapticNotification(NotificationType.Success);
-    this.playChime('delivery');
+    await this.startContinuousAlarm('delivery', order);
     if (!this.isNative) return;
 
     try {
@@ -921,13 +1084,15 @@ class NativeNotificationService {
           {
             title,
             body,
-            id: Math.floor(Date.now() % 100000),
+            id: 108110,
             channelId: 'driver_dispatch',
             smallIcon: 'ic_stat_notification',
             largeIcon: 'splash_icon',
             iconColor: '#FF751F',
             sound: 'delivery_alert.wav',
-            extra: { orderId: order.id, type: 'driver' },
+            ongoing: true,
+            autoCancel: true,
+            extra: { orderId: order?.id, type: 'driver' },
           },
         ],
       });

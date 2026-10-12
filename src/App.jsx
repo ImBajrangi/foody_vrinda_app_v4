@@ -42,6 +42,7 @@ import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import FoodySplash from './foody/FoodySplash';
+import ActiveAlarmBanner from './components/ui/ActiveAlarmBanner';
 
 export default function App() {
 
@@ -55,7 +56,7 @@ export default function App() {
     isAuthorizedDeveloper 
   } = useAuth();
   const { setSelectedShopId } = useCart();
-  const { audioUnlocked, enableAudio } = useAudioAlarm();
+  const { audioUnlocked, enableAudio, isPlaying, activeAlert, stopAlarm } = useAudioAlarm();
   const { isLight, theme } = useTheme();
 
   // Instant Native Splash Dismissal on Initial React Mount (Zero Startup Latency)
@@ -661,6 +662,20 @@ export default function App() {
           <AppInstallModal
             isOpen={isInstallOpen}
             onClose={() => setIsInstallOpen(false)}
+          />
+        )}
+
+        {['customer', 'developer'].includes(currentTab) && isPlaying && activeAlert && (
+          <ActiveAlarmBanner
+            isPlaying={isPlaying}
+            activeAlert={activeAlert}
+            onSilence={stopAlarm}
+            onActionClick={(alert) => {
+              const targetRole = alert?.role || 'kitchen';
+              if (['kitchen', 'owner', 'delivery'].includes(targetRole)) {
+                setCurrentTab(targetRole);
+              }
+            }}
           />
         )}
       </Suspense>
