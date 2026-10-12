@@ -264,6 +264,15 @@ export async function updateCloudShop(shopId, shopData) {
         updated_at: new Date().toISOString()
       };
 
+      // 1. Try secure Security Definer toggle RPC for open/online status
+      try {
+        await supabase.rpc('toggle_shop_status', {
+          p_shop_id: updatedShop.id,
+          p_is_open: Boolean(updatedShop.isOpen),
+          p_is_online: Boolean(updatedShop.isOnline)
+        });
+      } catch (_) { }
+
       const { error } = await supabase
         .from('foody_shops')
         .upsert(fullShopPayload, { onConflict: 'id' });

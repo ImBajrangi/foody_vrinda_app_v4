@@ -272,12 +272,12 @@ export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders =
  */
 export function isShopCurrentlyOpen(shop) {
   if (!shop) return false;
-  if (shop.isOpen === false || shop.is_open === false) return false;
-  if (shop.isOnline === false || shop.is_online === false) return false;
+  if (shop.is_deleted === true || shop.is_active === false) return false;
 
   const openTime = shop.openingTime || shop.opening_time || shop.operating_hours?.openTime || shop.payment_settings?.openingTime || '08:00';
   const closeTime = shop.closingTime || shop.closing_time || shop.operating_hours?.closeTime || shop.payment_settings?.closingTime || '22:30';
 
+  // 1. Operating schedule check
   if (openTime && closeTime) {
     const now = new Date();
     const currentTotalMins = now.getHours() * 60 + now.getMinutes();
@@ -291,6 +291,14 @@ export function isShopCurrentlyOpen(shop) {
       return false;
     }
   }
+
+  // 2. If autoSchedule is disabled, respect manual isOpen / isOnline overrides
+  const isAutoSchedule = shop.operating_hours?.autoSchedule !== false && shop.schedule?.autoSchedule !== false;
+  if (!isAutoSchedule) {
+    if (shop.isOpen === false || shop.is_open === false) return false;
+    if (shop.isOnline === false || shop.is_online === false) return false;
+  }
+
   return true;
 }
 

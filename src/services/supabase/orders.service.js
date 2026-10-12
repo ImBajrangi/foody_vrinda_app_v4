@@ -200,6 +200,7 @@ export async function createCloudOrder(orderData) {
 
     // Generate secure cryptographic OTPs
     const generatedPickupOtp = generateSecureOrderOTP();
+    const generatedDeliveryOtp = generateSecureOrderOTP();
     // Active food delivery order preparation, cooking, transit, and handover regularly spans 30-90+ mins.
     // OTP is kept valid for the full 24-hour active fulfillment window to prevent premature rejection.
     const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
