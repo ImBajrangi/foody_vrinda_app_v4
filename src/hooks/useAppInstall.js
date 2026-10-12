@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import appUpdateService from '../services/appUpdateService';
 
 let globalDeferredPrompt = null;
 
@@ -65,15 +66,7 @@ export function useAppInstall() {
   }, []);
 
   const downloadApk = useCallback(() => {
-    const apkUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
-    const link = document.createElement('a');
-    link.href = apkUrl;
-    link.download = 'Foody-Vrinda-Latest.apk';
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    appUpdateService.startUpdate();
     return true;
   }, []);
 

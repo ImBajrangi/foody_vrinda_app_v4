@@ -182,10 +182,13 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
+        const isDismissed = typeof window !== 'undefined' && sessionStorage.getItem('foody_update_dismissed_session') === 'true';
         const info = await appUpdateService.checkForUpdates();
         if (info?.hasUpdate) {
           setUpdateInfo(info);
-          setIsUpdateOpen(true);
+          if (!isDismissed || info.isMandatory) {
+            setIsUpdateOpen(true);
+          }
         }
       } catch (err) {
         console.warn('Auto update check notice:', err);

@@ -12,6 +12,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useAppInstall } from '../hooks/useAppInstall';
+import { CURRENT_APP_VERSION } from '../services/appUpdateService';
 
 export default function AppInstallModal({ isOpen, onClose }) {
   const {
@@ -74,7 +75,7 @@ export default function AppInstallModal({ isOpen, onClose }) {
                   Install Foody Vrinda
                 </h3>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
-                  v1.1.6 · Latest
+                  v{CURRENT_APP_VERSION.versionName} · Latest
                 </span>
               </div>
               <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5 truncate font-['Plus_Jakarta_Sans'] font-medium">

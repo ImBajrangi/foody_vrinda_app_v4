@@ -3,8 +3,8 @@ import { Browser } from '@capacitor/browser';
 import { supabase } from '../supabase.js';
 
 export const CURRENT_APP_VERSION = {
-  versionCode: 23,
-  versionName: '1.1.12',
+  versionCode: 24,
+  versionName: '1.1.13',
   buildDate: '2026-10-12'
 };
 
@@ -125,21 +125,24 @@ class AppUpdateService {
    * Launch direct APK download and package installer via official GitHub Release
    */
   async startUpdate(apkUrl) {
-    const targetUrl = apkUrl || this.cachedUpdate?.apkUrl || 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+    const defaultGithubUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+    const candidateUrl = apkUrl || this.cachedUpdate?.apkUrl;
+    const targetUrl = (candidateUrl && candidateUrl.includes('github.com'))
+      ? candidateUrl
+      : defaultGithubUrl;
 
     if (Capacitor.isNativePlatform()) {
       // In native Android, open via system browser so Android DownloadManager processes it in the notification bar
       try {
-        if (typeof window !== 'undefined') {
-          window.open(targetUrl, '_system');
-        } else {
-          await Browser.open({ url: targetUrl, windowName: '_system' });
-        }
-      } catch {
+        await Browser.open({ url: targetUrl, windowName: '_system' });
+      } catch (err) {
+        console.warn('Native Browser.open error:', err);
         try {
           await Browser.open({ url: targetUrl });
-        } catch (err) {
-          console.warn('Native update trigger error:', err);
+        } catch (_) {
+          if (typeof window !== 'undefined') {
+            window.location.href = targetUrl;
+          }
         }
       }
     } else {

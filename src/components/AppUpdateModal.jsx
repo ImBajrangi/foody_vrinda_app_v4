@@ -25,28 +25,41 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
   const handleDownload = async () => {
     setDownloading(true);
     setDownloadStarted(true);
-    setDownloadProgress(25);
+    setDownloadProgress(50);
 
     try {
-      // Step-by-step playful Duolingo progress animation
-      const p1 = setTimeout(() => setDownloadProgress(65), 400);
-      const p2 = setTimeout(() => setDownloadProgress(95), 900);
-      
       await appUpdateService.startUpdate(updateInfo.apkUrl);
-      
-      setTimeout(() => {
-        setDownloadProgress(100);
-        setDownloading(false);
-      }, 1500);
+      setDownloadProgress(100);
 
-      return () => {
-        clearTimeout(p1);
-        clearTimeout(p2);
-      };
+      try {
+        sessionStorage.setItem('foody_update_dismissed_session', 'true');
+      } catch (_) {}
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('foody_toast', {
+          detail: {
+            message: 'APK Download Started 🚀',
+            type: 'success',
+            desc: 'Check phone notifications or Downloads to install.'
+          }
+        }));
+      }
+
+      setTimeout(() => {
+        setDownloading(false);
+        if (onClose) onClose();
+      }, 1200);
     } catch (err) {
       console.warn('Update trigger notice:', err);
       setDownloading(false);
     }
+  };
+
+  const handleMaybeLater = () => {
+    try {
+      sessionStorage.setItem('foody_update_dismissed_session', 'true');
+    } catch (_) {}
+    if (onClose) onClose();
   };
 
   const perks = [
@@ -86,7 +99,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
           {!updateInfo.isMandatory && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleMaybeLater}
               className="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-600 dark:text-zinc-300 flex items-center justify-center transition-all cursor-pointer shrink-0 border border-stone-300/50 dark:border-white/10 active:scale-95"
               aria-label="Dismiss"
             >
@@ -179,9 +192,15 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
               <ShieldCheck size={14} className="text-emerald-500" />
               Official GitHub Release
             </span>
-            <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-mono">
+            <a
+              href="https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-amber-600 dark:text-[#FD9139] hover:underline flex items-center gap-1 font-mono"
+            >
               Foody-Vrinda-Latest.apk
-            </span>
+              <ExternalLink size={10} />
+            </a>
           </div>
 
           {downloadStarted && (
@@ -199,7 +218,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
           {!updateInfo.isMandatory && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleMaybeLater}
               className="py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider text-stone-600 dark:text-zinc-400 bg-stone-200/70 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 border-b-[3px] border-stone-300 dark:border-white/10 active:border-b-0 active:translate-y-[3px] transition-all cursor-pointer text-center shrink-0"
             >
               Maybe Later
