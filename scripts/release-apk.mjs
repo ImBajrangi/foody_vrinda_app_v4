@@ -135,11 +135,11 @@ async function main() {
 
   log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Interactive Foody Vrinda Mascot animation system with 4 emotional states (Idle, Happy, Sad, Delivery).',
-    'High-performance 60fps pure vector splash screen with native Capacitor cold-start sync.',
-    'Integrated mascot reactions into order delivery tracking and empty cart view.',
-    'Redesigned app install button & enhanced touch padding across all mobile views.',
-    'Optimized performance with zero layout shift (CLS) and smooth 120fps physics.'
+    'Authoritative user profile synchronization & permanent purge of legacy mock rider accounts.',
+    'Global payment settings propagation across all cloud kitchens and retail counters.',
+    'Counter pickup enabled with Cash / Pay-at-Counter for retail prasad stalls.',
+    'Realtime spoken Hindi voice announcement for delivery Sarathis on order pickup.',
+    'Optimized zero-latency checkout reliability and full Cloud RPC transaction safety.'
   ];
 
   const releasePayload = {
