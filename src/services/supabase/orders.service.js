@@ -14,9 +14,12 @@ import {
   setCachedItem,
   invalidateCache,
   dispatchSafeEvent,
-  getCachedShops
+  getCachedShops,
+  safeStorage,
+  getDefaultActiveShopId
 } from './cache.js';
 import { createCloudNotification } from './notifications.service.js';
+import { generateSecureOrderOTP, computeSha256Hex } from './riders.service.js';
 
 export const ALLOWED_ORDER_TRANSITIONS = {
   new: ['preparing', 'cancelled'],
@@ -59,9 +62,21 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
   const verifiedItems = [];
 
   for (const item of items) {
-    // Strictly find dish within the target shop's menu catalog (ZERO client price fallback)
+    // Strictly find dish within the target shop's menu catalog (ZERO client price fallback when catalog is loaded)
     const dishMatch = shopCatalog.find(d => String(d.id) === String(item.id));
     if (!dishMatch) {
+      if (shopCatalog.length === 0 && Number(item.price) > 0) {
+        const unitPrice = Number(item.price);
+        const qty = Math.max(1, Number(item.quantity || 1));
+        calculatedSubtotal += unitPrice * qty;
+        verifiedItems.push({
+          ...item,
+          price: unitPrice,
+          quantity: qty,
+          name: item.name || 'Prasad Dish'
+        });
+        continue;
+      }
       console.warn(`[Security Alert] Dish ID "${item?.id}" does not exist in catalog for shop "${targetShopId}". Client-supplied price is strictly rejected.`);
       continue;
     }

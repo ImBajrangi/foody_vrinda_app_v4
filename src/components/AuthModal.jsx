@@ -114,6 +114,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     loginWithPhoneLookup,
     impersonate,
     updateUserRole,
+    updateUserProfile,
     logout
   } = useAuth();
 
@@ -344,17 +345,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   };
 
   const handleSaveAddress = async () => {
-    if (!addressInput.trim()) return;
+    const cleanAddr = addressInput.trim();
+    if (!cleanAddr) return;
     try {
-      const updated = {
-        ...(userData || {}),
-        address: addressInput.trim()
-      };
-      localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      const targetId = user?.id || userData?.id;
-      if (targetId) {
-        updateCloudUser(targetId, { address: addressInput.trim() }).catch(() => { });
+      if (updateUserProfile) {
+        await updateUserProfile({ address: cleanAddr, customerAddress: cleanAddr });
       }
+      try {
+        localStorage.setItem('customerAddress', cleanAddr);
+      } catch (_) { }
       setIsEditingAddress(false);
       setSuccessMsg('Delivery address updated!');
     } catch (e) {
@@ -369,15 +368,13 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       return;
     }
     try {
-      const updated = {
-        ...(userData || {}),
-        phone: clean.slice(-10)
-      };
-      localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      const targetId = user?.id || userData?.id;
-      if (targetId) {
-        updateCloudUser(targetId, { phone: clean.slice(-10) }).catch(() => { });
+      const tenDigit = clean.slice(-10);
+      if (updateUserProfile) {
+        await updateUserProfile({ phone: tenDigit });
       }
+      try {
+        localStorage.setItem('customerPhone', tenDigit);
+      } catch (_) { }
       setIsEditingPhone(false);
       setSuccessMsg('Mobile number updated!');
     } catch (e) {
@@ -386,17 +383,15 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   };
 
   const handleSaveName = async () => {
-    if (!nameInput.trim()) return;
+    const clean = nameInput.trim();
+    if (!clean) return;
     try {
-      const updated = {
-        ...(userData || {}),
-        displayName: nameInput.trim()
-      };
-      localStorage.setItem('foody_user_data', JSON.stringify(updated));
-      const targetId = user?.id || userData?.id;
-      if (targetId) {
-        updateCloudUser(targetId, { displayName: nameInput.trim() }).catch(() => { });
+      if (updateUserProfile) {
+        await updateUserProfile({ displayName: clean });
       }
+      try {
+        localStorage.setItem('customerName', clean);
+      } catch (_) { }
       setIsEditingName(false);
       setSuccessMsg('Name updated!');
     } catch (e) {

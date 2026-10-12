@@ -47,7 +47,7 @@ export default function ReviewModal({
   const displayOrderNum = targetOrderId ? String(targetOrderId).slice(-6).toUpperCase() : '';
   const resolvedShopName = shopName || order?.shopName || 'Sacred Kitchen';
   const resolvedChefName = order?.chefName || 'Head Chef Radhe';
-  const resolvedRiderName = order?.riderName || order?.rider_name || 'Sarathi Gopal';
+  const resolvedRiderName = order?.riderName || order?.rider_name || 'Delivery Partner';
 
   const toggleChefTag = (tag) => {
     setSelectedChefTags(prev => 
@@ -77,7 +77,7 @@ export default function ReviewModal({
         chefName: resolvedChefName,
         chefRating,
         chefTags: selectedChefTags,
-        riderId: order?.riderId || order?.rider_id || 'rider_sarathi_gopal',
+        riderId: order?.riderId || order?.rider_id || null,
         riderName: resolvedRiderName,
         riderRating,
         riderTags: selectedRiderTags,

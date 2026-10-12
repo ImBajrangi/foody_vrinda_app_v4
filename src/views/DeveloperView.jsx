@@ -579,7 +579,23 @@ export default function DeveloperView({ setCurrentTab }) {
       setPaymentsConfig(updated);
       localStorage.setItem('foody_payment_config', JSON.stringify(updated));
       window.dispatchEvent(new Event('foody_payment_config_changed'));
-      setToast({ message: `Global Master: ${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`, type: 'success' });
+
+      // Cloud Sync: Propagate master payment toggle across all shops in Supabase
+      if (Array.isArray(allShops) && allShops.length > 0) {
+        await Promise.allSettled(allShops.map(s => {
+          const prevSettings = s.paymentSettings || s.payment_settings || {};
+          const nextSettings = {
+            ...prevSettings,
+            [key]: value
+          };
+          return updateCloudShop(s.id, {
+            paymentSettings: nextSettings
+          });
+        }));
+        if (refreshShops) await refreshShops();
+      }
+
+      setToast({ message: `Global Master: ${key === 'onlinePaymentsEnabled' ? 'Online Gateway' : 'COD'} ${value ? 'Enabled' : 'Disabled'} (Synced to all shops)`, type: 'success' });
     } catch (e) {
       console.error(e);
     }
@@ -1053,10 +1069,10 @@ export default function DeveloperView({ setCurrentTab }) {
       shopIds: [allShops[0]?.id || 'shop-vrinda-main']
     };
     const defaultRider = {
-      id: 'rider_sarathi_gopal',
-      displayName: 'Sarathi Gopal',
-      email: 'sarathi@foodyvrinda.com',
-      phone: '9876543213',
+      id: 'rider_express_fleet',
+      displayName: 'Express Fleet Partner',
+      email: 'fleet@foodyvrinda.com',
+      phone: '9876543299',
       role: 'delivery',
       shopId: allShops[0]?.id || 'shop-vrinda-main',
       shopIds: allShops.map(s => s.id)

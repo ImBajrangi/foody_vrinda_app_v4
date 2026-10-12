@@ -149,7 +149,7 @@ export default function TransportView() {
   useEffect(() => {
     if (!isRiderOnDuty || typeof window === 'undefined' || !navigator.geolocation) return;
 
-    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     let lastBroadcastTime = Date.now();
     let lastCoords = null;
 
@@ -187,7 +187,7 @@ export default function TransportView() {
       localStorage.setItem('foody_rider_on_duty', String(nextState));
     } catch (e) { }
 
-    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     try {
       await updateUserOnlineStatus(riderId, nextState, riderCoords);
     } catch (e) { }
@@ -214,9 +214,18 @@ export default function TransportView() {
     }, 4000);
   };
 
-  // Fast notification listener with role-tailored delivery chime
+  // Fast notification listener with role-tailored delivery chime & spoken voice
   useFastNotify('all', 'delivery', (alertData) => {
     playRoleAlarm('delivery', alertData, true);
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const text = 'नया ऑर्डर पिकअप के लिए तैयार है';
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'hi-IN';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch (e) { }
     showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} ready for Sarathi Pickup!`, "info");
   });
 
@@ -929,7 +938,7 @@ export default function TransportView() {
 
   // Download / Print verified shift order report as PDF
   const handleDownloadShiftSlip = useCallback(() => {
-    const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     const riderTrustScore = getUserTrustScore(riderId);
     const riderLedger = getRiderCashLedger(riderId);
     const riderDetails = {
@@ -1610,7 +1619,7 @@ export default function TransportView() {
 
       {/* RIDER FINANCIAL & TRUST METRICS — Positioned below orders so rider sees active delivery tasks and navigation first */}
       {(() => {
-        const riderId = activeUser?.id || activeUser?.email || 'rider_sarathi_gopal';
+        const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
         const ledger = getRiderCashLedger(riderId);
         const cashCheck = isRiderCashLimitExceeded(riderId);
         const trustScore = getUserTrustScore(riderId);

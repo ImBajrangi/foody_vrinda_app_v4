@@ -27,7 +27,7 @@ import { multiplexer } from './realtime.service.js';
 // Zero hardcoded seed users: pure database-driven role resolution
 export const SEED_USERS = [];
 
-const DEFAULT_DELETED_USER_IDS = ['chef_shop-vrinda-main', 'test-grand-admin'];
+const DEFAULT_DELETED_USER_IDS = ['chef_shop-vrinda-main', 'test-grand-admin', 'rider_sarathi_gopal'];
 
 export function getDeletedUserIds() {
   try {
@@ -58,11 +58,12 @@ export function isUserDeleted(id) {
 export function isDeletedUserRecord(u) {
   if (!u) return true;
   const cleanId = String(u.id || '').trim();
+  if (cleanId === 'rider_sarathi_gopal') return true;
   if (isUserDeleted(cleanId)) return true;
-  const name = String(u.displayName || u.display_name || '');
-  if (name.includes('[DELETED]')) return true;
-  const email = String(u.email || '');
-  if (email.startsWith('deleted_')) return true;
+  const name = String(u.displayName || u.display_name || '').trim().toLowerCase();
+  if (name === 'sarathi gopal' || name.includes('[deleted]')) return true;
+  const email = String(u.email || '').toLowerCase().trim();
+  if (email.startsWith('deleted_') || email === 'sarathi@foodyvrinda.com') return true;
   return false;
 }
 
@@ -545,11 +546,14 @@ export async function recordLoggedInUser(userProfile) {
   const loginMethod = userProfile.loginMethod || (cleanEmail ? 'email' : (cleanPhone ? 'phone' : 'google'));
 
   const current = getCachedUsers();
-  const existingUser = current.find(u =>
-    (cleanId && String(u.id).trim() === cleanId) ||
-    (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
-    (cleanPhone && cleanPhone.length >= 10 && u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10)))
-  );
+  const existingUser = current.find(u => {
+    if (cleanId && String(u.id).trim() === cleanId) return true;
+    if (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) return true;
+    if (!cleanId && !cleanEmail && cleanPhone && cleanPhone.length >= 10) {
+      return u.phone && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-10));
+    }
+    return false;
+  });
 
   const finalRole = (existingUser?.role && existingUser.role !== 'customer' ? existingUser.role : null)
     || (userProfile.role && userProfile.role !== 'customer' ? userProfile.role : null)
