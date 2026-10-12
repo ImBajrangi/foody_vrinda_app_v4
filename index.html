@@ -271,6 +271,31 @@
 
     </div>
   </div>
+  <script>
+    // Global deployment chunk recovery: auto-reload when stale bundle chunks return text/html
+    window.addEventListener('error', function (e) {
+      var msg = String(e && (e.message || e.error && e.error.message) || '');
+      if (/loading chunk|failed to fetch dynamically imported module|importing a module script failed|mime type|not a valid javascript|text\/html/i.test(msg)) {
+        var key = 'foody_last_chunk_reload';
+        var last = Number(sessionStorage.getItem(key) || 0);
+        if (Date.now() - last > 8000) {
+          sessionStorage.setItem(key, String(Date.now()));
+          window.location.reload();
+        }
+      }
+    }, true);
+    window.addEventListener('unhandledrejection', function (e) {
+      var msg = String(e && (e.reason && (e.reason.message || e.reason) || '') || '');
+      if (/loading chunk|failed to fetch dynamically imported module|importing a module script failed|mime type|not a valid javascript|text\/html/i.test(msg)) {
+        var key = 'foody_last_chunk_reload';
+        var last = Number(sessionStorage.getItem(key) || 0);
+        if (Date.now() - last > 8000) {
+          sessionStorage.setItem(key, String(Date.now()));
+          window.location.reload();
+        }
+      }
+    });
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

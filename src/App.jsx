@@ -26,6 +26,7 @@ import {
 } from './services/tutorialService';
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import PullToRefresh from './components/PullToRefresh';
 
 // Code-split all role views to reduce initial boot payload with auto-retry on stale deployments
 const CustomerView = lazyWithRetry(() => import('./views/CustomerView'));
@@ -502,7 +503,8 @@ export default function App() {
         />
       )}
 
-      <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
+      <PullToRefresh>
+        <div className="mx-auto px-3 sm:px-6 md:px-8 py-3 sm:py-6 safe-area-top safe-area-bottom relative overflow-x-hidden w-full max-w-7xl min-h-screen flex flex-col">
         <Header 
         audioUnlocked={audioUnlocked}
         enableAudio={enableAudio}
@@ -653,7 +655,8 @@ export default function App() {
           />
         )}
       </Suspense>
-    </div>
+        </div>
+      </PullToRefresh>
     </>
   );
 }
