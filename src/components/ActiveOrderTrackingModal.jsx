@@ -605,8 +605,13 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   };
 
+  const isPickup = currentOrder?.fulfillment_type === 'pickup' || currentOrder?.fulfillmentType === 'pickup';
+
   const getDynamicArrivalWindow = () => {
-    if (status === 'completed') return 'Delivered';
+    if (status === 'completed' || status === 'delivered') return 'Delivered';
+    if (isPickup) {
+      return (status === 'ready_for_pickup' || status === 'out_for_delivery') ? 'Ready at Counter' : 'Prep: 10–15 Min';
+    }
     const travel = realDurationMins || 8;
     const minTime = Math.max(1, travel - 2);
     const maxTime = travel + 4;
@@ -614,15 +619,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   };
 
   const isOutForDelivery = status === 'out_for_delivery';
-  const isDelivered = status === 'completed';
+  const isDelivered = status === 'completed' || status === 'delivered';
 
-  const riderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.courier_name || currentOrder?.courierName || (isOutForDelivery || isDelivered ? 'Govind Das (Sarathi)' : shop?.managerName || 'Kitchen Dispatch');
+  const riderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.courier_name || currentOrder?.courierName || (isOutForDelivery || isDelivered ? (isPickup ? 'Store Counter' : 'Govind Das (Sarathi)') : shop?.managerName || 'Kitchen Dispatch');
   const riderPhone = (currentOrder?.rider_phone || currentOrder?.riderPhone || shop?.phone || shop?.contactPhone || '9876543210').replace(/\D/g, '').slice(-10);
   const riderRating = parseFloat(currentOrder?.rider_rating || shop?.rating || 4.9).toFixed(1);
   const riderPhoto = currentOrder?.rider_avatar || currentOrder?.rider_photo || shop?.managerPhoto || shop?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
 
   const customerAddress = currentOrder?.customerAddress || currentOrder?.delivery_address || currentOrder?.deliveryAddress || 'Vrindavan Dham';
   const getAddressLabel = () => {
+    if (isPickup) return 'Counter Pickup';
     const addr = customerAddress.toLowerCase();
     if (addr.includes('home') || addr.includes('house') || addr.includes('villa') || addr.includes('niwas')) return 'Home';
     if (addr.includes('office') || addr.includes('work') || addr.includes('shop')) return 'Work';
@@ -638,10 +644,15 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       case 'preparing':
         return { active: 'Cooking in Pure Desi Ghee', past: 'Order Confirmed by Kitchen', icon: Utensils };
       case 'ready_for_pickup':
-        return { active: 'Packed & Awaiting Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
+        return isPickup
+          ? { active: `Ready for Counter Pickup at ${shortShopName}`, past: 'Cooked in Pure Desi Ghee', icon: PackageCheck }
+          : { active: 'Packed & Awaiting Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
       case 'out_for_delivery':
-        return { active: `On its way with ${riderName}`, past: 'Dispatched from Sacred Kitchen', icon: Bike };
+        return isPickup
+          ? { active: `Ready for Counter Pickup at ${shortShopName}`, past: 'Prasad Packed & Ready', icon: PackageCheck }
+          : { active: `On its way with ${riderName}`, past: 'Dispatched from Sacred Kitchen', icon: Bike };
       case 'completed':
+      case 'delivered':
         return { active: 'Delivered Safely & Warm', past: 'Handed with Blessings', icon: CheckCircle2 };
       default:
         return { active: 'Processing Prasad Order', past: 'Order Placed', icon: Sparkles };
@@ -896,10 +907,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
-                        Delivery Verification Code
+                        {isPickup ? 'Counter Pickup Code' : 'Delivery Verification Code'}
                       </p>
                       <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
-                        Share with Sarathi upon prasad handover
+                        {isPickup ? 'Share with kitchen counter to collect prasad' : 'Share with Sarathi upon prasad handover'}
                       </p>
                     </div>
                   </div>

@@ -388,6 +388,7 @@ export function NotificationProvider({ children }) {
       }
 
       const activeRole = userRoleRef.current;
+      const isOwnerRole = activeRole === 'owner' || activeRole === 'admin' || activeRole === 'grand_admin';
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
       const riderName = orderData.rider_name || orderData.riderName || 'Sarathi Rider';
@@ -402,7 +403,7 @@ export function NotificationProvider({ children }) {
           msg = `${itemSummary} queued for cooking`;
           statusTag = 'New';
           nativeNotify.notifyKitchenNewOrder(orderData);
-        } else if (activeRole === 'owner') {
+        } else if (isOwnerRole) {
           title = `New Order: ${customerName}`;
           msg = `${itemSummary} (₹${orderData.total_amount || orderData.totalAmount || 0})`;
           statusTag = 'New';
@@ -419,7 +420,7 @@ export function NotificationProvider({ children }) {
         title = `Cooking: ${itemSummary}`;
         msg = activeRole === 'kitchen' ? `In preparation for ${customerName}` : `Fresh preparation in progress`;
         statusTag = 'Cooking';
-        if (activeRole !== 'kitchen' && activeRole !== 'owner') {
+        if (activeRole !== 'kitchen' && !isOwnerRole) {
           nativeNotify.notifyCustomerOrderUpdate(orderData, 'Cooking');
         }
       } else if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
@@ -432,7 +433,7 @@ export function NotificationProvider({ children }) {
           title = `Packed & Ready: ${itemSummary}`;
           msg = `Packed & awaiting courier dispatch`;
           statusTag = 'Ready';
-          if (activeRole !== 'owner' && activeRole !== 'kitchen') {
+          if (!isOwnerRole && activeRole !== 'kitchen') {
             nativeNotify.notifyCustomerOrderUpdate(orderData, 'Ready');
           }
         }
@@ -445,12 +446,12 @@ export function NotificationProvider({ children }) {
           title = `On The Way: ${itemSummary}`;
           msg = `${riderName} is heading to your address`;
           statusTag = 'On Way';
-          if (activeRole !== 'owner' && activeRole !== 'kitchen') {
+          if (!isOwnerRole && activeRole !== 'kitchen') {
             nativeNotify.notifyCustomerOrderUpdate(orderData, 'On The Way');
           }
         }
       } else if (orderData.status === 'completed') {
-        if (activeRole === 'kitchen' || activeRole === 'owner') {
+        if (activeRole === 'kitchen' || isOwnerRole) {
           title = `Delivered: ${customerName}`;
           msg = `${itemSummary} completed successfully`;
           statusTag = 'Delivered';

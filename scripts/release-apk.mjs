@@ -135,11 +135,11 @@ async function main() {
 
   log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Authoritative user profile synchronization & permanent purge of legacy mock rider accounts.',
-    'Global payment settings propagation across all cloud kitchens and retail counters.',
-    'Counter pickup enabled with Cash / Pay-at-Counter for retail prasad stalls.',
-    'Realtime spoken Hindi voice announcement for delivery Sarathis on order pickup.',
-    'Optimized zero-latency checkout reliability and full Cloud RPC transaction safety.'
+    'Hardened native push notification routing for Store Owners & Kitchen desks.',
+    'Urgent high-priority owner order alerts (owner_alert) & kitchen sirens on incoming orders.',
+    'Fixed notification click deep-routing directly to Owner, Kitchen, or Transport dashboards.',
+    'Swipe-down-to-refresh pull gesture across all views for seamless mobile data sync.',
+    'Persistent OTP verification and atomic counter pickup order fulfillment.'
   ];
 
   const releasePayload = {

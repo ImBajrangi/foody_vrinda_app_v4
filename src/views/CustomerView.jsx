@@ -936,6 +936,10 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       if (!updatedOrder || !isMounted) return;
       setTrackingOrder(prev => ({ ...(prev || {}), ...updatedOrder }));
       if (updatedOrder.status === 'delivered' || updatedOrder.status === 'completed') {
+        setIsTrackingModalOpen(false);
+        setTrackingOrder(null);
+        if (setTrackingOrderId) setTrackingOrderId(null);
+        try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
         setTimeout(() => {
           setReviewOrderTarget(updatedOrder);
           setIsReviewModalOpen(true);

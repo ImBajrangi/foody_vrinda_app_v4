@@ -454,17 +454,26 @@ export default function App() {
     }
   }, [currentTab]);
 
-  const handleNotificationOrderClick = (orderId) => {
+  const handleNotificationOrderClick = (orderId, type) => {
     setTrackingOrderId(orderId);
-    setCurrentTab('customer');
+    if (type === 'owner_order' || type === 'owner' || type === 'payment_settled') {
+      setCurrentTab('owner');
+    } else if (type === 'kitchen') {
+      setCurrentTab('kitchen');
+    } else if (type === 'driver' || type === 'early_dispatch' || type === 'pickup_ready') {
+      setCurrentTab('transport');
+    } else {
+      setCurrentTab('customer');
+    }
     setIsNotificationsOpen(false);
   };
 
   useEffect(() => {
     const handleSystemOrderOpen = (event) => {
       const orderId = event?.detail?.orderId;
+      const type = event?.detail?.type;
       if (orderId) {
-        handleNotificationOrderClick(orderId);
+        handleNotificationOrderClick(orderId, type);
       }
     };
 

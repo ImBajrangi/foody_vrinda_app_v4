@@ -473,6 +473,31 @@ export default function KitchenView() {
     }
   };
 
+  const handleCounterPickupHandover = async (orderId, orderData) => {
+    stopAlarm();
+    try {
+      const rawMethod = String(orderData?.payment_method || orderData?.paymentMethod || '').toLowerCase().trim();
+      const isCash = rawMethod === 'cash' || rawMethod === 'cod';
+
+      await updateCloudOrderStatus(orderId, 'completed', {
+        cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
+        delivered_at: new Date().toISOString()
+      });
+
+      if (isCash) {
+        try {
+          await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
+        } catch (_) {}
+      }
+
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      showToast('Counter Handover Completed! Prasad given to customer.', 'success');
+    } catch (e) {
+      console.error('Counter handover error:', e);
+      showToast('Failed to complete counter handover', 'error');
+    }
+  };
+
   const toggleItemReady = async (orderId, itemId) => {
     try {
       const order = orders.find(o => o.id === orderId);
@@ -875,15 +900,35 @@ export default function KitchenView() {
                 {/* Status Update Action Button */}
                 <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">
                   {['ready_for_pickup', 'ready'].includes(order.status) ? (
-                    <div className="w-full bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 rounded-2xl p-3 text-center space-y-1">
-                      <div className="flex items-center justify-center gap-1.5 text-amber-700 dark:text-[#FD9139] font-black text-xs uppercase tracking-wider">
-                        <PackageCheck size={15} />
-                        <span>Awaiting Sarathi Pickup</span>
+                    (order.fulfillment_type === 'pickup' || order.fulfillmentType === 'pickup') ? (
+                      <div className="w-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-3 text-center space-y-2">
+                        <div className="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-black text-xs uppercase tracking-wider">
+                          <PackageCheck size={15} />
+                          <span>Customer Counter Pickup</span>
+                        </div>
+                        <p className="text-[11px] text-stone-600 dark:text-zinc-400">
+                          Verify Devotee Pickup OTP: <strong className="font-mono text-xs text-emerald-700 dark:text-emerald-400 font-black px-1.5 py-0.5 rounded bg-emerald-500/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleCounterPickupHandover(order.id, order)}
+                          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
+                        >
+                          <CheckCircle2 size={15} strokeWidth={2.5} />
+                          <span>Handover Prasad & Complete Order</span>
+                        </button>
                       </div>
-                      <p className="text-[11px] text-stone-600 dark:text-zinc-400">
-                        Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#FD9139] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#FD9139]/20">{getOrderOTP(order.id, 'pickup')}</strong>
-                      </p>
-                    </div>
+                    ) : (
+                      <div className="w-full bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 rounded-2xl p-3 text-center space-y-1">
+                        <div className="flex items-center justify-center gap-1.5 text-amber-700 dark:text-[#FD9139] font-black text-xs uppercase tracking-wider">
+                          <PackageCheck size={15} />
+                          <span>Awaiting Sarathi Pickup</span>
+                        </div>
+                        <p className="text-[11px] text-stone-600 dark:text-zinc-400">
+                          Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#FD9139] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#FD9139]/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                        </p>
+                      </div>
+                    )
                   ) : isNew ? (
                     <button
                       data-tour="restaurant-manage-orders"

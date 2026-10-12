@@ -840,12 +840,27 @@ export default function TransportView() {
 
       if (enteredOtp) {
         // Invoke atomic database RPC with row locking & cryptographic hash check
-        await verifyDeliveryOtpAtomic(orderId, riderId, enteredOtp);
+        const otpResult = await verifyDeliveryOtpAtomic(orderId, riderId, enteredOtp);
+        if (!otpResult?.success) {
+          console.warn('[TransportView] OTP verification rejected by database:', otpResult?.error);
+          showToast(otpResult?.error || 'Invalid or expired OTP', 'error');
+          throw new Error(otpResult?.error || 'Invalid or expired delivery OTP');
+        }
+
+        // If cash on delivery, ensure COD collection is recorded atomically
+        if (isCash) {
+          try {
+            await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
+          } catch (_) {}
+        }
+      } else {
+        // Fallback status transition for direct admin/dispatcher completions without OTP
+        await updateCloudOrderStatus(orderId, 'completed', {
+          cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
+          delivered_at: new Date().toISOString()
+        });
       }
-      await updateCloudOrderStatus(orderId, 'completed', {
-        cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
-        delivered_at: new Date().toISOString()
-      });
+
       setOrders(prev => prev.filter(o => o.id !== orderId));
 
       if (selectedOrder?.id === orderId) {

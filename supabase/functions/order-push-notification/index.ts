@@ -107,7 +107,7 @@ async function sendFCMMessage(
         notification: {
           channel_id: channelId || "order_updates",
           sound: soundName || "soft_pulse",
-          default_sound: true,
+          default_sound: false,
           default_vibrate_timings: true,
           priority: "PRIORITY_MAX",
           visibility: "PUBLIC",
@@ -392,10 +392,9 @@ serve(async (req: Request) => {
       results.push({ recipient: "customer", res });
     }
 
-    // 2. Alert Kitchen & Self-Chef Owner on New Orders (INSERT or status: 'new')
-    if (type === "INSERT" || status === "new") {
-      const allowedRoles = ["kitchen"];
-      if (isSelfChef) allowedRoles.push("owner");
+    // 2. Alert Kitchen & Store Owners on New Orders (INSERT or status: 'new' / 'placed' / 'pending')
+    if (type === "INSERT" || status === "new" || status === "placed" || status === "pending") {
+      const allowedRoles = ["kitchen", "owner", "admin", "grand_admin"];
 
       const [usersRes, loggedRes] = await Promise.all([
         supabase
@@ -417,21 +416,27 @@ serve(async (req: Request) => {
         if (!staff.fcm_token || seenTokens.has(staff.fcm_token)) continue;
         seenTokens.add(staff.fcm_token);
 
+        const isOwner = staff.role === "owner" || staff.role === "admin" || staff.role === "grand_admin";
+
         const title = isDevotional
-          ? `🔔 NEW BHOG: ${itemsSummary} · ₹${order.total_amount || 0}`
-          : `🔔 New Order: ${itemsSummary} · ₹${order.total_amount || 0}`;
+          ? (isOwner ? `💰 NEW ORDER: ${itemsSummary} · ₹${order.total_amount || 0}` : `🔔 NEW BHOG: ${itemsSummary} · ₹${order.total_amount || 0}`)
+          : (isOwner ? `💰 New Order: ${itemsSummary} · ₹${order.total_amount || 0}` : `🔔 New Order: ${itemsSummary} · ₹${order.total_amount || 0}`);
         const bodyMsg = isDevotional
-          ? `Ordered by ${customerFullName}. Tap to accept & start cooking!`
-          : `Customer: ${customerFullName} · Tap to accept & start preparation.`;
+          ? (isOwner ? `Placed by ${customerFullName}. Tap to monitor order stream.` : `Ordered by ${customerFullName}. Tap to accept & start cooking!`)
+          : (isOwner ? `Order from ${customerFullName} · Total ₹${order.total_amount || 0}. Tap to view.` : `Customer: ${customerFullName} · Tap to accept & start preparation.`);
+
+        const channelId = isOwner ? "owner_urgent" : "kitchen_urgent";
+        const soundName = isOwner ? "owner_alert" : "kitchen_alert";
+        const msgType = isOwner ? "owner_order" : "kitchen";
 
         const res = await sendFCMMessage(
           projectId,
           googleAccessToken,
           staff.fcm_token,
           { title, body: bodyMsg },
-          "kitchen_urgent",
-          "kitchen_alert",
-          { orderId: String(order.id), type: "kitchen" }
+          channelId,
+          soundName,
+          { orderId: String(order.id), type: msgType }
         );
         results.push({ recipient: staff.role, res });
       }
@@ -523,34 +528,45 @@ serve(async (req: Request) => {
 
     // 5. Immediate Payment Received Alert to Store Owner (status: 'delivered' / 'completed')
     if (status === "delivered" || status === "completed") {
-      const { data: ownerProfiles } = await supabase
-        .from("foody_logged_users")
-        .select("fcm_token, role")
-        .eq("role", "owner")
-        .not("fcm_token", "is", null);
+      const ownerRoles = ["owner", "admin", "grand_admin"];
+      const [uOwners, lOwners] = await Promise.all([
+        supabase
+          .from("foody_users")
+          .select("fcm_token, role")
+          .in("role", ownerRoles)
+          .not("fcm_token", "is", null),
+        supabase
+          .from("foody_logged_users")
+          .select("fcm_token, role")
+          .in("role", ownerRoles)
+          .not("fcm_token", "is", null)
+      ]);
 
-      if (ownerProfiles && ownerProfiles.length > 0) {
-        for (const owner of ownerProfiles) {
-          if (!owner.fcm_token) continue;
-          const payMode = (order.payment_method || "cash").toUpperCase();
-          const title = isDevotional
-            ? `💰 ₹${order.total_amount || 0} Received · ${itemsSummary}`
-            : `💰 Payment Received: ₹${order.total_amount || 0} · ${itemsSummary}`;
-          const bodyMsg = isDevotional
-            ? `Delivered to ${customerFullName} via Sarathi. Method: ${payMode}.`
-            : `Order delivered to ${customerFullName}. Method: ${payMode}.`;
+      const ownerProfiles = [...(uOwners.data || []), ...(lOwners.data || [])];
+      const seenOwnerTokens = new Set<string>();
 
-          const res = await sendFCMMessage(
-            projectId,
-            googleAccessToken,
-            owner.fcm_token,
-            { title, body: bodyMsg },
-            "owner_urgent",
-            "owner_alert",
-            { orderId: String(order.id), type: "payment_settled" }
-          );
-          results.push({ recipient: "owner_payment", res });
-        }
+      for (const owner of ownerProfiles) {
+        if (!owner.fcm_token || seenOwnerTokens.has(owner.fcm_token)) continue;
+        seenOwnerTokens.add(owner.fcm_token);
+
+        const payMode = (order.payment_method || "cash").toUpperCase();
+        const title = isDevotional
+          ? `💰 ₹${order.total_amount || 0} Received · ${itemsSummary}`
+          : `💰 Payment Received: ₹${order.total_amount || 0} · ${itemsSummary}`;
+        const bodyMsg = isDevotional
+          ? `Delivered to ${customerFullName} via Sarathi. Method: ${payMode}.`
+          : `Order delivered to ${customerFullName}. Method: ${payMode}.`;
+
+        const res = await sendFCMMessage(
+          projectId,
+          googleAccessToken,
+          owner.fcm_token,
+          { title, body: bodyMsg },
+          "owner_urgent",
+          "owner_alert",
+          { orderId: String(order.id), type: "payment_settled" }
+        );
+        results.push({ recipient: "owner_payment", res });
       }
     }
 

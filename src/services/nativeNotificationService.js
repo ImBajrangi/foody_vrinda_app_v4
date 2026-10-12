@@ -447,68 +447,77 @@ class NativeNotificationService {
       if (this.isNative) {
         // 1. Create Android Notification Channels with custom sounds
         if (Capacitor.getPlatform() === 'android') {
-          // Kitchen Staff Channel (Max urgency alert)
-          await LocalNotifications.createChannel({
-            id: 'kitchen_urgent',
-            name: 'Kitchen Order Alerts',
-            description: 'High-priority alerts with custom sound for incoming kitchen orders',
-            importance: 5, // High / Max importance (Heads-up banner)
-            visibility: 1,
-            vibration: true,
-            lights: true,
-            lightColor: '#FD9139',
-            sound: 'kitchen_alert.wav',
-          });
-
-          // Store Owner Channel (High priority chime)
-          await LocalNotifications.createChannel({
-            id: 'owner_urgent',
-            name: 'Store Owner Order Alerts',
-            description: 'Instant notification and sound for new customer orders',
-            importance: 5,
-            visibility: 1,
-            vibration: true,
-            lights: true,
-            lightColor: '#A855F7',
-            sound: 'owner_alert.wav',
-          });
-
-          // Driver Dispatch Channel
-          await LocalNotifications.createChannel({
-            id: 'driver_dispatch',
-            name: 'Sarathi Dispatch & Pickup Alerts',
-            description: 'Urgent alerts for drivers when order is packed and ready for pickup',
-            importance: 5,
-            visibility: 1,
-            vibration: true,
-            lights: true,
-            lightColor: '#3B82F6',
-            sound: 'delivery_alert.wav',
-          });
-
-          // Customer Order Updates Channel (plays selected natural/acoustic sound)
           const activeCustomerSound = this.getActiveTrialSoundFile();
-          await LocalNotifications.createChannel({
-            id: 'order_updates',
-            name: 'Customer Order Status',
-            description: 'Live milestone updates on prasad preparation and delivery',
-            importance: 5,
-            visibility: 1,
-            vibration: true,
-            lights: true,
-            lightColor: '#FD9139',
-            sound: activeCustomerSound,
-          });
 
-          // System Management Alerts
-          await LocalNotifications.createChannel({
-            id: 'system_alerts',
-            name: 'Store & Platform Alerts',
-            description: 'Important platform and store management notifications',
-            importance: 4,
-            visibility: 1,
-            sound: activeCustomerSound,
-          });
+          const channelsConfig = [
+            {
+              id: 'owner_urgent',
+              name: 'Store Owner Order Alerts',
+              description: 'Instant notification and sound for new customer orders',
+              importance: 5,
+              visibility: 1,
+              vibration: true,
+              lights: true,
+              lightColor: '#A855F7',
+              sound: 'owner_alert.wav',
+            },
+            {
+              id: 'kitchen_urgent',
+              name: 'Kitchen Order Alerts',
+              description: 'High-priority alerts with custom sound for incoming kitchen orders',
+              importance: 5,
+              visibility: 1,
+              vibration: true,
+              lights: true,
+              lightColor: '#FD9139',
+              sound: 'kitchen_alert.wav',
+            },
+            {
+              id: 'driver_dispatch',
+              name: 'Sarathi Dispatch & Pickup Alerts',
+              description: 'Urgent alerts for drivers when order is packed and ready for pickup',
+              importance: 5,
+              visibility: 1,
+              vibration: true,
+              lights: true,
+              lightColor: '#3B82F6',
+              sound: 'delivery_alert.wav',
+            },
+            {
+              id: 'order_updates',
+              name: 'Customer Order Status',
+              description: 'Live milestone updates on prasad preparation and delivery',
+              importance: 5,
+              visibility: 1,
+              vibration: true,
+              lights: true,
+              lightColor: '#FD9139',
+              sound: activeCustomerSound,
+            },
+            {
+              id: 'system_alerts',
+              name: 'Store & Platform Alerts',
+              description: 'Important platform and store management notifications',
+              importance: 4,
+              visibility: 1,
+              sound: activeCustomerSound,
+            }
+          ];
+
+          for (const ch of channelsConfig) {
+            try {
+              await LocalNotifications.createChannel(ch);
+            } catch (e) {
+              console.warn(`LocalNotifications channel ${ch.id} setup notice:`, e);
+            }
+            try {
+              if (typeof PushNotifications.createChannel === 'function') {
+                await PushNotifications.createChannel(ch);
+              }
+            } catch (e) {
+              console.warn(`PushNotifications channel ${ch.id} setup notice:`, e);
+            }
+          }
         }
 
         // 2. Attach Push Event Listeners FIRST (before register to never miss token)
@@ -527,7 +536,17 @@ class NativeNotificationService {
 
           await PushNotifications.addListener('pushNotificationReceived', (notification) => {
             console.log('📥 Push notification received in foreground:', notification);
-            this.playChime('customer');
+            const notifType = notification?.data?.type;
+            const channelId = notification?.data?.channelId;
+            let chimeTarget = 'customer';
+            if (notifType === 'owner_order' || notifType === 'owner' || notifType === 'payment_settled' || channelId === 'owner_urgent') {
+              chimeTarget = 'owner';
+            } else if (notifType === 'kitchen' || channelId === 'kitchen_urgent') {
+              chimeTarget = 'kitchen';
+            } else if (notifType === 'early_dispatch' || notifType === 'pickup_ready' || notifType === 'driver' || channelId === 'driver_dispatch') {
+              chimeTarget = 'delivery';
+            }
+            this.playChime(chimeTarget);
             this.hapticNotification(NotificationType.Success);
           });
 

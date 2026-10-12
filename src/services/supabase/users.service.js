@@ -620,16 +620,21 @@ export async function recordLoggedInUser(userProfile) {
   // 2. Persist profile update to Supabase foody_logged_users & foody_users
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
+      const updateData = {
+        display_name: cleanName,
+        phone: cleanPhone,
+        avatar_url: loggedUsersPayload.avatar_url,
+        address: loggedUsersPayload.address,
+        last_login_at: nowIso,
+        updated_at: nowIso
+      };
+      if (fcmToken) {
+        updateData.fcm_token = fcmToken;
+      }
+
       const { data: updated, error: err1 } = await supabase
         .from('foody_logged_users')
-        .update({
-          display_name: cleanName,
-          phone: cleanPhone,
-          avatar_url: loggedUsersPayload.avatar_url,
-          address: loggedUsersPayload.address,
-          last_login_at: nowIso,
-          updated_at: nowIso
-        })
+        .update(updateData)
         .eq('id', cleanId)
         .select();
 
@@ -650,15 +655,20 @@ export async function recordLoggedInUser(userProfile) {
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
+      const standardUpdateData = {
+        display_name: cleanName,
+        phone: cleanPhone,
+        avatar_url: standardUsersPayload.avatar_url,
+        address: standardUsersPayload.address,
+        updated_at: nowIso
+      };
+      if (fcmToken) {
+        standardUpdateData.fcm_token = fcmToken;
+      }
+
       await supabase
         .from('foody_users')
-        .update({
-          display_name: cleanName,
-          phone: cleanPhone,
-          avatar_url: standardUsersPayload.avatar_url,
-          address: standardUsersPayload.address,
-          updated_at: nowIso
-        })
+        .update(standardUpdateData)
         .eq('id', cleanId);
     } catch (e) {
       if (isForbiddenError(e)) {

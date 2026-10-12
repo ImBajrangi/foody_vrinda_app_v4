@@ -111,28 +111,40 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
 
 /**
  * Dedicated asynchronous, non-blocking push notification dispatcher.
- * Database transactions MUST succeed first; push notifications SHOULD happen as best-effort.
+ * Database transactions MUST succeed first; push notifications happen as best-effort.
  * A push failure never interrupts order state transition or UI flow.
  */
 function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
-  // Realtime Supabase table channels handle live alerts for Kitchen & Sarathi desks.
-  // Avoid redundant edge function preflight 500 noise on web browsers when FCM is not registered.
-  const isNative = typeof window !== 'undefined' && window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform();
-  const fcmToken = record?.fcm_token || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null);
-  if (!isNative && !fcmToken) {
-    return;
-  }
-
   Promise.resolve().then(async () => {
+    const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 'https://mrsxliwyqodtwjuyqmts.supabase.co';
+    const functionUrl = `${supabaseUrl}/functions/v1/order-push-notification`;
+    const payload = JSON.stringify({
+      type,
+      table: 'foody_orders',
+      record: { id: record?.id, ...record, ...extra }
+    });
+
     try {
-      await supabase.functions.invoke('order-push-notification', {
-        body: {
-          type,
-          record: { id: record?.id, ...record, ...extra }
-        }
+      // Direct POST with text/plain qualifies as CORS Simple Request:
+      // Zero OPTIONS preflight, zero 500 preflight crashes, instant delivery to native phones
+      await fetch(functionUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload
       });
-    } catch (err) {
-      console.debug('Background push notification notice (non-fatal):', err?.message || err);
+    } catch (_err) {
+      // Fallback to supabase.functions.invoke if direct fetch is blocked
+      try {
+        await supabase.functions.invoke('order-push-notification', {
+          body: {
+            type,
+            table: 'foody_orders',
+            record: { id: record?.id, ...record, ...extra }
+          }
+        });
+      } catch (invokeErr) {
+        console.debug('Background push notification notice (non-fatal):', invokeErr?.message || invokeErr);
+      }
     }
   }).catch(() => { });
 }
@@ -188,8 +200,9 @@ export async function createCloudOrder(orderData) {
 
     // Generate secure cryptographic OTPs
     const generatedPickupOtp = generateSecureOrderOTP();
-    const generatedDeliveryOtp = generateSecureOrderOTP();
-    const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    // Active food delivery order preparation, cooking, transit, and handover regularly spans 30-90+ mins.
+    // OTP is kept valid for the full 24-hour active fulfillment window to prevent premature rejection.
+    const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     // 🔐 Compute SHA-256 cryptographic hashes for atomic database verification
     const pickupOtpHash = await computeSha256Hex(generatedPickupOtp);
