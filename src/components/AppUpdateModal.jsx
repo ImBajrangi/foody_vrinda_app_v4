@@ -18,23 +18,21 @@ import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
 export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [activeMirror, setActiveMirror] = useState('direct'); // 'direct' | 'github'
   const [downloadStarted, setDownloadStarted] = useState(false);
 
   if (!isOpen || !updateInfo || !updateInfo.hasUpdate) return null;
 
-  const handleDownload = async (mirrorChoice = activeMirror) => {
+  const handleDownload = async () => {
     setDownloading(true);
     setDownloadStarted(true);
     setDownloadProgress(25);
 
     try {
-      const isMirror = mirrorChoice === 'direct';
       // Step-by-step playful Duolingo progress animation
       const p1 = setTimeout(() => setDownloadProgress(65), 400);
       const p2 = setTimeout(() => setDownloadProgress(95), 900);
       
-      await appUpdateService.startUpdate(updateInfo.apkUrl, { useMirror: isMirror });
+      await appUpdateService.startUpdate(updateInfo.apkUrl);
       
       setTimeout(() => {
         setDownloadProgress(100);
@@ -174,47 +172,23 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
           </div>
         )}
 
-        {/* Anti-Stall / Mirror Switcher (Resolves GitHub 100% Hang Issue) */}
+        {/* Official GitHub Release Info */}
         <div className="p-3 rounded-2xl bg-stone-100 dark:bg-white/[0.04] border border-stone-200 dark:border-white/5 space-y-2 text-[11px]">
           <div className="flex items-center justify-between text-stone-600 dark:text-zinc-400 font-bold">
-            <span>Download Mirror:</span>
-            <div className="inline-flex rounded-xl bg-stone-200/80 dark:bg-white/10 p-0.5 border border-stone-300 dark:border-white/10">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMirror('direct');
-                  if (downloadStarted) handleDownload('direct');
-                }}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
-                  activeMirror === 'direct'
-                    ? 'bg-[#FF751F] text-white shadow-xs'
-                    : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                ⚡ Fast Server (Recommended)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMirror('github');
-                  if (downloadStarted) handleDownload('github');
-                }}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
-                  activeMirror === 'github'
-                    ? 'bg-[#FF751F] text-white shadow-xs'
-                    : 'text-stone-600 dark:text-zinc-400 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                🌐 GitHub CDN
-              </button>
-            </div>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-emerald-500" />
+              Official GitHub Release
+            </span>
+            <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-mono">
+              Foody-Vrinda-Latest.apk
+            </span>
           </div>
 
           {downloadStarted && (
             <div className="flex items-start gap-1.5 text-stone-500 dark:text-zinc-400 text-[10.5px] leading-tight pt-1 border-t border-stone-200/60 dark:border-white/5">
               <ShieldCheck size={13} className="text-emerald-500 shrink-0 mt-0.5" />
               <span>
-                Download started in your phone's notification bar! If Chrome pauses at 100%, tap the notification or open your <b>Files app &gt; Downloads</b> to install.
+                Download started in your phone's notification bar! Tap the notification or open your <b>Files app &gt; Downloads</b> to install.
               </span>
             </div>
           )}
@@ -235,7 +209,7 @@ export default function AppUpdateModal({ isOpen, updateInfo, onClose }) {
           {/* Duolingo Iconic 3D Primary Button */}
           <button
             type="button"
-            onClick={() => handleDownload(activeMirror)}
+            onClick={handleDownload}
             disabled={downloading}
             className={`flex-1 py-3.5 px-5 rounded-2xl font-black text-xs uppercase tracking-wider text-white transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
               downloading

@@ -4037,7 +4037,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct APK Download Link (GitHub Releases / Cloud CDN)</label>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct APK Download Link (Official GitHub Release)</label>
                   <input
                     type="url"
                     value={releaseApkUrl}

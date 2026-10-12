@@ -3,8 +3,8 @@ import { Browser } from '@capacitor/browser';
 import { supabase } from '../supabase.js';
 
 export const CURRENT_APP_VERSION = {
-  versionCode: 21,
-  versionName: '1.1.10',
+  versionCode: 22,
+  versionName: '1.1.11',
   buildDate: '2026-10-12'
 };
 
@@ -122,21 +122,10 @@ class AppUpdateService {
   }
 
   /**
-   * Launch direct APK download and package installer
-   * Supports fast direct web host mirror and system browser intent
+   * Launch direct APK download and package installer via official GitHub Release
    */
-  async startUpdate(apkUrl, options = {}) {
-    const isMirror = options.useMirror === true;
-    let targetUrl = apkUrl || this.cachedUpdate?.apkUrl;
-    
-    // If mirror requested, use direct host without GitHub Azure SAS redirect
-    if (isMirror || !targetUrl) {
-      if (typeof window !== 'undefined' && window.location?.origin) {
-        targetUrl = `${window.location.origin}/Foody-Vrinda-Latest.apk`;
-      } else {
-        targetUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
-      }
-    }
+  async startUpdate(apkUrl) {
+    const targetUrl = apkUrl || this.cachedUpdate?.apkUrl || 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
 
     if (Capacitor.isNativePlatform()) {
       // In native Android, open via system browser so Android DownloadManager processes it in the notification bar
