@@ -15,10 +15,11 @@ export function lazyWithRetry(componentImport, retriesLeft = 2, interval = 800) 
             resolve(module);
           })
           .catch((error) => {
+            const errorMsg = String(error?.message || error || '');
             const isChunkLoadFailed =
               error?.name === 'ChunkLoadError' ||
-              /loading chunk|failed to fetch dynamically imported module|importing a module script failed/i.test(
-                error?.message || ''
+              /loading chunk|failed to fetch dynamically imported module|importing a module script failed|mime type|not a valid javascript|text\/html/i.test(
+                errorMsg
               );
 
             if (retries > 0) {

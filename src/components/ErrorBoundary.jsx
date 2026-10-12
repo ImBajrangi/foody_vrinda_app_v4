@@ -16,8 +16,8 @@ export class ErrorBoundary extends React.Component {
   }
 
   isChunkLoadError() {
-    const msg = this.state.error?.message || '';
-    return /loading chunk|failed to fetch dynamically imported module|importing a module script failed/i.test(msg);
+    const msg = String(this.state.error?.message || this.state.error || '');
+    return /loading chunk|failed to fetch dynamically imported module|importing a module script failed|mime type|not a valid javascript|text\/html/i.test(msg);
   }
 
   handleReset = () => {

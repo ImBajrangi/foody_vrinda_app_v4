@@ -115,6 +115,14 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
  * A push failure never interrupts order state transition or UI flow.
  */
 function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
+  // Realtime Supabase table channels handle live alerts for Kitchen & Sarathi desks.
+  // Avoid redundant edge function preflight 500 noise on web browsers when FCM is not registered.
+  const isNative = typeof window !== 'undefined' && window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform();
+  const fcmToken = record?.fcm_token || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null);
+  if (!isNative && !fcmToken) {
+    return;
+  }
+
   Promise.resolve().then(async () => {
     try {
       await supabase.functions.invoke('order-push-notification', {

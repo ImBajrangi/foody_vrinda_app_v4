@@ -192,6 +192,13 @@ export async function updateCloudShop(shopId, shopData) {
       if (s.id === shopId) {
         found = true;
         const merged = { ...s, ...shopData };
+        if (shopData.isOpen !== undefined && shopData.isOnline === undefined) {
+          merged.isOnline = Boolean(shopData.isOpen);
+          merged.is_online = Boolean(shopData.isOpen);
+        } else if (shopData.is_open !== undefined && shopData.is_online === undefined) {
+          merged.isOnline = Boolean(shopData.is_open);
+          merged.is_online = Boolean(shopData.is_open);
+        }
 
         if (shopData.paymentSettings) {
           merged.paymentSettings = {
