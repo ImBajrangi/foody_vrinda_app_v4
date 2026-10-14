@@ -109,7 +109,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     loginWithEmail,
     signupWithEmail,
     loginWithGoogle,
-    loginWithPhoneLookup,
     impersonate,
     updateUserRole,
     updateUserProfile,
@@ -121,7 +120,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
 
   const [selectedDesk, setSelectedDesk] = useState('customer');
-  const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email'
   const [isSignup, setIsSignup] = useState(false);
   const [signupStep, setSignupStep] = useState(1); // 1: Identity | 2: Credentials | 3: Delivery
   const [showStaffSignIn, setShowStaffSignIn] = useState(false);
@@ -138,7 +136,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   }, [isOpen, initialMode]);
 
   // Form fields
-  const [phoneInput, setPhoneInput] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -238,24 +235,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const activeDeskTheme = DESK_CONFIG[selectedDesk] || DESK_CONFIG.customer;
   const ActiveDeskIcon = activeDeskTheme.icon;
 
-  // Phone Lookup Sign In
-  const handlePhoneSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMsg('');
-    setLoading(true);
-    try {
-      const profile = await loginWithPhoneLookup(phoneInput);
-      setSuccessMsg(`Welcome back, ${profile.displayName || 'Customer'}!`);
-      setTimeout(() => {
-        handleAnimatedClose();
-      }, 500);
-    } catch (err) {
-      setError(err.message || 'Phone sign-in failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Step validation and transition for multi-step signup
   const handleNextStep = (e) => {
@@ -620,12 +599,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     }
                     return (
                       <div className="shrink-0">
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${
-                          effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20' :
-                            effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/20' :
-                              effectiveDisplayRole === 'owner' ? 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 border border-purple-500/20' :
-                                ''
-                        }`}>
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20' :
+                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/20' :
+                            effectiveDisplayRole === 'owner' ? 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 border border-purple-500/20' :
+                              ''
+                          }`}>
                           {effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
                             effectiveDisplayRole === 'delivery' ? 'Rider Sarathi' :
                               effectiveDisplayRole === 'owner' ? 'Store Owner' : null}
@@ -1144,34 +1122,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               )}
 
-              {/* Sub-Navigation Method Switcher: Mobile vs Email */}
-              {!isSignup && (
-                <div className="grid grid-cols-2 bg-stone-100 dark:bg-[#151314]/80 p-1 rounded-2xl border border-stone-200 dark:border-white/5 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => { setLoginMethod('phone'); setError(''); setSuccessMsg(''); }}
-                    className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'phone'
-                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
-                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                  >
-                    <Phone className="w-3 h-3 text-amber-600 dark:text-[#FD9139] shrink-0" />
-                    <span className="truncate">Mobile Number</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setLoginMethod('email'); setError(''); setSuccessMsg(''); }}
-                    className={`py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none cursor-pointer ${loginMethod === 'email'
-                      ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-sm border border-stone-200 dark:border-white/10 font-bold'
-                      : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                  >
-                    <Mail className="w-3 h-3 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                    <span className="truncate">Email & Password</span>
-                  </button>
-                </div>
-              )}
 
               {/* STEP PROGRESS INDICATOR FOR REGISTRATION */}
               {isSignup && (
@@ -1214,197 +1164,63 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               )}
 
-              {/* METHOD 1: QUICK PHONE LOOKUP (LOGIN ONLY) */}
-              {!isSignup && loginMethod === 'phone' && (
-                <form onSubmit={handlePhoneSubmit} className="space-y-4 pt-1">
-                  <div className="space-y-2">
-                    <div className="flex items-center min-h-[52px] sm:min-h-[56px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/15 rounded-2xl sm:rounded-[20px] focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/60 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/20 transition-all px-4 py-1.5 shadow-xs">
-                      <span className="text-sm sm:text-base font-black text-stone-900 dark:text-[#FD9139] font-['Outfit'] pr-3 mr-2 border-r border-stone-300 dark:border-white/15 select-none tracking-wide flex items-center gap-1.5">
-                        +91
+              {/* EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */}
+              <form onSubmit={handleEmailSubmit} className="space-y-4 pt-1">
+
+                {/* ── STEP 1: IDENTITY ── */}
+                {isSignup && signupStep === 1 && (
+                  <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
+                        Personal Details
                       </span>
-                      <input
-                        type="tel"
-                        value={phoneInput}
-                        onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-                        placeholder="10-digit mobile number"
-                        maxLength={10}
-                        required
-                        className="w-full bg-transparent py-2 text-sm sm:text-base text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
-                      />
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 1 of 3</span>
                     </div>
-                    <p className="text-[11px] text-stone-500 dark:text-zinc-400 px-1 font-medium">
-                      Instant access for customers, kitchen staff, and delivery riders.
-                    </p>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading || phoneInput.length < 10}
-                    className="w-full py-3.5 sm:py-4 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed apple-tap-target font-['Outfit']"
-                  >
-                    <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
-                    <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
-                  </button>
-                </form>
-              )}
-
-              {/* METHOD 2: EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */}
-              {(isSignup || loginMethod === 'email') && (
-                <form onSubmit={handleEmailSubmit} className="space-y-4 pt-1">
-
-                  {/* ── STEP 1: IDENTITY ── */}
-                  {isSignup && signupStep === 1 && (
-                    <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
-                          Personal Details
-                        </span>
-                        <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 1 of 3</span>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="relative">
-                          <User className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="text"
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            placeholder="Full Name (e.g. Radhe Shyam)"
-                            required
-                            className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                          />
-                        </div>
-
-                        <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/40 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/10 transition-all px-4 py-1.5">
-                          <Phone className="w-4 h-4 text-stone-400 dark:text-zinc-500 shrink-0 mr-2.5" />
-                          <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-[#FD9139] pr-2.5 border-r border-stone-300 dark:border-white/10 select-none font-['Outfit']">+91</span>
-                          <input
-                            type="tel"
-                            value={signupPhone}
-                            onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, ''))}
-                            placeholder="10-digit mobile number"
-                            maxLength={10}
-                            required
-                            className="flex-1 bg-transparent pl-3 py-2 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
-                          />
-                        </div>
-                      </div>
-
-                      <p className="text-[11px] text-stone-500 dark:text-zinc-500 leading-relaxed px-0.5">
-                        Used for live delivery notifications and SMS order updates.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* ── STEP 2: CREDENTIALS ── */}
-                  {isSignup && signupStep === 2 && (
-                    <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
-                          Account Security
-                        </span>
-                        <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 2 of 3</span>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="relative">
-                          <Mail className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email Address (e.g. user@example.com)"
-                            required
-                            className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                          />
-                        </div>
-
-                        <div className="relative">
-                          <Lock className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                          <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Create Password (min 6 chars)"
-                            required
-                            className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span>Secured with 256-bit Supabase Cloud encryption.</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── STEP 3: DELIVERY LOCATION ── */}
-                  {isSignup && signupStep === 3 && (
-                    <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
-                          Default Delivery
-                        </span>
-                        <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 3 of 3</span>
-                      </div>
-
+                    <div className="space-y-3">
                       <div className="relative">
-                        <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139] absolute left-3.5 top-3.5" />
-                        <textarea
-                          rows={2}
-                          value={signupAddress}
-                          onChange={(e) => setSignupAddress(e.target.value)}
-                          placeholder="Delivery Address (e.g. Flat 204, Near ISKCON Temple, Raman Reti)"
-                          className="w-full bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
+                        <User className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          placeholder="Full Name (e.g. Radhe Shyam)"
+                          required
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
 
-                      {/* Quick Vrinda Landmark Chips (Balanced 2-Column Grid) */}
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">
-                          Quick Landmarks
-                        </span>
-                        <div className="grid grid-cols-2 gap-1.5 w-full">
-                          {[
-                            { label: 'Raman Reti (ISKCON)', value: 'Near ISKCON Temple, Raman Reti' },
-                            { label: 'Prem Mandir Area', value: 'Prem Mandir Road, Vrindavan' },
-                            { label: 'Parikrama Marg', value: 'Bankey Bihari Parikrama Marg' },
-                            { label: 'Chhatikara Road', value: 'Chhatikara Road, Vrindavan' }
-                          ].map((loc, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => setSignupAddress(loc.value)}
-                              className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-800 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-[#FD9139]/15 dark:hover:text-[#FD9139] dark:border-white/10 dark:hover:border-[#FD9139]/30 text-xs font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs truncate text-left flex items-center gap-1.5"
-                            >
-                              <span className="text-amber-600 dark:text-[#FD9139] text-xs font-black shrink-0">+</span>
-                              <span className="truncate">{loc.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Registration Summary Card */}
-                      <div className="p-3 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 space-y-1 shadow-xs">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-stone-500 dark:text-zinc-400">Name:</span>
-                          <span className="font-bold text-stone-900 dark:text-white font-['Outfit']">{displayName}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-stone-500 dark:text-zinc-400">Mobile:</span>
-                          <span className="font-bold text-stone-900 dark:text-[#FD9139] font-['Outfit']">+91 {signupPhone}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-stone-500 dark:text-zinc-400">Email:</span>
-                          <span className="font-medium text-stone-700 dark:text-zinc-300 truncate max-w-[200px]">{email}</span>
-                        </div>
+                      <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/40 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/10 transition-all px-4 py-1.5">
+                        <Phone className="w-4 h-4 text-stone-400 dark:text-zinc-500 shrink-0 mr-2.5" />
+                        <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-[#FD9139] pr-2.5 border-r border-stone-300 dark:border-white/10 select-none font-['Outfit']">+91</span>
+                        <input
+                          type="tel"
+                          value={signupPhone}
+                          onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, ''))}
+                          placeholder="10-digit mobile number"
+                          maxLength={10}
+                          required
+                          className="flex-1 bg-transparent pl-3 py-2 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
+                        />
                       </div>
                     </div>
-                  )}
 
-                  {/* ── STANDARD LOGIN FORM (WHEN NOT SIGNING UP) ── */}
-                  {!isSignup && (
+                    <p className="text-[11px] text-stone-500 dark:text-zinc-500 leading-relaxed px-0.5">
+                      Used for live delivery notifications and SMS order updates.
+                    </p>
+                  </div>
+                )}
+
+                {/* ── STEP 2: CREDENTIALS ── */}
+                {isSignup && signupStep === 2 && (
+                  <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
+                        Account Security
+                      </span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 2 of 3</span>
+                    </div>
+
                     <div className="space-y-3">
                       <div className="relative">
                         <Mail className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -1412,75 +1228,173 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Email Address (e.g. user@example.com)"
+                          placeholder="Email Address"
                           required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
+
                       <div className="relative">
                         <Lock className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
                         <input
                           type="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Password"
+                          placeholder="Create Password (min 6 chars)"
                           required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
                         />
                       </div>
                     </div>
-                  )}
 
-                  {/* ── NAVIGATION & CTA BUTTONS ── */}
-                  <div className="flex items-center gap-2 pt-1">
-                    {isSignup && signupStep > 1 && (
-                      <button
-                        type="button"
-                        onClick={handlePrevStep}
-                        className="py-3.5 px-4 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-300 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0"
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span>Back</span>
-                      </button>
-                    )}
-
-                    <button
-                      type={isSignup && signupStep < 3 ? "button" : "submit"}
-                      onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
-                      disabled={loading}
-                      className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed"
-                    >
-                      <span>
-                        {loading
-                          ? 'Creating Account...'
-                          : isSignup
-                            ? (signupStep === 3 ? 'Complete Registration' : `Continue to Step ${signupStep + 1}`)
-                            : 'Sign In'}
-                      </span>
-                      <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
-                    </button>
+                    <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>Secured with 256-bit Supabase Cloud encryption.</span>
+                    </div>
                   </div>
+                )}
 
-                  {/* Switch between Log In and Sign Up */}
-                  <div className="text-center pt-0.5">
+                {/* ── STEP 3: DELIVERY LOCATION ── */}
+                {isSignup && signupStep === 3 && (
+                  <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
+                        Default Delivery
+                      </span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 3 of 3</span>
+                    </div>
+
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139] absolute left-3.5 top-3.5" />
+                      <textarea
+                        rows={2}
+                        value={signupAddress}
+                        onChange={(e) => setSignupAddress(e.target.value)}
+                        placeholder="Delivery Address (e.g. Flat 204, Near ISKCON Temple, Raman Reti)"
+                        className="w-full bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all resize-none"
+                      />
+                    </div>
+
+                    {/* Quick Vrinda Landmark Chips (Balanced 2-Column Grid) */}
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">
+                        Quick Landmarks
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5 w-full">
+                        {[
+                          { label: 'Raman Reti (ISKCON)', value: 'Near ISKCON Temple, Raman Reti' },
+                          { label: 'Prem Mandir Area', value: 'Prem Mandir Road, Vrindavan' },
+                          { label: 'Parikrama Marg', value: 'Bankey Bihari Parikrama Marg' },
+                          { label: 'Chhatikara Road', value: 'Chhatikara Road, Vrindavan' }
+                        ].map((loc, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSignupAddress(loc.value)}
+                            className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-stone-800 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-[#FD9139]/15 dark:hover:text-[#FD9139] dark:border-white/10 dark:hover:border-[#FD9139]/30 text-xs font-semibold dark:text-zinc-300 transition-all cursor-pointer shadow-xs truncate text-left flex items-center gap-1.5"
+                          >
+                            <span className="text-amber-600 dark:text-[#FD9139] text-xs font-black shrink-0">+</span>
+                            <span className="truncate">{loc.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Registration Summary Card */}
+                    <div className="p-3 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 space-y-1 shadow-xs">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-stone-500 dark:text-zinc-400">Name:</span>
+                        <span className="font-bold text-stone-900 dark:text-white font-['Outfit']">{displayName}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-stone-500 dark:text-zinc-400">Mobile:</span>
+                        <span className="font-bold text-stone-900 dark:text-[#FD9139] font-['Outfit']">+91 {signupPhone}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-stone-500 dark:text-zinc-400">Email:</span>
+                        <span className="font-medium text-stone-700 dark:text-zinc-300 truncate max-w-[200px]">{email}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STANDARD LOGIN FORM (WHEN NOT SIGNING UP) ── */}
+                {!isSignup && (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email Address"
+                        required
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        required
+                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── NAVIGATION & CTA BUTTONS ── */}
+                <div className="flex items-center gap-2 pt-1">
+                  {isSignup && signupStep > 1 && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setIsSignup(!isSignup);
-                        setSignupStep(1);
-                        setError('');
-                        setSuccessMsg('');
-                      }}
-                      className="text-xs text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                      onClick={handlePrevStep}
+                      className="py-3.5 px-4 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 hover:text-stone-950 border border-stone-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-300 dark:border-white/10 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shrink-0"
                     >
-                      {isSignup ? 'Already registered? ' : "Don't have an account? "}
-                      <span className="text-amber-600 hover:text-amber-700 dark:text-[#FD9139] font-bold underline ml-1">
-                        {isSignup ? 'Log In Instead' : 'Register in 3 Steps'}
-                      </span>
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
                     </button>
-                  </div>
-                </form>
-              )}
+                  )}
+
+                  <button
+                    type={isSignup && signupStep < 3 ? "button" : "submit"}
+                    onClick={isSignup && signupStep < 3 ? handleNextStep : undefined}
+                    disabled={loading}
+                    className="flex-1 py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed"
+                  >
+                    <span>
+                      {loading
+                        ? 'Creating Account...'
+                        : isSignup
+                          ? (signupStep === 3 ? 'Complete Registration' : `Continue to Step ${signupStep + 1}`)
+                          : 'Sign In'}
+                    </span>
+                    <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
+                  </button>
+                </div>
+
+                {/* Switch between Log In and Sign Up */}
+                <div className="text-center pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignup(!isSignup);
+                      setSignupStep(1);
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                    className="text-xs text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                  >
+                    {isSignup ? 'Already registered? ' : "Don't have an account? "}
+                    <span className="text-amber-600 hover:text-amber-700 dark:text-[#FD9139] font-bold underline ml-1">
+                      {isSignup ? 'Log In Instead' : 'Register in 3 Steps'}
+                    </span>
+                  </button>
+                </div>
+              </form>
 
               {/* Google Sign-In Option (When logging in) */}
               {!isSignup && (

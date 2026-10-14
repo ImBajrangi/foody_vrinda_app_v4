@@ -586,7 +586,9 @@ export default function DeveloperView({ setCurrentTab }) {
           const prevSettings = s.paymentSettings || s.payment_settings || {};
           const nextSettings = {
             ...prevSettings,
-            [key]: value
+            [key]: value,
+            globalOnlinePaymentsEnabled: key === 'onlinePaymentsEnabled' ? value : (prevSettings.globalOnlinePaymentsEnabled ?? (key === 'onlinePaymentsEnabled' ? value : true)),
+            globalCodEnabled: key === 'codEnabled' ? value : (prevSettings.globalCodEnabled ?? (key === 'codEnabled' ? value : true))
           };
           return updateCloudShop(s.id, {
             paymentSettings: nextSettings

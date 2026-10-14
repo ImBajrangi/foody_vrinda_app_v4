@@ -3042,9 +3042,15 @@ button[disabled] svg {
   box-shadow: none !important;
 }
 
-/* Prevent light hover background from firing in Dark Mode */
-.dark [class*="hover:bg-stone-"]:hover,
-[data-theme="dark"] [class*="hover:bg-stone-"]:hover {
+/* Prevent light hover background from firing in Dark Mode (Exclude custom CTAs) */
+.dark [class*="hover:bg-stone-50"]:not(.btn-map-track):hover,
+.dark [class*="hover:bg-stone-100"]:not(.btn-map-track):hover,
+.dark [class*="hover:bg-stone-200"]:not(.btn-map-track):hover,
+.dark [class*="hover:bg-stone-300"]:not(.btn-map-track):hover,
+[data-theme="dark"] [class*="hover:bg-stone-50"]:not(.btn-map-track):hover,
+[data-theme="dark"] [class*="hover:bg-stone-100"]:not(.btn-map-track):hover,
+[data-theme="dark"] [class*="hover:bg-stone-200"]:not(.btn-map-track):hover,
+[data-theme="dark"] [class*="hover:bg-stone-300"]:not(.btn-map-track):hover {
   background-color: #322E30 !important;
   color: #FFFFFF !important;
 }
@@ -3334,27 +3340,60 @@ button[disabled] svg {
 
 /* Live Map Track Banner Button: High contrast in both Light & Dark modes */
 .btn-map-track {
-  transition: transform 0.1s ease-out, opacity 0.12s ease-out !important;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.light .btn-map-track {
+/* Light Mode: Sleek Obsidian CTA */
+.light .btn-map-track,
+[data-theme="light"] .btn-map-track {
   background-color: #1C1917 !important;
   color: #FFFFFF !important;
 }
 
-.light .btn-map-track span,
-.light .btn-map-track svg {
+.light .btn-map-track:hover,
+[data-theme="light"] .btn-map-track:hover {
+  background-color: #000000 !important;
   color: #FFFFFF !important;
-  stroke: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
 }
 
-.dark .btn-map-track {
+.light .btn-map-track span,
+.light .btn-map-track svg,
+.light .btn-map-track:hover span,
+.light .btn-map-track:hover svg,
+[data-theme="light"] .btn-map-track span,
+[data-theme="light"] .btn-map-track svg,
+[data-theme="light"] .btn-map-track:hover span,
+[data-theme="light"] .btn-map-track:hover svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+  fill: #FFFFFF !important;
+}
+
+/* Dark Mode: Vibrant Electric Lime CTA with 100% black text contrast on hover */
+.dark .btn-map-track,
+[data-theme="dark"] .btn-map-track {
   background-color: #E0FF33 !important;
   color: #121011 !important;
+  box-shadow: 0 2px 10px rgba(224, 255, 51, 0.25) !important;
+}
+
+.dark .btn-map-track:hover,
+[data-theme="dark"] .btn-map-track:hover {
+  background-color: #EEFF55 !important;
+  color: #121011 !important;
+  box-shadow: 0 0 16px rgba(224, 255, 51, 0.55) !important;
+  transform: translateY(-1px) scale(1.02);
 }
 
 .dark .btn-map-track span,
-.dark .btn-map-track svg {
+.dark .btn-map-track svg,
+.dark .btn-map-track:hover span,
+.dark .btn-map-track:hover svg,
+[data-theme="dark"] .btn-map-track span,
+[data-theme="dark"] .btn-map-track svg,
+[data-theme="dark"] .btn-map-track:hover span,
+[data-theme="dark"] .btn-map-track:hover svg {
   color: #121011 !important;
   stroke: #121011 !important;
   fill: #121011 !important;

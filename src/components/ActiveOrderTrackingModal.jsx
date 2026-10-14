@@ -20,7 +20,12 @@ import {
   Check,
   Maximize2,
   Minimize2,
-  BellRing
+  BellRing,
+  Copy,
+  Flame,
+  Ticket,
+  Lock,
+  Navigation
 } from 'lucide-react';
 import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP } from '../supabase';
 import FoodyMascot from '../foody/FoodyMascot';
@@ -38,6 +43,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const [showItems, setShowItems] = useState(false);
   const [closing, setClosing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [copiedOtp, setCopiedOtp] = useState(false);
 
   // Live order state with automatic realtime WebSocket sync
   const [liveOrder, setLiveOrder] = useState(order);
@@ -81,6 +87,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     name: currentOrder?.shopName || 'Foody Vrinda Kitchen',
     coordinates: { lat: 27.5706, lng: 77.6593 }
   };
+  const shortShopName = (shop?.name || 'Prem Mandir')
+    .replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '')
+    .replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '')
+    .trim() || 'Prem Mandir';
 
   const handleAnimatedClose = useCallback((isImmediate = false) => {
     if (closeTimeoutRef.current) {
@@ -606,16 +616,17 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   };
 
   const isPickup = currentOrder?.fulfillment_type === 'pickup' || currentOrder?.fulfillmentType === 'pickup';
+  const otpCode = getOrderOTP(currentOrder, isPickup ? 'pickup' : 'delivery') || '1080';
 
   const getDynamicArrivalWindow = () => {
-    if (status === 'completed' || status === 'delivered') return 'Delivered';
+    if (status === 'completed' || status === 'delivered') return isPickup ? 'Collected' : 'Delivered';
     if (isPickup) {
-      return (status === 'ready_for_pickup' || status === 'out_for_delivery') ? 'Ready at Counter' : 'Prep: 10–15 Min';
+      return (status === 'ready_for_pickup' || status === 'out_for_delivery') ? 'Ready at Counter' : '10–15 min prep';
     }
     const travel = realDurationMins || 8;
     const minTime = Math.max(1, travel - 2);
     const maxTime = travel + 4;
-    return `${minTime}–${maxTime} Min`;
+    return `${minTime}–${maxTime} min window`;
   };
 
   const isOutForDelivery = status === 'out_for_delivery';
@@ -755,7 +766,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
         {/* BOTTOM GESTURE-DRIVEN OBSIDIAN SHEET */}
         <div
-          className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isExpanded ? 'max-h-[50vh] overflow-y-auto' : 'min-h-[92px]'
+          className={`bg-[#181617] rounded-t-[28px] relative z-30 border-t border-white/[0.08] flex flex-col transition-all duration-300 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isExpanded ? 'max-h-[62vh] sm:max-h-[65vh] overflow-y-auto' : 'min-h-[92px]'
             } no-scrollbar`}
         >
 
@@ -766,20 +777,25 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               if (modalHasMoved && modalHasMoved()) return;
               setIsExpanded(!isExpanded);
             }}
-            className="pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none"
+            className="pt-3 pb-2 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none"
             title="Tap to toggle • Drag down to close"
           >
-            <div className="w-12 h-1.5 bg-stone-400/80 dark:bg-white/40 hover:bg-stone-300 dark:hover:bg-white/60 rounded-full mb-1.5 transition-colors" />
-            <div className="w-full flex items-center justify-between text-stone-500 dark:text-neutral-400 text-[11px] font-bold">
-              <span className="flex items-center gap-1.5 text-stone-900 dark:text-white">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-[#FD9139] animate-pulse" />
-                <span className="font-['Outfit'] font-black uppercase text-[10px] tracking-wider text-emerald-700 dark:text-[#FD9139]">
-                  {milestones.active}
+            <div className="w-12 h-1.5 bg-white/25 hover:bg-white/40 rounded-full mb-2.5 transition-colors" />
+            <div className="w-full flex items-center justify-between text-stone-400 text-[11px] font-bold">
+              <span className="flex items-center gap-2 text-white">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD9139] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FD9139]"></span>
+                </span>
+                <span className="font-['Outfit'] font-black uppercase text-[10px] sm:text-[11px] tracking-wider text-[#FD9139]">
+                  {isExpanded 
+                    ? `Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ACTIVE'}`
+                    : milestones.active}
                 </span>
               </span>
-              <span className="flex items-center gap-1 text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white transition-colors text-[10px]">
-                {isExpanded ? 'Drag down to close' : 'Tap to expand details'}
-                {isExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-stone-300 hover:text-white transition-colors text-[10px] font-semibold">
+                {isExpanded ? 'Drag down' : 'Tap to expand'}
+                {isExpanded ? <ChevronDown size={12} className="text-[#FD9139]" /> : <ChevronUp size={12} className="text-[#FD9139]" />}
               </span>
             </div>
           </div>
@@ -796,20 +812,20 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               title="Tap to expand details • Drag down to close"
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-3">
-                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-[#221F20] border border-stone-200 dark:border-white/10 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
-                  <Clock size={15} />
+                <div className="w-9 h-9 rounded-xl bg-[#221F20] border border-white/10 flex items-center justify-center text-[#FD9139] shrink-0 shadow-sm">
+                  <Clock size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                  <p className="text-xs font-black text-white font-['Outfit'] truncate">
                     Estimated {getDynamicEstimatedTime()}
                   </p>
-                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
+                  <p className="text-[10px] text-stone-400 truncate">
                     {realDistance || '2.2km'} • {getAddressLabel()} ({customerAddress})
                   </p>
                 </div>
               </div>
 
-              <span className="bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-800 dark:text-[#FD9139] text-[10px] font-black px-2.5 py-1 rounded-full border border-amber-500/25 dark:border-[#FD9139]/20 shrink-0 whitespace-nowrap">
+              <span className="bg-[#FD9139]/15 text-[#FD9139] text-[10px] font-black px-2.5 py-1 rounded-full border border-[#FD9139]/30 shrink-0 whitespace-nowrap font-['Outfit']">
                 {getDynamicArrivalWindow()}
               </span>
             </div>
@@ -817,80 +833,107 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
           {/* Expanded Full Details */}
           {isExpanded && (
-            <div className="px-4 pb-5 space-y-2.5">
+            <div className="px-4 pb-5 space-y-3">
 
-              {/* 1. Hero Dynamic Status & ETA Card */}
-              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3.5 relative overflow-hidden">
-                <div className="flex items-start justify-between gap-3 mb-2.5">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-[#FD9139] font-['Outfit']">
-                      Estimated Delivery
-                    </p>
-                    <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+              {/* 1. Main Status, ETA & Stepper Card (Minimal & Theme Relatable) */}
+              <div className="bg-[#221F20] border border-white/[0.08] rounded-2xl p-4 shadow-sm">
+                {/* Status + Time Pill Header */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD9139] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FD9139]"></span>
+                    </span>
+                    <span className="text-[11px] font-bold text-[#FD9139] font-['Outfit'] uppercase tracking-wider truncate">
+                      {milestones.active}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-[11px] font-semibold text-stone-300 shrink-0">
+                    <Clock className="w-3 h-3 text-[#FD9139]" />
+                    <span>{getDynamicArrivalWindow()}</span>
+                  </div>
+                </div>
+
+                {/* Hero ETA Display */}
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-3xl sm:text-4xl font-black text-white font-['Outfit'] tracking-tight">
                       {getDynamicEstimatedTime()}
                     </h3>
-                    <p className="text-[11px] text-stone-600 dark:text-neutral-400 font-medium mt-0.5 flex items-center gap-1.5 flex-wrap">
-                      <span>Distance: <strong className="text-stone-900 dark:text-white font-bold">{realDistance || '2.2km'}</strong></span>
-                      {roadSummary && <span className="text-[10px] text-stone-400 dark:text-neutral-500">• via {roadSummary}</span>}
-                    </p>
+                    <span className="text-xs font-semibold text-stone-400">
+                      {isPickup ? 'Estimated Ready' : 'Estimated Arrival'}
+                    </span>
                   </div>
-
-                  {/* Arrival Window Pill */}
-                  <div className="bg-amber-500/15 border border-amber-500/25 dark:bg-[#FD9139]/15 dark:border-[#FD9139]/25 px-2.5 py-1 rounded-xl text-right shrink-0">
-                    <p className="text-[9px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">Arrival in</p>
-                    <p className="text-xs font-black text-amber-800 dark:text-[#FD9139] font-['Outfit']">
-                      {getDynamicArrivalWindow()}
-                    </p>
-                  </div>
+                  <p className="text-xs text-stone-400 mt-1 truncate">
+                    {isPickup 
+                      ? `Counter collection at ${shortShopName || 'Kitchen'} · ${realDistance || '2.2km'}` 
+                      : `From ${shop?.name || 'Kitchen'} · ${realDistance || '2.2km'}`}
+                  </p>
                 </div>
 
-                {/* Animated Foody Vrinda Mascot Live Stage */}
-                <div className="flex items-center justify-center -my-1 py-1">
-                  <FoodyMascot
-                    state={isOutForDelivery ? 'delivery' : isDelivered ? 'happy' : 'idle'}
-                    width={isOutForDelivery ? 200 : 130}
-                    height={isOutForDelivery ? 120 : 96}
-                  />
-                </div>
+                {/* Minimal Connected Stepper */}
+                <div className="pt-1">
+                  <div className="relative flex items-start justify-between px-3">
+                    {/* Track Underlay */}
+                    <div className="absolute left-6 right-6 top-3.5 -translate-y-1/2 h-0.5 bg-white/10 z-0" />
+                    {/* Active Track Progress */}
+                    <div 
+                      className="absolute left-6 top-3.5 -translate-y-1/2 h-0.5 bg-[#FD9139] z-0 transition-all duration-500"
+                      style={{ width: `calc((100% - 48px) * ${Math.min(currentStage, 3) / 3})` }}
+                    />
 
-                {/* 4-Step Animated Milestone Progress Stepper */}
-                <div className="pt-2 border-t border-stone-200/80 dark:border-white/5 space-y-1">
-                  <div className="grid grid-cols-4 gap-1">
                     {[
                       { label: 'Placed', icon: Check },
                       { label: 'Cooking', icon: Utensils },
-                      { label: 'On Way', icon: Bike },
-                      { label: 'Delivered', icon: CheckCircle2 }
+                      { label: isPickup ? 'Ready' : 'On Way', icon: isPickup ? PackageCheck : Bike },
+                      { label: isPickup ? 'Collected' : 'Delivered', icon: CheckCircle2 }
                     ].map((st, idx) => {
-                      const isPassed = currentStage >= idx;
+                      const isPassed = currentStage > idx;
                       const isCurrent = currentStage === idx;
+                      const Icon = st.icon;
+
                       return (
-                        <div key={idx} className="space-y-1">
-                          <div className={`h-1.5 rounded-full transition-all duration-300 ${isPassed ? 'bg-amber-500 dark:bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'
-                            }`} />
-                          <p className={`text-[9px] text-center font-bold truncate ${isCurrent ? 'text-amber-800 dark:text-[#FD9139] font-black' : isPassed ? 'text-stone-800 dark:text-neutral-300' : 'text-stone-400 dark:text-neutral-600'
-                            }`}>
+                        <div key={idx} className="flex flex-col items-center relative z-10">
+                          <div 
+                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                              isCurrent 
+                                ? 'bg-[#FD9139] text-white shadow-[0_0_12px_rgba(253,145,57,0.5)] ring-4 ring-[#FD9139]/20 scale-105' 
+                                : isPassed 
+                                  ? 'bg-[#FD9139] text-white' 
+                                  : 'bg-[#181617] text-stone-500 border border-white/15'
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5 stroke-[2.4]" />
+                          </div>
+                          <span 
+                            className={`text-[10px] font-['Outfit'] mt-1.5 transition-colors whitespace-nowrap ${
+                              isCurrent 
+                                ? 'text-[#FD9139] font-bold' 
+                                : isPassed 
+                                  ? 'text-white font-medium' 
+                                  : 'text-stone-500 font-normal'
+                            }`}
+                          >
                             {st.label}
-                          </p>
+                          </span>
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* 1-Tap OS Notification Permission Activation */}
+                {/* Subtle Lockscreen Updates Banner */}
                 {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
-                  <div className="mt-3 pt-2.5 border-t border-stone-200/80 dark:border-white/5 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <BellRing className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139] shrink-0 animate-bounce" />
-                      <p className="text-[10px] text-stone-700 dark:text-neutral-300 truncate">
-                        Get live order updates on lock screen
-                      </p>
+                  <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <BellRing className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
+                      <span className="text-[11px] text-stone-300 truncate">Lock screen live status updates</span>
                     </div>
                     <button
                       type="button"
                       onClick={requestSystemNotificationPermission}
-                      className="px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                      className="text-[11px] font-bold text-[#FD9139] hover:underline cursor-pointer shrink-0"
                     >
                       Enable
                     </button>
@@ -898,128 +941,183 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 )}
               </div>
 
-              {/* 2. Customer Delivery Security OTP Card */}
-              {currentOrder?.id && (
-                <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-amber-500/10 dark:from-[#FD9139]/15 dark:via-emerald-500/10 dark:to-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 rounded-[20px] p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 dark:bg-[#FD9139] text-white font-black flex items-center justify-center text-xs shadow-md shrink-0 font-['Outfit']">
-                      OTP
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-stone-700 dark:text-neutral-300 uppercase tracking-wider">
-                        {isPickup ? 'Counter Pickup Code' : 'Delivery Verification Code'}
-                      </p>
-                      <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
-                        {isPickup ? 'Share with kitchen counter to collect prasad' : 'Share with Sarathi upon prasad handover'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="otp-code-pill bg-stone-900 dark:bg-[#141213] border border-stone-800 dark:border-[#FD9139]/50 px-3.5 py-1.5 rounded-xl text-center shrink-0 shadow-sm">
-                    <span className="text-base font-black text-[#FD9139] tracking-[0.25em] font-mono">
-                      {getOrderOTP(currentOrder.id, 'delivery')}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Delivery Sarathi Partner Card & 24/7 Support */}
-              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-500/50 dark:border-[#FD9139]/60 bg-stone-200 dark:bg-[#141213] shrink-0 relative aspect-square">
-                    <img
-                      src={riderPhoto}
-                      alt={riderName}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <h4 className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm font-['Outfit'] tracking-tight truncate">
-                        {riderName}
-                      </h4>
-                      <ShieldCheck className="w-3 h-3 text-amber-600 dark:text-[#FD9139] shrink-0" />
-                    </div>
-
-                    <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-[10px] mt-0.5">
-                      <div className="flex items-center gap-0.5">
-                        <Star className="w-2.5 h-2.5 fill-amber-500 stroke-amber-500" />
-                        <span className="text-stone-900 dark:text-white text-[10px] font-black ml-0.5">{riderRating}</span>
+              {/* 2. Pickup Token / Partner Dispatch Hub */}
+              <div className="bg-[#221F20] border border-white/[0.08] rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-sm">
+                {isPickup ? (
+                  <>
+                    {/* Pickup Token Block */}
+                    <div className="flex items-center justify-between gap-3 bg-[#181617] rounded-xl p-3 border border-amber-500/25">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Ticket className="w-3.5 h-3.5 text-[#FD9139]" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-['Outfit']">
+                            Counter Pickup Token
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl sm:text-3xl font-black text-white font-['Outfit'] tracking-wider">
+                            #{otpCode}
+                          </span>
+                          <span className="text-[11px] text-stone-400 font-medium">
+                            Show at counter
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-stone-400 dark:text-neutral-600 text-[9px]">•</span>
-                      <span className="text-emerald-700 dark:text-emerald-400 text-[10px] font-medium truncate">
-                        {isOutForDelivery ? 'Sarathi Partner' : 'Sacred Kitchen Dispatch'}
-                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(otpCode);
+                          setCopiedOtp(true);
+                          setTimeout(() => setCopiedOtp(false), 2000);
+                          if (onToast) onToast(`Copied Token #${otpCode}`, 'success');
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 text-xs font-bold text-stone-200 transition-all cursor-pointer shrink-0"
+                      >
+                        {copiedOtp ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-[#FD9139]" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
                     </div>
-                  </div>
-                </div>
 
-                {/* Quick Action Buttons */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <a
-                    href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Foody Vrinda Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''} (${currentOrder?.customerName || 'Customer'})`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      if (onToast) onToast("Connecting WhatsApp...", "info", "Opening dispatch chat");
-                    }}
-                    className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                    title="WhatsApp dispatch"
-                  >
-                    <MessageCircle className="w-4 h-4 stroke-[2]" />
-                  </a>
+                    {/* Store Counter Location & Action Buttons */}
+                    <div className="flex items-center justify-between gap-3 pt-0.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white font-['Outfit'] truncate">
+                          {shop?.name || 'Foody Vrinda Sacred Kitchen'}
+                        </p>
+                        <p className="text-[11px] text-stone-400 truncate mt-0.5">
+                          {shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}
+                        </p>
+                      </div>
 
-                  <a
-                    href={`tel:${riderPhone}`}
-                    className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/15 text-stone-700 dark:text-white border border-stone-300/80 dark:border-white/10 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                    title="Call dispatch"
-                  >
-                    <Phone className="w-4 h-4 stroke-[2]" />
-                  </a>
-                </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${shop?.coordinates?.lat || 27.5706},${shop?.coordinates?.lng || 77.6593}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[#FD9139] text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                          title="Get Directions"
+                        >
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span>Directions</span>
+                        </a>
+
+                        <a
+                          href={`tel:${riderPhone}`}
+                          className="w-8 h-8 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                          title="Call Kitchen"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Delivery Partner Sarathi Row */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border border-[#FD9139]/40 bg-[#181617] shrink-0">
+                          <img
+                            src={riderPhoto}
+                            alt={riderName}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-white font-['Outfit'] truncate">
+                              {riderName}
+                            </h4>
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
+                          </div>
+                          <p className="text-[11px] text-stone-400 mt-0.5">
+                            ⭐ {riderRating} · {isOutForDelivery ? 'Sarathi Partner' : 'Kitchen Dispatch'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Order #${currentOrder?.id ? currentOrder.id.slice(-5).toUpperCase() : ''}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                          title="WhatsApp chat"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Chat</span>
+                        </a>
+
+                        <a
+                          href={`tel:${riderPhone}`}
+                          className="px-2.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                          title="Call"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Call</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Delivery PIN Row */}
+                    <div className="flex items-center justify-between bg-[#181617] rounded-xl px-3 py-2 border border-white/[0.06]">
+                      <div>
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                          Delivery Verification PIN
+                        </span>
+                        <p className="text-xs text-stone-300 font-medium">
+                          Share with Sarathi upon delivery
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-black text-[#FD9139] font-['Outfit'] tracking-widest bg-white/[0.04] px-2.5 py-1 rounded-lg border border-[#FD9139]/30">
+                          {otpCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(otpCode);
+                            setCopiedOtp(true);
+                            setTimeout(() => setCopiedOtp(false), 2000);
+                            if (onToast) onToast(`Copied PIN ${otpCode}`, 'success');
+                          }}
+                          className="text-stone-400 hover:text-white p-1 transition-colors cursor-pointer"
+                          title="Copy PIN"
+                        >
+                          {copiedOtp ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#FD9139]" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Delivery Destination Address */}
+                    <div className="flex items-start gap-2.5 pt-1 text-[11px] text-stone-400 border-t border-white/[0.06]">
+                      <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-stone-300">{getAddressLabel()}: </span>
+                        <span className="truncate">{customerAddress}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* 3. Delivery Route Location Details */}
-              <div className="bg-stone-50 dark:bg-[#201D1E] border border-stone-200/80 dark:border-white/[0.06] rounded-[20px] p-3 space-y-2.5">
-                {/* Origin */}
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-stone-200/70 dark:bg-white/5 text-amber-700 dark:text-white flex items-center justify-center shrink-0 mt-0.5">
-                    <Utensils className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">From Kitchen</p>
-                    <p className="text-xs font-bold text-stone-900 dark:text-white truncate font-['Outfit']">{shop?.name || 'Foody Vrinda Sacred Kitchen'}</p>
-                    <p className="text-[10px] text-stone-600 dark:text-neutral-400 truncate">{shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-dashed border-stone-200 dark:border-white/5 ml-3 pl-3" />
-
-                {/* Drop-off Destination */}
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <p className="text-[9px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">{getAddressLabel()} Drop-off</p>
-                      <span className="text-[9px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 px-1.5 py-0.2 rounded-md border border-amber-500/25 dark:border-[#FD9139]/20">
-                        {realDistance || '2.2km'}
-                      </span>
-                    </div>
-                    <p className="text-xs font-bold text-stone-900 dark:text-white font-['Outfit'] mt-0.5 truncate" title={customerAddress}>
-                      {customerAddress}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Collapsible Order Items Details */}
-              <div className="bg-stone-50 dark:bg-[#141213] rounded-[18px] p-3 border border-stone-200/80 dark:border-white/[0.06] text-xs">
+              {/* 3. Collapsible Order Items Details */}
+              <div className="bg-[#221F20] rounded-2xl p-3.5 border border-white/[0.08] text-xs shadow-sm">
                 <button
                   onClick={() => setShowItems(!showItems)}
-                  className="w-full flex items-center justify-between text-stone-700 hover:text-stone-950 dark:text-neutral-300 dark:hover:text-white font-bold cursor-pointer transition-colors"
+                  className="w-full flex items-center justify-between text-neutral-300 hover:text-white font-bold cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span>Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}</span>
@@ -1031,45 +1129,45 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </button>
 
                 {showItems && (
-                  <div className="mt-2.5 space-y-2 pt-2 border-t border-stone-200 dark:border-white/5 text-stone-600 dark:text-neutral-400">
+                  <div className="mt-2.5 space-y-2 pt-2.5 border-t border-white/10 text-stone-300">
                     {currentOrder?.items?.map((it, idx) => {
                       const itemImg = resolveDishCutout(it.image || it.imageUrl, it.name, it.category);
                       return (
                         <div key={idx} className="flex justify-between items-center text-[11px] gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <img
                               src={itemImg}
                               alt={it.name || 'Dish'}
-                              className="w-7 h-7 rounded-lg object-cover bg-stone-200 dark:bg-neutral-900 border border-stone-300 dark:border-white/10 shrink-0"
+                              className="w-8 h-8 rounded-lg object-cover bg-neutral-900 border border-white/10 shrink-0"
                               onError={(e) => {
                                 e.currentTarget.onerror = null;
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
                               }}
                             />
-                            <span className="text-stone-900 dark:text-white font-medium truncate">{it.name} × {it.quantity}</span>
+                            <span className="text-white font-medium truncate">{it.name} × {it.quantity}</span>
                           </div>
-                          <span className="font-bold text-amber-700 dark:text-[#FD9139] shrink-0">₹{it.price * it.quantity}</span>
+                          <span className="font-bold text-[#FD9139] shrink-0 font-['Outfit']">₹{it.price * it.quantity}</span>
                         </div>
                       );
                     })}
-                    <div className="pt-2 border-t border-stone-200 dark:border-white/5 space-y-1.5 text-[11px]">
-                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                    <div className="pt-2 border-t border-white/10 space-y-1.5 text-[11px]">
+                      <div className="flex justify-between items-center text-stone-400">
                         <span>Item Subtotal</span>
-                        <span>₹{currentOrder?.subtotal || currentOrder?.totalAmount || '140'}</span>
+                        <span className="text-stone-200">₹{currentOrder?.subtotal || currentOrder?.totalAmount || '140'}</span>
                       </div>
-                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                      <div className="flex justify-between items-center text-stone-400">
                         <span>GST & Govt Taxes (5%)</span>
-                        <span>₹{currentOrder?.gst_amount || currentOrder?.gstAmount || Math.round(Number(currentOrder?.totalAmount || 140) * 0.05)}</span>
+                        <span className="text-stone-200">₹{currentOrder?.gst_amount || currentOrder?.gstAmount || Math.round(Number(currentOrder?.totalAmount || 140) * 0.05)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-stone-600 dark:text-neutral-400">
+                      <div className="flex justify-between items-center text-stone-400">
                         <span>Delivery & Packaging</span>
-                        <span>{Number(currentOrder?.delivery_charge || currentOrder?.deliveryCharge || 0) > 0 ? `₹${currentOrder?.delivery_charge || currentOrder?.deliveryCharge}` : 'FREE'}</span>
+                        <span className="text-emerald-400 font-bold">{Number(currentOrder?.delivery_charge || currentOrder?.deliveryCharge || 0) > 0 ? `₹${currentOrder?.delivery_charge || currentOrder?.deliveryCharge}` : 'FREE'}</span>
                       </div>
-                      <div className="pt-1.5 border-t border-stone-200 dark:border-white/5 flex justify-between items-center font-black text-stone-900 dark:text-white text-xs">
+                      <div className="pt-2 border-t border-white/10 flex justify-between items-center font-black text-white text-xs">
                         <span>Total Amount</span>
-                        <span className="text-amber-700 dark:text-[#FD9139] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
+                        <span className="text-[#FD9139] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
                       </div>
-                      <div className="pt-1 flex items-center justify-between text-[10px] text-stone-500 dark:text-neutral-400">
+                      <div className="pt-1 flex items-center justify-between text-[10px] text-stone-400">
                         <span className="uppercase font-bold tracking-wider">Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}</span>
                       </div>
                     </div>

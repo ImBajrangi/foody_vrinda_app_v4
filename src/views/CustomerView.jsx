@@ -1916,7 +1916,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               )}
               <button
                 onClick={() => setIsTrackingModalOpen(true)}
-                className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-stone-900 hover:bg-stone-800 dark:bg-[#E0FF33] dark:hover:bg-[#d8fa26] text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
               >
                 <Navigation className="w-3 h-3 fill-current shrink-0" />
                 <span className="whitespace-nowrap">Track</span>

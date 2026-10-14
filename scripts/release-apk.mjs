@@ -119,8 +119,20 @@ async function main() {
     run(`git add -A`, ROOT_DIR);
     run(`git commit -m "chore(release): bump version to v${nextName} (Build ${nextCode})" || true`, ROOT_DIR);
     run(`git push origin main`, ROOT_DIR);
+    try {
+      run(`git push v3_legacy main`, ROOT_DIR);
+      log('✅', 'Updates pushed to v3_legacy');
+    } catch (v3Err) {
+      console.warn('v3_legacy push note:', v3Err.message);
+    }
     run(`git tag -a ${nextTag} -m "Release v${nextName}"`, ROOT_DIR);
     run(`git push origin ${nextTag}`, ROOT_DIR);
+    try {
+      run(`git push v3_legacy ${nextTag}`, ROOT_DIR);
+      log('✅', `Git tag ${nextTag} pushed to v3_legacy`);
+    } catch (v3TagErr) {
+      console.warn('v3_legacy tag push note:', v3TagErr.message);
+    }
     log('✅', `Git tag ${nextTag} pushed to origin`);
   } catch (err) {
     console.warn('Git tag push note:', err.message);
@@ -132,70 +144,85 @@ async function main() {
     throw new Error('GitHub token not found. Unable to publish release.');
   }
 
-  log('🌐', `Creating GitHub Release ${nextTag} on ${REPO_OWNER}/${REPO_NAME}...`);
   const releaseNotes = [
-    'Hardened native push notification routing for Store Owners & Kitchen desks.',
-    'Urgent high-priority owner order alerts (owner_alert) & kitchen sirens on incoming orders.',
-    'Fixed notification click deep-routing directly to Owner, Kitchen, or Transport dashboards.',
-    'Swipe-down-to-refresh pull gesture across all views for seamless mobile data sync.',
-    'Persistent OTP verification and atomic counter pickup order fulfillment.'
+    'Cloud-synchronized master payment gateway settings & resilient shop cache fallback.',
+    'Enhanced active order tracking modal UI with high-contrast live map actions.',
+    'Optimized registration and login onboarding experience with seamless validation.',
+    'Targeted shop configuration updates preventing database RLS conflict aborts.',
+    'Instant offline-to-online recovery with real-time shop synchronization.'
   ];
 
-  const releasePayload = {
-    tag_name: nextTag,
-    target_commitish: 'main',
-    name: `Foody Vrinda v${nextName} (Build ${nextCode})`,
-    body: `### Foody Vrinda v${nextName} Official Release 🦚\n\n` +
-      releaseNotes.map(n => `- ${n}`).join('\n') +
-      `\n\n**Direct Download:** [Foody-Vrinda-Latest.apk](https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${nextTag}/Foody-Vrinda-Latest.apk)\n` +
-      `**SHA256 & Verification:** Built and verified for Android devices.`,
-    draft: false,
-    prerelease: false
-  };
+  async function uploadRelease(repoOwner, repoName) {
+    log('🌐', `Creating GitHub Release ${nextTag} on ${repoOwner}/${repoName}...`);
+    const releasePayload = {
+      tag_name: nextTag,
+      target_commitish: 'main',
+      name: `Foody Vrinda v${nextName} (Build ${nextCode})`,
+      body: `### Foody Vrinda v${nextName} Official Release 🦚\n\n` +
+        releaseNotes.map(n => `- ${n}`).join('\n') +
+        `\n\n**Direct Download:** [Foody-Vrinda-Latest.apk](https://github.com/${repoOwner}/${repoName}/releases/download/${nextTag}/Foody-Vrinda-Latest.apk)\n` +
+        `**SHA256 & Verification:** Built and verified for Android devices.`,
+      draft: false,
+      prerelease: false
+    };
 
-  const createRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases`, {
-    method: 'POST',
-    headers: {
-      Authorization: `token ${ghToken}`,
-      Accept: 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-      'User-Agent': 'FoodyVrinda-Release'
-    },
-    body: JSON.stringify(releasePayload)
-  });
+    const createRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/releases`, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${ghToken}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'FoodyVrinda-Release'
+      },
+      body: JSON.stringify(releasePayload)
+    });
 
-  if (!createRes.ok) {
-    const errorText = await createRes.text();
-    throw new Error(`Failed to create GitHub release: ${createRes.status} ${errorText}`);
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      console.warn(`Failed to create GitHub release on ${repoOwner}/${repoName}: ${createRes.status} ${errorText}`);
+      return null;
+    }
+
+    const releaseData = await createRes.json();
+    log('🎉', `GitHub Release created on ${repoOwner}/${repoName}: ${releaseData.html_url}`);
+
+    log('📤', `Uploading Foody-Vrinda-Latest.apk (${sizeMB} MB) to ${repoOwner}/${repoName} assets...`);
+    const uploadUrl = releaseData.upload_url.replace('{?name,label}', `?name=Foody-Vrinda-Latest.apk`);
+    const apkBuffer = fs.readFileSync(LATEST_APK_PATH);
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${ghToken}`,
+        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Length': String(apkStats.size),
+        'User-Agent': 'FoodyVrinda-Release'
+      },
+      body: apkBuffer
+    });
+
+    if (!uploadRes.ok) {
+      const uploadErr = await uploadRes.text();
+      console.warn(`Failed to upload APK asset to ${repoOwner}/${repoName}: ${uploadRes.status} ${uploadErr}`);
+      return null;
+    }
+
+    const assetData = await uploadRes.json();
+    const directApkUrl = assetData.browser_download_url;
+    log('✅', `APK asset uploaded to ${repoOwner}/${repoName}! Direct URL: ${directApkUrl}`);
+    return { releaseData, directApkUrl };
   }
 
-  const releaseData = await createRes.json();
-  log('🎉', `GitHub Release created: ${releaseData.html_url}`);
+  // Publish to v4 (primary) and v3 (legacy)
+  const v4Result = await uploadRelease(REPO_OWNER, REPO_NAME);
+  let directApkUrl = v4Result?.directApkUrl || `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${nextTag}/Foody-Vrinda-Latest.apk`;
+  const releaseData = v4Result?.releaseData || { html_url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/tag/${nextTag}` };
 
-  // 8. Upload APK Asset to GitHub Release
-  log('📤', `Uploading Foody-Vrinda-Latest.apk (${sizeMB} MB) to release assets...`);
-  const uploadUrl = releaseData.upload_url.replace('{?name,label}', `?name=Foody-Vrinda-Latest.apk`);
-  const apkBuffer = fs.readFileSync(LATEST_APK_PATH);
-
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `token ${ghToken}`,
-      'Content-Type': 'application/vnd.android.package-archive',
-      'Content-Length': String(apkStats.size),
-      'User-Agent': 'FoodyVrinda-Release'
-    },
-    body: apkBuffer
-  });
-
-  if (!uploadRes.ok) {
-    const uploadErr = await uploadRes.text();
-    throw new Error(`Failed to upload APK asset: ${uploadRes.status} ${uploadErr}`);
+  try {
+    await uploadRelease(REPO_OWNER, 'foody_vrinda_v3');
+  } catch (v3RelErr) {
+    console.warn('v3 release upload note:', v3RelErr.message);
   }
-
-  const assetData = await uploadRes.json();
-  const directApkUrl = assetData.browser_download_url;
-  log('✅', `APK asset uploaded successfully! Direct URL: ${directApkUrl}`);
 
   // 9. Broadcast Release to Supabase Cloud for all installed applications
   log('📡', 'Broadcasting release descriptor to Supabase Cloud (foody_shops)...');

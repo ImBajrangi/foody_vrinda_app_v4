@@ -143,22 +143,33 @@ export function getCachedItem(type, key = 'default', ignoreTTL = false) {
 export function normalizeShop(s) {
   if (!s) return s;
 
+  const rawPaymentSettings = s.paymentSettings || s.payment_settings || {};
+
   // Extract payment settings handling nested object or top-level properties
-  const onlinePaymentsEnabled = s.paymentSettings?.onlinePaymentsEnabled
-    ?? s.payment_settings?.onlinePaymentsEnabled
+  const onlinePaymentsEnabled = rawPaymentSettings.onlinePaymentsEnabled
     ?? s.onlinePaymentsEnabled
     ?? s.online_payments_enabled
     ?? true;
 
-  const codEnabled = s.paymentSettings?.codEnabled
-    ?? s.payment_settings?.codEnabled
+  const codEnabled = rawPaymentSettings.codEnabled
     ?? s.codEnabled
     ?? s.cod_enabled
     ?? true;
 
+  const globalOnlinePaymentsEnabled = rawPaymentSettings.globalOnlinePaymentsEnabled
+    ?? rawPaymentSettings.global_payment_config?.onlinePaymentsEnabled
+    ?? undefined;
+
+  const globalCodEnabled = rawPaymentSettings.globalCodEnabled
+    ?? rawPaymentSettings.global_payment_config?.codEnabled
+    ?? undefined;
+
   const paymentSettings = {
+    ...rawPaymentSettings,
     onlinePaymentsEnabled,
-    codEnabled
+    codEnabled,
+    ...(globalOnlinePaymentsEnabled !== undefined ? { globalOnlinePaymentsEnabled } : {}),
+    ...(globalCodEnabled !== undefined ? { globalCodEnabled } : {})
   };
 
   const alarmSettings = s.alarm_settings ?? s.alarmSettings ?? { kitchenNew: true, kitchenReady: false, deliveryReady: true };

@@ -253,6 +253,7 @@ export async function updateCloudShop(shopId, shopData) {
           autoSchedule: true
         },
         payment_settings: {
+          ...(updatedShop.payment_settings || {}),
           onlinePaymentsEnabled: updatedShop.onlinePaymentsEnabled,
           codEnabled: updatedShop.codEnabled,
           shopType: updatedShop.shopType,
@@ -273,12 +274,26 @@ export async function updateCloudShop(shopId, shopData) {
         });
       } catch (_) { }
 
-      const { error } = await supabase
+      // 2. Targeted update first (avoids column-schema mismatch or conflict aborts)
+      const { error: updateErr } = await supabase
         .from('foody_shops')
-        .upsert(fullShopPayload, { onConflict: 'id' });
+        .update({
+          payment_settings: fullShopPayload.payment_settings,
+          is_open: fullShopPayload.is_open,
+          is_online: fullShopPayload.is_online,
+          updated_at: fullShopPayload.updated_at
+        })
+        .eq('id', updatedShop.id);
 
-      if (error) {
-        console.warn("Supabase shop update note:", error.message);
+      if (updateErr) {
+        // Fallback to full upsert
+        const { error: upsertErr } = await supabase
+          .from('foody_shops')
+          .upsert(fullShopPayload, { onConflict: 'id' });
+
+        if (upsertErr) {
+          console.warn("Supabase shop update note:", upsertErr.message);
+        }
       }
     } catch (sbErr) {
       console.warn("Supabase shop update note:", sbErr?.message);
