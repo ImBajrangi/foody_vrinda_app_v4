@@ -516,7 +516,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     setShowMapPicker(true);
   };
 
-  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
 
   // Dynamically resolve payment methods for the active shop
   const currentCartShop = (allShops && allShops.length > 0 && selectedShopId)

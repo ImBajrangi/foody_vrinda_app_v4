@@ -149,7 +149,7 @@ export function normalizeShop(s) {
   const onlinePaymentsEnabled = rawPaymentSettings.onlinePaymentsEnabled
     ?? s.onlinePaymentsEnabled
     ?? s.online_payments_enabled
-    ?? true;
+    ?? false;
 
   const codEnabled = rawPaymentSettings.codEnabled
     ?? s.codEnabled
