@@ -3,6 +3,50 @@ import { getCachedShops, getCloudShops } from '../supabase';
 
 const CartContext = createContext(null);
 
+/**
+ * Evaluates payment settings directly from Supabase Database Shops
+ * Zero hardcoding — strictly derived from active shop rows in the DB.
+ */
+function derivePaymentSettingsFromDatabaseShops(shops) {
+  if (!Array.isArray(shops) || shops.length === 0) return null;
+
+  // 1. Inspect any shop that holds the platform master payment descriptor in Supabase
+  for (const s of shops) {
+    const ps = s.payment_settings || s.paymentSettings || {};
+    if (ps.globalOnlinePaymentsEnabled !== undefined) {
+      return {
+        onlinePaymentsEnabled: Boolean(ps.globalOnlinePaymentsEnabled),
+        codEnabled: ps.globalCodEnabled !== undefined ? Boolean(ps.globalCodEnabled) : true
+      };
+    }
+    if (ps.global_payment_config?.onlinePaymentsEnabled !== undefined) {
+      return {
+        onlinePaymentsEnabled: Boolean(ps.global_payment_config.onlinePaymentsEnabled),
+        codEnabled: ps.global_payment_config?.codEnabled !== undefined ? Boolean(ps.global_payment_config.codEnabled) : true
+      };
+    }
+  }
+
+  // 2. Derive directly from active shops in database:
+  const activeShops = shops.filter(s => s.is_active !== false && !s.is_deleted);
+  if (activeShops.length === 0) return null;
+
+  const anyShopHasOnline = activeShops.some(s => {
+    const ps = s.payment_settings || s.paymentSettings || {};
+    return (ps.onlinePaymentsEnabled ?? s.onlinePaymentsEnabled ?? s.online_payments_enabled) === true;
+  });
+
+  const anyShopHasCod = activeShops.some(s => {
+    const ps = s.payment_settings || s.paymentSettings || {};
+    return (ps.codEnabled ?? s.codEnabled ?? s.cod_enabled) === true;
+  });
+
+  return {
+    onlinePaymentsEnabled: anyShopHasOnline,
+    codEnabled: anyShopHasCod
+  };
+}
+
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
     try {
@@ -34,28 +78,21 @@ export function CartProvider({ children }) {
   }, [cart, selectedShopId]);
 
   const [paymentSettings, setPaymentSettings] = useState(() => {
+    // 1. Instant SWR: strictly compute from synchronous local database cached shops
+    try {
+      const cachedShops = getCachedShops();
+      const dbSettings = derivePaymentSettingsFromDatabaseShops(cachedShops);
+      if (dbSettings) return dbSettings;
+    } catch (_) { }
+
+    // 2. Check localStorage cache
     try {
       const saved = localStorage.getItem('foody_payment_config');
       if (saved) return JSON.parse(saved);
     } catch (e) { }
 
-    // Instant SWR: check synchronous local cached shops for explicit global flags
-    try {
-      const cachedShops = getCachedShops();
-      if (Array.isArray(cachedShops) && cachedShops.length > 0) {
-        for (const s of cachedShops) {
-          const ps = s.paymentSettings || s.payment_settings;
-          if (ps?.globalOnlinePaymentsEnabled !== undefined) {
-            return {
-              onlinePaymentsEnabled: Boolean(ps.globalOnlinePaymentsEnabled),
-              codEnabled: ps.globalCodEnabled !== undefined ? Boolean(ps.globalCodEnabled) : true
-            };
-          }
-        }
-      }
-    } catch (_) { }
-
-    return { onlinePaymentsEnabled: true, codEnabled: true };
+    // 3. Fail-Closed initial state before cloud sync completes (zero hardcoded assumptions)
+    return { onlinePaymentsEnabled: false, codEnabled: false };
   });
 
   // Synchronize paymentSettings directly from Supabase Cloud shops (Single Source of Truth)
@@ -69,60 +106,8 @@ export function CartProvider({ children }) {
         shops = await getCloudShops();
       }
 
-      if (Array.isArray(shops) && shops.length > 0) {
-        let masterOnline = null;
-        let masterCod = null;
-
-        // 1. Inspect any shop that holds the platform master payment descriptor
-        for (const s of shops) {
-          const ps = s.payment_settings || s.paymentSettings || {};
-          if (ps.globalOnlinePaymentsEnabled !== undefined) {
-            masterOnline = Boolean(ps.globalOnlinePaymentsEnabled);
-          } else if (ps.global_payment_config?.onlinePaymentsEnabled !== undefined) {
-            masterOnline = Boolean(ps.global_payment_config.onlinePaymentsEnabled);
-          }
-          if (ps.globalCodEnabled !== undefined) {
-            masterCod = Boolean(ps.globalCodEnabled);
-          } else if (ps.global_payment_config?.codEnabled !== undefined) {
-            masterCod = Boolean(ps.global_payment_config.codEnabled);
-          }
-        }
-
-        // 2. Fail-Safe: If no explicit platform master flag, check active kitchens.
-        // If ALL active kitchens have online payments disabled in database, platform online payment is OFF
-        const activeShops = shops.filter(s => s.is_active !== false && !s.is_deleted);
-        if (masterOnline === null && activeShops.length > 0) {
-          const anyShopHasOnline = activeShops.some(s => {
-            const ps = s.payment_settings || s.paymentSettings || {};
-            const val = ps.onlinePaymentsEnabled ?? s.onlinePaymentsEnabled ?? false;
-            return val === true;
-          });
-          if (!anyShopHasOnline) {
-            masterOnline = false;
-          }
-        }
-
-        // 3. Fallback to localStorage if database did not specify master override
-        const localSaved = (() => {
-          try {
-            const raw = localStorage.getItem('foody_payment_config');
-            return raw ? JSON.parse(raw) : null;
-          } catch (_) { return null; }
-        })();
-
-        const finalOnline = masterOnline !== null
-          ? Boolean(masterOnline)
-          : (localSaved?.onlinePaymentsEnabled !== undefined ? Boolean(localSaved.onlinePaymentsEnabled) : true);
-
-        const finalCod = masterCod !== null
-          ? Boolean(masterCod)
-          : (localSaved?.codEnabled !== undefined ? Boolean(localSaved.codEnabled) : true);
-
-        const nextConfig = {
-          onlinePaymentsEnabled: finalOnline,
-          codEnabled: finalCod
-        };
-
+      const nextConfig = derivePaymentSettingsFromDatabaseShops(shops);
+      if (nextConfig) {
         setPaymentSettings(prev => {
           if (prev.onlinePaymentsEnabled === nextConfig.onlinePaymentsEnabled && prev.codEnabled === nextConfig.codEnabled) {
             return prev;

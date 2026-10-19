@@ -998,12 +998,26 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Cart's actual shop isolation & mismatch resolution
+  const cartShopId = cart.length > 0 ? (cart[0]?.shopId || cart[0]?.shop_id) : null;
+  const isMultiShopCart = cart.length > 1 && cart.some(item => {
+    const itShop = item.shopId || item.shop_id;
+    return itShop && cartShopId && itShop !== cartShopId;
+  });
+  const cartShop = useMemo(() => {
+    if (!cartShopId || !allShops) return null;
+    return allShops.find(s => s.id === cartShopId && s.is_active !== false && !s.is_deleted) || null;
+  }, [allShops, cartShopId]);
+
   const activeShop = useMemo(() => {
     if (!selectedShopId || !allShops || allShops.length === 0) return null;
     return allShops.find(s => s.id === selectedShopId && s.is_active !== false && !s.is_deleted) || null;
   }, [allShops, selectedShopId]);
 
-  const isShopOpen = activeShop ? isShopCurrentlyOpen(activeShop) : false;
+  // If cart has items from a valid shop, use that shop as effective context for pricing & fulfillment
+  const effectiveOrderShop = (cart.length > 0 && cartShop) ? cartShop : activeShop;
+
+  const isShopOpen = effectiveOrderShop ? isShopCurrentlyOpen(effectiveOrderShop) : false;
 
   const filteredShops = useMemo(() => {
     if (!shopSearch.trim()) return allShops || [];
@@ -1016,59 +1030,62 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       (s.description && s.description.toLowerCase().includes(q))
     );
   }, [allShops, shopSearch]);
-  const minOrderAmount = activeShop?.minimumOrderAmount || 0;
-  const deliveryCharge = fulfillmentType === 'pickup' ? 0 : (activeShop?.deliveryCharge || 0);
-  const gstPct = activeShop?.gstPercentage || 5;
+
+  const minOrderAmount = effectiveOrderShop?.minimumOrderAmount || 0;
+  const deliveryCharge = fulfillmentType === 'pickup' ? 0 : (effectiveOrderShop?.deliveryCharge || 0);
+  const gstPct = effectiveOrderShop?.gstPercentage || 5;
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const gstAmount = Math.round(subtotal * (gstPct / 100));
   const totalAmount = subtotal > 0 ? (subtotal + deliveryCharge + gstAmount) : 0;
   const isBelowMin = subtotal < minOrderAmount && minOrderAmount > 0;
 
-  const isRetailShop = activeShop?.shopType === 'shop' || activeShop?.shop_type === 'shop';
   const isPickupOrder = fulfillmentType === 'pickup';
   // Cash / Pay at Counter availability matches platform and shop COD status
   const isCodAvailableForOrder = codAvailable;
 
   // Auto-switch payment method if selected method is disabled for this kitchen or fulfillment mode
   useEffect(() => {
-    if (!isCodAvailableForOrder && paymentMethod === 'cash' && onlineAvailable) {
-      setPaymentMethod('online');
-    } else if (!onlineAvailable && isCodAvailableForOrder && paymentMethod !== 'cash') {
+    if (!onlineAvailable && isCodAvailableForOrder && paymentMethod !== 'cash') {
       setPaymentMethod('cash');
-    } else if (onlineAvailable && !codAvailable && paymentMethod !== 'online') {
+    } else if (!isCodAvailableForOrder && onlineAvailable && paymentMethod === 'cash') {
       setPaymentMethod('online');
     }
-  }, [onlineAvailable, codAvailable, isCodAvailableForOrder, paymentMethod]);
+  }, [onlineAvailable, isCodAvailableForOrder, paymentMethod]);
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return showToast('Basket is empty', 'error');
 
+    // Multi-kitchen guard: If cart has items from multiple kitchens, inform user cleanly
+    if (isMultiShopCart) {
+      return showToast("Multiple Kitchens in Basket", "error", "Please keep items from one kitchen only.");
+    }
+
+    // Target shop is the cart's shop if items exist, otherwise active selected shop
+    const targetShop = effectiveOrderShop;
+    const targetShopId = targetShop?.id || selectedShopId;
+
     // 1. Mandatory Selected Shop Validation (Zero Silent Fallbacks)
-    if (!selectedShopId) {
+    if (!targetShopId) {
       return showToast("Please select a restaurant/kitchen.", "error");
     }
 
     // 2. Verify Shop is active and non-deleted
-    if (!activeShop) {
+    if (!targetShop) {
       return showToast("Selected kitchen is unavailable or inactive.", "error");
     }
 
-    // 3. Basket Shop Mismatch Guard (Dishes from Shop A cannot be ordered from Shop B)
-    const foreignItem = cart.find(item => {
-      const itemShopId = item.shopId || item.shop_id;
-      return itemShopId && itemShopId !== selectedShopId;
-    });
-    if (foreignItem) {
-      return showToast("Basket contains items from another kitchen.", "error");
+    // Auto-align selectedShopId to the cart's shop if user browsed another kitchen
+    if (cartShopId && cartShopId !== selectedShopId) {
+      setSelectedShopId(cartShopId);
     }
 
     // 4. Verify Kitchen is online and within operating schedule
-    if (!isShopOpen) {
+    if (!isShopCurrentlyOpen(targetShop)) {
       return showToast(
         "Kitchen Closed / Offline",
         'error',
-        `Operating Hours: ${activeShop?.openingTime || '08:00 AM'} – ${activeShop?.closingTime || '10:30 PM'}`
+        `Operating Hours: ${targetShop?.openingTime || '08:00 AM'} – ${targetShop?.closingTime || '10:30 PM'}`
       );
     }
 
@@ -1098,9 +1115,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
 
     // Determine fulfillment details and address validation
-    const pickupCounterId = activeShop?.id || selectedShopId;
-    const pickupCounterName = activeShop?.name || 'Kitchen Counter';
-    const pickupCounterAddress = activeShop?.address || 'Vrindavan';
+    const pickupCounterId = targetShop?.id || selectedShopId;
+    const pickupCounterName = targetShop?.name || 'Kitchen Counter';
+    const pickupCounterAddress = targetShop?.address || 'Vrindavan';
 
     let orderDeliveryAddress = '';
     let orderCustomerAddress = '';
@@ -1159,18 +1176,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         console.warn("Could not sync profile fields to storage:", err);
       }
     } else {
-      // 2. Anti-Fake Order Check for Shop Type Self-Pickup
-      if (isRetailShop && paymentMethod === 'cash') {
-        return showToast("Prepaid Order Required", 'error', 'Pickup from retail shop requires online payment confirmation to prevent uncollected waste.');
-      }
-
       // Self-Pickup state isolation: NEVER write pickup counter address to customer personal address!
       orderDeliveryAddress = `[Counter Pickup] ${pickupCounterName}`;
       // Preserve customer's legitimate personal address if available, otherwise note counter pickup
       const legitSaved = sanitizeCustomerAddress(checkoutAddress) || sanitizeCustomerAddress(localStorage.getItem('customerAddress'));
       orderCustomerAddress = legitSaved || `${pickupCounterName} (Counter Pickup)`;
 
-      const shopCoords = activeShop?.coords || (activeShop?.latitude && activeShop?.longitude ? { lat: activeShop.latitude, lng: activeShop.longitude } : null);
+      const shopCoords = targetShop?.coords || (targetShop?.latitude && targetShop?.longitude ? { lat: targetShop.latitude, lng: targetShop.longitude } : null);
       const coordRes = resolveOrderCoordinates({
         activeShopCoords: shopCoords,
         fulfillmentType: 'pickup'
@@ -2416,6 +2428,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             {/* Middle Scrollable Content (Items + Bill + Delivery Details Form + Payment) */}
             <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar pr-0.5 space-y-4 my-2.5">
+              {/* Friendly Kitchen Indicator Banner */}
+              {cartShop && selectedShopId && cartShop.id !== selectedShopId && cart.length > 0 && (
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2.5 text-xs animate-fade-in">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-stone-900 dark:text-white truncate">
+                      Items from <span className="text-amber-700 dark:text-[#FD9139]">{cartShop.name}</span>
+                    </p>
+                    <p className="text-[11px] text-stone-500 dark:text-zinc-400 truncate">
+                      Order will be placed directly with {cartShop.name}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => clearCart()}
+                    className="px-2.5 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-white rounded-xl font-bold text-[11px] active:scale-95 transition-all cursor-pointer shrink-0"
+                  >
+                    Clear Basket
+                  </button>
+                </div>
+              )}
+
               {/* Items List */}
               <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
                 {cart.length === 0 ? (
@@ -2537,13 +2570,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </button>
                 </div>
 
-                {/* Retail Shop Pickup Policy Notice */}
-                {isRetailShop && (
-                  <div className="text-[10px] text-stone-600 dark:text-zinc-400 bg-stone-100 dark:bg-white/5 p-2 rounded-xl border border-stone-200 dark:border-white/5 flex items-center gap-1.5">
-                    <ShieldCheck size={12} className="text-amber-600 dark:text-[#FD9139] shrink-0" />
-                    <span>Retail Stall: Prepaid online payment is required for counter pickup to protect against uncollected waste.</span>
-                  </div>
-                )}
 
                 {/* Rider Offline Notice */}
                 {onlineRidersCount === 0 && (
@@ -2795,19 +2821,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
-                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139] truncate">{activeShop?.name || 'Counter Pickup'}</p>
+                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139] truncate">{(cartShop || activeShop)?.name || 'Counter Pickup'}</p>
                       </div>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
-                      {activeShop?.address || 'Pickup counter'}
+                      {(cartShop || activeShop)?.address || 'Pickup counter'}
                     </p>
-
-                    {/* Anti-Fake Orders Notice for Shop Type */}
-                    {isRetailShop && (
-                      <div className="mt-2.5 p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-200 text-xs leading-relaxed font-medium">
-                        🛡️ <strong>Prasad Freshness Policy</strong>: Counter pickup orders from Retail Shops require prepaid online confirmation to prevent uncollected fresh bhog wastage.
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -2818,58 +2837,47 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <span className="text-[11px] text-amber-700 dark:text-[#FD9139] font-bold">100% Secure</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {/* Online Pay Option */}
-                    <button
-                      type="button"
-                      disabled={!onlineAvailable}
-                      onClick={() => onlineAvailable && setPaymentMethod('online')}
-                      className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target relative overflow-hidden ${
-                        !onlineAvailable
-                          ? 'bg-stone-100/70 dark:bg-white/[0.04] text-stone-400 dark:text-zinc-500 border border-stone-200 dark:border-white/5 cursor-not-allowed opacity-60'
-                          : paymentMethod === 'online'
+                  <div className={onlineAvailable ? "grid grid-cols-2 gap-2.5" : "grid grid-cols-1"}>
+                    {/* Online Pay Option - only rendered if onlineAvailable is true */}
+                    {onlineAvailable && (
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('online')}
+                        className={`p-3.5 sm:p-4 rounded-3xl text-left flex flex-col justify-between gap-3 transition-all apple-tap-target relative overflow-hidden ${
+                          paymentMethod === 'online'
                             ? 'bg-[#FFF8EE] text-stone-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-600/20 dark:bg-[#FD9139] dark:text-white dark:border-[#FD9139] dark:ring-[#FD9139]/30 cursor-pointer'
                             : 'payment-method-unselected bg-stone-100/90 text-stone-900 dark:bg-[#282526] dark:text-zinc-300 border border-stone-300 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-white/20 cursor-pointer'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
-                          !onlineAvailable
-                            ? 'bg-stone-200/60 dark:bg-white/5 text-stone-400 dark:text-zinc-600'
-                            : paymentMethod === 'online'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                            paymentMethod === 'online'
                               ? 'bg-amber-600 text-white dark:bg-white/20 dark:text-white'
                               : 'bg-amber-500/15 text-amber-800 dark:bg-white/10 dark:text-zinc-200'
-                        }`}>
-                          <Zap size={19} className="stroke-[2.5]" />
-                        </div>
-                        {onlineAvailable && paymentMethod === 'online' && (
-                          <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-white/20 dark:text-white flex items-center justify-center">
-                            <Check size={14} strokeWidth={3.5} />
+                          }`}>
+                            <Zap size={19} className="stroke-[2.5]" />
                           </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
-                          !onlineAvailable
-                            ? 'text-stone-400 dark:text-zinc-500'
-                            : paymentMethod === 'online'
-                              ? 'text-stone-950 dark:text-white'
-                              : 'text-stone-950 dark:text-white'
-                        }`}>
-                          Online Pay
+                          {paymentMethod === 'online' && (
+                            <div className="w-6 h-6 rounded-full bg-amber-600 text-white dark:bg-white/20 dark:text-white flex items-center justify-center">
+                              <Check size={14} strokeWidth={3.5} />
+                            </div>
+                          )}
                         </div>
-                        <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${
-                          !onlineAvailable
-                            ? 'text-rose-600 dark:text-rose-400 font-semibold'
-                            : paymentMethod === 'online'
+
+                        <div>
+                          <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
+                            Online Pay
+                          </div>
+                          <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${
+                            paymentMethod === 'online'
                               ? 'text-amber-800 dark:text-white/90 font-semibold'
                               : 'text-stone-600 dark:text-zinc-400'
-                        }`}>
-                          {!onlineAvailable ? (!globalOnline ? 'Platform Off' : 'Kitchen Off') : 'UPI · Cards · NetBanking'}
-                        </p>
-                      </div>
-                    </button>
+                          }`}>
+                            UPI · Cards · NetBanking
+                          </p>
+                        </div>
+                      </button>
+                    )}
 
                     {/* Cash on Delivery / Pay at Counter Option */}
                     <button
@@ -2902,13 +2910,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       </div>
 
                       <div>
-                        <div className={`text-sm font-black font-['Outfit'] tracking-tight payment-title ${
-                          !isCodAvailableForOrder
-                            ? 'text-stone-400 dark:text-zinc-500'
-                            : paymentMethod === 'cash'
-                              ? 'text-stone-950 dark:text-white'
-                              : 'text-stone-950 dark:text-white'
-                        }`}>
+                        <div className="text-sm font-black font-['Outfit'] tracking-tight payment-title text-stone-950 dark:text-white">
                           {fulfillmentType === 'pickup' ? 'Counter Cash' : 'Cash / COD'}
                         </div>
                         <p className={`text-xs leading-tight font-medium mt-0.5 payment-sub ${
@@ -2919,7 +2921,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                               : 'text-stone-600 dark:text-zinc-400'
                         }`}>
                           {!isCodAvailableForOrder 
-                            ? (isRetailShop && isPickupOrder ? 'Prepaid only for counter pickup' : 'COD Disabled') 
+                            ? 'COD Disabled' 
                             : (fulfillmentType === 'pickup' ? 'Pay at counter' : 'Pay upon delivery')}
                         </p>
                       </div>
@@ -2935,9 +2937,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] px-1">
                 <div className="flex items-center gap-1.5 text-amber-700 dark:text-[#FD9139]">
                   <Zap size={13} className="text-amber-600 dark:text-[#FD9139]" />
-                  <span className="font-bold text-stone-700 dark:text-neutral-300">Live GPS tracking included</span>
+                  <span className="font-bold text-stone-700 dark:text-neutral-300">
+                    {fulfillmentType === 'pickup' ? 'Counter Pickup · Fresh Preparation' : 'Live GPS tracking included'}
+                  </span>
                 </div>
-                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">{activeShop?.name || 'Foody Vrinda'}</span>
+                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">{(cartShop || activeShop)?.name || 'Foody Vrinda'}</span>
               </div>
 
               <button

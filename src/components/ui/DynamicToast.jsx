@@ -111,6 +111,7 @@ export default function DynamicToast({
       .replace(/^Cash on Delivery unavailable for this kitchen/i, 'COD Unavailable')
       .replace(/^Online payment unavailable for this kitchen/i, 'Online Pay Unavailable')
       .replace(/^Prepaid Order Required/i, 'Prepaid Required')
+      .replace(/^Basket contains items from another.*/i, 'Kitchen Mismatch')
       .replace(/^Pickup from retail shop requires online payment.*/i, 'Prepaid Required')
       .replace(/^Link Copied to Clipboard/i, 'Link Copied')
       .replace(/^Vrinda Dish Shared/i, 'Link Copied')
