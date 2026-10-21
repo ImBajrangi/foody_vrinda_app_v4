@@ -145,11 +145,11 @@ async function main() {
   }
 
   const releaseNotes = [
+    'Refined live kitchen presence and status indicators with royal botanical palette.',
+    'Streamlined status badges and navigation header removing visual clutter and dots.',
+    'Resolved typography clipping for font descenders and Devanagari text on profile cards.',
     'Cloud-synchronized master payment gateway settings & resilient shop cache fallback.',
-    'Enhanced active order tracking modal UI with high-contrast live map actions.',
-    'Optimized registration and login onboarding experience with seamless validation.',
-    'Targeted shop configuration updates preventing database RLS conflict aborts.',
-    'Instant offline-to-online recovery with real-time shop synchronization.'
+    'Enhanced active order tracking modal UI with high-contrast live map actions.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
