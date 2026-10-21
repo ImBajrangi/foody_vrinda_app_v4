@@ -17,13 +17,14 @@ import {
   getCachedUsers,
   saveCachedUsers,
   getRecommendedRiders,
-  isShopCurrentlyOpen
+  isShopCurrentlyOpen,
+  getPurgedOrderIds
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import { useFastNotify } from '../hooks/useFastNotify';
-import { PRESET_DISHES, PRESET_CATEGORIES } from '../constants/presetDishes';
+import { PRESET_DISHES, PRESET_CATEGORIES, getPresetDishes } from '../constants/presetDishes';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import NativeTimePicker from '../components/ui/NativeTimePicker';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -537,6 +538,21 @@ export default function OwnerView() {
   const [presetModalCategory, setPresetModalCategory] = useState('All');
   const [presetModalSearch, setPresetModalSearch] = useState('');
   const [presetPriceOverrides, setPresetPriceOverrides] = useState({});
+  const [presetDishesList, setPresetDishesList] = useState(() => getPresetDishes());
+
+  useEffect(() => {
+    const handlePresetsSync = (e) => {
+      if (e.detail?.presets && Array.isArray(e.detail.presets) && e.detail.presets.length > 0) {
+        setPresetDishesList(e.detail.presets);
+      }
+    };
+    window.addEventListener('foody_presets_changed', handlePresetsSync);
+    return () => window.removeEventListener('foody_presets_changed', handlePresetsSync);
+  }, []);
+
+  const activePresetCatalog = useMemo(() => {
+    return presetDishesList && presetDishesList.length > 0 ? presetDishesList : PRESET_DISHES;
+  }, [presetDishesList]);
 
   // Quick Inline Price Editing State
   const [inlineEditingDishId, setInlineEditingDishId] = useState(null);
@@ -617,7 +633,9 @@ export default function OwnerView() {
 
   const handleApplyPresetTemplate = (preset, customPrice = null) => {
     if (!preset) return;
-    const finalPrice = customPrice !== null ? String(customPrice) : String(presetPriceOverrides[preset.id] || preset.price || '120');
+    const basePrice = Number(preset.price ?? preset.basePrice ?? 120);
+    const finalPrice = customPrice !== null ? String(customPrice) : String(presetPriceOverrides[preset.id] || basePrice);
+    const resolvedImg = resolveDishCutout(preset.image || preset.imageUrl || preset.cdnImage, preset.name, preset.category);
     setMenuForm(prev => ({
       ...prev,
       name: preset.name,
@@ -625,7 +643,7 @@ export default function OwnerView() {
       price: finalPrice,
       category: preset.category === 'Meals' ? 'Meals' : preset.category === 'Sweets & Prasad' ? 'Sweets' : preset.category === 'Beverages' ? 'Drinks' : 'Snacks',
       spicyLevel: preset.spicyLevel || 'Mild',
-      imageUrl: preset.image || preset.cdnImage,
+      imageUrl: resolvedImg,
       nutrition: preset.nutrition ? `${preset.calories || '250 kcal'} (${preset.nutrition.carbs || '30g'} C, ${preset.nutrition.protein || '10g'} P, ${preset.nutrition.fat || '8g'} F)` : '',
       ingredients: preset.tag || ''
     }));
@@ -642,8 +660,10 @@ export default function OwnerView() {
       return;
     }
     const dishId = `dish-${Date.now().toString(36)}-${Math.random().toString(36).slice(-3)}`;
-    const priceToSet = Number(customPrice ?? presetPriceOverrides[preset.id] ?? preset.price) || 120;
+    const basePrice = Number(preset.price ?? preset.basePrice ?? 120);
+    const priceToSet = Number(customPrice ?? presetPriceOverrides[preset.id] ?? basePrice) || basePrice;
     const originalPriceToSet = Math.max(priceToSet, Number(preset.originalPrice) || priceToSet);
+    const resolvedImg = resolveDishCutout(preset.image || preset.imageUrl || preset.cdnImage, preset.name, preset.category);
     const newDish = {
       id: dishId,
       name: preset.name,
@@ -652,8 +672,8 @@ export default function OwnerView() {
       price: priceToSet,
       originalPrice: originalPriceToSet,
       category: preset.category || 'Snacks',
-      image: preset.image || preset.cdnImage,
-      imageUrl: preset.image || preset.cdnImage,
+      image: resolvedImg,
+      imageUrl: resolvedImg,
       isAvailable: true,
       isVeg: true,
       shopId: targetShop,
@@ -707,8 +727,12 @@ export default function OwnerView() {
         if (!isCurrent) return;
 
         if (!error && data) {
-          // Hard defense before state commit: only accept orders belonging to requestedShopId
-          const isolatedData = data.filter(o => (o.shop_id ?? o.shopId) === requestedShopId);
+          const purged = getPurgedOrderIds();
+          // Hard defense before state commit: only accept orders belonging to requestedShopId and not purged
+          const isolatedData = data.filter(o => 
+            (o.shop_id ?? o.shopId) === requestedShopId &&
+            !purged.includes(o.id)
+          );
           setOrders(isolatedData.map(o => ({
             id: o.id,
             ...o,
@@ -746,10 +770,18 @@ export default function OwnerView() {
     };
     window.addEventListener('foody_order_created', handleLocalOrderCreated);
 
+    const handleOrdersChanged = () => {
+      if (isCurrent) {
+        fetchCloudOrders();
+      }
+    };
+    window.addEventListener('foody_orders_changed', handleOrdersChanged);
+
     return () => {
       isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
       window.removeEventListener('foody_order_created', handleLocalOrderCreated);
+      window.removeEventListener('foody_orders_changed', handleOrdersChanged);
     };
   }, [activeShopId]);
 
@@ -2646,18 +2678,32 @@ export default function OwnerView() {
                             </button>
                           </div>
                           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                            {PRESET_DISHES.slice(0, 10).map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => handleApplyPresetTemplate(p)}
-                                className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#FD9139] dark:hover:text-white border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
-                                title={p.description}
-                              >
-                                <img src={p.image} alt={p.name} className="w-4 h-4 object-contain" />
-                                <span>{p.name}</span>
-                              </button>
-                            ))}
+                            {activePresetCatalog.slice(0, 10).map((p) => {
+                              const pImg = resolveDishCutout(p.image || p.imageUrl || p.cdnImage, p.name, p.category);
+                              return (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => handleApplyPresetTemplate(p)}
+                                  className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-amber-500 hover:text-white dark:hover:bg-[#FD9139] dark:hover:text-white border border-stone-200 dark:border-white/10 text-[10px] font-bold text-stone-700 dark:text-neutral-300 transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+                                  title={p.description}
+                                >
+                                  <img
+                                    src={pImg}
+                                    alt={p.name}
+                                    className="w-4 h-4 object-contain"
+                                    onError={(e) => {
+                                      if (p.cdnImage && e.target.src !== p.cdnImage) {
+                                        e.target.src = p.cdnImage;
+                                      } else {
+                                        e.target.src = resolveDishCutout(null, p.name, p.category);
+                                      }
+                                    }}
+                                  />
+                                  <span>{p.name}</span>
+                                </button>
+                              );
+                            })}
                             <button
                               type="button"
                               onClick={() => setShowPresetCatalogModal(true)}
@@ -2954,7 +3000,7 @@ export default function OwnerView() {
 
                             {/* Presets Grid */}
                             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto no-scrollbar p-1">
-                              {PRESET_DISHES
+                              {activePresetCatalog
                                 .filter((p) => {
                                   const matchCat = presetCutoutCategory === 'All' || p.category === presetCutoutCategory;
                                   const matchQ = !presetCutoutSearch ||
@@ -2963,7 +3009,8 @@ export default function OwnerView() {
                                   return matchCat && matchQ;
                                 })
                                 .map((preset) => {
-                                  const isSelected = menuForm.imageUrl === preset.image || menuForm.imageUrl === preset.cdnImage;
+                                  const pImg = resolveDishCutout(preset.image || preset.imageUrl || preset.cdnImage, preset.name, preset.category);
+                                  const isSelected = menuForm.imageUrl === preset.image || menuForm.imageUrl === preset.cdnImage || menuForm.imageUrl === pImg;
                                   return (
                                     <div
                                       key={preset.id}
@@ -2974,13 +3021,13 @@ export default function OwnerView() {
                                     >
                                       <button
                                         type="button"
-                                        onClick={() => setMenuForm({ ...menuForm, imageUrl: preset.image })}
+                                        onClick={() => setMenuForm({ ...menuForm, imageUrl: pImg })}
                                         className="w-full flex flex-col items-center justify-center flex-1 cursor-pointer"
                                         title={`Set image to ${preset.name}`}
                                       >
                                         <div className="w-11 h-11 flex items-center justify-center relative">
                                           <img
-                                            src={preset.image}
+                                            src={pImg}
                                             alt={preset.name}
                                             loading="lazy"
                                             decoding="async"
@@ -2988,6 +3035,8 @@ export default function OwnerView() {
                                             onError={(e) => {
                                               if (preset.cdnImage && e.target.src !== preset.cdnImage) {
                                                 e.target.src = preset.cdnImage;
+                                              } else {
+                                                e.target.src = resolveDishCutout(null, preset.name, preset.category);
                                               }
                                             }}
                                           />
@@ -4603,7 +4652,7 @@ export default function OwnerView() {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
-                    Master Satvik Dish Presets ({PRESET_DISHES.length} Items)
+                    Master Satvik Dish Presets ({activePresetCatalog.length} Items)
                   </h3>
                   <p className="text-xs text-stone-500 dark:text-neutral-400">
                     Curated gourmet recipes with high-definition WebP cutouts & pre-set nutrition data.
@@ -4664,7 +4713,7 @@ export default function OwnerView() {
             {/* Presets Grid Body - Spacious Responsive 2/3 Column Grid */}
             <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-6 no-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4.5 sm:gap-5">
-                {PRESET_DISHES
+                {activePresetCatalog
                   .filter((p) => {
                     const matchCat = presetModalCategory === 'All' || p.category === presetModalCategory;
                     const matchQ = !presetModalSearch ||
@@ -4673,142 +4722,148 @@ export default function OwnerView() {
                       p.category.toLowerCase().includes(presetModalSearch.toLowerCase());
                     return matchCat && matchQ;
                   })
-                  .map((preset) => (
-                    <div
-                      key={preset.id}
-                      className="bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#FD9139]/50 transition-all hover:shadow-xl group"
-                    >
-                      <div>
-                        {/* Top Section: Cutout Image + Info with Zero Clipping */}
-                        <div className="flex items-start gap-3.5 sm:gap-4">
-                          {/* Cutout Image with Glass Backdrop */}
-                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-stone-100 dark:bg-[#1A1819] p-2 flex items-center justify-center shrink-0 border border-stone-200/80 dark:border-white/5 shadow-inner relative group-hover:scale-[1.03] transition-transform duration-200">
-                            {/* Satvik Veg Icon Badge */}
-                            <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border border-emerald-600 bg-white dark:bg-[#1E1B1C] rounded-sm p-[1.5px] flex items-center justify-center shadow-xs" title="100% Satvik Pure Veg">
-                              <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
-                            </div>
-                            <img
-                              src={preset.image}
-                              alt={preset.name}
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-contain drop-shadow-md pointer-events-none"
-                              onError={(e) => {
-                                if (preset.cdnImage && e.target.src !== preset.cdnImage) {
-                                  e.target.src = preset.cdnImage;
-                                }
-                              }}
-                            />
-                          </div>
+                  .map((preset) => {
+                    const basePrice = Number(preset.price ?? preset.basePrice ?? 100);
+                    const displayPrice = presetPriceOverrides[preset.id] ?? basePrice;
+                    const itemImg = resolveDishCutout(preset.image || preset.imageUrl || preset.cdnImage, preset.name, preset.category);
 
-                          {/* Info Column */}
-                          <div className="min-w-0 flex-1 flex flex-col justify-center">
-                            {/* Badges Row */}
-                            <div className="flex items-center justify-between gap-1.5 mb-1 flex-wrap">
-                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/20 whitespace-nowrap">
-                                {preset.tag || preset.category}
-                              </span>
-                              <span className="text-xs font-bold text-stone-500 dark:text-neutral-400 font-['Outfit'] shrink-0 flex items-center gap-1">
-                                {preset.calories}
-                              </span>
-                            </div>
-
-                            {/* Full Dish Name */}
-                            <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white line-clamp-2 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors leading-snug">
-                              {preset.name}
-                            </h4>
-
-                            {/* Clean 1-Liner Subtitle / Description */}
-                            <p className="text-xs text-stone-500 dark:text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
-                              {preset.subtitle || preset.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Pricing & Actions Responsive Row */}
-                      <div className="pt-3.5 mt-3.5 border-t border-stone-200/80 dark:border-white/5 flex flex-wrap items-center justify-between gap-3">
-                        {/* Selling Price Stepper Control with Clear Label */}
-                        <div className="flex items-center gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
-                              Selling Price {preset.price && <span className="opacity-75 font-normal text-[9px]">(Base ₹{preset.price})</span>}
-                            </span>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const current = Number(presetPriceOverrides[preset.id] ?? preset.price);
-                                  setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: Math.max(0, current - 10) }));
+                    return (
+                      <div
+                        key={preset.id}
+                        className="bg-white dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between hover:border-amber-500/50 dark:hover:border-[#FD9139]/50 transition-all hover:shadow-xl group"
+                      >
+                        <div>
+                          {/* Top Section: Cutout Image + Info with Zero Clipping */}
+                          <div className="flex items-start gap-3.5 sm:gap-4">
+                            {/* Cutout Image with Glass Backdrop */}
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-stone-100 dark:bg-[#1A1819] p-2 flex items-center justify-center shrink-0 border border-stone-200/80 dark:border-white/5 shadow-inner relative group-hover:scale-[1.03] transition-transform duration-200">
+                              {/* Satvik Veg Icon Badge */}
+                              <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border border-emerald-600 bg-white dark:bg-[#1E1B1C] rounded-sm p-[1.5px] flex items-center justify-center shadow-xs" title="100% Satvik Pure Veg">
+                                <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
+                              </div>
+                              <img
+                                src={itemImg}
+                                alt={preset.name}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-contain drop-shadow-md pointer-events-none"
+                                onError={(e) => {
+                                  if (preset.cdnImage && e.target.src !== preset.cdnImage) {
+                                    e.target.src = preset.cdnImage;
+                                  } else {
+                                    e.target.src = resolveDishCutout(null, preset.name, preset.category);
+                                  }
                                 }}
-                                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
-                                title="Decrease price by ₹10"
-                              >
-                                -
-                              </button>
+                              />
+                            </div>
 
-                              <div className="relative flex items-center">
-                                <span className="absolute left-2.5 text-xs font-black text-amber-600 dark:text-[#FD9139] font-['Outfit'] pointer-events-none">₹</span>
-                                <input
-                                  type="number"
-                                  value={presetPriceOverrides[preset.id] ?? preset.price}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
-                                  }}
-                                  className="w-18 sm:w-20 h-8 pl-6 pr-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#FD9139] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center font-['Outfit'] shadow-inner"
-                                  placeholder={String(preset.price)}
-                                />
+                            {/* Info Column */}
+                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                              {/* Badges Row */}
+                              <div className="flex items-center justify-between gap-1.5 mb-1 flex-wrap">
+                                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/20 dark:border-[#FD9139]/20 whitespace-nowrap">
+                                  {preset.tag || preset.category}
+                                </span>
+                                <span className="text-xs font-bold text-stone-500 dark:text-neutral-400 font-['Outfit'] shrink-0 flex items-center gap-1">
+                                  {preset.calories}
+                                </span>
                               </div>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const current = Number(presetPriceOverrides[preset.id] ?? preset.price);
-                                  setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: current + 10 }));
-                                }}
-                                className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
-                                title="Increase price by ₹10"
-                              >
-                                +
-                              </button>
+                              {/* Full Dish Name */}
+                              <h4 className="font-extrabold text-sm sm:text-base text-stone-900 dark:text-white line-clamp-2 font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors leading-snug">
+                                {preset.name}
+                              </h4>
+
+                              {/* Clean 1-Liner Subtitle / Description */}
+                              <p className="text-xs text-stone-500 dark:text-neutral-400 line-clamp-2 mt-1 leading-relaxed">
+                                {preset.subtitle || preset.description}
+                              </p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Action Buttons: Edit + Add with Generous Tap Targets */}
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleApplyPresetTemplate(preset, presetPriceOverrides[preset.id]);
-                              setShowPresetCatalogModal(false);
-                            }}
-                            className="h-8.5 sm:h-9 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 border border-stone-200 dark:border-white/10"
-                            title="Load into Edit Form to customize"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleQuickAddPresetDish(preset, presetPriceOverrides[preset.id])}
-                            className="h-8.5 sm:h-9 px-4 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1.5"
-                            title="Add directly to menu"
-                          >
-                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                            <span>Add</span>
-                          </button>
+                        {/* Pricing & Actions Responsive Row */}
+                        <div className="pt-3.5 mt-3.5 border-t border-stone-200/80 dark:border-white/5 flex flex-wrap items-center justify-between gap-3">
+                          {/* Selling Price Stepper Control with Clear Label */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-stone-400 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">
+                                Selling Price <span className="opacity-75 font-normal text-[9px]">(Base ₹{basePrice})</span>
+                              </span>
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: Math.max(0, Number(displayPrice) - 10) }));
+                                  }}
+                                  className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
+                                  title="Decrease price by ₹10"
+                                >
+                                  -
+                                </button>
+
+                                <div className="relative flex items-center">
+                                  <span className="absolute left-2.5 text-xs font-black text-amber-600 dark:text-[#FD9139] font-['Outfit'] pointer-events-none">₹</span>
+                                  <input
+                                    type="number"
+                                    value={displayPrice}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: val }));
+                                    }}
+                                    className="w-18 sm:w-20 h-8 pl-6 pr-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:border-amber-500 dark:focus:border-[#FD9139] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center font-['Outfit'] shadow-inner"
+                                    placeholder={String(basePrice)}
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPresetPriceOverrides(prev => ({ ...prev, [preset.id]: Number(displayPrice) + 10 }));
+                                  }}
+                                  className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-sm font-black flex items-center justify-center cursor-pointer active:scale-90 border border-stone-300 dark:border-white/10 transition-all shadow-xs"
+                                  title="Increase price by ₹10"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons: Edit + Add with Generous Tap Targets */}
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleApplyPresetTemplate(preset, displayPrice);
+                                setShowPresetCatalogModal(false);
+                              }}
+                              className="h-8.5 sm:h-9 px-3.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 border border-stone-200 dark:border-white/10"
+                              title="Load into Edit Form to customize"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickAddPresetDish(preset, displayPrice)}
+                              className="h-8.5 sm:h-9 px-4 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1.5"
+                              title="Add directly to menu"
+                            >
+                              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                              <span>Add</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 
             {/* Modal Footer with Bulk Add */}
             <div className="p-4 sm:p-5 border-t border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-[#252223] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <span className="text-xs text-stone-500 dark:text-neutral-400 font-medium">
-                Showing {PRESET_DISHES.length} curated master presets
+                Showing {activePresetCatalog.length} curated master presets
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -4819,15 +4874,15 @@ export default function OwnerView() {
                       setToast({ message: 'Cannot add presets: active kitchen unavailable.', type: 'error' });
                       return;
                     }
-                    for (const p of PRESET_DISHES) {
-                      await handleQuickAddPresetDish(p);
+                    for (const p of activePresetCatalog) {
+                      await handleQuickAddPresetDish(p, presetPriceOverrides[p.id]);
                     }
                     setShowPresetCatalogModal(false);
-                    setToast({ message: `All ${PRESET_DISHES.length} presets added to menu catalog!`, type: 'success' });
+                    setToast({ message: `All ${activePresetCatalog.length} presets added to menu catalog!`, type: 'success' });
                   }}
                   className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                 >
-                  Add All {PRESET_DISHES.length} Presets to Menu
+                  Add All {activePresetCatalog.length} Presets to Menu
                 </button>
                 <button
                   type="button"

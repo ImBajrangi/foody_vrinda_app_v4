@@ -2,7 +2,7 @@
  * Foody Vrinda - Curated Master Dish Presets
  * High-definition satvik culinary catalog with optimized WebP cutouts & fallback CDN links.
  */
-import { getCachedPresets, saveCachedPresets, getCloudPresets } from '../supabase';
+import { getCachedPresets, saveCachedPresets, getCloudPresets, resolveDishCutout } from '../supabase';
 
 export const DEFAULT_PRESET_DISHES = [
   {
@@ -538,7 +538,23 @@ export const DEFAULT_PRESET_DISHES = [
 let activePresetDishes = (() => {
   try {
     const cached = getCachedPresets();
-    if (Array.isArray(cached) && cached.length > 0) return cached;
+    if (Array.isArray(cached) && cached.length > 0) {
+      // Validate that cached entries have both image and valid price
+      const isValid = cached.every(p => p && (p.image || p.imageUrl) && p.price !== undefined && !isNaN(Number(p.price)));
+      if (isValid) {
+        return cached.map(c => {
+          const def = DEFAULT_PRESET_DISHES.find(d => d.id === c.id || d.name?.toLowerCase() === c.name?.toLowerCase());
+          return {
+            ...def,
+            ...c,
+            price: Number(c.price ?? c.basePrice ?? def?.price ?? 100),
+            basePrice: Number(c.basePrice ?? c.price ?? def?.price ?? 100),
+            image: c.image || c.imageUrl || def?.image || resolveDishCutout(null, c.name, c.category),
+            cdnImage: c.cdnImage || def?.cdnImage || c.image || ''
+          };
+        });
+      }
+    }
   } catch (e) { }
   return DEFAULT_PRESET_DISHES;
 })();
@@ -555,9 +571,28 @@ export async function loadPresetDishes(forceRefresh = false) {
   try {
     const cloudData = await getCloudPresets(forceRefresh);
     if (Array.isArray(cloudData) && cloudData.length > 0) {
-      activePresetDishes = cloudData;
-      PRESET_DISHES = cloudData;
-      return cloudData;
+      // Merge with DEFAULT_PRESET_DISHES to guarantee fallback image, cdnImage, and valid price
+      const merged = cloudData.map(c => {
+        const def = DEFAULT_PRESET_DISHES.find(d => d.id === c.id || d.name?.toLowerCase() === c.name?.toLowerCase());
+        const validPrice = Number(c.price ?? c.basePrice ?? def?.price ?? 100);
+        const validImage = c.image || c.imageUrl || def?.image || resolveDishCutout(null, c.name, c.category);
+        const validCdn = c.cdnImage || def?.cdnImage || validImage;
+        return {
+          ...def,
+          ...c,
+          price: validPrice,
+          basePrice: validPrice,
+          image: validImage,
+          imageUrl: validImage,
+          cdnImage: validCdn,
+          subtitle: c.subtitle || def?.subtitle || c.description || '',
+          description: c.description || def?.description || '',
+          tag: c.tag || def?.tag || 'Special'
+        };
+      });
+      activePresetDishes = merged;
+      PRESET_DISHES = merged;
+      return merged;
     }
   } catch (e) {
     console.warn('loadPresetDishes error, using cache/defaults:', e);
@@ -585,8 +620,19 @@ export function findPresetByKeyword(query) {
 if (typeof window !== 'undefined') {
   window.addEventListener('foody_presets_changed', (e) => {
     if (e.detail?.presets && Array.isArray(e.detail.presets) && e.detail.presets.length > 0) {
-      activePresetDishes = e.detail.presets;
-      PRESET_DISHES = e.detail.presets;
+      const sanitized = e.detail.presets.map(c => {
+        const def = DEFAULT_PRESET_DISHES.find(d => d.id === c.id || d.name?.toLowerCase() === c.name?.toLowerCase());
+        return {
+          ...def,
+          ...c,
+          price: Number(c.price ?? c.basePrice ?? def?.price ?? 100),
+          basePrice: Number(c.basePrice ?? c.price ?? def?.price ?? 100),
+          image: c.image || c.imageUrl || def?.image || resolveDishCutout(null, c.name, c.category),
+          cdnImage: c.cdnImage || def?.cdnImage || c.image || ''
+        };
+      });
+      activePresetDishes = sanitized;
+      PRESET_DISHES = sanitized;
     }
   });
 

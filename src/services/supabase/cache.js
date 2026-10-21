@@ -440,3 +440,64 @@ export function invalidateCache(type, key) {
     safeStorage.removeItem('foody_cache_presets');
   }
 }
+
+/**
+ * 🧹 Purged / Demo Order Management
+ * Ensures deleted or demo orders never pollute Customer, Kitchen, Rider, or Owner panels.
+ */
+export const DEFAULT_DEMO_ORDER_IDS = [
+  'ord-1792479819870-1c5t4',
+  'ord-1792564824428-ly35y'
+];
+
+export function getPurgedOrderIds() {
+  try {
+    const raw = safeStorage.getItem('foody_purged_order_ids');
+    const stored = raw ? JSON.parse(raw) : [];
+    const merged = Array.from(new Set([...(Array.isArray(stored) ? stored : []), ...DEFAULT_DEMO_ORDER_IDS]));
+    return merged;
+  } catch (_) {
+    return DEFAULT_DEMO_ORDER_IDS;
+  }
+}
+
+export function purgeOrder(orderId) {
+  if (!orderId) return;
+  const cleanId = String(orderId).trim();
+  const current = getPurgedOrderIds();
+  if (!current.includes(cleanId)) {
+    const updated = [...current, cleanId];
+    safeStorage.setItem('foody_purged_order_ids', JSON.stringify(updated));
+  }
+  // Clear from tracking if matching
+  try {
+    if (safeStorage.getItem('foody_active_tracking_id') === cleanId) {
+      safeStorage.removeItem('foody_active_tracking_id');
+    }
+    const sessionRaw = safeStorage.getItem('foody_my_session_orders');
+    if (sessionRaw) {
+      const parsed = JSON.parse(sessionRaw);
+      if (Array.isArray(parsed)) {
+        safeStorage.setItem('foody_my_session_orders', JSON.stringify(parsed.filter(id => id !== cleanId)));
+      }
+    }
+  } catch (_) {}
+
+  invalidateCache('orders');
+  dispatchSafeEvent('foody_orders_changed', { purgedOrderId: cleanId });
+}
+
+export function purgeAllDemoOrders(extraIds = []) {
+  const current = getPurgedOrderIds();
+  const allIds = Array.from(new Set([...current, ...extraIds]));
+  safeStorage.setItem('foody_purged_order_ids', JSON.stringify(allIds));
+
+  // Purge local device tracking & caches
+  safeStorage.removeItem('foody_active_tracking_id');
+  safeStorage.removeItem('foody_my_session_orders');
+  safeStorage.removeItem('foody_customer_orders_cache');
+  memoryCache.orders = {};
+
+  dispatchSafeEvent('foody_orders_changed', { purgedAll: true, purgedCount: allIds.length });
+  return allIds;
+}

@@ -94,7 +94,8 @@ import {
   subscribeCloudUsers,
   getCachedUsers,
   saveCachedUsers,
-  broadcastAlarmEvent
+  broadcastAlarmEvent,
+  purgeAllDemoOrders
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
@@ -3099,14 +3100,32 @@ export default function DeveloperView({ setCurrentTab }) {
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={simMenuItems.length === 0 || isSimulating}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-30 disabled:pointer-events-none text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>{isSimulating ? 'Creating Order...' : 'Dispatch Simulated Order (Bypass Payment)'}</span>
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="submit"
+                    disabled={simMenuItems.length === 0 || isSimulating}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-30 disabled:pointer-events-none text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98]"
+                  >
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>{isSimulating ? 'Creating Order...' : 'Dispatch Simulated Order (Bypass Payment)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      purgeAllDemoOrders();
+                      setToast({
+                        type: 'success',
+                        title: 'SYSTEM PURGED',
+                        message: 'All demo and test orders purged across every panel!'
+                      });
+                    }}
+                    className="w-full py-2.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Purge All Demo & Test Orders (All Panels)</span>
+                  </button>
+                </div>
               </div>
             </form>
           )}

@@ -585,15 +585,35 @@ export async function deleteCloudOffer(offerId) {
 export function getCachedPresets() {
   try {
     if (memoryCache.presets?.data && Array.isArray(memoryCache.presets.data) && memoryCache.presets.data.length > 0) {
-      return memoryCache.presets.data;
+      const first = memoryCache.presets.data[0];
+      if (first && (first.image || first.imageUrl) && first.price !== undefined && !isNaN(Number(first.price))) {
+        return memoryCache.presets.data;
+      }
     }
     const raw = safeStorage.getItem('foody_cached_presets') || safeStorage.getItem('foody_cache_presets');
     if (raw) {
       const parsed = JSON.parse(raw);
       const list = Array.isArray(parsed) ? parsed : (parsed.data || []);
       if (Array.isArray(list) && list.length > 0) {
-        memoryCache.presets.data = list;
-        return list;
+        // Validate each item has an image and a valid numerical price
+        const isValid = list.every(item => item && (item.image || item.imageUrl || item.cdnImage) && item.price !== undefined && !isNaN(Number(item.price)));
+        if (isValid) {
+          const normalized = list.map(item => ({
+            ...item,
+            price: Number(item.price ?? item.basePrice ?? 100),
+            basePrice: Number(item.basePrice ?? item.price ?? 100),
+            image: item.image || item.imageUrl || item.cdnImage || resolveDishCutout(null, item.name, item.category),
+            imageUrl: item.imageUrl || item.image || item.cdnImage || resolveDishCutout(null, item.name, item.category),
+            cdnImage: item.cdnImage || item.cdn_image || item.image || ''
+          }));
+          memoryCache.presets.data = normalized;
+          return normalized;
+        } else {
+          // Stale/corrupted schema detected: clear broken cache keys immediately
+          safeStorage.removeItem('foody_cached_presets');
+          safeStorage.removeItem('foody_cache_presets');
+          if (memoryCache.presets) delete memoryCache.presets.data;
+        }
       }
     }
   } catch (e) { }
@@ -634,19 +654,35 @@ export async function getCloudPresets(forceRefresh = false) {
     }
 
     if (Array.isArray(data) && data.length > 0) {
-      const mapped = data.map(d => ({
-        id: d.id,
-        name: d.name,
-        category: d.category || 'Main',
-        basePrice: Number(d.base_price || d.basePrice || 100),
-        description: d.description || '',
-        imageUrl: d.image_url || d.imageUrl || '',
-        isAvailable: d.is_available ?? d.isAvailable ?? true,
-        isCustom: d.is_custom ?? d.isCustom ?? false,
-        sortOrder: Number(d.sort_order || d.sortOrder || 999),
-        tags: Array.isArray(d.tags) ? d.tags : [],
-        createdAt: d.created_at || new Date().toISOString()
-      }));
+      const mapped = data.map(d => {
+        const resolvedPrice = Number(d.price || d.base_price || d.basePrice || 100);
+        const resolvedImage = d.image || d.image_url || d.imageUrl || resolveDishCutout(null, d.name, d.category);
+        const resolvedCdn = d.cdn_image || d.cdnImage || resolvedImage;
+        return {
+          id: d.id,
+          name: d.name,
+          category: d.category || 'Meals',
+          price: resolvedPrice,
+          basePrice: resolvedPrice,
+          originalPrice: Number(d.original_price || d.originalPrice || 0),
+          subtitle: d.subtitle || d.description || '',
+          description: d.description || '',
+          image: resolvedImage,
+          imageUrl: resolvedImage,
+          cdnImage: resolvedCdn,
+          tag: d.tag || (Array.isArray(d.tags) && d.tags[0]) || 'Special',
+          tags: Array.isArray(d.tags) ? d.tags : (d.tag ? [d.tag] : ['Special']),
+          rating: Number(d.rating || 4.9),
+          calories: d.calories || '300 kcal',
+          nutrition: d.nutrition || {},
+          spicyLevel: d.spicy_level || d.spicyLevel || 'Mild',
+          isVeg: d.is_veg ?? d.isVeg ?? true,
+          isAvailable: d.is_active ?? d.is_available ?? d.isAvailable ?? true,
+          isCustom: d.is_custom ?? d.isCustom ?? false,
+          sortOrder: Number(d.sort_order || d.sortOrder || 999),
+          createdAt: d.created_at || new Date().toISOString()
+        };
+      });
 
       saveCachedPresets(mapped);
       return mapped;

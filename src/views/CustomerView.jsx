@@ -75,7 +75,9 @@ import {
   isShopCurrentlyOpen,
   getCachedUsers,
   getCachedItem,
-  setCachedItem
+  setCachedItem,
+  getPurgedOrderIds,
+  purgeOrder
 } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
 import { useNotifications } from '../context/NotificationContext';
@@ -871,9 +873,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   // Auto-switch to tracking view if trackingOrderId is set (Immediate Fetch + Supabase Realtime)
   useEffect(() => {
-    if (!trackingOrderId) {
+    const purgedIds = getPurgedOrderIds();
+    if (!trackingOrderId || purgedIds.includes(trackingOrderId)) {
       setTrackingOrder(null);
       setIsTrackingModalOpen(false);
+      if (trackingOrderId && setTrackingOrderId) setTrackingOrderId(null);
+      try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
       return;
     }
 
@@ -977,6 +982,21 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       if (unsubSupabase) unsubSupabase();
     };
   }, [trackingOrderId]);
+
+  // Handle cross-tab/global demo order purge
+  useEffect(() => {
+    const handleOrdersPurged = () => {
+      const purgedIds = getPurgedOrderIds();
+      if (trackingOrderId && purgedIds.includes(trackingOrderId)) {
+        setTrackingOrder(null);
+        setIsTrackingModalOpen(false);
+        if (setTrackingOrderId) setTrackingOrderId(null);
+        try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
+      }
+    };
+    window.addEventListener('foody_orders_changed', handleOrdersPurged);
+    return () => window.removeEventListener('foody_orders_changed', handleOrdersPurged);
+  }, [trackingOrderId, setTrackingOrderId]);
 
   // Dynamic Shops handling
 
@@ -2571,11 +2591,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
 
-                {/* Rider Offline Notice */}
-                {onlineRidersCount === 0 && (
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 text-[11px] font-medium flex items-center gap-2 animate-fade-in">
-                    <Clock className="w-3.5 h-3.5 shrink-0 text-amber-500 dark:text-amber-400" />
-                    <span>Sarathi Riders are currently offline. Self-Pickup is available at the shop counter!</span>
+                {/* Rider Offline Notice (Compact & Only shown when Delivery is active) */}
+                {onlineRidersCount === 0 && fulfillmentType === 'delivery' && (
+                  <div className="py-1 px-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[10.5px] font-semibold flex items-center gap-1.5 w-fit animate-fade-in">
+                    <Clock className="w-3 h-3 shrink-0 text-amber-500 dark:text-amber-400" />
+                    <span>Riders offline · Self-Pickup only</span>
                   </div>
                 )}
               </div>

@@ -16,7 +16,9 @@ import {
   getOrderCustomerName,
   getOrderOTP,
   verifyOrderOTP,
-  generateWhatsAppOrderShareLink
+  generateWhatsAppOrderShareLink,
+  getPurgedOrderIds,
+  purgeOrder
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -180,8 +182,12 @@ export default function KitchenView() {
         if (!isCurrent) return;
 
         if (!error && data) {
-          // Pre-commit hard filter strictly matching requestedShopId
-          const isolatedData = data.filter(o => (o.shop_id ?? o.shopId) === requestedShopId);
+          const purged = getPurgedOrderIds();
+          // Pre-commit hard filter strictly matching requestedShopId and excluding purged demo orders
+          const isolatedData = data.filter(o => 
+            (o.shop_id ?? o.shopId) === requestedShopId &&
+            !purged.includes(o.id)
+          );
           const mapped = isolatedData.map(o => ({
             id: o.id,
             ...o,
@@ -221,10 +227,19 @@ export default function KitchenView() {
     };
     window.addEventListener('foody_order_created', handleLocalOrderCreated);
 
+    // 4. Purged / updated orders listener
+    const handleOrdersChanged = () => {
+      if (isCurrent) {
+        fetchKitchenOrders();
+      }
+    };
+    window.addEventListener('foody_orders_changed', handleOrdersChanged);
+
     return () => {
       isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
       window.removeEventListener('foody_order_created', handleLocalOrderCreated);
+      window.removeEventListener('foody_orders_changed', handleOrdersChanged);
     };
   }, [activeShopId]);
 
@@ -849,11 +864,11 @@ export default function KitchenView() {
                       </p>
                     </div>
 
-                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1 ${isNew
+                    <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1.5 ${isNew
                       ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-xs'
                       : ['ready_for_pickup', 'ready'].includes(order.status)
-                        ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40'
-                        : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
                       }`}>
                       {isNew ? (
                         <Flame size={11} className="fill-current" />
@@ -873,20 +888,26 @@ export default function KitchenView() {
                   </div>
 
                   {/* Customer & Address Details Card */}
-                  <div className="text-xs text-stone-700 dark:text-zinc-300 mb-3.5 bg-stone-100 dark:bg-[#1E1B1C] p-3.5 rounded-2xl border border-stone-200/80 dark:border-white/5 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-stone-900 dark:text-white flex items-center gap-1.5 truncate">
-                        <User size={13} className="text-stone-500 dark:text-zinc-500 flex-shrink-0" />
-                        <span className="truncate">{order.customerName || 'Customer'}</span>
-                      </p>
+                  <div className="text-xs text-stone-700 dark:text-zinc-200 mb-3.5 bg-stone-50 dark:bg-[#181617] p-4 rounded-2xl space-y-2.5 shadow-xs">
+                    {/* Customer Row */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="w-6 h-6 rounded-lg bg-stone-200/80 dark:bg-white/10 flex items-center justify-center text-stone-700 dark:text-stone-300 shrink-0">
+                          <User size={13} />
+                        </div>
+                        <span className="font-bold text-stone-900 dark:text-white truncate text-[13px] font-['Outfit']">
+                          {order.customerName || 'Customer'}
+                        </span>
+                      </div>
+
                       {order.customerPhone && (
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <a
                             href={`tel:${order.customerPhone}`}
-                            className="text-amber-700 dark:text-[#FD9139] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-[#FD9139] font-bold text-[11px] transition-all"
                             title="Call Customer"
                           >
-                            <Phone size={11} />
+                            <Phone size={11} className="stroke-[2.5]" />
                             <span>{order.customerPhone}</span>
                           </a>
                           <a
@@ -901,55 +922,59 @@ export default function KitchenView() {
                             })}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-5 h-5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-all"
-                            title="Send Free WhatsApp Order & OTP Update"
+                            className="w-7 h-7 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 flex items-center justify-center transition-all"
+                            title="WhatsApp Order & OTP Update"
                           >
-                            <MessageCircle size={11} />
+                            <MessageCircle size={13} />
                           </a>
                         </div>
                       )}
                     </div>
 
-                    <p className="text-[11px] text-stone-600 dark:text-zinc-400 flex items-start gap-1.5 leading-snug">
-                      <MapPin size={13} className="text-stone-400 dark:text-zinc-500 flex-shrink-0 mt-0.5" />
-                      <span className="line-clamp-2">{order.customerAddress || 'Vrindavan Dham'}</span>
-                    </p>
+                    {/* Address Row */}
+                    <div className="flex items-start gap-2 text-[11px] text-stone-600 dark:text-zinc-400 leading-snug">
+                      <MapPin size={13} className="text-[#FD9139] shrink-0 mt-0.5" />
+                      <span className="line-clamp-2 text-stone-700 dark:text-stone-300 font-medium">
+                        {order.customerAddress || 'Vrindavan Dham'}
+                      </span>
+                    </div>
 
                     {order.cookingNotes && (
-                      <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl text-[11px] text-amber-800 dark:text-amber-200 mt-1.5 flex items-start gap-1.5">
-                        <FileText size={13} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                        <span className="leading-snug"><strong className="text-amber-700 dark:text-amber-400">Notes:</strong> {order.cookingNotes}</span>
+                      <div className="bg-amber-500/10 p-2 rounded-xl text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-1.5">
+                        <FileText size={13} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <span className="leading-snug"><strong className="text-amber-800 dark:text-amber-400">Notes:</strong> {order.cookingNotes}</span>
                       </div>
                     )}
 
-                    {order.paymentMethod === 'cash' && (
-                      <div className="pt-1 flex items-center justify-between border-t border-stone-200/80 dark:border-white/5 mt-1">
-                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-black uppercase flex items-center gap-1">
-                          <Banknote size={12} />
-                          <span>Cash on Delivery</span>
-                        </span>
-                        <span className="text-xs font-black text-stone-900 dark:text-white">₹{order.totalAmount}</span>
-                      </div>
-                    )}
+                    {/* Payment Row */}
+                    <div className="pt-2 flex items-center justify-between border-t border-stone-200/60 dark:border-white/5">
+                      <span className="text-[10px] text-amber-700 dark:text-[#FD9139] font-black uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                        <Banknote size={13} />
+                        <span>{order.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Paid Online'}</span>
+                      </span>
+                      <span className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">
+                        ₹{order.totalAmount}
+                      </span>
+                    </div>
 
-                    {/* Handover / Pickup Badge */}
+                    {/* Handover / Pickup Badge Bar */}
                     {(order.fulfillment_type === 'pickup' || order.fulfillmentType === 'pickup') ? (
-                      <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
-                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                          <PackageCheck size={11} />
+                      <div className="pt-2 flex flex-wrap items-center justify-between gap-1.5 border-t border-dashed border-stone-200/80 dark:border-white/10">
+                        <span className="text-[10px] text-[#164E3D] dark:text-[#6EE7B7] font-black uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                          <PackageCheck size={13} className="text-[#1B5E4A] dark:text-[#6EE7B7]" />
                           <span>Devotee Counter Pickup</span>
                         </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                          Verify via Customer OTP
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E4F1EB] dark:bg-[#1C382E] text-[#134435] dark:text-[#74D99F] border border-[#164E3D]/20 dark:border-[#74D99F]/20">
+                          Verify Customer OTP
                         </span>
                       </div>
                     ) : (
-                      <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
-                        <span className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 size={11} />
+                      <div className="pt-2 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10">
+                        <span className="text-[10px] text-[#FD9139] font-black uppercase tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                          <CheckCircle2 size={13} />
                           <span>Rider Pickup OTP</span>
                         </span>
-                        <span className="fv-badge-otp">
+                        <span className="px-2.5 py-0.5 rounded-md font-mono font-black text-xs text-[#FD9139] bg-[#FD9139]/15 tracking-widest">
                           {getOrderOTP(order.id, 'pickup')}
                         </span>
                       </div>
@@ -995,7 +1020,7 @@ export default function KitchenView() {
                             <button
                               onClick={() => toggleItemReady(order.id, item.id)}
                               className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer apple-tap-target flex-shrink-0 ${item.ready
-                                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                ? 'bg-[#E4F1EB] dark:bg-[#1C382E] text-[#134435] dark:text-[#74D99F] border border-[#164E3D]/25 dark:border-[#74D99F]/25 shadow-2xs'
                                 : 'bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-zinc-300'
                                 }`}
                             >
@@ -1013,20 +1038,20 @@ export default function KitchenView() {
                 <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">
                   {['ready_for_pickup', 'ready'].includes(order.status) ? (
                     (order.fulfillment_type === 'pickup' || order.fulfillmentType === 'pickup') ? (
-                      <div className="w-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-3 text-center space-y-2">
-                        <div className="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-black text-xs uppercase tracking-wider">
-                          <PackageCheck size={15} />
+                      <div className="w-full bg-[#F2F7F4] dark:bg-[#14261F] border border-[#164E3D]/20 dark:border-[#2D735C]/35 rounded-2xl p-3.5 text-center space-y-2 shadow-xs">
+                        <div className="flex items-center justify-center gap-1.5 text-[#164E3D] dark:text-[#7CE0B8] font-black text-xs uppercase tracking-wider font-['Outfit']">
+                          <PackageCheck size={15} className="text-[#1B5E4A] dark:text-[#7CE0B8]" />
                           <span>Customer Counter Pickup</span>
                         </div>
-                        <p className="text-[11px] text-stone-600 dark:text-zinc-400">
+                        <p className="text-[11px] text-stone-600 dark:text-zinc-300 leading-relaxed">
                           Food packed & ready. Ask devotee for 4-digit code shown in their app.
                         </p>
                         <button
                           type="button"
                           onClick={() => openCounterOtpModal(order)}
-                          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target active:scale-[0.98]"
+                          className="w-full bg-gradient-to-r from-[#164E3D] via-[#1B5E4A] to-[#164E3D] hover:from-[#113E30] hover:to-[#164E3D] dark:from-[#1E6852] dark:to-[#267F65] dark:hover:from-[#164E3D] dark:hover:to-[#1E6852] text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target active:scale-[0.98] border border-white/10"
                         >
-                          <KeyRound size={15} strokeWidth={2.5} />
+                          <KeyRound size={15} strokeWidth={2.5} className="text-[#A7F3D0]" />
                           <span>Enter Devotee OTP & Handover</span>
                         </button>
                       </div>
@@ -1054,7 +1079,7 @@ export default function KitchenView() {
                     <button
                       data-tour="restaurant-manage-orders"
                       onClick={() => handleOrderReady(order.id, order)}
-                      className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
+                      className="w-full bg-gradient-to-r from-[#164E3D] via-[#1B5E4A] to-[#164E3D] hover:from-[#113E30] hover:to-[#164E3D] dark:from-[#1E6852] dark:to-[#267F65] text-white font-black text-xs sm:text-sm py-3 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target border border-white/10"
                     >
                       <CheckCircle2 size={16} strokeWidth={2.5} />
                       <span>Food Packed & Ready for Pickup</span>
@@ -1471,11 +1496,11 @@ export default function KitchenView() {
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border bg-[#E4F1EB] border-[#164E3D]/20 text-[#164E3D] dark:bg-[#1C382E] dark:border-[#74D99F]/30 dark:text-[#6EE7B7] shadow-xs">
                   <PackageCheck size={22} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-['Outfit']">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#E4F1EB] text-[#164E3D] dark:bg-[#1C382E] dark:text-[#6EE7B7] border border-[#164E3D]/20 dark:border-[#74D99F]/20 font-['Outfit']">
                     Counter Handover Verification
                   </span>
                   <h3 className="text-base sm:text-lg font-black font-['Outfit'] mt-1 text-stone-900 dark:text-white">
@@ -1521,7 +1546,7 @@ export default function KitchenView() {
                     disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
                     className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl border transition-all outline-none ${
                       counterOtpModal.isSuccess
-                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 scale-105'
+                        ? 'bg-[#E4F1EB] border-[#164E3D] text-[#164E3D] dark:bg-[#1C382E] dark:border-[#6EE7B7] dark:text-[#6EE7B7] scale-105 shadow-xs'
                         : digit
                         ? 'bg-stone-200 dark:bg-[#1E1B1C] border-[#FD9139] text-stone-900 dark:text-white ring-2 ring-[#FD9139]/20'
                         : 'bg-stone-100 dark:bg-[#141213] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white focus:border-[#FD9139]'
@@ -1540,7 +1565,7 @@ export default function KitchenView() {
 
               {/* Success message */}
               {counterOtpModal.isSuccess && (
-                <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[#164E3D] dark:text-[#6EE7B7] font-bold">
                   <CheckCircle2 size={14} />
                   <span>OTP Verified! Completing Handover...</span>
                 </div>
@@ -1553,7 +1578,7 @@ export default function KitchenView() {
                 type="button"
                 onClick={() => verifyAndSubmitCounterOtp()}
                 disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
-                className="w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+                className="w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] bg-gradient-to-r from-[#164E3D] via-[#1B5E4A] to-[#164E3D] hover:from-[#113E30] hover:to-[#164E3D] dark:from-[#1E6852] dark:to-[#267F65] text-white disabled:opacity-50 border border-white/10"
               >
                 {counterOtpModal.isSubmitting ? (
                   <span>Verifying & Handing Over...</span>

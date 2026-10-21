@@ -16,10 +16,15 @@ import {
   dispatchSafeEvent,
   getCachedShops,
   safeStorage,
-  getDefaultActiveShopId
+  getDefaultActiveShopId,
+  getPurgedOrderIds,
+  purgeOrder,
+  purgeAllDemoOrders
 } from './cache.js';
 import { createCloudNotification } from './notifications.service.js';
 import { generateSecureOrderOTP, computeSha256Hex } from './riders.service.js';
+
+export { getPurgedOrderIds, purgeOrder, purgeAllDemoOrders };
 
 export const ALLOWED_ORDER_TRANSITIONS = {
   new: ['preparing', 'cancelled'],
@@ -756,7 +761,10 @@ export async function getCloudOrders(shopId) {
       const { data, error } = await query;
       if (error || !data) return cached || [];
 
-      const mapped = data.map(raw => ({
+      const purgedIds = getPurgedOrderIds();
+      const activeData = data.filter(raw => !purgedIds.includes(raw.id));
+
+      const mapped = activeData.map(raw => ({
         id: raw.id,
         ...raw,
         shopId: raw.shop_id,

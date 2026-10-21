@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { supabase, subscribeCloudOrders } from '../supabase';
+import { supabase, subscribeCloudOrders, getPurgedOrderIds } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
@@ -104,9 +104,11 @@ export default function OrderHistoryDrawer({
         }
 
         const { data, error } = await query;
+        const purged = getPurgedOrderIds();
         if (!error && data && data.length > 0) {
-          setOrders(data);
-          localStorage.setItem('foody_customer_orders_cache', JSON.stringify(data));
+          const filtered = data.filter(o => !purged.includes(o.id));
+          setOrders(filtered);
+          localStorage.setItem('foody_customer_orders_cache', JSON.stringify(filtered));
         } else {
           setOrders([]);
           localStorage.removeItem('foody_customer_orders_cache');
@@ -124,6 +126,8 @@ export default function OrderHistoryDrawer({
     // Realtime changes on customer orders using multiplexer
     const unsubscribe = subscribeCloudOrders('all', (updatedOrder) => {
       if (!updatedOrder) return;
+      const purged = getPurgedOrderIds();
+      if (purged.includes(updatedOrder.id)) return;
       const isAuthenticated = Boolean(userId && !String(userId).startsWith('guest-'));
       const cleanPhone = userPhone ? String(userPhone).replace(/\D/g, '') : '';
       const orderPhone = (updatedOrder.customerPhone || updatedOrder.customer_phone || '').replace(/\D/g, '');
@@ -153,8 +157,14 @@ export default function OrderHistoryDrawer({
       }
     });
 
+    const handleOrdersChanged = () => {
+      fetchOrders();
+    };
+    window.addEventListener('foody_orders_changed', handleOrdersChanged);
+
     return () => {
       if (unsubscribe) unsubscribe();
+      window.removeEventListener('foody_orders_changed', handleOrdersChanged);
     };
   }, [isOpen, userId, userPhone]);
 

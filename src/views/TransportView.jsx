@@ -26,7 +26,8 @@ import {
   getDailySarathiCode,
   checkDeliveryGeofence,
   calculateOptimalDispatchWindow,
-  generateWhatsAppOrderShareLink
+  generateWhatsAppOrderShareLink,
+  getPurgedOrderIds
 } from '../supabase';
 import { printVerifiedDriverStatementPDF } from '../utils/deliveryReportUtils';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -246,10 +247,11 @@ export default function TransportView() {
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        // Enforce strict client-side exclusion of counter pickup orders
+        const purged = getPurgedOrderIds();
+        // Enforce strict client-side exclusion of counter pickup orders and purged demo orders
         const deliveryOnly = data.filter(o => {
           const fType = String(o.fulfillment_type || o.fulfillmentType || '').toLowerCase().trim();
-          return fType !== 'pickup';
+          return fType !== 'pickup' && !purged.includes(o.id);
         });
 
         const mapped = deliveryOnly.map(o => ({
@@ -272,7 +274,7 @@ export default function TransportView() {
 
         if (mapped.length > 0) {
           setSelectedOrder(prev => {
-            if (prev) {
+            if (prev && !purged.includes(prev.id)) {
               const found = mapped.find(o => o.id === prev.id);
               return found || mapped[0];
             }
@@ -286,7 +288,8 @@ export default function TransportView() {
 
       // 2. Fetch available unclaimed deliveries (Privacy-Preserving PII Masked, Geospatial filtered)
       const available = await fetchAvailableDeliveries(riderCoords);
-      setAvailableOrders(available);
+      const purged = getPurgedOrderIds();
+      setAvailableOrders((available || []).filter(o => !purged.includes(o.id)));
     } catch (err) {
       console.warn('Supabase fetchRiderOrders note:', err.message);
     }
@@ -300,8 +303,14 @@ export default function TransportView() {
       fetchRiderOrders();
     });
 
+    const handleOrdersChanged = () => {
+      fetchRiderOrders();
+    };
+    window.addEventListener('foody_orders_changed', handleOrdersChanged);
+
     return () => {
       if (unsubscribeSupabase) unsubscribeSupabase();
+      window.removeEventListener('foody_orders_changed', handleOrdersChanged);
     };
   }, []);
 

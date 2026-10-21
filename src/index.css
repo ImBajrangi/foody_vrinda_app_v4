@@ -3717,3 +3717,26 @@ label {
 .bg-obsidian-luxury {
   background-color: #1E1B1C !important;
 }
+
+/* ==========================================================================
+   PLATFORM-WIDE BORDERLESS TAGS & BADGES
+   Ensures all status badges, pills, tags, and category chips are borderless 
+   with smooth solid/tint backgrounds and zero awkward outlines.
+   ========================================================================== */
+.rounded-full[class*="text-[10px]"],
+.rounded-full[class*="text-[9px]"],
+.rounded-full[class*="text-[11px]"],
+.rounded-full[class*="text-xs"],
+.rounded-md[class*="text-[10px]"],
+.rounded-md[class*="text-[9px]"],
+.rounded-xl[class*="text-[10px]"],
+.rounded-xl[class*="text-[11px]"],
+.fv-badge-otp,
+[class*="tag-badge-"],
+.badge,
+[class*="badge-"] {
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
