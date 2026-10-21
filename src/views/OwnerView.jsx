@@ -1368,16 +1368,15 @@ export default function OwnerView() {
               type="button"
               onClick={handleToggleShopOnline}
               disabled={!activeShopId}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${!activeShopId
+              className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${!activeShopId
                 ? 'opacity-40 cursor-not-allowed bg-stone-300 dark:bg-white/5 border-stone-400 dark:border-white/10 text-stone-500'
                 : isShopOnline
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25'
-                  : 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/25'
+                  ? 'bg-[#164E3D] hover:bg-[#124233] border-[#164E3D] text-white shadow-[#164E3D]/25'
+                  : 'bg-rose-600 hover:bg-rose-700 border-rose-600 text-white shadow-rose-600/25'
                 }`}
               title={activeShopId ? "Click to toggle shop Online/Offline status in realtime" : "Assigned kitchen unavailable"}
             >
-              <span className={`w-2 h-2 rounded-full ${!activeShopId ? 'bg-stone-400' : isShopOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <span>{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
+              <span className="font-outfit font-black tracking-wide uppercase text-[11px]">{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
             </button>
             {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-400/35 dark:border-[#FFD000]/30 text-xs font-black text-amber-700 dark:text-[#FFD000] shadow-sm">

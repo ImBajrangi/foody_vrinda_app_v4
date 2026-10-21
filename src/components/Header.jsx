@@ -243,23 +243,23 @@ export default function Header({
               
               <button 
                 onClick={handleProfileClick}
-                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target bg-transparent shadow-none border-0 focus:outline-none focus:shadow-none flex flex-col justify-center gap-1.5 sm:gap-2 py-1"
+                className="min-w-0 flex-1 text-left cursor-pointer group apple-tap-target bg-transparent shadow-none border-0 focus:outline-none focus:shadow-none flex flex-col justify-center gap-0.5 sm:gap-1 py-0.5"
                 title={isAuthenticated ? "Profile & Settings" : "Sign in / Register"}
                 aria-label="Open Profile and Settings"
               >
-                <div className="flex items-center gap-1.5 min-w-0 leading-none">
-                  <span className="text-[11.5px] sm:text-xs font-bold text-amber-600 dark:text-[#FD9139] font-laila tracking-wide shrink-0 leading-none">
+                <div className="flex items-center gap-1.5 min-w-0 leading-snug py-0.5">
+                  <span className="text-[11.5px] sm:text-xs font-bold text-amber-600 dark:text-[#FD9139] font-laila tracking-wide shrink-0 leading-snug">
                     वृन्दोपनिषद्
                   </span>
-                  <span className="text-stone-400 dark:text-zinc-500 text-[9px] sm:text-[10px] shrink-0 leading-none select-none">•</span>
-                  <span className="text-[11px] sm:text-xs font-semibold text-stone-500 dark:text-zinc-400 truncate leading-none">
+                  <span className="text-stone-300 dark:text-white/20 text-[10px] shrink-0 leading-snug select-none">/</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-stone-500 dark:text-zinc-400 truncate leading-snug">
                     {getLocationLabel()}
                   </span>
                 </div>
-                <div className="flex items-center min-w-0 leading-none pt-0.5">
-                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors flex items-center leading-none">
+                <div className="flex items-center min-w-0 leading-snug pb-0.5">
+                  <h2 className="text-stone-900 dark:text-white font-black text-sm sm:text-base tracking-tight font-outfit font-sans truncate group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors flex items-center leading-normal py-0.5">
                     {getDisplayName() === 'Foody Vrinda' ? (
-                      <FoodyVrindaWordmark className="h-[13.5px] sm:h-[15.5px] w-auto inline-block text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139]" />
+                      <FoodyVrindaWordmark className="h-[14px] sm:h-[16px] w-auto inline-block text-stone-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-[#FD9139]" />
                     ) : (
                       getDisplayName()
                     )}

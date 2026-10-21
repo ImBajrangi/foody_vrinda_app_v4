@@ -680,12 +680,11 @@ export default function KitchenView() {
               <h1 className="text-base sm:text-xl lg:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-outfit font-sans leading-snug">
                 {currentShop ? `${currentShop.name} — Operations` : (currentUserShopId ? 'Assigned Kitchen Unavailable' : 'Kitchen Operations')}
               </h1>
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${
                 isolatedOrders.length > 0
                   ? 'bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs'
                   : 'bg-stone-300/60 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border border-stone-300 dark:border-white/10'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isolatedOrders.length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
                 <span>{isolatedOrders.length} Active</span>
               </span>
             </div>
@@ -704,14 +703,13 @@ export default function KitchenView() {
               data-tour="restaurant-setup"
               type="button"
               onClick={handleToggleKitchenOnline}
-              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isShopOnline
-                ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25 shadow-xs'
-                : 'bg-rose-500/15 text-rose-800 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-sm ${isShopOnline
+                ? 'bg-[#164E3D] hover:bg-[#124233] text-white border-[#164E3D] shadow-[#164E3D]/25'
+                : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 shadow-rose-600/25'
                 }`}
               title="Toggle Live Kitchen Availability"
             >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${isShopOnline ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-rose-500'}`} />
-              <span className="font-outfit">{isShopOnline ? 'Online' : 'Offline'}</span>
+              <span className="font-outfit font-black tracking-wide uppercase text-[11px]">{isShopOnline ? 'Online' : 'Offline'}</span>
             </button>
 
             {/* Rush Mode (+15 Mins) Toggle */}
@@ -721,14 +719,14 @@ export default function KitchenView() {
                 setIsRushMode(prev => !prev);
                 showToast(!isRushMode ? "+15 Mins Prep Added" : "Rush Mode Off", !isRushMode ? "warning" : "info");
               }}
-              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${isRushMode
-                ? 'bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/40 shadow-sm'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-orange-500/30'
+              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-xs ${isRushMode
+                ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white border-orange-500 shadow-md shadow-orange-500/25'
+                : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-200 border-stone-200 dark:border-white/10 hover:border-orange-500/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
                 }`}
               title="Extend prep time by +15 mins during rush hours"
             >
-              <Flame size={15} className={isRushMode ? 'animate-bounce text-orange-500 shrink-0' : 'text-stone-500 shrink-0'} />
-              <span className="font-outfit">{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
+              <Flame size={15} className={isRushMode ? 'animate-bounce text-white shrink-0' : 'text-stone-400 dark:text-stone-500 shrink-0'} />
+              <span className="font-outfit font-bold">{isRushMode ? 'Rush (+15m)' : 'Rush'}</span>
             </button>
 
             {/* Quick 86 / Stock Availability Manager */}
@@ -739,18 +737,18 @@ export default function KitchenView() {
                 fetchMenu();
                 setShowStockModal(true);
               }}
-              className={`h-10 px-3.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 ${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
-                ? 'bg-amber-500/15 text-amber-800 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
-                : 'bg-stone-100 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10 hover:border-amber-500/30'
+              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-xs ${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
+                ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/25'
+                : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-200 border-stone-200 dark:border-white/10 hover:border-[#164E3D]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
                 }`}
               title="Manage Dish Stock & 86 Availability for this Kitchen"
             >
               {kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0 ? (
-                <PackageX size={15} className="text-amber-500 shrink-0" />
+                <PackageX size={15} className="text-white shrink-0" />
               ) : (
-                <PackageCheck size={15} className="text-emerald-500 shrink-0" />
+                <PackageCheck size={15} className="text-[#164E3D] dark:text-emerald-400 shrink-0" />
               )}
-              <span className="font-outfit truncate">
+              <span className="font-outfit font-bold truncate">
                 {kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
                   ? `${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length} Out`
                   : 'Stock'}
@@ -1105,8 +1103,7 @@ export default function KitchenView() {
               <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans mt-0.5">{isolatedOrders.length} Active Orders</h3>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-black px-3.5 py-1.5 rounded-full bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border border-emerald-600/30 dark:border-emerald-500/30 font-['Outfit'] shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center text-xs font-black px-3.5 py-1.5 rounded-full bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border border-emerald-600/30 dark:border-emerald-500/30 font-['Outfit'] shadow-xs">
             <span>Live Queue</span>
           </span>
         </div>
