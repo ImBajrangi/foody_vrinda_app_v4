@@ -578,7 +578,11 @@ export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
       console.warn('fetchAvailableDeliveries RPC error:', error.message);
       return [];
     }
-    const list = Array.isArray(data) ? data : [];
+    const rawList = Array.isArray(data) ? data : [];
+    const list = rawList.filter(o => {
+      const fType = String(o.fulfillment_type || o.fulfillmentType || '').toLowerCase().trim();
+      return fType !== 'pickup';
+    });
     return list.map(o => ({
       id: o.id,
       shopId: o.shop_id,

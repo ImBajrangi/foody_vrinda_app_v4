@@ -216,6 +216,10 @@ export default function TransportView() {
 
   // Fast notification listener with role-tailored delivery chime & spoken voice
   useFastNotify('all', 'delivery', (alertData) => {
+    // Ignore customer counter pickup alerts in Rider fleet HUD
+    if (alertData?.fulfillment_type === 'pickup' || alertData?.fulfillmentType === 'pickup') {
+      return;
+    }
     playRoleAlarm('delivery', alertData, true);
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -233,14 +237,22 @@ export default function TransportView() {
   const fetchRiderOrders = async () => {
     try {
       // 1. Supabase Cloud Query for assigned/claimed orders (PII unmasked)
+      // Exclude customer self-pickup counter orders
       const { data, error } = await supabase
         .from('foody_orders')
         .select('*')
+        .neq('fulfillment_type', 'pickup')
         .in('status', ['ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit', 'completed', 'delivered'])
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        const mapped = data.map(o => ({
+        // Enforce strict client-side exclusion of counter pickup orders
+        const deliveryOnly = data.filter(o => {
+          const fType = String(o.fulfillment_type || o.fulfillmentType || '').toLowerCase().trim();
+          return fType !== 'pickup';
+        });
+
+        const mapped = deliveryOnly.map(o => ({
           id: o.id,
           ...o,
           shopId: o.shop_id,
@@ -267,6 +279,8 @@ export default function TransportView() {
             const inTransit = mapped.find(o => ['out_for_delivery', 'picked_up', 'in_transit'].includes(o.status));
             return inTransit || mapped[0];
           });
+        } else {
+          setSelectedOrder(null);
         }
       }
 

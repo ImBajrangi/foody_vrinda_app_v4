@@ -38,7 +38,8 @@ function derivePaymentSettingsFromDatabaseShops(shops) {
 
   const anyShopHasCod = activeShops.some(s => {
     const ps = s.payment_settings || s.paymentSettings || {};
-    return (ps.codEnabled ?? s.codEnabled ?? s.cod_enabled) === true;
+    const val = ps.codEnabled ?? s.codEnabled ?? s.cod_enabled;
+    return val === undefined ? true : Boolean(val);
   });
 
   return {
@@ -91,8 +92,8 @@ export function CartProvider({ children }) {
       if (saved) return JSON.parse(saved);
     } catch (e) { }
 
-    // 3. Fail-Closed initial state before cloud sync completes (zero hardcoded assumptions)
-    return { onlinePaymentsEnabled: false, codEnabled: false };
+    // 3. Fallback initial state before cloud sync completes (online false, COD true)
+    return { onlinePaymentsEnabled: false, codEnabled: true };
   });
 
   // Synchronize paymentSettings directly from Supabase Cloud shops (Single Source of Truth)
@@ -174,7 +175,7 @@ export function CartProvider({ children }) {
   const resolveShopPaymentOptions = useCallback((shop) => {
     // Fail-Closed: If payment settings cannot be loaded, do not assume open by default
     const globalOnline = paymentSettings ? paymentSettings.onlinePaymentsEnabled === true : false;
-    const globalCod = paymentSettings ? paymentSettings.codEnabled === true : false;
+    const globalCod = paymentSettings ? (paymentSettings.codEnabled !== false) : true;
 
     const rawShopOnline = shop?.paymentSettings?.onlinePaymentsEnabled
       ?? shop?.payment_settings?.onlinePaymentsEnabled
@@ -186,10 +187,10 @@ export function CartProvider({ children }) {
       ?? shop?.payment_settings?.codEnabled
       ?? shop?.codEnabled
       ?? shop?.cod_enabled
-      ?? false;
+      ?? true;
 
     const shopOnline = Boolean(rawShopOnline);
-    const shopCod = Boolean(rawShopCod);
+    const shopCod = rawShopCod !== false;
 
     const onlineAvailable = Boolean(globalOnline && shopOnline);
     const codAvailable = Boolean(globalCod && shopCod);

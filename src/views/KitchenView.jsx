@@ -15,6 +15,7 @@ import {
   getOrderItemSummary,
   getOrderCustomerName,
   getOrderOTP,
+  verifyOrderOTP,
   generateWhatsAppOrderShareLink
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -45,7 +46,9 @@ import {
   PackageX,
   AlertTriangle,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  KeyRound,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function KitchenView() {
@@ -122,6 +125,17 @@ export default function KitchenView() {
   const [cookingNotes, setCookingNotes] = useState('');
   const [manualCart, setManualCart] = useState([]);
   const [itemSearch, setItemSearch] = useState('');
+
+  // Counter Handover OTP Modal State
+  const [counterOtpModal, setCounterOtpModal] = useState({
+    isOpen: false,
+    order: null,
+    digits: ['', '', '', ''],
+    error: '',
+    isSubmitting: false,
+    isSuccess: false,
+    shake: false
+  });
 
   // Audio Alarm hook
   const { isPlaying, activeAlert, playRoleAlarm, stopAlarm, warmUpAudio, audioUnlocked } = useAudioAlarm();
@@ -447,24 +461,28 @@ export default function KitchenView() {
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
+      const isPickupOrder = orderData?.fulfillment_type === 'pickup' || orderData?.fulfillmentType === 'pickup';
 
-      // Notify customer & rider
+      // 1. Notify Customer that food is packed
       if (orderData?.userId) {
         await createCloudNotification({
           userId: orderData.userId,
           title: `Packed & Ready: ${itemSummary}`,
-          message: `${itemSummary} is packed & ready for courier dispatch.`,
+          message: `${itemSummary} is packed & ready for ${isPickupOrder ? 'counter pickup' : 'courier dispatch'}.`,
           orderId
         });
       }
 
-      await createCloudNotification({
-        role: 'delivery',
-        shopId: activeShopId,
-        title: `Pickup Ready: ${itemSummary}`,
-        message: `${itemSummary} (${customerName}) is ready for pickup.`,
-        orderId
-      });
+      // 2. Only notify delivery fleet if this is a DOORSTEP DELIVERY order
+      if (!isPickupOrder) {
+        await createCloudNotification({
+          role: 'delivery',
+          shopId: activeShopId,
+          title: `Pickup Ready: ${itemSummary}`,
+          message: `${itemSummary} (${customerName}) is ready for pickup.`,
+          orderId
+        });
+      }
 
       showToast(`Ready: ${itemSummary} (${customerName})`, "success");
     } catch (e) {
@@ -496,6 +514,88 @@ export default function KitchenView() {
       console.error('Counter handover error:', e);
       showToast('Failed to complete counter handover', 'error');
     }
+  };
+
+  // Open Counter Pickup OTP verification modal
+  const openCounterOtpModal = (order) => {
+    setCounterOtpModal({
+      isOpen: true,
+      order,
+      digits: ['', '', '', ''],
+      error: '',
+      isSubmitting: false,
+      isSuccess: false,
+      shake: false
+    });
+  };
+
+  const closeCounterOtpModal = () => {
+    if (counterOtpModal.isSubmitting) return;
+    setCounterOtpModal({
+      isOpen: false,
+      order: null,
+      digits: ['', '', '', ''],
+      error: '',
+      isSubmitting: false,
+      isSuccess: false,
+      shake: false
+    });
+  };
+
+  const handleCounterOtpDigitChange = (index, value) => {
+    const clean = value.replace(/\D/g, '').slice(-1);
+    const newDigits = [...counterOtpModal.digits];
+    newDigits[index] = clean;
+    setCounterOtpModal(prev => ({ ...prev, digits: newDigits, error: '', shake: false }));
+
+    if (clean && index < 3) {
+      const nextInput = document.getElementById(`counter-otp-input-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+
+    if (clean && index === 3 && newDigits.every(d => d !== '')) {
+      verifyAndSubmitCounterOtp(newDigits.join(''));
+    }
+  };
+
+  const handleCounterOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !counterOtpModal.digits[index] && index > 0) {
+      const prevInput = document.getElementById(`counter-otp-input-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  const verifyAndSubmitCounterOtp = async (codeToVerify) => {
+    const code = (codeToVerify || counterOtpModal.digits.join('')).trim();
+    if (code.length < 4) {
+      setCounterOtpModal(prev => ({ ...prev, error: 'Please enter all 4 digits', shake: true }));
+      setTimeout(() => setCounterOtpModal(prev => ({ ...prev, shake: false })), 600);
+      return;
+    }
+
+    const currentOrder = counterOtpModal.order;
+    if (!currentOrder) return;
+
+    const isValid = verifyOrderOTP(currentOrder, 'pickup', code);
+    if (!isValid) {
+      setCounterOtpModal(prev => ({
+        ...prev,
+        error: 'Invalid Devotee Pickup OTP. Please check devotee screen.',
+        shake: true
+      }));
+      setTimeout(() => setCounterOtpModal(prev => ({ ...prev, shake: false })), 600);
+      return;
+    }
+
+    setCounterOtpModal(prev => ({ ...prev, isSuccess: true, isSubmitting: true, error: '' }));
+    setTimeout(async () => {
+      try {
+        await handleCounterPickupHandover(currentOrder.id, currentOrder);
+        closeCounterOtpModal();
+      } catch (err) {
+        setCounterOtpModal(prev => ({ ...prev, isSubmitting: false, error: 'Failed to complete handover. Retry.' }));
+      }
+    }, 500);
   };
 
   const toggleItemReady = async (orderId, itemId) => {
@@ -832,16 +932,28 @@ export default function KitchenView() {
                       </div>
                     )}
 
-                    {/* Rider Handover Pickup OTP Badge */}
-                    <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
-                      <span className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 size={11} />
-                        <span>Rider Pickup OTP</span>
-                      </span>
-                      <span className="fv-badge-otp">
-                        {getOrderOTP(order.id, 'pickup')}
-                      </span>
-                    </div>
+                    {/* Handover / Pickup Badge */}
+                    {(order.fulfillment_type === 'pickup' || order.fulfillmentType === 'pickup') ? (
+                      <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                          <PackageCheck size={11} />
+                          <span>Devotee Counter Pickup</span>
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                          Verify via Customer OTP
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-stone-200/80 dark:border-white/10 mt-1.5">
+                        <span className="text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                          <CheckCircle2 size={11} />
+                          <span>Rider Pickup OTP</span>
+                        </span>
+                        <span className="fv-badge-otp">
+                          {getOrderOTP(order.id, 'pickup')}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dishes Checklist Section */}
@@ -907,15 +1019,15 @@ export default function KitchenView() {
                           <span>Customer Counter Pickup</span>
                         </div>
                         <p className="text-[11px] text-stone-600 dark:text-zinc-400">
-                          Verify Devotee Pickup OTP: <strong className="font-mono text-xs text-emerald-700 dark:text-emerald-400 font-black px-1.5 py-0.5 rounded bg-emerald-500/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                          Food packed & ready. Ask devotee for 4-digit code shown in their app.
                         </p>
                         <button
                           type="button"
-                          onClick={() => handleCounterPickupHandover(order.id, order)}
-                          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target"
+                          onClick={() => openCounterOtpModal(order)}
+                          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target active:scale-[0.98]"
                         >
-                          <CheckCircle2 size={15} strokeWidth={2.5} />
-                          <span>Handover Prasad & Complete Order</span>
+                          <KeyRound size={15} strokeWidth={2.5} />
+                          <span>Enter Devotee OTP & Handover</span>
                         </button>
                       </div>
                     ) : (
@@ -1333,6 +1445,138 @@ export default function KitchenView() {
                 className="h-9 px-5 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider font-['Outfit'] shadow-md shadow-[#FD9139]/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DEVOTEE COUNTER PICKUP OTP VERIFICATION MODAL */}
+      {counterOtpModal.isOpen && counterOtpModal.order && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !counterOtpModal.isSubmitting) {
+              closeCounterOtpModal();
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm apple-overlay"
+        >
+          <div
+            className={`w-full max-w-md bg-stone-50 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${
+              counterOtpModal.shake ? 'animate-shake' : ''
+            }`}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                  <PackageCheck size={22} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-['Outfit']">
+                    Counter Handover Verification
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black font-['Outfit'] mt-1 text-stone-900 dark:text-white">
+                    Devotee Pickup OTP
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeCounterOtpModal}
+                disabled={counterOtpModal.isSubmitting}
+                className="w-8 h-8 rounded-full bg-stone-200 dark:bg-white/10 hover:bg-stone-300 dark:hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer text-stone-600 dark:text-zinc-400"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Instruction Banner */}
+            <div className="bg-stone-100 dark:bg-[#141213] border border-stone-200 dark:border-white/5 rounded-2xl p-3.5 mb-5 space-y-1">
+              <p className="text-xs text-stone-700 dark:text-zinc-300">
+                Ask devotee <strong className="text-stone-900 dark:text-white">{getOrderCustomerName(counterOtpModal.order)}</strong> for the 4-digit code shown in their app.
+              </p>
+              <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400 font-mono pt-1">
+                <span>Order #{counterOtpModal.order.id ? counterOtpModal.order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}</span>
+                <span>{counterOtpModal.order.items?.length || 1} items · ₹{counterOtpModal.order.totalAmount || counterOtpModal.order.total_amount || 0}</span>
+              </div>
+            </div>
+
+            {/* 4-Digit Input Boxes */}
+            <div className="mb-5">
+              <div className="flex items-center justify-center gap-3">
+                {counterOtpModal.digits.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    id={`counter-otp-input-${idx}`}
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    autoFocus={idx === 0}
+                    onChange={(e) => handleCounterOtpDigitChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleCounterOtpKeyDown(idx, e)}
+                    disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
+                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl border transition-all outline-none ${
+                      counterOtpModal.isSuccess
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 scale-105'
+                        : digit
+                        ? 'bg-stone-200 dark:bg-[#1E1B1C] border-[#FD9139] text-stone-900 dark:text-white ring-2 ring-[#FD9139]/20'
+                        : 'bg-stone-100 dark:bg-[#141213] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white focus:border-[#FD9139]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Error message */}
+              {counterOtpModal.error && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-bold animate-shake">
+                  <AlertTriangle size={13} />
+                  <span>{counterOtpModal.error}</span>
+                </div>
+              )}
+
+              {/* Success message */}
+              {counterOtpModal.isSuccess && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                  <CheckCircle2 size={14} />
+                  <span>OTP Verified! Completing Handover...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2 pt-2 border-t border-stone-200 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => verifyAndSubmitCounterOtp()}
+                disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
+                className="w-full py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-[0.98] bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+              >
+                {counterOtpModal.isSubmitting ? (
+                  <span>Verifying & Handing Over...</span>
+                ) : (
+                  <>
+                    <CheckCircle2 size={16} strokeWidth={2.5} />
+                    <span>Verify OTP & Handover Prasad</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Emergency Override: Hand over prasad without customer OTP (e.g. phone dead)?')) {
+                    handleCounterPickupHandover(counterOtpModal.order.id, counterOtpModal.order);
+                    closeCounterOtpModal();
+                  }
+                }}
+                disabled={counterOtpModal.isSubmitting}
+                className="w-full py-2 text-[11px] font-bold text-stone-500 dark:text-zinc-500 hover:text-stone-800 dark:hover:text-zinc-300 transition-all cursor-pointer text-center"
+              >
+                Devotee phone dead? Direct Handover Override
               </button>
             </div>
           </div>

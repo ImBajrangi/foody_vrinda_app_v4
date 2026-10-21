@@ -1041,8 +1041,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const isBelowMin = subtotal < minOrderAmount && minOrderAmount > 0;
 
   const isPickupOrder = fulfillmentType === 'pickup';
-  // Cash / Pay at Counter availability matches platform and shop COD status
-  const isCodAvailableForOrder = codAvailable;
+  // Cash / Pay at Counter: For counter pickup, paying at counter is ALWAYS available. For delivery, COD is available by default
+  const isCodAvailableForOrder = isPickupOrder ? true : codAvailable;
 
   // Auto-switch payment method if selected method is disabled for this kitchen or fulfillment mode
   useEffect(() => {
@@ -1240,7 +1240,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     };
 
     if (paymentMethod === 'cash') {
-      if (!codAvailable) return showToast("Cash on Delivery unavailable for this kitchen", 'error');
+      if (!isPickupOrder && !codAvailable) return showToast("Cash on Delivery unavailable for this kitchen", 'error');
       orderPayload.cashStatus = 'pending';
       orderPayload.paymentId = null;
 
@@ -2946,7 +2946,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               <button
                 onClick={handlePlaceOrder}
-                disabled={!isShopOpen || (!onlineAvailable && !codAvailable) || (fulfillmentType === 'delivery' && onlineRidersCount === 0)}
+                disabled={!isShopOpen || (!onlineAvailable && !codAvailable && !isPickupOrder) || (fulfillmentType === 'delivery' && onlineRidersCount === 0)}
                 className="w-full bg-[#FD9139] hover:bg-[#FCA65E] text-white disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit'] apple-spring-pop"
               >
                 <span className="font-black">
@@ -2954,7 +2954,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     ? 'Kitchen Offline (Closed)'
                     : (fulfillmentType === 'delivery' && onlineRidersCount === 0
                       ? 'Riders Offline (Select Self-Pickup)'
-                      : (!onlineAvailable && !codAvailable
+                      : (!onlineAvailable && !codAvailable && !isPickupOrder
                         ? 'Kitchen Payments Disabled'
                         : 'Proceed to Place Order'))}
                 </span>

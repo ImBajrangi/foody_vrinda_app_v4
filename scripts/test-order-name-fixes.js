@@ -60,8 +60,8 @@ function evaluateEligibility({ isRetailShop, fulfillmentType, onlineRidersCount,
   // 1. Delivery with 0 riders -> Blocked
   const deliveryBlocked = isDelivery && onlineRidersCount === 0;
 
-  // 2. Pickup COD on retail shop -> Blocked (must be online payment)
-  const pickupCodBlocked = isRetailShop && isPickup && paymentMethod === 'cash';
+  // 2. Pickup with cash/pay-at-counter -> Always allowed directly at shop counter
+  const pickupCodBlocked = false;
 
   // 3. Eligible to proceed
   const eligible = !deliveryBlocked && !pickupCodBlocked;
@@ -76,7 +76,7 @@ const scenario2 = evaluateEligibility({ isRetailShop: true, fulfillmentType: 'pi
 console.log('Scenario 2 (Retail Self-Pickup, 0 riders, Online Pay):', scenario2.eligible ? '✅ Allowed Self-Pickup' : '❌ Failed');
 
 const scenario3 = evaluateEligibility({ isRetailShop: true, fulfillmentType: 'pickup', onlineRidersCount: 0, paymentMethod: 'cash' });
-console.log('Scenario 3 (Retail Self-Pickup, 0 riders, Cash/COD):', !scenario3.eligible && scenario3.pickupCodBlocked ? '✅ Correctly Blocked Unpaid Retail Pickup' : '❌ Failed');
+console.log('Scenario 3 (Retail Self-Pickup, 0 riders, Cash/COD):', scenario3.eligible ? '✅ Correctly Allowed Counter Cash Pickup' : '❌ Failed');
 
 if (!allPassed) {
   process.exit(1);

@@ -2002,7 +2002,7 @@ export default function OwnerView() {
                                 <p className="text-xs font-black text-stone-900 dark:text-white font-['Outfit']">Shop / Retail Stall</p>
                                 <span className="text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-1.5 py-0.2 rounded">Anti-Waste Policy</span>
                               </div>
-                              <p className="text-[11px] text-stone-600 dark:text-neutral-400 mt-0.5">Prasad/Sweets counter. Pickups require prepaid payment to eliminate fake order losses</p>
+                              <p className="text-[11px] text-stone-600 dark:text-neutral-400 mt-0.5">Prasad/Sweets counter. Direct pay at counter / cash on delivery for pickups.</p>
                             </div>
                           </button>
                         </div>
