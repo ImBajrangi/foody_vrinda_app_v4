@@ -95,7 +95,9 @@ import {
   getCachedUsers,
   saveCachedUsers,
   broadcastAlarmEvent,
-  purgeAllDemoOrders
+  purgeAllDemoOrders,
+  setDeliveryPartnerStatus,
+  updateUserOnlineStatus
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
@@ -992,17 +994,39 @@ export default function DeveloperView({ setCurrentTab }) {
     });
   };
 
-  const handleToggleDeliveryStatus = async (userId, currentStatus) => {
+  const handleToggleDeliveryStatus = async (userId, currentStatus, currentType = 'independent') => {
     const nextStatus = currentStatus === 'suspended' ? 'approved' : 'suspended';
     setUsersList(prev => {
       const updated = prev.map(u => u.id === userId ? { ...u, delivery_status: nextStatus } : u);
       saveCachedUsers(updated);
       return updated;
     });
-    await updateCloudUser(userId, { delivery_status: nextStatus });
+    try {
+      await setDeliveryPartnerStatus(userId, nextStatus, currentType);
+    } catch (e) {
+      console.warn('setDeliveryPartnerStatus error:', e);
+    }
     setToast({ 
       message: `Delivery Sarathi ${nextStatus === 'approved' ? 'Approved & Activated' : 'Suspended'}`, 
       type: nextStatus === 'approved' ? 'success' : 'warning' 
+    });
+  };
+
+  const handleToggleDeliveryOnline = async (userId, currentOnline) => {
+    const nextOnline = !currentOnline;
+    setUsersList(prev => {
+      const updated = prev.map(u => u.id === userId ? { ...u, is_active: nextOnline, isOnline: nextOnline } : u);
+      saveCachedUsers(updated);
+      return updated;
+    });
+    try {
+      await updateUserOnlineStatus(userId, nextOnline);
+    } catch (e) {
+      console.warn('updateUserOnlineStatus error:', e);
+    }
+    setToast({ 
+      message: `Rider is now ${nextOnline ? 'On Duty (Available)' : 'Off Duty (Offline)'}`, 
+      type: nextOnline ? 'success' : 'info' 
     });
   };
 
@@ -3816,21 +3840,39 @@ export default function DeveloperView({ setCurrentTab }) {
                                       <span className="whitespace-nowrap font-bold">Public User</span>
                                     </div>
                                   )}
-                                  {/* Delivery Partner Verification / Approval Badge */}
+                                  {/* Delivery Partner Verification & Duty Badges */}
                                   {role === 'delivery' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleToggleDeliveryStatus(u.id, u.delivery_status || 'approved')}
-                                      className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                        (u.delivery_status || 'approved') === 'approved'
-                                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
-                                          : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
-                                      }`}
-                                      title="Toggle delivery partner verification status"
-                                    >
-                                      <ShieldCheck className="w-3.5 h-3.5" />
-                                      <span>{(u.delivery_status || 'approved') === 'approved' ? 'Approved' : 'Suspended'}</span>
-                                    </button>
+                                    <>
+                                      {/* Live Duty Presence Status Badge */}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleDeliveryOnline(u.id, Boolean(u.is_active ?? u.isOnline ?? false))}
+                                        className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                          (u.is_active ?? u.isOnline ?? false)
+                                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20'
+                                            : 'bg-stone-500/10 text-stone-600 dark:text-stone-400 border-stone-500/20 hover:bg-stone-500/20'
+                                        }`}
+                                        title="Click to toggle Rider Duty Availability"
+                                      >
+                                        <span className={`w-2 h-2 rounded-full shrink-0 ${(u.is_active ?? u.isOnline ?? false) ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
+                                        <span>{(u.is_active ?? u.isOnline ?? false) ? 'On Duty' : 'Off Duty'}</span>
+                                      </button>
+
+                                      {/* Verification Status Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleDeliveryStatus(u.id, u.delivery_status || 'approved', u.delivery_type || 'independent')}
+                                        className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                          (u.delivery_status || 'approved') === 'approved'
+                                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                                            : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                                        }`}
+                                        title="Toggle delivery partner verification status (Approve / Suspend)"
+                                      >
+                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                        <span>{(u.delivery_status || 'approved') === 'approved' ? 'Approved' : 'Suspended'}</span>
+                                      </button>
+                                    </>
                                   )}
                                 </div>
 

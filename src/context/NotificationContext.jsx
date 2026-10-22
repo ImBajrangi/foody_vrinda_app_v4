@@ -184,19 +184,23 @@ export function NotificationProvider({ children }) {
       return false;
     }
 
-    // 4. Delivery Rider Role: Assigned directly to rider OR ready for pickup in their operating hub
+    // 4. Delivery Rider Role: Assigned directly to rider OR live delivery order in operating fleet/hub
     if (userRole === 'delivery') {
+      const isPickupOrder = orderData.fulfillment_type === 'pickup' || orderData.fulfillmentType === 'pickup';
+      if (isPickupOrder) return false;
+
       const isAssignedRider = Boolean(
         (currentUserId && orderRiderId && String(currentUserId) === String(orderRiderId)) ||
         (userCleanPhone && userCleanPhone.length >= 10 && orderRiderPhone && userCleanPhone.slice(-10) === orderRiderPhone.slice(-10))
       );
       if (isAssignedRider) return true;
 
-      // Delivery rider can see pickup alerts for their active hub
-      if (orderData.status === 'ready_for_pickup' || orderData.status === 'ready' || orderData.status === 'out_of_kitchen') {
-        if (!currentUserShopId || currentUserShopId === 'all' || orderShopId === currentUserShopId) {
-          return true;
-        }
+      // Delivery rider can see delivery tasks for their active hub or independent fleet across all outlets
+      if (!currentUserShopId || currentUserShopId === 'all' || orderShopId === currentUserShopId) {
+        return true;
+      }
+      if (Array.isArray(currentUserShopIds) && currentUserShopIds.includes(orderShopId)) {
+        return true;
       }
       return false;
     }
@@ -397,12 +401,18 @@ export function NotificationProvider({ children }) {
       let msg = '';
       let statusTag = '';
 
-      if (eventType === 'INSERT' || orderData.status === 'new') {
+      if (eventType === 'INSERT' || orderData.status === 'new' || orderData.status === 'pending' || orderData.status === 'placed') {
+        const isDeliveryOrder = orderData.fulfillment_type !== 'pickup' && orderData.fulfillmentType !== 'pickup';
         if (activeRole === 'kitchen') {
           title = `New Order: ${customerName}`;
           msg = `${itemSummary} queued for cooking`;
           statusTag = 'New';
           nativeNotify.notifyKitchenNewOrder(orderData);
+        } else if (activeRole === 'delivery' && isDeliveryOrder) {
+          title = `New Delivery Order: ${customerName}`;
+          msg = `${itemSummary} (₹${orderData.total_amount || orderData.totalAmount || 0}) placed for delivery`;
+          statusTag = 'New';
+          nativeNotify.notifyDriverNewOrder(orderData);
         } else if (isOwnerRole) {
           title = `New Order: ${customerName}`;
           msg = `${itemSummary} (₹${orderData.total_amount || orderData.totalAmount || 0})`;

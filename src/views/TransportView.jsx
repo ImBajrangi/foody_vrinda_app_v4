@@ -125,11 +125,30 @@ export default function TransportView() {
 
   const [isRiderOnDuty, setIsRiderOnDuty] = useState(() => {
     try {
-      return localStorage.getItem('foody_rider_on_duty') !== 'false';
+      const cached = localStorage.getItem('foody_rider_on_duty');
+      if (cached !== null) return cached !== 'false';
+      if (activeUser?.is_active !== undefined) return Boolean(activeUser.is_active);
+      if (activeUser?.isOnline !== undefined) return Boolean(activeUser.isOnline);
+      return true;
     } catch (e) {
       return true;
     }
   });
+
+  // Keep duty state synchronized with active cloud profile
+  useEffect(() => {
+    if (activeUser?.is_active !== undefined) {
+      setIsRiderOnDuty(Boolean(activeUser.is_active));
+      try {
+        localStorage.setItem('foody_rider_on_duty', String(Boolean(activeUser.is_active)));
+      } catch (e) {}
+    } else if (activeUser?.isOnline !== undefined) {
+      setIsRiderOnDuty(Boolean(activeUser.isOnline));
+      try {
+        localStorage.setItem('foody_rider_on_duty', String(Boolean(activeUser.isOnline)));
+      } catch (e) {}
+    }
+  }, [activeUser?.is_active, activeUser?.isOnline]);
 
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
 
@@ -221,17 +240,25 @@ export default function TransportView() {
     if (alertData?.fulfillment_type === 'pickup' || alertData?.fulfillmentType === 'pickup') {
       return;
     }
+    // Only alarm if rider is currently on duty
+    if (!isRiderOnDuty) {
+      return;
+    }
     playRoleAlarm('delivery', alertData, true);
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        const text = 'नया ऑर्डर पिकअप के लिए तैयार है';
+        const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
+        const text = isNew ? 'नया डिलीवरी ऑर्डर आया है' : 'नया ऑर्डर पिकअप के लिए तैयार है';
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'hi-IN';
         utterance.rate = 0.95;
         window.speechSynthesis.speak(utterance);
       }
     } catch (e) { }
-    showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} ready for Sarathi Pickup!`, "info");
+    const orderNum = alertData?.orderId ? `#${alertData.orderId.slice(-6).toUpperCase()}` : 'Order';
+    const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
+    showToast(isNew ? `${orderNum} incoming! Waiting for kitchen preparation.` : `${orderNum} ready for Sarathi Pickup!`, "info");
+    fetchRiderOrders();
   });
 
   // Load delivery orders: independent fleet across all platform outlets (including today's ended history)
@@ -243,7 +270,7 @@ export default function TransportView() {
         .from('foody_orders')
         .select('*')
         .neq('fulfillment_type', 'pickup')
-        .in('status', ['ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit', 'completed', 'delivered'])
+        .in('status', ['new', 'pending', 'placed', 'preparing', 'ready_for_pickup', 'ready', 'out_of_kitchen', 'out_for_delivery', 'picked_up', 'in_transit', 'completed', 'delivered'])
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -931,7 +958,7 @@ export default function TransportView() {
   }, [orders]);
 
   const upcomingPickups = useMemo(() => {
-    const assigned = orders.filter(o => ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status));
+    const assigned = orders.filter(o => ['new', 'pending', 'placed', 'preparing', 'ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status));
     const assignedIds = new Set(assigned.map(o => o.id));
     const unclaimed = availableOrders.filter(o => !assignedIds.has(o.id));
     return [...unclaimed, ...assigned];
@@ -1081,6 +1108,26 @@ export default function TransportView() {
           </div>
         </div>
       </div>
+
+      {/* Off Duty Notice Banner */}
+      {!isRiderOnDuty && (
+        <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-400 dark:bg-stone-500 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-bold tracking-tight">Rider is currently Off Duty (Break Mode)</p>
+              <p className="text-[11px] opacity-80 mt-0.5">Live audible alarms and automatic order assignments are paused until you switch back on duty.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={toggleRiderDuty}
+            className="px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all shadow-xs"
+          >
+            Go On Duty
+          </button>
+        </div>
+      )}
 
       {/* 3. SARATHI FLEET OPERATIONS SEGMENTED TABS (Independent Fleet) */}
       <div className="space-y-3">

@@ -4125,15 +4125,29 @@ export default function OwnerView() {
                                   </div>
                                 </div>
 
-                                {/* Role Badge */}
-                                <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 tracking-wider ${role === 'kitchen' ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20' :
-                                  role === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 border border-cyan-500/20 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/20' :
-                                    'bg-purple-500/10 text-purple-700 border border-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/20'
-                                  }`}>
-                                  {role === 'kitchen' ? 'Kitchen Cook' :
-                                    role === 'delivery' ? 'Delivery Sarathi' :
-                                      'Store Manager'}
-                                </span>
+                                {/* Role & Availability Badges */}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {role === 'delivery' && (
+                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                                      (u.is_active ?? u.isOnline ?? false)
+                                        ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/25 dark:text-emerald-400'
+                                        : 'bg-stone-500/10 text-stone-500 border-stone-500/20 dark:text-stone-400'
+                                    }`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${
+                                        (u.is_active ?? u.isOnline ?? false) ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'
+                                      }`} />
+                                      {(u.is_active ?? u.isOnline ?? false) ? 'On Duty' : 'Off Duty'}
+                                    </span>
+                                  )}
+                                  <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full shrink-0 tracking-wider ${role === 'kitchen' ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20' :
+                                    role === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 border border-cyan-500/20 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/20' :
+                                      'bg-purple-500/10 text-purple-700 border border-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/20'
+                                    }`}>
+                                    {role === 'kitchen' ? 'Kitchen Cook' :
+                                      role === 'delivery' ? 'Delivery Sarathi' :
+                                        'Store Manager'}
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Bottom Role Control Row */}

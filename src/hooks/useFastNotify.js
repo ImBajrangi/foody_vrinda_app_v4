@@ -34,12 +34,17 @@ export function useFastNotify(shopIds, role, onAlert) {
           let shouldAlarm = false;
           let alertTitle = "";
 
-          if (order.status === 'new') {
+          const isPickup = order.fulfillment_type === 'pickup' || order.fulfillmentType === 'pickup';
+
+          if (order.status === 'new' || order.status === 'pending' || order.status === 'placed') {
             if (isKitchenStaff || isManagement) {
               shouldAlarm = true;
               alertTitle = "NEW ORDER IN KITCHEN!";
+            } else if (isDeliveryStaff && !isPickup) {
+              shouldAlarm = true;
+              alertTitle = "NEW DELIVERY ORDER INCOMING!";
             }
-          } else if (order.status === 'ready_for_pickup') {
+          } else if (order.status === 'ready_for_pickup' || order.status === 'ready' || order.status === 'out_of_kitchen') {
             if (isDeliveryStaff || isManagement) {
               shouldAlarm = true;
               alertTitle = "ORDER READY FOR PICKUP!";

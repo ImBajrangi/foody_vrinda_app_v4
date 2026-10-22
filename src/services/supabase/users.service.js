@@ -375,7 +375,14 @@ export async function getCloudUsers(forceRefresh = false) {
             phone: userCandidate.phone || prev.phone,
             role: bestRole,
             shopId: userCandidate.shopId || prev.shopId || getDefaultActiveShopId(),
-            shopIds: userCandidate.shopIds?.length ? userCandidate.shopIds : (prev.shopIds || [getDefaultActiveShopId()].filter(Boolean))
+            shopIds: userCandidate.shopIds?.length ? userCandidate.shopIds : (prev.shopIds || [getDefaultActiveShopId()].filter(Boolean)),
+            delivery_status: userCandidate.delivery_status || userCandidate.deliveryStatus || prev.delivery_status || prev.deliveryStatus || 'approved',
+            deliveryStatus: userCandidate.delivery_status || userCandidate.deliveryStatus || prev.delivery_status || prev.deliveryStatus || 'approved',
+            delivery_type: userCandidate.delivery_type || userCandidate.deliveryType || prev.delivery_type || prev.deliveryType || 'independent',
+            deliveryType: userCandidate.delivery_type || userCandidate.deliveryType || prev.delivery_type || prev.deliveryType || 'independent',
+            isOnline: userCandidate.isOnline !== undefined ? userCandidate.isOnline : (userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isOnline ?? prev.isActive ?? true)),
+            isActive: userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isActive ?? true),
+            is_active: userCandidate.is_active !== undefined ? userCandidate.is_active : (prev.is_active ?? true)
           };
         } else {
           deduplicatedUsers.push(userCandidate);
@@ -403,6 +410,12 @@ export async function getCloudUsers(forceRefresh = false) {
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
+          is_active: u.is_active ?? true,
+          isOnline: u.is_active ?? true,
+          delivery_status: u.delivery_status || 'approved',
+          deliveryStatus: u.delivery_status || 'approved',
+          delivery_type: u.delivery_type || 'independent',
+          deliveryType: u.delivery_type || 'independent',
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
@@ -425,6 +438,12 @@ export async function getCloudUsers(forceRefresh = false) {
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
+          is_active: u.is_active ?? true,
+          isOnline: u.is_active ?? true,
+          delivery_status: u.delivery_status || 'approved',
+          deliveryStatus: u.delivery_status || 'approved',
+          delivery_type: u.delivery_type || 'independent',
+          deliveryType: u.delivery_type || 'independent',
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
@@ -497,6 +516,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: data.dev_permissions || [],
         isActive: data.is_active ?? true,
+        is_active: data.is_active ?? true,
+        isOnline: data.is_active ?? true,
+        delivery_status: data.delivery_status || 'approved',
+        deliveryStatus: data.delivery_status || 'approved',
+        delivery_type: data.delivery_type || 'independent',
+        deliveryType: data.delivery_type || 'independent',
         isLoggedInUser: true
       };
     }
@@ -525,6 +550,12 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
         devPermissions: uData.dev_permissions || [],
         isActive: uData.is_active ?? true,
+        is_active: uData.is_active ?? true,
+        isOnline: uData.is_active ?? true,
+        delivery_status: uData.delivery_status || 'approved',
+        deliveryStatus: uData.delivery_status || 'approved',
+        delivery_type: uData.delivery_type || 'independent',
+        deliveryType: uData.delivery_type || 'independent',
         isLoggedInUser: true
       };
     }
@@ -863,6 +894,9 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const resolvedCash = updates.cashInHand ?? updates.cash_in_hand ?? userExists?.cashInHand ?? 0;
   const resolvedDebt = updates.unsettledDebt ?? updates.unsettled_debt ?? userExists?.unsettledDebt ?? 0;
 
+  const resolvedDeliveryStatus = updates.delivery_status || updates.deliveryStatus || userExists?.delivery_status || userExists?.deliveryStatus || (updates.role === 'delivery' || userExists?.role === 'delivery' ? 'approved' : 'approved');
+  const resolvedDeliveryType = updates.delivery_type || updates.deliveryType || userExists?.delivery_type || userExists?.deliveryType || (updates.role === 'delivery' || userExists?.role === 'delivery' ? 'independent' : 'independent');
+
   const fullLoggedPayload = {
     id: targetId,
     display_name: updates.displayName || updates.display_name || userExists?.displayName || resolvedEmail?.split('@')[0] || `User (${targetId.slice(0, 6)})`,
@@ -874,6 +908,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || getDefaultActiveShopId(),
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || [getDefaultActiveShopId()].filter(Boolean),
     dev_permissions: updates.devPermissions || updates.dev_permissions || userExists?.devPermissions || [],
+    delivery_status: resolvedDeliveryStatus,
+    delivery_type: resolvedDeliveryType,
     trust_score: Number(resolvedTrust),
     cibil_score: Number(resolvedTrust),
     cash_in_hand: Number(resolvedCash),
@@ -894,6 +930,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     shop_id: fullLoggedPayload.shop_id,
     shop_ids: fullLoggedPayload.shop_ids,
     dev_permissions: fullLoggedPayload.dev_permissions,
+    delivery_status: resolvedDeliveryStatus,
+    delivery_type: resolvedDeliveryType,
     trust_score: Number(resolvedTrust),
     cibil_score: Number(resolvedTrust),
     cash_in_hand: Number(resolvedCash),
@@ -937,13 +975,105 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
  */
 export async function updateUserOnlineStatus(userId, isOnline = true, coordinates = null) {
   if (!userId) return null;
-  const updates = {
-    isOnline: !!isOnline,
-    isActive: !!isOnline,
-    is_active: !!isOnline,
-    last_seen_at: new Date().toISOString()
+  const cleanId = String(userId).trim();
+  const nowIso = new Date().toISOString();
+  const activeBool = Boolean(isOnline);
+
+  // 1. Update in local cache
+  const currentUsers = getCachedUsers();
+  const updatedList = currentUsers.map(u => {
+    if (String(u.id).trim() === cleanId) {
+      return {
+        ...u,
+        isOnline: activeBool,
+        isActive: activeBool,
+        is_active: activeBool,
+        coordinates: coordinates || u.coordinates,
+        lat: coordinates?.lat ?? u.lat,
+        lng: coordinates?.lng ?? u.lng,
+        last_seen_at: nowIso,
+        last_location_at: coordinates ? nowIso : u.last_location_at,
+        updatedAt: nowIso
+      };
+    }
+    return u;
+  });
+  saveCachedUsers(updatedList);
+  setCachedItem('users', 'all', updatedList);
+  const updatedUser = updatedList.find(u => String(u.id).trim() === cleanId);
+  dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUser });
+
+  // 2. Focused atomic cloud write (only touches presence columns to prevent RLS permission collisions)
+  const presencePayload = {
+    is_active: activeBool,
+    last_seen_at: nowIso,
+    updated_at: nowIso
   };
-  return updateCloudUser(userId, updates);
+
+  try {
+    await supabase.from('foody_logged_users').update(presencePayload).eq('id', cleanId);
+  } catch (_) {}
+
+  try {
+    await supabase.from('foody_users').update(presencePayload).eq('id', cleanId);
+  } catch (_) {}
+
+  return updatedUser;
+}
+
+/**
+ * Dedicated atomic function for Developer/Admin approval or suspension of delivery partners
+ */
+export async function setDeliveryPartnerStatus(userId, deliveryStatus = 'approved', deliveryType = 'independent') {
+  if (!userId) return { success: false, error: 'User ID is required' };
+  const cleanId = String(userId).trim();
+  const validStatus = ['pending', 'approved', 'suspended'].includes(deliveryStatus) ? deliveryStatus : 'approved';
+  const validType = ['independent', 'shop'].includes(deliveryType) ? deliveryType : 'independent';
+  const nowIso = new Date().toISOString();
+
+  // 1. Update local cache immediately
+  const currentUsers = getCachedUsers();
+  const updatedList = currentUsers.map(u => {
+    if (String(u.id).trim() === cleanId) {
+      return {
+        ...u,
+        delivery_status: validStatus,
+        deliveryStatus: validStatus,
+        delivery_type: validType,
+        deliveryType: validType,
+        updatedAt: nowIso
+      };
+    }
+    return u;
+  });
+  saveCachedUsers(updatedList);
+  setCachedItem('users', 'all', updatedList);
+  const updatedUser = updatedList.find(u => String(u.id).trim() === cleanId);
+  dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUser });
+
+  // 2. Persist to Supabase tables
+  const payload = {
+    delivery_status: validStatus,
+    delivery_type: validType,
+    updated_at: nowIso
+  };
+
+  let writeError = null;
+  try {
+    const { error: err1 } = await supabase.from('foody_logged_users').update(payload).eq('id', cleanId);
+    if (err1) writeError = err1;
+  } catch (e) {
+    writeError = e;
+  }
+
+  try {
+    const { error: err2 } = await supabase.from('foody_users').update(payload).eq('id', cleanId);
+    if (err2) writeError = err2;
+  } catch (e) {
+    writeError = e;
+  }
+
+  return { success: !writeError, updatedUser, error: writeError?.message };
 }
 
 export async function adminBlockUser(userId, reason = 'Administrative block') {

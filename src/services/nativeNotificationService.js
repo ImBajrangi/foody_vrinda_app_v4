@@ -1130,6 +1130,41 @@ class NativeNotificationService {
   }
 
   /**
+   * Sarathi / Delivery Partner: Alert when a new delivery order comes into the system
+   */
+  async notifyDriverNewOrder(order) {
+    await this.hapticNotification(NotificationType.Warning);
+    await this.startContinuousAlarm('delivery', order);
+    if (!this.isNative) return;
+
+    try {
+      const { itemsSummary, customerFullName } = this._getOrderDetails(order);
+      const title = `🛵 NEW DELIVERY ORDER: ${itemsSummary}`;
+      const body = `New order for ${customerFullName} • ₹${order?.total_amount || order?.totalAmount || 0}. Tap to view & claim.`;
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title,
+            body,
+            id: 108111,
+            channelId: 'driver_dispatch',
+            smallIcon: 'ic_stat_notification',
+            largeIcon: 'splash_icon',
+            iconColor: '#FF751F',
+            sound: 'delivery_alert.wav',
+            ongoing: true,
+            autoCancel: true,
+            extra: { orderId: order?.id, type: 'driver_new' },
+          },
+        ],
+      });
+    } catch (e) {
+      console.warn('Failed to schedule driver new order notification:', e);
+    }
+  }
+
+  /**
    * Customer: Alert on milestone changes
    */
   async notifyCustomerOrderUpdate(order, status) {
