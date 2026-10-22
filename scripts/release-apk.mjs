@@ -145,11 +145,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Refined live kitchen presence and status indicators with royal botanical palette.',
-    'Streamlined status badges and navigation header removing visual clutter and dots.',
-    'Resolved typography clipping for font descenders and Devanagari text on profile cards.',
-    'Cloud-synchronized master payment gateway settings & resilient shop cache fallback.',
-    'Enhanced active order tracking modal UI with high-contrast live map actions.'
+    'Real-time delivery partner duty & online presence synchronization with Supabase Cloud.',
+    'Off-duty break mode banner and intelligent audible order alarms for delivery partners.',
+    'Integrated developer approval & fleet status controls (pending, approved, suspended).',
+    'Enhanced multi-stage delivery order routing and kitchen handover flow.',
+    'Improved notification delivery with native sound triggers and speech synthesis.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
