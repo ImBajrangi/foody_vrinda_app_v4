@@ -3,6 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import DynamicToast from '../components/ui/DynamicToast';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
+import StackedBars from '../components/ui/StackedBars';
+import CreateMenu from '../components/ui/CreateMenu';
+import RollingCounter from '../components/ui/RollingCounter';
+import OneTimeCode from '../components/ui/OneTimeCode';
+import LabelInput from '../components/ui/LabelInput';
 import {
   Terminal,
   Store,
@@ -239,7 +244,9 @@ export default function DeveloperView({ setCurrentTab }) {
     payments: false,
     simulator: false,
     users: false,
-    alarm: false
+    alarm: false,
+    updates: false,
+    uiLab: false
   });
 
   const toggleSection = (key) => {
@@ -296,7 +303,8 @@ export default function DeveloperView({ setCurrentTab }) {
       simulator: true,
       users: true,
       alarm: true,
-      updates: true
+      updates: true,
+      uiLab: true
     });
   };
 
@@ -311,7 +319,8 @@ export default function DeveloperView({ setCurrentTab }) {
       simulator: false,
       users: false,
       alarm: false,
-      updates: false
+      updates: false,
+      uiLab: false
     });
   };
 
@@ -1441,7 +1450,8 @@ export default function DeveloperView({ setCurrentTab }) {
           { id: 'users', label: 'Users & Roles', icon: Users, badge: stats.notifications },
           { id: 'payments', label: 'Payments', icon: CreditCard },
           { id: 'simulator', label: 'Simulator', icon: Flame },
-          { id: 'alarm', label: 'Alarms', icon: Volume2 }
+          { id: 'alarm', label: 'Alarms', icon: Volume2 },
+          { id: 'ui-lab', label: 'UI Lab', icon: Sparkles }
         ].map(tab => {
           const isActive = activeDevTab === tab.id;
           const Icon = tab.icon;
@@ -4143,6 +4153,127 @@ export default function DeveloperView({ setCurrentTab }) {
                   </button>
                 </div>
               </form>
+            )}
+          </div>
+        )}
+
+        {/* 11. UI Lab & Bencho Design System Showcase */}
+        {(activeDevTab === 'all' || activeDevTab === 'ui-lab') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-6 shadow-xl transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('uiLab')}
+              className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/15 dark:bg-purple-400/10 text-purple-700 dark:text-purple-400 border border-purple-500/30 dark:border-purple-400/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
+                    Bencho UI Labs & Interactive Components
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
+                    Production-grade micro-interaction models: Stacked Bars, Liquid Create Menu, Rolling Counter, Goo OTP, and Floating Inputs.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase border bg-purple-500/10 text-purple-700 border-purple-500/20 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/20 hidden sm:inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <span>5 Components</span>
+                </span>
+                <div className={`p-1.5 rounded-xl bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'ui-lab' || !collapsedSections.uiLab) ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </button>
+
+            {(activeDevTab === 'ui-lab' || !collapsedSections.uiLab) && (
+              <div className="space-y-6 pt-4 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  
+                  {/* 1. Stacked Bars */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 flex flex-col items-center justify-between gap-4">
+                    <div className="w-full flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">Stacked Bars</h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400">Alert-volume timeline with spring scrub and tooltip</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-mono">StackedBars.tsx</span>
+                    </div>
+                    <div className="w-full flex justify-center py-2 overflow-x-auto">
+                      <StackedBars colour="Colour" bars={20} gap={6} />
+                    </div>
+                  </div>
+
+                  {/* 2. Liquid Create Menu */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 flex flex-col items-center justify-between gap-4 min-h-[320px]">
+                    <div className="w-full flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">Liquid Create Menu</h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400">Concentric corner morphing with 180ms settling</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-mono">CreateMenu.tsx</span>
+                    </div>
+                    <div className="w-full flex-1 flex items-center justify-center">
+                      <CreateMenu />
+                    </div>
+                  </div>
+
+                  {/* 3. Rolling Counter */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 flex flex-col items-center justify-between gap-4">
+                    <div className="w-full flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">Rolling Counter</h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400">Odometer mechanics with drag momentum & spring physics</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-mono">RollingCounter.tsx</span>
+                    </div>
+                    <div className="w-full flex flex-col items-center justify-center py-6 gap-2">
+                      <RollingCounter start={108} />
+                      <span className="text-[10px] text-stone-400 dark:text-neutral-500">Tap buttons or drag digits vertically</span>
+                    </div>
+                  </div>
+
+                  {/* 4. One-Time Code */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 flex flex-col items-center justify-between gap-4">
+                    <div className="w-full flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">One-Time Code (OTP)</h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400">6-slot SVG goo filter pill capsule with smooth caret</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-mono">OneTimeCode.tsx</span>
+                    </div>
+                    <div className="w-full flex flex-col items-center justify-center py-6 gap-2">
+                      <OneTimeCode
+                        length={6}
+                        onComplete={(code) => {
+                          setToast({ message: `OTP Entered: ${code}`, type: 'info' });
+                        }}
+                      />
+                      <span className="text-[10px] text-stone-400 dark:text-neutral-500">Auto-validates on 6 digits</span>
+                    </div>
+                  </div>
+
+                  {/* 5. Label Input */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 flex flex-col items-center justify-between gap-4 lg:col-span-2">
+                    <div className="w-full flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">Label Input</h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400">Dynamic SVG parting perimeter outline with staggered letter hop</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-neutral-400 font-mono">LabelInput.tsx</span>
+                    </div>
+                    <div className="w-full flex flex-wrap items-center justify-center py-6 gap-6">
+                      <LabelInput label="Delivery Address" width={260} />
+                      <LabelInput label="Special Instructions" password width={260} />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             )}
           </div>
         )}

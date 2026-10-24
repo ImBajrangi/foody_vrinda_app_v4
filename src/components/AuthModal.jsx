@@ -43,6 +43,7 @@ import { SOCIAL_LINKS } from '../constants/socialLinks';
 import SocialLinksBar from './ui/SocialLinksBar';
 import FoodyVrindaLogo from './ui/FoodyVrindaLogo';
 import FoodyVrindaWordmark from './ui/FoodyVrindaWordmark';
+import LabelInput from './ui/LabelInput';
 import SoundTrialsModal from './SoundTrialsModal';
 import nativeNotify, { NOTIFICATION_TRIALS } from '../services/nativeNotificationService';
 
@@ -1221,30 +1222,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Step 2 of 3</span>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="relative">
-                        <Mail className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Email Address"
-                          required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                        />
-                      </div>
-
-                      <div className="relative">
-                        <Lock className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Create Password (min 6 chars)"
-                          required
-                          className="w-full min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                        />
-                      </div>
+                    <div className="space-y-2 flex flex-col items-center w-full">
+                      <LabelInput
+                        field="Email"
+                        label="Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="w-full"
+                      />
+                      <LabelInput
+                        field="Password"
+                        label="Create Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="w-full"
+                      />
                     </div>
 
                     <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium flex items-center gap-2">
@@ -1320,29 +1314,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
                 {/* ── STANDARD LOGIN FORM (WHEN NOT SIGNING UP) ── */}
                 {!isSignup && (
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email Address"
-                        required
-                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                      />
-                    </div>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 text-stone-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
-                        required
-                        className="w-full min-h-[50px] sm:min-h-[54px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-stone-900 dark:focus:border-[#FD9139]/40 focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-[#FD9139]/10 font-['Plus_Jakarta_Sans'] transition-all font-medium"
-                      />
-                    </div>
+                  <div className="space-y-2 flex flex-col items-center w-full">
+                    <LabelInput
+                      field="Email"
+                      label="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="w-full"
+                    />
+                    <LabelInput
+                      field="Password"
+                      label="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="w-full"
+                    />
                   </div>
                 )}
 

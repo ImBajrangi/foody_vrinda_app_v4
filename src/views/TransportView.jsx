@@ -33,6 +33,7 @@ import { printVerifiedDriverStatementPDF } from '../utils/deliveryReportUtils';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
+import OneTimeCode from '../components/ui/OneTimeCode';
 import {
   Truck,
   Navigation,
@@ -765,12 +766,12 @@ export default function TransportView() {
     if (entered.length < 4) {
       setOtpModalState(prev => ({ ...prev, error: 'Please enter all 4 digits', shake: true }));
       setTimeout(() => setOtpModalState(prev => ({ ...prev, shake: false })), 600);
-      return;
+      return false;
     }
 
     const currentOrder = otpModalState.order;
     const currentType = otpModalState.type;
-    if (!currentOrder) return;
+    if (!currentOrder) return false;
 
     const isValid = verifyOrderOTP(currentOrder, currentType, entered);
 
@@ -783,7 +784,7 @@ export default function TransportView() {
         shake: true
       }));
       setTimeout(() => setOtpModalState(prev => ({ ...prev, shake: false })), 600);
-      return;
+      return false;
     }
 
     // Mark success feedback state
@@ -803,6 +804,7 @@ export default function TransportView() {
         setOtpModalState(prev => ({ ...prev, isSubmitting: false, error: 'Network error. Please retry.' }));
       }
     }, 600);
+    return true;
   };
 
   const handleClaimOrder = async (orderId) => {
@@ -2009,33 +2011,28 @@ export default function TransportView() {
               );
             })()}
 
-            {/* 4-Digit PIN Boxes */}
-            <div className="py-2">
-              <label className="block text-center text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-3">
+            {/* 4-Digit Bencho One-Time Code with Liquid Goo Merge */}
+            <div className="py-3">
+              <label className="block text-center text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-4">
                 Enter 4-Digit Verification Code
               </label>
 
-              <div className="flex justify-center items-center gap-3">
-                {otpModalState.digits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => (otpInputRefs.current[index] = el)}
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpDigitChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
-                    autoComplete="one-time-code"
-                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl bg-[#141213] border transition-all outline-none ${otpModalState.isSuccess
-                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
-                      : digit
-                        ? 'border-[#FD9139] text-[#FD9139] shadow-[0_0_12px_rgba(253, 145, 57,0.2)]'
-                        : 'border-white/15 text-white focus:border-[#FD9139] focus:shadow-[0_0_12px_rgba(253, 145, 57,0.2)]'
-                      }`}
-                  />
-                ))}
+              <div className="flex justify-center items-center py-2">
+                <OneTimeCode
+                  key={`${otpModalState.order?.id}-${otpModalState.type}`}
+                  length={4}
+                  corner={14}
+                  autoFocus={true}
+                  disabled={otpModalState.isSubmitting || otpModalState.isSuccess}
+                  onChange={(code) => {
+                    const digits = [code[0] || '', code[1] || '', code[2] || '', code[3] || ''];
+                    setOtpModalState(prev => ({ ...prev, digits, error: '', shake: false }));
+                  }}
+                  onComplete={async (code) => {
+                    const result = await verifyAndSubmitOtp(code);
+                    return result ? "Accept" : "Reject";
+                  }}
+                />
               </div>
 
               {/* Error Message */}

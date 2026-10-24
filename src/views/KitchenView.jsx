@@ -23,6 +23,7 @@ import {
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
+import OneTimeCode from '../components/ui/OneTimeCode';
 import {
   ChefHat,
   Clock,
@@ -585,11 +586,11 @@ export default function KitchenView() {
     if (code.length < 4) {
       setCounterOtpModal(prev => ({ ...prev, error: 'Please enter all 4 digits', shake: true }));
       setTimeout(() => setCounterOtpModal(prev => ({ ...prev, shake: false })), 600);
-      return;
+      return false;
     }
 
     const currentOrder = counterOtpModal.order;
-    if (!currentOrder) return;
+    if (!currentOrder) return false;
 
     const isValid = verifyOrderOTP(currentOrder, 'pickup', code);
     if (!isValid) {
@@ -599,7 +600,7 @@ export default function KitchenView() {
         shake: true
       }));
       setTimeout(() => setCounterOtpModal(prev => ({ ...prev, shake: false })), 600);
-      return;
+      return false;
     }
 
     setCounterOtpModal(prev => ({ ...prev, isSuccess: true, isSubmitting: true, error: '' }));
@@ -611,6 +612,7 @@ export default function KitchenView() {
         setCounterOtpModal(prev => ({ ...prev, isSubmitting: false, error: 'Failed to complete handover. Retry.' }));
       }
     }, 500);
+    return true;
   };
 
   const toggleItemReady = async (orderId, itemId) => {
@@ -1526,30 +1528,24 @@ export default function KitchenView() {
               </div>
             </div>
 
-            {/* 4-Digit Input Boxes */}
+            {/* 4-Digit Bencho One-Time Code with Liquid Goo Merge */}
             <div className="mb-5">
-              <div className="flex items-center justify-center gap-3">
-                {counterOtpModal.digits.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    id={`counter-otp-input-${idx}`}
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    autoFocus={idx === 0}
-                    onChange={(e) => handleCounterOtpDigitChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleCounterOtpKeyDown(idx, e)}
-                    disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
-                    className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black font-mono rounded-2xl border transition-all outline-none ${
-                      counterOtpModal.isSuccess
-                        ? 'bg-[#E4F1EB] border-[#164E3D] text-[#164E3D] dark:bg-[#1C382E] dark:border-[#6EE7B7] dark:text-[#6EE7B7] scale-105 shadow-xs'
-                        : digit
-                        ? 'bg-stone-200 dark:bg-[#1E1B1C] border-[#FD9139] text-stone-900 dark:text-white ring-2 ring-[#FD9139]/20'
-                        : 'bg-stone-100 dark:bg-[#141213] border-stone-300 dark:border-white/10 text-stone-900 dark:text-white focus:border-[#FD9139]'
-                    }`}
-                  />
-                ))}
+              <div className="flex items-center justify-center py-2">
+                <OneTimeCode
+                  key={counterOtpModal.order?.id}
+                  length={4}
+                  corner={14}
+                  autoFocus={true}
+                  disabled={counterOtpModal.isSubmitting || counterOtpModal.isSuccess}
+                  onChange={(code) => {
+                    const digits = [code[0] || '', code[1] || '', code[2] || '', code[3] || ''];
+                    setCounterOtpModal(prev => ({ ...prev, digits, error: '', shake: false }));
+                  }}
+                  onComplete={async (code) => {
+                    const result = await verifyAndSubmitCounterOtp(code);
+                    return result ? "Accept" : "Reject";
+                  }}
+                />
               </div>
 
               {/* Error message */}
