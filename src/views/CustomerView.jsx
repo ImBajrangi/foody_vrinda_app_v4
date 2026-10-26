@@ -136,9 +136,11 @@ const MenuItemCard = memo(function MenuItemCard({
       className={`food-card-pop bg-white dark:bg-[#282526] border rounded-3xl p-4 sm:p-5 relative overflow-hidden cursor-pointer min-h-[175px] sm:min-h-[190px] flex items-stretch justify-between gap-3 apple-tap-target transition-all duration-200 select-none ${
         isOutOfStock
           ? 'border-stone-200/60 dark:border-white/5 opacity-80 bg-stone-50/50 dark:bg-[#252223]'
-          : quantityInCart > 0
-            ? 'border-amber-500/30 dark:border-white/20 bg-[#FFFDFB] dark:bg-[#2a2728] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-            : 'border-stone-200/90 dark:border-white/10 dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
+          : item.isCombo
+            ? 'border-amber-400/50 dark:border-amber-500/35 bg-gradient-to-br from-amber-50/90 via-white to-amber-100/35 dark:from-[#2c2118] dark:via-[#262324] dark:to-[#1e1b1c] shadow-[0_12px_36px_rgba(203,120,92,0.14)] border-l-4 border-l-amber-500'
+            : quantityInCart > 0
+              ? 'border-amber-500/30 dark:border-white/20 bg-[#FFFDFB] dark:bg-[#2a2728] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+              : 'border-stone-200/90 dark:border-white/10 dark:shadow-xl hover:border-stone-300 dark:hover:border-white/20'
       }`}
     >
       {/* Left Column: Dish Name + Tags + Price + Stepper Button */}
@@ -150,24 +152,29 @@ const MenuItemCard = memo(function MenuItemCard({
               Out of Stock
             </span>
           ) : item.isCombo ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-700 dark:text-[#FFD000] border border-yellow-400/35 dark:border-[#FFD000]/30 text-[10.5px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-400/20 dark:bg-[#FFD000]/15 text-amber-800 dark:text-[#FFD000] border border-yellow-400/40 dark:border-[#FFD000]/30 text-[10.5px] font-bold uppercase tracking-wider mb-1.5 shadow-xs">
               <Sparkles size={11} className="text-amber-500 dark:text-[#FFD000]" />
-              {item.tag || 'Combo Offer'}
+              {item.tag || 'Special Combo'}
             </span>
           ) : null}
           <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white leading-snug tracking-tight line-clamp-2">
             {item.name}
           </h3>
           <p className="text-xs font-medium text-stone-500 dark:text-zinc-400 mt-0.5 line-clamp-1 leading-normal">
-            {item.subtitle || 'Authentic Satvik preparation'}
+            {item.subtitle || (item.isCombo ? 'Curated Satvik Festive Feast' : 'Authentic Satvik preparation')}
           </p>
           {item.comboItems && item.comboItems.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1">
-              {item.comboItems.map((ci, cidx) => (
-                <span key={cidx} className="text-[10px] font-semibold bg-stone-100 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded-md border border-stone-200/60 dark:border-white/5">
+              {item.comboItems.slice(0, 3).map((ci, cidx) => (
+                <span key={cidx} className="text-[10px] font-semibold bg-amber-500/10 dark:bg-stone-800/80 text-amber-900 dark:text-amber-200 px-1.5 py-0.5 rounded-md border border-amber-500/20 dark:border-white/5">
                   + {ci}
                 </span>
               ))}
+              {item.comboItems.length > 3 && (
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 px-1">
+                  +{item.comboItems.length - 3} more
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -252,19 +259,61 @@ const MenuItemCard = memo(function MenuItemCard({
         </div>
       </div>
 
-      {/* Right Column: Dedicated Dish Image Container (Zero Overlap with Text/Stepper) */}
+      {/* Right Column: Dedicated Dish Image Container or Clustered Group Picture */}
       <div className="w-28 xs:w-32 sm:w-36 md:w-40 shrink-0 self-center flex items-center justify-center relative">
-        <img
-          src={resolveDishCutout(item.image, item.name, item.category)}
-          alt={item.name}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = resolveDishCutout('', item.name, item.category);
-          }}
-          className={`dish-blend-mask w-full h-28 sm:h-32 object-contain select-none pointer-events-none drop-shadow-sm ${isOutOfStock ? 'opacity-55 grayscale-[30%]' : ''}`}
-          loading="lazy"
-          decoding="async"
-        />
+        {item.isCombo ? (
+          <div className="w-full flex flex-col items-center justify-center relative py-1">
+            {/* Clustered Group Picture Collage */}
+            <div className="flex items-center justify-center -space-x-3.5 sm:-space-x-4">
+              {(item.combo_items && item.combo_items.length > 0
+                ? item.combo_items
+                : (item.comboItems || []).map(ci => ({ name: ci }))
+              ).slice(0, 3).map((subItem, sidx) => (
+                <div
+                  key={sidx}
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-stone-900 border-2 border-amber-400/80 p-0.5 flex items-center justify-center shadow-md shrink-0 relative"
+                  style={{ zIndex: 10 + sidx }}
+                >
+                  <img
+                    src={resolveDishCutout(subItem.image, subItem.name)}
+                    alt={subItem.name || 'Dish'}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+              {((item.combo_items?.length || item.comboItems?.length || 0) > 3) && (
+                <div className="w-8 h-8 rounded-full bg-amber-900/90 border-2 border-amber-400 flex items-center justify-center text-amber-300 font-black text-[10px] shadow-md z-20 -ml-2">
+                  +{(item.combo_items?.length || item.comboItems?.length || 0) - 3}
+                </div>
+              )}
+              {(!item.combo_items?.length && !item.comboItems?.length) && (
+                <img
+                  src={resolveDishCutout(item.image, item.name, item.category)}
+                  alt={item.name}
+                  className="w-20 h-20 object-contain drop-shadow-md"
+                  loading="lazy"
+                />
+              )}
+            </div>
+            {/* Golden Pill */}
+            <span className="mt-2 text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 whitespace-nowrap shadow-xs">
+              👑 {item.combo_items?.length || item.comboItems?.length || 2} Items Feast
+            </span>
+          </div>
+        ) : (
+          <img
+            src={resolveDishCutout(item.image, item.name, item.category)}
+            alt={item.name}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = resolveDishCutout('', item.name, item.category);
+            }}
+            className={`dish-blend-mask w-full h-28 sm:h-32 object-contain select-none pointer-events-none drop-shadow-sm ${isOutOfStock ? 'opacity-55 grayscale-[30%]' : ''}`}
+            loading="lazy"
+            decoding="async"
+          />
+        )}
       </div>
     </div>
   );
@@ -2225,21 +2274,57 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 className="relative py-2 my-auto flex items-center justify-center min-h-[140px] xs:min-h-[160px] sm:min-h-[190px] md:min-h-[240px] select-none"
               >
                 {/* Soft ambient plate glow */}
-                <div className="absolute inset-0 bg-radial from-amber-500/10 dark:from-[#FD9139]/5 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
+                <div className="absolute inset-0 bg-radial from-amber-500/15 dark:from-[#FD9139]/10 via-transparent to-transparent rounded-full pointer-events-none blur-xl" />
 
-                <div className="w-40 h-36 xs:w-48 xs:h-40 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
-                  <img
-                    src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
-                    alt={selectedDishDetails.name}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = resolveDishCutout('', selectedDishDetails.name, selectedDishDetails.category);
-                    }}
-                    className="w-full h-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_16px_24px_rgba(0,0,0,0.5)] select-none pointer-events-none"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
+                {selectedDishDetails.isCombo ? (
+                  <div className="relative flex items-center justify-center py-4">
+                    <div className="flex items-center -space-x-5 sm:-space-x-7">
+                      {(selectedDishDetails.combo_items && selectedDishDetails.combo_items.length > 0
+                        ? selectedDishDetails.combo_items
+                        : (selectedDishDetails.comboItems || []).map(ci => ({ name: ci }))
+                      ).slice(0, 4).map((subItem, sidx) => (
+                        <div
+                          key={sidx}
+                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-stone-900 border-3 border-amber-400 p-1 flex items-center justify-center shadow-2xl relative"
+                          style={{ zIndex: 10 + sidx }}
+                        >
+                          <img
+                            src={resolveDishCutout(subItem.image, subItem.name)}
+                            alt={subItem.name || 'Dish'}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                      {((selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length || 0) > 4) && (
+                        <div className="w-14 h-14 rounded-full bg-amber-900 border-2 border-amber-400 flex items-center justify-center text-amber-300 font-black text-sm shadow-xl z-20 -ml-4">
+                          +{(selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length || 0) - 4}
+                        </div>
+                      )}
+                      {(!selectedDishDetails.combo_items?.length && !selectedDishDetails.comboItems?.length) && (
+                        <img
+                          src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
+                          alt={selectedDishDetails.name}
+                          className="w-36 h-36 object-contain drop-shadow-2xl"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-40 h-36 xs:w-48 xs:h-40 sm:w-56 sm:h-48 md:w-64 md:h-60 relative flex items-center justify-center pointer-events-none">
+                    <img
+                      src={resolveDishCutout(selectedDishDetails.image, selectedDishDetails.name, selectedDishDetails.category)}
+                      alt={selectedDishDetails.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = resolveDishCutout('', selectedDishDetails.name, selectedDishDetails.category);
+                      }}
+                      className="w-full h-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_16px_24px_rgba(0,0,0,0.5)] select-none pointer-events-none"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                )}
 
                 {/* Floating Tag Pill */}
                 <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
@@ -2251,7 +2336,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   ) : (
                     <span className="bg-white/95 dark:bg-[#282526] text-stone-900 dark:text-[#FD9139] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-stone-200 dark:border-[#FD9139]/20 flex items-center gap-1 backdrop-blur-sm">
                       <Sparkles size={11} className="shrink-0 text-amber-600 dark:text-[#FD9139]" />
-                      <span>{selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik')}</span>
+                      <span>{selectedDishDetails.isCombo ? `👑 ${selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length || 2} Items Feast` : (selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik'))}</span>
                     </span>
                   )}
                 </div>
@@ -2301,26 +2386,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
 
                 {/* Bundled Combo Items Breakdown (if combo) */}
-                {selectedDishDetails.comboItems && selectedDishDetails.comboItems.length > 0 && (
-                  <div className="bg-stone-50 dark:bg-[#242021] border border-amber-500/25 dark:border-[#FD9139]/20 rounded-2xl p-3 space-y-2">
+                {(selectedDishDetails.comboItems?.length > 0 || selectedDishDetails.combo_items?.length > 0) && (
+                  <div className="bg-gradient-to-br from-amber-500/10 via-stone-50 to-amber-900/10 dark:from-[#2a221b] dark:via-[#221f20] dark:to-[#1a1819] border border-amber-500/30 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] sm:text-xs font-black uppercase text-amber-800 dark:text-[#FD9139] tracking-wider flex items-center gap-1.5 font-['Outfit']">
-                        <Sparkles size={12} />
-                        Included in this Combo Pack
+                      <span className="text-xs font-black uppercase text-amber-800 dark:text-[#FD9139] tracking-wider flex items-center gap-1.5 font-['Outfit']">
+                        <Sparkles size={13} className="text-amber-500" />
+                        Curated Group Feast Contents
                       </span>
-                      {selectedDishDetails.tag && (
-                        <span className="text-[9px] font-bold bg-yellow-400/15 text-amber-800 dark:bg-[#FFD000]/15 dark:text-[#FFD000] px-2 py-0.5 rounded-full border border-yellow-400/20 dark:border-[#FFD000]/30">
-                          {selectedDishDetails.tag}
-                        </span>
-                      )}
+                      <span className="text-[10px] font-black bg-amber-500/20 text-amber-900 dark:text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                        {selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length} Distinct Items
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 gap-1.5 pt-1">
-                      {selectedDishDetails.comboItems.map((ci, cidx) => (
-                        <div key={cidx} className="flex items-center gap-2 text-xs text-stone-800 dark:text-neutral-200 bg-white dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
-                          <Check size={12} className="text-emerald-600 dark:text-[#FD9139] shrink-0 stroke-[3]" />
-                          <span className="font-semibold">{ci}</span>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      {(selectedDishDetails.combo_items && selectedDishDetails.combo_items.length > 0
+                        ? selectedDishDetails.combo_items
+                        : (selectedDishDetails.comboItems || []).map(ci => ({ name: ci }))
+                      ).map((ci, cidx) => {
+                        const name = typeof ci === 'string' ? ci : `${ci.qty > 1 ? `${ci.qty}x ` : ''}${ci.name}`;
+                        return (
+                          <div key={cidx} className="flex items-center gap-2.5 text-xs text-stone-800 dark:text-neutral-200 bg-white dark:bg-white/5 p-2 rounded-xl border border-stone-200 dark:border-white/5 shadow-2xs">
+                            <img
+                              src={resolveDishCutout(ci.image, ci.name)}
+                              alt={ci.name || 'Dish'}
+                              className="w-7 h-7 rounded-full object-contain bg-amber-500/10 p-0.5 shrink-0"
+                            />
+                            <span className="font-semibold truncate">{name}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

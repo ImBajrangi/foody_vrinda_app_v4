@@ -14,6 +14,8 @@ import {
   setCachedItem,
   invalidateCache,
   getDefaultActiveShopId,
+  getDeletedShopIds,
+  getCachedShops,
   dispatchSafeEvent
 } from './cache.js';
 
@@ -37,19 +39,36 @@ export async function getCloudMenus(shopId = 'all') {
 
   const promise = (async () => {
     try {
+      const deletedShopIds = getDeletedShopIds();
+      const validShops = getCachedShops();
+      const validShopIdSet = new Set(validShops.map(s => s.id));
+
+      const filterValidDishes = (list) => {
+        if (!Array.isArray(list)) return [];
+        return list.filter(item => {
+          if (!item) return false;
+          if (item.is_deleted === true || item.isDeleted === true) return false;
+          const sId = item.shopId || item.shop_id;
+          if (!sId) return false;
+          if (deletedShopIds.has(sId)) return false;
+          if (validShopIdSet.size > 0 && !validShopIdSet.has(sId)) return false;
+          if (shopId && shopId !== 'all' && sId !== shopId) return false;
+          return true;
+        });
+      };
+
       if (isOffline) {
-        const offlineFallback = cached || getCachedItem('menus', shopId, true);
+        const offlineFallback = filterValidDishes(cached || getCachedItem('menus', shopId, true));
         if (offlineFallback && offlineFallback.length > 0) return offlineFallback;
       }
 
-      const MENU_SELECT_FIELDS = 'id, shop_id, name, subtitle, description, category, price, original_price, discount_percent, is_combo, combo_items, image, tag, kcal, nutrition, is_available';
-      let query = supabase.from('foody_menus').select(MENU_SELECT_FIELDS);
+      let query = supabase.from('foody_menus').select('*').neq('is_deleted', true);
       if (shopId && shopId !== 'all') {
         query = query.eq('shop_id', shopId);
       }
       let { data, error } = await query;
       if (error) {
-        let fallbackQuery = supabase.from('public_menu_catalog').select(MENU_SELECT_FIELDS);
+        let fallbackQuery = supabase.from('public_menu_catalog').select('*');
         if (shopId && shopId !== 'all') {
           fallbackQuery = fallbackQuery.eq('shop_id', shopId);
         }
@@ -59,7 +78,7 @@ export async function getCloudMenus(shopId = 'all') {
       }
       if (error) {
         if (isTableError(error)) markTableMissing('foody_menus');
-        const fallback = cached || getCachedItem('menus', shopId, true);
+        const fallback = filterValidDishes(cached || getCachedItem('menus', shopId, true));
         if (fallback && fallback.length > 0) return fallback;
         return [];
       }
@@ -67,10 +86,12 @@ export async function getCloudMenus(shopId = 'all') {
         if (!isOffline) {
           setCachedItem('menus', shopId, []);
         }
-        const fallback = cached || getCachedItem('menus', shopId, true);
+        const fallback = filterValidDishes(cached || getCachedItem('menus', shopId, true));
         return fallback && fallback.length > 0 ? fallback : [];
       }
-      const mapped = data.map(d => {
+
+      const rawValid = filterValidDishes(data);
+      const mapped = rawValid.map(d => {
         const nut = typeof d.nutrition === 'object' && d.nutrition !== null ? d.nutrition : {};
         const isCombo = Boolean(d.is_combo || nut.isCombo || d.category === 'Combo Offers');
         return {
@@ -97,7 +118,7 @@ export async function getCloudMenus(shopId = 'all') {
       return mapped;
     } catch (err) {
       console.warn('getCloudMenus exception:', err?.message);
-      const fallback = cached || getCachedItem('menus', shopId, true);
+      const fallback = filterValidDishes(cached || getCachedItem('menus', shopId, true));
       if (fallback && fallback.length > 0) return fallback;
       return [];
     } finally {

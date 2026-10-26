@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import DynamicToast from '../components/ui/DynamicToast';
@@ -43,6 +43,7 @@ import {
   X,
   Info,
   Copy,
+  Loader2,
   ExternalLink,
   Calendar,
   Mail,
@@ -103,7 +104,8 @@ import {
   broadcastAlarmEvent,
   purgeAllDemoOrders,
   setDeliveryPartnerStatus,
-  updateUserOnlineStatus
+  updateUserOnlineStatus,
+  resolveDishCutout
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
@@ -149,6 +151,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const [isCreatingShop, setIsCreatingShop] = useState(false);
   const [editingShop, setEditingShop] = useState(null);
   const [shopToDelete, setShopToDelete] = useState(null);
+  const [isDeletingShop, setIsDeletingShop] = useState(false);
   const [newShopName, setNewShopName] = useState('');
   const [newShopAddress, setNewShopAddress] = useState('');
   const [newShopPhone, setNewShopPhone] = useState('');
@@ -178,13 +181,14 @@ export default function DeveloperView({ setCurrentTab }) {
   // --- COMBOS STATE ---
   const [isCreatingCombo, setIsCreatingCombo] = useState(false);
   const [editingCombo, setEditingCombo] = useState(null);
+  const [comboShopFilter, setComboShopFilter] = useState('all');
   const [newComboName, setNewComboName] = useState('');
-  const [newComboItems, setNewComboItems] = useState('1x Rajbhog Thali\n1x Kesar Badam Lassi\n2x Malpua Rabdi');
+  const [newComboSelectedItems, setNewComboSelectedItems] = useState([]);
+  const [comboDishSearch, setComboDishSearch] = useState('');
   const [newComboPrice, setNewComboPrice] = useState('');
   const [newComboOriginalPrice, setNewComboOriginalPrice] = useState('');
   const [newComboDescription, setNewComboDescription] = useState('');
-  const [newComboImage, setNewComboImage] = useState('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop');
-  const [newComboShopId, setNewComboShopId] = useState('all');
+  const [newComboShopId, setNewComboShopId] = useState(() => allShops[0]?.id || 'shop-vrinda-main');
 
   // --- OFFERS / PROMOTIONS STATE ---
   const [offersList, setOffersList] = useState(() => getCachedOffers());
@@ -768,26 +772,35 @@ export default function DeveloperView({ setCurrentTab }) {
     if (shopsList.length <= 1) {
       return setToast({ message: 'Cannot delete the only remaining kitchen', type: 'warning' });
     }
-    const updated = shopsList.filter(s => s.id !== shopId);
-    setShopsList(updated);
-    saveCachedShops(updated);
+    setIsDeletingShop(true);
+    try {
+      const updated = shopsList.filter(s => s.id !== shopId);
+      setShopsList(updated);
+      saveCachedShops(updated);
 
-    // Safeguard active selections: gracefully re-target to first remaining kitchen without page refresh
-    const nextActiveId = updated[0]?.id || '';
-    if (selectedShopId === shopId) setSelectedShopId(nextActiveId);
-    if (selectedDeliveryShopId === shopId) setSelectedDeliveryShopId(nextActiveId);
-    if (selectedOwnerShopId === shopId) setSelectedOwnerShopId(nextActiveId);
-    if (selectedPaymentShopId === shopId) setSelectedPaymentShopId(nextActiveId);
+      // Safeguard active selections: gracefully re-target to first remaining kitchen without page refresh
+      const nextActiveId = updated[0]?.id || '';
+      if (selectedShopId === shopId) setSelectedShopId(nextActiveId);
+      if (selectedDeliveryShopId === shopId) setSelectedDeliveryShopId(nextActiveId);
+      if (selectedOwnerShopId === shopId) setSelectedOwnerShopId(nextActiveId);
+      if (selectedPaymentShopId === shopId) setSelectedPaymentShopId(nextActiveId);
+      if (editingShop?.id === shopId) setEditingShop(null);
 
-    // Immediately remove dishes belonging to this deleted shop so they never linger or show under another shop
-    setMenusList(prev => prev.filter(m => (m.shopId || m.shop_id) !== shopId));
+      // Immediately remove dishes belonging to this deleted shop so they never linger or show under another shop
+      setMenusList(prev => prev.filter(m => (m.shopId || m.shop_id) !== shopId));
 
-    setShopToDelete(null);
-    setToast({ message: `Kitchen "${shopName}" and its isolated catalog deleted`, type: 'info' });
-    logActivity(`Kitchen "${shopName}" deleted`, 'warning');
+      setToast({ message: `Kitchen "${shopName}" and its isolated catalog deleted`, type: 'info' });
+      logActivity(`Kitchen "${shopName}" deleted`, 'warning');
 
-    await deleteCloudShop(shopId);
-    if (refreshShops) await refreshShops();
+      // Backend deletion happens in background with zero site refresh
+      await deleteCloudShop(shopId);
+    } catch (err) {
+      console.warn("Notice during kitchen deletion:", err);
+      setToast({ message: `Kitchen delete completed with local isolation`, type: 'info' });
+    } finally {
+      setIsDeletingShop(false);
+      setShopToDelete(null);
+    }
   };
 
   // ==========================================
@@ -850,6 +863,41 @@ export default function DeveloperView({ setCurrentTab }) {
   // ==========================================
   // 3. COMBO PACKS HANDLERS
   // ==========================================
+  const handleToggleItemInCombo = (dish) => {
+    setNewComboSelectedItems(prev => {
+      const exists = prev.find(i => i.id === dish.id);
+      if (exists) {
+        const next = prev.filter(i => i.id !== dish.id);
+        const sum = next.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
+        setNewComboOriginalPrice(sum > 0 ? String(sum) : '');
+        return next;
+      }
+      if (prev.length >= 10) {
+        setToast({ message: 'Limit reached: Maximum 10 distinct items per combo pack', type: 'warning' });
+        return prev;
+      }
+      const next = [...prev, { id: dish.id, name: dish.name, price: dish.price, image: dish.image, qty: 1 }];
+      const sum = next.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
+      setNewComboOriginalPrice(String(sum));
+      return next;
+    });
+  };
+
+  const handleUpdateComboItemQty = (dishId, delta) => {
+    setNewComboSelectedItems(prev => {
+      const next = prev.map(item => {
+        if (item.id === dishId) {
+          const newQty = Math.max(1, Math.min(5, (item.qty || 1) + delta));
+          return { ...item, qty: newQty };
+        }
+        return item;
+      });
+      const sum = next.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
+      setNewComboOriginalPrice(String(sum));
+      return next;
+    });
+  };
+
   const handleCreateCombo = async (e) => {
     e.preventDefault();
     if (!newComboName.trim()) {
@@ -859,12 +907,18 @@ export default function DeveloperView({ setCurrentTab }) {
     if (isNaN(priceNum) || priceNum <= 0) {
       return setToast({ message: 'Please enter a valid combo price', type: 'warning' });
     }
-    const origPriceNum = Number(newComboOriginalPrice) || priceNum;
+
+    if (newComboSelectedItems.length < 2) {
+      return setToast({ message: 'A combo pack must contain at least 2 distinct items', type: 'warning' });
+    }
+    if (newComboSelectedItems.length > 10) {
+      return setToast({ message: 'Maximum 10 distinct items allowed in a combo pack', type: 'warning' });
+    }
+
+    const calculatedOriginal = newComboSelectedItems.reduce((acc, item) => acc + (Number(item.price) || 0) * (Number(item.qty) || 1), 0);
+    const origPriceNum = Number(newComboOriginalPrice) || calculatedOriginal || priceNum;
     const discountPct = origPriceNum > priceNum ? Math.round(((origPriceNum - priceNum) / origPriceNum) * 100) : 0;
-    const itemsList = newComboItems
-      .split('\n')
-      .map(s => s.trim())
-      .filter(Boolean);
+    const itemsList = newComboSelectedItems.map(item => `${item.qty > 1 ? `${item.qty}x ` : ''}${item.name}`);
 
     const comboId = `combo-${Date.now().toString(36)}`;
     const targetShop = newComboShopId === 'all' ? (allShops[0]?.id || 'shop-vrinda-main') : newComboShopId;
@@ -879,9 +933,15 @@ export default function DeveloperView({ setCurrentTab }) {
       isCombo: true,
       is_combo: true,
       comboItems: itemsList,
-      combo_items: itemsList,
-      description: newComboDescription.trim() || `Special combo box: ${itemsList.join(' + ')}`,
-      image: newComboImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop',
+      combo_items: newComboSelectedItems.map(i => ({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        qty: i.qty || 1,
+        image: i.image
+      })),
+      description: newComboDescription.trim() || `Special curated combo box: ${itemsList.join(' + ')}`,
+      image: newComboSelectedItems[0]?.image || '',
       isAvailable: true,
       isVeg: true,
       shopId: targetShop,
@@ -896,6 +956,7 @@ export default function DeveloperView({ setCurrentTab }) {
     setNewComboPrice('');
     setNewComboOriginalPrice('');
     setNewComboDescription('');
+    setNewComboSelectedItems([]);
 
     await createCloudMenuItem(newCombo);
   };
@@ -2001,11 +2062,12 @@ export default function DeveloperView({ setCurrentTab }) {
                 </button>
                 <button
                   type="button"
+                  disabled={isDeletingShop}
                   onClick={() => handleDeleteShop(shopToDelete.id, shopToDelete.name)}
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider cursor-pointer shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-xs font-black uppercase tracking-wider cursor-pointer shadow-md transition-all active:scale-95 flex items-center gap-1.5"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Confirm Delete</span>
+                  {isDeletingShop ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  <span>{isDeletingShop ? "Deleting Kitchen..." : "Confirm Delete"}</span>
                 </button>
               </div>
             </div>
@@ -2251,32 +2313,67 @@ export default function DeveloperView({ setCurrentTab }) {
                 )}
 
                 {/* Filters & Search */}
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <div className="relative flex-1 w-full">
-                    <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search dishes by name or category..."
-                      value={dishSearch}
-                      onChange={e => setDishSearch(e.target.value)}
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400/50"
-                    />
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    <span className="text-[10px] font-black uppercase text-stone-400 dark:text-neutral-500 mr-1 shrink-0">Kitchen:</span>
+                    <button
+                      type="button"
+                      onClick={() => setDishShopFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        dishShopFilter === 'all'
+                          ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-900 shadow-sm'
+                          : 'bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                    >
+                      All Kitchens ({menusList.length})
+                    </button>
+                    {shopsList.map(s => {
+                      const count = menusList.filter(d => (d.shopId || d.shop_id) === s.id).length;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setDishShopFilter(s.id)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                            dishShopFilter === s.id
+                              ? 'bg-cyan-600 text-white dark:bg-cyan-500 dark:text-white shadow-sm'
+                              : 'bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>{s.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/15 dark:bg-white/10">{count}</span>
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
-                    {['all', 'Satvik Thali', 'Sweets & Desserts', 'Snacks & Chaat', 'Lassi & Beverages', 'Combo Offers'].map(cat => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setDishCategoryFilter(cat)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
-                          ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-white font-black shadow-sm'
-                          : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
-                          }`}
-                      >
-                        {cat === 'all' ? 'All Items' : cat}
-                      </button>
-                    ))}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative flex-1 w-full">
+                      <Search className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search dishes by name or category..."
+                        value={dishSearch}
+                        onChange={e => setDishSearch(e.target.value)}
+                        className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-cyan-600 dark:focus:border-cyan-400/50"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
+                      {['all', 'Satvik Thali', 'Sweets & Desserts', 'Snacks & Chaat', 'Lassi & Beverages', 'Combo Offers'].map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setDishCategoryFilter(cat)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${dishCategoryFilter === cat
+                            ? 'bg-cyan-600 text-white dark:bg-cyan-400 dark:text-white font-black shadow-sm'
+                            : 'bg-stone-50 dark:bg-[#1E1B1C] text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/5'
+                            }`}
+                        >
+                          {cat === 'all' ? 'All Items' : cat}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -2286,7 +2383,8 @@ export default function DeveloperView({ setCurrentTab }) {
                     .filter(d => {
                       const matchSearch = !dishSearch || d.name?.toLowerCase().includes(dishSearch.toLowerCase()) || d.category?.toLowerCase().includes(dishSearch.toLowerCase());
                       const matchCategory = dishCategoryFilter === 'all' || d.category === dishCategoryFilter;
-                      return matchSearch && matchCategory;
+                      const matchShop = dishShopFilter === 'all' || (d.shopId || d.shop_id) === dishShopFilter;
+                      return matchSearch && matchCategory && matchShop;
                     })
                     .map(d => {
                       const isAvailable = d.isAvailable ?? d.is_available ?? true;
@@ -2385,68 +2483,31 @@ export default function DeveloperView({ setCurrentTab }) {
               <div className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
                 {/* Build Combo Form */}
                 {isCreatingCombo && (
-                  <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-amber-500/30 dark:border-amber-400/30 space-y-4 animate-fadeIn">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                        <Gift className="w-4 h-4" /> Build New Satvik Combo Pack
-                      </h4>
-                      <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono">Syncs with `is_combo: true`</span>
+                  <form onSubmit={handleCreateCombo} className="p-4 sm:p-5 bg-gradient-to-br from-amber-950/10 via-stone-50 to-amber-900/10 dark:from-[#2a221b] dark:via-[#221f20] dark:to-[#1a1819] rounded-2xl border border-amber-500/35 dark:border-amber-400/30 space-y-4 animate-fadeIn shadow-xl">
+                    <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                      <div>
+                        <h4 className="text-sm font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2 font-['Outfit']">
+                          <Gift className="w-4 h-4 text-amber-500" /> High-Margin Combo Pack Builder
+                        </h4>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 mt-0.5">
+                          Bundle individual dishes into high-margin combo packs with a distinct luxury card & group picture.
+                        </p>
+                      </div>
+                      <span className="text-[10px] px-2.5 py-1 rounded-full font-mono bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold">
+                        Max 10 Items Limit
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
-                        <input
-                          type="text"
-                          value={newComboName}
-                          onChange={e => setNewComboName(e.target.value)}
-                          placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
-                          required
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Special Price (₹)</label>
-                        <input
-                          type="number"
-                          value={newComboPrice}
-                          onChange={e => setNewComboPrice(e.target.value)}
-                          placeholder="e.g. 299"
-                          required
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-bold"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Original Total Value (₹)</label>
-                        <input
-                          type="number"
-                          value={newComboOriginalPrice}
-                          onChange={e => setNewComboOriginalPrice(e.target.value)}
-                          placeholder="e.g. 399"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Items Included (1 item per line)</label>
-                        <textarea
-                          rows={3}
-                          value={newComboItems}
-                          onChange={e => setNewComboItems(e.target.value)}
-                          placeholder="1x Royal Rajbhog Thali&#10;1x Kesar Badam Lassi&#10;2x Malpua Rabdi"
-                          className="w-full bg-white dark:bg-[#282526] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen</label>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Kitchen Branch</label>
                         <SearchableDropdown
                           value={newComboShopId}
-                          onChange={val => setNewComboShopId(val)}
+                          onChange={val => {
+                            setNewComboShopId(val);
+                          }}
                           options={[
-                            { value: 'all', label: 'All Kitchens (Universal)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
+                            { value: 'all', label: 'All Kitchens (Universal Combo)', icon: Globe, badge: 'Global', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
                             ...shopsList.map(s => ({
                               value: s.id,
                               label: s.name,
@@ -2460,11 +2521,246 @@ export default function DeveloperView({ setCurrentTab }) {
                           searchPlaceholder="Filter kitchen..."
                         />
                       </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Combo Pack Title</label>
+                        <input
+                          type="text"
+                          value={newComboName}
+                          onChange={e => setNewComboName(e.target.value)}
+                          placeholder="e.g. Vrindavan Mahabhog & Lassi Feast"
+                          required
+                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Special Combo Selling Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newComboPrice}
+                          onChange={e => setNewComboPrice(e.target.value)}
+                          placeholder="e.g. 299"
+                          required
+                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400 font-bold"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Description / Subtitle</label>
+                        <input
+                          type="text"
+                          value={newComboDescription}
+                          onChange={e => setNewComboDescription(e.target.value)}
+                          placeholder="Handcrafted festive feast bundle with royal sweets, beverages & snacks"
+                          className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-amber-400"
+                        />
+                      </div>
                     </div>
+
+                    {/* Step 2: Interactive Dish Selection with 10-Item Limit */}
+                    <div className="space-y-3 pt-2 border-t border-amber-500/20">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 font-['Outfit']">
+                            Select Items ({newComboSelectedItems.length}/10 Distinct Items)
+                          </span>
+                          {newComboSelectedItems.length >= 10 && (
+                            <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                              Maximum Limit Reached
+                            </span>
+                          )}
+                          {newComboSelectedItems.length < 2 && (
+                            <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                              (Min 2 items required)
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="relative w-full sm:w-64">
+                          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            placeholder="Filter kitchen items..."
+                            value={comboDishSearch}
+                            onChange={e => setComboDishSearch(e.target.value)}
+                            className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white pl-8 pr-2.5 py-1.5 rounded-xl border border-stone-300 dark:border-white/10 focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Selected Items Tray */}
+                      {newComboSelectedItems.length > 0 && (
+                        <div className="p-3 bg-amber-500/10 dark:bg-black/30 border border-amber-500/30 rounded-2xl space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase text-amber-800 dark:text-amber-300 tracking-wider">
+                              Included in this Combo Pack ({newComboSelectedItems.length} items):
+                            </span>
+                            <span className="text-xs font-black text-amber-800 dark:text-amber-300 font-mono">
+                              Total Original Value: ₹{newComboSelectedItems.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0)}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {newComboSelectedItems.map(item => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-2 bg-white dark:bg-[#282526] border border-amber-500/30 px-2.5 py-1.5 rounded-xl shadow-xs"
+                              >
+                                <img
+                                  src={resolveDishCutout(item.image, item.name)}
+                                  alt={item.name}
+                                  className="w-6 h-6 object-contain rounded-full bg-amber-500/10 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate max-w-[110px]">{item.name}</p>
+                                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold font-mono">₹{item.price} each</p>
+                                </div>
+                                <div className="flex items-center gap-1 bg-stone-100 dark:bg-white/10 rounded-lg px-1 py-0.5 ml-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateComboItemQty(item.id, -1)}
+                                    className="w-4 h-4 rounded text-xs font-black flex items-center justify-center hover:bg-stone-200 dark:hover:bg-white/20 text-stone-700 dark:text-white"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="text-xs font-black px-1 text-stone-900 dark:text-white font-mono">{item.qty || 1}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateComboItemQty(item.id, 1)}
+                                    className="w-4 h-4 rounded text-xs font-black flex items-center justify-center hover:bg-stone-200 dark:hover:bg-white/20 text-stone-700 dark:text-white"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleItemInCombo(item)}
+                                  className="w-4 h-4 rounded-full text-stone-400 hover:text-rose-500 text-xs flex items-center justify-center ml-0.5"
+                                  title="Remove from combo"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Available Dishes Grid to Pick from */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-56 overflow-y-auto no-scrollbar p-1">
+                        {menusList
+                          .filter(d => {
+                            if (d.isCombo || d.is_combo || d.category === 'Combo Offers') return false;
+                            if (newComboShopId !== 'all' && (d.shopId || d.shop_id) !== newComboShopId) return false;
+                            if (comboDishSearch) {
+                              const s = comboDishSearch.toLowerCase();
+                              return d.name?.toLowerCase().includes(s) || d.category?.toLowerCase().includes(s);
+                            }
+                            return true;
+                          })
+                          .map(dish => {
+                            const isSelected = newComboSelectedItems.some(it => it.id === dish.id);
+                            const isLimitReached = !isSelected && newComboSelectedItems.length >= 10;
+                            return (
+                              <button
+                                key={dish.id}
+                                type="button"
+                                disabled={isLimitReached}
+                                onClick={() => handleToggleItemInCombo(dish)}
+                                className={`p-2 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer relative ${
+                                  isSelected
+                                    ? 'bg-amber-500/15 border-amber-500 shadow-sm'
+                                    : isLimitReached
+                                      ? 'opacity-40 bg-stone-100 dark:bg-white/5 border-stone-200 dark:border-white/5 cursor-not-allowed'
+                                      : 'bg-white dark:bg-[#1E1B1C] border-stone-200 dark:border-white/5 hover:border-amber-400/50'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-1 w-full">
+                                  <img
+                                    src={resolveDishCutout(dish.image, dish.name, dish.category)}
+                                    alt={dish.name}
+                                    className="w-10 h-10 object-contain mx-auto my-1"
+                                    loading="lazy"
+                                  />
+                                  {isSelected && (
+                                    <span className="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 text-[10px] font-black">
+                                      ✓
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-1 w-full">
+                                  <p className="text-[11px] font-bold text-stone-900 dark:text-white truncate">{dish.name}</p>
+                                  <p className="text-[10px] font-black text-amber-700 dark:text-[#FD9139] font-mono">₹{dish.price}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* Step 3: Professional Group Picture Collage Live Preview & Margin Health */}
+                    {newComboSelectedItems.length >= 2 && (
+                      <div className="p-4 bg-gradient-to-br from-amber-500/15 via-[#232021] to-[#1a1819] border-l-4 border-l-amber-500 border border-amber-500/30 rounded-2xl space-y-3 shadow-md">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
+                              👑 Live Group Picture Showcase Preview
+                            </span>
+                            <span className="text-xs font-bold text-white font-['Outfit']">
+                              {newComboName || 'Untitled Combo'} · {newComboSelectedItems.length} Distinct Dishes
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="text-stone-300">
+                              MRP: <strong className="text-white line-through">₹{newComboSelectedItems.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0)}</strong>
+                            </span>
+                            <span className="text-stone-300">
+                              Combo Price: <strong className="text-amber-400 font-black">₹{newComboPrice || 0}</strong>
+                            </span>
+                            {Number(newComboPrice) > 0 && (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-[10px] border border-emerald-500/30">
+                                Save {Math.max(0, Math.round(((newComboSelectedItems.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0) - Number(newComboPrice)) / (newComboSelectedItems.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.qty) || 1), 0) || 1)) * 100))}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Clustered Group Picture without clutter */}
+                        <div className="flex items-center justify-center py-2 relative">
+                          <div className="flex items-center -space-x-4 sm:-space-x-5 overflow-hidden p-2">
+                            {newComboSelectedItems.slice(0, 6).map((item, idx) => (
+                              <div
+                                key={item.id}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-stone-900 border-2 border-amber-400/70 p-1 flex items-center justify-center shadow-lg relative group shrink-0"
+                                style={{ zIndex: 10 + idx }}
+                              >
+                                <img
+                                  src={resolveDishCutout(item.image, item.name)}
+                                  alt={item.name}
+                                  className="w-full h-full object-contain"
+                                />
+                                {item.qty > 1 && (
+                                  <span className="absolute -top-1 -right-1 bg-amber-500 text-stone-900 font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                                    {item.qty}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                            {newComboSelectedItems.length > 6 && (
+                              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-900/80 border-2 border-amber-400 flex items-center justify-center text-amber-300 font-black text-xs shadow-lg z-20">
+                                +{newComboSelectedItems.length - 6}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10">
                       <span className="text-xs text-stone-600 dark:text-neutral-400 font-medium">
-                        Auto-Calculated Savings: <strong className="text-amber-700 dark:text-amber-400">{Number(newComboOriginalPrice) > Number(newComboPrice) ? `${Math.round(((Number(newComboOriginalPrice) - Number(newComboPrice)) / Number(newComboOriginalPrice)) * 100)}% OFF` : '0%'}</strong>
+                        Dishes Selected: <strong className="text-amber-700 dark:text-amber-400">{newComboSelectedItems.length} / 10</strong>
                       </span>
 
                       <div className="flex items-center gap-2">
@@ -2477,78 +2773,164 @@ export default function DeveloperView({ setCurrentTab }) {
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-400 dark:hover:bg-amber-300 font-black text-xs uppercase tracking-wider shadow-md cursor-pointer"
+                          disabled={newComboSelectedItems.length < 2 || !newComboName.trim() || !newComboPrice}
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white dark:bg-amber-500 dark:hover:bg-amber-400 font-black text-xs uppercase tracking-wider shadow-md cursor-pointer flex items-center gap-1.5"
                         >
-                          Publish Combo Pack
+                          <Gift className="w-3.5 h-3.5" />
+                          <span>Publish Combo Pack</span>
                         </button>
                       </div>
                     </div>
                   </form>
                 )}
 
-                {/* Combos Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {menusList
-                    .filter(m => m.isCombo || m.is_combo || m.category === 'Combo Offers')
-                    .map(combo => {
-                      const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
-                      const items = Array.isArray(combo.comboItems) ? combo.comboItems : Array.isArray(combo.combo_items) ? combo.combo_items : [];
+                {/* Combos Filter & Grid */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    <span className="text-[10px] font-black uppercase text-stone-400 dark:text-neutral-500 mr-1 shrink-0">Kitchen:</span>
+                    <button
+                      type="button"
+                      onClick={() => setComboShopFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        comboShopFilter === 'all'
+                          ? 'bg-amber-600 text-white dark:bg-amber-500 dark:text-white shadow-sm'
+                          : 'bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                    >
+                      All Kitchens
+                    </button>
+                    {shopsList.map(s => {
+                      const count = menusList.filter(m => (m.isCombo || m.is_combo || m.category === 'Combo Offers') && (m.shopId || m.shop_id) === s.id).length;
                       return (
-                        <div key={combo.id} className="p-4 bg-stone-50 dark:bg-[#1E1B1C] rounded-2xl border border-stone-200 dark:border-white/5 hover:border-amber-500/30 dark:hover:border-amber-400/20 transition-all space-y-3 flex flex-col justify-between shadow-sm">
-                          <div className="space-y-2.5">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <h4 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">{combo.name}</h4>
-                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30">
-                                  Save {combo.discountPercent || (combo.originalPrice > combo.price ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100) : 15)}%
-                                </span>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <p className="text-base font-black text-amber-700 dark:text-[#FD9139] font-['Outfit']">₹{combo.price}</p>
-                                {combo.originalPrice && combo.originalPrice > combo.price && (
-                                  <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
-                                )}
-                              </div>
-                            </div>
-
-                            {items.length > 0 && (
-                              <div className="space-y-1">
-                                <p className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-500">Box Contents</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {items.map((itemStr, idx) => (
-                                    <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300/50 dark:border-white/5">
-                                      {itemStr}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
-                                ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                                }`}
-                            >
-                              {isAvailable ? 'In-Stock' : 'Sold Out'}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteDish(combo.id, combo.name)}
-                              title="Delete Combo"
-                              className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setComboShopFilter(s.id)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                            comboShopFilter === s.id
+                              ? 'bg-amber-600 text-white dark:bg-amber-500 dark:text-white shadow-sm'
+                              : 'bg-stone-200/70 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>{s.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/15 dark:bg-white/10">{count}</span>
+                        </button>
                       );
                     })}
+                  </div>
+
+                  {/* Combos Grid with Luxury Golden Bar & Professional Group Picture */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {menusList
+                      .filter(m => m.isCombo || m.is_combo || m.category === 'Combo Offers')
+                      .filter(m => comboShopFilter === 'all' || (m.shopId || m.shop_id) === comboShopFilter)
+                      .map(combo => {
+                        const isAvailable = combo.isAvailable ?? combo.is_available ?? true;
+                        const items = Array.isArray(combo.combo_items) ? combo.combo_items : Array.isArray(combo.comboItems) ? combo.comboItems.map(str => ({ name: str })) : [];
+                        const comboShop = shopsList.find(s => s.id === (combo.shopId || combo.shop_id));
+                        return (
+                          <div
+                            key={combo.id}
+                            className="p-4 bg-gradient-to-br from-amber-950/20 via-stone-50 to-amber-900/10 dark:from-[#2e2319] dark:via-[#262324] dark:to-[#1e1b1c] rounded-2xl border border-amber-500/35 border-l-4 border-l-amber-500 hover:border-amber-500 transition-all space-y-3.5 flex flex-col justify-between shadow-md"
+                          >
+                            <div className="space-y-3">
+                              {/* Header & Badges */}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                    <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40">
+                                      👑 {items.length > 0 ? `${items.length} Items Feast` : 'Combo Pack'}
+                                    </span>
+                                    {comboShop && (
+                                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300">
+                                        {comboShop.name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">{combo.name}</h4>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <p className="text-base font-black text-amber-700 dark:text-[#FD9139] font-['Outfit']">₹{combo.price}</p>
+                                  {combo.originalPrice && combo.originalPrice > combo.price && (
+                                    <p className="text-[10px] text-stone-400 dark:text-neutral-500 line-through">₹{combo.originalPrice}</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Clustered Group Picture Collage Showcase */}
+                              <div className="py-2 px-3 bg-black/10 dark:bg-black/30 rounded-xl border border-amber-500/20 flex items-center justify-center">
+                                <div className="flex items-center -space-x-3 sm:-space-x-4 overflow-hidden">
+                                  {items.slice(0, 5).map((it, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-stone-900 border-2 border-amber-400 p-0.5 flex items-center justify-center shadow-md shrink-0"
+                                      style={{ zIndex: 5 + idx }}
+                                    >
+                                      <img
+                                        src={resolveDishCutout(it.image, it.name)}
+                                        alt={it.name || 'Dish'}
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                  ))}
+                                  {items.length > 5 && (
+                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-amber-900 border-2 border-amber-400 flex items-center justify-center text-amber-300 font-black text-[10px] shadow-md z-10">
+                                      +{items.length - 5}
+                                    </div>
+                                  )}
+                                  {items.length === 0 && (
+                                    <img
+                                      src={resolveDishCutout(combo.image, combo.name)}
+                                      alt={combo.name}
+                                      className="w-12 h-12 object-contain"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Box Contents Breakdown */}
+                              {items.length > 0 && (
+                                <div className="space-y-1">
+                                  <p className="text-[10px] uppercase font-bold text-stone-500 dark:text-neutral-500">Box Contents</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {items.map((itemObj, idx) => {
+                                      const label = typeof itemObj === 'string' ? itemObj : `${itemObj.qty > 1 ? `${itemObj.qty}x ` : ''}${itemObj.name}`;
+                                      return (
+                                        <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300/50 dark:border-white/5">
+                                          {label}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="pt-2 border-t border-stone-200 dark:border-white/5 flex items-center justify-between gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
+                                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                  }`}
+                              >
+                                {isAvailable ? 'In-Stock' : 'Sold Out'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteDish(combo.id, combo.name)}
+                                title="Delete Combo"
+                                className="p-1.5 rounded-lg bg-stone-200/80 hover:bg-rose-500/20 dark:bg-white/5 text-stone-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 border border-stone-300 dark:border-white/5 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
                 </div>
               </div>
             )}

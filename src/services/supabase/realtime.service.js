@@ -211,11 +211,22 @@ export class RealtimeMultiplexer {
     const raw = payload.new || payload.old;
     if (!raw) return;
 
+    const rawShopId = raw.shop_id || '';
+    const deletedShopIds = getDeletedShopIds();
+    if (rawShopId && deletedShopIds.has(rawShopId)) {
+      // Dish belongs to a deleted shop — drop it and clean from cache
+      ['all', rawShopId].forEach(k => {
+        const currentList = getCachedItem('menus', k) || [];
+        setCachedItem('menus', k, currentList.filter(m => m.id !== raw.id));
+      });
+      return;
+    }
+
     const nut = typeof raw.nutrition === 'object' && raw.nutrition !== null ? raw.nutrition : {};
     const isCombo = Boolean(raw.is_combo || nut.isCombo || raw.category === 'Combo Offers');
     const normalized = {
       id: raw.id,
-      shopId: raw.shop_id || getDefaultActiveShopId(),
+      shopId: rawShopId,
       name: raw.name,
       subtitle: raw.subtitle || '',
       description: raw.description || '',
@@ -235,7 +246,7 @@ export class RealtimeMultiplexer {
     const shopKey = normalized.shopId;
     ['all', shopKey].filter(Boolean).forEach(k => {
       const currentList = getCachedItem('menus', k) || [];
-      if (payload.eventType === 'DELETE') {
+      if (payload.eventType === 'DELETE' || raw.is_deleted === true) {
         setCachedItem('menus', k, currentList.filter(m => m.id !== raw.id));
       } else {
         const idx = currentList.findIndex(m => m.id === raw.id);

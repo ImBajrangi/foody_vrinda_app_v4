@@ -20,8 +20,6 @@ import {
 // SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
 // ========================================================================
 
-const SHOP_SELECT_FIELDS = 'id, name, address, phone, image, is_open, is_active, is_deleted, coordinates, delivery_radius, preparation_time, minimum_order_amount, delivery_charge, gst_percentage, pure_veg, payment_settings, operating_hours, alarm_settings';
-
 export async function getCloudShops() {
   if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data) && memoryCache.shops.data.length > 0) {
     return memoryCache.shops.data;
@@ -36,11 +34,11 @@ export async function getCloudShops() {
     try {
       let res = await supabase
         .from('foody_shops')
-        .select(SHOP_SELECT_FIELDS)
+        .select('*')
         .neq('is_deleted', true)
         .order('name');
       if (res.error || !res.data || res.data.length === 0) {
-        res = await supabase.from('public_shop_catalog').select(SHOP_SELECT_FIELDS).order('name');
+        res = await supabase.from('public_shop_catalog').select('*').order('name');
       }
 
       if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
@@ -333,8 +331,15 @@ export async function deleteCloudShop(shopId) {
     // 1. Strict Menu Isolation: Permanently remove dishes belonging to this deleted shop.
     // Menus must NEVER leak or be reassigned to any other kitchen!
     try {
-      if (!isTableWriteForbidden('foody_menus')) {
-        await supabase.from('foody_menus').delete().eq('shop_id', shopId);
+      // First attempt database atomic RPC if deployed
+      const { error: rpcErr } = await supabase.rpc('delete_shop_and_cascade_menus', { target_shop_id: shopId });
+      if (rpcErr) {
+        // Fallback: direct table operations
+        if (!isTableWriteForbidden('foody_menus')) {
+          // Soft-mark as deleted first so any concurrent query ignores them immediately
+          await supabase.from('foody_menus').update({ is_available: false, is_deleted: true }).eq('shop_id', shopId);
+          await supabase.from('foody_menus').delete().eq('shop_id', shopId);
+        }
       }
     } catch (e) {
       console.warn("deleteCloudShop menu cleanup notice:", e);
@@ -342,6 +347,14 @@ export async function deleteCloudShop(shopId) {
 
     // Immediately purge this shop's menus from all local memory and storage caches
     invalidateCache('menus', shopId);
+    if (memoryCache.menus) {
+      delete memoryCache.menus[shopId];
+      if (memoryCache.menus['all']?.data) {
+        memoryCache.menus['all'].data = memoryCache.menus['all'].data.filter(
+          item => (item.shopId || item.shop_id) !== shopId
+        );
+      }
+    }
     const cachedAll = getCachedItem('menus', 'all');
     if (Array.isArray(cachedAll)) {
       const filtered = cachedAll.filter(item => (item.shopId || item.shop_id) !== shopId);
@@ -360,7 +373,15 @@ export async function deleteCloudShop(shopId) {
       eventType: 'DELETE'
     });
 
-    // 2. Detach staff/users assigned to this shop (safely set shop_id to null instead of reassigning them)
+    // 2. Primary: Execute Atomic Server-Side RPC (Cascades menus, staff, and shop with SECURITY DEFINER)
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('delete_shop_and_cascade_menus', { target_shop_id: shopId });
+      if (!rpcErr && rpcRes?.success) {
+        return true;
+      }
+    } catch (_) { }
+
+    // 3. Fallback: Detach staff/users assigned to this shop (safely set shop_id to null instead of reassigning them)
     try {
       if (!isTableWriteForbidden('foody_logged_users')) {
         await supabase.from('foody_logged_users').update({ shop_id: null, shop_ids: [] }).eq('shop_id', shopId);

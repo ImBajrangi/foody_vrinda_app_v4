@@ -3534,7 +3534,6 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
       };
     }
   } catch (e) { }
-
   return null;
 }
 
@@ -3811,8 +3810,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     const resolvedName = (updates.displayName && updates.displayName !== 'User')
       ? updates.displayName
       : ((updates.display_name && updates.display_name !== 'User')
-          ? updates.display_name
-          : (resolvedEmail ? resolvedEmail.split('@')[0] : (resolvedPhone ? `Member (${resolvedPhone.slice(-4)})` : 'Devotee')));
+        ? updates.display_name
+        : (resolvedEmail ? resolvedEmail.split('@')[0] : (resolvedPhone ? `Member (${resolvedPhone.slice(-4)})` : 'Devotee')));
 
     const newUser = {
       id: targetId,
