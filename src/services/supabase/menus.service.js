@@ -42,13 +42,14 @@ export async function getCloudMenus(shopId = 'all') {
         if (offlineFallback && offlineFallback.length > 0) return offlineFallback;
       }
 
-      let query = supabase.from('foody_menus').select('*');
+      const MENU_SELECT_FIELDS = 'id, shop_id, name, subtitle, description, category, price, original_price, discount_percent, is_combo, combo_items, image, tag, kcal, nutrition, is_available';
+      let query = supabase.from('foody_menus').select(MENU_SELECT_FIELDS);
       if (shopId && shopId !== 'all') {
         query = query.eq('shop_id', shopId);
       }
       let { data, error } = await query;
       if (error) {
-        let fallbackQuery = supabase.from('public_menu_catalog').select('*');
+        let fallbackQuery = supabase.from('public_menu_catalog').select(MENU_SELECT_FIELDS);
         if (shopId && shopId !== 'all') {
           fallbackQuery = fallbackQuery.eq('shop_id', shopId);
         }
@@ -439,9 +440,10 @@ export async function getCloudOffers(forceRefresh = false) {
   if (isTableMissing('foody_offers')) return getCachedOffers();
 
   try {
+    const OFFER_SELECT_FIELDS = 'id, code, title, subtitle, discount_type, discount_value, min_order_amount, max_discount, shop_id, is_active, tag, valid_until, created_at';
     const { data, error } = await supabase
       .from('foody_offers')
-      .select('*')
+      .select(OFFER_SELECT_FIELDS)
       .order('created_at', { ascending: false });
 
     if (error) {

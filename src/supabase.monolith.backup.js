@@ -3031,18 +3031,19 @@ export async function deleteCloudShop(shopId) {
   });
 
   try {
-    // 1. Reassign menu foreign keys if needed
-    const fallbackShop = getDefaultActiveShopId();
+    // 1. Delete menus belonging to this shop (strict isolation - never leak to fallback/other shops)
     try {
-      if (!isTableWriteForbidden('foody_menus') && fallbackShop) await supabase.from('foody_menus').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_menus')) {
+        await supabase.from('foody_menus').delete().eq('shop_id', shopId);
+      }
     } catch (e) { }
 
     try {
-      if (!isTableWriteForbidden('foody_logged_users') && fallbackShop) await supabase.from('foody_logged_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_logged_users')) await supabase.from('foody_logged_users').update({ shop_id: null }).eq('shop_id', shopId);
     } catch (e) { }
 
     try {
-      if (!isTableWriteForbidden('foody_users') && fallbackShop) await supabase.from('foody_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_users')) await supabase.from('foody_users').update({ shop_id: null }).eq('shop_id', shopId);
     } catch (e) { }
 
     // 2. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)

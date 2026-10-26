@@ -299,9 +299,11 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
         });
 
+        const SEARCH_ORDER_FIELDS = 'id, shop_id, user_id, customer_name, customer_phone, delivery_address, total_amount, status, payment_method, fulfillment_type, items, created_at';
+
         // 2. Fetch authenticated or phone-based orders from Supabase ONLY for this user
         if (isUserLoggedIn && currentUserId) {
-          let q = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(25);
+          let q = supabase.from('foody_orders').select(SEARCH_ORDER_FIELDS).order('created_at', { ascending: false }).limit(15);
           if (cleanPhone && cleanPhone.length >= 10) {
             q = q.or(`user_id.eq.${currentUserId},customer_phone.eq.${cleanPhone}`);
           } else {
@@ -316,10 +318,10 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
         } else if (cleanPhone && cleanPhone.length >= 10) {
           const { data: dbOrders } = await supabase
             .from('foody_orders')
-            .select('*')
+            .select(SEARCH_ORDER_FIELDS)
             .eq('customer_phone', cleanPhone)
             .order('created_at', { ascending: false })
-            .limit(20);
+            .limit(15);
           if (Array.isArray(dbOrders)) {
             dbOrders.forEach(ord => {
               if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);
@@ -333,8 +335,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           if (missingSessionIds.length > 0) {
             const { data: sessionOrders } = await supabase
               .from('foody_orders')
-              .select('*')
-              .in('id', missingSessionIds.slice(0, 15));
+              .select(SEARCH_ORDER_FIELDS)
+              .in('id', missingSessionIds.slice(0, 10));
             if (Array.isArray(sessionOrders)) {
               sessionOrders.forEach(ord => {
                 if (isOwnOrder(ord)) userOrdersMap.set(ord.id, ord);

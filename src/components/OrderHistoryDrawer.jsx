@@ -85,7 +85,8 @@ export default function OrderHistoryDrawer({
           }
         })();
 
-        let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(20);
+        const CUSTOMER_ORDER_FIELDS = 'id, shop_id, user_id, customer_name, customer_phone, delivery_address, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, fulfillment_type, pickup_otp, delivery_otp, created_at';
+        let query = supabase.from('foody_orders').select(CUSTOMER_ORDER_FIELDS).order('created_at', { ascending: false }).limit(15);
 
         if (isAuthenticated) {
           // Strictly query orders belonging to this authenticated user

@@ -76,6 +76,7 @@ import {
   createCloudShop,
   deleteCloudShop,
   getCloudMenus,
+  getCachedItem,
   createCloudMenuItem,
   updateCloudMenuItem,
   deleteCloudMenuItem,
@@ -203,11 +204,12 @@ export default function DeveloperView({ setCurrentTab }) {
 
   useEffect(() => {
     if (allShops && allShops.length > 0) {
-      if (!selectedShopId) setSelectedShopId(allShops[0].id);
-      if (!selectedDeliveryShopId) setSelectedDeliveryShopId(allShops[0].id);
-      if (!selectedOwnerShopId) setSelectedOwnerShopId(allShops[0].id);
-      if (!selectedPaymentShopId) setSelectedPaymentShopId(allShops[0].id);
-      setShopsList(allShops);
+      const validShopIds = new Set(allShops.map(s => s.id));
+      setSelectedShopId(prev => (!prev || !validShopIds.has(prev)) ? allShops[0].id : prev);
+      setSelectedDeliveryShopId(prev => (!prev || !validShopIds.has(prev)) ? allShops[0].id : prev);
+      setSelectedOwnerShopId(prev => (!prev || !validShopIds.has(prev)) ? allShops[0].id : prev);
+      setSelectedPaymentShopId(prev => (!prev || !validShopIds.has(prev)) ? allShops[0].id : prev);
+      setShopsList(prev => isEqualList(prev, allShops) ? prev : allShops);
     }
   }, [allShops]);
 
@@ -367,7 +369,7 @@ export default function DeveloperView({ setCurrentTab }) {
     const cachedShops = getCachedShops();
     const cachedUsers = getCachedUsers();
     const cachedOffers = getCachedOffers();
-    const cachedMenus = getCloudMenus('all');
+    const cachedMenus = getCachedItem('menus', 'all') || [];
 
     setShopsList(prev => isEqualList(prev, cachedShops) ? prev : cachedShops);
     setOffersList(prev => isEqualList(prev, cachedOffers) ? prev : cachedOffers);
@@ -445,6 +447,15 @@ export default function DeveloperView({ setCurrentTab }) {
     window.addEventListener('foody_shops_changed', handleLocalShopsChanged);
 
     const handleLocalMenusChanged = (e) => {
+      if (e?.detail?.removedShopId) {
+        const removedShop = e.detail.removedShopId;
+        setMenusList(prev => {
+          const next = prev.filter(m => (m.shopId || m.shop_id) !== removedShop);
+          setStats(st => ({ ...st, items: next.length }));
+          return next;
+        });
+        return;
+      }
       if (e?.detail?.menus && Array.isArray(e.detail.menus)) {
         setMenusList(prev => isEqualList(prev, e.detail.menus) ? prev : e.detail.menus);
         setStats(prev => prev.items === e.detail.menus.length ? prev : ({ ...prev, items: e.detail.menus.length }));
@@ -757,14 +768,24 @@ export default function DeveloperView({ setCurrentTab }) {
     if (shopsList.length <= 1) {
       return setToast({ message: 'Cannot delete the only remaining kitchen', type: 'warning' });
     }
-    setShopsList(prev => {
-      const updated = prev.filter(s => s.id !== shopId);
-      saveCachedShops(updated);
-      return updated;
-    });
+    const updated = shopsList.filter(s => s.id !== shopId);
+    setShopsList(updated);
+    saveCachedShops(updated);
+
+    // Safeguard active selections: gracefully re-target to first remaining kitchen without page refresh
+    const nextActiveId = updated[0]?.id || '';
+    if (selectedShopId === shopId) setSelectedShopId(nextActiveId);
+    if (selectedDeliveryShopId === shopId) setSelectedDeliveryShopId(nextActiveId);
+    if (selectedOwnerShopId === shopId) setSelectedOwnerShopId(nextActiveId);
+    if (selectedPaymentShopId === shopId) setSelectedPaymentShopId(nextActiveId);
+
+    // Immediately remove dishes belonging to this deleted shop so they never linger or show under another shop
+    setMenusList(prev => prev.filter(m => (m.shopId || m.shop_id) !== shopId));
+
     setShopToDelete(null);
-    setToast({ message: `Kitchen "${shopName}" removed and relations reassigned`, type: 'info' });
+    setToast({ message: `Kitchen "${shopName}" and its isolated catalog deleted`, type: 'info' });
     logActivity(`Kitchen "${shopName}" deleted`, 'warning');
+
     await deleteCloudShop(shopId);
     if (refreshShops) await refreshShops();
   };
@@ -1148,7 +1169,6 @@ export default function DeveloperView({ setCurrentTab }) {
     });
     setToast({ message: `User "${targetName}" removed`, type: 'info' });
     await deleteCloudUser(targetId);
-    setUsersList(getCachedUsers());
   };
 
   const handleBlockUser = async (userId, userName) => {
@@ -1968,7 +1988,7 @@ export default function DeveloperView({ setCurrentTab }) {
               </div>
 
               <p className="text-xs text-stone-700 dark:text-neutral-300 leading-relaxed">
-                Are you sure you want to delete <strong className="text-stone-900 dark:text-white font-bold">"{shopToDelete.name}"</strong>? Associated menus and orders will be safely reassigned to the primary kitchen before removing from Supabase.
+                Are you sure you want to delete <strong className="text-stone-900 dark:text-white font-bold">"{shopToDelete.name}"</strong>? Its menu catalog will be permanently removed and will NOT leak into any other kitchen.
               </p>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/5">

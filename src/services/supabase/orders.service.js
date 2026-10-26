@@ -754,7 +754,8 @@ export async function getCloudOrders(shopId) {
 
   const promise = (async () => {
     try {
-      let query = supabase.from('foody_orders').select('*').order('created_at', { ascending: false }).limit(60);
+      const ORDER_SELECT_FIELDS = 'id, shop_id, user_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, created_by, fulfillment_type, pickup_otp, delivery_otp, rider_id, rider_name, rider_phone, chef_id, chef_name, created_at, updated_at';
+      let query = supabase.from('foody_orders').select(ORDER_SELECT_FIELDS).order('created_at', { ascending: false }).limit(50);
       if (cleanShopId !== 'all') {
         query = query.eq('shop_id', cleanShopId);
       }

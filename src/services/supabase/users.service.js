@@ -311,13 +311,15 @@ export async function getCloudUsers(forceRefresh = false) {
 
   const promise = (async () => {
     try {
-      // 1. Fetch from foody_logged_users (with safe order fallback)
+      // 1. Fetch from foody_logged_users (with safe order fallback & bounded limit)
       let loggedData = [];
+      const USER_DIR_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, delivery_status, delivery_type, created_at, updated_at';
       try {
         const { data, error } = await supabase
           .from('foody_logged_users')
-          .select('*')
-          .order('updated_at', { ascending: false });
+          .select(USER_DIR_FIELDS)
+          .order('updated_at', { ascending: false })
+          .limit(100);
         if (!error && data && data.length > 0) {
           loggedData = data;
         }
@@ -330,8 +332,9 @@ export async function getCloudUsers(forceRefresh = false) {
       try {
         const { data, error } = await supabase
           .from('foody_users')
-          .select('*')
-          .order('updated_at', { ascending: false });
+          .select(USER_DIR_FIELDS)
+          .order('updated_at', { ascending: false })
+          .limit(100);
         if (!error && data && data.length > 0) {
           usersData = data;
         }
@@ -494,8 +497,10 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     return 'Devotee';
   };
 
+  const USER_PROFILE_FIELDS = 'id, display_name, email, phone, avatar_url, address, role, shop_id, shop_ids, dev_permissions, is_active, delivery_status, delivery_type';
+
   try {
-    let query = supabase.from('foody_logged_users').select('*');
+    let query = supabase.from('foody_logged_users').select(USER_PROFILE_FIELDS);
     if (filters.length === 1) {
       const parts = filters[0].split('.eq.');
       query = query.eq(parts[0], parts[1]);
@@ -529,7 +534,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
 
   // Fallback check on public.foody_users
   try {
-    let uQuery = supabase.from('foody_users').select('*');
+    let uQuery = supabase.from('foody_users').select(USER_PROFILE_FIELDS);
     if (filters.length === 1) {
       const parts = filters[0].split('.eq.');
       uQuery = uQuery.eq(parts[0], parts[1]);

@@ -517,16 +517,7 @@ export function AuthProvider({ children }) {
             liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
           } catch (e) { }
 
-          let cachedUsersList = getCachedUsers();
-          if (!liveProfile) {
-            try {
-              const cloudUsers = await getCloudUsers();
-              if (cloudUsers && cloudUsers.length > 0) {
-                cachedUsersList = cloudUsers;
-              }
-            } catch (e) { }
-          }
-
+          const cachedUsersList = getCachedUsers();
           const existingRecord = liveProfile || cachedUsersList.find(u =>
             (cleanId && String(u.id).trim() === cleanId) ||
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail)
@@ -645,16 +636,7 @@ export function AuthProvider({ children }) {
           liveProfile = await getLiveUserRoleAndProfile(cleanId, cleanEmail);
         } catch (e) { }
 
-        let cachedUsersList = getCachedUsers();
-        if (!liveProfile) {
-          try {
-            const cloudUsers = await getCloudUsers();
-            if (cloudUsers && cloudUsers.length > 0) {
-              cachedUsersList = cloudUsers;
-            }
-          } catch (e) { }
-        }
-
+        const cachedUsersList = getCachedUsers();
         const existingRecord = liveProfile || cachedUsersList.find(usr =>
           (cleanId && String(usr.id).trim() === cleanId) ||
           (cleanEmail && usr.email && usr.email.toLowerCase().trim() === cleanEmail)
@@ -994,8 +976,13 @@ export function AuthProvider({ children }) {
       throw new Error("Please enter a valid 10-digit mobile number.");
     }
 
-    const allUsers = await getCloudUsers(true);
-    const existing = allUsers.find(u => (u.phone || '').replace(/\D/g, '').endsWith(clean.slice(-10)));
+    // Query ONLY this specific user by phone (targeted 1-record lookup instead of full database dump)
+    const cleanPhone10 = clean.slice(-10);
+    let existing = await getLiveUserRoleAndProfile(null, null, cleanPhone10);
+    if (!existing) {
+      const cached = getCachedUsers();
+      existing = cached.find(u => (u.phone || '').replace(/\D/g, '').endsWith(cleanPhone10));
+    }
 
     if (existing) {
       const userProfile = {

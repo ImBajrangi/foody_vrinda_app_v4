@@ -9,12 +9,18 @@ import {
   saveCachedShops,
   getCachedShops,
   getDefaultActiveShopId,
-  dispatchSafeEvent
+  dispatchSafeEvent,
+  invalidateCache,
+  getCachedItem,
+  setCachedItem,
+  safeStorage
 } from './cache.js';
 
 // ========================================================================
 // SHOPS CLOUD APIS (CACHE-FIRST WITH ZERO REDUNDANT EGRESS)
 // ========================================================================
+
+const SHOP_SELECT_FIELDS = 'id, name, address, phone, image, is_open, is_active, is_deleted, coordinates, delivery_radius, preparation_time, minimum_order_amount, delivery_charge, gst_percentage, pure_veg, payment_settings, operating_hours, alarm_settings';
 
 export async function getCloudShops() {
   if (memoryCache.shops?.data && Array.isArray(memoryCache.shops.data) && memoryCache.shops.data.length > 0) {
@@ -28,9 +34,13 @@ export async function getCloudShops() {
 
   const promise = (async () => {
     try {
-      let res = await supabase.from('foody_shops').select('*').order('name');
+      let res = await supabase
+        .from('foody_shops')
+        .select(SHOP_SELECT_FIELDS)
+        .neq('is_deleted', true)
+        .order('name');
       if (res.error || !res.data || res.data.length === 0) {
-        res = await supabase.from('public_shop_catalog').select('*').order('name');
+        res = await supabase.from('public_shop_catalog').select(SHOP_SELECT_FIELDS).order('name');
       }
 
       if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
@@ -320,21 +330,50 @@ export async function deleteCloudShop(shopId) {
   });
 
   try {
-    // 1. Reassign menu foreign keys if needed
-    const fallbackShop = getDefaultActiveShopId();
+    // 1. Strict Menu Isolation: Permanently remove dishes belonging to this deleted shop.
+    // Menus must NEVER leak or be reassigned to any other kitchen!
     try {
-      if (!isTableWriteForbidden('foody_menus') && fallbackShop) await supabase.from('foody_menus').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_menus')) {
+        await supabase.from('foody_menus').delete().eq('shop_id', shopId);
+      }
+    } catch (e) {
+      console.warn("deleteCloudShop menu cleanup notice:", e);
+    }
+
+    // Immediately purge this shop's menus from all local memory and storage caches
+    invalidateCache('menus', shopId);
+    const cachedAll = getCachedItem('menus', 'all');
+    if (Array.isArray(cachedAll)) {
+      const filtered = cachedAll.filter(item => (item.shopId || item.shop_id) !== shopId);
+      setCachedItem('menus', 'all', filtered);
+    }
+    try {
+      safeStorage.removeItem(`foody_customer_menus_${shopId}`);
+      safeStorage.removeItem(`foody_cache_menu_${shopId}`);
+    } catch (_) {}
+
+    // Dispatch event so all active views (Customer, Owner, Kitchen, Developer) immediately purge these dishes without full page reload
+    dispatchSafeEvent('foody_menus_changed', {
+      shopId,
+      deleted: true,
+      removedShopId: shopId,
+      eventType: 'DELETE'
+    });
+
+    // 2. Detach staff/users assigned to this shop (safely set shop_id to null instead of reassigning them)
+    try {
+      if (!isTableWriteForbidden('foody_logged_users')) {
+        await supabase.from('foody_logged_users').update({ shop_id: null, shop_ids: [] }).eq('shop_id', shopId);
+      }
     } catch (e) { }
 
     try {
-      if (!isTableWriteForbidden('foody_logged_users') && fallbackShop) await supabase.from('foody_logged_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
+      if (!isTableWriteForbidden('foody_users')) {
+        await supabase.from('foody_users').update({ shop_id: null, shop_ids: [] }).eq('shop_id', shopId);
+      }
     } catch (e) { }
 
-    try {
-      if (!isTableWriteForbidden('foody_users') && fallbackShop) await supabase.from('foody_users').update({ shop_id: fallbackShop }).eq('shop_id', shopId);
-    } catch (e) { }
-
-    // 2. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)
+    // 3. Perform shop deletion / soft-delete (orders retain immutable historical shop reference)
     try {
       const { error } = await supabase.from('foody_shops').delete().eq('id', shopId);
       if (error) {

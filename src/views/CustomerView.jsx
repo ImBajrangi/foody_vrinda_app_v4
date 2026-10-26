@@ -833,7 +833,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     const handleLocalMenuEvent = (e) => {
       if (!isMounted) return;
       const detail = e.detail;
-      if (!detail) return;
+      if (detail.removedShopId && (shopKey === detail.removedShopId || shopKey === 'all')) {
+        setMenuItems(prev => {
+          const updatedList = prev.filter(m => (m.shopId || m.shop_id) !== detail.removedShopId);
+          setLocalCustomerMenus(shopKey, updatedList);
+          return updatedList;
+        });
+        return;
+      }
       if (detail.deleted || detail.eventType === 'DELETE') {
         const delId = detail.itemId || detail.item?.id;
         if (delId) {
@@ -888,11 +895,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     async function loadTargetOrder() {
       try {
         let orderRecord = null;
+        const TRACKING_ORDER_FIELDS = 'id, shop_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, fulfillment_type, pickup_otp, delivery_otp, rider_name, rider_phone, rider_avatar, created_at, updated_at';
 
         // Try exact match first
         const { data, error } = await supabase
           .from('foody_orders')
-          .select('*')
+          .select(TRACKING_ORDER_FIELDS)
           .eq('id', trackingOrderId)
           .maybeSingle();
 
@@ -904,7 +912,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           if (cleanSearch) {
             const { data: searchResults } = await supabase
               .from('foody_orders')
-              .select('*')
+              .select(TRACKING_ORDER_FIELDS)
               .ilike('id', `%${cleanSearch}%`)
               .limit(1);
 
