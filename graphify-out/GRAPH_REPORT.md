@@ -1,25 +1,25 @@
-# Graph Report - foody_vrinda_v3  (2026-10-13)
+# Graph Report - foody_vrinda_v3  (2026-10-28)
 
 ## Corpus Check
-- 147 files · ~279,249 words
+- 163 files · ~301,019 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 948 nodes · 2313 edges · 53 communities (40 shown, 13 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.54)
+- 1026 nodes · 2493 edges · 69 communities (56 shown, 13 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.54)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e60319d8`
+- Built from commit: `2111d496`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- useAuth
+- fvWalletService.js
 - run-android.js
 - supabase.monolith.backup.js
 - 🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete
-- orders.service.js
+- KitchenView.jsx
 - Foody Vrinda (v3)
 - test-live-rls-regression.mjs
 - Loader.jsx
@@ -34,14 +34,14 @@
 - StarRating.jsx
 - ErrorBoundary
 - NativeNotificationService
-- AuthContext.jsx
+- DeveloperView.jsx
 - firebase.js
 - Multi-Environment & Production Safety
 - verify-delivery-hardened-evidence.js
 - test_push_workflow.mjs
 - Foody Vrinda — Design System & Theme Architecture Specification
 - 🌟 Foody Vrinda: System Architecture & Delivery Verification Updates
-- App.jsx
+- test-role-and-tutorial.mjs
 - test-wallet-multiplex.mjs
 - verify_roles_and_db_sync.mjs
 - CustomerView.jsx
@@ -63,39 +63,55 @@
 - verify-supabase-parity.js
 - Foody Vrinda animations (React + Capacitor)
 - test-shop-isolation.mjs
+- App.jsx
+- OwnerView.jsx
+- TransportView.jsx
+- StackedBars.tsx
+- AuthContext.jsx
+- riders.service.js
+- OneTimeCode.tsx
+- supabase.js
+- CreateMenu.tsx
+- RollingCounter.tsx
+- getOrderItemSummary
+- test-combo-engine.mjs
+- run-all-tests.mjs
+- runAtomicShopDeletionTests
+- test-developer-api-sync.mjs
+- test-user-flow-e2e.mjs
 
 ## God Nodes (most connected - your core abstractions)
-1. `dispatchSafeEvent()` - 37 edges
-2. `DeveloperView()` - 34 edges
-3. `NativeNotificationService` - 30 edges
-4. `dispatchSafeEvent()` - 30 edges
-5. `useAuth()` - 27 edges
-6. `setCachedItem()` - 26 edges
-7. `CustomerView()` - 23 edges
-8. `AuthProvider()` - 22 edges
-9. `getDefaultActiveShopId()` - 22 edges
-10. `updateCloudUser()` - 22 edges
+1. `dispatchSafeEvent()` - 41 edges
+2. `DeveloperView()` - 39 edges
+3. `NativeNotificationService` - 31 edges
+4. `setCachedItem()` - 30 edges
+5. `dispatchSafeEvent()` - 30 edges
+6. `CustomerView()` - 28 edges
+7. `useAuth()` - 27 edges
+8. `resolveDishCutout()` - 25 edges
+9. `getCachedItem()` - 24 edges
+10. `getCachedUsers()` - 23 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `runAdversarialTestSuite()` --calls--> `getCloudMenus()`  [EXTRACTED]
-  scripts/test-adversarial-security.js → src/services/supabase/menus.service.js
-- `runAdversarialTestSuite()` --calls--> `getCloudShops()`  [EXTRACTED]
-  scripts/test-adversarial-security.js → src/services/supabase/shops.service.js
-- `runTestSuite()` --calls--> `createCloudOrder()`  [EXTRACTED]
+- `runTestSuite()` --calls--> `markCloudOrderCashCollected()`  [EXTRACTED]
   scripts/test-database-sync.js → src/services/supabase/orders.service.js
 - `runTestSuite()` --calls--> `updateCloudOrderStatus()`  [EXTRACTED]
   scripts/test-database-sync.js → src/services/supabase/orders.service.js
+- `runAdversarialTestSuite()` --calls--> `getCloudMenus()`  [EXTRACTED]
+  scripts/test-adversarial-security.js → src/services/supabase/menus.service.js
 - `runAdversarialTestSuite()` --calls--> `calculateAuthoritativeOrderTotals()`  [EXTRACTED]
+  scripts/test-adversarial-security.js → src/services/supabase/orders.service.js
+- `runAdversarialTestSuite()` --calls--> `isValidStatusTransition()`  [EXTRACTED]
   scripts/test-adversarial-security.js → src/services/supabase/orders.service.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (53 total, 13 thin omitted)
+## Communities (69 total, 13 thin omitted)
 
-### Community 0 - "useAuth"
-Cohesion: 0.07
-Nodes (39): filtered, rawMockDbLeaderboard, ActiveOrderTrackingModal(), AppInstallModal(), AuthModal(), FVRewardsDashboard(), Header(), NotificationPanel() (+31 more)
+### Community 0 - "fvWalletService.js"
+Cohesion: 0.05
+Nodes (48): filtered, rawMockDbLeaderboard, AppInstallModal(), AuthModal(), FVRewardsDashboard(), Header(), NotificationPanel(), OrderHistoryDrawer() (+40 more)
 
 ### Community 1 - "run-android.js"
 Cohesion: 0.27
@@ -109,9 +125,9 @@ Nodes (33): ALLOWED_ORDER_TRANSITIONS, broadcastAlarmEvent(), CACHE_TTL_MS, calc
 Cohesion: 0.07
 Nodes (26): 1. Executive Summary, 2. Test Execution Matrix (22 / 22 Regression Tests), 3. Security Property Verification & Evidence Status, 4.1 Request Processing & Verification Pipeline, 4.2 Separation of Privilege & Execution Pipelines, 4. Architectural Analysis: End-to-End Control Flow, 5.1 Caller Identity Binding (`claim_order_pickup_atomic` & `verify_delivery_otp_atomic`), 5.2 One-Time Use OTP Verification (+18 more)
 
-### Community 5 - "orders.service.js"
-Cohesion: 0.06
-Nodes (65): COLORS, runAdversarialTestSuite(), section(), CHEF_TAGS, ReviewModal(), RIDER_TAGS, ActiveAlarmBanner(), DynamicToast() (+57 more)
+### Community 5 - "KitchenView.jsx"
+Cohesion: 0.29
+Nodes (12): useAuth(), DEFAULT_SEEDS, NotificationContext, NotificationProvider(), createCloudNotification(), markCloudNotificationRead(), generateWhatsAppOrderShareLink(), getOrderCustomerName() (+4 more)
 
 ### Community 6 - "Foody Vrinda (v3)"
 Cohesion: 0.40
@@ -126,12 +142,12 @@ Cohesion: 0.18
 Nodes (4): ErrorBoundary, createFoodyHop(), hopMarkup, FoodyOrderHop
 
 ### Community 21 - "NativeNotificationService"
-Cohesion: 0.10
-Nodes (10): DESK_CONFIG, SoundTrialsModal(), FoodyVrindaLogo(), SocialLinksBar(), SOCIAL_CHANNELS, SOCIAL_LINKS, FoodyContinuousAlarm, NativeNotificationService (+2 more)
+Cohesion: 0.09
+Nodes (12): DESK_CONFIG, SoundTrialsModal(), clamp(), LabelInput(), LabelInputProps, SocialLinksBar(), SOCIAL_CHANNELS, SOCIAL_LINKS (+4 more)
 
-### Community 22 - "AuthContext.jsx"
-Cohesion: 0.05
-Nodes (109): COLORS, pass(), runTestSuite(), section(), MapPicker(), QUANTITIES, QuantityPickerSheet(), NativeTimePicker() (+101 more)
+### Community 22 - "DeveloperView.jsx"
+Cohesion: 0.06
+Nodes (109): COLORS, runAdversarialTestSuite(), section(), COLORS, pass(), runTestSuite(), section(), QUANTITIES (+101 more)
 
 ### Community 23 - "firebase.js"
 Cohesion: 0.50
@@ -153,9 +169,9 @@ Nodes (23): 1. Executive Summary & Philosophy, 2.1 CSS Semantic Tokens Definitio
 Cohesion: 0.22
 Nodes (8): 🧪 Build & Quality Verification, 🛡️ Daily Rotating Sarathi Token (`getDailySarathiCode`), 📊 End-to-End Chain-of-Custody Audit Fields, 📌 Executive Summary of System Enhancements, 🌟 Foody Vrinda: System Architecture & Delivery Verification Updates, 📁 Key File Links, 🗄️ Supabase Database Migration DDL, 🔄 Two-Stage OTP Handover Lifecycle
 
-### Community 29 - "App.jsx"
-Cohesion: 0.07
-Nodes (50): deliveryAliases, mockSessionStorage, mockStorage, negativeRoles, ownerAliases, progressAfterStep1, restaurantAliases, App() (+42 more)
+### Community 29 - "test-role-and-tutorial.mjs"
+Cohesion: 0.12
+Nodes (30): deliveryAliases, mockSessionStorage, mockStorage, negativeRoles, ownerAliases, progressAfterStep1, restaurantAliases, App() (+22 more)
 
 ### Community 30 - "test-wallet-multiplex.mjs"
 Cohesion: 0.29
@@ -167,7 +183,7 @@ Nodes (4): recordTest(), results, runTestSuite(), supabase
 
 ### Community 32 - "CustomerView.jsx"
 Cohesion: 0.06
-Nodes (41): MockLocalStorage, mockStorage, autoGenCases, scenario1, scenario2, scenario3, testCases, ActiveOrderCapsule() (+33 more)
+Nodes (42): MockLocalStorage, mockStorage, autoGenCases, scenario1, scenario2, scenario3, testCases, ActiveOrderCapsule() (+34 more)
 
 ### Community 33 - "Implementation Sequence"
 Cohesion: 0.06
@@ -233,25 +249,89 @@ Nodes (6): 1. Copy, 2. Fonts (important in a Capacitor app: it must work offline
 Cohesion: 0.67
 Nodes (3): assert(), runTests(), supabase
 
+### Community 53 - "App.jsx"
+Cohesion: 0.12
+Nodes (16): AppInstallModal, AppUpdateModal, AuthModal, CompleteProfileModal, CustomerView, DeveloperView, KitchenView, NotificationPanel (+8 more)
+
+### Community 54 - "OwnerView.jsx"
+Cohesion: 0.20
+Nodes (12): MapPicker(), NativeTimePicker(), SearchableDropdown(), PRESET_CATEGORIES, broadcastAlarm(), getAudioContext(), globalAlarmListeners, useAudioAlarm() (+4 more)
+
+### Community 55 - "TransportView.jsx"
+Cohesion: 0.29
+Nodes (11): useFastNotify(), getPurgedOrderIds(), getRiderCashLedger(), getUserTrustScore(), isRiderCashLimitExceeded(), RIDER_MAX_CASH_LIMIT, claimDeliveryOrder(), fetchAvailableDeliveries() (+3 more)
+
+### Community 56 - "StackedBars.tsx"
+Cohesion: 0.19
+Nodes (11): Bar, CATS, fmt(), fmtDay(), LAST, makeBars(), Mode, MONTHS (+3 more)
+
+### Community 57 - "AuthContext.jsx"
+Cohesion: 0.29
+Nodes (12): AuthContext, AUTHORIZED_ADMIN_EMAILS, AUTHORIZED_DEV_EMAILS, AuthProvider(), isAdminUser(), isDeveloperUser(), isStaffRole(), resolveDisplayName() (+4 more)
+
+### Community 58 - "riders.service.js"
+Cohesion: 0.21
+Nodes (9): calculateDistanceInMeters(), calculateOptimalDispatchWindow(), computeSha256Hex(), exportDeliveryAuditReportCSV(), getDailySarathiCode(), getNextWaterfallRider(), isRiderOnline(), processOfflineOrderQueue() (+1 more)
+
+### Community 59 - "OneTimeCode.tsx"
+Cohesion: 0.26
+Nodes (10): clamp(), MERGE, mix(), OneTimeCode(), OneTimeCodeProps, Otp, Phase, smooth() (+2 more)
+
+### Community 60 - "supabase.js"
+Cohesion: 0.22
+Nodes (6): DynamicToast(), CURATED_CRAVINGS_VISUALS, POPULAR_CATEGORIES, CURRENT_APP_VERSION, supabase, COMPLETE_FOODY_DATABASE_SCHEMA_SQL
+
+### Community 61 - "CreateMenu.tsx"
+Cohesion: 0.29
+Nodes (6): clamp(), Create(), CreateMenu, ITEMS, LIQUID, LIQUID_STILL
+
+### Community 62 - "RollingCounter.tsx"
+Cohesion: 0.36
+Nodes (6): clamp(), Col, Counter(), RollingCounter, springOf(), stillness()
+
+### Community 63 - "getOrderItemSummary"
+Cohesion: 0.52
+Nodes (6): getOrderItemSummary(), exportRiderOrdersCSV(), formatINR(), generateBarcodeSvg(), getCleanRiderName(), printVerifiedDriverStatementPDF()
+
+### Community 64 - "test-combo-engine.mjs"
+Cohesion: 0.53
+Nodes (5): assert(), calculateComboFinancials(), runComboEngineTests(), supabase, validateComboPayload()
+
+### Community 65 - "run-all-tests.mjs"
+Cohesion: 0.67
+Nodes (3): main(), runChildSuite(), SUITES
+
+### Community 66 - "runAtomicShopDeletionTests"
+Cohesion: 0.67
+Nodes (3): assert(), runAtomicShopDeletionTests(), supabase
+
+### Community 67 - "test-developer-api-sync.mjs"
+Cohesion: 0.67
+Nodes (3): assert(), runDeveloperApiSyncTests(), supabase
+
+### Community 68 - "test-user-flow-e2e.mjs"
+Cohesion: 0.67
+Nodes (3): assert(), runRealUserFlowTests(), supabase
+
 ## Knowledge Gaps
-- **262 isolated node(s):** `__filename`, `__dirname`, `__filename`, `__dirname`, `ROOT_DIR` (+257 more)
+- **282 isolated node(s):** `__filename`, `__dirname`, `__filename`, `__dirname`, `ROOT_DIR` (+277 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `STAFF_ROLES` connect `AuthContext.jsx` to `dispatchSafeEvent`?**
-  _High betweenness centrality (0.162) - this node is a cross-community bridge._
+- **Why does `STAFF_ROLES` connect `AuthContext.jsx` to `dispatchSafeEvent`, `DeveloperView.jsx`?**
+  _High betweenness centrality (0.151) - this node is a cross-community bridge._
 - **Why does `dispatchSafeEvent()` connect `dispatchSafeEvent` to `supabase.monolith.backup.js`, `isTableMissing`, `.ensureSubscribed`, `getCachedShops`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **Why does `setCachedItem()` connect `dispatchSafeEvent` to `supabase.monolith.backup.js`, `isTableMissing`, `.ensureSubscribed`, `getCachedItem`, `getCachedShops`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **What connects `__filename`, `__dirname`, `__filename` to the rest of the system?**
-  _262 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `useAuth` be split into smaller, more focused modules?**
-  _Cohesion score 0.07086197778952935 - nodes in this community are weakly interconnected._
+  _282 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `fvWalletService.js` be split into smaller, more focused modules?**
+  _Cohesion score 0.05052631578947368 - nodes in this community are weakly interconnected._
 - **Should `supabase.monolith.backup.js` be split into smaller, more focused modules?**
   _Cohesion score 0.04653061224489796 - nodes in this community are weakly interconnected._
 - **Should `🛡️ Foody Vrinda v5.3.1 — Core Production Security Validation Complete` be split into smaller, more focused modules?**
   _Cohesion score 0.07407407407407407 - nodes in this community are weakly interconnected._
-- **Should `orders.service.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.060073260073260075 - nodes in this community are weakly interconnected._

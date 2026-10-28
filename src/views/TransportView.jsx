@@ -124,32 +124,34 @@ export default function TransportView() {
     };
   }, []);
 
-  const [isRiderOnDuty, setIsRiderOnDuty] = useState(() => {
-    try {
-      const cached = localStorage.getItem('foody_rider_on_duty');
-      if (cached !== null) return cached !== 'false';
-      if (activeUser?.is_active !== undefined) return Boolean(activeUser.is_active);
-      if (activeUser?.isOnline !== undefined) return Boolean(activeUser.isOnline);
-      return true;
-    } catch (e) {
-      return true;
-    }
-  });
+  // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
+  // Delivery boy only goes ON when they explicitly choose to toggle "Ready to Deliver" ON.
+  const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
 
-  // Keep duty state synchronized with active cloud profile
+  // On mount / app opening: guarantee rider starts OFF-duty both in local state and cloud
   useEffect(() => {
-    if (activeUser?.is_active !== undefined) {
-      setIsRiderOnDuty(Boolean(activeUser.is_active));
-      try {
-        localStorage.setItem('foody_rider_on_duty', String(Boolean(activeUser.is_active)));
-      } catch (e) {}
-    } else if (activeUser?.isOnline !== undefined) {
-      setIsRiderOnDuty(Boolean(activeUser.isOnline));
-      try {
-        localStorage.setItem('foody_rider_on_duty', String(Boolean(activeUser.isOnline)));
-      } catch (e) {}
-    }
-  }, [activeUser?.is_active, activeUser?.isOnline]);
+    setIsRiderOnDuty(false);
+    try {
+      localStorage.setItem('foody_rider_on_duty', 'false');
+    } catch (_) { }
+
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
+    updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
+  }, [activeUser?.id, activeUser?.email]);
+
+  // Clean-up: when closing tab or unmounting, ensure offline status is broadcasted
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
+      updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
+      updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
+    };
+  }, [activeUser?.id, activeUser?.email, riderCoords]);
 
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
 
@@ -903,7 +905,7 @@ export default function TransportView() {
         if (isCash) {
           try {
             await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
-          } catch (_) {}
+          } catch (_) { }
         }
       } else {
         // Fallback status transition for direct admin/dispatcher completions without OTP
@@ -1077,10 +1079,10 @@ export default function TransportView() {
               ? 'bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border-emerald-600/30 dark:border-emerald-500/30 hover:bg-[#bbf0df] dark:hover:bg-emerald-950/60'
               : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
               }`}
-            title="Toggle Rider Duty Availability"
+            title="Toggle Ready to Deliver Duty Availability"
           >
             <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
-            <span className="whitespace-nowrap font-black font-['Outfit']">{isRiderOnDuty ? 'Rider On Duty' : 'Rider Off Duty'}</span>
+            <span className="whitespace-nowrap font-black font-['Outfit']">{isRiderOnDuty ? 'Ready to Deliver · ON' : 'Ready to Deliver · OFF'}</span>
           </button>
 
           {/* List vs Carto View Switcher: Ergonomic segmented control */}
@@ -1126,7 +1128,7 @@ export default function TransportView() {
             onClick={toggleRiderDuty}
             className="px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all shadow-xs"
           >
-            Go On Duty
+            Ready to Deliver
           </button>
         </div>
       )}

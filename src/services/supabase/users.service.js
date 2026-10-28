@@ -383,7 +383,13 @@ export async function getCloudUsers(forceRefresh = false) {
             deliveryStatus: userCandidate.delivery_status || userCandidate.deliveryStatus || prev.delivery_status || prev.deliveryStatus || 'approved',
             delivery_type: userCandidate.delivery_type || userCandidate.deliveryType || prev.delivery_type || prev.deliveryType || 'independent',
             deliveryType: userCandidate.delivery_type || userCandidate.deliveryType || prev.delivery_type || prev.deliveryType || 'independent',
-            isOnline: userCandidate.isOnline !== undefined ? userCandidate.isOnline : (userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isOnline ?? prev.isActive ?? true)),
+            isOnline: (bestRole === 'delivery' || bestRole === 'rider')
+              ? Boolean(userCandidate.isOnline === true || userCandidate.is_online === true || prev.isOnline === true || prev.is_online === true)
+              : (userCandidate.isOnline !== undefined ? userCandidate.isOnline : (userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isOnline ?? prev.isActive ?? true))),
+            is_online: (bestRole === 'delivery' || bestRole === 'rider')
+              ? Boolean(userCandidate.is_online === true || userCandidate.isOnline === true || prev.is_online === true || prev.isOnline === true)
+              : (userCandidate.is_online !== undefined ? userCandidate.is_online : (prev.is_online ?? true)),
+            duty_status: userCandidate.duty_status || prev.duty_status || ((bestRole === 'delivery' || bestRole === 'rider') ? 'off_duty' : 'on_duty'),
             isActive: userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isActive ?? true),
             is_active: userCandidate.is_active !== undefined ? userCandidate.is_active : (prev.is_active ?? true)
           };
@@ -414,12 +420,15 @@ export async function getCloudUsers(forceRefresh = false) {
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
           is_active: u.is_active ?? true,
-          isOnline: u.is_active ?? true,
+          isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
+          is_online: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_online ?? true),
+          duty_status: u.duty_status || ((u.role === 'delivery' || u.role === 'rider') ? 'off_duty' : 'on_duty'),
           delivery_status: u.delivery_status || 'approved',
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
           deliveryType: u.delivery_type || 'independent',
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
+          last_seen_at: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
         });
@@ -442,12 +451,15 @@ export async function getCloudUsers(forceRefresh = false) {
           devPermissions: u.dev_permissions || [],
           isActive: u.is_active ?? true,
           is_active: u.is_active ?? true,
-          isOnline: u.is_active ?? true,
+          isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
+          is_online: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_online ?? true),
+          duty_status: u.duty_status || ((u.role === 'delivery' || u.role === 'rider') ? 'off_duty' : 'on_duty'),
           delivery_status: u.delivery_status || 'approved',
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
           deliveryType: u.delivery_type || 'independent',
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
+          last_seen_at: u.last_login_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
         });
@@ -601,6 +613,9 @@ export async function recordLoggedInUser(userProfile) {
 
   const fcmToken = userProfile.fcm_token || userProfile.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || existingUser?.fcm_token || null;
 
+  const isDeliveryRole = finalRole === 'delivery' || finalRole === 'rider';
+  const defaultOnline = isDeliveryRole ? false : true;
+
   const loggedUsersPayload = {
     id: cleanId,
     display_name: cleanName,
@@ -614,6 +629,8 @@ export async function recordLoggedInUser(userProfile) {
     dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     login_method: loginMethod,
     is_active: true,
+    is_online: defaultOnline,
+    duty_status: defaultOnline ? 'on_duty' : 'off_duty',
     fcm_token: fcmToken,
     last_login_at: nowIso,
     updated_at: nowIso
@@ -631,6 +648,8 @@ export async function recordLoggedInUser(userProfile) {
     shop_ids: finalShops,
     dev_permissions: userProfile.devPermissions || userProfile.dev_permissions || existingUser?.devPermissions || [],
     is_active: true,
+    is_online: defaultOnline,
+    duty_status: defaultOnline ? 'on_duty' : 'off_duty',
     fcm_token: fcmToken,
     last_seen_at: nowIso,
     updated_at: nowIso
@@ -645,9 +664,17 @@ export async function recordLoggedInUser(userProfile) {
   let next;
   if (idx >= 0) {
     next = [...current];
-    next[idx] = { ...next[idx], ...loggedUsersPayload, displayName: cleanName };
+    const prevDuty = isDeliveryRole ? false : (next[idx].isOnline ?? true);
+    next[idx] = {
+      ...next[idx],
+      ...loggedUsersPayload,
+      displayName: cleanName,
+      isOnline: prevDuty,
+      is_online: prevDuty,
+      duty_status: prevDuty ? 'on_duty' : 'off_duty'
+    };
   } else {
-    next = [{ ...loggedUsersPayload, displayName: cleanName, createdAt: nowIso }, ...current];
+    next = [{ ...loggedUsersPayload, isOnline: defaultOnline, is_online: defaultOnline, displayName: cleanName, createdAt: nowIso }, ...current];
   }
   saveCachedUsers(next);
   setCachedItem('users', 'all', next);
@@ -988,11 +1015,14 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   const currentUsers = getCachedUsers();
   const updatedList = currentUsers.map(u => {
     if (String(u.id).trim() === cleanId) {
+      const isDelivery = u.role === 'delivery' || u.role === 'rider';
       return {
         ...u,
         isOnline: activeBool,
-        isActive: activeBool,
-        is_active: activeBool,
+        is_online: activeBool,
+        isActive: isDelivery ? (u.isActive ?? true) : activeBool,
+        is_active: isDelivery ? (u.is_active ?? true) : activeBool,
+        duty_status: activeBool ? 'on_duty' : 'off_duty',
         coordinates: coordinates || u.coordinates,
         lat: coordinates?.lat ?? u.lat,
         lng: coordinates?.lng ?? u.lng,

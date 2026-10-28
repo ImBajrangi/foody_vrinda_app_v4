@@ -22,7 +22,7 @@ import {
   purgeAllDemoOrders
 } from './cache.js';
 import { createCloudNotification } from './notifications.service.js';
-import { generateSecureOrderOTP, computeSha256Hex } from './riders.service.js';
+import { generateSecureOrderOTP, computeSha256Hex, getOnlineRiders } from './riders.service.js';
 
 export { getPurgedOrderIds, purgeOrder, purgeAllDemoOrders };
 
@@ -192,7 +192,15 @@ export async function createCloudOrder(orderData) {
 
     const orderId = orderData.id || `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const rawFulfillment = orderData.fulfillmentType || orderData.fulfillment_type || 'delivery';
-    const fulfillmentType = (rawFulfillment === 'self_pickup' || rawFulfillment === 'pickup') ? 'pickup' : 'delivery';
+    let fulfillmentType = (rawFulfillment === 'self_pickup' || rawFulfillment === 'pickup') ? 'pickup' : 'delivery';
+
+    // Safety guard: If delivery requested but all riders are offline, strictly fallback to pickup
+    if (fulfillmentType === 'delivery') {
+      const liveRiders = getOnlineRiders();
+      if (liveRiders.length === 0 && !orderData.bypassRiderCheck) {
+        fulfillmentType = 'pickup';
+      }
+    }
 
     // Authoritative Server-Side Total Calculation from Database Catalog
     const totals = calculateAuthoritativeOrderTotals(shopId, orderData.items || [], fulfillmentType, orderData.discount || 0);

@@ -240,7 +240,14 @@ export function getRecommendedRiders(shopCoords, ridersList = [], activeOrders =
   const shopLng = Number(shopCoords?.lng) || 77.6593;
 
   return ridersList
-    .filter(r => (r.role === 'delivery' || r.role === 'rider') && r.is_active !== false && r.isOnline !== false)
+    .filter(r => {
+      if (!r) return false;
+      const role = String(r.role || '').toLowerCase().trim();
+      if (role !== 'delivery' && role !== 'rider') return false;
+      if (r.delivery_status === 'suspended' || r.deliveryStatus === 'suspended') return false;
+      if (r.is_active === false && r.isActive === false) return false;
+      return Boolean(r.isOnline === true || r.is_online === true || r.duty_status === 'on_duty');
+    })
     .map(rider => {
       const hasCoords = Boolean((rider.coordinates?.lat && rider.coordinates?.lng) || (rider.lat && rider.lng));
       const riderLat = Number(rider.coordinates?.lat || rider.lat || 0);

@@ -7,6 +7,7 @@
 import { safeStorage, getCachedItem } from './cache.js';
 import { updateCloudOrderStatus } from './orders.service.js';
 import { isRiderCashLimitExceeded, getOrderItemSummary } from './operations.service.js';
+import { getCachedUsers } from './users.service.js';
 
 // ========================================================================
 // 1. ORDER OTP SECURITY SYSTEM (PICKUP OTP & DELIVERY OTP)
@@ -524,8 +525,51 @@ if (typeof window !== 'undefined') {
 }
 
 // ========================================================================
-// 7. WATERFALL RIDER CASCADE SELECTOR
+// 7. WATERFALL RIDER CASCADE SELECTOR & ONLINE PRESENCE VERIFICATION
 // ========================================================================
+
+/**
+ * Strict criteria for whether a delivery boy / rider is online and ready to accept orders.
+ * Invariant: Delivery boys default to OFFLINE unless they manually toggle "Ready to Deliver" ON.
+ */
+export function isRiderOnline(user) {
+  if (!user) return false;
+  const role = String(user.role || '').toLowerCase().trim();
+  const isDelivery = role === 'delivery' || role === 'rider' || role === 'sarathi';
+  if (!isDelivery) return false;
+
+  // Account status check: suspended or explicitly inactive accounts cannot be on duty
+  const deliveryStatus = user.delivery_status || user.deliveryStatus;
+  if (deliveryStatus === 'suspended' || deliveryStatus === 'blocked') return false;
+  if (user.is_active === false && user.isActive === false) return false;
+
+  // Duty check: Must be explicitly ON duty!
+  // Neither undefined nor account-level isActive implies on-duty.
+  const dutyFlag = user.isOnline ?? user.is_online;
+  const isDutyString = user.duty_status === 'on_duty';
+  const hasExplicitOnDuty = dutyFlag === true || isDutyString;
+
+  if (!hasExplicitOnDuty) return false;
+
+  // Stale heartbeat guard: If rider has had zero activity for > 20 minutes, consider offline
+  const lastSeen = user.last_seen_at || user.lastSeenAt || user.last_location_at || user.lastLocationAt || user.updatedAt || user.updated_at;
+  if (lastSeen) {
+    const ageMs = Date.now() - new Date(lastSeen).getTime();
+    if (!isNaN(ageMs) && ageMs > 20 * 60 * 1000) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Returns an array of all active delivery riders who are currently verified online
+ */
+export function getOnlineRiders(usersList = null) {
+  const list = Array.isArray(usersList) ? usersList : getCachedUsers();
+  return (list || []).filter(isRiderOnline);
+}
 
 export function getNextWaterfallRider(allRiders = [], targetCoords = { lat: 27.5706, lng: 77.6593 }, rejectedIds = []) {
   if (!Array.isArray(allRiders) || allRiders.length === 0) return null;
@@ -533,9 +577,9 @@ export function getNextWaterfallRider(allRiders = [], targetCoords = { lat: 27.5
   const eligibleRiders = allRiders.filter(r => {
     if (!r || !r.id) return false;
     if (rejectedIds.includes(r.id)) return false;
-    const isOnline = r.isOnline ?? r.isActive ?? r.is_active ?? true;
+    if (!isRiderOnline(r)) return false;
     const cashCheck = isRiderCashLimitExceeded(r.id);
-    return isOnline && !cashCheck.isExceeded;
+    return !cashCheck.isExceeded;
   });
 
   if (eligibleRiders.length === 0) return null;

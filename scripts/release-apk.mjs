@@ -145,11 +145,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Real-time delivery partner duty & online presence synchronization with Supabase Cloud.',
-    'Off-duty break mode banner and intelligent audible order alarms for delivery partners.',
-    'Integrated developer approval & fleet status controls (pending, approved, suspended).',
-    'Enhanced multi-stage delivery order routing and kitchen handover flow.',
-    'Improved notification delivery with native sound triggers and speech synthesis.'
+    'Strict delivery criteria: online delivery accepted only when active riders are on duty, defaulting to self-pickup when offline.',
+    'Rider app "Ready to Deliver" duty toggle defaults strictly to OFF on app launch until manually activated.',
+    'Real-time rider duty presence synchronization across customer, transport, and order services with Supabase Cloud.',
+    'Enhanced atomic order placement guards to prevent ghost delivery dispatch when all riders are offline.',
+    'Offline status badge and self-pickup fallback notifications in CustomerView.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {

@@ -418,6 +418,12 @@ export class RealtimeMultiplexer {
       ...(cleanShopId !== undefined ? { shopId: cleanShopId } : {}),
       ...(cleanShopIds !== undefined ? { shopIds: cleanShopIds } : {}),
       ...(cleanPermissions !== undefined ? { devPermissions: cleanPermissions } : {}),
+      ...(raw.is_active !== undefined ? { is_active: raw.is_active, isActive: raw.is_active } : {}),
+      ...(raw.is_online !== undefined ? { is_online: raw.is_online, isOnline: raw.is_online } : {}),
+      ...(raw.duty_status !== undefined ? { duty_status: raw.duty_status } : {}),
+      ...(raw.current_location !== undefined ? { coordinates: raw.current_location, currentLocation: raw.current_location } : {}),
+      ...(raw.last_seen_at ? { last_seen_at: raw.last_seen_at, lastSeenAt: raw.last_seen_at } : {}),
+      ...(raw.last_location_at ? { last_location_at: raw.last_location_at } : {}),
       ...(raw.last_login_at ? { lastLoginAt: raw.last_login_at } : {}),
       ...(raw.updated_at ? { updatedAt: raw.updated_at } : {})
     };
@@ -445,16 +451,29 @@ export class RealtimeMultiplexer {
           ? existing.role
           : (normalizedUpdates.role || existing.role || 'customer');
 
+        const isDeliveryRole = resolvedRole === 'delivery' || resolvedRole === 'rider';
+        const finalOnline = isDeliveryRole
+          ? (normalizedUpdates.is_online !== undefined ? normalizedUpdates.is_online : (normalizedUpdates.is_active !== undefined ? normalizedUpdates.is_active : (existing.isOnline ?? existing.is_online ?? false)))
+          : (normalizedUpdates.is_active ?? existing.is_active ?? true);
+
         mergedUserObj = {
           ...existing,
           ...normalizedUpdates,
           role: resolvedRole,
-          displayName: normalizedUpdates.displayName || existing.displayName || (existing.email ? existing.email.split('@')[0] : 'Devotee')
+          displayName: normalizedUpdates.displayName || existing.displayName || (existing.email ? existing.email.split('@')[0] : 'Devotee'),
+          isOnline: finalOnline,
+          is_online: finalOnline,
+          duty_status: normalizedUpdates.duty_status || (finalOnline ? 'on_duty' : 'off_duty')
         };
         next = [...current];
         next[idx] = mergedUserObj;
       } else {
         const fallbackName = cleanDisplayName || (cleanEmail ? cleanEmail.split('@')[0] : (cleanPhone ? `Member (${cleanPhone.slice(-4)})` : 'Devotee'));
+        const isDeliveryRole = cleanRole === 'delivery' || cleanRole === 'rider';
+        const finalOnline = isDeliveryRole
+          ? (raw.is_online === true || raw.isOnline === true)
+          : (raw.is_active ?? true);
+
         mergedUserObj = {
           id: cleanId,
           displayName: fallbackName,
@@ -465,6 +484,11 @@ export class RealtimeMultiplexer {
           shopId: cleanShopId || getDefaultActiveShopId(),
           shopIds: cleanShopIds || (cleanShopId ? [cleanShopId] : []),
           devPermissions: cleanPermissions || [],
+          isActive: raw.is_active ?? true,
+          is_active: raw.is_active ?? true,
+          isOnline: finalOnline,
+          is_online: finalOnline,
+          duty_status: raw.duty_status || (finalOnline ? 'on_duty' : 'off_duty'),
           createdAt: raw.created_at || new Date().toISOString(),
           updatedAt: raw.updated_at || new Date().toISOString()
         };

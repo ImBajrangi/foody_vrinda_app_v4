@@ -74,6 +74,10 @@ import {
   invalidateCache,
   isShopCurrentlyOpen,
   getCachedUsers,
+  getCloudUsers,
+  subscribeCloudUsers,
+  isRiderOnline,
+  getOnlineRiders,
   getCachedItem,
   setCachedItem,
   getPurgedOrderIds,
@@ -400,16 +404,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const [showShopSwitcher, setShowShopSwitcher] = useState(false);
   const [shopSearch, setShopSearch] = useState('');
+  const [onlineRidersCount, setOnlineRidersCount] = useState(() => {
+    try {
+      return getOnlineRiders().length;
+    } catch {
+      return 0;
+    }
+  });
+
   const [fulfillmentType, setFulfillmentType] = useState(() => {
     try {
+      const activeCount = getOnlineRiders().length;
+      if (activeCount === 0) return 'pickup';
       const saved = localStorage.getItem('foody_fulfillment_type');
-      return (saved === 'pickup' || saved === 'delivery') ? saved : 'delivery';
+      return (saved === 'pickup' || saved === 'delivery') ? saved : 'pickup';
     } catch {
-      return 'delivery';
+      return 'pickup';
     }
   });
 
   const handleSetFulfillmentType = useCallback((type) => {
+    if (type === 'delivery' && onlineRidersCount === 0) {
+      showToast("Riders Offline", 'info', "Delivery riders are currently offline. Self-Pickup is selected at the counter.");
+      setFulfillmentType('pickup');
+      try {
+        localStorage.setItem('foody_fulfillment_type', 'pickup');
+      } catch (_) {}
+      return;
+    }
     setFulfillmentType(type);
     try {
       localStorage.setItem('foody_fulfillment_type', type);
@@ -426,8 +448,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         return prev;
       });
     }
-  }, [userData, geo.address]);
-  const [onlineRidersCount, setOnlineRidersCount] = useState(1);
+  }, [onlineRidersCount, userData, geo.address]);
   const [cookingNotes, setCookingNotes] = useState('');
 
   // Favorites state
@@ -1059,20 +1080,46 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
 
   useEffect(() => {
-    const checkRiders = () => {
-      if (typeof document !== 'undefined' && document.hidden) return;
+    const updateRiderStatus = (usersList) => {
       try {
-        const users = getCachedUsers() || [];
-        const riders = users.filter(u => (u.role === 'delivery' || u.role === 'rider') && u.is_active !== false && u.isOnline !== false);
-        setOnlineRidersCount(riders.length);
-        if (riders.length === 0) {
-          handleSetFulfillmentType('pickup');
+        const list = Array.isArray(usersList) ? usersList : (getCachedUsers() || []);
+        const activeOnlineRiders = list.filter(u => isRiderOnline(u));
+        const count = activeOnlineRiders.length;
+        setOnlineRidersCount(count);
+        if (count === 0) {
+          setFulfillmentType('pickup');
+          try {
+            localStorage.setItem('foody_fulfillment_type', 'pickup');
+          } catch (_) {}
         }
-      } catch (e) { }
+      } catch (e) {
+        setOnlineRidersCount(0);
+        setFulfillmentType('pickup');
+      }
     };
-    checkRiders();
-    const interval = setInterval(checkRiders, 15000);
-    return () => clearInterval(interval);
+
+    // Initial check from local storage / cache
+    updateRiderStatus(getCachedUsers());
+
+    // Fetch live users from Supabase cloud
+    getCloudUsers().then(users => {
+      if (Array.isArray(users)) updateRiderStatus(users);
+    }).catch(() => {});
+
+    // Real-time subscription to user presence & status broadcasts
+    const unsubscribe = subscribeCloudUsers((users) => {
+      updateRiderStatus(users);
+    });
+
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      updateRiderStatus(getCachedUsers());
+    }, 15000);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      clearInterval(interval);
+    };
   }, []);
 
   // Cart's actual shop isolation & mismatch resolution
@@ -1187,8 +1234,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
 
     // Guard: Prevent dispatching delivery when no Sarathi riders are online
-    if (fulfillmentType === 'delivery' && onlineRidersCount === 0) {
-      return showToast("Delivery Sarathis Offline", 'error', 'Delivery riders are currently unavailable. Please choose Self-Pickup at the shop.');
+    if (fulfillmentType === 'delivery') {
+      const liveOnlineCount = getOnlineRiders().length;
+      if (liveOnlineCount === 0 || onlineRidersCount === 0) {
+        setFulfillmentType('pickup');
+        try { localStorage.setItem('foody_fulfillment_type', 'pickup'); } catch (_) {}
+        return showToast("Delivery Sarathis Offline", 'error', 'All delivery riders are currently offline. Please choose Self-Pickup at the shop.');
+      }
     }
 
     // Determine fulfillment details and address validation

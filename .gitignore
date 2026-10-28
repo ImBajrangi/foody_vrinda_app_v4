@@ -37,6 +37,7 @@ supabase/.temp/
 
 # Security: Build artifacts belong in GitHub Releases / CDN, not source control
 *.apk
+!Foody-Vrinda-Latest.apk
 *.aab
 
 # Security: Firebase config contains project identifiers

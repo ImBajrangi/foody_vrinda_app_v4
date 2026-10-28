@@ -419,16 +419,16 @@ CREATE TABLE IF NOT EXISTS public.foody_logged_users (
     dev_permissions JSONB DEFAULT '[]'::jsonb,
     login_method TEXT DEFAULT 'email',
     is_active BOOLEAN DEFAULT true,
-    is_online BOOLEAN DEFAULT true,
-    duty_status TEXT DEFAULT 'on_duty',
+    is_online BOOLEAN DEFAULT false,
+    duty_status TEXT DEFAULT 'off_duty',
     current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
     last_login_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT true;
-ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'on_duty';
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT false;
+ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'off_duty';
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb;
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS trust_score NUMERIC DEFAULT 750;
 ALTER TABLE public.foody_logged_users ADD COLUMN IF NOT EXISTS cibil_score NUMERIC DEFAULT 750;
@@ -452,8 +452,8 @@ CREATE TABLE IF NOT EXISTS public.foody_users (
     shop_ids JSONB DEFAULT '["shop-vrinda-main"]'::jsonb,
     dev_permissions JSONB DEFAULT '[]'::jsonb,
     is_active BOOLEAN DEFAULT true,
-    is_online BOOLEAN DEFAULT true,
-    duty_status TEXT DEFAULT 'on_duty',
+    is_online BOOLEAN DEFAULT false,
+    duty_status TEXT DEFAULT 'off_duty',
     current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb,
     last_seen_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -462,8 +462,8 @@ CREATE TABLE IF NOT EXISTS public.foody_users (
 
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
-ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT true;
-ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'on_duty';
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT false;
+ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS duty_status TEXT DEFAULT 'off_duty';
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS current_location JSONB DEFAULT '{"lat": 27.5706, "lng": 77.6593}'::jsonb;
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE public.foody_users ADD COLUMN IF NOT EXISTS trust_score NUMERIC DEFAULT 750;
