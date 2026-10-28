@@ -152,11 +152,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Account & Profile UI overhaul: Eliminated text truncation, added roomy touch cards, and applied signature saffron store owner theme.',
-    'Strict delivery gating: Doorstep Delivery option is completely hidden when riders are offline and shop self-delivery is off, auto-locking to Self-Pickup Counter.',
-    'Multi-role alarm conflict protection: Single-device role hierarchy prevents dual-siren clash when store owner is also staff.',
-    'Real-time order notification & sound alerts hardened for kitchen chef, rider sarathi, and store owner consoles.',
-    'Optimized launch and transitions across both budget and flagship Android devices.'
+    'Enforced Level 6 (Grand Admin) direct database assignment security invariant; removed from client role pickers.',
+    'Hardened dev_permissions parsing with fail-safe normalization across all roles and consoles.',
+    'Account & Profile UI overhaul: Eliminated text truncation, added roomy touch cards, and applied signature saffron theme.',
+    'Strict delivery gating: Doorstep Delivery option is completely hidden when riders are offline and shop self-delivery is off.',
+    'Multi-role alarm conflict protection: Single-device role hierarchy prevents dual-siren clash.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
