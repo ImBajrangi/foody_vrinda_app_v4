@@ -508,3 +508,20 @@ export function purgeAllDemoOrders(extraIds = []) {
   dispatchSafeEvent('foody_orders_changed', { purgedAll: true, purgedCount: allIds.length });
   return allIds;
 }
+
+export function normalizeDevPermissions(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (!raw) return [];
+  if (typeof raw === 'object') {
+    return Object.keys(raw).filter(k => Boolean(raw[k]));
+  }
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return normalizeDevPermissions(parsed);
+    } catch {
+      return [raw];
+    }
+  }
+  return [];
+}

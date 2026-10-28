@@ -28,6 +28,15 @@ import { PRESET_DISHES, PRESET_CATEGORIES, getPresetDishes } from '../constants/
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import NativeTimePicker from '../components/ui/NativeTimePicker';
 import { Bar, Doughnut } from 'react-chartjs-2';
+
+const hasDevPermission = (userObj, key) => {
+  if (!userObj) return false;
+  const p = userObj.devPermissions ?? userObj.dev_permissions;
+  if (Array.isArray(p)) return p.includes(key);
+  if (p && typeof p === 'object') return Boolean(p[key] || p.all);
+  if (typeof p === 'string') return p.includes(key);
+  return false;
+};
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -1177,7 +1186,7 @@ export default function OwnerView() {
     userData?.can_deliver ||
     userData?.canDeliver ||
     userData?.self_delivery ||
-    (userData?.devPermissions || []).includes('can_deliver')
+    hasDevPermission(userData, 'can_deliver')
   );
 
   const handleToggleSelfDelivery = async () => {
@@ -1186,7 +1195,11 @@ export default function OwnerView() {
     if (!targetUserId) return;
 
     const nextVal = !isSelfDeliveryActive;
-    let updatedDevPermissions = Array.isArray(userData?.devPermissions) ? [...userData.devPermissions] : [];
+    const rawPerms = userData?.devPermissions ?? userData?.dev_permissions;
+    let updatedDevPermissions = Array.isArray(rawPerms)
+      ? [...rawPerms]
+      : (rawPerms && typeof rawPerms === 'object' ? Object.keys(rawPerms).filter(k => Boolean(rawPerms[k])) : []);
+
     if (nextVal) {
       if (!updatedDevPermissions.includes('can_deliver')) updatedDevPermissions.push('can_deliver');
     } else {

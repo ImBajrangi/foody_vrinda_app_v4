@@ -27,6 +27,15 @@ import {
 import appUpdateService from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
+const hasDevPermission = (userObj, key) => {
+  if (!userObj) return false;
+  const p = userObj.devPermissions ?? userObj.dev_permissions;
+  if (Array.isArray(p)) return p.includes(key);
+  if (p && typeof p === 'object') return Boolean(p[key] || p.all);
+  if (typeof p === 'string') return p.includes(key);
+  return false;
+};
+
 // Code-split all role views to reduce initial boot payload with auto-retry on stale deployments
 const CustomerView = lazyWithRetry(() => import('./views/CustomerView'));
 const KitchenView = lazyWithRetry(() => import('./views/KitchenView'));
@@ -307,7 +316,7 @@ export default function App() {
       const hasKitchenPermission = Boolean(
         isPlatformAdmin || 
         (userRole === 'kitchen' && currentUserShopId) ||
-        (userRole === 'owner' && currentUserShopId && (userData?.can_manage_kitchen !== false && !(userData?.devPermissions || []).includes('kitchen_disabled')))
+        (userRole === 'owner' && currentUserShopId && (userData?.can_manage_kitchen !== false && !hasDevPermission(userData, 'kitchen_disabled')))
       );
       if (!hasKitchenPermission) {
         setCurrentTab('customer');
@@ -320,7 +329,7 @@ export default function App() {
           userData?.can_deliver || 
           userData?.canDeliver || 
           userData?.self_delivery || 
-          (userData?.devPermissions || []).includes('can_deliver')
+          hasDevPermission(userData, 'can_deliver')
         ))
       );
       if (!hasDeliveryPermission) {
@@ -607,7 +616,7 @@ export default function App() {
               )}
 
               {currentTab === 'kitchen' && (
-                (isPlatformAdmin || (userRole === 'kitchen' && currentUserShopId) || (userRole === 'owner' && currentUserShopId && userData?.can_manage_kitchen !== false && !(userData?.devPermissions || []).includes('kitchen_disabled'))) ? (
+                (isPlatformAdmin || (userRole === 'kitchen' && currentUserShopId) || (userRole === 'owner' && currentUserShopId && userData?.can_manage_kitchen !== false && !hasDevPermission(userData, 'kitchen_disabled'))) ? (
                   <KitchenView />
                 ) : (
                   <CustomerView
@@ -618,7 +627,7 @@ export default function App() {
               )}
 
               {currentTab === 'delivery' && (
-                (isPlatformAdmin || userRole === 'delivery' || ((userRole === 'owner' || userRole === 'kitchen') && (userData?.can_deliver || userData?.canDeliver || userData?.self_delivery || (userData?.devPermissions || []).includes('can_deliver')))) ? (
+                (isPlatformAdmin || userRole === 'delivery' || ((userRole === 'owner' || userRole === 'kitchen') && (userData?.can_deliver || userData?.canDeliver || userData?.self_delivery || hasDevPermission(userData, 'can_deliver')))) ? (
                   <TransportView />
                 ) : (
                   <CustomerView

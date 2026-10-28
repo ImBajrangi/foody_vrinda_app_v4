@@ -16,7 +16,8 @@ import {
   invalidateCache,
   getCachedItem,
   setCachedItem,
-  getDefaultActiveShopId
+  getDefaultActiveShopId,
+  normalizeDevPermissions
 } from './cache.js';
 import { multiplexer } from './realtime.service.js';
 
@@ -417,7 +418,7 @@ export async function getCloudUsers(forceRefresh = false) {
           role: u.role || 'customer',
           shopId: u.shop_id || u.shopId || getDefaultActiveShopId(),
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
-          devPermissions: u.dev_permissions || [],
+          devPermissions: normalizeDevPermissions(u.dev_permissions),
           isActive: u.is_active ?? true,
           is_active: u.is_active ?? true,
           isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
@@ -448,7 +449,7 @@ export async function getCloudUsers(forceRefresh = false) {
           role: u.role || 'customer',
           shopId: u.shop_id || u.shopId || getDefaultActiveShopId(),
           shopIds: u.shop_ids || u.shopIds || (u.shop_id ? [u.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
-          devPermissions: u.dev_permissions || [],
+          devPermissions: normalizeDevPermissions(u.dev_permissions),
           isActive: u.is_active ?? true,
           is_active: u.is_active ?? true,
           isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
@@ -531,7 +532,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         role: data.role || undefined,
         shopId: data.shop_id || getDefaultActiveShopId(),
         shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
-        devPermissions: data.dev_permissions || [],
+        devPermissions: normalizeDevPermissions(data.dev_permissions),
         isActive: data.is_active ?? true,
         is_active: data.is_active ?? true,
         isOnline: data.is_active ?? true,
@@ -565,7 +566,7 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         role: uData.role || undefined,
         shopId: uData.shop_id || getDefaultActiveShopId(),
         shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
-        devPermissions: uData.dev_permissions || [],
+        devPermissions: normalizeDevPermissions(uData.dev_permissions),
         isActive: uData.is_active ?? true,
         is_active: uData.is_active ?? true,
         isOnline: uData.is_active ?? true,
@@ -747,6 +748,13 @@ export async function createCloudUser(userData) {
   const currentUsers = getCachedUsers();
   const userId = userData.id || `user_${(userData.phone || Date.now()).toString().replace(/\D/g, '')}`;
   const nowIso = new Date().toISOString();
+
+  // Invariant: Level 6 (Grand Admin) role can strictly ONLY be granted via direct database execution
+  if (userData.role === 'grand_admin') {
+    console.warn("Security Policy Violation: Level 6 (Grand Admin) role cannot be granted via client application. Must be assigned directly via database execution.");
+    userData.role = 'customer';
+  }
+
   const newUser = {
     id: userId,
     displayName: userData.displayName || userData.name || `User (${(userData.phone || '').slice(-4)})`,
@@ -757,7 +765,7 @@ export async function createCloudUser(userData) {
     role: userData.role || 'customer',
     shopId: userData.shopId || getDefaultActiveShopId(),
     shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : [getDefaultActiveShopId()].filter(Boolean)),
-    devPermissions: userData.devPermissions || userData.dev_permissions || [],
+    devPermissions: normalizeDevPermissions(userData.devPermissions || userData.dev_permissions),
     isActive: userData.isActive ?? userData.is_active ?? true,
     lastLoginAt: nowIso,
     createdAt: nowIso,
@@ -866,6 +874,12 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     delete updates.role;
   }
 
+  // Invariant: Level 6 (Grand Admin) role can strictly ONLY be granted via direct database execution, not via client platform
+  if (updates.role === 'grand_admin' && userExists?.role !== 'grand_admin') {
+    console.warn("Security Policy Violation: Level 6 (Grand Admin) role cannot be granted via client application. Must be assigned directly via database execution.");
+    delete updates.role;
+  }
+
   const targetId = userExists?.id || cleanId || `user_${Date.now()}`;
   const resolvedEmail = (updates.email || userExists?.email || cleanEmail || '').toLowerCase().trim();
   const resolvedPhone = (updates.phone || userExists?.phone || cleanPhone || '').replace(/\D/g, '');
@@ -906,7 +920,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       role: updates.role || 'customer',
       shopId: updates.shopId || updates.shop_id || getDefaultActiveShopId(),
       shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || getDefaultActiveShopId()].filter(Boolean),
-      devPermissions: updates.devPermissions || updates.dev_permissions || [],
+      devPermissions: normalizeDevPermissions(updates.devPermissions || updates.dev_permissions),
       isActive: updates.isActive ?? updates.is_active ?? true,
       ...updates,
       createdAt: nowIso,
@@ -939,7 +953,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     role: updates.role || userExists?.role || 'customer',
     shop_id: updates.shopId || updates.shop_id || userExists?.shopId || getDefaultActiveShopId(),
     shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || [getDefaultActiveShopId()].filter(Boolean),
-    dev_permissions: updates.devPermissions || updates.dev_permissions || userExists?.devPermissions || [],
+    dev_permissions: normalizeDevPermissions(updates.devPermissions || updates.dev_permissions || userExists?.devPermissions),
     delivery_status: resolvedDeliveryStatus,
     delivery_type: resolvedDeliveryType,
     trust_score: Number(resolvedTrust),
@@ -1171,7 +1185,7 @@ export async function adminRevokeUser(userId, reason = 'Privileges revoked by de
       shop_id: null,
       shopIds: [],
       shop_ids: [],
-      devPermissions: {},
+      devPermissions: [],
       deliveryStatus: 'suspended',
       delivery_status: 'suspended'
     } : u);

@@ -182,3 +182,6 @@ Rule [Targeted Reading & Token Conservation Protocol]:
 
 Rule [First-Launch & Micro-Boot Standard]:
 "Never display splash screens or onboarding animations on recurring app launches or web platforms. Web must mount instantly with zero-splash delay. Mobile animations must strictly run once for genuine first-time onboarding users, gated by persistent localStorage flags."
+
+Rule [Level 6 (Grand Admin) Direct Database Assignment Invariant]:
+"Level 6 (Grand Admin) permissions can STRICTLY and ONLY be granted via direct database execution (SQL / service_role in Supabase). The platform UI, Developer View, and client-side APIs must NEVER expose or allow selecting or assigning the grand_admin role to any user. Any client-side request attempting to set or elevate a user to grand_admin must be rejected immediately with a Security Policy Violation error."

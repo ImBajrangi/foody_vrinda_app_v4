@@ -111,6 +111,15 @@ import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
 import { PRESET_DISHES } from '../constants/presetDishes';
 
+const hasDevPermission = (target, key) => {
+  if (!target) return false;
+  const p = target.devPermissions ?? target.dev_permissions ?? target;
+  if (Array.isArray(p)) return p.includes(key);
+  if (p && typeof p === 'object') return Boolean(p[key] || p.all);
+  if (typeof p === 'string') return p.includes(key);
+  return false;
+};
+
 export default function DeveloperView({ setCurrentTab }) {
   const {
     allShops = [],
@@ -1145,7 +1154,10 @@ export default function DeveloperView({ setCurrentTab }) {
     const targetUser = usersList.find(u => u.id === userId);
     if (!targetUser) return;
 
-    let updatedDevPermissions = Array.isArray(targetUser.devPermissions) ? [...targetUser.devPermissions] : [];
+    const rawPerms = targetUser.devPermissions ?? targetUser.dev_permissions;
+    let updatedDevPermissions = Array.isArray(rawPerms)
+      ? [...rawPerms]
+      : (rawPerms && typeof rawPerms === 'object' ? Object.keys(rawPerms).filter(k => Boolean(rawPerms[k])) : []);
     const updates = {};
 
     if (capabilityKey === 'can_manage_kitchen') {
@@ -3901,7 +3913,6 @@ export default function DeveloperView({ setCurrentTab }) {
                                 { value: 'owner', label: 'Kitchen Owner', sublabel: 'Store & kitchen owner hub', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
                                 { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS cook', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
                                 { value: 'delivery', label: 'Delivery Partner', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Partner', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
-                                { value: 'grand_admin', label: 'Admin (Grand Admin)', sublabel: 'Full platform administration', icon: Lock, badge: 'Admin', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
                                 { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator & tools', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
                                 { value: 'customer', label: 'Customer', sublabel: 'Devotee customer profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                               ]}
@@ -4258,7 +4269,6 @@ export default function DeveloperView({ setCurrentTab }) {
                                         { value: 'owner', label: 'Kitchen Owner', sublabel: 'Store & kitchen owner hub', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
                                         { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS cook', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
                                         { value: 'delivery', label: 'Delivery Partner', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Partner', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
-                                        { value: 'grand_admin', label: 'Admin (Grand Admin)', sublabel: 'Full platform administration', icon: Lock, badge: 'Admin', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
                                         { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator & tools', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
                                         { value: 'customer', label: 'Customer', sublabel: 'Devotee customer profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                                       ]}
@@ -4328,30 +4338,30 @@ export default function DeveloperView({ setCurrentTab }) {
                                     <>
                                       <button
                                         type="button"
-                                        onClick={() => handleToggleUserCapability(u.id, 'can_manage_kitchen', (u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled')))}
+                                        onClick={() => handleToggleUserCapability(u.id, 'can_manage_kitchen', (u.can_manage_kitchen !== false && !hasDevPermission(u, 'kitchen_disabled')))}
                                         className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
-                                          (u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled'))
+                                          (u.can_manage_kitchen !== false && !hasDevPermission(u, 'kitchen_disabled'))
                                             ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
                                             : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
                                         }`}
                                         title="Toggle Owner access to Kitchen Dashboard"
                                       >
                                         <ChefHat className="w-3.5 h-3.5" />
-                                        <span>Kitchen: {(u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled')) ? 'Active' : 'Locked'}</span>
+                                        <span>Kitchen: {(u.can_manage_kitchen !== false && !hasDevPermission(u, 'kitchen_disabled')) ? 'Active' : 'Locked'}</span>
                                       </button>
 
                                       <button
                                         type="button"
-                                        onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')))}
+                                        onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver')))}
                                         className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
-                                          Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))
+                                          Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver'))
                                             ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30'
                                             : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
                                         }`}
                                         title="Toggle Owner Self-Delivery capability"
                                       >
                                         <Truck className="w-3.5 h-3.5" />
-                                        <span>Self-Delivery: {Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')) ? 'ON' : 'OFF'}</span>
+                                        <span>Self-Delivery: {Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver')) ? 'ON' : 'OFF'}</span>
                                       </button>
                                     </>
                                   )}
@@ -4360,21 +4370,21 @@ export default function DeveloperView({ setCurrentTab }) {
                                   {role === 'kitchen' && (
                                     <button
                                       type="button"
-                                      onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')))}
+                                      onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver')))}
                                       className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
-                                        Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))
+                                        Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver'))
                                           ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30'
                                           : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
                                       }`}
                                       title="Toggle Delivery capability for Kitchen Staff"
                                     >
                                       <Truck className="w-3.5 h-3.5" />
-                                      <span>Delivery: {Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')) ? 'ON' : 'OFF'}</span>
+                                      <span>Delivery: {Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver')) ? 'ON' : 'OFF'}</span>
                                     </button>
                                   )}
 
                                   {/* Delivery Partner Verification & Duty Badges (for Delivery Role OR Self-Delivery enabled) */}
-                                  {(role === 'delivery' || Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))) && (
+                                  {(role === 'delivery' || Boolean(u.can_deliver || u.canDeliver || hasDevPermission(u, 'can_deliver'))) && (
                                     <>
                                       {/* Live Duty Presence Status Badge */}
                                       <button

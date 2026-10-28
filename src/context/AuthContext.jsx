@@ -1060,6 +1060,14 @@ export function AuthProvider({ children }) {
   const updateUserRole = useCallback(async (targetUserId, newRole, targetShopId = null) => {
     if (!targetUserId || !newRole) return { success: false, message: 'Invalid arguments' };
 
+    // Security Invariant: Level 6 (Grand Admin) permissions can strictly ONLY be granted via direct database execution, NEVER via client platform!
+    if (newRole === 'grand_admin') {
+      return {
+        success: false,
+        message: 'Security Policy Violation: Level 6 (Grand Admin) permissions can strictly only be granted via direct database execution, not via client platform.'
+      };
+    }
+
     // Guard: Grand Admin is strictly immutable and permanent
     const cachedUsers = getCachedUsers();
     const existingTarget = cachedUsers.find(u =>

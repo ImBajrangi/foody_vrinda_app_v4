@@ -9,6 +9,7 @@ import {
   getCachedShops,
   saveCachedShops,
   getDefaultActiveShopId,
+  normalizeDevPermissions,
   memoryCache
 } from './cache.js';
 import {
@@ -406,7 +407,9 @@ export class RealtimeMultiplexer {
     const cleanAvatar = raw.avatar_url || raw.avatarUrl || undefined;
     const cleanShopId = raw.shop_id || raw.shopId || undefined;
     const cleanShopIds = raw.shop_ids || raw.shopIds || undefined;
-    const cleanPermissions = raw.dev_permissions || raw.devPermissions || undefined;
+    const cleanPermissions = (raw.dev_permissions !== undefined || raw.devPermissions !== undefined)
+      ? normalizeDevPermissions(raw.dev_permissions || raw.devPermissions)
+      : undefined;
 
     const normalizedUpdates = {
       ...(cleanId ? { id: cleanId } : {}),
@@ -483,7 +486,7 @@ export class RealtimeMultiplexer {
           role: cleanRole || 'customer',
           shopId: cleanShopId || getDefaultActiveShopId(),
           shopIds: cleanShopIds || (cleanShopId ? [cleanShopId] : []),
-          devPermissions: cleanPermissions || [],
+          devPermissions: normalizeDevPermissions(cleanPermissions),
           isActive: raw.is_active ?? true,
           is_active: raw.is_active ?? true,
           isOnline: finalOnline,
