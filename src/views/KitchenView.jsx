@@ -81,24 +81,34 @@ export default function KitchenView() {
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
   const [isRushMode, setIsRushMode] = useState(false);
-  const [shopOnlineOverride, setShopOnlineOverride] = useState(null);
+  const [onlineOverride, setOnlineOverride] = useState(null);
+  const [isTogglingOnline, setIsTogglingOnline] = useState(false);
+  const [prevShopId, setPrevShopId] = useState(currentShop?.id);
 
-  const isShopOnline = shopOnlineOverride !== null
-    ? shopOnlineOverride
-    : (currentShop?.isOnline !== false && currentShop?.isOpen !== false);
+  const shopOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
 
-  useEffect(() => {
-    setShopOnlineOverride(null);
-  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
+  // Reset override if active shop changes
+  if (prevShopId !== currentShop?.id) {
+    setPrevShopId(currentShop?.id);
+    setOnlineOverride(null);
+  } else if (onlineOverride !== null && shopOnline === onlineOverride) {
+    // Gracefully clear override once authoritative context has caught up (zero-flicker transition)
+    setOnlineOverride(null);
+  }
+
+  const isShopOnline = onlineOverride !== null ? onlineOverride : shopOnline;
 
   const handleToggleKitchenOnline = async () => {
     if (!activeShopId) {
       showToast("Kitchen inactive", "error");
       return;
     }
+    if (isTogglingOnline) return;
+
     const targetShopId = activeShopId;
     const nextOnline = !isShopOnline;
-    setShopOnlineOverride(nextOnline);
+    setOnlineOverride(nextOnline);
+    setIsTogglingOnline(true);
     showToast(nextOnline ? "Kitchen ONLINE" : "Kitchen OFFLINE", nextOnline ? "success" : "warning");
 
     try {
@@ -108,14 +118,16 @@ export default function KitchenView() {
         isOpen: nextOnline,
         is_open: nextOnline
       });
-      if (user?.id) {
+      if (user?.id && (userRole === 'kitchen' || actualRole === 'kitchen')) {
         await updateUserOnlineStatus(user.id, nextOnline);
       }
       if (refreshShops) await refreshShops();
     } catch (e) {
       console.error("Toggle kitchen error:", e);
-      setShopOnlineOverride(!nextOnline);
+      setOnlineOverride(!nextOnline);
       showToast("Online Status Failed", "error");
+    } finally {
+      setIsTogglingOnline(false);
     }
   };
 
@@ -704,14 +716,15 @@ export default function KitchenView() {
             <button
               data-tour="restaurant-setup"
               type="button"
+              disabled={isTogglingOnline}
               onClick={handleToggleKitchenOnline}
-              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-sm ${isShopOnline
+              className={`h-10 px-4 min-w-[88px] rounded-full font-bold text-xs flex items-center justify-center border transition-colors duration-150 cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-sm ${isShopOnline
                 ? 'bg-[#164E3D] hover:bg-[#124233] text-white border-[#164E3D] shadow-[#164E3D]/25'
                 : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 shadow-rose-600/25'
-                }`}
+                } ${isTogglingOnline ? 'opacity-85 pointer-events-none' : ''}`}
               title="Toggle Live Kitchen Availability"
             >
-              <span className="font-outfit font-black tracking-wide uppercase text-[11px]">{isShopOnline ? 'Online' : 'Offline'}</span>
+              <span className="font-outfit font-black tracking-wide uppercase text-[11px] select-none">{isShopOnline ? 'Online' : 'Offline'}</span>
             </button>
 
             {/* Rush Mode (+15 Mins) Toggle */}

@@ -1113,20 +1113,30 @@ export default function OwnerView() {
     }
   };
 
-  const [shopOnlineOverride, setShopOnlineOverride] = useState(null);
-  const isShopOnline = shopOnlineOverride !== null
-    ? shopOnlineOverride
-    : (currentShop?.isOnline !== false && currentShop?.isOpen !== false);
+  const [onlineOverride, setOnlineOverride] = useState(null);
+  const [isTogglingOnline, setIsTogglingOnline] = useState(false);
+  const [prevShopId, setPrevShopId] = useState(currentShop?.id);
 
-  useEffect(() => {
-    setShopOnlineOverride(null);
-  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
+  const shopOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+
+  // Reset override if active shop changes
+  if (prevShopId !== currentShop?.id) {
+    setPrevShopId(currentShop?.id);
+    setOnlineOverride(null);
+  } else if (onlineOverride !== null && shopOnline === onlineOverride) {
+    setOnlineOverride(null);
+  }
+
+  const isShopOnline = onlineOverride !== null ? onlineOverride : shopOnline;
 
   const handleToggleShopOnline = async () => {
     const targetShop = editingShop || currentShop;
     if (!targetShop?.id) return;
+    if (isTogglingOnline) return;
+
     const nextOnline = !isShopOnline;
-    setShopOnlineOverride(nextOnline);
+    setOnlineOverride(nextOnline);
+    setIsTogglingOnline(true);
     setToast({
       message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
       type: nextOnline ? "success" : "warning"
@@ -1144,8 +1154,10 @@ export default function OwnerView() {
       }
     } catch (e) {
       console.error("Toggle shop online error:", e);
-      setShopOnlineOverride(!nextOnline);
+      setOnlineOverride(!nextOnline);
       setToast({ message: "Failed to update online status", type: "error" });
+    } finally {
+      setIsTogglingOnline(false);
     }
   };
 
@@ -1367,16 +1379,16 @@ export default function OwnerView() {
             <button
               type="button"
               onClick={handleToggleShopOnline}
-              disabled={!activeShopId}
-              className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-sm active:scale-95 ${!activeShopId
+              disabled={!activeShopId || isTogglingOnline}
+              className={`inline-flex items-center justify-center min-w-[124px] px-4 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 cursor-pointer shadow-sm ${!activeShopId
                 ? 'opacity-40 cursor-not-allowed bg-stone-300 dark:bg-white/5 border-stone-400 dark:border-white/10 text-stone-500'
                 : isShopOnline
                   ? 'bg-[#164E3D] hover:bg-[#124233] border-[#164E3D] text-white shadow-[#164E3D]/25'
                   : 'bg-rose-600 hover:bg-rose-700 border-rose-600 text-white shadow-rose-600/25'
-                }`}
+                } ${isTogglingOnline ? 'opacity-85 pointer-events-none' : ''}`}
               title={activeShopId ? "Click to toggle shop Online/Offline status in realtime" : "Assigned kitchen unavailable"}
             >
-              <span className="font-outfit font-black tracking-wide uppercase text-[11px]">{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
+              <span className="font-outfit font-black tracking-wide uppercase text-[11px] select-none">{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
             </button>
             {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-400/35 dark:border-[#FFD000]/30 text-xs font-black text-amber-700 dark:text-[#FFD000] shadow-sm">

@@ -274,33 +274,43 @@ export async function updateCloudShop(shopId, shopData) {
       };
 
       // 1. Try secure Security Definer toggle RPC for open/online status
+      let rpcSucceeded = false;
+      const isOnlyToggle = Object.keys(shopData).every(k => 
+        ['isOnline', 'is_online', 'isOpen', 'is_open'].includes(k)
+      );
+
       try {
-        await supabase.rpc('toggle_shop_status', {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('toggle_shop_status', {
           p_shop_id: updatedShop.id,
           p_is_open: Boolean(updatedShop.isOpen),
           p_is_online: Boolean(updatedShop.isOnline)
         });
+        if (!rpcErr && rpcData) {
+          rpcSucceeded = true;
+        }
       } catch (_) { }
 
-      // 2. Targeted update first (avoids column-schema mismatch or conflict aborts)
-      const { error: updateErr } = await supabase
-        .from('foody_shops')
-        .update({
-          payment_settings: fullShopPayload.payment_settings,
-          is_open: fullShopPayload.is_open,
-          is_online: fullShopPayload.is_online,
-          updated_at: fullShopPayload.updated_at
-        })
-        .eq('id', updatedShop.id);
-
-      if (updateErr) {
-        // Fallback to full upsert
-        const { error: upsertErr } = await supabase
+      // 2. Targeted update if RPC was bypassed, failed, or if other fields (e.g. paymentSettings) are being saved
+      if (!rpcSucceeded || !isOnlyToggle) {
+        const { error: updateErr } = await supabase
           .from('foody_shops')
-          .upsert(fullShopPayload, { onConflict: 'id' });
+          .update({
+            payment_settings: fullShopPayload.payment_settings,
+            is_open: fullShopPayload.is_open,
+            is_online: fullShopPayload.is_online,
+            updated_at: fullShopPayload.updated_at
+          })
+          .eq('id', updatedShop.id);
 
-        if (upsertErr) {
-          console.warn("Supabase shop update note:", upsertErr.message);
+        if (updateErr) {
+          // Fallback to full upsert
+          const { error: upsertErr } = await supabase
+            .from('foody_shops')
+            .upsert(fullShopPayload, { onConflict: 'id' });
+
+          if (upsertErr) {
+            console.warn("Supabase shop update note:", upsertErr.message);
+          }
         }
       }
     } catch (sbErr) {

@@ -79,6 +79,7 @@ export default function TransportView() {
 
   // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
   const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
+  const [isTogglingDuty, setIsTogglingDuty] = useState(false);
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
   const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
@@ -207,6 +208,8 @@ export default function TransportView() {
   }, [isRiderOnDuty, activeUser]);
 
   const toggleRiderDuty = async () => {
+    if (isTogglingDuty) return;
+    setIsTogglingDuty(true);
     const nextState = !isRiderOnDuty;
     setIsRiderOnDuty(nextState);
     try {
@@ -216,7 +219,9 @@ export default function TransportView() {
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     try {
       await updateUserOnlineStatus(riderId, nextState, riderCoordsRef.current);
-    } catch { /* ignore */ }
+    } catch { /* ignore */ } finally {
+      setIsTogglingDuty(false);
+    }
 
     showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
   };
@@ -1037,15 +1042,16 @@ export default function TransportView() {
           <button
             data-tour="delivery-go-online"
             type="button"
+            disabled={isTogglingDuty}
             onClick={toggleRiderDuty}
-            className={`h-10 sm:h-11 px-4 sm:px-5 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
+            className={`h-10 sm:h-11 px-4 sm:px-5 min-w-[200px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-colors duration-150 cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
               ? 'bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border-emerald-600/30 dark:border-emerald-500/30 hover:bg-[#bbf0df] dark:hover:bg-emerald-950/60'
               : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
-              }`}
+              } ${isTogglingDuty ? 'opacity-85 pointer-events-none' : ''}`}
             title="Toggle Ready to Deliver Duty Availability"
           >
             <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
-            <span className="whitespace-nowrap font-black font-['Outfit']">{isRiderOnDuty ? 'Ready to Deliver · ON' : 'Ready to Deliver · OFF'}</span>
+            <span className="whitespace-nowrap font-black font-['Outfit'] select-none">{isRiderOnDuty ? 'Ready to Deliver · ON' : 'Ready to Deliver · OFF'}</span>
           </button>
 
           {/* List vs Carto View Switcher: Ergonomic segmented control */}
@@ -1088,8 +1094,9 @@ export default function TransportView() {
           </div>
           <button
             type="button"
+            disabled={isTogglingDuty}
             onClick={toggleRiderDuty}
-            className="px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 cursor-pointer transition-all shadow-xs"
+            className={`px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 cursor-pointer transition-colors duration-150 shadow-xs ${isTogglingDuty ? 'opacity-85 pointer-events-none' : ''}`}
           >
             Ready to Deliver
           </button>

@@ -1020,8 +1020,8 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
         ...u,
         isOnline: activeBool,
         is_online: activeBool,
-        isActive: isDelivery ? (u.isActive ?? true) : activeBool,
-        is_active: isDelivery ? (u.is_active ?? true) : activeBool,
+        isActive: u.isActive ?? u.is_active ?? true,
+        is_active: u.is_active ?? u.isActive ?? true,
         duty_status: activeBool ? 'on_duty' : 'off_duty',
         coordinates: coordinates || u.coordinates,
         lat: coordinates?.lat ?? u.lat,
@@ -1040,7 +1040,8 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
 
   // 2. Focused atomic cloud write (only touches presence columns to prevent RLS permission collisions)
   const presencePayload = {
-    is_active: activeBool,
+    is_online: activeBool,
+    duty_status: activeBool ? 'on_duty' : 'off_duty',
     last_seen_at: nowIso,
     updated_at: nowIso
   };
