@@ -15,24 +15,19 @@ import {
   createCloudNotification,
   getOrderItemSummary,
   getOrderCustomerName,
-  updateCloudUser,
   updateUserOnlineStatus,
   getRiderCashLedger,
   isRiderCashLimitExceeded,
   RIDER_MAX_CASH_LIMIT,
   getUserTrustScore,
-  getOrderOTP,
   verifyOrderOTP,
   getDailySarathiCode,
   checkDeliveryGeofence,
-  calculateOptimalDispatchWindow,
-  generateWhatsAppOrderShareLink,
   getPurgedOrderIds
 } from '../supabase';
 import { printVerifiedDriverStatementPDF } from '../utils/deliveryReportUtils';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
-import SearchableDropdown from '../components/ui/SearchableDropdown';
 import OneTimeCode from '../components/ui/OneTimeCode';
 import {
   Truck,
@@ -41,14 +36,10 @@ import {
   Phone,
   Clock,
   CheckCircle2,
-  ShieldCheck,
-  Volume2,
-  VolumeX,
   AlertCircle,
   Banknote,
   Map,
   List,
-  Layers,
   ArrowRight,
   ArrowLeft,
   RotateCcw,
@@ -56,8 +47,6 @@ import {
   Compass,
   Sparkles,
   Search,
-  ExternalLink,
-  ChevronRight,
   PackageCheck,
   Store,
   Check,
@@ -67,18 +56,15 @@ import {
   CreditCard,
   X,
   KeyRound,
-  Lock,
-  Unlock,
-  ShieldAlert,
-  Download,
   FileText,
   FileDown
 } from 'lucide-react';
 
 export default function TransportView() {
-  const { user, currentUser, userData, currentUserShopId, currentUserShopIds = [], allShops = [], actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { user, currentUser, userData, allShops = [] } = useAuth();
   const activeUser = currentUser || user || userData;
-  const isGlobalRole = Boolean(isAuthorizedDeveloper || isAuthorizedAdmin || ['developer', 'grand_admin', 'owner'].includes(actualRole || userRole) || allShops.length > 1);
+
+  // 1. All primary state definitions
   const [orders, setOrders] = useState([]);
   const [availableOrders, setAvailableOrders] = useState([]);
   const [isClaimingOrderId, setIsClaimingOrderId] = useState(null);
@@ -86,15 +72,57 @@ export default function TransportView() {
   const [viewMode, setViewMode] = useState(() => {
     try {
       return localStorage.getItem('foody_transport_view_mode') || 'list';
-    } catch (e) {
+    } catch {
       return 'list';
     }
   });
 
+  // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
+  const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
+  const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
+  const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toast, setToast] = useState(null);
+
+  // Two-Stage OTP Verification Modal State (Pickup from Kitchen & Doorstep Delivery)
+  const [otpModalState, setOtpModalState] = useState({
+    isOpen: false,
+    order: null,
+    type: 'pickup', // 'pickup' | 'delivery'
+    digits: ['', '', '', ''],
+    error: '',
+    isSuccess: false,
+    isSubmitting: false,
+    shake: false
+  });
+
+  // 2. Refs
+  const otpInputRefs = useRef([]);
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const routeGroupRef = useRef(null);
+  const riderCoordsRef = useRef(riderCoords);
+
+  useEffect(() => {
+    riderCoordsRef.current = riderCoords;
+  }, [riderCoords]);
+
+  // 3. Audio Alarm hook
+  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
+
+  // 4. Utility callbacks
+  const showToast = useCallback((message, type = "info") => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(prev => (prev && prev.message === message ? null : prev));
+    }, 4000);
+  }, []);
+
+  // Sync viewMode to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('foody_transport_view_mode', viewMode);
-    } catch (e) { }
+    } catch { /* ignore */ }
   }, [viewMode]);
 
   // Onboarding Tour Auto Open/Close Coordinator for Delivery Partner
@@ -124,49 +152,24 @@ export default function TransportView() {
     };
   }, []);
 
-  // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
-  // Delivery boy only goes ON when they explicitly choose to toggle "Ready to Deliver" ON.
-  const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
-
   // On mount / app opening: guarantee rider starts OFF-duty both in local state and cloud
   useEffect(() => {
-    setIsRiderOnDuty(false);
     try {
       localStorage.setItem('foody_rider_on_duty', 'false');
-    } catch (_) { }
+    } catch { /* ignore */ }
 
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
-    updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
-  }, [activeUser?.id, activeUser?.email]);
+    updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
 
-  // Clean-up: when closing tab or unmounting, ensure offline status is broadcasted
-  useEffect(() => {
     const handleBeforeUnload = () => {
-      const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
-      updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
+      updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
-      updateUserOnlineStatus(riderId, false, riderCoords).catch(() => { });
+      updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
     };
-  }, [activeUser?.id, activeUser?.email, riderCoords]);
-
-  const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
-
-  // Two-Stage OTP Verification Modal State (Pickup from Kitchen & Doorstep Delivery)
-  const [otpModalState, setOtpModalState] = useState({
-    isOpen: false,
-    order: null,
-    type: 'pickup', // 'pickup' | 'delivery'
-    digits: ['', '', '', ''],
-    error: '',
-    isSuccess: false,
-    isSubmitting: false,
-    shake: false
-  });
-  const otpInputRefs = useRef([]);
+  }, [activeUser?.id, activeUser?.email]);
 
   // Live Realtime GPS Broadcaster for Delivery Sarathis (throttled to avoid redundant egress)
   useEffect(() => {
@@ -208,64 +211,18 @@ export default function TransportView() {
     setIsRiderOnDuty(nextState);
     try {
       localStorage.setItem('foody_rider_on_duty', String(nextState));
-    } catch (e) { }
+    } catch { /* ignore */ }
 
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     try {
-      await updateUserOnlineStatus(riderId, nextState, riderCoords);
-    } catch (e) { }
+      await updateUserOnlineStatus(riderId, nextState, riderCoordsRef.current);
+    } catch { /* ignore */ }
 
     showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
   };
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
-  const [toast, setToast] = useState(null);
-
-  // Audio Alarm hook
-  const { isPlaying, activeAlert, playRoleAlarm, stopAlarm, warmUpAudio } = useAudioAlarm();
-
-  // Leaflet Map Refs
-  const mapContainerRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const routeGroupRef = useRef(null);
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type });
-    setTimeout(() => {
-      setToast(prev => (prev && prev.message === message ? null : prev));
-    }, 4000);
-  };
-
-  // Fast notification listener with role-tailored delivery chime & spoken voice
-  useFastNotify('all', 'delivery', (alertData) => {
-    // Ignore customer counter pickup alerts in Rider fleet HUD
-    if (alertData?.fulfillment_type === 'pickup' || alertData?.fulfillmentType === 'pickup') {
-      return;
-    }
-    // Only alarm if rider is currently on duty
-    if (!isRiderOnDuty) {
-      return;
-    }
-    playRoleAlarm('delivery', alertData, true);
-    try {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
-        const text = isNew ? 'नया डिलीवरी ऑर्डर आया है' : 'नया ऑर्डर पिकअप के लिए तैयार है';
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'hi-IN';
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch (e) { }
-    const orderNum = alertData?.orderId ? `#${alertData.orderId.slice(-6).toUpperCase()}` : 'Order';
-    const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
-    showToast(isNew ? `${orderNum} incoming! Waiting for kitchen preparation.` : `${orderNum} ready for Sarathi Pickup!`, "info");
-    fetchRiderOrders();
-  });
-
   // Load delivery orders: independent fleet across all platform outlets (including today's ended history)
-  const fetchRiderOrders = async () => {
+  const fetchRiderOrders = useCallback(async () => {
     try {
       // 1. Supabase Cloud Query for assigned/claimed orders (PII unmasked)
       // Exclude customer self-pickup counter orders
@@ -317,32 +274,67 @@ export default function TransportView() {
       }
 
       // 2. Fetch available unclaimed deliveries (Privacy-Preserving PII Masked, Geospatial filtered)
-      const available = await fetchAvailableDeliveries(riderCoords);
+      const available = await fetchAvailableDeliveries(riderCoordsRef.current);
       const purged = getPurgedOrderIds();
       setAvailableOrders((available || []).filter(o => !purged.includes(o.id)));
     } catch (err) {
       console.warn('Supabase fetchRiderOrders note:', err.message);
     }
-  };
+  }, []);
+
+  // Fast notification listener with role-tailored delivery chime & spoken voice
+  useFastNotify('all', 'delivery', (alertData) => {
+    // Ignore customer counter pickup alerts in Rider fleet HUD
+    if (alertData?.fulfillment_type === 'pickup' || alertData?.fulfillmentType === 'pickup') {
+      return;
+    }
+    // Only alarm if rider is currently on duty
+    if (!isRiderOnDuty) {
+      return;
+    }
+    playRoleAlarm('delivery', alertData, true);
+    try {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
+        const text = isNew ? 'नया डिलीवरी ऑर्डर आया है' : 'नया ऑर्डर पिकअप के लिए तैयार है';
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'hi-IN';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch { /* ignore */ }
+    const orderNum = alertData?.orderId ? `#${alertData.orderId.slice(-6).toUpperCase()}` : 'Order';
+    const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
+    showToast(isNew ? `${orderNum} incoming! Waiting for kitchen preparation.` : `${orderNum} ready for Sarathi Pickup!`, "info");
+    fetchRiderOrders();
+  });
 
   useEffect(() => {
-    fetchRiderOrders();
+    let isSubscribed = true;
+
+    const loadInitialOrders = async () => {
+      if (isSubscribed) {
+        await fetchRiderOrders();
+      }
+    };
+    loadInitialOrders();
 
     // 2. Realtime Postgres stream across all platform orders for independent fleet
     const unsubscribeSupabase = subscribeCloudOrders('all', () => {
-      fetchRiderOrders();
+      if (isSubscribed) fetchRiderOrders();
     });
 
     const handleOrdersChanged = () => {
-      fetchRiderOrders();
+      if (isSubscribed) fetchRiderOrders();
     };
     window.addEventListener('foody_orders_changed', handleOrdersChanged);
 
     return () => {
+      isSubscribed = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
       window.removeEventListener('foody_orders_changed', handleOrdersChanged);
     };
-  }, []);
+  }, [fetchRiderOrders]);
 
   const activeOrder = selectedOrder || orders[0];
   const activeShop = allShops.find(s => s.id === activeOrder?.shopId);
@@ -398,7 +390,6 @@ export default function TransportView() {
     const group = L.featureGroup();
 
     // 1. Origin Store Pin (Clean Luxury Store Puck)
-    const shortShopName = (activeShop?.name || 'Prem Mandir').replace(/^(Shri\s+|Prem\s+Mandir\s+)/i, '').replace(/\s+(Kitchen|Bhojnalaya|Prasad)$/i, '').trim() || 'Prem Mandir';
     const storeIcon = L.divIcon({
       className: 'custom-kitchen-pin',
       html: `
@@ -664,7 +655,7 @@ export default function TransportView() {
         mapInstanceRef.current = null;
       }
     };
-  }, [viewMode, activeOrder?.id, activeShop?.id]);
+  }, [viewMode, activeOrder, activeShop]);
 
   // Focus the first OTP box when verification modal opens
   useEffect(() => {
@@ -714,53 +705,6 @@ export default function TransportView() {
       error: '',
       shake: false
     }));
-  };
-
-  const handleOtpDigitChange = (index, value) => {
-    const cleanVal = value.replace(/\D/g, '');
-    if (cleanVal.length > 1) {
-      // User pasted multi-digit code
-      const pasted = cleanVal.slice(0, 4).split('');
-      const newDigits = [...otpModalState.digits];
-      pasted.forEach((d, i) => {
-        newDigits[i] = d;
-      });
-      setOtpModalState(prev => ({ ...prev, digits: newDigits, error: '', shake: false }));
-      if (pasted.length === 4) {
-        verifyAndSubmitOtp(newDigits.join(''));
-      } else {
-        const nextIdx = Math.min(pasted.length, 3);
-        otpInputRefs.current[nextIdx]?.focus();
-      }
-      return;
-    }
-
-    const singleDigit = cleanVal.slice(-1);
-    const newDigits = [...otpModalState.digits];
-    newDigits[index] = singleDigit;
-    setOtpModalState(prev => ({ ...prev, digits: newDigits, error: '', shake: false }));
-
-    if (singleDigit && index < 3) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-
-    // Automatically verify when all 4 digits are entered
-    if (newDigits.every(d => d.trim() !== '') && singleDigit) {
-      verifyAndSubmitOtp(newDigits.join(''));
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace') {
-      if (!otpModalState.digits[index] && index > 0) {
-        otpInputRefs.current[index - 1]?.focus();
-      }
-    } else if (e.key === 'Enter') {
-      const code = otpModalState.digits.join('');
-      if (code.length === 4) {
-        verifyAndSubmitOtp(code);
-      }
-    }
   };
 
   const verifyAndSubmitOtp = async (codeToVerify) => {
@@ -846,7 +790,10 @@ export default function TransportView() {
 
       if (enteredOtp) {
         // Invoke atomic database RPC with row locking & rate limiting
-        await claimOrderPickupAtomic(orderId, riderId, enteredOtp);
+        const rpcResult = await claimOrderPickupAtomic(orderId, riderId, enteredOtp);
+        if (rpcResult && !rpcResult.success) {
+          throw new Error(rpcResult.error || 'Failed to claim pickup from kitchen');
+        }
       }
       await updateCloudOrderStatus(orderId, 'out_for_delivery', riderPayload);
 
@@ -905,7 +852,7 @@ export default function TransportView() {
         if (isCash) {
           try {
             await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
-          } catch (_) { }
+          } catch { /* ignore */ }
         }
       } else {
         // Fallback status transition for direct admin/dispatcher completions without OTP
@@ -915,11 +862,18 @@ export default function TransportView() {
         });
       }
 
-      setOrders(prev => prev.filter(o => o.id !== orderId));
+      setOrders(prev => prev.map(o => o.id === orderId ? {
+        ...o,
+        status: 'completed',
+        delivered_at: new Date().toISOString(),
+        cash_status: isCash ? 'collected' : (o.cash_status || 'none')
+      } : o));
 
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(null);
       }
+
+      fetchRiderOrders();
 
       const itemSummary = getOrderItemSummary(orderData) || 'Satvik Meal';
       const customerName = getOrderCustomerName(orderData);
@@ -1005,6 +959,15 @@ export default function TransportView() {
     });
   }, [tabOrders, searchQuery]);
 
+  // Estimated drop-off target timestamp calculation (pure and reactive)
+  const estimatedDropoffText = useMemo(() => {
+    const rawTime = activeOrder?.picked_up_at || activeOrder?.created_at;
+    if (!rawTime) return '15–20 Mins';
+    const baseTime = new Date(rawTime).getTime();
+    if (isNaN(baseTime)) return '15–20 Mins';
+    return new Date(baseTime + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }, [activeOrder?.picked_up_at, activeOrder?.created_at]);
+
   // Download / Print verified shift order report as PDF
   const handleDownloadShiftSlip = useCallback(() => {
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
@@ -1021,7 +984,7 @@ export default function TransportView() {
     if (success) {
       showToast("Opening Delivery Slip (PDF)...", "success");
     }
-  }, [activeUser, orders]);
+  }, [activeUser, orders, showToast]);
 
   return (
     <div className="space-y-6 pb-24">
@@ -1329,7 +1292,7 @@ export default function TransportView() {
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">Estimated Drop-off</p>
                     <h5 className="font-bold text-sm text-stone-900 dark:text-white font-['Outfit'] truncate">
-                      Target ~ {new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      Target ~ {estimatedDropoffText}
                     </h5>
                   </div>
                 </div>
@@ -1749,7 +1712,7 @@ export default function TransportView() {
               </div>
 
               {/* Row 2: Metric Amount + Cap Limit across full width with ZERO line-wrapping */}
-              <div className="flex items-baseline justify-between gap-2 mt-4 mb-2.5">
+              <div className="flex items-baseline justify-between gap-2 mt-4 mb-1">
                 <div className="flex items-baseline gap-2 flex-nowrap whitespace-nowrap">
                   <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-outfit tracking-tight">
                     ₹{ledger.cashInHand}
@@ -1761,6 +1724,11 @@ export default function TransportView() {
                 <span className="text-xs font-black font-outfit text-stone-600 dark:text-zinc-400 shrink-0">
                   {cashPercent}%
                 </span>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] font-bold text-stone-600 dark:text-zinc-400 mb-2 font-outfit">
+                <span>Collected Today</span>
+                <span className="font-black text-stone-900 dark:text-white">₹{totalCodCollectedToday}</span>
               </div>
 
               {/* Recessed Luxury Progress Bar Track */}

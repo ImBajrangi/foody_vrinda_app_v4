@@ -149,10 +149,6 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
     return pm === 'cash' || pm === 'cod';
   });
   const codVolume = codOrders.reduce((sum, o) => sum + Number(o.totalAmount || o.total_amount || 0), 0);
-  const onlineOrders = orders.filter(o => {
-    const pm = String(o.payment_method || o.paymentMethod || '').toLowerCase();
-    return pm !== 'cash' && pm !== 'cod';
-  });
   const onlineVolume = Math.max(0, totalVolume - codVolume);
   const cashInHand = riderDetails.cashInHand !== undefined ? riderDetails.cashInHand : codVolume;
 

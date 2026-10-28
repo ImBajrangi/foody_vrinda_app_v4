@@ -115,7 +115,7 @@ export async function computeSha256Hex(text) {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-  } catch (_) { }
+  } catch { /* ignore */ }
   return sha256PureJs(str);
 }
 
@@ -157,7 +157,7 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
     const newOtp = generateSecureOrderOTP();
     safeStorage.setItem(key, newOtp);
     return newOtp;
-  } catch (_) {
+  } catch {
     return '1080';
   }
 }
@@ -173,7 +173,7 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   let attempts = 0;
   try {
     attempts = parseInt(safeStorage.getItem(attemptKey) || '0', 10);
-  } catch (_) { }
+  } catch { /* ignore */ }
 
   if (attempts >= 5) {
     console.warn(`[Security] Maximum OTP attempts (5/5) exceeded for order ${orderId}`);
@@ -196,14 +196,14 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   if (!isMatch) {
     try {
       safeStorage.setItem(attemptKey, String(attempts + 1));
-    } catch (_) { }
+    } catch { /* ignore */ }
     return false;
   }
 
   // Success: Clear attempt counter
   try {
     safeStorage.removeItem(attemptKey);
-  } catch (_) { }
+  } catch { /* ignore */ }
   return true;
 }
 
@@ -274,7 +274,7 @@ export function exportDeliveryAuditReportCSV(orders = []) {
       try {
         const diffMs = new Date(deliveredDate) - new Date(pickedDate);
         durationMins = Math.max(1, Math.round(diffMs / (1000 * 60))).toString();
-      } catch (_) { }
+      } catch { /* ignore */ }
     }
 
     return [
@@ -440,7 +440,7 @@ export function recordCODCashTransaction({
   try {
     const key = `foody_cod_tx_${orderId}`;
     safeStorage.setItem(key, JSON.stringify(transactionRecord));
-  } catch (_) { }
+  } catch { /* ignore */ }
 
   return transactionRecord;
 }
@@ -477,7 +477,7 @@ export function checkCustomerCODRisk(userIdOrPhone) {
       failedAttempts: failures,
       reason: 'Standard COD Account'
     };
-  } catch (_) {
+  } catch {
     return { isAllowed: true, status: 'normal', failedAttempts: 0 };
   }
 }
@@ -496,7 +496,7 @@ export function queueOfflineOrderMutation(orderId, nextStatus, payload = {}) {
       queuedAt: new Date().toISOString()
     });
     safeStorage.setItem('foody_offline_mutation_queue', JSON.stringify(queue));
-  } catch (_) { }
+  } catch { /* ignore */ }
 }
 
 export async function processOfflineOrderQueue() {
@@ -515,7 +515,7 @@ export async function processOfflineOrderQueue() {
       }
     }
     safeStorage.removeItem('foody_offline_mutation_queue');
-  } catch (_) { }
+  } catch { /* ignore */ }
 }
 
 if (typeof window !== 'undefined') {
