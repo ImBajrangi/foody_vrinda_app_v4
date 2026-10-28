@@ -118,7 +118,8 @@ export default function DeveloperView({ setCurrentTab }) {
     refreshShops,
     user,
     userData,
-    updateUserRole
+    updateUserRole,
+    updateUserCapabilities
   } = useAuth();
 
 
@@ -358,11 +359,14 @@ export default function DeveloperView({ setCurrentTab }) {
       if (!itemA || !itemB) return false;
       if (itemA.id !== itemB.id) return false;
       if (itemA.name !== itemB.name) return false;
-      if (itemA.isOpen !== itemB.isOpen) return false;
-      if (itemA.isAvailable !== itemB.isAvailable) return false;
+      if (itemA.isOpen !== itemB.isOpen || itemA.is_open !== itemB.is_open) return false;
+      if (itemA.isOnline !== itemB.isOnline || itemA.is_online !== itemB.is_online) return false;
+      if (itemA.isAvailable !== itemB.isAvailable || itemA.is_available !== itemB.is_available) return false;
+      if (itemA.delivery_status !== itemB.delivery_status) return false;
       if (itemA.role !== itemB.role) return false;
       if (itemA.shopId !== itemB.shopId) return false;
-      if (itemA.active !== itemB.active) return false;
+      if (itemA.active !== itemB.active || itemA.isActive !== itemB.isActive || itemA.is_active !== itemB.is_active) return false;
+      if (itemA.onlinePaymentsEnabled !== itemB.onlinePaymentsEnabled || itemA.codEnabled !== itemB.codEnabled) return false;
     }
     return true;
   };
@@ -632,7 +636,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
   const handleToggleKitchenPayment = async (shopId, key, value) => {
     if (!shopId) return;
-    const targetShop = allShops.find(s => s.id === shopId);
+    const targetShop = allShops.find(s => s.id === shopId) || shopsList.find(s => s.id === shopId);
     const currentOnline = targetShop?.paymentSettings?.onlinePaymentsEnabled ?? targetShop?.onlinePaymentsEnabled ?? true;
     const currentCod = targetShop?.paymentSettings?.codEnabled ?? targetShop?.codEnabled ?? true;
 
@@ -641,6 +645,25 @@ export default function DeveloperView({ setCurrentTab }) {
       codEnabled: key === 'codEnabled' ? value : currentCod
     };
 
+    setShopsList(prev => prev.map(s => {
+      if (s.id !== shopId) return s;
+      return {
+        ...s,
+        onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+        codEnabled: updated.codEnabled,
+        paymentSettings: {
+          ...(s.paymentSettings || {}),
+          onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
+          codEnabled: updated.codEnabled
+        }
+      };
+    }));
+
+    setToast({
+      message: `${targetShop?.name || 'Kitchen'}: ${key === 'onlinePaymentsEnabled' ? 'Online Pay' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`,
+      type: 'success'
+    });
+
     await updateCloudShop(shopId, {
       paymentSettings: updated,
       onlinePaymentsEnabled: updated.onlinePaymentsEnabled,
@@ -648,10 +671,6 @@ export default function DeveloperView({ setCurrentTab }) {
     });
 
     if (refreshShops) await refreshShops();
-    setToast({
-      message: `${targetShop?.name || 'Kitchen'}: ${key === 'onlinePaymentsEnabled' ? 'Online Pay' : 'COD'} ${value ? 'Enabled' : 'Disabled'}`,
-      type: 'success'
-    });
   };
 
   // ==========================================
@@ -1106,7 +1125,7 @@ export default function DeveloperView({ setCurrentTab }) {
   const handleToggleDeliveryOnline = async (userId, currentOnline) => {
     const nextOnline = !currentOnline;
     setUsersList(prev => {
-      const updated = prev.map(u => u.id === userId ? { ...u, is_active: nextOnline, isOnline: nextOnline } : u);
+      const updated = prev.map(u => u.id === userId ? { ...u, is_active: true, is_online: nextOnline, isOnline: nextOnline } : u);
       saveCachedUsers(updated);
       return updated;
     });
@@ -1118,6 +1137,55 @@ export default function DeveloperView({ setCurrentTab }) {
     setToast({ 
       message: `Rider is now ${nextOnline ? 'On Duty (Available)' : 'Off Duty (Offline)'}`, 
       type: nextOnline ? 'success' : 'info' 
+    });
+  };
+
+  const handleToggleUserCapability = async (userId, capabilityKey, currentVal) => {
+    const nextVal = !currentVal;
+    const targetUser = usersList.find(u => u.id === userId);
+    if (!targetUser) return;
+
+    let updatedDevPermissions = Array.isArray(targetUser.devPermissions) ? [...targetUser.devPermissions] : [];
+    const updates = {};
+
+    if (capabilityKey === 'can_manage_kitchen') {
+      updates.can_manage_kitchen = nextVal;
+      if (!nextVal) {
+        if (!updatedDevPermissions.includes('kitchen_disabled')) updatedDevPermissions.push('kitchen_disabled');
+      } else {
+        updatedDevPermissions = updatedDevPermissions.filter(p => p !== 'kitchen_disabled');
+      }
+    } else if (capabilityKey === 'can_deliver') {
+      updates.can_deliver = nextVal;
+      if (nextVal) {
+        if (!updatedDevPermissions.includes('can_deliver')) updatedDevPermissions.push('can_deliver');
+        updates.delivery_status = 'approved';
+        updates.delivery_type = targetUser.shopId ? 'shop' : 'independent';
+      } else {
+        updatedDevPermissions = updatedDevPermissions.filter(p => p !== 'can_deliver');
+      }
+    }
+
+    updates.devPermissions = updatedDevPermissions;
+    updates.dev_permissions = updatedDevPermissions;
+
+    setUsersList(prev => {
+      const updated = prev.map(u => u.id === userId ? { ...u, ...updates } : u);
+      saveCachedUsers(updated);
+      return updated;
+    });
+
+    if (updateUserCapabilities) {
+      await updateUserCapabilities(userId, updates);
+    } else {
+      await updateCloudUser(userId, updates);
+    }
+
+    setToast({
+      message: capabilityKey === 'can_manage_kitchen'
+        ? `Kitchen Operations ${nextVal ? 'ENABLED' : 'LOCKED'} for ${targetUser.displayName || targetUser.phone || 'user'}`
+        : `Self-Delivery Mode ${nextVal ? 'ACTIVATED' : 'DEACTIVATED'} for ${targetUser.displayName || targetUser.phone || 'user'}`,
+      type: nextVal ? 'success' : 'info'
     });
   };
 
@@ -1992,7 +2060,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             <button
                               type="button"
                               onClick={() => handleToggleShopOpen(s.id, isOpen)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                              className={`px-3 py-1.5 min-w-[105px] rounded-xl text-xs font-bold transition-colors duration-150 cursor-pointer ${isOpen ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                                 }`}
                             >
                               {isOpen ? 'Mark Closed' : 'Mark Open'}
@@ -2413,7 +2481,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             <button
                               type="button"
                               onClick={() => handleToggleDishAvailability(d.id, isAvailable)}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${isAvailable
+                              className={`px-2.5 py-1 min-w-[90px] rounded-lg text-[11px] font-bold transition-colors duration-150 cursor-pointer ${isAvailable
                                 ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                                 : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
                                 }`}
@@ -2910,7 +2978,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               <button
                                 type="button"
                                 onClick={() => handleToggleDishAvailability(combo.id, isAvailable)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isAvailable
+                                className={`px-2.5 py-1 min-w-[85px] rounded-lg text-xs font-bold transition-colors duration-150 cursor-pointer ${isAvailable
                                   ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                                   : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30'
                                   }`}
@@ -3136,7 +3204,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           <button
                             type="button"
                             onClick={() => handleToggleOfferActive(offer.id, isActive)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${isActive
+                            className={`px-3 py-1 min-w-[70px] rounded-lg text-xs font-bold transition-colors duration-150 cursor-pointer ${isActive
                               ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                               : 'bg-stone-200 dark:bg-neutral-800 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
                               }`}
@@ -3830,11 +3898,12 @@ export default function DeveloperView({ setCurrentTab }) {
                               value={newUserRole}
                               onChange={(val) => setNewUserRole(val)}
                               options={[
-                                { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
-                                { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
-                                { value: 'owner', label: 'Store Owner', sublabel: 'Financials & store manager', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
-                                { value: 'developer', label: 'Developer Admin', sublabel: 'Root admin simulation', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
-                                { value: 'customer', label: 'Customer', sublabel: 'Ordering devotee account', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                                { value: 'owner', label: 'Kitchen Owner', sublabel: 'Store & kitchen owner hub', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+                                { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS cook', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                                { value: 'delivery', label: 'Delivery Partner', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Partner', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                                { value: 'grand_admin', label: 'Admin (Grand Admin)', sublabel: 'Full platform administration', icon: Lock, badge: 'Admin', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+                                { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator & tools', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
+                                { value: 'customer', label: 'Customer', sublabel: 'Devotee customer profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                               ]}
                               align="full"
                               searchPlaceholder="Search roles..."
@@ -4186,11 +4255,12 @@ export default function DeveloperView({ setCurrentTab }) {
                                       value={role}
                                       onChange={(val) => handleUpdateUserRole(u.id, val)}
                                       options={[
-                                        { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
-                                        { value: 'delivery', label: 'Delivery Sarathi', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Sarathi', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
-                                        { value: 'owner', label: 'Store Owner', sublabel: 'Store manager & analytics', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
-                                        { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-[#FD9139]' },
-                                        { value: 'customer', label: 'Customer', sublabel: 'Devotee user profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
+                                        { value: 'owner', label: 'Kitchen Owner', sublabel: 'Store & kitchen owner hub', icon: ShieldCheck, badge: 'Owner', badgeColor: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+                                        { value: 'kitchen', label: 'Kitchen Staff', sublabel: 'Order preparation & KDS cook', icon: ChefHat, badge: 'Kitchen', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+                                        { value: 'delivery', label: 'Delivery Partner', sublabel: 'Fleet & live GPS dispatch', icon: Truck, badge: 'Partner', badgeColor: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400' },
+                                        { value: 'grand_admin', label: 'Admin (Grand Admin)', sublabel: 'Full platform administration', icon: Lock, badge: 'Admin', badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+                                        { value: 'developer', label: 'Developer', sublabel: 'Root dev simulator & tools', icon: Terminal, badge: 'Dev Root', badgeColor: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
+                                        { value: 'customer', label: 'Customer', sublabel: 'Devotee customer profile', icon: Users, badge: 'User', badgeColor: 'bg-stone-200 text-stone-700 dark:bg-white/10 dark:text-neutral-300' }
                                       ]}
                                       size="sm"
                                       searchPlaceholder="Filter role..."
@@ -4252,29 +4322,80 @@ export default function DeveloperView({ setCurrentTab }) {
                                       <span className="whitespace-nowrap font-bold">Public User</span>
                                     </div>
                                   )}
-                                  {/* Delivery Partner Verification & Duty Badges */}
-                                  {role === 'delivery' && (
+
+                                  {/* Multi-Role Capabilities: Kitchen Owner */}
+                                  {role === 'owner' && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleUserCapability(u.id, 'can_manage_kitchen', (u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled')))}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
+                                          (u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled'))
+                                            ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                                            : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
+                                        }`}
+                                        title="Toggle Owner access to Kitchen Dashboard"
+                                      >
+                                        <ChefHat className="w-3.5 h-3.5" />
+                                        <span>Kitchen: {(u.can_manage_kitchen !== false && !(u.devPermissions || []).includes('kitchen_disabled')) ? 'Active' : 'Locked'}</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')))}
+                                        className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
+                                          Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))
+                                            ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30'
+                                            : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
+                                        }`}
+                                        title="Toggle Owner Self-Delivery capability"
+                                      >
+                                        <Truck className="w-3.5 h-3.5" />
+                                        <span>Self-Delivery: {Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')) ? 'ON' : 'OFF'}</span>
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {/* Multi-Role Capabilities: Kitchen Staff Delivery */}
+                                  {role === 'kitchen' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleUserCapability(u.id, 'can_deliver', Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')))}
+                                      className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
+                                        Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))
+                                          ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30'
+                                          : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10'
+                                      }`}
+                                      title="Toggle Delivery capability for Kitchen Staff"
+                                    >
+                                      <Truck className="w-3.5 h-3.5" />
+                                      <span>Delivery: {Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver')) ? 'ON' : 'OFF'}</span>
+                                    </button>
+                                  )}
+
+                                  {/* Delivery Partner Verification & Duty Badges (for Delivery Role OR Self-Delivery enabled) */}
+                                  {(role === 'delivery' || Boolean(u.can_deliver || u.canDeliver || (u.devPermissions || []).includes('can_deliver'))) && (
                                     <>
                                       {/* Live Duty Presence Status Badge */}
                                       <button
                                         type="button"
-                                        onClick={() => handleToggleDeliveryOnline(u.id, Boolean(u.is_active ?? u.isOnline ?? false))}
-                                        className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                          (u.is_active ?? u.isOnline ?? false)
+                                        onClick={() => handleToggleDeliveryOnline(u.id, Boolean(u.is_online ?? u.isOnline ?? false))}
+                                        className={`px-3 py-2 min-w-[105px] rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
+                                          (u.is_online ?? u.isOnline ?? false)
                                             ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20'
                                             : 'bg-stone-500/10 text-stone-600 dark:text-stone-400 border-stone-500/20 hover:bg-stone-500/20'
                                         }`}
                                         title="Click to toggle Rider Duty Availability"
                                       >
-                                        <span className={`w-2 h-2 rounded-full shrink-0 ${(u.is_active ?? u.isOnline ?? false) ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400'}`} />
-                                        <span>{(u.is_active ?? u.isOnline ?? false) ? 'On Duty' : 'Off Duty'}</span>
+                                        <span className={`w-2 h-2 rounded-full shrink-0 ${(u.is_online ?? u.isOnline ?? false) ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                                        <span>{(u.is_online ?? u.isOnline ?? false) ? 'On Duty' : 'Off Duty'}</span>
                                       </button>
 
                                       {/* Verification Status Button */}
                                       <button
                                         type="button"
-                                        onClick={() => handleToggleDeliveryStatus(u.id, u.delivery_status || 'approved', u.delivery_type || 'independent')}
-                                        className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        onClick={() => handleToggleDeliveryStatus(u.id, u.delivery_status || 'approved', u.delivery_type || (role === 'owner' ? 'shop' : 'independent'))}
+                                        className={`px-3 py-2 min-w-[110px] rounded-xl text-xs font-black uppercase tracking-wider border flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer ${
                                           (u.delivery_status || 'approved') === 'approved'
                                             ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
                                             : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25'

@@ -125,12 +125,27 @@ ChartJS.register(
 );
 
 export default function OwnerView() {
-  const { allShops = [], currentUserShopId, refreshShops, updateUserRole, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { 
+    user,
+    userData,
+    allShops = [], 
+    currentUserShopId, 
+    refreshShops, 
+    updateUserRole, 
+    updateUserCapabilities,
+    actualRole, 
+    impersonate, 
+    userRole, 
+    isAuthorizedDeveloper, 
+    isAuthorizedAdmin, 
+    isPlatformAdmin: authIsPlatformAdmin 
+  } = useAuth();
   const { ownerSoundAlerts, toggleOwnerSoundAlerts } = useNotifications();
-  // ONLY verified developer / platform super-admin can switch kitchens across the system
-  const isDevOrAdmin = Boolean(
+  
+  // Strict Multi-tenant RBAC: ONLY verified developer / platform super-admin can switch kitchens across the system
+  const isPlatformAdmin = Boolean(
+    authIsPlatformAdmin ||
     isAuthorizedDeveloper ||
-    isAuthorizedAdmin ||
     actualRole === 'developer' ||
     actualRole === 'grand_admin' ||
     userRole === 'developer' ||
@@ -563,7 +578,7 @@ export default function OwnerView() {
     const itemShopId = targetItem?.shopId || targetItem?.shop_id;
     const currentActiveShop = activeShopId || currentUserShopId;
 
-    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isDevOrAdmin) {
+    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isPlatformAdmin) {
       setToast({
         message: 'Access Restricted: You can only update price for your own shop!',
         type: 'error'
@@ -596,7 +611,7 @@ export default function OwnerView() {
     const itemShopId = item.shopId || item.shop_id;
     const currentActiveShop = activeShopId || currentUserShopId;
 
-    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isDevOrAdmin) {
+    if (itemShopId && currentActiveShop && itemShopId !== currentActiveShop && !isPlatformAdmin) {
       setToast({
         message: 'Access Restricted: You can only update stock for your own shop!',
         type: 'error'
@@ -1113,30 +1128,25 @@ export default function OwnerView() {
     }
   };
 
-  const [onlineOverride, setOnlineOverride] = useState(null);
-  const [isTogglingOnline, setIsTogglingOnline] = useState(false);
-  const [prevShopId, setPrevShopId] = useState(currentShop?.id);
+  const [isShopOnline, setIsShopOnline] = useState(() => {
+    return currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+  });
+  const isTogglingRef = useRef(false);
 
-  const shopOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
-
-  // Reset override if active shop changes
-  if (prevShopId !== currentShop?.id) {
-    setPrevShopId(currentShop?.id);
-    setOnlineOverride(null);
-  } else if (onlineOverride !== null && shopOnline === onlineOverride) {
-    setOnlineOverride(null);
-  }
-
-  const isShopOnline = onlineOverride !== null ? onlineOverride : shopOnline;
+  useEffect(() => {
+    if (isTogglingRef.current) return;
+    const authoritativeOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+    setIsShopOnline(authoritativeOnline);
+  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
 
   const handleToggleShopOnline = async () => {
     const targetShop = editingShop || currentShop;
     if (!targetShop?.id) return;
-    if (isTogglingOnline) return;
+    if (isTogglingRef.current) return;
+    isTogglingRef.current = true;
 
     const nextOnline = !isShopOnline;
-    setOnlineOverride(nextOnline);
-    setIsTogglingOnline(true);
+    setIsShopOnline(nextOnline);
     setToast({
       message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
       type: nextOnline ? "success" : "warning"
@@ -1154,11 +1164,56 @@ export default function OwnerView() {
       }
     } catch (e) {
       console.error("Toggle shop online error:", e);
-      setOnlineOverride(!nextOnline);
+      setIsShopOnline(!nextOnline);
       setToast({ message: "Failed to update online status", type: "error" });
     } finally {
-      setIsTogglingOnline(false);
+      setTimeout(() => {
+        isTogglingRef.current = false;
+      }, 500);
     }
+  };
+
+  const isSelfDeliveryActive = Boolean(
+    userData?.can_deliver ||
+    userData?.canDeliver ||
+    userData?.self_delivery ||
+    (userData?.devPermissions || []).includes('can_deliver')
+  );
+
+  const handleToggleSelfDelivery = async () => {
+    if (!activeShopId) return;
+    const targetUserId = user?.id || userData?.id;
+    if (!targetUserId) return;
+
+    const nextVal = !isSelfDeliveryActive;
+    let updatedDevPermissions = Array.isArray(userData?.devPermissions) ? [...userData.devPermissions] : [];
+    if (nextVal) {
+      if (!updatedDevPermissions.includes('can_deliver')) updatedDevPermissions.push('can_deliver');
+    } else {
+      updatedDevPermissions = updatedDevPermissions.filter(p => p !== 'can_deliver');
+    }
+
+    const updates = {
+      can_deliver: nextVal,
+      self_delivery: nextVal,
+      delivery_status: nextVal ? 'approved' : (userData?.delivery_status || 'approved'),
+      delivery_type: 'shop',
+      devPermissions: updatedDevPermissions,
+      dev_permissions: updatedDevPermissions
+    };
+
+    if (updateUserCapabilities) {
+      await updateUserCapabilities(targetUserId, updates);
+    } else {
+      await updateCloudUser(targetUserId, updates);
+    }
+
+    setToast({
+      message: nextVal
+        ? "Self-Delivery Mode ENABLED: You can now deliver orders via the 'Rider' tab in the header."
+        : "Self-Delivery Mode DISABLED.",
+      type: nextVal ? "success" : "info"
+    });
   };
 
   // Menu items Add/Edit
@@ -1218,7 +1273,7 @@ export default function OwnerView() {
   const handleSaveMenuForm = async (e) => {
     e.preventDefault();
     try {
-      const targetShopId = isDevOrAdmin ? (menuForm.shopId || currentUserShopId) : currentUserShopId;
+      const targetShopId = isPlatformAdmin ? (menuForm.shopId || currentUserShopId) : currentUserShopId;
       const isAvailableVal = menuForm.isAvailable !== undefined ? menuForm.isAvailable : true;
       const payload = {
         name: menuForm.name,
@@ -1239,7 +1294,7 @@ export default function OwnerView() {
       if (editingMenuItem) {
         // Strict Shop Isolation Guard: Only allow modifying dishes that belong to active shop
         const itemShopId = editingMenuItem.shopId || editingMenuItem.shop_id;
-        if (itemShopId && currentUserShopId && itemShopId !== currentUserShopId && !isDevOrAdmin) {
+        if (itemShopId && currentUserShopId && itemShopId !== currentUserShopId && !isPlatformAdmin) {
           setToast({ message: "Access Restricted: You can only edit dishes for your own shop!", type: "error" });
           return;
         }
@@ -1379,16 +1434,35 @@ export default function OwnerView() {
             <button
               type="button"
               onClick={handleToggleShopOnline}
-              disabled={!activeShopId || isTogglingOnline}
+              disabled={!activeShopId}
               className={`inline-flex items-center justify-center min-w-[124px] px-4 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 cursor-pointer shadow-sm ${!activeShopId
                 ? 'opacity-40 cursor-not-allowed bg-stone-300 dark:bg-white/5 border-stone-400 dark:border-white/10 text-stone-500'
                 : isShopOnline
                   ? 'bg-[#164E3D] hover:bg-[#124233] border-[#164E3D] text-white shadow-[#164E3D]/25'
                   : 'bg-rose-600 hover:bg-rose-700 border-rose-600 text-white shadow-rose-600/25'
-                } ${isTogglingOnline ? 'opacity-85 pointer-events-none' : ''}`}
+                }`}
               title={activeShopId ? "Click to toggle shop Online/Offline status in realtime" : "Assigned kitchen unavailable"}
             >
               <span className="font-outfit font-black tracking-wide uppercase text-[11px] select-none">{!activeShopId ? 'Unavailable' : isShopOnline ? 'Kitchen Online' : 'Kitchen Offline'}</span>
+            </button>
+
+            {/* Self-Delivery Mode Toggle */}
+            <button
+              type="button"
+              onClick={handleToggleSelfDelivery}
+              disabled={!activeShopId}
+              className={`inline-flex items-center justify-center min-w-[130px] px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 cursor-pointer shadow-sm ${!activeShopId
+                ? 'opacity-40 cursor-not-allowed bg-stone-300 dark:bg-white/5 border-stone-400 dark:border-white/10 text-stone-500'
+                : isSelfDeliveryActive
+                  ? 'bg-cyan-600 hover:bg-cyan-700 dark:bg-[#06B6D4] dark:hover:bg-[#0891B2] border-cyan-600 text-white shadow-cyan-600/25'
+                  : 'bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 border-stone-300 dark:border-white/10 text-stone-700 dark:text-neutral-300'
+                }`}
+              title={isSelfDeliveryActive ? "Self-Delivery is ON: Rider tab is unlocked. Click to turn off." : "Click to enable Self-Delivery Mode (deliver orders yourself)."}
+            >
+              <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+              <span className="font-outfit font-black tracking-wide uppercase text-[11px] select-none">
+                {isSelfDeliveryActive ? 'Self-Delivery: ON' : 'Self-Delivery: OFF'}
+              </span>
             </button>
             {isolatedOrders.filter(o => ['new', 'preparing', 'ready'].includes(o.status)).length > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 border border-yellow-400/35 dark:border-[#FFD000]/30 text-xs font-black text-amber-700 dark:text-[#FFD000] shadow-sm">
@@ -1399,8 +1473,8 @@ export default function OwnerView() {
           </div>
         </div>
 
-        {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
-        {isDevOrAdmin && allShops.length > 1 && (
+        {/* BRANCH SELECTOR — STRICTLY Platform Super-Admins & Developers only */}
+        {isPlatformAdmin && allShops.length > 1 && (
           <div className="pt-3 border-t border-stone-300 dark:border-white/5 flex flex-wrap items-center gap-2.5 relative z-30">
             <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-['Outfit']">
               <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
@@ -1484,7 +1558,7 @@ export default function OwnerView() {
               Strict cross-shop isolation is enforced: orders, menus, and revenue data are not queried or rendered for this kitchen.
             </p>
           </div>
-          {isDevOrAdmin && allShops.length > 0 && (
+          {isPlatformAdmin && allShops.length > 0 && (
             <div className="mt-2 p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-xs font-bold text-amber-700 dark:text-[#FD9139]">
               Use the "Switch Kitchen" selector above to switch to an active branch.
             </div>
@@ -2818,41 +2892,41 @@ export default function OwnerView() {
                           </div>
                         </div>
 
-                        {/* Kitchen / Branch Selector */}
-                        <div>
-                          <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
-                            <span>Target Kitchen (Branch)</span>
-                            {allShops.length > 1 && (
+                        {/* Kitchen / Branch Selector — Strictly Platform Super-Admins only */}
+                        {isPlatformAdmin && allShops.length > 1 && (
+                          <div>
+                            <label className="block text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2 font-['Outfit'] flex items-center justify-between">
+                              <span>Target Kitchen (Branch)</span>
                               <span className="text-[10px] text-amber-700 dark:text-[#FD9139] font-semibold lowercase">
                                 assigns dish to selected kitchen
                               </span>
-                            )}
-                          </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            {(allShops.length > 0 ? allShops : (currentShop ? [currentShop] : [])).map(shop => {
-                              const isSelected = (menuForm.shopId || activeShopId) === shop.id;
-                              return (
-                                <button
-                                  key={shop.id}
-                                  type="button"
-                                  onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
-                                  className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${isSelected
-                                    ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white border-amber-600 dark:border-[#FD9139] shadow-md ring-2 ring-amber-500/20 dark:ring-[#FD9139]/30 font-black'
-                                    : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
-                                    }`}
-                                >
-                                  <div className="flex items-center justify-between w-full mb-1">
-                                    <span className="text-xs font-bold truncate">{shop.name}</span>
-                                    {isSelected && <Check size={14} className="stroke-[3] shrink-0 ml-1" />}
-                                  </div>
-                                  <span className={`text-[10px] truncate ${isSelected ? 'text-white/90 dark:text-white/90 font-medium' : 'text-stone-400 dark:text-neutral-500'}`}>
-                                    {shop.address || 'Vrindavan Dham'}
-                                  </span>
-                                </button>
-                              );
-                            })}
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              {allShops.map(shop => {
+                                const isSelected = (menuForm.shopId || activeShopId) === shop.id;
+                                return (
+                                  <button
+                                    key={shop.id}
+                                    type="button"
+                                    onClick={() => setMenuForm({ ...menuForm, shopId: shop.id })}
+                                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-colors duration-150 cursor-pointer ${isSelected
+                                      ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white border-amber-600 dark:border-[#FD9139] shadow-md ring-2 ring-amber-500/20 dark:ring-[#FD9139]/30 font-black'
+                                      : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-300 border-stone-200 dark:border-white/10 hover:border-stone-300'
+                                      }`}
+                                  >
+                                    <div className="flex items-center justify-between w-full mb-1">
+                                      <span className="text-xs font-bold truncate">{shop.name}</span>
+                                      {isSelected && <Check size={14} className="stroke-[3] shrink-0 ml-1" />}
+                                    </div>
+                                    <span className={`text-[10px] truncate ${isSelected ? 'text-white/90 dark:text-white/90 font-medium' : 'text-stone-400 dark:text-neutral-500'}`}>
+                                      {shop.address || 'Vrindavan Dham'}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Category Selector */}
                         <div>
@@ -3486,13 +3560,13 @@ export default function OwnerView() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleDishAvailability(item)}
-                                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border active:scale-95 ${isItemAvailable
+                                className={`py-2 px-3 min-w-[105px] rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors duration-150 cursor-pointer border ${isItemAvailable
                                   ? 'bg-stone-200/90 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10'
                                   : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border-rose-500/30 font-black'
                                   }`}
                                 title={isItemAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
                               >
-                                <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                 <span>{isItemAvailable ? 'In Stock' : 'Out of Stock'}</span>
                               </button>
                               <div className="flex items-center gap-2 flex-1 justify-end">
@@ -3654,13 +3728,13 @@ export default function OwnerView() {
                                     <button
                                       type="button"
                                       onClick={() => handleToggleDishAvailability(item)}
-                                      className={`px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 border transition-all cursor-pointer active:scale-95 shadow-2xs ${isItemAvailable
+                                      className={`px-3 py-1.5 min-w-[105px] rounded-full text-xs font-bold inline-flex items-center justify-center gap-1.5 border transition-colors duration-150 cursor-pointer shadow-2xs ${isItemAvailable
                                         ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
                                         : 'bg-rose-500/15 text-rose-800 dark:bg-rose-400/15 dark:text-rose-300 border-rose-500/35 hover:bg-rose-500/25 font-black'
                                         }`}
                                       title={isItemAvailable ? 'Click to mark Out of Stock' : 'Click to mark In Stock'}
                                     >
-                                      <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                      <span className={`w-2 h-2 rounded-full ${isItemAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                       <span>{isItemAvailable ? 'In Stock' : 'Out of Stock'}</span>
                                     </button>
                                   </td>
@@ -3879,6 +3953,46 @@ export default function OwnerView() {
           {/* Staff & Role Management Tab */}
           {activeTab === 'staff' && (
             <div className="space-y-6">
+              {/* Owner Multi-Role Operational Hub */}
+              <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 p-5 rounded-3xl shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                      <h4 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">
+                        Your Operational Capabilities & Multi-Roles
+                      </h4>
+                    </div>
+                    <p className="text-xs text-stone-600 dark:text-neutral-400">
+                      As the Kitchen Owner, you have direct authority to manage and prepare kitchen orders as well as deliver orders yourself.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Store Owner</span>
+                    </div>
+                    <div className="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                      <ChefHat className="w-3.5 h-3.5" />
+                      <span>Kitchen Prep Line</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleSelfDelivery}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-colors duration-150 cursor-pointer ${
+                        isSelfDeliveryActive
+                          ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/30'
+                          : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:bg-stone-300/80'
+                      }`}
+                      title="Toggle Owner Self-Delivery"
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>Self-Delivery: {isSelfDeliveryActive ? 'ON (Rider Active)' : 'OFF'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 p-6 rounded-3xl shadow-xl">
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-800 dark:bg-amber-400/10 dark:border-amber-400/20 dark:text-amber-300">
@@ -3968,7 +4082,11 @@ export default function OwnerView() {
                 // Kitchen specific staff (assigned to this kitchen) - only kitchen, delivery, owner roles
                 const isAssignedToThisShop = (u) => {
                   if (!['kitchen', 'delivery', 'owner'].includes(u.role)) return false;
-                  return (u.shopId === shopId) || (Array.isArray(u.shopIds) && u.shopIds.includes(shopId)) || !u.shopId;
+                  // Delivery sarathis can be independent fleet or assigned to this kitchen
+                  if (u.role === 'delivery' && (!u.shopId || u.delivery_type === 'independent')) {
+                    return true;
+                  }
+                  return (u.shopId === shopId) || (Array.isArray(u.shopIds) && u.shopIds.includes(shopId));
                 };
 
                 const cooksCount = usersList.filter(u => u.role === 'kitchen' && isAssignedToThisShop(u)).length;

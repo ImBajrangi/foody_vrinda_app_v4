@@ -76,13 +76,13 @@ const DESK_CONFIG = {
     border: 'rgba(6, 182, 212, 0.25)'
   },
   owner: {
-    icon: ShieldCheck,
+    icon: Store,
     title: 'Admin & Store Owner',
     subtitle: 'Revenue metrics, dish catalog & settlements',
     badge: 'Store Owner',
-    color: '#A855F7',
-    accentBg: 'rgba(168, 85, 247, 0.12)',
-    border: 'rgba(168, 85, 247, 0.25)'
+    color: '#FD9139',
+    accentBg: 'rgba(253, 145, 57, 0.12)',
+    border: 'rgba(253, 145, 57, 0.25)'
   },
   developer: {
     icon: Terminal,
@@ -405,7 +405,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     ? (showStaffSignIn
       ? (activeDeskTheme.subtitle || 'Authorized personnel login')
       : (isSignup ? getSignupSubtitle() : (showLoginView ? 'Sign in with another mobile or email' : 'Sign in to track live orders')))
-    : `${user?.email || user?.phone || userData?.phone || 'Verified Satvik Member'}`;
+    : 'Verified Satvik Member • Vrindavan Dham';
 
   const rawAvatar = user?.photoURL ||
     userData?.photoURL ||
@@ -600,14 +600,28 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     }
                     return (
                       <div className="shrink-0">
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1 shadow-xs ${effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/20' :
-                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/20' :
-                            effectiveDisplayRole === 'owner' ? 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400 border border-purple-500/20' :
-                              ''
-                          }`}>
-                          {effectiveDisplayRole === 'kitchen' ? 'Kitchen Chef' :
-                            effectiveDisplayRole === 'delivery' ? 'Rider Sarathi' :
-                              effectiveDisplayRole === 'owner' ? 'Store Owner' : null}
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 shadow-xs ${
+                          effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/25' :
+                          effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/25' :
+                          effectiveDisplayRole === 'owner' ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/25 dark:border-[#FD9139]/30' :
+                            ''
+                        }`}>
+                          {effectiveDisplayRole === 'kitchen' ? (
+                            <>
+                              <ChefHat className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <span>Kitchen Chef</span>
+                            </>
+                          ) : effectiveDisplayRole === 'delivery' ? (
+                            <>
+                              <Truck className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+                              <span>Rider Sarathi</span>
+                            </>
+                          ) : effectiveDisplayRole === 'owner' ? (
+                            <>
+                              <Store className="w-3 h-3 text-amber-600 dark:text-[#FD9139]" />
+                              <span>Store Owner</span>
+                            </>
+                          ) : null}
                         </span>
                       </div>
                     );
@@ -658,11 +672,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   </div>
                 )}
 
-                {/* Mid: Contact & Address Section */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1.5 border-t border-stone-200 dark:border-white/5 relative z-10">
-                  {/* Phone: Full-Width Editor OR Collapsed Quick Pill */}
+                {/* Mid: Contact & Address Section (Full-Width Roomy Touch Cards) */}
+                <div className="space-y-2.5 pt-2.5 border-t border-stone-200/80 dark:border-white/5 relative z-10">
+                  {/* Phone: Full-Width Editor OR Roomy Touch Card */}
                   {isEditingPhone ? (
-                    <div className="col-span-1 sm:col-span-2 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#FD9139]/40 shadow-sm space-y-3 animate-fade-in w-full">
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#1E1B1C] border border-amber-500/50 dark:border-[#FD9139]/40 shadow-sm space-y-3 animate-fade-in w-full">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
                           <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
@@ -707,36 +721,47 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-yellow-400/15 dark:bg-[#FFD000]/15 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
-                            <Phone className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Phone</span>
-                            <span className={`text-xs sm:text-sm font-mono font-bold truncate block ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100' : 'text-amber-700 dark:text-[#FFD000] font-semibold'}`}>
-                              {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : '+ Add phone'}
-                            </span>
-                          </div>
+                    <div
+                      onClick={() => {
+                        setPhoneEditInput(cleanMob.slice(-10));
+                        setIsEditingPhone(true);
+                      }}
+                      className="p-3.5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/30 flex items-center justify-between gap-3 shadow-xs cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                          <Phone className="w-4 h-4" />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPhoneEditInput(cleanMob.slice(-10));
-                            setIsEditingPhone(true);
-                          }}
-                          className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-700 hover:text-amber-800 dark:text-[#FFD000] cursor-pointer shrink-0 transition-colors"
-                        >
-                          {hasValidPhone ? 'Edit' : '+ Add'}
-                        </button>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block leading-tight">
+                            Mobile Number
+                          </span>
+                          <span className={`text-xs sm:text-sm font-bold truncate block mt-0.5 ${hasValidPhone ? 'text-stone-900 dark:text-zinc-100 font-mono tracking-wide' : 'text-amber-600 dark:text-[#FD9139]'}`}>
+                            {hasValidPhone ? `+91 ${cleanMob.slice(-10)}` : 'Add mobile number for delivery updates'}
+                          </span>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPhoneEditInput(cleanMob.slice(-10));
+                          setIsEditingPhone(true);
+                        }}
+                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                          hasValidPhone
+                            ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
+                            : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
+                        }`}
+                      >
+                        {hasValidPhone ? 'Edit' : '+ Add'}
+                      </button>
                     </div>
                   )}
 
-                  {/* Address: Full-Width In-Place Editor OR Collapsed Quick Pill */}
+                  {/* Address: Full-Width In-Place Editor OR Roomy Touch Card */}
                   {isEditingAddress ? (
-                    <div className="col-span-1 sm:col-span-2 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-amber-500/50 dark:border-[#FD9139]/40 space-y-3.5 relative z-10 animate-fade-in shadow-md w-full">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-amber-500/50 dark:border-[#FD9139]/40 space-y-3.5 relative z-10 animate-fade-in shadow-md w-full">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black uppercase tracking-wider text-stone-800 dark:text-zinc-200 flex items-center gap-1.5 font-['Outfit']">
                           <MapPin className="w-4 h-4 text-amber-600 dark:text-[#FD9139]" />
@@ -806,69 +831,80 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200 dark:border-white/10 flex flex-col justify-center min-h-[60px] shadow-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-yellow-400/15 dark:bg-[#FFD000]/15 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
-                            <MapPin className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block">Address</span>
-                            <span className={`text-xs sm:text-sm font-medium truncate block ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-700 dark:text-[#FFD000] font-semibold'}`}>
-                              {hasValidAddress ? userAddress : '+ Set address'}
-                            </span>
-                          </div>
+                    <div
+                      onClick={() => {
+                        setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
+                        setIsEditingAddress(true);
+                      }}
+                      className="p-3.5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-[#FD9139]/30 flex items-center justify-between gap-3 shadow-xs cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                          <MapPin className="w-4 h-4" />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
-                            setIsEditingAddress(true);
-                          }}
-                          className="h-8 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-xs font-bold text-amber-700 hover:text-amber-800 dark:text-[#FFD000] cursor-pointer shrink-0 transition-colors"
-                        >
-                          {hasValidAddress ? 'Edit' : '+ Add'}
-                        </button>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-400 uppercase tracking-wider block leading-tight">
+                            Delivery Address
+                          </span>
+                          <span className={`text-xs sm:text-sm font-medium truncate block mt-0.5 ${hasValidAddress ? 'text-stone-900 dark:text-zinc-100 font-semibold' : 'text-amber-600 dark:text-[#FD9139]'}`}>
+                            {hasValidAddress ? userAddress : 'Set default delivery address in Dham'}
+                          </span>
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
+                          setIsEditingAddress(true);
+                        }}
+                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                          hasValidAddress
+                            ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
+                            : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
+                        }`}
+                      >
+                        {hasValidAddress ? 'Edit' : '+ Add'}
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Bottom: Integrated Prasad Rewards Strip */}
-                <div className="pt-3 border-t border-stone-200 dark:border-white/5 grid grid-cols-2 divide-x divide-stone-200 dark:divide-white/5 relative z-10">
+                {/* Bottom: Integrated Prasad Rewards & Fast Dispatch Strip */}
+                <div className="pt-2.5 border-t border-stone-200/80 dark:border-white/5 grid grid-cols-2 gap-2 relative z-10">
                   <button
                     type="button"
                     onClick={() => {
                       handleAnimatedClose();
                       window.dispatchEvent(new CustomEvent('foody_open_rewards'));
                     }}
-                    className="flex items-center gap-2 pr-2 text-left p-1 -m-1 rounded-xl hover:bg-stone-200/50 dark:hover:bg-white/5 active:scale-95 transition-all cursor-pointer group"
+                    className="p-2.5 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-amber-500/20 dark:border-white/10 flex items-center gap-2.5 text-left transition-all cursor-pointer group"
                     title="Open FV Rewards & Perks"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-yellow-400/20 dark:bg-[#FFD000]/20 border border-yellow-500/40 dark:border-[#FFD000]/40 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                      <Sparkles className="w-3.5 h-3.5 fill-amber-400/30 dark:fill-[#FFD000]/30" />
+                    <div className="w-8 h-8 rounded-lg bg-yellow-400/20 dark:bg-[#FFD000]/20 border border-yellow-500/30 dark:border-[#FFD000]/30 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0 shadow-xs">
+                      <Sparkles className="w-4 h-4 fill-amber-400/30 dark:fill-[#FFD000]/30" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-black text-stone-900 dark:text-[#FFD000] font-['Outfit'] truncate flex items-center justify-between">
                         <span>{userData?.coins || 150} Coins</span>
-                        <ChevronRight className="w-3 h-3 text-stone-400 dark:text-yellow-400/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-yellow-400/70 shrink-0" />
                       </div>
                       <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                        ₹{Math.floor((userData?.coins || 150) / 10)} savings • <span className="underline decoration-emerald-500/50">Perks</span>
+                        ₹{Math.floor((userData?.coins || 150) / 10)} savings • Perks
                       </div>
                     </div>
                   </button>
 
-                  <div className="flex items-center gap-2 pl-2">
-                    <div className="w-7 h-7 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10 border border-cyan-500/20 dark:border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                  <div className="p-2.5 rounded-xl bg-cyan-500/5 dark:bg-white/[0.04] border border-cyan-500/20 dark:border-white/10 flex items-center gap-2.5 text-left">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/15 dark:bg-cyan-500/15 border border-cyan-500/25 dark:border-cyan-500/25 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0 shadow-xs">
+                      <ShieldCheck className="w-4 h-4" />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                         Dham Express
                       </div>
                       <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold truncate">
-                        Priority Prep
+                        Priority Satvik Prep
                       </div>
                     </div>
                   </div>
@@ -877,112 +913,135 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
               {/* 4. Grouped Navigation & Preference Links */}
               <div className="p-1.5 rounded-2xl bg-stone-50 dark:bg-[#151314] border border-stone-200/90 dark:border-white/5 divide-y divide-stone-200/70 dark:divide-white/5 shadow-xs">
-                {/* Primary User Actions First for Mobile Ergonomics */}
+                {/* Orders & Live Tracking */}
                 <button
                   type="button"
                   onClick={() => {
                     handleAnimatedClose();
                     window.dispatchEvent(new CustomEvent('foody-open-orders'));
                   }}
-                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-[#FFD000]" />
-                    <span>My Orders & Live Tracking</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 dark:bg-[#FD9139]/15 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                      <ShoppingBag className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">My Orders & Live Tracking</span>
+                      <span className="block text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Track live preparation & delivery</span>
+                    </div>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500" />
+                  <ChevronRight className="w-4 h-4 text-stone-400 dark:text-zinc-500" />
                 </button>
 
+                {/* Prasad Rewards */}
                 <button
                   type="button"
                   onClick={() => {
                     handleAnimatedClose();
                     window.dispatchEvent(new CustomEvent('foody_open_rewards'));
                   }}
-                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group"
+                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer group"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Gift className="w-4 h-4 text-amber-500 dark:text-[#FFD000]" />
-                    <span>Prasad Rewards & Perks</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-400/15 dark:bg-[#FFD000]/15 flex items-center justify-center text-amber-600 dark:text-[#FFD000] shrink-0">
+                      <Gift className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">Prasad Rewards & Perks</span>
+                      <span className="block text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Redeem coins on every satvik meal</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-800 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-yellow-400/15 dark:bg-[#FFD000]/15 text-amber-800 dark:text-[#FFD000] border border-yellow-400/30 dark:border-[#FFD000]/30 shadow-xs">
                       {userData?.coins || 150} FV
                     </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight className="w-4 h-4 text-stone-400 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </button>
 
                 {/* Theme Preference Row */}
                 <div className="w-full p-2.5 sm:p-3 flex items-center justify-between gap-2 text-xs font-bold text-stone-800 dark:text-zinc-200">
-                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                    {themeMode === 'system' ? (
-                      <Laptop className="w-4 h-4 text-[#FD9139] shrink-0" />
-                    ) : isLight ? (
-                      <Sun className="w-4 h-4 text-amber-500 shrink-0" />
-                    ) : (
-                      <Moon className="w-4 h-4 text-[#FD9139] shrink-0" />
-                    )}
-                    <div className="flex flex-col text-left min-w-0">
-                      <span className="truncate">App Theme</span>
-                      <span className="text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-stone-200/60 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                      {themeMode === 'system' ? (
+                        <Laptop className="w-4 h-4 text-[#FD9139]" />
+                      ) : isLight ? (
+                        <Sun className="w-4 h-4 text-amber-500" />
+                      ) : (
+                        <Moon className="w-4 h-4 text-[#FD9139]" />
+                      )}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">App Theme</span>
+                      <span className="block text-[10px] text-stone-500 dark:text-zinc-400 font-medium truncate">
                         {themeMode === 'system' ? 'System default' : isLight ? 'Divine light' : 'Obsidian dark'}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-0.5 sm:gap-1 bg-stone-200/80 dark:bg-[#252223] p-0.5 sm:p-1 rounded-full border border-stone-300/80 dark:border-white/15 shrink-0">
+                  <div className="flex items-center bg-stone-200/80 dark:bg-[#201D1E] p-1 rounded-full border border-stone-300/80 dark:border-white/10 shrink-0">
                     <button
                       type="button"
                       onClick={() => setTheme('system')}
                       title="System Default"
-                      className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'system'
-                        ? 'bg-amber-500 text-white shadow-xs'
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                        }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
+                        themeMode === 'system'
+                          ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-xs'
+                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
                     >
                       <Laptop size={11} className={themeMode === 'system' ? "text-white" : "opacity-70"} />
-                      <span className="hidden min-[380px]:inline">System</span>
+                      <span>System</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('light')}
                       title="Divine Light"
-                      className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'light'
-                        ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80'
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                        }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
+                        themeMode === 'light'
+                          ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80'
+                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
                     >
                       <Sun size={11} className={themeMode === 'light' ? "text-amber-500" : "opacity-70"} />
-                      <span className="hidden min-[380px]:inline">Light</span>
+                      <span>Light</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTheme('dark')}
                       title="Obsidian Dark"
-                      className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'dark'
-                        ? 'bg-[#FD9139] text-black shadow-xs'
-                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                        }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
+                        themeMode === 'dark'
+                          ? 'bg-[#FD9139] text-black shadow-xs font-black'
+                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                      }`}
                     >
                       <Moon size={11} className={themeMode === 'dark' ? "text-black" : "opacity-70"} />
-                      <span className="hidden min-[380px]:inline">Dark</span>
+                      <span>Dark</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Notification Chime Preference Row */}
                 <div className="w-full p-2.5 sm:p-3 flex items-center justify-between gap-2 text-xs font-bold text-stone-800 dark:text-zinc-200">
-                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                    <Volume2 className="w-4 h-4 text-amber-500 dark:text-[#FD9139] shrink-0" />
-                    <span className="truncate">Notification Sound</span>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-lg bg-stone-200/60 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                      <Volume2 className="w-4 h-4" />
+                    </div>
+                    <div className="text-left min-w-0 flex-1">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">Notification Sound</span>
+                      <span className="block text-[10px] text-amber-600 dark:text-[#FD9139] font-semibold truncate">
+                        {NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Natural Water Droplet'}
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowSoundTrials(true)}
-                    className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black bg-stone-200/80 hover:bg-stone-300/80 dark:bg-[#252223] dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/15 transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shadow-xs shrink-0 max-w-[55%] sm:max-w-none"
+                    className="h-8 px-3 rounded-full text-xs font-bold bg-stone-200/80 hover:bg-stone-300/80 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-zinc-200 border border-stone-300/80 dark:border-white/10 transition-all cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
                   >
-                    <span className="truncate">{NOTIFICATION_TRIALS.find(t => t.id === nativeNotify.getActiveTrial())?.name || 'Zen Glass Tap'}</span>
-                    <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-black shrink-0">Change &gt;</span>
+                    <span>Change</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-stone-400 dark:text-zinc-400" />
                   </button>
                 </div>
 
@@ -995,35 +1054,44 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       window.dispatchEvent(new CustomEvent('foody:open-tutorial'));
                     }, 200);
                   }}
-                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 text-amber-500 dark:text-[#FD9139] flex items-center justify-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-stone-200/60 dark:bg-white/10 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
                       <Gamepad2 className="w-4 h-4" />
                     </div>
-                    <span>App Guide</span>
+                    <div className="text-left">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">App Guide</span>
+                      <span className="block text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Interactive tutorial & walkthrough</span>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-amber-800 dark:text-[#FD9139] font-black bg-amber-500/15 dark:bg-[#FD9139]/15 px-2 py-0.5 rounded-full border border-amber-500/30 dark:border-[#FD9139]/30">
+                  <span className="text-[11px] text-amber-800 dark:text-[#FD9139] font-bold bg-amber-500/15 dark:bg-[#FD9139]/15 px-2.5 py-1 rounded-full border border-amber-500/30 dark:border-[#FD9139]/30">
                     Replay Tutorial
                   </span>
                 </button>
 
+                {/* WhatsApp Channel */}
                 <a
                   href={SOCIAL_LINKS.whatsappChannel}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-300 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
+                  className="w-full p-2.5 sm:p-3 flex items-center justify-between text-xs font-bold text-stone-700 dark:text-zinc-200 hover:text-stone-950 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer block"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.055-1.928-.485-1.528-.636-2.505-2.203-2.582-2.305-.077-.102-.624-.827-.624-1.577 0-.75.385-1.12.522-1.272.137-.154.298-.192.399-.192.1 0 .201.002.289.006.092.004.215-.035.335.253.127.304.433 1.053.471 1.13.038.077.064.167.013.268-.051.102-.077.167-.154.256-.077.09-.161.2-.23.268-.077.077-.157.161-.067.315.09.154.398.657.854 1.063.587.522 1.082.684 1.236.76.154.077.244.064.334-.038.09-.102.385-.448.487-.601.103-.154.205-.128.346-.077.141.051.897.423 1.051.5.154.077.256.115.295.179.039.064.039.372-.105.777z" />
                         <path d="M12 2C6.477 2 2 6.477 2 12c0 1.891.527 3.66 1.443 5.176L2 22l4.985-1.399A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18.05c-1.637 0-3.153-.487-4.432-1.328l-.317-.209-2.962.83.83-2.887-.229-.335A8.006 8.006 0 014 12c0-4.411 3.589-8.05 8-8.05s8 3.639 8 8.05-3.589 8.05-8 8.05z" />
                       </svg>
                     </div>
-                    <span>Official WhatsApp Channel</span>
+                    <div className="text-left">
+                      <span className="block text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm font-bold">Official WhatsApp Channel</span>
+                      <span className="block text-[10px] text-stone-500 dark:text-zinc-400 font-medium">Braj seva updates & notifications</span>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">Join</span>
+                  <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30">
+                    Join
+                  </span>
                 </a>
               </div>
 

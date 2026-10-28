@@ -341,11 +341,11 @@
 }
 
 .fv-btn-primary:active {
-  transform: scale(0.96);
+  transform: none;
 }
 
 .fv-btn-primary:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.04);
 }
 
 .fv-btn-secondary {
@@ -360,14 +360,14 @@
   font-size: 0.8125rem;
   cursor: pointer;
   touch-action: manipulation;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   background-color: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-app);
 }
 
 .fv-btn-secondary:active {
-  transform: scale(0.97);
+  transform: none;
 }
 
 .fv-btn-icon-circle {
@@ -382,12 +382,12 @@
   color: var(--text-primary);
   cursor: pointer;
   touch-action: manipulation;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   flex-shrink: 0;
 }
 
 .fv-btn-icon-circle:active {
-  transform: scale(0.92);
+  transform: none;
 }
 
 /* --- 2. Cards & Containers --- */
@@ -459,46 +459,40 @@
 .ios-touch-feedback,
 .apple-tap-target,
 .apple-stepper-btn {
-  transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.2s ease,
-    filter 0.2s ease,
-    background-color 0.15s ease;
+  transition: box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-  will-change: transform;
 }
 
 .ios-touch-feedback:active,
-.apple-tap-target:active {
-  transform: scale(0.98);
-  filter: brightness(0.985);
-  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.12s ease;
-}
-
-.apple-stepper-btn:active {
-  transform: scale(0.88);
-  filter: brightness(0.92);
-  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1);
+.apple-tap-target:active,
+.apple-stepper-btn:active,
+button:active,
+[role="button"]:active,
+[class*="active:scale"]:active {
+  transform: none !important;
+  filter: none !important;
 }
 
 /* Dignified, organic cushioned shrink/expand for Cards and clickable list rows */
 .ios-card-press,
 .apple-card-interactive {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.22s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+  transition: box-shadow 0.18s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  will-change: transform;
 }
 
 .ios-card-press:active,
 .apple-card-interactive:active {
-  transform: scale(0.985);
-  transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.4, 1);
+  transform: none !important;
+  filter: none !important;
 }
 
 /* Isolated Spring: Ensure clicking buttons/steppers inside a card never shakes the parent card */
@@ -2134,7 +2128,8 @@
 }
 
 .apple-card-interactive:active {
-  transform: scale(0.985) !important;
+  transform: none !important;
+  filter: none !important;
 }
 
 /* Search modal detail expansion animations */

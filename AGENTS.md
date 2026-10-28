@@ -172,3 +172,13 @@ Rule [Automated CDP Smoke Test Standard]:
 
 Rule [Strict Auth vs Storage Isolation]:
 "Application role and privilege resolution must derive authoritatively from active Supabase sessions and database profiles. localStorage is strictly reserved for client-side UI persistence (e.g. tutorial progress, draft carts) and must never grant or override role authorization."
+
+
+Rule [Component Freezing & Non-Regression Invariant]:
+"Once a UI component, workflow, or layout state is verified and working, consider it FROZEN. Never modify, refactor, or touch unrelated working files when fixing or implementing a separate feature. One fix must NEVER break another part of the system. Always run regression checks (npm run build and native build verification) before concluding any task."
+
+Rule [Targeted Reading & Token Conservation Protocol]:
+"Never read full large files (>100 lines) without specifying StartLine and EndLine. Never run unbounded recursive searches over root directories; always scope searches strictly to src/ or specific subfolders, strictly ignoring node_modules, dist, android, .git. Keep responses ultra-concise, actionable, and free of unnecessary fluff or self-recommendations."
+
+Rule [First-Launch & Micro-Boot Standard]:
+"Never display splash screens or onboarding animations on recurring app launches or web platforms. Web must mount instantly with zero-splash delay. Mobile animations must strictly run once for genuine first-time onboarding users, gated by persistent localStorage flags."

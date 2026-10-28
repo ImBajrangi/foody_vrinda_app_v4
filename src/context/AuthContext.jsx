@@ -1117,15 +1117,48 @@ export function AuthProvider({ children }) {
     return { success: true, newRole };
   }, [user, userData, resolveShopName]);
 
+  // Update multi-role capabilities (e.g. can_manage_kitchen, can_deliver, devPermissions)
+  const updateUserCapabilities = useCallback(async (targetUserId, capabilities = {}) => {
+    const cleanTargetId = String(targetUserId).trim();
+    const currentId = user?.id ? String(user.id).trim() : '';
+    const currentEmail = (user?.email || userData?.email || '').toLowerCase().trim();
+    const currentPhone = (user?.phone || userData?.phone || '').replace(/\D/g, '');
+
+    const isCurrentActiveUser = (
+      (currentId && currentId === cleanTargetId) ||
+      (userData?.id && String(userData.id).trim() === cleanTargetId) ||
+      (currentEmail && targetUserId.includes('@') && currentEmail === cleanTargetId.toLowerCase()) ||
+      (currentPhone && currentPhone.endsWith(cleanTargetId.replace(/\D/g, '').slice(-10)))
+    );
+
+    // 1. Update in cloud & local cache
+    await updateCloudUser(targetUserId, capabilities);
+
+    // 2. If it's the currently active user, update state & localStorage reactively
+    if (isCurrentActiveUser) {
+      setUserData(prev => {
+        const updated = {
+          ...(prev || {}),
+          ...capabilities
+        };
+        try {
+          localStorage.setItem('foody_user_data', JSON.stringify(updated));
+        } catch (e) { }
+        return updated;
+      });
+    }
+
+    return { success: true };
+  }, [user, userData]);
+
   // Developer & Admin authorization flags
   const isGrandAdmin = Boolean(
     (userData?.role === 'grand_admin') ||
     (userRole === 'grand_admin')
   );
   const isDevUser = isDeveloperUser(user?.email || userData?.email || '', userData?.role || userRole);
-  const isAdminUserMatch = isAdminUser(user?.email || userData?.email || '', userData?.role || userRole);
   
-  // Production RBAC: Privileges require an authenticated non-anonymous session
+  // Production RBAC: Platform Super-Admins / Developers have multi-tenant cross-shop authority
   const isAuthorizedDeveloper = Boolean(
     user && !user.isAnonymous && (
       isGrandAdmin ||
@@ -1133,25 +1166,45 @@ export function AuthProvider({ children }) {
     )
   );
 
-  const isAuthorizedAdmin = Boolean(
+  const isPlatformAdmin = Boolean(
     user && !user.isAnonymous && (
       isGrandAdmin ||
       isAuthorizedDeveloper ||
-      ((isAdminUserMatch || ['developer', 'owner', 'grand_admin'].includes(userRole)) && ['developer', 'owner', 'grand_admin'].includes(userData?.role || userRole))
+      ['developer', 'grand_admin'].includes(userRole) ||
+      ['developer', 'grand_admin'].includes(userData?.role)
+    )
+  );
+
+  // Shop Owner: strictly isolated to the single shop assigned to this user
+  const isAuthorizedAdmin = Boolean(
+    user && !user.isAnonymous && (
+      isPlatformAdmin ||
+      (userRole === 'owner' && (userData?.role === 'owner' || !userData?.role))
     )
   );
 
   const isStaff = Boolean(
     user && !user.isAnonymous && (
-      isAuthorizedAdmin ||
-      ['kitchen', 'delivery', 'owner', 'developer', 'grand_admin'].includes(userRole)
+      isPlatformAdmin ||
+      ['kitchen', 'delivery', 'owner'].includes(userRole)
     )
   );
 
-  // Developer impersonation control helper (isolated purely in-memory / session storage to NEVER corrupt permanent user profile)
+  // Clear any leaked impersonation data if user is not a Platform Admin
+  useEffect(() => {
+    if (!isPlatformAdmin && (impersonatedShopId || impersonatedRole)) {
+      setImpersonatedShopId(null);
+      setImpersonatedRole(null);
+      try {
+        sessionStorage.removeItem('foody_dev_impersonation');
+      } catch (_) { }
+    }
+  }, [isPlatformAdmin, impersonatedShopId, impersonatedRole]);
+
+  // Developer impersonation control helper (strictly gated to platform super-admins & developers)
   const impersonate = (shopId, role) => {
-    if (!isAuthorizedDeveloper && !isAuthorizedAdmin) {
-      console.warn("Unauthorized attempt to impersonate privileged role:", role);
+    if (!isPlatformAdmin) {
+      console.warn("Access Denied: Cross-shop switching is strictly restricted to platform developers/admins.");
       return false;
     }
     setImpersonatedShopId(shopId);
@@ -1167,10 +1220,11 @@ export function AuthProvider({ children }) {
   };
 
   // Dynamically computed effective role and shop ID
-  const effectiveRole = impersonatedRole || userRole;
-  const effectiveShopId = impersonatedShopId || currentUserShopId;
-  const effectiveShopName = impersonatedShopId ? resolveShopName(impersonatedShopId) : currentShopName;
-  const effectiveShopIds = (effectiveRole === 'developer' || effectiveRole === 'owner')
+  // Multi-tenant Security Invariant: Non-platform admins can NEVER override their assigned shop
+  const effectiveRole = isPlatformAdmin ? (impersonatedRole || userRole) : userRole;
+  const effectiveShopId = isPlatformAdmin ? (impersonatedShopId || currentUserShopId) : currentUserShopId;
+  const effectiveShopName = (isPlatformAdmin && impersonatedShopId) ? resolveShopName(impersonatedShopId) : currentShopName;
+  const effectiveShopIds = isPlatformAdmin
     ? (allShops.length > 0 ? allShops.map(s => s.id) : (currentUserShopIds.length > 0 ? currentUserShopIds : ['shop-vrinda-main']))
     : currentUserShopIds;
 
@@ -1193,6 +1247,7 @@ export function AuthProvider({ children }) {
     isGrandAdmin,
     isAuthorizedDeveloper,
     isAuthorizedAdmin,
+    isPlatformAdmin,
     isStaff,
     userDevPermissions,
     currentUserShopId: effectiveShopId,
@@ -1207,6 +1262,7 @@ export function AuthProvider({ children }) {
     logout,
     impersonate,
     updateUserRole,
+    updateUserCapabilities,
     updateUserProfile,
     setUserRole,
     refreshShops: loadShops

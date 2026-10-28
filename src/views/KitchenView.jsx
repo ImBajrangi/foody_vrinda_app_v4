@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
@@ -55,7 +55,18 @@ import {
 } from 'lucide-react';
 
 export default function KitchenView() {
-  const { user, currentUserShopId, allShops = [], refreshShops, actualRole, impersonate, userRole, isAuthorizedDeveloper, isAuthorizedAdmin } = useAuth();
+  const { 
+    user, 
+    currentUserShopId, 
+    allShops = [], 
+    refreshShops, 
+    actualRole, 
+    impersonate, 
+    userRole, 
+    isAuthorizedDeveloper, 
+    isAuthorizedAdmin,
+    isPlatformAdmin: authIsPlatformAdmin
+  } = useAuth();
 
   // 1. RESOLVE ONE AUTHORITATIVE SHOP ID
   // Primary Invariant: resolvedShopId === queriedShopId === realtimeShopId === renderedShopId
@@ -69,9 +80,9 @@ export default function KitchenView() {
   const activeShopId = activeShop?.id || null;
   const currentShop = activeShop;
 
-  const isDevOrAdmin = Boolean(
+  const isPlatformAdmin = Boolean(
+    authIsPlatformAdmin ||
     isAuthorizedDeveloper ||
-    isAuthorizedAdmin ||
     actualRole === 'developer' ||
     actualRole === 'grand_admin' ||
     userRole === 'developer' ||
@@ -81,34 +92,31 @@ export default function KitchenView() {
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
   const [isRushMode, setIsRushMode] = useState(false);
-  const [onlineOverride, setOnlineOverride] = useState(null);
-  const [isTogglingOnline, setIsTogglingOnline] = useState(false);
-  const [prevShopId, setPrevShopId] = useState(currentShop?.id);
 
-  const shopOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+  // Authoritative persistent online state (rock-solid, zero-flicker)
+  const [isShopOnline, setIsShopOnline] = useState(() => {
+    return currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+  });
+  const isTogglingRef = useRef(false);
 
-  // Reset override if active shop changes
-  if (prevShopId !== currentShop?.id) {
-    setPrevShopId(currentShop?.id);
-    setOnlineOverride(null);
-  } else if (onlineOverride !== null && shopOnline === onlineOverride) {
-    // Gracefully clear override once authoritative context has caught up (zero-flicker transition)
-    setOnlineOverride(null);
-  }
-
-  const isShopOnline = onlineOverride !== null ? onlineOverride : shopOnline;
+  // Synchronize state when active branch changes or external cloud update arrives
+  useEffect(() => {
+    if (isTogglingRef.current) return;
+    const authoritativeOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
+    setIsShopOnline(authoritativeOnline);
+  }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
 
   const handleToggleKitchenOnline = async () => {
     if (!activeShopId) {
       showToast("Kitchen inactive", "error");
       return;
     }
-    if (isTogglingOnline) return;
+    if (isTogglingRef.current) return;
+    isTogglingRef.current = true;
 
     const targetShopId = activeShopId;
     const nextOnline = !isShopOnline;
-    setOnlineOverride(nextOnline);
-    setIsTogglingOnline(true);
+    setIsShopOnline(nextOnline);
     showToast(nextOnline ? "Kitchen ONLINE" : "Kitchen OFFLINE", nextOnline ? "success" : "warning");
 
     try {
@@ -121,13 +129,14 @@ export default function KitchenView() {
       if (user?.id && (userRole === 'kitchen' || actualRole === 'kitchen')) {
         await updateUserOnlineStatus(user.id, nextOnline);
       }
-      if (refreshShops) await refreshShops();
     } catch (e) {
       console.error("Toggle kitchen error:", e);
-      setOnlineOverride(!nextOnline);
+      setIsShopOnline(!nextOnline);
       showToast("Online Status Failed", "error");
     } finally {
-      setIsTogglingOnline(false);
+      setTimeout(() => {
+        isTogglingRef.current = false;
+      }, 500);
     }
   };
 
@@ -197,7 +206,7 @@ export default function KitchenView() {
         if (!error && data) {
           const purged = getPurgedOrderIds();
           // Pre-commit hard filter strictly matching requestedShopId and excluding purged demo orders
-          const isolatedData = data.filter(o => 
+          const isolatedData = data.filter(o =>
             (o.shop_id ?? o.shopId) === requestedShopId &&
             !purged.includes(o.id)
           );
@@ -344,7 +353,7 @@ export default function KitchenView() {
   // Strict Shop-Isolated 1-Tap Stock Toggle for Kitchen Staff
   const handleToggleKitchenItemStock = async (item) => {
     const itemShopId = item.shopId || item.shop_id;
-    if (itemShopId && activeShopId && itemShopId !== activeShopId && !isDevOrAdmin) {
+    if (itemShopId && activeShopId && itemShopId !== activeShopId && !isPlatformAdmin) {
       showToast("Access Denied: Cannot modify stock of another shop", "error");
       return;
     }
@@ -533,7 +542,7 @@ export default function KitchenView() {
       if (isCash) {
         try {
           await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
-        } catch (_) {}
+        } catch (_) { }
       }
 
       setOrders(prev => prev.filter(o => o.id !== orderId));
@@ -694,11 +703,10 @@ export default function KitchenView() {
               <h1 className="text-base sm:text-xl lg:text-2xl font-black text-stone-900 dark:text-white tracking-tight font-outfit font-sans leading-snug">
                 {currentShop ? currentShop.name : (currentUserShopId ? 'Assigned Kitchen Unavailable' : 'Kitchen Operations')}
               </h1>
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${
-                isolatedOrders.length > 0
-                  ? 'bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs'
-                  : 'bg-stone-300/60 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border border-stone-300 dark:border-white/10'
-              }`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 transition-all font-outfit ${isolatedOrders.length > 0
+                ? 'bg-amber-500/15 text-amber-800 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs'
+                : 'bg-stone-300/60 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border border-stone-300 dark:border-white/10'
+                }`}>
                 <span>{isolatedOrders.length} Active</span>
               </span>
             </div>
@@ -716,12 +724,11 @@ export default function KitchenView() {
             <button
               data-tour="restaurant-setup"
               type="button"
-              disabled={isTogglingOnline}
               onClick={handleToggleKitchenOnline}
-              className={`h-10 px-4 min-w-[88px] rounded-full font-bold text-xs flex items-center justify-center border transition-colors duration-150 cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-sm ${isShopOnline
+              className={`h-10 px-4 min-w-[88px] rounded-full font-bold text-xs flex items-center justify-center border transition-colors duration-150 cursor-pointer w-full sm:w-auto shrink-0 shadow-sm ${isShopOnline
                 ? 'bg-[#164E3D] hover:bg-[#124233] text-white border-[#164E3D] shadow-[#164E3D]/25'
                 : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 shadow-rose-600/25'
-                } ${isTogglingOnline ? 'opacity-85 pointer-events-none' : ''}`}
+                }`}
               title="Toggle Live Kitchen Availability"
             >
               <span className="font-outfit font-black tracking-wide uppercase text-[11px] select-none">{isShopOnline ? 'Online' : 'Offline'}</span>
@@ -734,7 +741,7 @@ export default function KitchenView() {
                 setIsRushMode(prev => !prev);
                 showToast(!isRushMode ? "+15 Mins Prep Added" : "Rush Mode Off", !isRushMode ? "warning" : "info");
               }}
-              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-xs ${isRushMode
+              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-colors duration-150 cursor-pointer w-full sm:w-auto shrink-0 shadow-xs ${isRushMode
                 ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white border-orange-500 shadow-md shadow-orange-500/25'
                 : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-200 border-stone-200 dark:border-white/10 hover:border-orange-500/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
                 }`}
@@ -752,7 +759,7 @@ export default function KitchenView() {
                 fetchMenu();
                 setShowStockModal(true);
               }}
-              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 active:scale-95 shadow-xs ${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
+              className={`h-10 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 border transition-colors duration-150 cursor-pointer w-full sm:w-auto shrink-0 shadow-xs ${kitchenMenuItems.filter(i => i.isAvailable === false || i.is_available === false).length > 0
                 ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/25'
                 : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-neutral-200 border-stone-200 dark:border-white/10 hover:border-[#164E3D]/40 hover:bg-stone-50 dark:hover:bg-[#252223]'
                 }`}
@@ -775,7 +782,7 @@ export default function KitchenView() {
           <button
             data-tour="restaurant-menu"
             onClick={handleOpenCreateModal}
-            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(253, 145, 57,0.25)] transition-all cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider active:scale-95"
+            className="h-10 bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white font-black text-xs px-5 rounded-full flex items-center justify-center gap-2 shadow-lg dark:shadow-[0_0_20px_rgba(253, 145, 57,0.25)] transition-colors duration-150 cursor-pointer w-full sm:w-auto shrink-0 font-outfit uppercase tracking-wider"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="whitespace-nowrap">Create Order</span>
@@ -803,7 +810,7 @@ export default function KitchenView() {
       )}
 
       {/* BRANCH SELECTOR — Only Developer & Platform Admins can switch kitchens */}
-      {isDevOrAdmin && allShops.length > 1 && (
+      {isPlatformAdmin && allShops.length > 1 && (
         <div className="flex flex-wrap items-center gap-2.5 py-1 relative z-30">
           <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1.5 font-outfit font-sans">
             <Store className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
@@ -1501,9 +1508,8 @@ export default function KitchenView() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm apple-overlay"
         >
           <div
-            className={`w-full max-w-md bg-stone-50 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${
-              counterOtpModal.shake ? 'animate-shake' : ''
-            }`}
+            className={`w-full max-w-md bg-stone-50 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white rounded-[32px] p-6 sm:p-7 shadow-2xl relative apple-modal-spring ${counterOtpModal.shake ? 'animate-shake' : ''
+              }`}
           >
             {/* Header */}
             <div className="flex items-start justify-between gap-3 mb-5">

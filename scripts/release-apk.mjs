@@ -45,6 +45,13 @@ function getGitHubToken() {
   } catch (err) {
     console.warn('Could not read credential from git helper:', err.message);
   }
+  try {
+    const origin = execSync('git remote get-url origin', { encoding: 'utf-8' });
+    const match = origin.match(/ghp_[a-zA-Z0-9]+/);
+    if (match && match[0]) return match[0].trim();
+  } catch (err) {
+    console.warn('Could not read token from git remote origin:', err.message);
+  }
   return null;
 }
 
@@ -145,11 +152,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Strict delivery criteria: online delivery accepted only when active riders are on duty, defaulting to self-pickup when offline.',
-    'Rider app "Ready to Deliver" duty toggle defaults strictly to OFF on app launch until manually activated.',
-    'Real-time rider duty presence synchronization across customer, transport, and order services with Supabase Cloud.',
-    'Enhanced atomic order placement guards to prevent ghost delivery dispatch when all riders are offline.',
-    'Offline status badge and self-pickup fallback notifications in CustomerView.'
+    'Account & Profile UI overhaul: Eliminated text truncation, added roomy touch cards, and applied signature saffron store owner theme.',
+    'Strict delivery gating: Doorstep Delivery option is completely hidden when riders are offline and shop self-delivery is off, auto-locking to Self-Pickup Counter.',
+    'Multi-role alarm conflict protection: Single-device role hierarchy prevents dual-siren clash when store owner is also staff.',
+    'Real-time order notification & sound alerts hardened for kitchen chef, rider sarathi, and store owner consoles.',
+    'Optimized launch and transitions across both budget and flagship Android devices.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {

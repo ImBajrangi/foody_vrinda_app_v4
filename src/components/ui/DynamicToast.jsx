@@ -220,7 +220,7 @@ export default function DynamicToast({
       className="fixed z-[99999999] pointer-events-none flex justify-center w-full top-0 left-0 right-0"
     >
       <aside
-        className={`dynamic-island-toast toast type-${effectiveType} stage-${stage} select-none cursor-pointer active:scale-95 transition-all pointer-events-auto`}
+        className={`dynamic-island-toast toast type-${effectiveType} stage-${stage} select-none cursor-pointer pointer-events-auto`}
         role={effectiveTypeRaw === 'error' ? 'alert' : 'status'}
         aria-live="polite"
         onClick={triggerDismiss}

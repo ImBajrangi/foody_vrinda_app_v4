@@ -53,7 +53,9 @@ export default function App() {
     isAuthenticated,
     loading: authLoading,
     isAuthorizedAdmin,
-    isAuthorizedDeveloper
+    isAuthorizedDeveloper,
+    isPlatformAdmin,
+    currentUserShopId
   } = useAuth();
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio, isPlaying, activeAlert, stopAlarm } = useAudioAlarm();
@@ -116,13 +118,24 @@ export default function App() {
     }
   }, [currentTab]);
 
-  // Modals Visibility
+  // Splash / First-Time Onboarding Animation Visibility
+  // Website: NEVER show splash screen (instantly enter the store)
+  // Native App: ONLY show once for genuine first-time users on onboarding, never on normal re-opens
   const [showSplash, setShowSplash] = useState(() => {
     try {
-      const viewed = sessionStorage.getItem('fv_splash_viewed');
-      return !viewed;
-    } catch (_) {
+      // 1. Website (Browser): Splash screen completely disabled
+      if (!Capacitor.isNativePlatform()) {
+        return false;
+      }
+      // 2. Native App: only for first-time onboarding users, never on subsequent opens
+      const alreadyOnboarded = localStorage.getItem('fv_onboarding_splash_shown') || localStorage.getItem('foody_onboarding_completed');
+      if (alreadyOnboarded) {
+        return false;
+      }
+      localStorage.setItem('fv_onboarding_splash_shown', 'true');
       return true;
+    } catch (_) {
+      return false;
     }
   });
 
@@ -141,6 +154,9 @@ export default function App() {
 
   const handleSplashDone = useCallback(() => {
     setShowSplash(false);
+    try {
+      localStorage.setItem('fv_onboarding_splash_shown', 'true');
+    } catch (_) { }
   }, []);
 
   useEffect(() => {
@@ -280,14 +296,42 @@ export default function App() {
     } catch (e) { }
   }, [trackingOrderId]);
 
-  // Sanitize privileged views if user loses permissions, without disrupting active storefront browsing
+  // Sanitize privileged views if user loses permissions or lacks assigned shop
   useEffect(() => {
-    if (currentTab === 'owner' && !isAuthorizedAdmin) {
-      setCurrentTab('customer');
-    } else if (currentTab === 'developer' && !isAuthorizedDeveloper) {
-      setCurrentTab('customer');
+    if (authLoading) return;
+    if (currentTab === 'owner') {
+      if (!isAuthorizedAdmin || (!isPlatformAdmin && !currentUserShopId)) {
+        setCurrentTab('customer');
+      }
+    } else if (currentTab === 'kitchen') {
+      const hasKitchenPermission = Boolean(
+        isPlatformAdmin || 
+        (userRole === 'kitchen' && currentUserShopId) ||
+        (userRole === 'owner' && currentUserShopId && (userData?.can_manage_kitchen !== false && !(userData?.devPermissions || []).includes('kitchen_disabled')))
+      );
+      if (!hasKitchenPermission) {
+        setCurrentTab('customer');
+      }
+    } else if (currentTab === 'delivery') {
+      const hasDeliveryPermission = Boolean(
+        isPlatformAdmin || 
+        userRole === 'delivery' ||
+        ((userRole === 'owner' || userRole === 'kitchen') && (
+          userData?.can_deliver || 
+          userData?.canDeliver || 
+          userData?.self_delivery || 
+          (userData?.devPermissions || []).includes('can_deliver')
+        ))
+      );
+      if (!hasDeliveryPermission) {
+        setCurrentTab('customer');
+      }
+    } else if (currentTab === 'developer') {
+      if (!isAuthorizedDeveloper && !isPlatformAdmin) {
+        setCurrentTab('customer');
+      }
     }
-  }, [currentTab, isAuthorizedAdmin, isAuthorizedDeveloper]);
+  }, [currentTab, isAuthorizedAdmin, isAuthorizedDeveloper, isPlatformAdmin, userRole, currentUserShopId, authLoading, userData]);
 
   // Global Ctrl+K (search) hotkey
   useEffect(() => {
@@ -562,18 +606,35 @@ export default function App() {
                 />
               )}
 
-              {currentTab === 'kitchen' && <KitchenView />}
+              {currentTab === 'kitchen' && (
+                (isPlatformAdmin || (userRole === 'kitchen' && currentUserShopId) || (userRole === 'owner' && currentUserShopId && userData?.can_manage_kitchen !== false && !(userData?.devPermissions || []).includes('kitchen_disabled'))) ? (
+                  <KitchenView />
+                ) : (
+                  <CustomerView
+                    trackingOrderId={trackingOrderId}
+                    setTrackingOrderId={setTrackingOrderId}
+                  />
+                )
+              )}
 
-              {currentTab === 'delivery' && <TransportView />}
+              {currentTab === 'delivery' && (
+                (isPlatformAdmin || userRole === 'delivery' || ((userRole === 'owner' || userRole === 'kitchen') && (userData?.can_deliver || userData?.canDeliver || userData?.self_delivery || (userData?.devPermissions || []).includes('can_deliver')))) ? (
+                  <TransportView />
+                ) : (
+                  <CustomerView
+                    trackingOrderId={trackingOrderId}
+                    setTrackingOrderId={setTrackingOrderId}
+                  />
+                )
+              )}
 
               {currentTab === 'owner' && (
-                isAuthorizedAdmin ? (
+                (isPlatformAdmin || (isAuthorizedAdmin && currentUserShopId)) ? (
                   <OwnerView />
                 ) : (
-                  <UnauthorizedAccessScreen
-                    requiredRole="Administrator"
-                    onAuthenticate={() => setIsAuthOpen(true)}
-                    onReturnStore={() => setCurrentTab('customer')}
+                  <CustomerView
+                    trackingOrderId={trackingOrderId}
+                    setTrackingOrderId={setTrackingOrderId}
                   />
                 )
               )}

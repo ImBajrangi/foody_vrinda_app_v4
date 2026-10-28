@@ -79,7 +79,7 @@ export default function TransportView() {
 
   // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
   const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
-  const [isTogglingDuty, setIsTogglingDuty] = useState(false);
+  const isTogglingDutyRef = useRef(false);
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
   const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
@@ -208,8 +208,8 @@ export default function TransportView() {
   }, [isRiderOnDuty, activeUser]);
 
   const toggleRiderDuty = async () => {
-    if (isTogglingDuty) return;
-    setIsTogglingDuty(true);
+    if (isTogglingDutyRef.current) return;
+    isTogglingDutyRef.current = true;
     const nextState = !isRiderOnDuty;
     setIsRiderOnDuty(nextState);
     try {
@@ -220,7 +220,9 @@ export default function TransportView() {
     try {
       await updateUserOnlineStatus(riderId, nextState, riderCoordsRef.current);
     } catch { /* ignore */ } finally {
-      setIsTogglingDuty(false);
+      setTimeout(() => {
+        isTogglingDutyRef.current = false;
+      }, 500);
     }
 
     showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
@@ -1042,12 +1044,11 @@ export default function TransportView() {
           <button
             data-tour="delivery-go-online"
             type="button"
-            disabled={isTogglingDuty}
             onClick={toggleRiderDuty}
-            className={`h-10 sm:h-11 px-4 sm:px-5 min-w-[200px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-colors duration-150 cursor-pointer apple-tap-target w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
+            className={`h-10 sm:h-11 px-4 sm:px-5 min-w-[200px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-colors duration-150 cursor-pointer w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
               ? 'bg-[#CEF3E7] dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-300 border-emerald-600/30 dark:border-emerald-500/30 hover:bg-[#bbf0df] dark:hover:bg-emerald-950/60'
               : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
-              } ${isTogglingDuty ? 'opacity-85 pointer-events-none' : ''}`}
+              }`}
             title="Toggle Ready to Deliver Duty Availability"
           >
             <span className={`w-2 h-2 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
@@ -1059,7 +1060,7 @@ export default function TransportView() {
             <button
               data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
-              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors duration-150 cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
                 ? 'bg-[#FD9139] text-white font-black shadow-sm'
                 : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
@@ -1070,7 +1071,7 @@ export default function TransportView() {
             <button
               data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
-              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
+              className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors duration-150 cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
                 ? 'bg-[#FD9139] text-white font-black shadow-sm'
                 : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
                 }`}
@@ -1081,27 +1082,6 @@ export default function TransportView() {
           </div>
         </div>
       </div>
-
-      {/* Off Duty Notice Banner */}
-      {!isRiderOnDuty && (
-        <div className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-stone-400 dark:bg-stone-500 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-xs sm:text-sm font-bold tracking-tight">Rider is currently Off Duty (Break Mode)</p>
-              <p className="text-[11px] opacity-80 mt-0.5">Live audible alarms and automatic order assignments are paused until you switch back on duty.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            disabled={isTogglingDuty}
-            onClick={toggleRiderDuty}
-            className={`px-3.5 py-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 cursor-pointer transition-colors duration-150 shadow-xs ${isTogglingDuty ? 'opacity-85 pointer-events-none' : ''}`}
-          >
-            Ready to Deliver
-          </button>
-        </div>
-      )}
 
       {/* 3. SARATHI FLEET OPERATIONS SEGMENTED TABS (Independent Fleet) */}
       <div className="space-y-3">
