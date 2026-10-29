@@ -103,6 +103,7 @@ import {
   saveCachedUsers,
   broadcastAlarmEvent,
   purgeAllDemoOrders,
+  purgeAllOrdersFromCloud,
   setDeliveryPartnerStatus,
   updateUserOnlineStatus,
   resolveDishCutout
@@ -3628,12 +3629,14 @@ export default function DeveloperView({ setCurrentTab }) {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      purgeAllDemoOrders();
+                    onClick={async () => {
+                      const res = await purgeAllOrdersFromCloud();
                       setToast({
                         type: 'success',
                         title: 'SYSTEM PURGED',
-                        message: 'All demo and test orders purged across every panel!'
+                        message: res?.dbPurged 
+                          ? 'All demo & test orders permanently purged from Database & local cache!'
+                          : 'All orders purged across active session and local storage!'
                       });
                     }}
                     className="w-full py-2.5 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98]"

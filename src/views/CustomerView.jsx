@@ -2915,7 +2915,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
                     {isDeliveryAvailable
                       ? `${onlineRidersCount} Sarathi Riders Active`
-                      : 'Self-Pickup Only (Riders Offline)'}
+                      : 'Riders Offline • Counter Open'}
                   </span>
                 </div>
 
@@ -2950,23 +2950,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     </button>
                   </div>
                 ) : (
-                  /* When delivery riders are offline: Delivery option is completely hidden */
-                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 shadow-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0">
-                        <span className="text-base">🛍️</span>
+                  /* When delivery riders are offline: Clean, direct counter pickup card */
+                  <div className="p-3 sm:p-3.5 rounded-2xl bg-stone-100/95 dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 flex items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/25 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-2xs">
+                        <ShoppingBag size={18} strokeWidth={2.5} />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] block">
-                          Self-Pickup Counter Only
-                        </span>
-                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold block">
-                          Delivery riders offline • Counter pickup at shop is open & active
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs sm:text-[13px] font-black text-stone-900 dark:text-white font-['Outfit']">
+                            Self-Pickup
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-700 dark:text-[#FD9139] bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded-md border border-amber-500/20 font-['Outfit']">
+                            Counter
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 font-medium font-['Plus_Jakarta_Sans'] truncate mt-0.5">
+                          Collect directly from kitchen (Delivery offline)
+                        </p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
-                      FREE
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 shrink-0 font-['Outfit'] uppercase tracking-wider">
+                      Free
                     </span>
                   </div>
                 )}

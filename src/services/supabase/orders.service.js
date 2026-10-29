@@ -26,6 +26,25 @@ import { generateSecureOrderOTP, computeSha256Hex, getOnlineRiders } from './rid
 
 export { getPurgedOrderIds, purgeOrder, purgeAllDemoOrders };
 
+/**
+ * 🧹 Admin / Developer Purge: Clears all orders from Supabase database and local device storage.
+ */
+export async function purgeAllOrdersFromCloud() {
+  let dbPurged = false;
+  try {
+    const { data, error } = await supabase.rpc('admin_purge_all_orders');
+    if (!error && data?.success) {
+      dbPurged = true;
+    }
+  } catch (e) {
+    console.debug('admin_purge_all_orders RPC note:', e?.message || e);
+  }
+
+  // Wipes all client session order IDs, cached orders, and broadcasts instant real-time UI reset
+  const purged = purgeAllDemoOrders();
+  return { success: true, dbPurged, count: purged.length };
+}
+
 export const ALLOWED_ORDER_TRANSITIONS = {
   new: ['preparing', 'cancelled'],
   preparing: ['ready_for_pickup', 'cancelled'],
@@ -121,33 +140,16 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
  */
 function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
   Promise.resolve().then(async () => {
-    const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 'https://mrsxliwyqodtwjuyqmts.supabase.co';
-    const functionUrl = `${supabaseUrl}/functions/v1/order-push-notification`;
-    const payload = JSON.stringify({
-      type,
-      table: 'foody_orders',
-      record: { id: record?.id, ...record, ...extra }
-    });
-
     try {
-      // Direct POST with text/plain qualifies as CORS Simple Request:
-      // Zero OPTIONS preflight, zero 500 preflight crashes, instant delivery to native phones
-      await fetch(functionUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: payload
+      await supabase.functions.invoke('order-push-notification', {
+        body: {
+          type,
+          table: 'foody_orders',
+          record: { id: record?.id, ...record, ...extra }
+        }
       });
-    } catch (_err) {
-      // Fallback to supabase.functions.invoke if direct fetch is blocked
-      try {
-        await supabase.functions.invoke('order-push-notification', {
-          body: {
-            type,
-            table: 'foody_orders',
-            record: { id: record?.id, ...record, ...extra }
-          }
-        });
-      } catch (invokeErr) {
+    } catch (invokeErr) {
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         console.debug('Background push notification notice (non-fatal):', invokeErr?.message || invokeErr);
       }
     }
@@ -529,10 +531,29 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
           finalData = dd;
         }
       } else if (payload.status === 'completed') {
-        const { data: dd, error: de } = await supabase.rpc('delivery_mark_delivered', { p_order_id: orderId });
-        if (!de && dd) {
-          rpcSuccess = true;
-          finalData = dd;
+        const isCounterPickup = extra?.fulfillment_type === 'pickup' || extra?.isCounterPickup || extra?.role === 'kitchen';
+        if (isCounterPickup) {
+          const { data: kd, error: ke } = await supabase.rpc('kitchen_complete_pickup', { p_order_id: orderId });
+          if (!ke && kd) {
+            rpcSuccess = true;
+            finalData = kd;
+          } else {
+            const { data: td, error: te } = await supabase.rpc('transition_order_status', {
+              target_order_id: orderId,
+              new_status: 'completed',
+              extra_payload: { fulfillment_type: 'pickup', ...extra }
+            });
+            if (!te && td) {
+              rpcSuccess = true;
+              finalData = td;
+            }
+          }
+        } else {
+          const { data: dd, error: de } = await supabase.rpc('delivery_mark_delivered', { p_order_id: orderId });
+          if (!de && dd) {
+            rpcSuccess = true;
+            finalData = dd;
+          }
         }
       } else if (payload.status === 'cancelled') {
         const { data: od, error: oe } = await supabase.rpc('owner_reject_order', {
@@ -545,7 +566,8 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
         }
       }
 
-      if (extra?.cashStatus === 'collected' || extra?.cash_status === 'collected') {
+      const isRiderDelivery = !extra?.isCounterPickup && extra?.fulfillment_type !== 'pickup';
+      if (isRiderDelivery && (extra?.cashStatus === 'collected' || extra?.cash_status === 'collected')) {
         const { data: cd } = await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
         if (cd) finalData = { ...(finalData || {}), ...cd };
       }

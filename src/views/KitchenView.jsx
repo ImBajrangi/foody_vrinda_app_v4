@@ -535,15 +535,13 @@ export default function KitchenView() {
       const isCash = rawMethod === 'cash' || rawMethod === 'cod';
 
       await updateCloudOrderStatus(orderId, 'completed', {
+        fulfillment_type: 'pickup',
+        isCounterPickup: true,
+        role: 'kitchen',
+        shop_id: orderData?.shop_id || orderData?.shopId,
         cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
         delivered_at: new Date().toISOString()
       });
-
-      if (isCash) {
-        try {
-          await supabase.rpc('delivery_collect_cod', { p_order_id: orderId });
-        } catch (_) { }
-      }
 
       setOrders(prev => prev.filter(o => o.id !== orderId));
       showToast('Counter Handover Completed! Prasad given to customer.', 'success');
