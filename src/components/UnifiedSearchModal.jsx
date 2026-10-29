@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary } from '../supabase';
+import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary, getCachedShops } from '../supabase';
 import { 
   Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, 
   Flame, Clock, MapPin, Plus, Minus, Tag, TrendingUp, RotateCcw, 
@@ -1014,71 +1014,94 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                 </h4>
 
                 <div className="space-y-2">
-                  {results.orders.map(order => (
-                    <div key={order.id} className="bg-white dark:bg-[#282526] rounded-2xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-2xs transition-all">
-                      <div
-                        onClick={() => handleExpandOrder(order)}
-                        className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
-                      >
-                        <div className="min-w-0 flex-1 mr-2">
-                          <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">
-                            {getOrderItemSummary(order) || `Order #${order.id.slice(-6).toUpperCase()}`}
-                          </p>
-                          <p className="text-[10px] text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5 font-medium">
-                            <Clock size={10} className="shrink-0" />
-                            <span>{order.items?.length || 0} items</span>
-                            <span>•</span>
-                            <span className="font-bold text-amber-700 dark:text-[#FD9139]">₹{order.total_amount || order.totalAmount || 0}</span>
-                            <span>•</span>
-                            <span className="font-mono">#{order.id.slice(-5).toUpperCase()}</span>
-                          </p>
-                        </div>
+                  {results.orders.map(order => {
+                    const orderShop = allShops?.find(s => s.id === (order.shop_id || order.shopId)) || getCachedShops()?.find(s => s.id === (order.shop_id || order.shopId));
+                    const shopName = order.shop_name || order.shopName || orderShop?.name || 'Foody Vrinda Sacred Kitchen';
+                    const shopAddress = order.shop_address || order.shopAddress || orderShop?.address || 'Chatikara Road, Vrindavan';
+                    const orderItems = Array.isArray(order.items)
+                      ? order.items
+                      : (typeof order.items === 'string'
+                          ? (() => { try { return JSON.parse(order.items); } catch { return []; } })()
+                          : []);
+                    const totalAmount = Number(order.total_amount || order.totalAmount || 0);
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[9.5px] font-black px-2.5 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                            {order.status?.replace(/_/g, ' ')}
-                          </span>
-                          <ChevronRight size={14} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedOrder?.id === order.id ? 'rotate-90' : ''}`} />
-                        </div>
-                      </div>
-
-                      {/* Expanded Order Detail */}
-                      {expandedOrder?.id === order.id && (
-                        <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-3 animate-fade-in">
-                          <div className="flex items-center justify-between text-xs">
-                            <div>
-                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Placed At</p>
-                              <p className="font-bold text-stone-900 dark:text-white">
-                                {order.created_at ? new Date(order.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent'}
-                              </p>
+                    return (
+                      <div key={order.id} className="bg-white dark:bg-[#282526] rounded-2xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-2xs transition-all">
+                        <div
+                          onClick={() => handleExpandOrder(order)}
+                          className="p-3 flex justify-between items-center cursor-pointer hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors"
+                        >
+                          <div className="min-w-0 flex-1 mr-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-mono font-black text-xs text-amber-700 dark:text-[#FD9139] bg-amber-500/10 dark:bg-[#FD9139]/10 px-1.5 py-0.5 rounded">
+                                #{order.id?.length > 12 ? `${order.id.slice(0, 6)}…${order.id.slice(-5)}` : order.id}
+                              </span>
+                              <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">
+                                {shopName}
+                              </span>
                             </div>
-                            <div className="text-right">
-                              <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase">Order Total</p>
-                              <p className="font-black text-amber-700 dark:text-[#FD9139] text-sm">₹{order.total_amount || order.totalAmount || 0}</p>
-                            </div>
+                            <p className="text-[10px] text-stone-500 dark:text-zinc-400 flex items-center gap-1.5 mt-1 font-medium">
+                              <Clock size={10} className="shrink-0" />
+                              <span>{orderItems.length} items</span>
+                              <span>•</span>
+                              <span className="font-bold text-amber-700 dark:text-[#FD9139] font-mono">₹{totalAmount}</span>
+                            </p>
                           </div>
 
-                          {Array.isArray(order.items) && order.items.length > 0 && (
-                            <div className="text-[11px] text-stone-600 dark:text-zinc-300 bg-stone-100/70 dark:bg-white/5 p-2 rounded-xl border border-stone-200/60 dark:border-white/5">
-                              {order.items.map((it) => `${it.name || 'Item'} × ${it.quantity || 1}`).join(' • ')}
-                            </div>
-                          )}
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectOrder(order.id, order);
-                              handleAnimatedClose();
-                            }}
-                            className="w-full flex items-center justify-center gap-2 bg-[#FD9139] hover:bg-[#FCA65E] text-white text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-md shadow-[#FD9139]/20"
-                          >
-                            <Receipt size={13} />
-                            {['delivered', 'cancelled'].includes(order.status) ? 'View Order Summary' : 'Live Track Order'}
-                          </button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={`text-[9.5px] font-black px-2.5 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
+                              {order.status?.replace(/_/g, ' ')}
+                            </span>
+                            <ChevronRight size={14} className={`text-stone-400 dark:text-zinc-500 transition-transform duration-200 ${expandedOrder?.id === order.id ? 'rotate-90' : ''}`} />
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* Expanded Order Detail */}
+                        {expandedOrder?.id === order.id && (
+                          <div className="border-t border-stone-200 dark:border-white/10 p-3 sm:p-4 bg-stone-50/70 dark:bg-[#1E1B1C]/80 space-y-3 animate-fade-in">
+                            <div className="flex items-center justify-between text-xs pb-1 border-b border-stone-200/50 dark:border-white/5">
+                              <div>
+                                <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase font-['Outfit']">Kitchen Details</p>
+                                <p className="font-bold text-stone-900 dark:text-white text-xs">{shopName}</p>
+                                <p className="text-[10px] text-stone-500 dark:text-zinc-400 truncate">{shopAddress}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-stone-400 dark:text-zinc-500 uppercase font-['Outfit']">Order Total</p>
+                                <p className="font-black text-amber-700 dark:text-[#FD9139] text-sm font-mono">₹{totalAmount}</p>
+                              </div>
+                            </div>
+
+                            {orderItems.length > 0 && (
+                              <div className="space-y-1 bg-stone-100/70 dark:bg-white/5 p-2.5 rounded-xl border border-stone-200/60 dark:border-white/5 text-[11px]">
+                                <p className="text-[10px] font-black uppercase text-stone-400 dark:text-zinc-500 mb-1">Items Breakdown</p>
+                                {orderItems.map((it, idx) => (
+                                  <div key={idx} className="flex justify-between items-center text-stone-700 dark:text-zinc-200">
+                                    <span className="truncate pr-2">
+                                      <span className="font-black text-amber-700 dark:text-[#FD9139]">{it.quantity || 1}x</span> {it.name || 'Prasad Dish'}
+                                      {it.price && <span className="text-[10px] text-stone-400 ml-1">(@ ₹{it.price})</span>}
+                                    </span>
+                                    <span className="font-bold font-mono shrink-0">₹{(Number(it.price) || 0) * (Number(it.quantity) || 1)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectOrder(order.id, order);
+                                handleAnimatedClose();
+                              }}
+                              className="w-full flex items-center justify-center gap-2 bg-[#FD9139] hover:bg-[#FCA65E] text-white text-xs font-black py-2.5 rounded-full transition-all cursor-pointer shadow-md shadow-[#FD9139]/20"
+                            >
+                              <Receipt size={13} />
+                              {['delivered', 'cancelled'].includes(order.status) ? 'View Order Summary' : 'Live Track Order'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

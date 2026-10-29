@@ -209,43 +209,30 @@ export function CartProvider({ children }) {
   }, [paymentSettings]);
 
   const addToCart = useCallback((item, shopId) => {
-    const targetShopId = shopId || item.shopId || selectedShopId;
+    const targetShopId = shopId || item.shopId || selectedShopId || 'shop-vrinda-main';
     
-    // Check if user is attempting to add item from a different kitchen while having items in cart
-    if (selectedShopId && targetShopId && selectedShopId !== targetShopId && cart.length > 0) {
-      const confirmSwitch = typeof window !== 'undefined' ? window.confirm(
-        'Your cart already contains sacred prasad from another kitchen.\n\nSwitching kitchens will clear your existing cart. Do you want to clear your cart and continue with this kitchen?'
-      ) : true;
-
-      if (!confirmSwitch) {
-        return; // Preserve existing user cart
+    // Multi-Shop Cart: Allow adding items across multiple kitchens simultaneously with shop tagging
+    setCart(prevCart => {
+      const existingIdx = prevCart.findIndex(i => i.id === item.id && (i.shopId === targetShopId || !i.shopId));
+      if (existingIdx >= 0) {
+        const next = [...prevCart];
+        next[existingIdx] = { 
+          ...next[existingIdx], 
+          quantity: (next[existingIdx].quantity || 1) + 1,
+          shopId: targetShopId
+        };
+        return next;
       }
-      // User confirmed switch: Clear previous cart and initialize with new kitchen item
-      setSelectedShopId(targetShopId);
-      setCart([{ ...item, quantity: 1, shopId: targetShopId }]);
-      return;
-    }
+      return [...prevCart, { ...item, quantity: 1, shopId: targetShopId }];
+    });
+  }, [selectedShopId]);
 
-    if (targetShopId && (!selectedShopId || selectedShopId === targetShopId)) {
-      setSelectedShopId(targetShopId);
-      setCart(prevCart => {
-        const existing = prevCart.find(i => i.id === item.id);
-        if (existing) {
-          return prevCart.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-        }
-        return [...prevCart, { ...item, quantity: 1, shopId: targetShopId }];
-      });
-    } else {
-      setSelectedShopId(targetShopId);
-      setCart([{ ...item, quantity: 1, shopId: targetShopId }]);
-    }
-  }, [selectedShopId, cart.length]);
-
-  const updateQuantity = useCallback((itemId, delta) => {
+  const updateQuantity = useCallback((itemId, delta, shopId = null) => {
     setCart(prevCart => {
       const updated = prevCart.map(i => {
-        if (i.id === itemId) {
-          const newQty = i.quantity + delta;
+        const matches = shopId ? (i.id === itemId && i.shopId === shopId) : (i.id === itemId);
+        if (matches) {
+          const newQty = (i.quantity || 1) + delta;
           return newQty > 0 ? { ...i, quantity: newQty } : null;
         }
         return i;
@@ -257,25 +244,24 @@ export function CartProvider({ children }) {
 
   const setExactQuantity = useCallback((itemId, exactQty, itemObj = null) => {
     setCart(prevCart => {
+      const targetShopId = itemObj?.shopId || selectedShopId;
       if (exactQty <= 0) {
-        return prevCart.filter(i => i.id !== itemId);
+        return prevCart.filter(i => targetShopId ? !(i.id === itemId && i.shopId === targetShopId) : i.id !== itemId);
       }
-      const existing = prevCart.find(i => i.id === itemId);
+      const existing = prevCart.find(i => targetShopId ? (i.id === itemId && i.shopId === targetShopId) : i.id === itemId);
       if (existing) {
-        return prevCart.map(i => i.id === itemId ? { ...i, quantity: exactQty } : i);
+        return prevCart.map(i => (targetShopId ? (i.id === itemId && i.shopId === targetShopId) : i.id === itemId) ? { ...i, quantity: exactQty } : i);
       }
       if (itemObj) {
-        const targetShopId = itemObj.shopId || selectedShopId;
-        if (targetShopId) setSelectedShopId(targetShopId);
         return [...prevCart, { ...itemObj, quantity: exactQty, shopId: targetShopId }];
       }
       return prevCart;
     });
   }, [selectedShopId]);
 
-  const removeFromCart = useCallback((itemId) => {
+  const removeFromCart = useCallback((itemId, shopId = null) => {
     setCart(prevCart => {
-      return prevCart.filter(i => i.id !== itemId);
+      return prevCart.filter(i => shopId ? !(i.id === itemId && i.shopId === shopId) : i.id !== itemId);
     });
   }, []);
 

@@ -271,6 +271,9 @@ export async function createCloudOrder(orderData) {
       ...orderData,
       ...orderPayload,
       shopId: orderPayload.shop_id,
+      shopName: targetShop?.name || orderData.shopName || orderData.shop_name || 'Foody Vrinda Sacred Kitchen',
+      shopAddress: targetShop?.address || orderData.shopAddress || orderData.shop_address || 'Chatikara Road, Raman Reti, Vrindavan',
+      shopPhone: targetShop?.phone || orderData.shopPhone || null,
       customerName: orderPayload.customer_name,
       customerPhone: orderPayload.customer_phone,
       customerAddress: orderPayload.customer_address,
@@ -366,7 +369,13 @@ export async function createCloudOrder(orderData) {
       return normalizedCreated;
     }
 
-    const finalOrder = { ...normalizedCreated, ...(data || {}) };
+    const finalOrder = { 
+      ...normalizedCreated, 
+      ...(data || {}),
+      shopName: targetShop?.name || orderData.shopName || orderData.shop_name || 'Foody Vrinda Sacred Kitchen',
+      shopAddress: targetShop?.address || orderData.shopAddress || orderData.shop_address || 'Chatikara Road, Raman Reti, Vrindavan',
+      shopPhone: targetShop?.phone || orderData.shopPhone || null
+    };
 
     // Update in-memory and local cache for both the specific shop and 'all'
     try {

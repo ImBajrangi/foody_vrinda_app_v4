@@ -63,10 +63,16 @@ export class RealtimeMultiplexer {
             const raw = payload.new || payload.old;
             if (!raw) return;
 
+            const cachedShops = getCachedShops() || [];
+            const shopMatch = cachedShops.find(s => s.id === raw.shop_id);
+
             const normalized = {
               id: raw.id,
               ...raw,
               shopId: raw.shop_id,
+              shopName: shopMatch?.name || raw.shop_name || raw.shopName || null,
+              shopAddress: shopMatch?.address || raw.shop_address || raw.shopAddress || null,
+              shopPhone: shopMatch?.phone || raw.shop_phone || raw.shopPhone || null,
               customerName: raw.customer_name,
               customerPhone: raw.customer_phone,
               customerAddress: raw.customer_address,

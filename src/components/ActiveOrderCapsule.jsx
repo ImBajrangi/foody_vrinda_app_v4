@@ -7,7 +7,7 @@ import {
   ChevronUp, 
   Clock
 } from 'lucide-react';
-import { subscribeSingleCloudOrder } from '../supabase';
+import { subscribeSingleCloudOrder, getCachedShops } from '../supabase';
 
 /**
  * Floating Dynamic Island Live Order Activity Capsule
@@ -49,10 +49,11 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
 
   const status = currentOrder.status || 'new';
   const orderShopId = currentOrder.shopId || currentOrder.shop_id;
+  const cachedShops = getCachedShops() || [];
   const matchedShop = (allShops && allShops.length > 0 && orderShopId)
     ? allShops.find(s => s.id === orderShopId)
-    : null;
-  const shop = matchedShop || { name: currentOrder.shopName || 'Foody Vrinda Kitchen' };
+    : (cachedShops.find(s => s.id === orderShopId) || null);
+  const shop = matchedShop || { name: currentOrder.shopName || currentOrder.shop_name || 'Foody Vrinda Sacred Kitchen' };
 
   const isCompleted = status === 'completed' || status === 'delivered';
 
@@ -237,6 +238,11 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
         <span className="text-xs sm:text-[13px] font-black font-['Outfit'] text-stone-950 dark:text-white tracking-tight truncate shrink-0 max-w-[110px] sm:max-w-none">
           {statusInfo.title}
         </span>
+        {currentOrder?.id && (
+          <span className="font-mono text-[10px] font-bold text-amber-700 dark:text-[#FD9139] px-1 rounded bg-amber-500/10 dark:bg-[#FD9139]/10 shrink-0">
+            #{String(currentOrder.id).slice(-5).toUpperCase()}
+          </span>
+        )}
         <span className="text-stone-300 dark:text-zinc-600 text-[11px] font-bold shrink-0">•</span>
         <span className="text-[11px] sm:text-xs font-bold text-stone-600 dark:text-zinc-300 truncate min-w-0 flex-1">
           {cleanShop}

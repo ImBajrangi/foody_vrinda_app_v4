@@ -1002,15 +1002,23 @@ export default function KitchenView() {
                   </div>
 
                   {/* Dishes Checklist Section */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans flex items-center justify-between">
-                      <span>Dish Checklist</span>
-                      <span className="text-stone-400 dark:text-zinc-500">{order.items?.length || 0} items</span>
-                    </p>
+                  {(() => {
+                    const kitchenItems = Array.isArray(order.items)
+                      ? order.items
+                      : (typeof order.items === 'string'
+                          ? (() => { try { return JSON.parse(order.items); } catch { return []; } })()
+                          : []);
 
-                    <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-48 overflow-y-auto pr-1 no-scrollbar space-y-1">
-                      {order.items?.map((item, i) => (
-                        <div key={item.id || i} className="py-2 text-xs flex justify-between items-start gap-2">
+                    return (
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black text-stone-600 dark:text-zinc-400 uppercase tracking-wider font-outfit font-sans flex items-center justify-between">
+                          <span>Dish Checklist</span>
+                          <span className="text-stone-400 dark:text-zinc-500">{kitchenItems.length} items</span>
+                        </p>
+
+                        <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-48 overflow-y-auto pr-1 no-scrollbar space-y-1">
+                          {kitchenItems.map((item, i) => (
+                            <div key={item.id || i} className="py-2 text-xs flex justify-between items-start gap-2">
                           <div className="flex items-start gap-2 min-w-0 flex-1">
                             <span className="w-5 h-5 rounded-full bg-stone-200 dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-[#FD9139] font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
                               {item.quantity}x
@@ -1052,7 +1060,9 @@ export default function KitchenView() {
                       ))}
                     </div>
                   </div>
-                </div>
+                );
+              })()}
+            </div>
 
                 {/* Status Update Action Button */}
                 <div className="pt-3 border-t border-stone-200/80 dark:border-white/5">

@@ -81,7 +81,8 @@ import {
   getCachedItem,
   setCachedItem,
   getPurgedOrderIds,
-  purgeOrder
+  purgeOrder,
+  getCachedShops
 } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
 import { useNotifications } from '../context/NotificationContext';
@@ -1008,20 +1009,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         }
 
         if (orderRecord && isMounted) {
+          const cachedShops = getCachedShops() || [];
+          const matchedTargetShop = allShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId)) || cachedShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId));
+          const parsedItems = Array.isArray(orderRecord.items)
+            ? orderRecord.items
+            : (typeof orderRecord.items === 'string'
+                ? (() => { try { return JSON.parse(orderRecord.items); } catch { return []; } })()
+                : []);
+
           const mapped = {
             ...orderRecord,
             id: orderRecord.id,
             shopId: orderRecord.shop_id || orderRecord.shopId,
+            shopName: matchedTargetShop?.name || orderRecord.shop_name || orderRecord.shopName || 'Foody Vrinda Sacred Kitchen',
+            shopAddress: matchedTargetShop?.address || orderRecord.shop_address || orderRecord.shopAddress || 'Chatikara Road, Raman Reti, Vrindavan',
+            shopPhone: matchedTargetShop?.phone || orderRecord.shop_phone || null,
             customerName: orderRecord.customer_name || orderRecord.customerName,
             customerPhone: orderRecord.customer_phone || orderRecord.customerPhone,
             customerAddress: orderRecord.customer_address || orderRecord.customerAddress,
             deliveryAddress: orderRecord.delivery_address || orderRecord.deliveryAddress,
             totalAmount: orderRecord.total_amount || orderRecord.totalAmount,
+            subtotal: orderRecord.subtotal,
+            deliveryCharge: orderRecord.delivery_charge || orderRecord.deliveryCharge,
+            gstAmount: orderRecord.gst_amount || orderRecord.gstAmount,
             cookingNotes: orderRecord.cooking_notes || orderRecord.cookingNotes,
             paymentMethod: orderRecord.payment_method || orderRecord.paymentMethod,
             deliveryCoordinates: orderRecord.delivery_coordinates || orderRecord.deliveryCoordinates,
             createdAt: orderRecord.created_at || orderRecord.createdAt,
-            items: Array.isArray(orderRecord.items) ? orderRecord.items : []
+            items: parsedItems
           };
           if (['delivered', 'completed', 'cancelled'].includes(mapped.status)) {
             setTrackingOrder(null);
@@ -1122,12 +1137,46 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     };
   }, []);
 
-  // Cart's actual shop isolation & mismatch resolution
+  // Cart's actual shop isolation & multi-shop grouping resolution
+  const cartGroupedByShop = useMemo(() => {
+    if (!cart || cart.length === 0) return [];
+    const groups = {};
+    cart.forEach(item => {
+      const sId = item.shopId || item.shop_id || selectedShopId || 'foody_main';
+      if (!groups[sId]) {
+        const foundShop = (allShops || []).find(s => s.id === sId && s.is_active !== false && !s.is_deleted) || null;
+        groups[sId] = {
+          shopId: sId,
+          shop: foundShop,
+          shopName: foundShop?.name || item.shopName || 'Foody Vrinda Sacred Kitchen',
+          shopAddress: foundShop?.address || 'Chatikara Road, Raman Reti, Vrindavan',
+          shopPhone: foundShop?.phone || null,
+          deliveryCharge: Number(foundShop?.deliveryCharge !== undefined ? foundShop.deliveryCharge : 30),
+          gstPercentage: Number(foundShop?.gstPercentage !== undefined ? foundShop.gstPercentage : 5),
+          minimumOrderAmount: Number(foundShop?.minimumOrderAmount || 0),
+          items: [],
+          subtotal: 0
+        };
+      }
+      groups[sId].items.push(item);
+      groups[sId].subtotal += (Number(item.price) || 0) * (Number(item.quantity) || 1);
+    });
+
+    return Object.values(groups).map(g => {
+      const shopDelivery = fulfillmentType === 'pickup' ? 0 : g.deliveryCharge;
+      const shopGst = Math.round(g.subtotal * (g.gstPercentage / 100));
+      const shopTotal = g.subtotal + shopDelivery + shopGst;
+      return {
+        ...g,
+        effectiveDeliveryCharge: shopDelivery,
+        gstAmount: shopGst,
+        totalAmount: shopTotal
+      };
+    });
+  }, [cart, allShops, selectedShopId, fulfillmentType]);
+
+  const isMultiShopCart = cartGroupedByShop.length > 1;
   const cartShopId = cart.length > 0 ? (cart[0]?.shopId || cart[0]?.shop_id) : null;
-  const isMultiShopCart = cart.length > 1 && cart.some(item => {
-    const itShop = item.shopId || item.shop_id;
-    return itShop && cartShopId && itShop !== cartShopId;
-  });
   const cartShop = useMemo(() => {
     if (!cartShopId || !allShops) return null;
     return allShops.find(s => s.id === cartShopId && s.is_active !== false && !s.is_deleted) || null;
@@ -1141,10 +1190,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   // If cart has items from a valid shop, use that shop as effective context for pricing & fulfillment
   const effectiveOrderShop = (cart.length > 0 && cartShop) ? cartShop : activeShop;
 
-  const isShopOpen = effectiveOrderShop ? isShopCurrentlyOpen(effectiveOrderShop) : false;
+  // Closed shop check across all shops in cart
+  const closedShop = useMemo(() => {
+    if (cartGroupedByShop.length > 0) {
+      return cartGroupedByShop.find(g => g.shop && !isShopCurrentlyOpen(g.shop));
+    }
+    return activeShop && !isShopCurrentlyOpen(activeShop) ? { shop: activeShop, shopName: activeShop.name } : null;
+  }, [cartGroupedByShop, activeShop]);
+
+  const isShopOpen = !closedShop;
 
   const isDeliveryAvailable = Boolean(
     onlineRidersCount > 0 ||
+    cartGroupedByShop.some(g => g.shop?.self_delivery || g.shop?.can_deliver) ||
     effectiveOrderShop?.self_delivery ||
     effectiveOrderShop?.can_deliver
   );
@@ -1170,14 +1228,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     );
   }, [allShops, shopSearch]);
 
-  const minOrderAmount = effectiveOrderShop?.minimumOrderAmount || 0;
-  const deliveryCharge = fulfillmentType === 'pickup' ? 0 : (effectiveOrderShop?.deliveryCharge || 0);
-  const gstPct = effectiveOrderShop?.gstPercentage || 5;
+  const shopBelowMin = cartGroupedByShop.find(g => g.minimumOrderAmount > 0 && g.subtotal < g.minimumOrderAmount);
+  const isBelowMin = !!shopBelowMin;
+  const minOrderAmount = shopBelowMin ? shopBelowMin.minimumOrderAmount : (effectiveOrderShop?.minimumOrderAmount || 0);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const gstAmount = Math.round(subtotal * (gstPct / 100));
+  const deliveryCharge = cartGroupedByShop.reduce((sum, g) => sum + g.effectiveDeliveryCharge, 0);
+  const gstPct = cartGroupedByShop[0]?.gstPercentage || effectiveOrderShop?.gstPercentage || 5;
+  const subtotal = cartGroupedByShop.reduce((sum, g) => sum + g.subtotal, 0);
+  const gstAmount = cartGroupedByShop.reduce((sum, g) => sum + g.gstAmount, 0);
   const totalAmount = subtotal > 0 ? (subtotal + deliveryCharge + gstAmount) : 0;
-  const isBelowMin = subtotal < minOrderAmount && minOrderAmount > 0;
 
   const isPickupOrder = fulfillmentType === 'pickup';
   // Cash / Pay at Counter: For counter pickup, paying at counter is ALWAYS available. For delivery, COD is available by default
@@ -1195,37 +1254,27 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return showToast('Basket is empty', 'error');
 
-    // Multi-kitchen guard: If cart has items from multiple kitchens, inform user cleanly
-    if (isMultiShopCart) {
-      return showToast("Multiple Kitchens in Basket", "error", "Please keep items from one kitchen only.");
-    }
-
-    // Target shop is the cart's shop if items exist, otherwise active selected shop
-    const targetShop = effectiveOrderShop;
-    const targetShopId = targetShop?.id || selectedShopId;
-
-    // 1. Mandatory Selected Shop Validation (Zero Silent Fallbacks)
-    if (!targetShopId) {
-      return showToast("Please select a restaurant/kitchen.", "error");
-    }
-
-    // 2. Verify Shop is active and non-deleted
-    if (!targetShop) {
-      return showToast("Selected kitchen is unavailable or inactive.", "error");
-    }
-
-    // Auto-align selectedShopId to the cart's shop if user browsed another kitchen
-    if (cartShopId && cartShopId !== selectedShopId) {
-      setSelectedShopId(cartShopId);
-    }
-
-    // 4. Verify Kitchen is online and within operating schedule
-    if (!isShopCurrentlyOpen(targetShop)) {
+    // Verify Kitchen operating schedule across all shops in basket
+    if (closedShop) {
       return showToast(
-        "Kitchen Closed / Offline",
+        `${closedShop.shopName || 'Kitchen'} Closed`,
         'error',
-        `Operating Hours: ${targetShop?.openingTime || '08:00 AM'} – ${targetShop?.closingTime || '10:30 PM'}`
+        `Operating Hours: ${closedShop.shop?.openingTime || '08:00 AM'} – ${closedShop.shop?.closingTime || '10:30 PM'}`
       );
+    }
+
+    // Minimum order amount validation
+    if (isBelowMin && shopBelowMin) {
+      return showToast(
+        `Min ₹${shopBelowMin.minimumOrderAmount} for ${shopBelowMin.shopName}`,
+        'error',
+        `Add ₹${shopBelowMin.minimumOrderAmount - shopBelowMin.subtotal} more from this kitchen`
+      );
+    }
+
+    // Auto-align selectedShopId to the cart's shop if single shop in cart
+    if (!isMultiShopCart && cartShopId && cartShopId !== selectedShopId) {
+      setSelectedShopId(cartShopId);
     }
 
     // Seamless in-flow authentication for guest shoppers
@@ -1258,11 +1307,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       }
     }
 
-    // Determine fulfillment details and address validation
-    const pickupCounterId = targetShop?.id || selectedShopId;
-    const pickupCounterName = targetShop?.name || 'Kitchen Counter';
-    const pickupCounterAddress = targetShop?.address || 'Vrindavan';
-
+    // Address & Coordinates resolution
     let orderDeliveryAddress = '';
     let orderCustomerAddress = '';
     let resolvedDeliveryCoords = null;
@@ -1294,10 +1339,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       resolvedDeliveryCoords = coordRes.coords;
       resolvedCoordinateSource = coordRes.source;
 
-      if (isBelowMin) {
-        return showToast(`Min ₹${minOrderAmount}`, 'error', `Add ₹${minOrderAmount - subtotal} more`);
-      }
-
       // Auto-save verified delivery details to local storage and user profile
       try {
         localStorage.setItem('customerName', cleanName);
@@ -1321,12 +1362,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       }
     } else {
       // Self-Pickup state isolation: NEVER write pickup counter address to customer personal address!
-      orderDeliveryAddress = `[Counter Pickup] ${pickupCounterName}`;
-      // Preserve customer's legitimate personal address if available, otherwise note counter pickup
+      const primaryShopName = cartGroupedByShop[0]?.shopName || 'Kitchen Counter';
+      orderDeliveryAddress = `[Counter Pickup] ${primaryShopName}`;
       const legitSaved = sanitizeCustomerAddress(checkoutAddress) || sanitizeCustomerAddress(localStorage.getItem('customerAddress'));
-      orderCustomerAddress = legitSaved || `${pickupCounterName} (Counter Pickup)`;
+      orderCustomerAddress = legitSaved || `${primaryShopName} (Counter Pickup)`;
 
-      const shopCoords = targetShop?.coords || (targetShop?.latitude && targetShop?.longitude ? { lat: targetShop.latitude, lng: targetShop.longitude } : null);
+      const primaryShop = cartGroupedByShop[0]?.shop || activeShop;
+      const shopCoords = primaryShop?.coords || (primaryShop?.latitude && primaryShop?.longitude ? { lat: primaryShop.latitude, lng: primaryShop.longitude } : null);
       const coordRes = resolveOrderCoordinates({
         activeShopCoords: shopCoords,
         fulfillmentType: 'pickup'
@@ -1335,7 +1377,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       resolvedDeliveryCoords = coordRes.coords;
       resolvedCoordinateSource = coordRes.source;
 
-      // Update only name and phone — DO NOT touch customerAddress in localStorage or profile!
       try {
         localStorage.setItem('customerName', cleanName);
         localStorage.setItem('customerPhone', cleanPhone);
@@ -1350,59 +1391,85 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       }
     }
 
-    const orderPayload = {
-      shopId: selectedShopId,
-      fulfillmentType,
-      fulfillment_type: fulfillmentType,
-      pickupCounterId: fulfillmentType === 'pickup' ? pickupCounterId : null,
-      pickupCounterName: fulfillmentType === 'pickup' ? pickupCounterName : null,
-      pickupCounterAddress: fulfillmentType === 'pickup' ? pickupCounterAddress : null,
-      customerName: cleanName,
-      customerAddress: orderCustomerAddress,
-      deliveryAddress: orderDeliveryAddress,
-      customerPhone: cleanPhone,
-      items: cart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        isCombo: Boolean(item.isCombo),
-        comboItems: item.comboItems || null,
-        ready: false
-      })),
-      subtotal,
-      deliveryCharge,
-      gstAmount,
-      totalAmount,
-      status: 'new',
-      userId: user?.id || user?.uid || userData?.id || 'registered-customer',
-      isTestOrder: false,
-      paymentMethod,
-      deliveryCoordinates: resolvedDeliveryCoords,
-      coordinateSource: resolvedCoordinateSource,
-      cookingNotes
+    // Helper to generate atomic payload for each shop group
+    const buildPayloadForGroup = (group, payMethod, cashStat, pId) => {
+      const isPickup = fulfillmentType === 'pickup';
+      const pickupCounterId = isPickup ? (group.shop?.id || group.shopId) : null;
+      const pickupCounterName = isPickup ? (group.shop?.name || group.shopName) : null;
+      const pickupCounterAddress = isPickup ? (group.shop?.address || group.shopAddress) : null;
+
+      return {
+        shopId: group.shopId,
+        shopName: group.shopName,
+        shopAddress: group.shopAddress,
+        shopPhone: group.shopPhone,
+        fulfillmentType,
+        fulfillment_type: fulfillmentType,
+        pickupCounterId,
+        pickupCounterName,
+        pickupCounterAddress,
+        customerName: cleanName,
+        customerAddress: orderCustomerAddress,
+        deliveryAddress: isPickup ? `[Counter Pickup] ${group.shopName}` : orderDeliveryAddress,
+        customerPhone: cleanPhone,
+        items: group.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          isCombo: Boolean(item.isCombo),
+          comboItems: item.comboItems || null,
+          ready: false
+        })),
+        subtotal: group.subtotal,
+        deliveryCharge: group.effectiveDeliveryCharge,
+        gstAmount: group.gstAmount,
+        totalAmount: group.totalAmount,
+        status: 'new',
+        userId: user?.id || user?.uid || userData?.id || 'registered-customer',
+        isTestOrder: false,
+        paymentMethod: payMethod,
+        paymentId: pId || null,
+        paymentIds: pId ? [pId] : null,
+        cashStatus: cashStat,
+        deliveryCoordinates: resolvedDeliveryCoords,
+        coordinateSource: resolvedCoordinateSource,
+        cookingNotes
+      };
     };
 
     if (paymentMethod === 'cash') {
       if (!isPickupOrder && !codAvailable) return showToast("Cash on Delivery unavailable for this kitchen", 'error');
-      orderPayload.cashStatus = 'pending';
-      orderPayload.paymentId = null;
 
       try {
-        const cloudOrder = await createCloudOrder(orderPayload);
+        const createdOrders = [];
+        for (const group of cartGroupedByShop) {
+          const payload = buildPayloadForGroup(group, 'cash', 'pending', null);
+          const cloudOrder = await createCloudOrder(payload);
+          if (cloudOrder) createdOrders.push(cloudOrder);
+        }
+
         try {
           const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
-          if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
-            sessionOrders.push(cloudOrder.id);
-            localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
-          }
+          createdOrders.forEach(ord => {
+            if (ord?.id && !sessionOrders.includes(ord.id)) {
+              sessionOrders.push(ord.id);
+            }
+          });
+          localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
         } catch (e) { }
 
-        setCelebrationOrder(cloudOrder);
-        showToast("Order Placed!", 'success', 'Cash on Delivery');
+        setCelebrationOrder(createdOrders.length === 1 ? createdOrders[0] : createdOrders);
+        showToast(
+          createdOrders.length > 1 ? `${createdOrders.length} Orders Placed!` : "Order Placed!",
+          'success',
+          'Cash on Delivery'
+        );
         clearCart();
         setShowCartDrawer(false);
-        setTrackingOrderId(cloudOrder.id);
+        if (createdOrders[0]?.id) {
+          setTrackingOrderId(createdOrders[0].id);
+        }
         // Prompt for OS Notifications for real-time tracking
         requestSystemNotificationPermission();
       } catch (err) {
@@ -1422,28 +1489,42 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         amount: Math.round(totalAmount * 100),
         currency: "INR",
         name: "Foody Vrinda",
-        description: `Vrinda Prasad Order - ${currentCartShop?.name || 'Kitchen'}`,
+        description: isMultiShopCart
+          ? `Multi-Kitchen Vrinda Prasad (${cartGroupedByShop.length} Kitchens)`
+          : `Vrinda Prasad Order - ${cartGroupedByShop[0]?.shopName || 'Kitchen'}`,
         image: typeof window !== 'undefined' ? `${window.location.origin}/foody-vrinda-logo.webp` : "/foody-vrinda-logo.webp",
         handler: async (response) => {
-          orderPayload.paymentId = response.razorpay_payment_id || `pay_${Date.now()}`;
-          orderPayload.paymentIds = [response.razorpay_payment_id || `pay_${Date.now()}`];
-          orderPayload.cashStatus = 'collected';
+          const pId = response.razorpay_payment_id || `pay_${Date.now()}`;
 
           try {
-            const cloudOrder = await createCloudOrder(orderPayload);
+            const createdOrders = [];
+            for (const group of cartGroupedByShop) {
+              const payload = buildPayloadForGroup(group, 'online', 'collected', pId);
+              const cloudOrder = await createCloudOrder(payload);
+              if (cloudOrder) createdOrders.push(cloudOrder);
+            }
+
             try {
               const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
-              if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
-                sessionOrders.push(cloudOrder.id);
-                localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
-              }
+              createdOrders.forEach(ord => {
+                if (ord?.id && !sessionOrders.includes(ord.id)) {
+                  sessionOrders.push(ord.id);
+                }
+              });
+              localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
             } catch (e) { }
 
-            setCelebrationOrder(cloudOrder);
-            showToast("Order Placed!", 'success', 'Payment confirmed');
+            setCelebrationOrder(createdOrders.length === 1 ? createdOrders[0] : createdOrders);
+            showToast(
+              createdOrders.length > 1 ? `${createdOrders.length} Orders Confirmed!` : "Order Placed!",
+              'success',
+              'Payment confirmed'
+            );
             clearCart();
             setShowCartDrawer(false);
-            setTrackingOrderId(cloudOrder.id);
+            if (createdOrders[0]?.id) {
+              setTrackingOrderId(createdOrders[0].id);
+            }
             // Prompt for OS Notifications for real-time tracking
             requestSystemNotificationPermission();
           } catch (cloudErr) {
@@ -1470,22 +1551,40 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         razorpayInstance.open();
       } catch (e) {
         console.warn("Razorpay instance init sandbox fallback:", e);
-        orderPayload.paymentId = `sim_online_${Date.now()}`;
-        orderPayload.cashStatus = 'collected';
-        const cloudOrder = await createCloudOrder(orderPayload);
+        const pId = `sim_online_${Date.now()}`;
         try {
-          const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
-          if (cloudOrder?.id && !sessionOrders.includes(cloudOrder.id)) {
-            sessionOrders.push(cloudOrder.id);
-            localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
+          const createdOrders = [];
+          for (const group of cartGroupedByShop) {
+            const payload = buildPayloadForGroup(group, 'online', 'collected', pId);
+            const cloudOrder = await createCloudOrder(payload);
+            if (cloudOrder) createdOrders.push(cloudOrder);
           }
-        } catch (e) { }
 
-        setCelebrationOrder(cloudOrder);
-        showToast("Order Placed!", 'success', 'Online Pay Confirmed');
-        clearCart();
-        setShowCartDrawer(false);
-        setTrackingOrderId(cloudOrder.id);
+          try {
+            const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+            createdOrders.forEach(ord => {
+              if (ord?.id && !sessionOrders.includes(ord.id)) {
+                sessionOrders.push(ord.id);
+              }
+            });
+            localStorage.setItem('foody_my_session_orders', JSON.stringify(sessionOrders));
+          } catch (e) { }
+
+          setCelebrationOrder(createdOrders.length === 1 ? createdOrders[0] : createdOrders);
+          showToast(
+            createdOrders.length > 1 ? `${createdOrders.length} Orders Confirmed!` : "Order Placed!",
+            'success',
+            'Online Pay Confirmed'
+          );
+          clearCart();
+          setShowCartDrawer(false);
+          if (createdOrders[0]?.id) {
+            setTrackingOrderId(createdOrders[0].id);
+          }
+        } catch (simErr) {
+          console.error("Simulation order creation error:", simErr);
+          showToast("Order failed", 'error', 'Please try again');
+        }
       }
     }
   };
@@ -1577,18 +1676,19 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       showToast(`${item.name} is currently out of stock`, 'error');
       return;
     }
-    addToCart(item);
+    const itemShopId = item.shopId || item.shop_id || selectedShopId;
+    addToCart({ ...item, shopId: itemShopId }, itemShopId);
     showToast(`+1 ${item.name}`, 'success', `₹${item.price}`);
-  }, [addToCart, showToast]);
+  }, [addToCart, selectedShopId, showToast]);
 
-  const handleCardUpdateQuantity = useCallback((id, delta, name, currentQty, price) => {
-    updateQuantity(id, delta);
+  const handleCardUpdateQuantity = useCallback((id, delta, name, currentQty, price, shopId = null) => {
+    updateQuantity(id, delta, shopId || selectedShopId);
     if (delta < 0 && currentQty === 1) {
       showToast(`Removed ${name}`, 'info', 'From basket');
     } else if (delta < 0) {
       showToast(`${name} (${currentQty - 1})`, 'info', `₹${price * (currentQty - 1)}`);
     }
-  }, [updateQuantity, showToast]);
+  }, [updateQuantity, selectedShopId, showToast]);
 
   const handleDetailAddToCart = () => {
     if (!selectedDishDetails) return;
@@ -1598,8 +1698,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
     const existingInCart = cart.find(c => c.id === selectedDishDetails.id);
     const prevQty = existingInCart ? existingInCart.quantity : 0;
+    const itemShopId = selectedDishDetails.shopId || selectedDishDetails.shop_id || selectedShopId;
 
-    setExactQuantity(selectedDishDetails.id, detailQuantity, selectedDishDetails);
+    setExactQuantity(selectedDishDetails.id, detailQuantity, { ...selectedDishDetails, shopId: itemShopId });
 
     if (detailQuantity > 0) {
       if (prevQty > 0) {
@@ -1630,12 +1731,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const handleSpotlightAddToCart = () => {
     if (!spotlightDish) return;
+    const itemShopId = spotlightDish.shopId || spotlightDish.shop_id || selectedShopId;
     for (let i = 0; i < spotlightQty; i++) {
       addToCart({
         ...spotlightDish,
+        shopId: itemShopId,
         selectedSize: spotlightSize,
         selectedAddons: spotlightAddons
-      });
+      }, itemShopId);
     }
     showToast(`+${spotlightQty} ${spotlightDish.name}`, 'success', `₹${spotlightDish.price * spotlightQty}`);
   };
@@ -1986,102 +2089,115 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       </div>
 
       {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
-      {trackingOrder && (
-        <div
-          onClick={() => setIsTrackingModalOpen(true)}
-          className="mb-6 bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#E0FF33]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 transition-all active:scale-[0.99]"
-        >
-          {/* Subtle Accent Glow Line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#E0FF33]/60 to-transparent pointer-events-none" />
+      {trackingOrder && (() => {
+        const bannerShop = allShops.find(s => s.id === (trackingOrder.shopId || trackingOrder.shop_id)) || getCachedShops()?.find(s => s.id === (trackingOrder.shopId || trackingOrder.shop_id));
+        const bannerShopName = trackingOrder.shopName || trackingOrder.shop_name || bannerShop?.name || 'Foody Vrinda Sacred Kitchen';
+        const bannerItems = Array.isArray(trackingOrder.items)
+          ? trackingOrder.items
+          : (typeof trackingOrder.items === 'string'
+              ? (() => { try { return JSON.parse(trackingOrder.items); } catch { return []; } })()
+              : []);
+        const bannerItemsCount = bannerItems.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+        const bannerTotal = Number(trackingOrder.totalAmount || trackingOrder.total_amount || 0);
 
-          {/* Top Row: Status Capsule + Order ID on Left | Dismiss X on Right */}
-          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 text-amber-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#E0FF33] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#E0FF33]"></span>
+        return (
+          <div
+            onClick={() => setIsTrackingModalOpen(true)}
+            className="mb-6 bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#E0FF33]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 transition-all active:scale-[0.99]"
+          >
+            {/* Subtle Accent Glow Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#E0FF33]/60 to-transparent pointer-events-none" />
+
+            {/* Top Row: Status Capsule + Order ID on Left | Dismiss X on Right */}
+            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 text-amber-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#E0FF33] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#E0FF33]"></span>
+                  </span>
+                  <span>Active Order</span>
                 </span>
-                <span>Active Order</span>
-              </span>
 
-              <span className="text-[11px] sm:text-xs font-bold text-stone-600 dark:text-zinc-400 font-mono tracking-tight shrink-0">
-                #{trackingOrder.id ? trackingOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
-              </span>
+                <span className="text-[11px] sm:text-xs font-black text-amber-700 dark:text-[#FD9139] font-mono tracking-tight shrink-0 bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded-md">
+                  #{trackingOrder.id ? (trackingOrder.id.length > 14 ? trackingOrder.id.slice(-8).toUpperCase() : trackingOrder.id.toUpperCase()) : 'ORDER'}
+                </span>
 
-              <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
+                <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
 
-              <span className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 capitalize truncate">
-                {trackingOrder.status?.replace(/_/g, ' ')}
-              </span>
-            </div>
-
-            {/* Dismiss X Button (Stops propagation so it doesn't open the modal) */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setTrackingOrderId(null);
-                setIsTrackingModalOpen(false);
-              }}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
-              title="Dismiss banner"
-              aria-label="Dismiss tracking banner"
-            >
-              <X className="w-3.5 h-3.5 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* Main Content & Action Row */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                <Navigation className="w-4.5 h-4.5 fill-current" />
+                <span className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 capitalize truncate">
+                  {trackingOrder.status?.replace(/_/g, ' ')}
+                </span>
               </div>
 
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
-                  {trackingOrder.status === 'out_for_delivery'
-                    ? 'Rider is on the way!'
-                    : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
-                      ? 'Order delivered successfully!'
-                      : 'Cooking in the kitchen...'}
-                </h4>
-                <p className="text-[11px] sm:text-xs text-stone-500 dark:text-zinc-400 truncate font-medium">
-                  {trackingOrder.status === 'out_for_delivery'
-                    ? 'Sarathi is heading to your doorstep'
-                    : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
-                      ? 'Hope you enjoyed your Prasad!'
-                      : 'Fresh satvik meal being prepared'}
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-              {(trackingOrder.status === 'delivered' || trackingOrder.status === 'completed') && (
-                <button
-                  onClick={() => {
-                    setReviewOrderTarget(trackingOrder);
-                    setIsReviewModalOpen(true);
-                  }}
-                  className="px-3 sm:px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs hover:opacity-90 shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer font-['Outfit']"
-                >
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span className="hidden sm:inline">Rate</span>
-                </button>
-              )}
+              {/* Dismiss X Button (Stops propagation so it doesn't open the modal) */}
               <button
-                onClick={() => setIsTrackingModalOpen(true)}
-                className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTrackingOrderId(null);
+                  setIsTrackingModalOpen(false);
+                }}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
+                title="Dismiss banner"
+                aria-label="Dismiss tracking banner"
               >
-                <Navigation className="w-3 h-3 fill-current shrink-0" />
-                <span className="whitespace-nowrap">Track</span>
-                <ChevronRight className="w-3.5 h-3.5 opacity-70 shrink-0" />
+                <X className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
             </div>
+
+            {/* Main Content & Action Row */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <Navigation className="w-4.5 h-4.5 fill-current" />
+                </div>
+
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-[#FD9139] truncate">
+                    <Store size={13} className="shrink-0" />
+                    <span className="truncate">{bannerShopName}</span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
+                    {trackingOrder.status === 'out_for_delivery'
+                      ? 'Rider is on the way!'
+                      : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
+                        ? 'Order delivered successfully!'
+                        : 'Cooking in the kitchen...'}
+                  </h4>
+                  <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
+                    <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
+                    <span>•</span>
+                    <span className="font-bold text-stone-800 dark:text-white font-mono">₹{bannerTotal}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                {(trackingOrder.status === 'delivered' || trackingOrder.status === 'completed') && (
+                  <button
+                    onClick={() => {
+                      setReviewOrderTarget(trackingOrder);
+                      setIsReviewModalOpen(true);
+                    }}
+                    className="px-3 sm:px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs hover:opacity-90 shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                  >
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span className="hidden sm:inline">Rate</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsTrackingModalOpen(true)}
+                  className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                >
+                  <Navigation size={12} className="fill-current" />
+                  <span>Track</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 5. FOOD CARDS RESPONSIVE FEED (1-col mobile, 2-col tablet, 3-col desktop) */}
       {menuLoading ? (
@@ -2616,8 +2732,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
             {/* Middle Scrollable Content (Items + Bill + Delivery Details Form + Payment) */}
             <div className="flex-1 overflow-y-auto overscroll-contain no-scrollbar pr-0.5 space-y-4 my-2.5">
-              {/* Friendly Kitchen Indicator Banner */}
-              {cartShop && selectedShopId && cartShop.id !== selectedShopId && cart.length > 0 && (
+              {/* Multi-Kitchen Basket Header Banner */}
+              {isMultiShopCart && (
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2.5 text-xs animate-fade-in shadow-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0">
+                      <Store size={16} className="stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                        Multi-Kitchen Basket ({cartGroupedByShop.length} Kitchens)
+                      </p>
+                      <p className="text-[11px] text-stone-500 dark:text-zinc-400 truncate">
+                        Items segregated by kitchen • 1-Tap checkout
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => clearCart()}
+                    className="px-2.5 py-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-700 dark:text-white rounded-xl font-bold text-[11px] active:scale-95 transition-all cursor-pointer shrink-0"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+
+              {/* Single Kitchen Mismatch Reminder */}
+              {!isMultiShopCart && cartShop && selectedShopId && cartShop.id !== selectedShopId && cart.length > 0 && (
                 <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2.5 text-xs animate-fade-in">
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-stone-900 dark:text-white truncate">
@@ -2637,8 +2779,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
               )}
 
-              {/* Items List */}
-              <div className="divide-y divide-stone-200/60 dark:divide-white/5 max-h-[30vh] overflow-y-auto pr-1 no-scrollbar">
+              {/* Segregated Items List by Kitchen */}
+              <div className="space-y-3.5 max-h-[38vh] overflow-y-auto pr-1 no-scrollbar">
                 {cart.length === 0 ? (
                   <div className="py-6 flex flex-col items-center justify-center text-center">
                     <FoodyMascot state="sad" width={150} height={160} />
@@ -2650,54 +2792,103 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     </p>
                   </div>
                 ) : (
-                  cart.map(item => (
-                  <div key={item.id} className="py-3 flex justify-between items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-sm text-stone-900 dark:text-white truncate">{item.name}</p>
-                      <p className="text-xs text-stone-500 dark:text-zinc-400 mt-0.5">₹{item.price} each</p>
-                    </div>
+                  cartGroupedByShop.map((group) => (
+                    <div
+                      key={group.shopId}
+                      className="rounded-2xl border border-stone-200/90 dark:border-white/10 bg-white/70 dark:bg-[#181617]/90 overflow-hidden shadow-xs"
+                    >
+                      {/* Kitchen Header */}
+                      <div className="px-3.5 py-2.5 bg-stone-100/95 dark:bg-white/[0.04] border-b border-stone-200 dark:border-white/10 flex items-center justify-between gap-2 select-none">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0">
+                            <Store size={13} className="stroke-[2.5]" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-black text-xs text-stone-900 dark:text-white truncate font-['Outfit'] leading-tight">
+                              {group.shopName}
+                            </p>
+                            <p className="text-[10px] text-stone-500 dark:text-zinc-400 truncate leading-tight">
+                              {group.shopAddress}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-[#FD9139] border border-amber-500/20 shrink-0">
+                          {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Apple Qty Picker Trigger (Opens iOS Slider Sheet) */}
-                      <button
-                        type="button"
-                        onClick={() => setEditingQuantityItem(item)}
-                        className="qty-picker-pill h-8 sm:h-9 px-3 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 hover:border-amber-500/50 dark:hover:border-[#FD9139]/50 flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-sm"
-                        title="Change quantity"
-                      >
-                        <span className="qty-label text-stone-600 dark:text-zinc-400 font-semibold">Qty</span>
-                        <span className="qty-num font-black text-stone-950 dark:text-[#FD9139] font-['Outfit']">{item.quantity}</span>
-                        <ChevronDown size={13} className="text-stone-500 dark:text-zinc-400" />
-                      </button>
+                      {/* Item list for this kitchen */}
+                      <div className="divide-y divide-stone-200/60 dark:divide-white/5 px-3.5">
+                        {group.items.map((item) => (
+                          <div key={`${group.shopId}_${item.id}`} className="py-2.5 flex justify-between items-center gap-2.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-white truncate">{item.name}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[11px] text-stone-500 dark:text-zinc-400">₹{item.price} each</span>
+                                <span className="text-[11px] font-black text-stone-800 dark:text-zinc-200 font-['Outfit']">
+                                  = ₹{item.price * item.quantity}
+                                </span>
+                              </div>
+                            </div>
 
-                      {/* Quick Stepper Buttons */}
-                      <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1E1B1C] rounded-full p-1 border border-stone-200 dark:border-white/10 shadow-inner">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.id, -1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-sm apple-tap-target"
-                          aria-label="Decrease quantity"
-                          title={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
-                        >
-                          {item.quantity === 1 ? (
-                            <Trash2 size={13} className="text-red-500 stroke-red-500" style={{ color: '#EF4444', stroke: '#EF4444' }} />
-                          ) : (
-                            <Minus size={13} strokeWidth={2.5} className="text-stone-700 dark:text-zinc-200" style={{ stroke: 'currentColor' }} />
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {/* Quantity Picker Pill */}
+                              <button
+                                type="button"
+                                onClick={() => setEditingQuantityItem(item)}
+                                className="qty-picker-pill h-7 sm:h-8 px-2 sm:px-2.5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 flex items-center gap-1 text-[11px] font-bold text-stone-900 dark:text-white transition-all cursor-pointer apple-tap-target active:scale-95 shadow-xs"
+                                title="Change quantity"
+                              >
+                                <span className="text-stone-500 dark:text-zinc-400 font-medium">Qty</span>
+                                <span className="font-black text-stone-950 dark:text-[#FD9139] font-['Outfit']">{item.quantity}</span>
+                                <ChevronDown size={11} className="text-stone-400" />
+                              </button>
+
+                              {/* Quick Stepper Buttons */}
+                              <div className="flex items-center gap-1 bg-stone-100 dark:bg-[#1E1B1C] rounded-full p-0.5 border border-stone-200 dark:border-white/10 shadow-inner">
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(item.id, -1, group.shopId)}
+                                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-xs apple-tap-target"
+                                  aria-label="Decrease quantity"
+                                  title={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
+                                >
+                                  {item.quantity === 1 ? (
+                                    <Trash2 size={12} className="text-red-500 stroke-red-500" style={{ color: '#EF4444', stroke: '#EF4444' }} />
+                                  ) : (
+                                    <Minus size={12} strokeWidth={2.5} className="text-stone-700 dark:text-zinc-200" style={{ stroke: 'currentColor' }} />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(item.id, 1, group.shopId)}
+                                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-xs apple-tap-target"
+                                  aria-label="Increase quantity"
+                                  title="Increase quantity"
+                                >
+                                  <Plus size={13} strokeWidth={3} className="text-white stroke-current" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Kitchen Sub-Summary Footer */}
+                      <div className="px-3.5 py-2 bg-stone-50 dark:bg-black/25 border-t border-stone-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400">
+                        <div className="flex items-center gap-2">
+                          <span>Items: <strong className="text-stone-900 dark:text-white font-bold">₹{group.subtotal}</strong></span>
+                          {fulfillmentType === 'delivery' && (
+                            <span>• Delivery: <strong className="text-stone-900 dark:text-white font-bold">₹{group.effectiveDeliveryCharge}</strong></span>
                           )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.id, 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FD9139] hover:bg-[#FCA65E] text-white active:scale-90 flex items-center justify-center cursor-pointer transition-all shadow-md apple-tap-target"
-                          aria-label="Increase quantity"
-                          title="Increase quantity"
-                        >
-                          <Plus size={14} strokeWidth={3.5} className="text-white stroke-current" />
-                        </button>
+                        </div>
+                        <span className="font-black text-xs text-amber-700 dark:text-[#FD9139] font-['Outfit']">
+                          ₹{group.totalAmount}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                )))}
+                  ))
+                )}
               </div>
 
               {/* KITCHEN CLOSED / OFFLINE NOTICE BANNER */}
@@ -2705,10 +2896,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 <div className="p-3.5 rounded-2xl bg-stone-100 dark:bg-[#282526] border border-stone-200 dark:border-white/10 text-xs space-y-1 animate-fade-in shadow-xs">
                   <div className="flex items-center gap-2 font-black text-stone-900 dark:text-white">
                     <span className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse"></span>
-                    <span className="text-sm font-['Outfit']">Kitchen Currently Closed</span>
+                    <span className="text-sm font-['Outfit']">
+                      {closedShop?.shopName ? `${closedShop.shopName} Closed` : 'Kitchen Currently Closed'}
+                    </span>
                   </div>
                   <p className="text-[11px] text-stone-500 dark:text-zinc-400 leading-relaxed font-medium">
-                    Operating Schedule: <strong className="text-stone-900 dark:text-white">{activeShop?.openingTime || '08:00 AM'} – {activeShop?.closingTime || '10:30 PM'}</strong>. Order placement is temporarily paused.
+                    Operating Schedule: <strong className="text-stone-900 dark:text-white">{closedShop?.shop?.openingTime || '08:00 AM'} – {closedShop?.shop?.closingTime || '10:30 PM'}</strong>. Order placement is temporarily paused.
                   </p>
                 </div>
               )}
@@ -2782,21 +2975,34 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               {/* Bill Details */}
               <div className="bg-stone-50 dark:bg-[#151314] rounded-2xl p-4 space-y-2 text-xs text-stone-600 dark:text-zinc-400 border border-stone-200/80 dark:border-white/5">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
+                  <span>Items Subtotal</span>
                   <span className="text-stone-900 dark:text-white font-bold">₹{subtotal}</span>
                 </div>
+
+                {/* If multiple kitchens, show itemized breakdown per kitchen */}
+                {isMultiShopCart && (
+                  <div className="pl-2.5 border-l-2 border-amber-500/40 space-y-1 my-1">
+                    {cartGroupedByShop.map(g => (
+                      <div key={g.shopId} className="flex justify-between text-[11px] text-stone-500 dark:text-zinc-400">
+                        <span className="truncate pr-2 font-medium">{g.shopName}</span>
+                        <span className="font-bold text-stone-800 dark:text-zinc-200 shrink-0">₹{g.totalAmount}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex justify-between">
                   <span>GST ({gstPct}%)</span>
                   <span className="text-stone-900 dark:text-white font-bold">₹{gstAmount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Delivery Charge</span>
+                  <span>Delivery Charge {isMultiShopCart && fulfillmentType === 'delivery' ? `(${cartGroupedByShop.length} Kitchens)` : ''}</span>
                   <span className={`font-bold ${deliveryCharge === 0 ? 'text-emerald-700 dark:text-[#FD9139]' : 'text-stone-900 dark:text-white'}`}>
                     {deliveryCharge === 0 ? 'FREE (Pickup)' : `₹${deliveryCharge}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-black text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
-                  <span>Total</span>
+                  <span>Total Amount</span>
                   <span className="text-stone-950 dark:text-[#FD9139]">₹{totalAmount}</span>
                 </div>
               </div>
@@ -3013,20 +3219,42 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     )}
                   </div>
                 ) : (
-                  <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/10 space-y-2.5 shadow-2xs animate-fade-in">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-inner">
-                        <Store size={20} className="stroke-[2.5]" />
+                  isMultiShopCart ? (
+                    <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/10 space-y-2.5 shadow-2xs animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-inner">
+                          <Store size={20} className="stroke-[2.5]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counters ({cartGroupedByShop.length} Kitchens)</h4>
+                          <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139]">Collect separately at each kitchen</p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
-                        <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139] truncate">{(cartShop || activeShop)?.name || 'Counter Pickup'}</p>
+                      <div className="space-y-1.5 pl-3 border-l-2 border-amber-500/30">
+                        {cartGroupedByShop.map(g => (
+                          <div key={g.shopId} className="text-xs">
+                            <p className="font-bold text-stone-900 dark:text-white">{g.shopName}</p>
+                            <p className="text-[11px] text-stone-500 dark:text-zinc-400 truncate">{g.shopAddress}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
-                      {(cartShop || activeShop)?.address || 'Pickup counter'}
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/10 space-y-2.5 shadow-2xs animate-fade-in">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-inner">
+                          <Store size={20} className="stroke-[2.5]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-[11px] sm:text-xs font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider font-['Outfit']">Self-Pickup Counter</h4>
+                          <p className="text-sm sm:text-base font-black text-amber-700 dark:text-[#FD9139] truncate">{(cartShop || activeShop)?.name || 'Counter Pickup'}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs sm:text-sm text-stone-600 dark:text-zinc-300 pl-14 leading-relaxed font-medium">
+                        {(cartShop || activeShop)?.address || 'Pickup counter'}
+                      </p>
+                    </div>
+                  )
                 )}
 
                 {/* Payment Method Selector */}
@@ -3140,7 +3368,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     {fulfillmentType === 'pickup' ? 'Counter Pickup · Fresh Preparation' : 'Live GPS tracking included'}
                   </span>
                 </div>
-                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">{(cartShop || activeShop)?.name || 'Foody Vrinda'}</span>
+                <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-medium">
+                  {isMultiShopCart ? `${cartGroupedByShop.length} Kitchens` : ((cartShop || activeShop)?.name || 'Foody Vrinda')}
+                </span>
               </div>
 
               <button
@@ -3150,12 +3380,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               >
                 <span className="font-black">
                   {!isShopOpen
-                    ? 'Kitchen Offline (Closed)'
+                    ? (closedShop?.shopName ? `${closedShop.shopName} Offline` : 'Kitchen Offline (Closed)')
                     : (fulfillmentType === 'delivery' && onlineRidersCount === 0
                       ? 'Riders Offline (Select Self-Pickup)'
                       : (!onlineAvailable && !codAvailable && !isPickupOrder
                         ? 'Kitchen Payments Disabled'
-                        : 'Proceed to Place Order'))}
+                        : (isMultiShopCart ? `Checkout ${cartGroupedByShop.length} Kitchens` : 'Proceed to Place Order')))}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs sm:text-sm font-black flex-shrink-0">
                   ₹{totalAmount}

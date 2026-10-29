@@ -27,7 +27,7 @@ import {
   Lock,
   Navigation
 } from 'lucide-react';
-import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP } from '../supabase';
+import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP, getCachedShops } from '../supabase';
 import FoodyMascot from '../foody/FoodyMascot';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
@@ -40,10 +40,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const routeGroupRef = useRef(null);
   const closeTimeoutRef = useRef(null);
 
-  const [showItems, setShowItems] = useState(false);
+  const [showItems, setShowItems] = useState(true);
   const [closing, setClosing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [copiedOtp, setCopiedOtp] = useState(false);
+  const [copiedOrderId, setCopiedOrderId] = useState(false);
 
   // Live order state with automatic realtime WebSocket sync
   const [liveOrder, setLiveOrder] = useState(order);
@@ -80,11 +81,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
   const currentOrder = liveOrder || order;
 
   const orderShopId = currentOrder?.shopId || currentOrder?.shop_id;
+  const cachedShops = getCachedShops() || [];
   const matchedShop = (allShops && allShops.length > 0 && orderShopId)
     ? allShops.find(s => s.id === orderShopId)
-    : null;
+    : (cachedShops.find(s => s.id === orderShopId) || null);
   const shop = matchedShop || {
-    name: currentOrder?.shopName || 'Foody Vrinda Kitchen',
+    name: currentOrder?.shopName || currentOrder?.shop_name || 'Foody Vrinda Sacred Kitchen',
+    address: currentOrder?.shopAddress || currentOrder?.shop_address || 'Chatikara Road, Raman Reti, Vrindavan',
+    phone: currentOrder?.shopPhone || currentOrder?.shop_phone || '9876543210',
     coordinates: { lat: 27.5706, lng: 77.6593 }
   };
   const shortShopName = (shop?.name || 'Prem Mandir')
@@ -782,21 +786,42 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           >
             <div className="w-12 h-1.5 bg-white/35 hover:bg-white/50 rounded-full mb-2.5 transition-colors" />
             <div className="w-full flex items-center justify-between text-stone-300 text-[11px] font-bold">
-              <span className="flex items-center gap-2 text-white">
-                <span className="relative flex h-2 w-2">
+              <span className="flex items-center gap-2 text-white min-w-0">
+                <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD9139] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FD9139]"></span>
                 </span>
-                <span className="font-['Outfit'] font-black uppercase text-[10px] sm:text-[11px] tracking-wider text-[#FD9139]">
+                <span className="font-['Outfit'] font-black uppercase text-[10px] sm:text-[11px] tracking-wider text-[#FD9139] truncate">
                   {isExpanded 
-                    ? `Order #${currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ACTIVE'}`
+                    ? `Order #${currentOrder?.id || 'ACTIVE'}`
                     : milestones.active}
                 </span>
               </span>
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/15 text-stone-200 hover:text-white transition-colors text-[10px] font-semibold">
-                {isExpanded ? 'Drag down' : 'Tap to expand'}
-                {isExpanded ? <ChevronDown size={12} className="text-[#FD9139]" /> : <ChevronUp size={12} className="text-[#FD9139]" />}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                {currentOrder?.id && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (navigator?.clipboard?.writeText) {
+                        navigator.clipboard.writeText(currentOrder.id);
+                        setCopiedOrderId(true);
+                        setTimeout(() => setCopiedOrderId(false), 2000);
+                        if (onToast) onToast(`Order ID copied: ${currentOrder.id}`, 'success');
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[10px] text-stone-300 hover:text-white transition-all cursor-pointer"
+                    title="Copy Order ID"
+                  >
+                    {copiedOrderId ? <Check size={10} className="text-emerald-400 stroke-[3]" /> : <Copy size={10} />}
+                    <span>{copiedOrderId ? 'Copied' : 'Copy ID'}</span>
+                  </button>
+                )}
+                <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/15 text-stone-200 hover:text-white transition-colors text-[10px] font-semibold">
+                  {isExpanded ? 'Drag down' : 'Tap to expand'}
+                  {isExpanded ? <ChevronDown size={12} className="text-[#FD9139]" /> : <ChevronUp size={12} className="text-[#FD9139]" />}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1114,66 +1139,106 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               </div>
 
               {/* 3. Collapsible Order Items Details */}
-              <div className="bg-[#221F20] rounded-2xl p-3.5 border border-white/[0.12] text-xs shadow-sm">
-                <button
-                  onClick={() => setShowItems(!showItems)}
-                  className="w-full flex items-center justify-between text-stone-200 hover:text-white font-bold cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-['Outfit'] tracking-wide">Order #{currentOrder?.id ? currentOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}</span>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-stone-200">
-                      {currentOrder?.items?.length || 1} {(currentOrder?.items?.length || 1) === 1 ? 'item' : 'items'}
-                    </span>
-                  </div>
-                  {showItems ? <ChevronUp className="w-3.5 h-3.5 text-[#FD9139]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#FD9139]" />}
-                </button>
+              {(() => {
+                const orderItems = Array.isArray(currentOrder?.items)
+                  ? currentOrder.items
+                  : (typeof currentOrder?.items === 'string'
+                      ? (() => { try { return JSON.parse(currentOrder.items); } catch { return []; } })()
+                      : []);
+                const calculatedSubtotal = orderItems.reduce((acc, it) => acc + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
+                const subtotal = Number(currentOrder?.subtotal) > 0 ? Number(currentOrder.subtotal) : calculatedSubtotal;
+                const isPickup = currentOrder?.fulfillment_type === 'pickup' || currentOrder?.fulfillmentType === 'pickup';
+                const deliveryFee = isPickup ? 0 : (Number(currentOrder?.delivery_charge ?? currentOrder?.deliveryCharge) || 0);
+                const gstAmount = Number(currentOrder?.gst_amount ?? currentOrder?.gstAmount) || 0;
+                const totalAmount = Number(currentOrder?.total_amount ?? currentOrder?.totalAmount) || (subtotal + deliveryFee + gstAmount);
 
-                {showItems && (
-                  <div className="mt-2.5 space-y-2 pt-2.5 border-t border-white/10 text-stone-200">
-                    {currentOrder?.items?.map((it, idx) => {
-                      const itemImg = resolveDishCutout(it.image || it.imageUrl, it.name, it.category);
-                      return (
-                        <div key={idx} className="flex justify-between items-center text-[12px] gap-2 py-0.5">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <img
-                              src={itemImg}
-                              alt={it.name || 'Dish'}
-                              className="w-8 h-8 rounded-lg object-cover bg-neutral-900 border border-white/15 shrink-0"
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
-                              }}
-                            />
-                            <span className="text-white font-semibold truncate">{it.name} × {it.quantity}</span>
+                return (
+                  <div className="bg-[#221F20] rounded-2xl p-3.5 border border-white/[0.12] text-xs shadow-sm">
+                    <button
+                      onClick={() => setShowItems(!showItems)}
+                      className="w-full flex items-center justify-between text-stone-200 hover:text-white font-bold cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-['Outfit'] tracking-wide truncate">Order #{currentOrder?.id || 'ACTIVE'}</span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-stone-200 shrink-0">
+                          {orderItems.length} {orderItems.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                      {showItems ? <ChevronUp className="w-3.5 h-3.5 text-[#FD9139] shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />}
+                    </button>
+
+                    {showItems && (
+                      <div className="mt-2.5 space-y-2 pt-2.5 border-t border-white/10 text-stone-200">
+                        {orderItems.map((it, idx) => {
+                          const itemImg = resolveDishCutout(it.image || it.imageUrl, it.name, it.category);
+                          const qty = Number(it.quantity) || 1;
+                          const price = Number(it.price) || 0;
+                          return (
+                            <div key={idx} className="flex justify-between items-center text-[12px] gap-2 py-0.5">
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <img
+                                  src={itemImg}
+                                  alt={it.name || 'Dish'}
+                                  className="w-8 h-8 rounded-lg object-cover bg-neutral-900 border border-white/15 shrink-0"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
+                                  }}
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-white font-semibold truncate leading-tight">
+                                    {it.name || 'Dish'} × {qty}
+                                  </p>
+                                  {price > 0 && (
+                                    <p className="text-[10px] text-stone-400 font-mono">
+                                      @ ₹{price} each
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="font-bold text-[#FD9139] shrink-0 font-['Outfit'] text-xs font-mono">
+                                ₹{price * qty}
+                              </span>
+                            </div>
+                          );
+                        })}
+                        <div className="pt-2 border-t border-white/10 space-y-1.5 text-[11px]">
+                          <div className="flex justify-between items-center text-stone-300">
+                            <span>Item Subtotal</span>
+                            <span className="text-white font-medium font-mono">₹{subtotal}</span>
                           </div>
-                          <span className="font-bold text-[#FD9139] shrink-0 font-['Outfit'] text-xs">₹{it.price * it.quantity}</span>
+                          {gstAmount > 0 && (
+                            <div className="flex justify-between items-center text-stone-300">
+                              <span>GST & Govt Taxes</span>
+                              <span className="text-white font-medium font-mono">₹{gstAmount}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center text-stone-300">
+                            <span>Delivery & Packaging</span>
+                            <span className={`font-mono ${deliveryFee === 0 ? 'text-emerald-400 font-black' : 'text-white font-medium'}`}>
+                              {deliveryFee > 0 ? `₹${deliveryFee}` : 'FREE'}
+                            </span>
+                          </div>
+                          <div className="pt-2 border-t border-white/10 flex justify-between items-center font-black text-white text-xs">
+                            <span>Total Amount</span>
+                            <span className="text-[#FD9139] font-['Outfit'] text-sm">₹{totalAmount}</span>
+                          </div>
+                          <div className="pt-1 flex items-center justify-between text-[10px] text-stone-300">
+                            <span className="uppercase font-bold tracking-wider">
+                              Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}
+                            </span>
+                            {shop?.name && (
+                              <span className="text-stone-400 truncate max-w-[170px]">
+                                {shop.name}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      );
-                    })}
-                    <div className="pt-2 border-t border-white/10 space-y-1.5 text-[11px]">
-                      <div className="flex justify-between items-center text-stone-300">
-                        <span>Item Subtotal</span>
-                        <span className="text-white font-medium">₹{currentOrder?.subtotal || currentOrder?.totalAmount || '140'}</span>
                       </div>
-                      <div className="flex justify-between items-center text-stone-300">
-                        <span>GST & Govt Taxes (5%)</span>
-                        <span className="text-white font-medium">₹{currentOrder?.gst_amount || currentOrder?.gstAmount || Math.round(Number(currentOrder?.totalAmount || 140) * 0.05)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-stone-300">
-                        <span>Delivery & Packaging</span>
-                        <span className="text-emerald-400 font-black">{Number(currentOrder?.delivery_charge || currentOrder?.deliveryCharge || 0) > 0 ? `₹${currentOrder?.delivery_charge || currentOrder?.deliveryCharge}` : 'FREE'}</span>
-                      </div>
-                      <div className="pt-2 border-t border-white/10 flex justify-between items-center font-black text-white text-xs">
-                        <span>Total Amount</span>
-                        <span className="text-[#FD9139] font-['Outfit'] text-sm">₹{currentOrder?.totalAmount || currentOrder?.total_amount || '140'}</span>
-                      </div>
-                      <div className="pt-1 flex items-center justify-between text-[10px] text-stone-300">
-                        <span className="uppercase font-bold tracking-wider">Payment: {String(currentOrder?.payment_method || currentOrder?.paymentMethod || 'COD').toUpperCase()}</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
 
               {/* Delivered Status CTA: Rate & Review */}
               {isStep4 && (

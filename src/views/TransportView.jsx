@@ -961,7 +961,8 @@ export default function TransportView() {
     return tabOrders.filter(order => {
       const idMatch = order.id.toLowerCase().includes(term);
       const custMatch = order.customerName?.toLowerCase().includes(term);
-      const itemsMatch = order.items?.map(i => i.name.toLowerCase()).join(' ').includes(term);
+      const orderItems = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items); } catch { return []; } })() : []);
+      const itemsMatch = orderItems.map(i => (i.name || '').toLowerCase()).join(' ').includes(term);
       return idMatch || custMatch || itemsMatch;
     });
   }, [tabOrders, searchQuery]);

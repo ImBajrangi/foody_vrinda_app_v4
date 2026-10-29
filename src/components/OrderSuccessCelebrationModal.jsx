@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { CheckCircle2, ArrowRight, Sparkles, Clock, MapPin, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CheckCircle2, ArrowRight, Sparkles, Clock, MapPin, X, Store, Copy, Check } from 'lucide-react';
 import FoodyOrderHop from '../foody/FoodyOrderHop';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
@@ -11,6 +11,17 @@ export default function OrderSuccessCelebrationModal({
   onTrackOrder
 }) {
   const hopRef = useRef(null);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyOrderId = (id, e) => {
+    e?.stopPropagation();
+    if (!id) return;
+    try {
+      navigator.clipboard?.writeText(id);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1800);
+    } catch (_) {}
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -43,11 +54,33 @@ export default function OrderSuccessCelebrationModal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !order) return null;
 
-  const orderShortId = order?.id ? String(order.id).slice(-6).toUpperCase() : 'FV-108';
-  const shopName = order?.shop_name || order?.shopName || 'Brajdham Kitchen';
-  const totalAmount = order?.total || order?.totalAmount || order?.finalTotal || '0';
+  const ordersList = Array.isArray(order) ? order : [order];
+  if (ordersList.length === 0) return null;
+
+  const isMultiOrder = ordersList.length > 1;
+  const singleOrder = ordersList[0];
+  const orderId = singleOrder?.id || 'FV-108';
+  const shopName = singleOrder?.shop_name || singleOrder?.shopName || 'Foody Vrinda Sacred Kitchen';
+  const shopAddress = singleOrder?.shop_address || singleOrder?.shopAddress || 'Vrindavan Dham';
+  const grandTotal = ordersList.reduce((sum, o) => sum + (Number(o?.total_amount || o?.totalAmount || o?.total) || 0), 0);
+  const totalAmount = singleOrder?.total_amount || singleOrder?.totalAmount || singleOrder?.total || grandTotal || '0';
+  
+  const singleOrderItems = Array.isArray(singleOrder?.items)
+    ? singleOrder.items
+    : (typeof singleOrder?.items === 'string'
+        ? (() => { try { return JSON.parse(singleOrder.items); } catch { return []; } })()
+        : []);
+  const itemsCount = singleOrderItems.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+  const totalItemsAcrossOrders = ordersList.reduce((acc, o) => {
+    const itms = Array.isArray(o?.items)
+      ? o.items
+      : (typeof o?.items === 'string'
+          ? (() => { try { return JSON.parse(o.items); } catch { return []; } })()
+          : []);
+    return acc + itms.reduce((sub, it) => sub + (Number(it.quantity) || 1), 0);
+  }, 0);
 
   return (
     <div
@@ -102,47 +135,139 @@ export default function OrderSuccessCelebrationModal({
         </div>
 
         {/* Main Status Headline with Success Badge */}
-        <div className="space-y-1.5 mt-3.5 mb-4">
+        <div className="space-y-1.5 mt-3.5 mb-3.5">
           <div className="inline-flex items-center justify-center gap-2">
             <span className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
             </span>
             <h2 id="order-success-title" className="text-2xl font-black text-white font-['Outfit'] tracking-tight">
-              Order Placed!
+              {isMultiOrder ? `${ordersList.length} Orders Placed!` : 'Order Placed!'}
             </h2>
           </div>
-          <p className="text-xs text-stone-300 max-w-[290px] leading-relaxed mx-auto font-medium">
-            Your sacred Satvik prasad is being prepared fresh with pure desi ghee.
+          <p className="text-xs text-stone-300 max-w-[310px] leading-relaxed mx-auto font-medium">
+            {isMultiOrder
+              ? `Your prasad is being freshly prepared across ${ordersList.length} kitchens in Vrindavan Dham.`
+              : 'Your sacred Satvik prasad is being prepared fresh with pure desi ghee.'}
           </p>
         </div>
 
-        {/* Order Details Receipt Card (Crisp Contrast & Hierarchy) */}
-        <div className="w-full bg-[#151314] border border-white/10 rounded-2xl p-4 space-y-2.5 mb-5 text-left shadow-inner">
-          <div className="flex items-center justify-between text-xs pb-2 border-b border-white/[0.08]">
-            <span className="text-stone-400 font-medium">Order ID</span>
-            <span className="font-mono font-black text-sm text-[#FD9139] tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-md border border-[#FD9139]/25">
-              #{orderShortId}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs pt-0.5">
-            <div className="flex items-center gap-2 text-stone-200 truncate max-w-[210px]">
-              <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
-              <span className="truncate font-semibold">{shopName}</span>
+        {/* Multi-Order Segregated List OR Single Order Receipt Card */}
+        {isMultiOrder ? (
+          <div className="w-full space-y-2 mb-4 text-left">
+            <div className="flex items-center justify-between text-xs px-1 text-stone-400">
+              <span className="font-bold uppercase tracking-wider text-[11px] font-['Outfit']">
+                Kitchen Breakdown ({ordersList.length})
+              </span>
+              <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px]">
+                Confirmed
+              </span>
             </div>
-            <span className="font-black text-white font-['Outfit'] text-sm">₹{totalAmount}</span>
-          </div>
 
-          <div className="flex items-center justify-between text-[11px] text-stone-400 pt-1 border-t border-white/[0.05]">
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              <span className="font-medium text-stone-300">Est. Delivery</span>
+            <div className="max-h-[36vh] overflow-y-auto no-scrollbar space-y-2 pr-0.5">
+              {ordersList.map((ord, idx) => {
+                const ordId = ord?.id || `ORD-${idx + 1}`;
+                const ordShopName = ord?.shop_name || ord?.shopName || `Kitchen #${idx + 1}`;
+                const ordShopAddress = ord?.shop_address || ord?.shopAddress || 'Vrindavan Dham';
+                const ordTotal = ord?.total_amount || ord?.totalAmount || ord?.total || 0;
+                const ordItems = Array.isArray(ord?.items)
+                  ? ord.items
+                  : (typeof ord?.items === 'string'
+                      ? (() => { try { return JSON.parse(ord.items); } catch { return []; } })()
+                      : []);
+
+                return (
+                  <div key={ordId} className="w-full bg-[#151314] border border-white/10 rounded-2xl p-3 text-left shadow-inner space-y-2">
+                    <div className="flex items-center justify-between text-xs pb-1.5 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                        <Store className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
+                        <span className="font-bold text-white text-xs truncate font-['Outfit']">{ordShopName}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopyOrderId(ordId, e)}
+                        className="font-mono font-bold text-[10px] text-[#FD9139] bg-white/[0.04] px-1.5 py-0.5 rounded border border-[#FD9139]/25 flex items-center gap-1 hover:bg-white/[0.08] active:scale-95 transition-all shrink-0 cursor-pointer"
+                        title="Copy Order ID"
+                      >
+                        <span>#{ordId.length > 8 ? ordId.slice(-6) : ordId}</span>
+                        {copiedId === ordId ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-stone-400" />}
+                      </button>
+                    </div>
+
+                    <p className="text-[10px] text-stone-400 truncate pl-0.5">{ordShopAddress}</p>
+
+                    {/* Items summary */}
+                    <div className="text-[11px] text-stone-300 space-y-1 bg-black/30 p-2 rounded-xl border border-white/[0.04]">
+                      {ordItems.map((it, itIdx) => (
+                        <div key={itIdx} className="flex justify-between items-center text-[11px]">
+                          <span className="truncate pr-2 text-stone-300">
+                            <strong className="text-white font-bold">{it.quantity}x</strong> {it.name}
+                          </span>
+                          <span className="font-semibold text-stone-200 shrink-0">₹{(Number(it.price) || 0) * (Number(it.quantity) || 1)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Kitchen Total */}
+                    <div className="flex items-center justify-between text-xs pt-0.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Order Total</span>
+                      <span className="font-black text-white font-['Outfit'] text-xs sm:text-sm">₹{ordTotal}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/25">
-              25–35 mins
-            </span>
+
+            {/* Combined Grand Total Footer Pill */}
+            <div className="w-full bg-[#181617] border border-[#FD9139]/30 rounded-xl p-2.5 flex items-center justify-between text-xs">
+              <span className="text-stone-300 font-bold font-['Outfit']">Grand Total ({ordersList.length} Orders)</span>
+              <span className="font-black text-[#FD9139] text-base font-['Outfit']">₹{grandTotal}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Single Order Details Receipt Card */
+          <div className="w-full bg-[#151314] border border-white/10 rounded-2xl p-4 space-y-2.5 mb-5 text-left shadow-inner">
+            <div className="flex items-center justify-between text-xs pb-2 border-b border-white/[0.08]">
+              <span className="text-stone-400 font-medium">Order ID</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono font-black text-xs sm:text-sm text-[#FD9139] tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-md border border-[#FD9139]/25 truncate max-w-[190px]">
+                  #{orderId}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => handleCopyOrderId(orderId, e)}
+                  className="p-1 rounded bg-white/[0.05] hover:bg-white/[0.1] text-stone-400 hover:text-white transition-colors cursor-pointer"
+                  title="Copy Order ID"
+                >
+                  {copiedId === orderId ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-stone-400" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-0.5">
+              <div className="flex items-center gap-2 text-stone-200 truncate max-w-[210px]">
+                <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="truncate font-semibold block">{shopName}</span>
+                  <span className="text-[10px] text-stone-400 truncate block">{shopAddress}</span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="font-black text-white font-['Outfit'] text-sm block">₹{totalAmount}</span>
+                {itemsCount > 0 && <span className="text-[10px] text-stone-400 block">{itemsCount} {itemsCount === 1 ? 'item' : 'items'}</span>}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-stone-400 pt-1 border-t border-white/[0.05]">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                <span className="font-medium text-stone-300">Est. Delivery</span>
+              </div>
+              <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/25">
+                25–35 mins
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Action CTAs */}
         <div className="w-full flex flex-col gap-2.5">
@@ -150,11 +275,12 @@ export default function OrderSuccessCelebrationModal({
             type="button"
             onClick={() => {
               onClose?.();
-              onTrackOrder?.(order?.id);
+              const targetId = isMultiOrder ? ordersList[0]?.id : (order?.id || singleOrder?.id);
+              onTrackOrder?.(targetId);
             }}
             className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#FD9139] to-[#FCA65E] hover:brightness-110 active:scale-[0.98] text-stone-950 font-black text-xs uppercase tracking-wider font-['Outfit'] shadow-[0_8px_25px_rgba(253,145,57,0.35)] flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            <span>Track Live Order</span>
+            <span>{isMultiOrder ? 'Track Active Orders' : 'Track Live Order'}</span>
             <ArrowRight className="w-4 h-4 stroke-[2.6]" />
           </button>
 
