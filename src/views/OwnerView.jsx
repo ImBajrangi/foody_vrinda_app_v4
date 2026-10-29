@@ -1952,13 +1952,13 @@ export default function OwnerView() {
                   type="button"
                   onClick={handleOpenManualOrderModal}
                   disabled={!activeShopId}
-                  className={`h-11 sm:h-12 px-5 sm:px-6 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shrink-0 shadow-lg transition-all cursor-pointer select-none active:scale-[0.98] ${!activeShopId
+                  className={`h-11 sm:h-12 px-5 sm:px-6 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer select-none active:scale-[0.98] ${!activeShopId
                     ? 'opacity-40 cursor-not-allowed bg-stone-300 dark:bg-white/10 text-stone-500 border border-stone-300 dark:border-white/10'
-                    : 'bg-gradient-to-r from-amber-600 to-[#FD9139] hover:from-amber-700 hover:to-[#fca65e] text-white shadow-amber-500/25 border border-amber-500/40'
+                    : 'bg-[#FD9139] hover:bg-[#ea802c] text-white shadow-xs'
                     }`}
                   title="Create a new walk-in or manual phone order for this kitchen"
                 >
-                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
                   <span className="whitespace-nowrap font-['Outfit']">Create Manual Order</span>
                 </button>
               </div>
@@ -5277,22 +5277,20 @@ export default function OwnerView() {
           }}
           className="fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div className="w-full max-w-3xl lg:max-w-4xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-[28px] sm:rounded-[36px] shadow-2xl relative flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden">
+          <div className="w-full max-w-4xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-2xl sm:rounded-3xl shadow-2xl relative flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden">
 
             {/* 1. Modal Fixed Header */}
-            <div className="shrink-0 flex items-center justify-between px-5 sm:px-6 py-4 border-b border-stone-200 dark:border-white/10 bg-white/60 dark:bg-[#252122]/60 backdrop-blur-md">
+            <div className="shrink-0 flex items-center justify-between px-5 sm:px-6 py-4 border-b border-stone-200 dark:border-white/10 bg-white dark:bg-[#221F20]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
-                  <ChefHat size={20} strokeWidth={2.4} />
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
+                  <ChefHat size={18} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                      Create Manual Order
-                    </h3>
-                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                    Create Manual Order
+                  </h3>
                   <p className="text-xs text-stone-500 dark:text-neutral-400 font-medium">
-                    Walk-in counter or direct delivery for <span className="text-amber-700 dark:text-[#FD9139] font-bold">{currentShop?.name || 'Active Kitchen'}</span>
+                    Direct ticket for <span className="text-amber-700 dark:text-[#FD9139] font-semibold">{currentShop?.name || 'Active Kitchen'}</span>
                   </p>
                 </div>
               </div>
@@ -5301,9 +5299,9 @@ export default function OwnerView() {
                 type="button"
                 onClick={handleCloseManualOrderModal}
                 disabled={isSubmittingManualOrder}
-                className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border border-stone-300/80 dark:border-white/5 active:scale-95 touch-manipulation"
+                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-500 dark:text-neutral-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border border-stone-200 dark:border-white/5 active:scale-95 touch-manipulation"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
 
@@ -5330,257 +5328,315 @@ export default function OwnerView() {
 
               return (
                 <form onSubmit={handleCreateManualOrder} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                  {/* Scrollable Center Pane */}
-                  <div className="flex-1 overflow-y-auto no-scrollbar p-4 sm:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-start">
+                  
+                  {/* Two-Column Responsive Workspace */}
+                  <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:grid md:grid-cols-12">
+                    
+                    {/* Left Column: Customer Details & Fulfillment */}
+                    <div className="md:col-span-5 p-4 sm:p-5 md:overflow-y-auto no-scrollbar md:border-r border-stone-200 dark:border-white/10 space-y-4">
+                      
+                      {/* Fulfillment Mode Segmented Control */}
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 mb-1.5 font-['Outfit']">
+                          Fulfillment Mode
+                        </label>
+                        <div className="grid grid-cols-2 p-1 bg-stone-200/70 dark:bg-black/30 rounded-xl border border-stone-200/80 dark:border-white/5">
+                          <button
+                            type="button"
+                            onClick={() => setManualFulfillment('delivery')}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                              manualFulfillment === 'delivery'
+                                ? 'bg-white dark:bg-[#2C2829] text-stone-900 dark:text-white shadow-xs'
+                                : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                            }`}
+                          >
+                            <Truck size={14} />
+                            <span>Delivery</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setManualFulfillment('pickup')}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                              manualFulfillment === 'pickup'
+                                ? 'bg-white dark:bg-[#2C2829] text-stone-900 dark:text-white shadow-xs'
+                                : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                            }`}
+                          >
+                            <ShoppingBag size={14} />
+                            <span>Counter Pickup</span>
+                          </button>
+                        </div>
+                      </div>
 
-                      {/* Left Column: Fulfillment & Customer Details */}
-                      <div className="md:col-span-5 space-y-4">
-
-                        {/* Fulfillment Segmented Control */}
+                      {/* Customer Name & Phone Number in 2-Column Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                          <label className="block text-[11px] font-black uppercase tracking-wider text-stone-600 dark:text-neutral-400 mb-1.5 font-['Outfit']">
-                            Fulfillment Mode
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Name <span className="text-[#FD9139]">*</span>
                           </label>
-                          <div className="grid grid-cols-2 gap-1.5 p-1 bg-stone-200/70 dark:bg-black/40 rounded-2xl border border-stone-200 dark:border-white/5">
-                            <button
-                              type="button"
-                              onClick={() => setManualFulfillment('delivery')}
-                              className={`h-10 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 touch-manipulation ${manualFulfillment === 'delivery'
-                                  ? 'bg-amber-600 dark:bg-[#FD9139] text-white shadow-md shadow-amber-500/20'
-                                  : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
-                                }`}
-                            >
-                              <Truck size={14} />
-                              <span>Delivery</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setManualFulfillment('pickup')}
-                              className={`h-10 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 touch-manipulation ${manualFulfillment === 'pickup'
-                                  ? 'bg-amber-600 dark:bg-[#FD9139] text-white shadow-md shadow-amber-500/20'
-                                  : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
-                                }`}
-                            >
-                              <ShoppingBag size={14} />
-                              <span>Counter</span>
-                            </button>
-                          </div>
+                          <input
+                            type="text"
+                            value={manualCustomerName}
+                            onChange={(e) => setManualCustomerName(e.target.value)}
+                            required
+                            placeholder="Radhe Shyam"
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
                         </div>
 
-                        {/* Customer Name & Phone */}
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-bold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
-                              Customer Name <span className="text-amber-600 dark:text-[#FD9139]">*</span>
-                            </label>
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Phone <span className="text-[#FD9139]">*</span>
+                          </label>
+                          <div className="relative">
+                            <Phone className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                             <input
-                              type="text"
-                              value={manualCustomerName}
-                              onChange={(e) => setManualCustomerName(e.target.value)}
+                              type="tel"
+                              value={manualCustomerPhone}
+                              onChange={(e) => setManualCustomerPhone(e.target.value)}
                               required
-                              placeholder="e.g. Radhe Shyam"
-                              className="w-full text-xs bg-stone-100 dark:bg-[#181617] border border-stone-300/80 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                              placeholder="9876543210"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-2.5 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
                             />
                           </div>
+                        </div>
+                      </div>
 
-                          <div>
-                            <label className="block text-xs font-bold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
-                              Phone Number <span className="text-amber-600 dark:text-[#FD9139]">*</span>
-                            </label>
-                            <div className="relative">
-                              <Phone className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                              <input
-                                type="tel"
-                                value={manualCustomerPhone}
-                                onChange={(e) => setManualCustomerPhone(e.target.value)}
-                                required
-                                placeholder="e.g. 9876543210"
-                                className="w-full text-xs bg-stone-100 dark:bg-[#181617] border border-stone-300/80 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
-                              />
-                            </div>
+                      {/* Conditional Delivery Address or Counter Reference */}
+                      {manualFulfillment === 'delivery' ? (
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Delivery Address <span className="text-[#FD9139]">*</span>
+                          </label>
+                          <div className="relative">
+                            <MapPin className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={manualCustomerAddress}
+                              onChange={(e) => setManualCustomerAddress(e.target.value)}
+                              required
+                              placeholder="e.g. Raman Reti, Vrindavan"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                            />
                           </div>
-
-                          {/* Conditional Address / Counter Ref */}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <div>
-                            <label className="block text-xs font-bold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
-                              {manualFulfillment === 'delivery' ? (
-                                <>Delivery Address <span className="text-amber-600 dark:text-[#FD9139]">*</span></>
-                              ) : (
-                                <>Counter Token / Table # <span className="text-stone-400 text-[10px] font-normal">(Optional)</span></>
-                              )}
+                            <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                              Table / Token #
                             </label>
                             <div className="relative">
-                              {manualFulfillment === 'delivery' ? (
-                                <MapPin className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                              ) : (
-                                <Store className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                              )}
+                              <Store className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                               <input
                                 type="text"
                                 value={manualCustomerAddress}
                                 onChange={(e) => setManualCustomerAddress(e.target.value)}
-                                required={manualFulfillment === 'delivery'}
-                                placeholder={manualFulfillment === 'delivery' ? 'e.g. Raman Reti, Vrindavan' : 'e.g. Table 4 / Token #12'}
-                                className="w-full text-xs bg-stone-100 dark:bg-[#181617] border border-stone-300/80 dark:border-white/10 rounded-xl py-2.5 pl-9 pr-3.5 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                                placeholder="e.g. Table 4 / #12"
+                                className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
                               />
                             </div>
                           </div>
-
-                          {/* Kitchen Notes */}
                           <div>
-                            <label className="block text-xs font-bold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
-                              Kitchen Notes <span className="text-stone-400 text-[10px] font-normal">(Optional)</span>
+                            <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                              Notes
                             </label>
                             <input
                               type="text"
                               value={manualCookingNotes}
                               onChange={(e) => setManualCookingNotes(e.target.value)}
-                              placeholder="e.g. Extra spicy, no onion-garlic"
-                              className="w-full text-xs bg-stone-100 dark:bg-[#181617] border border-stone-300/80 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                              placeholder="e.g. Less spicy"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
                             />
                           </div>
                         </div>
+                      )}
 
-                        {/* Order Calculation Preview Card */}
-                        <div className="p-3.5 rounded-2xl bg-stone-100/90 dark:bg-[#181617] border border-stone-200 dark:border-white/5 space-y-1.5">
-                          <div className="flex justify-between text-xs text-stone-600 dark:text-neutral-400">
-                            <span>Subtotal ({cartSelected.reduce((sum, i) => sum + i.quantity, 0)} items)</span>
-                            <span className="font-bold text-stone-900 dark:text-white font-['Outfit']">₹{subtotal}</span>
-                          </div>
-                          <div className="flex justify-between text-xs text-stone-600 dark:text-neutral-400">
-                            <span>Fulfillment</span>
-                            <span className={`font-bold font-['Outfit'] ${isPickup ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-900 dark:text-white'}`}>
-                              {isPickup ? 'FREE (Counter)' : `₹${deliveryCharge}`}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs text-stone-600 dark:text-neutral-400">
-                            <span>Taxes & GST ({gstPercent}%)</span>
-                            <span className="font-bold text-stone-900 dark:text-white font-['Outfit']">₹{gstAmount}</span>
-                          </div>
-                          <div className="flex justify-between text-sm font-black text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
-                            <span>Net Total</span>
-                            <span className="text-amber-700 dark:text-[#FD9139]">₹{totalAmount}</span>
+                      {manualFulfillment === 'delivery' && (
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Kitchen Notes
+                          </label>
+                          <input
+                            type="text"
+                            value={manualCookingNotes}
+                            onChange={(e) => setManualCookingNotes(e.target.value)}
+                            placeholder="e.g. Extra spicy, quick dispatch"
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Ticket Calculation Breakdown Card */}
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-[#181617] border border-stone-200 dark:border-white/5 space-y-1.5 text-xs">
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>Items Subtotal ({cartSelected.reduce((sum, i) => sum + i.quantity, 0)})</span>
+                          <span className="font-semibold text-stone-900 dark:text-white font-['Outfit']">₹{subtotal}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>Fulfillment</span>
+                          <span className={`font-semibold font-['Outfit'] ${isPickup ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-900 dark:text-white'}`}>
+                            {isPickup ? 'FREE' : `₹${deliveryCharge}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>GST ({gstPercent}%)</span>
+                          <span className="font-semibold text-stone-900 dark:text-white font-['Outfit']">₹{gstAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-bold text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
+                          <span>Total Amount</span>
+                          <span className="text-[#FD9139]">₹{totalAmount}</span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Right Column: Menu Catalog (Header Pinned, List Scrolls) */}
+                    <div className="md:col-span-7 p-4 sm:p-5 flex flex-col min-h-0 bg-stone-100/40 dark:bg-black/15">
+                      
+                      {/* Pinned Subheader & Search Filter */}
+                      <div className="shrink-0 space-y-2.5 pb-3 border-b border-stone-200 dark:border-white/10">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
+                            Select Dishes ({filteredCatalog.length})
+                          </label>
+
+                          {/* Filter Tabs: All vs Selected */}
+                          <div className="flex items-center p-0.5 rounded-lg bg-stone-200/70 dark:bg-black/30 border border-stone-200/80 dark:border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => setManualCatalogFilter('all')}
+                              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                                manualCatalogFilter === 'all'
+                                  ? 'bg-white dark:bg-[#2C2829] text-stone-900 dark:text-white shadow-xs'
+                                  : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                              }`}
+                            >
+                              All ({manualCart.length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setManualCatalogFilter('selected')}
+                              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                                manualCatalogFilter === 'selected'
+                                  ? 'bg-white dark:bg-[#2C2829] text-[#FD9139] shadow-xs'
+                                  : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                              }`}
+                            >
+                              Cart ({cartSelected.length})
+                            </button>
                           </div>
                         </div>
 
+                        {/* Search Input */}
+                        <div className="relative">
+                          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={manualItemSearch}
+                            onChange={(e) => setManualItemSearch(e.target.value)}
+                            placeholder="Filter by dish or category..."
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl pl-8 pr-8 py-2 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
+                          {manualItemSearch && (
+                            <button
+                              type="button"
+                              onClick={() => setManualItemSearch('')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-white"
+                            >
+                              <X size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Right Column: Dish Selector & Cart Counter */}
-                      <div className="md:col-span-7 flex flex-col space-y-3">
-
-                        {/* Selector Subheader & Filter Bar */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] font-black uppercase tracking-wider text-stone-600 dark:text-neutral-400 font-['Outfit']">
-                              Menu Items ({filteredCatalog.length})
-                            </label>
-
-                            {/* View Filter: All vs Selected */}
-                            <div className="flex items-center gap-1 p-0.5 rounded-xl bg-stone-200/70 dark:bg-black/40 border border-stone-200 dark:border-white/5">
+                      {/* Scrollable Dishes List */}
+                      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar pt-3 space-y-2 max-h-72 md:max-h-none">
+                        {filteredCatalog.length === 0 ? (
+                          <div className="py-12 text-center rounded-xl bg-white/50 dark:bg-white/[0.02] border border-dashed border-stone-200 dark:border-white/10">
+                            <Utensils className="w-7 h-7 mx-auto text-stone-400 dark:text-neutral-500 mb-1.5 opacity-60" />
+                            <p className="text-xs font-semibold text-stone-500 dark:text-neutral-400">
+                              {manualCatalogFilter === 'selected' ? 'No dishes added to cart yet' : 'No matching dishes found'}
+                            </p>
+                            {manualCatalogFilter === 'selected' && (
                               <button
                                 type="button"
                                 onClick={() => setManualCatalogFilter('all')}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${manualCatalogFilter === 'all'
-                                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white shadow-xs'
-                                    : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
-                                  }`}
+                                className="mt-2 text-xs font-bold text-[#FD9139] hover:underline"
                               >
-                                All ({manualCart.length})
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setManualCatalogFilter('selected')}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${manualCatalogFilter === 'selected'
-                                    ? 'bg-amber-600 dark:bg-[#FD9139] text-white shadow-xs'
-                                    : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
-                                  }`}
-                              >
-                                Cart ({cartSelected.length})
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Search Input */}
-                          <div className="relative">
-                            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="text"
-                              value={manualItemSearch}
-                              onChange={(e) => setManualItemSearch(e.target.value)}
-                              placeholder="Search dish or category..."
-                              className="w-full text-xs bg-stone-100 dark:bg-[#181617] border border-stone-300/80 dark:border-white/10 rounded-xl pl-8 pr-8 py-2 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
-                            />
-                            {manualItemSearch && (
-                              <button
-                                type="button"
-                                onClick={() => setManualItemSearch('')}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-white"
-                              >
-                                <X size={13} />
+                                Browse all dishes
                               </button>
                             )}
                           </div>
-                        </div>
+                        ) : (
+                          filteredCatalog.map(item => {
+                            const qty = item.quantity || 0;
+                            const isSelected = qty > 0;
 
-                        {/* Dishes Scrollable List */}
-                        <div className="max-h-[320px] md:max-h-[380px] overflow-y-auto no-scrollbar space-y-2 pr-0.5">
-                          {filteredCatalog.length === 0 ? (
-                            <div className="py-10 text-center rounded-2xl bg-stone-100/60 dark:bg-white/[0.02] border border-dashed border-stone-200 dark:border-white/10">
-                              <Utensils className="w-7 h-7 mx-auto text-stone-400 dark:text-neutral-500 mb-1.5 opacity-60" />
-                              <p className="text-xs font-bold text-stone-600 dark:text-neutral-400">
-                                {manualCatalogFilter === 'selected' ? 'No dishes added to cart yet' : 'No matching dishes found'}
-                              </p>
-                              {manualCatalogFilter === 'selected' && (
-                                <button
-                                  type="button"
-                                  onClick={() => setManualCatalogFilter('all')}
-                                  className="mt-2 text-[11px] font-bold text-amber-600 dark:text-[#FD9139] underline"
-                                >
-                                  Browse all dishes
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            filteredCatalog.map(item => {
-                              const qty = item.quantity || 0;
-                              const isSelected = qty > 0;
-
-                              return (
-                                <div
-                                  key={item.id}
-                                  className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${isSelected
-                                      ? 'bg-amber-500/[0.07] dark:bg-amber-500/[0.08] border-amber-500/40 shadow-xs'
-                                      : 'bg-white dark:bg-[#181617] border-stone-200 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15'
-                                    }`}
-                                >
-                                  {/* Left: Dish Info */}
-                                  <div className="min-w-0 flex items-center gap-2.5 flex-1">
-                                    {/* Veg indicator badge */}
-                                    <div className="w-4 h-4 rounded-[4px] border border-emerald-600 flex items-center justify-center shrink-0 p-0.5" title="Pure Veg">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate font-['Outfit']">
-                                          {item.name}
-                                        </p>
-                                        {item.category && (
-                                          <span className="text-[10px] font-semibold text-stone-500 dark:text-neutral-400 bg-stone-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md">
-                                            {item.category}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="text-xs font-black text-amber-700 dark:text-[#FD9139] mt-0.5 font-['Outfit']">
-                                        ₹{item.price}
-                                      </p>
-                                    </div>
+                            return (
+                              <div
+                                key={item.id}
+                                className={`p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                                  isSelected
+                                    ? 'bg-white dark:bg-[#201D1E] border-[#FD9139]/40 shadow-xs'
+                                    : 'bg-white dark:bg-[#181617] border-stone-200/90 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15'
+                                }`}
+                              >
+                                {/* Left: Veg badge + Name + Category + Price */}
+                                <div className="min-w-0 flex items-center gap-2.5 flex-1">
+                                  <div className="w-3.5 h-3.5 rounded-[3px] border border-emerald-600 flex items-center justify-center shrink-0" title="Veg">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                                   </div>
 
-                                  {/* Right: Quantity Stepper */}
-                                  <div className="shrink-0 flex items-center">
-                                    {qty === 0 ? (
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate font-['Outfit']">
+                                        {item.name}
+                                      </p>
+                                      {item.category && (
+                                        <span className="text-[10px] font-medium text-stone-500 dark:text-neutral-400 bg-stone-100 dark:bg-white/5 px-1.5 py-0.5 rounded">
+                                          {item.category}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs font-bold text-[#FD9139] mt-0.5 font-['Outfit']">
+                                      ₹{item.price}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Right: Quantity Stepper */}
+                                <div className="shrink-0 flex items-center">
+                                  {qty === 0 ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdateManualOrderQty(item.id, 1);
+                                      }}
+                                      onTouchStart={(e) => e.stopPropagation()}
+                                      className="h-8 px-3 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 cursor-pointer border border-stone-200 dark:border-white/10 touch-manipulation"
+                                    >
+                                      <Plus size={12} strokeWidth={2.5} />
+                                      <span>Add</span>
+                                    </button>
+                                  ) : (
+                                    <div className="h-8 px-1.5 rounded-lg bg-[#FD9139] text-white flex items-center gap-1 shadow-xs">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUpdateManualOrderQty(item.id, -1);
+                                        }}
+                                        onTouchStart={(e) => e.stopPropagation()}
+                                        className="w-6 h-6 rounded-md bg-black/15 hover:bg-black/25 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
+                                        title="Decrease quantity"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-5 text-center text-xs font-bold font-['Outfit'] select-none">
+                                        {qty}
+                                      </span>
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -5588,62 +5644,32 @@ export default function OwnerView() {
                                           handleUpdateManualOrderQty(item.id, 1);
                                         }}
                                         onTouchStart={(e) => e.stopPropagation()}
-                                        className="h-8 sm:h-9 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-black text-xs uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 cursor-pointer border border-stone-200 dark:border-white/10 touch-manipulation"
+                                        className="w-6 h-6 rounded-md bg-black/15 hover:bg-black/25 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
+                                        title="Increase quantity"
                                       >
-                                        <Plus size={13} strokeWidth={3} />
-                                        <span>Add</span>
+                                        +
                                       </button>
-                                    ) : (
-                                      <div className="h-8 sm:h-9 px-1.5 rounded-xl bg-amber-600 dark:bg-[#FD9139] text-white flex items-center gap-1 shadow-sm">
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleUpdateManualOrderQty(item.id, -1);
-                                          }}
-                                          onTouchStart={(e) => e.stopPropagation()}
-                                          className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/30 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
-                                          title="Decrease quantity"
-                                        >
-                                          -
-                                        </button>
-                                        <span className="w-5 text-center text-xs font-black font-['Outfit'] select-none">
-                                          {qty}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleUpdateManualOrderQty(item.id, 1);
-                                          }}
-                                          onTouchStart={(e) => e.stopPropagation()}
-                                          className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/30 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
-                                          title="Increase quantity"
-                                        >
-                                          +
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
+                                    </div>
+                                  )}
                                 </div>
-                              );
-                            })
-                          )}
-                        </div>
-
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
 
                     </div>
+
                   </div>
 
-                  {/* 3. Sticky Modal Footer (NEVER cut off) */}
-                  <div className="shrink-0 p-4 sm:p-5 border-t border-stone-200 dark:border-white/10 bg-white/95 dark:bg-[#181617]/95 backdrop-blur-md flex items-center justify-between gap-3 sm:gap-4">
+                  {/* 3. Sticky Modal Footer (Flat, No Gradient, No Heavy Glow) */}
+                  <div className="shrink-0 p-3.5 sm:p-4 border-t border-stone-200 dark:border-white/10 bg-white dark:bg-[#1A1819] flex items-center justify-between gap-3 sm:gap-4">
                     <div className="flex flex-col min-w-0">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit'] truncate">
                         {cartSelected.length} {cartSelected.length === 1 ? 'item' : 'items'} • {isPickup ? 'Counter Pickup' : 'Direct Delivery'}
                       </span>
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl sm:text-2xl font-black font-['Outfit'] text-stone-900 dark:text-white">
+                        <span className="text-xl font-bold font-['Outfit'] text-stone-900 dark:text-white">
                           ₹{totalAmount}
                         </span>
                         <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-medium">
@@ -5655,9 +5681,9 @@ export default function OwnerView() {
                     <button
                       type="submit"
                       disabled={isSubmittingManualOrder || cartSelected.length === 0}
-                      className="h-12 px-5 sm:px-8 rounded-2xl bg-gradient-to-r from-amber-600 to-[#FD9139] hover:from-amber-700 hover:to-[#fca65e] disabled:opacity-40 disabled:pointer-events-none text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-[0.98] cursor-pointer transition-all shrink-0 touch-manipulation"
+                      className="h-11 sm:h-12 px-5 sm:px-7 rounded-xl bg-[#FD9139] hover:bg-[#ea802c] disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 active:scale-[0.98] cursor-pointer transition-all shrink-0 touch-manipulation shadow-xs"
                     >
-                      <Plus size={16} strokeWidth={3} />
+                      <Plus size={15} strokeWidth={2.5} />
                       <span>{isSubmittingManualOrder ? 'Dispatching...' : `Confirm & Dispatch • ₹${totalAmount}`}</span>
                     </button>
                   </div>

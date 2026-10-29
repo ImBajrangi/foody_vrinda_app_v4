@@ -152,11 +152,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Enforced Level 6 (Grand Admin) direct database assignment security invariant; removed from client role pickers.',
-    'Hardened dev_permissions parsing with fail-safe normalization across all roles and consoles.',
-    'Account & Profile UI overhaul: Eliminated text truncation, added roomy touch cards, and applied signature saffron theme.',
-    'Strict delivery gating: Doorstep Delivery option is completely hidden when riders are offline and shop self-delivery is off.',
-    'Multi-role alarm conflict protection: Single-device role hierarchy prevents dual-siren clash.'
+    'Segregated multi-shop order history rendering: clear shop identification, order-specific IDs, quantities, and itemized billing.',
+    'New POS Manual Order Builder: Modern flat layout, instant search, stationary filters, and one-tap walk-in counter ticket dispatch.',
+    'Optimized offline delivery banners and seamless counter self-pickup workflow.',
+    'Hardened edge function preflights and resilient error suppression for pickup fulfillment.',
+    'Zero layout shift, 44px+ mobile touch targets, and non-blocking quantity stepper isolation.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
