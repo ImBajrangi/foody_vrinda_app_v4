@@ -97,3 +97,4 @@ $$;
 GRANT EXECUTE ON FUNCTION public.toggle_shop_status(TEXT, BOOLEAN, BOOLEAN, BOOLEAN) TO authenticated, anon, service_role;
 
 NOTIFY pgrst, 'reload schema';
+

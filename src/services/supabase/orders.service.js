@@ -533,11 +533,16 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       } else if (payload.status === 'completed') {
         const isCounterPickup = extra?.fulfillment_type === 'pickup' || extra?.isCounterPickup || extra?.role === 'kitchen';
         if (isCounterPickup) {
-          const { data: kd, error: ke } = await supabase.rpc('kitchen_complete_pickup', { p_order_id: orderId });
+          const otpArg = extra?.otp || extra?.pickup_otp || extra?.code || null;
+          const rpcPayload = { p_order_id: orderId };
+          if (otpArg) rpcPayload.p_otp = String(otpArg);
+
+          const { data: kd, error: ke } = await supabase.rpc('kitchen_complete_pickup', rpcPayload);
           if (!ke && kd) {
             rpcSuccess = true;
             finalData = kd;
           } else {
+            if (ke) console.warn('kitchen_complete_pickup attempt note:', ke.message || ke);
             const { data: td, error: te } = await supabase.rpc('transition_order_status', {
               target_order_id: orderId,
               new_status: 'completed',
@@ -546,6 +551,8 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
             if (!te && td) {
               rpcSuccess = true;
               finalData = td;
+            } else if (te) {
+              console.warn('transition_order_status counter pickup note:', te.message || te);
             }
           }
         } else {

@@ -415,8 +415,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const [fulfillmentType, setFulfillmentType] = useState(() => {
     try {
-      const activeCount = getOnlineRiders().length;
-      if (activeCount === 0) return 'pickup';
       const saved = localStorage.getItem('foody_fulfillment_type');
       return (saved === 'pickup' || saved === 'delivery') ? saved : 'pickup';
     } catch {
@@ -424,32 +422,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     }
   });
 
-  const handleSetFulfillmentType = useCallback((type) => {
-    if (type === 'delivery' && onlineRidersCount === 0) {
-      showToast("Riders Offline", 'info', "Delivery riders are currently offline. Self-Pickup is selected at the counter.");
-      setFulfillmentType('pickup');
-      try {
-        localStorage.setItem('foody_fulfillment_type', 'pickup');
-      } catch (_) {}
-      return;
-    }
-    setFulfillmentType(type);
-    try {
-      localStorage.setItem('foody_fulfillment_type', type);
-    } catch (_) {}
-    if (type === 'delivery') {
-      // If delivery address is empty or contaminated, restore legitimate saved/profile address
-      setCheckoutAddress(prev => {
-        if (!prev || isContaminatedPickupAddress(prev)) {
-          const legitimate = sanitizeCustomerAddress(localStorage.getItem('customerAddress')) ||
-            sanitizeCustomerAddress(userData?.address || userData?.customerAddress) ||
-            sanitizeCustomerAddress(geo.address);
-          return legitimate || '';
-        }
-        return prev;
-      });
-    }
-  }, [onlineRidersCount, userData, geo.address]);
   const [cookingNotes, setCookingNotes] = useState('');
 
   // Favorites state
@@ -1101,15 +1073,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         const activeOnlineRiders = list.filter(u => isRiderOnline(u));
         const count = activeOnlineRiders.length;
         setOnlineRidersCount(count);
-        if (count === 0) {
-          setFulfillmentType('pickup');
-          try {
-            localStorage.setItem('foody_fulfillment_type', 'pickup');
-          } catch (_) {}
-        }
       } catch (e) {
         setOnlineRidersCount(0);
-        setFulfillmentType('pickup');
       }
     };
 
@@ -1200,12 +1165,58 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   const isShopOpen = !closedShop;
 
-  const isDeliveryAvailable = Boolean(
-    onlineRidersCount > 0 ||
-    cartGroupedByShop.some(g => g.shop?.self_delivery || g.shop?.can_deliver) ||
-    effectiveOrderShop?.self_delivery ||
-    effectiveOrderShop?.can_deliver
+  const isShopSelfDelivery = Boolean(
+    cartGroupedByShop.length > 0
+      ? cartGroupedByShop.every(g => {
+          if (g.shop?.self_delivery || g.shop?.can_deliver) return true;
+          const cachedStaff = (getCachedUsers() || []).filter(u =>
+            (u.shop_id === g.shopId || (Array.isArray(u.shop_ids) && u.shop_ids.includes(g.shopId))) &&
+            (u.can_deliver || u.canDeliver || u.self_delivery) &&
+            (u.is_online !== false && u.isOnline !== false)
+          );
+          return cachedStaff.length > 0;
+        })
+      : (
+          effectiveOrderShop?.self_delivery ||
+          effectiveOrderShop?.can_deliver ||
+          (getCachedUsers() || []).some(u =>
+            (u.shop_id === effectiveOrderShop?.id || (Array.isArray(u.shop_ids) && u.shop_ids.includes(effectiveOrderShop?.id))) &&
+            (u.can_deliver || u.canDeliver || u.self_delivery) &&
+            (u.is_online !== false && u.isOnline !== false)
+          )
+        )
   );
+
+  const isDeliveryAvailable = Boolean(
+    onlineRidersCount > 0 || isShopSelfDelivery
+  );
+
+  const handleSetFulfillmentType = useCallback((type) => {
+    if (type === 'delivery' && !isDeliveryAvailable) {
+      showToast("Delivery Unavailable", 'info', "Delivery riders are offline and this kitchen does not offer self-delivery. Counter pickup is selected.");
+      setFulfillmentType('pickup');
+      try {
+        localStorage.setItem('foody_fulfillment_type', 'pickup');
+      } catch (_) {}
+      return;
+    }
+    setFulfillmentType(type);
+    try {
+      localStorage.setItem('foody_fulfillment_type', type);
+    } catch (_) {}
+    if (type === 'delivery') {
+      // If delivery address is empty or contaminated, restore legitimate saved/profile address
+      setCheckoutAddress(prev => {
+        if (!prev || isContaminatedPickupAddress(prev)) {
+          const legitimate = sanitizeCustomerAddress(localStorage.getItem('customerAddress')) ||
+            sanitizeCustomerAddress(userData?.address || userData?.customerAddress) ||
+            sanitizeCustomerAddress(geo.address);
+          return legitimate || '';
+        }
+        return prev;
+      });
+    }
+  }, [isDeliveryAvailable, userData, geo.address]);
 
   useEffect(() => {
     if (!isDeliveryAvailable && fulfillmentType === 'delivery') {
@@ -1297,13 +1308,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       return showToast("Invalid Phone", 'error', 'Enter valid 10-digit mobile number');
     }
 
-    // Guard: Prevent dispatching delivery when no Sarathi riders are online
+    // Guard: Prevent dispatching delivery when delivery is unavailable
     if (fulfillmentType === 'delivery') {
-      const liveOnlineCount = getOnlineRiders().length;
-      if (liveOnlineCount === 0 || onlineRidersCount === 0) {
+      if (!isDeliveryAvailable) {
         setFulfillmentType('pickup');
         try { localStorage.setItem('foody_fulfillment_type', 'pickup'); } catch (_) {}
-        return showToast("Delivery Sarathis Offline", 'error', 'All delivery riders are currently offline. Please choose Self-Pickup at the shop.');
+        return showToast("Delivery Unavailable", 'error', 'Delivery riders are offline and this kitchen does not offer self-delivery. Please choose Self-Pickup.');
       }
     }
 
@@ -2913,9 +2923,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     Order Fulfillment
                   </span>
                   <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
-                    {isDeliveryAvailable
+                    {onlineRidersCount > 0
                       ? `${onlineRidersCount} Sarathi Riders Active`
-                      : 'Riders Offline • Counter Open'}
+                      : (isDeliveryAvailable ? 'Kitchen Self-Delivery Available' : 'Riders Offline • Counter Open')}
                   </span>
                 </div>
 
@@ -3380,14 +3390,14 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
               <button
                 onClick={handlePlaceOrder}
-                disabled={!isShopOpen || (!onlineAvailable && !codAvailable && !isPickupOrder) || (fulfillmentType === 'delivery' && onlineRidersCount === 0)}
+                disabled={!isShopOpen || (!onlineAvailable && !codAvailable && !isPickupOrder) || (fulfillmentType === 'delivery' && !isDeliveryAvailable)}
                 className="w-full bg-[#FD9139] hover:bg-[#FCA65E] text-white disabled:opacity-40 disabled:cursor-not-allowed font-black py-3.5 sm:py-4 px-5 sm:px-6 rounded-full text-sm sm:text-base shadow-xl cursor-pointer transition-all apple-tap-target active:scale-98 flex items-center justify-between font-['Outfit'] apple-spring-pop"
               >
                 <span className="font-black">
                   {!isShopOpen
                     ? (closedShop?.shopName ? `${closedShop.shopName} Offline` : 'Kitchen Offline (Closed)')
-                    : (fulfillmentType === 'delivery' && onlineRidersCount === 0
-                      ? 'Riders Offline (Select Self-Pickup)'
+                    : (fulfillmentType === 'delivery' && !isDeliveryAvailable
+                      ? 'Delivery Offline (Select Self-Pickup)'
                       : (!onlineAvailable && !codAvailable && !isPickupOrder
                         ? 'Kitchen Payments Disabled'
                         : (isMultiShopCart ? `Checkout ${cartGroupedByShop.length} Kitchens` : 'Proceed to Place Order')))}

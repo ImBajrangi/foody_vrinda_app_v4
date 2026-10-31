@@ -209,7 +209,11 @@ export function normalizeShop(s) {
     onlinePaymentsEnabled,
     online_payments_enabled: onlinePaymentsEnabled,
     codEnabled,
-    cod_enabled: codEnabled
+    cod_enabled: codEnabled,
+    self_delivery: Boolean(s.self_delivery ?? s.selfDelivery ?? s.can_deliver ?? s.canDeliver ?? false),
+    selfDelivery: Boolean(s.self_delivery ?? s.selfDelivery ?? s.can_deliver ?? s.canDeliver ?? false),
+    can_deliver: Boolean(s.can_deliver ?? s.canDeliver ?? s.self_delivery ?? s.selfDelivery ?? false),
+    canDeliver: Boolean(s.can_deliver ?? s.canDeliver ?? s.self_delivery ?? s.selfDelivery ?? false)
   };
 }
 

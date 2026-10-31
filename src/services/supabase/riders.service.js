@@ -551,11 +551,13 @@ export function isRiderOnline(user) {
 
   if (!hasExplicitOnDuty) return false;
 
-  // Stale heartbeat guard: If rider has had zero activity for > 20 minutes, consider offline
+  // Stale heartbeat guard: If rider explicitly toggled on_duty, allow active shift window (4 hours).
+  // This prevents Android/iOS background sleep from dropping active riders after 20 minutes.
   const lastSeen = user.last_seen_at || user.lastSeenAt || user.last_location_at || user.lastLocationAt || user.updatedAt || user.updated_at;
   if (lastSeen) {
     const ageMs = Date.now() - new Date(lastSeen).getTime();
-    if (!isNaN(ageMs) && ageMs > 20 * 60 * 1000) {
+    const maxStaleMs = isDutyString ? (4 * 60 * 60 * 1000) : (30 * 60 * 1000);
+    if (!isNaN(ageMs) && ageMs > maxStaleMs) {
       return false;
     }
   }

@@ -1308,6 +1308,8 @@ export default function OwnerView() {
   };
 
   const isSelfDeliveryActive = Boolean(
+    activeShop?.self_delivery ||
+    activeShop?.can_deliver ||
     userData?.can_deliver ||
     userData?.canDeliver ||
     userData?.self_delivery ||
@@ -1344,6 +1346,18 @@ export default function OwnerView() {
       await updateUserCapabilities(targetUserId, updates);
     } else {
       await updateCloudUser(targetUserId, updates);
+    }
+
+    try {
+      await updateCloudShop(activeShopId, {
+        self_delivery: nextVal,
+        can_deliver: nextVal
+      });
+      if (refreshShops) {
+        refreshShops();
+      }
+    } catch (shopSyncErr) {
+      console.warn("Could not sync shop self-delivery status:", shopSyncErr);
     }
 
     setToast({

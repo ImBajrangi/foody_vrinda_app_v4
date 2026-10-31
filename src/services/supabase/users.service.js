@@ -314,11 +314,11 @@ export async function getCloudUsers(forceRefresh = false) {
     try {
       // 1. Fetch from foody_logged_users (with safe order fallback & bounded limit)
       let loggedData = [];
-      const USER_DIR_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, delivery_status, delivery_type, created_at, updated_at';
+      const LOGGED_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, last_login_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
       try {
         const { data, error } = await supabase
           .from('foody_logged_users')
-          .select(USER_DIR_FIELDS)
+          .select(LOGGED_FIELDS)
           .order('updated_at', { ascending: false })
           .limit(100);
         if (!error && data && data.length > 0) {
@@ -330,10 +330,11 @@ export async function getCloudUsers(forceRefresh = false) {
 
       // 2. Fetch from foody_users as well to ensure total multi-app sync
       let usersData = [];
+      const USERS_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, last_seen_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
       try {
         const { data, error } = await supabase
           .from('foody_users')
-          .select(USER_DIR_FIELDS)
+          .select(USERS_FIELDS)
           .order('updated_at', { ascending: false })
           .limit(100);
         if (!error && data && data.length > 0) {
@@ -391,6 +392,10 @@ export async function getCloudUsers(forceRefresh = false) {
               ? Boolean(userCandidate.is_online === true || userCandidate.isOnline === true || prev.is_online === true || prev.isOnline === true)
               : (userCandidate.is_online !== undefined ? userCandidate.is_online : (prev.is_online ?? true)),
             duty_status: userCandidate.duty_status || prev.duty_status || ((bestRole === 'delivery' || bestRole === 'rider') ? 'off_duty' : 'on_duty'),
+            can_deliver: Boolean(userCandidate.can_deliver ?? userCandidate.canDeliver ?? prev.can_deliver ?? prev.canDeliver ?? false),
+            canDeliver: Boolean(userCandidate.can_deliver ?? userCandidate.canDeliver ?? prev.can_deliver ?? prev.canDeliver ?? false),
+            self_delivery: Boolean(userCandidate.self_delivery ?? userCandidate.selfDelivery ?? prev.self_delivery ?? prev.selfDelivery ?? false),
+            selfDelivery: Boolean(userCandidate.self_delivery ?? userCandidate.selfDelivery ?? prev.self_delivery ?? prev.selfDelivery ?? false),
             isActive: userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isActive ?? true),
             is_active: userCandidate.is_active !== undefined ? userCandidate.is_active : (prev.is_active ?? true)
           };
@@ -424,6 +429,10 @@ export async function getCloudUsers(forceRefresh = false) {
           isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
           is_online: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_online ?? true),
           duty_status: u.duty_status || ((u.role === 'delivery' || u.role === 'rider') ? 'off_duty' : 'on_duty'),
+          can_deliver: Boolean(u.can_deliver ?? u.canDeliver ?? false),
+          canDeliver: Boolean(u.can_deliver ?? u.canDeliver ?? false),
+          self_delivery: Boolean(u.self_delivery ?? u.selfDelivery ?? false),
+          selfDelivery: Boolean(u.self_delivery ?? u.selfDelivery ?? false),
           delivery_status: u.delivery_status || 'approved',
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
@@ -455,12 +464,16 @@ export async function getCloudUsers(forceRefresh = false) {
           isOnline: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_active ?? true),
           is_online: (u.role === 'delivery' || u.role === 'rider') ? Boolean(u.is_online === true || u.isOnline === true) : (u.is_online ?? true),
           duty_status: u.duty_status || ((u.role === 'delivery' || u.role === 'rider') ? 'off_duty' : 'on_duty'),
+          can_deliver: Boolean(u.can_deliver ?? u.canDeliver ?? false),
+          canDeliver: Boolean(u.can_deliver ?? u.canDeliver ?? false),
+          self_delivery: Boolean(u.self_delivery ?? u.selfDelivery ?? false),
+          selfDelivery: Boolean(u.self_delivery ?? u.selfDelivery ?? false),
           delivery_status: u.delivery_status || 'approved',
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
           deliveryType: u.delivery_type || 'independent',
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
-          last_seen_at: u.last_login_at || u.updated_at || u.created_at,
+          last_seen_at: u.updated_at || u.last_login_at || u.created_at,
           createdAt: u.created_at,
           updatedAt: u.updated_at
         });
@@ -961,6 +974,8 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
     cash_in_hand: Number(resolvedCash),
     unsettled_debt: Number(resolvedDebt),
     is_active: Boolean(isOnlineVal),
+    can_deliver: Boolean(updates.can_deliver ?? updates.canDeliver ?? updates.self_delivery ?? userExists?.can_deliver ?? false),
+    can_manage_kitchen: Boolean(updates.can_manage_kitchen ?? updates.canManageKitchen ?? userExists?.can_manage_kitchen ?? false),
     last_login_at: nowIso,
     updated_at: nowIso
   };
@@ -1053,7 +1068,13 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   dispatchSafeEvent('foody_users_changed', { users: updatedList, updatedUser });
 
   // 2. Focused atomic cloud write (only touches presence columns to prevent RLS permission collisions)
-  const presencePayload = {
+  const loggedPresencePayload = {
+    is_online: activeBool,
+    duty_status: activeBool ? 'on_duty' : 'off_duty',
+    updated_at: nowIso
+  };
+
+  const standardPresencePayload = {
     is_online: activeBool,
     duty_status: activeBool ? 'on_duty' : 'off_duty',
     last_seen_at: nowIso,
@@ -1061,11 +1082,11 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   };
 
   try {
-    await supabase.from('foody_logged_users').update(presencePayload).eq('id', cleanId);
+    await supabase.from('foody_logged_users').update(loggedPresencePayload).eq('id', cleanId);
   } catch (_) {}
 
   try {
-    await supabase.from('foody_users').update(presencePayload).eq('id', cleanId);
+    await supabase.from('foody_users').update(standardPresencePayload).eq('id', cleanId);
   } catch (_) {}
 
   return updatedUser;

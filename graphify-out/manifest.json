@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "src/context/AuthContext.jsx": {
-    "mtime": 1793204905.0599802,
-    "ast_hash": "66cbf38b15ae3e203ba2bb369176b602",
+    "mtime": 1793439169.6721652,
+    "ast_hash": "9dbdaf03255f79af8202b52c0aa87da5",
     "semantic_hash": ""
   },
   "src/context/CartContext.jsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "src/views/CustomerView.jsx": {
-    "mtime": 1793287970.0966516,
-    "ast_hash": "1af5603450de22fba38370b355ad1c8e",
+    "mtime": 1793439195.5316117,
+    "ast_hash": "0e01a06204762be70dd993d1419bcab1",
     "semantic_hash": ""
   },
   "src/views/DeveloperView.jsx": {
@@ -185,13 +185,13 @@
     "semantic_hash": ""
   },
   "src/views/KitchenView.jsx": {
-    "mtime": 1793286131.0267482,
-    "ast_hash": "a760b9fd44d0ce10e12770ae68ee9ec0",
+    "mtime": 1793439529.1820233,
+    "ast_hash": "0a70777e1d9872b1e773c75310a45016",
     "semantic_hash": ""
   },
   "src/views/OwnerView.jsx": {
-    "mtime": 1793289314.2371783,
-    "ast_hash": "e3de117bf2c88bf105f45065ab76cb9b",
+    "mtime": 1793436137.87359,
+    "ast_hash": "925470f79a91673d3762b7e414ab0800",
     "semantic_hash": ""
   },
   "src/views/TransportView.jsx": {
@@ -350,8 +350,8 @@
     "semantic_hash": ""
   },
   "src/services/appUpdateService.js": {
-    "mtime": 1793205211.983327,
-    "ast_hash": "a2105ecd41cf94054cdb07081bc5d160",
+    "mtime": 1793289559.7388272,
+    "ast_hash": "4b4c373cdc4a6088c6ab0f87f7a442a7",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -560,8 +560,8 @@
     "semantic_hash": ""
   },
   "scripts/release-apk.mjs": {
-    "mtime": 1793205309.3693445,
-    "ast_hash": "556a99d2ef0d24db190c85a9476d20ce",
+    "mtime": 1793289502.0413215,
+    "ast_hash": "a3f13cc2244dfabf01f509f43c5a2308",
     "semantic_hash": ""
   },
   "scripts/test-checkout-gps-and-pickup.mjs": {
@@ -660,8 +660,8 @@
     "semantic_hash": ""
   },
   "src/services/supabase/cache.js": {
-    "mtime": 1793205057.3381202,
-    "ast_hash": "513c746cca3757012b7514e78582bade",
+    "mtime": 1793436062.9829195,
+    "ast_hash": "a04235eb83ed763c01641382d8c54a2d",
     "semantic_hash": ""
   },
   "src/services/supabase/client.js": {
@@ -685,8 +685,8 @@
     "semantic_hash": ""
   },
   "src/services/supabase/orders.service.js": {
-    "mtime": 1793286706.6633687,
-    "ast_hash": "d66204937ba4e3219bd2b7f24685b7fc",
+    "mtime": 1793437242.5044894,
+    "ast_hash": "1e527f1fd38a37706aeb0adf441665a5",
     "semantic_hash": ""
   },
   "src/services/supabase/realtime.service.js": {
@@ -705,18 +705,18 @@
     "semantic_hash": ""
   },
   "src/services/supabase/schema.js": {
-    "mtime": 1793160994.871416,
-    "ast_hash": "9f99e4315148f9f1ea7dfd5f5856a41d",
+    "mtime": 1793437585.452297,
+    "ast_hash": "7be2f8a73ae1a412870290b27242f09a",
     "semantic_hash": ""
   },
   "src/services/supabase/shops.service.js": {
-    "mtime": 1793195044.7307224,
-    "ast_hash": "9f26c0c492f4661bd4a9b6d1e2808f5b",
+    "mtime": 1793439256.2246828,
+    "ast_hash": "e38425fab4657a1915763fea1fd76b56",
     "semantic_hash": ""
   },
   "src/services/supabase/users.service.js": {
-    "mtime": 1793205070.2087708,
-    "ast_hash": "f6b2c472853d05b07faae6e23f95e059",
+    "mtime": 1793439157.4081395,
+    "ast_hash": "b88170640bf918b65820d1b86ed51880",
     "semantic_hash": ""
   },
   "src/supabase.monolith.backup.js": {
@@ -867,6 +867,16 @@
   "supabase/migrations/20261026000001_atomic_shop_deletion_and_combos.sql": {
     "mtime": 1793010220.9652827,
     "ast_hash": "c26cba42fc048824656b0ce6ec3bd36c",
+    "semantic_hash": ""
+  },
+  "scripts/verify-delivery-and-counter-handover.mjs": {
+    "mtime": 1793440134.406083,
+    "ast_hash": "b6b7b23ed52665559cc500563b4ef0b3",
+    "semantic_hash": ""
+  },
+  "scripts/verify-realtime-orders.mjs": {
+    "mtime": 1793440190.0365129,
+    "ast_hash": "bd1e6cd0bb7b386ffd164ac84a36209c",
     "semantic_hash": ""
   }
 }

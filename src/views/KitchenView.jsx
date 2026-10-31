@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
@@ -51,7 +52,9 @@ import {
   TrendingUp,
   Sparkles,
   KeyRound,
-  ShieldCheck
+  ShieldCheck,
+  Truck,
+  Utensils
 } from 'lucide-react';
 
 export default function KitchenView() {
@@ -143,6 +146,9 @@ export default function KitchenView() {
   // Create manual order states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isModalClosing, setIsModalClosing] = useState(false);
+  const [manualFulfillment, setManualFulfillment] = useState('pickup'); // 'pickup' | 'delivery'
+  const [manualCatalogFilter, setManualCatalogFilter] = useState('all'); // 'all' | 'selected'
+  const [isSubmittingManualOrder, setIsSubmittingManualOrder] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -388,11 +394,13 @@ export default function KitchenView() {
     setCustomerPhone('');
     setCookingNotes('');
     setItemSearch('');
+    setManualFulfillment('pickup');
+    setManualCatalogFilter('all');
     setShowCreateModal(true);
   };
 
   const handleCloseCreateModal = () => {
-    if (isModalClosing) return;
+    if (isModalClosing || isSubmittingManualOrder) return;
     setIsModalClosing(true);
     setTimeout(() => {
       setShowCreateModal(false);
@@ -403,7 +411,7 @@ export default function KitchenView() {
   const handleUpdateManualQty = (itemId, delta) => {
     setManualCart(prev => prev.map(item => {
       if (item.id === itemId) {
-        const q = Math.max(0, item.quantity + delta);
+        const q = Math.max(0, (item.quantity || 0) + delta);
         return { ...item, quantity: q };
       }
       return item;
@@ -415,50 +423,68 @@ export default function KitchenView() {
     if (!activeShopId) {
       return showToast("Kitchen Inactive.", "error");
     }
-    const cartItems = manualCart.filter(i => i.quantity > 0);
-    if (cartItems.length === 0) return showToast("Select Item.", "error");
+    const cartSelected = manualCart.filter(i => (i.quantity || 0) > 0);
+    if (cartSelected.length === 0) return showToast("Select at least 1 dish.", "error");
 
-    const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    const orderPayload = {
-      shopId: activeShopId,
-      customerName,
-      customerAddress,
-      deliveryAddress: customerAddress,
-      customerPhone,
-      items: cartItems.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity, ready: false })),
-      subtotal: total,
-      deliveryCharge: 0,
-      gstAmount: 0,
-      totalAmount: total,
-      status: 'new',
-      userId: user?.uid || null,
-      paymentId: 'manual-cash-entry',
-      paymentIds: ['manual-cash-entry'],
-      isPaid: true,
-      isTestOrder: false,
-      createdBy: user?.email || 'staff',
-      paymentMethod: 'cash',
-      cashStatus: 'pending',
-      cookingNotes
-    };
-
+    setIsSubmittingManualOrder(true);
     try {
+      const isPickup = manualFulfillment === 'pickup';
+      const subtotal = cartSelected.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const deliveryCharge = isPickup ? 0 : Number(activeShop?.delivery_charge ?? activeShop?.deliveryCharge ?? 0);
+      const gstPercent = Number(activeShop?.gst_percentage ?? activeShop?.gstPercentage ?? 5);
+      const gstAmount = Math.round(subtotal * gstPercent / 100);
+      const totalAmount = subtotal + deliveryCharge + gstAmount;
+
+      const orderPayload = {
+        shopId: activeShopId,
+        customerName: customerName.trim() || 'Walk-in Devotee',
+        customerPhone: customerPhone.trim() || '9876543210',
+        customerAddress: customerAddress.trim() || (isPickup ? `${activeShop?.name || 'Kitchen'} (Counter Pickup)` : 'Direct Delivery'),
+        deliveryAddress: customerAddress.trim() || (isPickup ? `[Counter Pickup] ${activeShop?.name || 'Kitchen'}` : 'Direct Delivery'),
+        items: cartSelected.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          ready: false
+        })),
+        subtotal,
+        deliveryCharge,
+        gstAmount,
+        totalAmount,
+        fulfillment_type: manualFulfillment,
+        fulfillmentType: manualFulfillment,
+        status: 'new',
+        userId: user?.uid || user?.id || null,
+        paymentId: 'manual-cash-entry',
+        paymentIds: ['manual-cash-entry'],
+        isPaid: false,
+        isTestOrder: false,
+        createdBy: user?.email || user?.displayName || 'Staff',
+        paymentMethod: 'cash',
+        cashStatus: 'pending',
+        cookingNotes: cookingNotes.trim()
+      };
+
       const cloudOrder = await createCloudOrder(orderPayload);
 
       // Notify staff
-      await createCloudNotification({
-        role: 'kitchen',
-        shopId: activeShopId,
-        orderId: cloudOrder.id,
-        message: `New manual order #${cloudOrder.id.slice(-6).toUpperCase()} created for ${customerName}.`
-      });
+      try {
+        await createCloudNotification({
+          role: 'kitchen',
+          shopId: activeShopId,
+          orderId: cloudOrder.id,
+          message: `New manual ${isPickup ? 'Counter' : 'Delivery'} order #${cloudOrder.id.slice(-6).toUpperCase()} created for ${orderPayload.customerName}.`
+        });
+      } catch (_) {}
 
-      showToast("Order Created", "success");
+      showToast(`Order #${cloudOrder.id.slice(-6).toUpperCase()} Created!`, "success");
       handleCloseCreateModal();
     } catch (err) {
       console.error(err);
-      showToast("Order Creation Failed" + (err.message || "Unknown error"), "error");
+      showToast("Order Creation Failed: " + (err.message || "Unknown error"), "error");
+    } finally {
+      setIsSubmittingManualOrder(false);
     }
   };
 
@@ -528,26 +554,33 @@ export default function KitchenView() {
     }
   };
 
-  const handleCounterPickupHandover = async (orderId, orderData) => {
+  const handleCounterPickupHandover = async (orderId, orderData, verifiedCode = null) => {
     stopAlarm();
     try {
       const rawMethod = String(orderData?.payment_method || orderData?.paymentMethod || '').toLowerCase().trim();
       const isCash = rawMethod === 'cash' || rawMethod === 'cod';
 
-      await updateCloudOrderStatus(orderId, 'completed', {
+      const res = await updateCloudOrderStatus(orderId, 'completed', {
         fulfillment_type: 'pickup',
         isCounterPickup: true,
         role: 'kitchen',
+        otp: verifiedCode || orderData?.pickup_otp || orderData?.pickupOtp,
         shop_id: orderData?.shop_id || orderData?.shopId,
         cash_status: isCash ? 'collected' : (orderData?.cashStatus || orderData?.cash_status || 'none'),
         delivered_at: new Date().toISOString()
       });
 
+      if (!res) {
+        throw new Error('Database order transition was not confirmed. Please retry.');
+      }
+
       setOrders(prev => prev.filter(o => o.id !== orderId));
       showToast('Counter Handover Completed! Prasad given to customer.', 'success');
+      return true;
     } catch (e) {
       console.error('Counter handover error:', e);
-      showToast('Failed to complete counter handover', 'error');
+      showToast(e?.message || 'Failed to complete counter handover', 'error');
+      throw e;
     }
   };
 
@@ -625,10 +658,15 @@ export default function KitchenView() {
     setCounterOtpModal(prev => ({ ...prev, isSuccess: true, isSubmitting: true, error: '' }));
     setTimeout(async () => {
       try {
-        await handleCounterPickupHandover(currentOrder.id, currentOrder);
+        await handleCounterPickupHandover(currentOrder.id, currentOrder, code);
         closeCounterOtpModal();
       } catch (err) {
-        setCounterOtpModal(prev => ({ ...prev, isSubmitting: false, error: 'Failed to complete handover. Retry.' }));
+        setCounterOtpModal(prev => ({
+          ...prev,
+          isSubmitting: false,
+          isSuccess: false,
+          error: err?.message || 'Failed to complete handover. Retry.'
+        }));
       }
     }, 500);
     return true;
@@ -1164,176 +1202,431 @@ export default function KitchenView() {
 
 
 
-      {/* MODAL: MANUAL ORDER ENTRY */}
-      {showCreateModal && (
+      {/* MODAL: KITCHEN MANUAL ORDER CREATION (PORTAL POS 2-COLUMN) */}
+      {showCreateModal && typeof document !== 'undefined' && createPortal(
         <div
           onClick={(e) => {
-            if (e.target === e.currentTarget) handleCloseCreateModal();
+            if (e.target === e.currentTarget && !isSubmittingManualOrder) {
+              handleCloseCreateModal();
+            }
           }}
-          className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 apple-overlay ${isModalClosing ? 'closing' : ''}`}
+          className={`fixed inset-0 z-[999] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in ${isModalClosing ? 'opacity-0 transition-opacity duration-200' : ''}`}
         >
-          <div className={`w-full max-w-2xl bg-stone-50 dark:bg-[#242021] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-[36px] sm:rounded-[42px] p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col justify-between apple-modal-spring ${isModalClosing ? 'closing' : ''}`}>
+          <div className="w-full max-w-4xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white rounded-2xl sm:rounded-3xl shadow-2xl relative flex flex-col max-h-[92vh] sm:max-h-[88vh] overflow-hidden">
 
-            {/* Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-stone-200 dark:border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139]">
-                  <Plus size={20} strokeWidth={3} />
+            {/* 1. Modal Fixed Header */}
+            <div className="shrink-0 flex items-center justify-between px-5 sm:px-6 py-4 border-b border-stone-200 dark:border-white/10 bg-white dark:bg-[#221F20]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/20 dark:border-[#FD9139]/20 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
+                  <ChefHat size={18} strokeWidth={2.4} />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white font-outfit font-sans">Create Manual Order</h3>
-                  <p className="text-xs text-stone-500 dark:text-zinc-400 font-medium">Record in-person or phone delivery order</p>
+                  <h3 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                    Create Manual Order
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 font-medium">
+                    Walk-in counter or direct delivery for <span className="text-amber-700 dark:text-[#FD9139] font-semibold">{activeShop?.name || 'Active Kitchen'}</span>
+                  </p>
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={handleCloseCreateModal}
-                className="w-9 h-9 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-[#1E1B1C] dark:hover:bg-[#322E30] text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer apple-tap-target border border-stone-300/80 dark:border-white/5"
+                disabled={isSubmittingManualOrder}
+                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-500 dark:text-neutral-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer border border-stone-200 dark:border-white/5 active:scale-95 touch-manipulation"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateManualOrder} className="space-y-5 my-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Customer Information Column */}
-                <div className="space-y-3.5">
-                  <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-outfit font-sans">Customer Information</h4>
+            {/* 2. Modal Body & Form */}
+            {(() => {
+              const cartSelected = manualCart.filter(i => (i.quantity || 0) > 0);
+              const subtotal = cartSelected.reduce((sum, item) => sum + (Number(item.price) || 0) * item.quantity, 0);
+              const isPickup = manualFulfillment === 'pickup';
+              const deliveryCharge = isPickup ? 0 : Number(activeShop?.delivery_charge ?? activeShop?.deliveryCharge ?? 0);
+              const gstPercent = Number(activeShop?.gst_percentage ?? activeShop?.gstPercentage ?? 5);
+              const gstAmount = Math.round(subtotal * gstPercent / 100);
+              const totalAmount = subtotal + deliveryCharge + gstAmount;
 
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Customer Name</label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      required
-                      placeholder="e.g. Radhika Sharma"
-                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
-                    />
-                  </div>
+              const filteredCatalog = manualCart.filter(item => {
+                if (manualCatalogFilter === 'selected') {
+                  if ((item.quantity || 0) === 0) return false;
+                }
+                if (itemSearch.trim()) {
+                  const q = itemSearch.toLowerCase();
+                  return item.name.toLowerCase().includes(q) || (item.category && item.category.toLowerCase().includes(q));
+                }
+                return true;
+              });
 
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Delivery Address</label>
-                    <input
-                      type="text"
-                      value={customerAddress}
-                      onChange={(e) => setCustomerAddress(e.target.value)}
-                      required
-                      placeholder="e.g. Raman Reti, Vrindavan"
-                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      required
-                      placeholder="e.g. 9876543210"
-                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 dark:text-zinc-300 mb-1">Kitchen Instructions</label>
-                    <input
-                      type="text"
-                      value={cookingNotes}
-                      onChange={(e) => setCookingNotes(e.target.value)}
-                      placeholder="e.g. Extra tulsi patra, less spicy"
-                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl py-3 px-4 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Menu Items Selector Column */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-xs font-black uppercase text-stone-900 dark:text-zinc-400 tracking-wider font-outfit font-sans">Select Satvik Dishes</h4>
-                    <span className="text-[11px] text-amber-700 dark:text-[#FD9139] font-bold">
-                      {manualCart.filter(i => i.quantity > 0).length} selected
-                    </span>
-                  </div>
-
-                  {/* Search filter in modal */}
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-zinc-500" />
-                    <input
-                      type="text"
-                      placeholder="Filter dishes..."
-                      value={itemSearch}
-                      onChange={(e) => setItemSearch(e.target.value)}
-                      className="w-full text-xs bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2 max-h-52 overflow-y-auto pr-1 no-scrollbar divide-y divide-stone-200 dark:divide-white/5">
-                    {filteredMenuItems.map(item => (
-                      <div key={item.id} className="pt-2 flex justify-between items-center gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-stone-900 dark:text-white text-xs truncate">
-                            {item.name}
-                            {(item.isAvailable === false || item.is_available === false) && (
-                              <span className="ml-1.5 text-[9px] text-rose-500 font-bold uppercase bg-rose-500/10 px-1.5 py-0.5 rounded-md">
-                                Out of Stock
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-[10px] text-stone-500 dark:text-zinc-400">₹{item.price}</p>
-                        </div>
-
-                        {/* High-accessibility Stepper */}
-                        <div className="bg-stone-100 dark:bg-[#1E1B1C] rounded-full p-1 border border-stone-200 dark:border-white/10 flex items-center gap-1 shadow-inner flex-shrink-0">
+              return (
+                <form onSubmit={handleCreateManualOrder} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                  
+                  {/* Two-Column Responsive Workspace */}
+                  <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:grid md:grid-cols-12">
+                    
+                    {/* Left Column: Customer Details & Fulfillment */}
+                    <div className="md:col-span-5 p-4 sm:p-5 md:overflow-y-auto no-scrollbar md:border-r border-stone-200 dark:border-white/10 space-y-4">
+                      
+                      {/* Fulfillment Mode Segmented Control */}
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 mb-1.5 font-['Outfit']">
+                          Fulfillment Mode
+                        </label>
+                        <div className="grid grid-cols-2 p-1 bg-stone-200/70 dark:bg-black/30 rounded-xl border border-stone-200/80 dark:border-white/5">
                           <button
                             type="button"
-                            onClick={() => handleUpdateManualQty(item.id, -1)}
-                            className="w-6 h-6 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-90 flex items-center justify-center text-stone-700 hover:text-stone-950 dark:text-zinc-200 dark:hover:text-white cursor-pointer transition-all shadow-xs apple-tap-target"
-                            aria-label="Decrease quantity"
+                            onClick={() => setManualFulfillment('delivery')}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                              manualFulfillment === 'delivery'
+                                ? 'bg-[#FD9139] text-white shadow-xs font-black'
+                                : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                            }`}
                           >
-                            {item.quantity === 1 ? (
-                              <Trash2 size={11} className="text-red-400" />
-                            ) : (
-                              <Minus size={11} strokeWidth={2.5} />
-                            )}
+                            <Truck size={14} />
+                            <span>DELIVERY</span>
                           </button>
-                          <span className="min-w-[18px] text-center font-black text-xs text-stone-900 dark:text-[#FD9139] font-outfit font-sans select-none">
-                            {item.quantity}
-                          </span>
                           <button
                             type="button"
-                            onClick={() => handleUpdateManualQty(item.id, 1)}
-                            className="w-6 h-6 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#fca65e] active:scale-90 flex items-center justify-center text-white cursor-pointer transition-all shadow-md apple-tap-target"
-                            aria-label="Increase quantity"
+                            onClick={() => setManualFulfillment('pickup')}
+                            className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                              manualFulfillment === 'pickup'
+                                ? 'bg-[#FD9139] text-white shadow-xs font-black'
+                                : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                            }`}
                           >
-                            <Plus size={11} strokeWidth={3.5} className="text-white stroke-current" />
+                            <ShoppingBag size={14} />
+                            <span>COUNTER</span>
                           </button>
                         </div>
                       </div>
-                    ))}
+
+                      {/* Customer Name & Phone Number in 2-Column Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Customer Name <span className="text-[#FD9139]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            required
+                            placeholder="e.g. Radhe Shyam"
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Phone Number <span className="text-[#FD9139]">*</span>
+                          </label>
+                          <div className="relative">
+                            <Phone className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="tel"
+                              value={customerPhone}
+                              onChange={(e) => setCustomerPhone(e.target.value)}
+                              required
+                              placeholder="e.g. 9876543210"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-2.5 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conditional Delivery Address or Counter Reference */}
+                      {manualFulfillment === 'delivery' ? (
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Delivery Address <span className="text-[#FD9139]">*</span>
+                          </label>
+                          <div className="relative">
+                            <MapPin className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={customerAddress}
+                              onChange={(e) => setCustomerAddress(e.target.value)}
+                              required
+                              placeholder="e.g. Raman Reti, Vrindavan"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                              Counter Token / Table # <span className="text-stone-400 text-[10px]">(Optional)</span>
+                            </label>
+                            <div className="relative">
+                              <Store className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="text"
+                                value={customerAddress}
+                                onChange={(e) => setCustomerAddress(e.target.value)}
+                                placeholder="e.g. Table 4 / Token #12"
+                                className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 pl-8 pr-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                              Kitchen Notes <span className="text-stone-400 text-[10px]">(Optional)</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={cookingNotes}
+                              onChange={(e) => setCookingNotes(e.target.value)}
+                              placeholder="e.g. Extra spicy, no onion-garlic"
+                              className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {manualFulfillment === 'delivery' && (
+                        <div>
+                          <label className="block text-xs font-semibold text-stone-700 dark:text-neutral-300 mb-1 font-['Outfit']">
+                            Kitchen Preparation Notes
+                          </label>
+                          <input
+                            type="text"
+                            value={cookingNotes}
+                            onChange={(e) => setCookingNotes(e.target.value)}
+                            placeholder="e.g. Extra tulsi patra, less spicy, quick dispatch"
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl py-2 px-3 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Ticket Calculation Breakdown Card */}
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-[#181617] border border-stone-200 dark:border-white/5 space-y-1.5 text-xs">
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>Subtotal ({cartSelected.reduce((sum, i) => sum + (i.quantity || 0), 0)} items)</span>
+                          <span className="font-semibold text-stone-900 dark:text-white font-['Outfit']">₹{subtotal}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>Fulfillment</span>
+                          <span className={`font-semibold font-['Outfit'] ${isPickup ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-900 dark:text-white'}`}>
+                            {isPickup ? 'FREE (Counter)' : `₹${deliveryCharge}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-stone-500 dark:text-neutral-400">
+                          <span>Taxes & GST ({gstPercent}%)</span>
+                          <span className="font-semibold text-stone-900 dark:text-white font-['Outfit']">₹{gstAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-bold text-stone-900 dark:text-white pt-2 border-t border-stone-200 dark:border-white/10 font-['Outfit']">
+                          <span>Net Total</span>
+                          <span className="text-[#FD9139]">₹{totalAmount}</span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Right Column: Menu Catalog (Header Pinned, List Scrolls) */}
+                    <div className="md:col-span-7 p-4 sm:p-5 flex flex-col min-h-0 bg-stone-100/40 dark:bg-black/15">
+                      
+                      {/* Pinned Subheader & Search Filter */}
+                      <div className="shrink-0 space-y-2.5 pb-3 border-b border-stone-200 dark:border-white/10">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
+                            Select Dishes ({cartSelected.length} Selected)
+                          </label>
+
+                          {/* Filter Tabs: All vs Selected */}
+                          <div className="flex items-center p-0.5 rounded-lg bg-stone-200/70 dark:bg-black/30 border border-stone-200/80 dark:border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => setManualCatalogFilter('all')}
+                              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                                manualCatalogFilter === 'all'
+                                  ? 'bg-white dark:bg-[#2C2829] text-stone-900 dark:text-white shadow-xs'
+                                  : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                              }`}
+                            >
+                              All ({manualCart.length})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setManualCatalogFilter('selected')}
+                              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                                manualCatalogFilter === 'selected'
+                                  ? 'bg-white dark:bg-[#2C2829] text-[#FD9139] shadow-xs'
+                                  : 'text-stone-500 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                              }`}
+                            >
+                              Cart ({cartSelected.length})
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Search Input */}
+                        <div className="relative">
+                          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={itemSearch}
+                            onChange={(e) => setItemSearch(e.target.value)}
+                            placeholder="Search dish or category..."
+                            className="w-full text-xs bg-white dark:bg-[#181617] border border-stone-300 dark:border-white/10 rounded-xl pl-8 pr-8 py-2 text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#FD9139]"
+                          />
+                          {itemSearch && (
+                            <button
+                              type="button"
+                              onClick={() => setItemSearch('')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-white"
+                            >
+                              <X size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Scrollable Dishes List */}
+                      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar pt-3 space-y-2 max-h-72 md:max-h-none">
+                        {filteredCatalog.length === 0 ? (
+                          <div className="py-12 text-center rounded-xl bg-white/50 dark:bg-white/[0.02] border border-dashed border-stone-200 dark:border-white/10">
+                            <Utensils className="w-7 h-7 mx-auto text-stone-400 dark:text-neutral-500 mb-1.5 opacity-60" />
+                            <p className="text-xs font-semibold text-stone-500 dark:text-neutral-400">
+                              {manualCatalogFilter === 'selected' ? 'No dishes added to cart yet' : 'No matching dishes found'}
+                            </p>
+                            {manualCatalogFilter === 'selected' && (
+                              <button
+                                type="button"
+                                onClick={() => setManualCatalogFilter('all')}
+                                className="mt-2 text-xs font-bold text-[#FD9139] hover:underline"
+                              >
+                                Browse all dishes
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          filteredCatalog.map(item => {
+                            const qty = item.quantity || 0;
+                            const isSelected = qty > 0;
+
+                            return (
+                              <div
+                                key={item.id}
+                                className={`p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                                  isSelected
+                                    ? 'bg-white dark:bg-[#201D1E] border-[#FD9139]/40 shadow-xs'
+                                    : 'bg-white dark:bg-[#181617] border-stone-200/90 dark:border-white/5 hover:border-stone-300 dark:hover:border-white/15'
+                                }`}
+                              >
+                                {/* Left: Veg badge + Name + Category + Price */}
+                                <div className="min-w-0 flex items-center gap-2.5 flex-1">
+                                  <div className="w-3.5 h-3.5 rounded-[3px] border border-emerald-600 flex items-center justify-center shrink-0" title="Veg">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate font-['Outfit']">
+                                        {item.name}
+                                      </p>
+                                      {item.category && (
+                                        <span className="text-[10px] font-medium text-stone-500 dark:text-neutral-400 bg-stone-100 dark:bg-white/5 px-1.5 py-0.5 rounded">
+                                          {item.category}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs font-bold text-[#FD9139] mt-0.5 font-['Outfit']">
+                                      ₹{item.price}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Right: Quantity Stepper */}
+                                <div className="shrink-0 flex items-center">
+                                  {qty === 0 ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdateManualQty(item.id, 1);
+                                      }}
+                                      className="h-8 sm:h-9 px-3.5 rounded-xl bg-stone-200 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-800 dark:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer select-none active:scale-95 touch-manipulation flex items-center gap-1"
+                                    >
+                                      <Plus size={13} strokeWidth={3} />
+                                      <span>ADD</span>
+                                    </button>
+                                  ) : (
+                                    <div className="h-8 sm:h-9 px-1.5 rounded-xl bg-amber-600 dark:bg-[#FD9139] text-white flex items-center gap-1 shadow-sm">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUpdateManualQty(item.id, -1);
+                                        }}
+                                        onTouchStart={(e) => e.stopPropagation()}
+                                        className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/30 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
+                                        title="Decrease quantity"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-5 text-center text-xs font-black font-['Outfit'] select-none">
+                                        {qty}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUpdateManualQty(item.id, 1);
+                                        }}
+                                        onTouchStart={(e) => e.stopPropagation()}
+                                        className="w-6 h-6 rounded-lg bg-black/20 hover:bg-black/30 text-white text-xs font-black flex items-center justify-center cursor-pointer active:scale-90 transition-all touch-manipulation"
+                                        title="Increase quantity"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                    </div>
                   </div>
 
-                  {/* Total Bill Box */}
-                  <div className="bg-stone-100 dark:bg-[#151314] rounded-2xl p-3.5 border border-stone-200 dark:border-white/5 flex justify-between items-center mt-3">
-                    <span className="text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider">Total Bill (COD)</span>
-                    <span className="text-lg font-black text-stone-950 dark:text-[#FD9139]">
-                      ₹{manualCart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                  {/* 3. Sticky Modal Footer */}
+                  <div className="shrink-0 p-4 sm:p-5 border-t border-stone-200 dark:border-white/10 bg-white/95 dark:bg-[#181617]/95 backdrop-blur-md flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit'] truncate">
+                        {cartSelected.length} {cartSelected.length === 1 ? 'item' : 'items'} • {isPickup ? 'Counter Pickup' : 'Direct Delivery'}
+                      </span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-xl sm:text-2xl font-black font-['Outfit'] text-stone-900 dark:text-white">
+                          ₹{totalAmount}
+                        </span>
+                        <span className="text-[10px] text-stone-400 dark:text-neutral-500 font-medium">
+                          (all incl.)
+                        </span>
+                      </div>
+                    </div>
 
-              <button
-                type="submit"
-                className="w-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-sm py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer apple-tap-target mt-4"
-              >
-                <Check size={18} strokeWidth={3} />
-                <span>Confirm & Create Kitchen Order</span>
-              </button>
-            </form>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingManualOrder || cartSelected.length === 0}
+                      className="h-12 px-5 sm:px-8 rounded-2xl bg-[#FD9139] hover:bg-[#ea802c] disabled:opacity-40 disabled:pointer-events-none text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 shadow-lg active:scale-[0.98] cursor-pointer transition-all shrink-0 touch-manipulation"
+                    >
+                      <Plus size={16} strokeWidth={3} />
+                      <span>{isSubmittingManualOrder ? 'Dispatching...' : `Confirm & Dispatch • ₹${totalAmount}`}</span>
+                    </button>
+                  </div>
+                </form>
+              );
+            })()}
+
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* 86 / STOCK AVAILABILITY MODAL FOR KITCHEN STAFF */}

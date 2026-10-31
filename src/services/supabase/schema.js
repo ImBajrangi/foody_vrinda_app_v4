@@ -223,11 +223,23 @@ BEGIN
         WHEN 'accepted' THEN
             allowed := ARRAY['preparing', 'cooking', 'cancelled'];
         WHEN 'preparing' THEN
-            allowed := ARRAY['cooking', 'ready_for_pickup', 'cancelled'];
+            IF OLD.fulfillment_type = 'pickup' THEN
+                allowed := ARRAY['cooking', 'ready_for_pickup', 'completed', 'cancelled'];
+            ELSE
+                allowed := ARRAY['cooking', 'ready_for_pickup', 'cancelled'];
+            END IF;
         WHEN 'cooking' THEN
-            allowed := ARRAY['ready_for_pickup', 'cancelled'];
+            IF OLD.fulfillment_type = 'pickup' THEN
+                allowed := ARRAY['ready_for_pickup', 'completed', 'cancelled'];
+            ELSE
+                allowed := ARRAY['ready_for_pickup', 'cancelled'];
+            END IF;
         WHEN 'ready_for_pickup' THEN
-            allowed := ARRAY['rider_assigned', 'picked_up', 'out_for_delivery', 'cancelled'];
+            IF OLD.fulfillment_type = 'pickup' THEN
+                allowed := ARRAY['completed', 'picked_up', 'cancelled'];
+            ELSE
+                allowed := ARRAY['completed', 'rider_assigned', 'picked_up', 'out_for_delivery', 'cancelled'];
+            END IF;
         WHEN 'rider_assigned' THEN
             allowed := ARRAY['rider_arriving', 'picked_up', 'cancelled'];
         WHEN 'rider_arriving' THEN

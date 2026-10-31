@@ -209,6 +209,8 @@ export function AuthProvider({ children }) {
       if (p.id !== n.id || p.name !== n.name) return false;
       if (p.isOpen !== n.isOpen || p.is_open !== n.is_open) return false;
       if (p.isOnline !== n.isOnline || p.is_online !== n.is_online) return false;
+      if (Boolean(p.self_delivery ?? p.selfDelivery ?? p.can_deliver) !== Boolean(n.self_delivery ?? n.selfDelivery ?? n.can_deliver)) return false;
+      if (p.deliveryCharge !== n.deliveryCharge || p.delivery_charge !== n.delivery_charge) return false;
       if (p.onlinePaymentsEnabled !== n.onlinePaymentsEnabled || p.codEnabled !== n.codEnabled) return false;
       if (JSON.stringify(p.paymentSettings) !== JSON.stringify(n.paymentSettings)) return false;
     }

@@ -270,43 +270,81 @@ export async function updateCloudShop(shopId, shopData) {
           isOnline: updatedShop.isOnline
         },
         alarm_settings: updatedShop.alarmSettings,
+        self_delivery: Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? false),
+        can_deliver: Boolean(updatedShop.can_deliver ?? updatedShop.canDeliver ?? false),
         updated_at: new Date().toISOString()
       };
 
-      // 1. Try secure Security Definer toggle RPC for open/online status
+      // 1. Try secure Security Definer toggle RPC for open/online status and self-delivery
       let rpcSucceeded = false;
       const isOnlyToggle = Object.keys(shopData).every(k => 
-        ['isOnline', 'is_online', 'isOpen', 'is_open'].includes(k)
+        ['isOnline', 'is_online', 'isOpen', 'is_open', 'self_delivery', 'selfDelivery', 'can_deliver', 'canDeliver'].includes(k)
       );
+
+      if (updatedShop.self_delivery !== undefined || updatedShop.selfDelivery !== undefined || updatedShop.can_deliver !== undefined) {
+        try {
+          const selfDeliveryVal = Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? updatedShop.can_deliver);
+          await supabase.rpc('toggle_shop_self_delivery', {
+            p_shop_id: updatedShop.id,
+            p_self_delivery: selfDeliveryVal
+          });
+        } catch (_) {}
+      }
 
       try {
         const { data: rpcData, error: rpcErr } = await supabase.rpc('toggle_shop_status', {
           p_shop_id: updatedShop.id,
           p_is_open: Boolean(updatedShop.isOpen),
-          p_is_online: Boolean(updatedShop.isOnline)
+          p_is_online: Boolean(updatedShop.isOnline),
+          p_self_delivery: Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? false)
         });
         if (!rpcErr && rpcData) {
           rpcSucceeded = true;
         }
       } catch (_) { }
 
-      // 2. Targeted update if RPC was bypassed, failed, or if other fields (e.g. paymentSettings) are being saved
+      // 2. Targeted update if RPC was bypassed, failed, or if other fields (e.g. paymentSettings, self_delivery) are being saved
       if (!rpcSucceeded || !isOnlyToggle) {
-        const { error: updateErr } = await supabase
+        const updateFields = {
+          payment_settings: fullShopPayload.payment_settings,
+          is_open: fullShopPayload.is_open,
+          is_online: fullShopPayload.is_online,
+          self_delivery: fullShopPayload.self_delivery,
+          can_deliver: fullShopPayload.can_deliver,
+          updated_at: fullShopPayload.updated_at
+        };
+
+        let { error: updateErr } = await supabase
           .from('foody_shops')
-          .update({
-            payment_settings: fullShopPayload.payment_settings,
-            is_open: fullShopPayload.is_open,
-            is_online: fullShopPayload.is_online,
-            updated_at: fullShopPayload.updated_at
-          })
+          .update(updateFields)
           .eq('id', updatedShop.id);
+
+        if (updateErr && (updateErr.code === '42703' || updateErr.code === 'PGRST204' || updateErr.message?.includes('column') || updateErr.message?.includes('does not exist'))) {
+          // Zero-drift resilience: retry without transitional columns if column is absent
+          delete updateFields.self_delivery;
+          delete updateFields.can_deliver;
+          const retryRes = await supabase
+            .from('foody_shops')
+            .update(updateFields)
+            .eq('id', updatedShop.id);
+          updateErr = retryRes.error;
+        }
 
         if (updateErr) {
           // Fallback to full upsert
-          const { error: upsertErr } = await supabase
+          let { error: upsertErr } = await supabase
             .from('foody_shops')
             .upsert(fullShopPayload, { onConflict: 'id' });
+
+          if (upsertErr && (upsertErr.code === '42703' || upsertErr.code === 'PGRST204' || upsertErr.message?.includes('column'))) {
+            const fallbackPayload = { ...fullShopPayload };
+            delete fallbackPayload.self_delivery;
+            delete fallbackPayload.can_deliver;
+            const retryUpsert = await supabase
+              .from('foody_shops')
+              .upsert(fallbackPayload, { onConflict: 'id' });
+            upsertErr = retryUpsert.error;
+          }
 
           if (upsertErr) {
             console.warn("Supabase shop update note:", upsertErr.message);
