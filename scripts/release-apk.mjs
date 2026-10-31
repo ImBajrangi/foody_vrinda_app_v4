@@ -152,11 +152,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Segregated multi-shop order history rendering: clear shop identification, order-specific IDs, quantities, and itemized billing.',
-    'New POS Manual Order Builder: Modern flat layout, instant search, stationary filters, and one-tap walk-in counter ticket dispatch.',
-    'Optimized offline delivery banners and seamless counter self-pickup workflow.',
-    'Hardened edge function preflights and resilient error suppression for pickup fulfillment.',
-    'Zero layout shift, 44px+ mobile touch targets, and non-blocking quantity stepper isolation.'
+    'Delivery vs Self-Pickup dynamic gating: shop self-delivery toggle and automatic fallback when riders are offline.',
+    'Kitchen counter pickup OTP verification and atomic devotee handover with instant ticket settlement.',
+    'Upgraded Kitchen Manual Order POS Modal: 2-column layout, instant dish search, category pills, and fulfillment selection.',
+    'Enhanced rider heartbeat tolerance and zero-drift schema resilience across cloud data stores.',
+    'Zero layout shift, 44px+ mobile touch targets, and non-blocking stepper isolation.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
