@@ -350,8 +350,8 @@
     "semantic_hash": ""
   },
   "src/services/appUpdateService.js": {
-    "mtime": 1793289559.7388272,
-    "ast_hash": "4b4c373cdc4a6088c6ab0f87f7a442a7",
+    "mtime": 1793440884.867675,
+    "ast_hash": "b0ee1cb0b4ceef925adbe120e4c06a0b",
     "semantic_hash": ""
   },
   "DESIGN.md": {
@@ -560,8 +560,8 @@
     "semantic_hash": ""
   },
   "scripts/release-apk.mjs": {
-    "mtime": 1793289502.0413215,
-    "ast_hash": "a3f13cc2244dfabf01f509f43c5a2308",
+    "mtime": 1793440850.2137933,
+    "ast_hash": "14d52be29551694110c51cec38d0e55f",
     "semantic_hash": ""
   },
   "scripts/test-checkout-gps-and-pickup.mjs": {
@@ -700,8 +700,8 @@
     "semantic_hash": ""
   },
   "src/services/supabase/riders.service.js": {
-    "mtime": 1793193490.9646957,
-    "ast_hash": "ac78ca1573a2259c6b7aa183789eed52",
+    "mtime": 1793440500.0450635,
+    "ast_hash": "b9e501d8a7904c28b1cf87827c92bdfd",
     "semantic_hash": ""
   },
   "src/services/supabase/schema.js": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "scripts/verify-realtime-orders.mjs": {
-    "mtime": 1793440190.0365129,
-    "ast_hash": "bd1e6cd0bb7b386ffd164ac84a36209c",
+    "mtime": 1793440338.5818503,
+    "ast_hash": "a79cb0e8d32538917d94406e92c1fdd5",
     "semantic_hash": ""
   }
 }
