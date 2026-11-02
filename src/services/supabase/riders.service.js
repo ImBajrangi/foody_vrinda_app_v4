@@ -5,7 +5,7 @@
 // ==========================================
 
 import { safeStorage, getCachedItem } from './cache.js';
-import { updateCloudOrderStatus } from './orders.service.js';
+import { updateCloudOrderStatus, getOrderDisplayToken } from './orders.service.js';
 import { isRiderCashLimitExceeded, getOrderItemSummary } from './operations.service.js';
 import { getCachedUsers } from './users.service.js';
 
@@ -278,7 +278,7 @@ export function exportDeliveryAuditReportCSV(orders = []) {
     }
 
     return [
-      escapeCSV(o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase() : 'N/A'),
+      escapeCSV(getOrderDisplayToken(o)),
       escapeCSV(createdDate ? new Date(createdDate).toLocaleString('en-IN') : 'N/A'),
       escapeCSV(o.status || 'N/A'),
       escapeCSV(o.shop_name || o.shopName || o.shop_id || o.shopId || 'Vrindavan Kitchen'),

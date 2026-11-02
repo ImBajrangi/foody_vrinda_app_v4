@@ -18,7 +18,7 @@ import {
   Banknote,
   PackageCheck
 } from 'lucide-react';
-import { supabase, subscribeCloudOrders, getPurgedOrderIds, getCachedShops } from '../supabase';
+import { supabase, subscribeCloudOrders, getPurgedOrderIds, getCachedShops, getOrderDisplayToken } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
@@ -458,16 +458,16 @@ export default function OrderHistoryDrawer({
                         {/* 1-Tap Copyable Order ID Pill */}
                         <button
                           type="button"
-                          onClick={(e) => handleCopyOrderId(e, order.id)}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200/80 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] border border-stone-200/90 dark:border-white/10 text-stone-700 dark:text-zinc-300 transition-all cursor-pointer active:scale-95 shrink-0"
-                          title="Tap to copy Order ID"
-                          aria-label={`Copy Order ID ${order.id}`}
+                          onClick={(e) => handleCopyOrderId(e, getOrderDisplayToken(order))}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200/80 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] border border-stone-200/90 dark:border-white/10 text-stone-700 dark:text-zinc-300 transition-all cursor-pointer active:scale-95 shrink-0"
+                          title="Tap to copy Order Token"
+                          aria-label={`Copy Order Token ${getOrderDisplayToken(order)}`}
                         >
-                          <span className="text-[9.5px] uppercase font-bold text-stone-400 dark:text-zinc-500 font-['Outfit']">ID</span>
+                          <span className="text-[9.5px] uppercase font-black text-amber-600 dark:text-[#FD9139] font-['Outfit']">TOKEN</span>
                           <span className="font-mono font-black text-xs text-amber-700 dark:text-[#FD9139] tracking-tight">
-                            #{order.id.length > 12 ? `${order.id.slice(0, 6)}…${order.id.slice(-5)}` : order.id}
+                            {getOrderDisplayToken(order)}
                           </span>
-                          {copiedOrderId === order.id ? (
+                          {copiedOrderId === getOrderDisplayToken(order) ? (
                             <Check size={11} className="text-emerald-500 stroke-[3]" />
                           ) : (
                             <Copy size={11} className="text-stone-400 stroke-[2.2]" />

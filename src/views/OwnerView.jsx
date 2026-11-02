@@ -21,7 +21,8 @@ import {
   saveCachedUsers,
   getRecommendedRiders,
   isShopCurrentlyOpen,
-  getPurgedOrderIds
+  getPurgedOrderIds,
+  getOrderDisplayToken
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -240,7 +241,7 @@ export default function OwnerView() {
   useFastNotify(currentUserShopId, 'owner', (alertData) => {
     playRoleAlarm('owner', alertData, true);
     setToast({
-      message: `${alertData.title} (#${alertData.orderId.slice(-6).toUpperCase()})`,
+      message: `${alertData.title} (${getOrderDisplayToken({ id: alertData.orderId, order_token: alertData.orderToken, order_short_code: alertData.orderShortCode })})`,
       type: 'info'
     });
   });
@@ -354,10 +355,10 @@ export default function OwnerView() {
         role: 'kitchen',
         shopId: activeShopId,
         orderId: created?.id || null,
-        message: `New manual order #${(created?.id || '').slice(-6).toUpperCase()} entered by owner for ${manualCustomerName.trim()}.`
+        message: `New manual order ${getOrderDisplayToken(created)} entered by owner for ${manualCustomerName.trim()}.`
       });
 
-      setToast({ message: `Manual Order #${(created?.id || '').slice(-6).toUpperCase()} created successfully!`, type: 'success' });
+      setToast({ message: `Manual Order ${getOrderDisplayToken(created)} created successfully!`, type: 'success' });
       setShowManualOrderModal(false);
     } catch (err) {
       console.error('Failed to create manual order:', err);
@@ -1587,7 +1588,7 @@ export default function OwnerView() {
         setSelectedAuditOrder(prev => ({ ...prev, cashStatus: 'collected', cash_status: 'collected', cashCollected: true, cash_collected: true }));
       }
 
-      setToast({ message: `COD payment marked as Collected for #${orderId.slice(-6).toUpperCase()}`, type: "success" });
+      setToast({ message: `COD payment marked as Collected for ${getOrderDisplayToken({ id: orderId })}`, type: "success" });
     } catch (e) {
       console.error(e);
       setToast({ message: "Failed to update cash status", type: "error" });
@@ -1878,8 +1879,7 @@ export default function OwnerView() {
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {filteredOrders.map(o => {
-                      const rawId = o.id || '';
-                      const shortId = rawId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase();
+                      const shortId = getOrderDisplayToken(o);
                       const isNew = o.status === 'new' || o.status === 'placed' || o.status === 'pending';
                       const isPreparing = o.status === 'preparing';
                       const rawMethod = String(o.payment_method || o.paymentMethod || o.payment || '').toLowerCase().trim();
@@ -4165,7 +4165,7 @@ export default function OwnerView() {
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit']">
-                                #{order.id.slice(-6).toUpperCase()}
+                                {getOrderDisplayToken(order)}
                               </p>
                               <p className="text-[10px] text-stone-500 dark:text-neutral-400 mt-0.5">{date}</p>
                             </div>
@@ -4246,7 +4246,7 @@ export default function OwnerView() {
                           return (
                             <tr key={order.id} className="hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all">
                               <td className="py-3.5 pr-4 whitespace-nowrap">
-                                <p className="font-bold text-stone-900 dark:text-white text-xs font-['Outfit']">#{order.id.slice(-6).toUpperCase()}</p>
+                                <p className="font-bold text-stone-900 dark:text-white text-xs font-['Outfit']">{getOrderDisplayToken(order)}</p>
                                 <p className="text-[10px] text-stone-500 dark:text-neutral-500">{date}</p>
                               </td>
                               <td className="py-3.5 pr-4 whitespace-nowrap">
@@ -4706,7 +4706,7 @@ export default function OwnerView() {
       {/* Detailed Order Ticket & Audit Modal */}
       {selectedAuditOrder && (() => {
         const o = selectedAuditOrder;
-        const shortId = o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : '-----';
+        const shortId = getOrderDisplayToken(o);
         const rawMethod = String(o.payment_method || o.paymentMethod || o.payment || '').toLowerCase().trim();
         const isCash = rawMethod === 'cash' || rawMethod === 'cod';
         const isCollected = isCash
@@ -5815,7 +5815,7 @@ export default function OwnerView() {
           setActiveTab('orders');
           stopAlarm();
           if (alert?.orderId) {
-            setOrderSearch(alert.orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5));
+            setOrderSearch(getOrderDisplayToken({ id: alert.orderId, order_token: alert.orderToken, order_short_code: alert.orderShortCode }));
           }
         }}
       />

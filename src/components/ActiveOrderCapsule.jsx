@@ -7,7 +7,7 @@ import {
   ChevronUp, 
   Clock
 } from 'lucide-react';
-import { subscribeSingleCloudOrder, getCachedShops } from '../supabase';
+import { subscribeSingleCloudOrder, getCachedShops, getOrderDisplayToken } from '../supabase';
 
 /**
  * Floating Dynamic Island Live Order Activity Capsule
@@ -240,7 +240,7 @@ export default function ActiveOrderCapsule({ order, onClick, onClose, allShops =
         </span>
         {currentOrder?.id && (
           <span className="font-mono text-[10px] font-bold text-amber-700 dark:text-[#FD9139] px-1 rounded bg-amber-500/10 dark:bg-[#FD9139]/10 shrink-0">
-            #{String(currentOrder.id).slice(-5).toUpperCase()}
+            {getOrderDisplayToken(currentOrder)}
           </span>
         )}
         <span className="text-stone-300 dark:text-zinc-600 text-[11px] font-bold shrink-0">•</span>

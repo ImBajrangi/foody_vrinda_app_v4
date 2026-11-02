@@ -27,7 +27,7 @@ import {
   Lock,
   Navigation
 } from 'lucide-react';
-import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP, getCachedShops } from '../supabase';
+import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP, getCachedShops, getOrderDisplayToken } from '../supabase';
 import FoodyMascot from '../foody/FoodyMascot';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
@@ -793,7 +793,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </span>
                 <span className="font-['Outfit'] font-black uppercase text-[10px] sm:text-[11px] tracking-wider text-[#FD9139] truncate">
                   {isExpanded 
-                    ? `Order #${currentOrder?.id || 'ACTIVE'}`
+                    ? `Order ${getOrderDisplayToken(currentOrder)}`
                     : milestones.active}
                 </span>
               </span>
@@ -803,18 +803,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      const tok = getOrderDisplayToken(currentOrder);
                       if (navigator?.clipboard?.writeText) {
-                        navigator.clipboard.writeText(currentOrder.id);
+                        navigator.clipboard.writeText(tok);
                         setCopiedOrderId(true);
                         setTimeout(() => setCopiedOrderId(false), 2000);
-                        if (onToast) onToast(`Order ID copied: ${currentOrder.id}`, 'success');
+                        if (onToast) onToast(`Order token copied: ${tok}`, 'success');
                       }
                     }}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[10px] text-stone-300 hover:text-white transition-all cursor-pointer"
-                    title="Copy Order ID"
+                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-stone-300 hover:text-white transition-all cursor-pointer"
+                    title="Copy Order Token"
                   >
+                    <span>{getOrderDisplayToken(currentOrder)}</span>
                     {copiedOrderId ? <Check size={10} className="text-emerald-400 stroke-[3]" /> : <Copy size={10} />}
-                    <span>{copiedOrderId ? 'Copied' : 'Copy ID'}</span>
                   </button>
                 )}
                 <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/15 text-stone-200 hover:text-white transition-colors text-[10px] font-semibold">
@@ -1074,7 +1075,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                       <div className="flex items-center gap-2 shrink-0">
                         <a
-                          href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Order #${currentOrder?.id ? currentOrder.id.slice(-5).toUpperCase() : ''}`)}`}
+                          href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Order ${getOrderDisplayToken(currentOrder)}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-2.5 py-1.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
@@ -1159,7 +1160,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       className="w-full flex items-center justify-between text-stone-200 hover:text-white font-bold cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-['Outfit'] tracking-wide truncate">Order #{currentOrder?.id || 'ACTIVE'}</span>
+                        <span className="font-['Outfit'] tracking-wide truncate">Order {getOrderDisplayToken(currentOrder)}</span>
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/10 text-stone-200 shrink-0">
                           {orderItems.length} {orderItems.length === 1 ? 'item' : 'items'}
                         </span>

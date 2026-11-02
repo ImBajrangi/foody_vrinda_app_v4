@@ -19,7 +19,7 @@ import {
   Copy,
   CheckCircle2
 } from 'lucide-react';
-import { supabase } from '../../supabase';
+import { supabase, getOrderDisplayToken } from '../../supabase';
 
 export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, onActionClick }) {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -53,9 +53,8 @@ export default function ActiveAlarmBanner({ isPlaying, activeAlert, onSilence, o
 
   const role = activeAlert.role || 'kitchen';
   const rawId = activeAlert.orderId || activeAlert.order?.id || '';
-  const shortId = rawId ? rawId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : '-----';
-
   const order = fullOrderData || activeAlert.order || {};
+  const shortId = getOrderDisplayToken(order.id ? order : { id: rawId, order_token: activeAlert.orderToken, order_short_code: activeAlert.orderShortCode });
   const customerName = order.customerName || order.customer_name || 'Customer';
   const customerPhone = order.customerPhone || order.customer_phone || '';
   const deliveryAddress = order.deliveryAddress || order.delivery_address || order.customerAddress || order.customer_address || '';

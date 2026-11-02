@@ -27,6 +27,35 @@ import { generateSecureOrderOTP, computeSha256Hex, getOnlineRiders } from './rid
 export { getPurgedOrderIds, purgeOrder, purgeAllDemoOrders };
 
 /**
+ * Generates an authoritative, human-glanceable Universal Order Token.
+ * Format: "FV-XXXX" (e.g. "FV-7821")
+ */
+export function generateUniversalOrderToken() {
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `FV-${num}`;
+}
+
+/**
+ * Returns the single authoritative Universal Order Token (#FV-XXXX) for any order record.
+ * Guaranteed consistent format across Customer, Kitchen, Rider, Admin, and Receipts.
+ */
+export function getOrderDisplayToken(order) {
+  if (!order) return '#FV-0000';
+  const raw = order.order_token || order.orderToken || order.order_short_code || order.orderShortCode;
+  if (raw && typeof raw === 'string' && raw.trim()) {
+    const clean = raw.trim().toUpperCase();
+    if (clean.startsWith('#')) return clean;
+    if (clean.startsWith('FV-')) return `#${clean}`;
+    return `#FV-${clean}`;
+  }
+  // Backward-compatible fallback for legacy or test orders without token:
+  const rawId = String(order.id || '').replace(/^ord[-_]/i, '').replace(/^fv_handshake_/i, '');
+  const digits = rawId.replace(/\D/g, '');
+  const suffix = digits.length >= 4 ? digits.slice(-4) : (rawId.slice(-4).toUpperCase() || '1080');
+  return `#FV-${suffix}`;
+}
+
+/**
  * 🧹 Admin / Developer Purge: Clears all orders from Supabase database and local device storage.
  */
 export async function purgeAllOrdersFromCloud() {
@@ -241,8 +270,12 @@ export async function createCloudOrder(orderData) {
 
     const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null) || null;
 
+    // Single Source of Truth: Authoritative Universal Order Token (#FV-XXXX)
+    const orderToken = orderData.order_token || orderData.orderToken || orderData.order_short_code || orderData.orderShortCode || generateUniversalOrderToken();
+
     const orderPayload = {
       id: orderId,
+      order_short_code: orderToken,
       shop_id: shopId,
       user_id: orderData.userId || orderData.user_id || null,
       customer_name: orderData.customerName || orderData.customer_name || 'Customer',
@@ -287,6 +320,10 @@ export async function createCloudOrder(orderData) {
     const normalizedCreated = {
       ...orderData,
       ...orderPayload,
+      order_token: orderToken,
+      orderToken: orderToken,
+      order_short_code: orderToken,
+      orderShortCode: orderToken,
       shopId: orderPayload.shop_id,
       shopName: targetShop?.name || orderData.shopName || orderData.shop_name || 'Foody Vrinda Sacred Kitchen',
       shopAddress: targetShop?.address || orderData.shopAddress || orderData.shop_address || 'Chatikara Road, Raman Reti, Vrindavan',
@@ -319,7 +356,7 @@ export async function createCloudOrder(orderData) {
 
     // Valid columns in foody_orders table
     const VALID_ORDER_COLUMNS = new Set([
-      'id', 'shop_id', 'user_id', 'customer_name', 'customer_phone', 'customer_address',
+      'id', 'order_short_code', 'shop_id', 'user_id', 'customer_name', 'customer_phone', 'customer_address',
       'delivery_address', 'delivery_coordinates', 'items', 'subtotal', 'delivery_charge',
       'gst_amount', 'total_amount', 'status', 'payment_method', 'payment_id', 'cash_status',
       'cooking_notes', 'created_by', 'created_at', 'updated_at', 'fulfillment_type',
@@ -831,7 +868,7 @@ export async function getCloudOrders(shopId) {
 
   const promise = (async () => {
     try {
-      const ORDER_SELECT_FIELDS = 'id, shop_id, user_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, created_by, fulfillment_type, pickup_otp, delivery_otp, rider_id, rider_name, rider_phone, chef_id, chef_name, created_at, updated_at';
+      const ORDER_SELECT_FIELDS = 'id, order_short_code, shop_id, user_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, created_by, fulfillment_type, pickup_otp, delivery_otp, rider_id, rider_name, rider_phone, chef_id, chef_name, created_at, updated_at';
       let query = supabase.from('foody_orders').select(ORDER_SELECT_FIELDS).order('created_at', { ascending: false }).limit(50);
       if (cleanShopId !== 'all') {
         query = query.eq('shop_id', cleanShopId);
@@ -845,6 +882,9 @@ export async function getCloudOrders(shopId) {
       const mapped = activeData.map(raw => ({
         id: raw.id,
         ...raw,
+        orderToken: raw.order_short_code || getOrderDisplayToken(raw),
+        order_token: raw.order_short_code || getOrderDisplayToken(raw),
+        order_short_code: raw.order_short_code,
         shopId: raw.shop_id,
         customerName: raw.customer_name,
         customerPhone: raw.customer_phone,

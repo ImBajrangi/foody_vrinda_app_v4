@@ -90,6 +90,7 @@ import {
   DEFAULT_OFFERS,
   getCloudOrders,
   createCloudOrder,
+  getOrderDisplayToken,
   getCloudUsers,
   createCloudUser,
   updateCloudUser,
@@ -1457,7 +1458,7 @@ export default function DeveloperView({ setCurrentTab }) {
       });
 
       setToast({
-        message: `Simulator Order #${orderId.slice(-6).toUpperCase()} Created! Check Kitchen tab.`,
+        message: `Simulator Order ${getOrderDisplayToken(createdOrder || { id: orderId })} Created! Check Kitchen tab.`,
         type: 'success'
       });
       setSimCart(prev => prev.map(i => ({ ...i, quantity: 0 })));

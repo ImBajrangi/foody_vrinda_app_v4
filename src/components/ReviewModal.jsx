@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Star, Sparkles, X, Check, ChefHat, Truck, ThumbsUp, Heart, Award } from 'lucide-react';
-import { recordMultiStaffReview } from '../supabase';
+import { recordMultiStaffReview, getOrderDisplayToken } from '../supabase';
 
 const CHEF_TAGS = [
   'Piping Hot & Fresh',
@@ -44,7 +44,7 @@ export default function ReviewModal({
   if (!isOpen) return null;
 
   const targetOrderId = order?.id || orderId || '';
-  const displayOrderNum = targetOrderId ? String(targetOrderId).slice(-6).toUpperCase() : '';
+  const displayOrderNum = targetOrderId ? getOrderDisplayToken(order || { id: targetOrderId }) : '';
   const resolvedShopName = shopName || order?.shopName || 'Sacred Kitchen';
   const resolvedChefName = order?.chefName || 'Head Chef Radhe';
   const resolvedRiderName = order?.riderName || order?.rider_name || 'Delivery Partner';
@@ -114,7 +114,7 @@ export default function ReviewModal({
                 Rate & Reward Staff
               </h3>
               <p className="text-[11px] text-stone-500 dark:text-neutral-400">
-                {resolvedShopName}{displayOrderNum ? ` · Order #${displayOrderNum}` : ''}
+                {resolvedShopName}{displayOrderNum ? ` · Order ${displayOrderNum}` : ''}
               </p>
             </div>
           </div>

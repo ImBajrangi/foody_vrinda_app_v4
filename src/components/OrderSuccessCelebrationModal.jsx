@@ -3,6 +3,7 @@ import { CheckCircle2, ArrowRight, Sparkles, Clock, MapPin, X, Store, Copy, Chec
 import FoodyOrderHop from '../foody/FoodyOrderHop';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
+import { getOrderDisplayToken } from '../services/supabase/orders.service';
 
 export default function OrderSuccessCelebrationModal({
   isOpen,
@@ -184,12 +185,12 @@ export default function OrderSuccessCelebrationModal({
                       </div>
                       <button
                         type="button"
-                        onClick={(e) => handleCopyOrderId(ordId, e)}
-                        className="font-mono font-bold text-[10px] text-[#FD9139] bg-white/[0.04] px-1.5 py-0.5 rounded border border-[#FD9139]/25 flex items-center gap-1 hover:bg-white/[0.08] active:scale-95 transition-all shrink-0 cursor-pointer"
-                        title="Copy Order ID"
+                        onClick={(e) => handleCopyOrderId(getOrderDisplayToken(ord), e)}
+                        className="font-mono font-bold text-[10px] text-[#FD9139] bg-white/[0.04] px-2 py-0.5 rounded border border-[#FD9139]/25 flex items-center gap-1 hover:bg-white/[0.08] active:scale-95 transition-all shrink-0 cursor-pointer"
+                        title="Copy Order Token"
                       >
-                        <span>#{ordId.length > 8 ? ordId.slice(-6) : ordId}</span>
-                        {copiedId === ordId ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-stone-400" />}
+                        <span>{getOrderDisplayToken(ord)}</span>
+                        {copiedId === getOrderDisplayToken(ord) ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-stone-400" />}
                       </button>
                     </div>
 
@@ -227,18 +228,18 @@ export default function OrderSuccessCelebrationModal({
           /* Single Order Details Receipt Card */
           <div className="w-full bg-[#151314] border border-white/10 rounded-2xl p-4 space-y-2.5 mb-5 text-left shadow-inner">
             <div className="flex items-center justify-between text-xs pb-2 border-b border-white/[0.08]">
-              <span className="text-stone-400 font-medium">Order ID</span>
+              <span className="text-stone-400 font-medium">Order Token</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono font-black text-xs sm:text-sm text-[#FD9139] tracking-wider bg-white/[0.04] px-2 py-0.5 rounded-md border border-[#FD9139]/25 truncate max-w-[190px]">
-                  #{orderId}
+                <span className="font-mono font-black text-xs sm:text-sm text-[#FD9139] tracking-wider bg-white/[0.04] px-2.5 py-1 rounded-md border border-[#FD9139]/30 truncate max-w-[190px]">
+                  {getOrderDisplayToken(order)}
                 </span>
                 <button
                   type="button"
-                  onClick={(e) => handleCopyOrderId(orderId, e)}
-                  className="p-1 rounded bg-white/[0.05] hover:bg-white/[0.1] text-stone-400 hover:text-white transition-colors cursor-pointer"
-                  title="Copy Order ID"
+                  onClick={(e) => handleCopyOrderId(getOrderDisplayToken(order), e)}
+                  className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-stone-400 hover:text-white transition-colors cursor-pointer"
+                  title="Copy Order Token"
                 >
-                  {copiedId === orderId ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-stone-400" />}
+                  {copiedId === getOrderDisplayToken(order) ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-stone-400" />}
                 </button>
               </div>
             </div>

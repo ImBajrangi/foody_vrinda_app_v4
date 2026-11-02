@@ -9,6 +9,7 @@ import { safeStorage, dispatchSafeEvent, getDefaultActiveShopId } from './cache.
 import { updateCloudUser } from './users.service.js';
 import { getOrderOTP } from './riders.service.js';
 import { getPublicShareUrl } from '../../utils/urlHelper.js';
+import { getOrderDisplayToken } from './orders.service.js';
 
 // ========================================================================
 // 1. FOODY OPERATIONAL TRUST SCORE ENGINE (300 – 900 POINTS)
@@ -204,18 +205,18 @@ export function generateWhatsAppOrderShareLink({
   deliveryOtp = ''
 }) {
   const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
-  const orderNum = orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER';
+  const orderNum = orderId ? getOrderDisplayToken({ id: orderId }) : '#FV-ORDER';
   const resolvedOtp = deliveryOtp || getOrderOTP(orderId, 'delivery');
 
   let text = `🌸 *Radhe Radhe ${customerName} Ji!*\n\n`;
   if (status === 'confirmed' || status === 'preparing') {
-    text += `✅ Your Foody Vrinda Order *#${orderNum}* from *${shopName}* is *Confirmed & Being Prepared Fresh*!\n\n`;
+    text += `✅ Your Foody Vrinda Order *${orderNum}* from *${shopName}* is *Confirmed & Being Prepared Fresh*!\n\n`;
     text += `💰 Total Amount: ₹${totalAmount}\n`;
     text += `🔐 Delivery Verification OTP: *${resolvedOtp}*\n`;
     text += `(Please share this OTP with your Sarathi at doorstep upon arrival)\n\n`;
     text += `📍 Track Live Prasad Delivery: ${getPublicShareUrl()}\n`;
   } else if (status === 'out_for_delivery') {
-    text += `🛵 *Order #${orderNum} is Out For Delivery!*\n\n`;
+    text += `🛵 *Order ${orderNum} is Out For Delivery!*\n\n`;
     text += `Your Sarathi is on the way with your piping hot prasad meal.\n`;
     text += `🔐 Delivery OTP: *${resolvedOtp}*\n\n`;
     text += `🙏 Jai Shri Radhe! Foody Vrinda Team.`;

@@ -6,6 +6,7 @@ import { useFastNotify } from '../hooks/useFastNotify';
 import { useAudioAlarm } from '../hooks/useAudioAlarm';
 import {
   supabase,
+  getOrderDisplayToken,
   updateCloudOrderStatus,
   fetchAvailableDeliveries,
   claimDeliveryOrder,
@@ -429,16 +430,16 @@ export default function TransportView() {
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
-        const text = isNew ? 'नया डिलीवरी ऑर्डर आया है' : 'नया ऑर्डर पिकअप के लिए तैयार है';
+        const text = isNew ? 'New delivery order received' : 'Order ready for pickup';
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'hi-IN';
-        utterance.rate = 0.95;
+        utterance.lang = 'en-US';
+        utterance.rate = 1.05;
         window.speechSynthesis.speak(utterance);
       }
     } catch { /* ignore */ }
-    const orderNum = alertData?.orderId ? `#${alertData.orderId.slice(-6).toUpperCase()}` : 'Order';
+    const orderNum = alertData?.orderId ? getOrderDisplayToken({ id: alertData.orderId, order_token: alertData.orderToken, order_short_code: alertData.orderShortCode }) : 'Order';
     const isNew = ['new', 'pending', 'placed'].includes(alertData?.status);
-    showToast(isNew ? `${orderNum} incoming! Waiting for kitchen preparation.` : `${orderNum} ready for Sarathi Pickup!`, "info");
+    showToast(isNew ? `${orderNum} incoming! Waiting for kitchen preparation.` : `${orderNum} ready for Rider Pickup!`, "info");
     fetchRiderOrders();
   });
 
@@ -1191,26 +1192,23 @@ export default function TransportView() {
         />
       )}
 
-      {/* MAIN OPERATIONS HEADER BAR: Braj Dham Sarathi Seva Brand Standard */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-100 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[32px] border border-stone-200 dark:border-white/10 shadow-xl overflow-hidden">
+      {/* MAIN OPERATIONS HEADER BAR: Modern Driver Dispatch Standard */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-100 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border border-stone-200 dark:border-white/10 shadow-xl overflow-hidden">
         <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#FD9139]/20 via-[#CB785C]/15 to-amber-500/10 border border-[#FD9139]/30 flex items-center justify-center text-amber-500 dark:text-[#FD9139] shrink-0 shadow-md">
-            <span className="text-2xl sm:text-3xl select-none" role="img" aria-label="Peacock Feather">🦚</span>
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-sm">
+            <Truck size={26} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] flex items-center gap-2">
-                <span>श्री सारथी सेवा</span>
-                <span className="text-xs sm:text-sm font-bold text-amber-700 dark:text-[#FD9139] bg-amber-500/10 border border-amber-500/25 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
-                  Sarathi Fleet
-                </span>
+                <span>Rider Dispatch</span>
               </h1>
-              <span className="bg-[#CB785C] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0 font-['Outfit'] shadow-xs">
-                {activeTrips.length} सक्रिय यात्रा
+              <span className="bg-[#FD9139] text-[#121214] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0 font-['Outfit'] shadow-xs">
+                {activeTrips.length} Active Trips
               </span>
             </div>
             <p className="text-xs sm:text-sm text-stone-600 dark:text-neutral-300 font-medium mt-1 truncate font-['Plus_Jakarta_Sans']">
-              श्री धाम वृन्दावन • 100% सात्विक भोग अर्पण व सारथी संचलन पटल
+              Live GPS route dispatch, order pickup & delivery navigation
             </p>
           </div>
         </div>
@@ -1222,14 +1220,14 @@ export default function TransportView() {
             type="button"
             onClick={toggleRiderDuty}
             className={`h-11 sm:h-12 px-5 min-w-[210px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-all cursor-pointer w-full sm:w-auto shrink-0 shadow-sm ${isRiderOnDuty
-              ? 'bg-[#CEF3E7] dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-300 border-emerald-500/40 hover:bg-[#bbf0df]'
+              ? 'bg-emerald-500/15 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25'
               : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
               }`}
             title="Toggle Ready to Deliver Duty Availability"
           >
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
             <span className="whitespace-nowrap font-black font-['Outfit'] select-none">
-              {isRiderOnDuty ? '🟢 सेवारत • Ready to Deliver' : '⚪ विश्राम • Off Duty'}
+              {isRiderOnDuty ? 'Ready to Deliver · ON' : 'Offline · Break Mode'}
             </span>
           </button>
 
@@ -1244,7 +1242,7 @@ export default function TransportView() {
                 }`}
             >
               <List size={14} className="shrink-0" />
-              <span className="whitespace-nowrap font-['Outfit']">भोग सूची ({orders.length})</span>
+              <span className="whitespace-nowrap font-['Outfit']">Orders ({orders.length})</span>
             </button>
             <button
               data-tour="delivery-navigation"
@@ -1255,7 +1253,7 @@ export default function TransportView() {
                 }`}
             >
               <Map size={14} className="shrink-0" />
-              <span className="whitespace-nowrap font-['Outfit']">मार्ग नक्शा</span>
+              <span className="whitespace-nowrap font-['Outfit']">Map View</span>
             </button>
           </div>
         </div>
@@ -1269,13 +1267,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('active')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
-                ? 'bg-[#CB785C] text-white font-black shadow-[0_4px_16px_rgba(203,120,92,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#CB785C] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
                 }`}
             >
               <Truck size={14} />
-              <span>🛵 सक्रिय सेवा</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span>Active</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {activeTrips.length}
               </span>
             </button>
@@ -1283,13 +1281,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('upcoming')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
-                ? 'bg-[#CB785C] text-white font-black shadow-[0_4px_16px_rgba(203,120,92,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#CB785C] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
                 }`}
             >
               <Clock size={14} />
-              <span>⚡ नए व आगामी भोग</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span>Available</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {upcomingPickups.length}
               </span>
             </button>
@@ -1297,13 +1295,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('completed')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
-                ? 'bg-[#CB785C] text-white font-black shadow-[0_4px_16px_rgba(203,120,92,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#CB785C] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
                 }`}
             >
               <CheckCircle2 size={14} />
-              <span>✓ संपन्न सेवा</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span>Completed</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {completedToday.length}
               </span>
             </button>
@@ -1311,13 +1309,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('all')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
-                ? 'bg-[#CB785C] text-white font-black shadow-[0_4px_16px_rgba(203,120,92,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#CB785C] dark:hover:text-white hover:bg-orange-50/70 dark:hover:bg-white/5'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
+                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
                 }`}
             >
               <List size={14} />
-              <span>📜 सेवा इतिहास</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span>Order History</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {orderHistory.length}
               </span>
             </button>
@@ -1327,11 +1325,11 @@ export default function TransportView() {
           <button
             type="button"
             onClick={handleDownloadShiftSlip}
-            className="h-10 px-4 rounded-full bg-white hover:bg-orange-50/70 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-[#FD9139] dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 apple-tap-target w-full sm:w-auto"
+            className="h-10 px-4 rounded-full bg-white hover:bg-stone-100 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-[#FD9139] dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm apple-tap-target w-full sm:w-auto"
             title="Download or Print Today's Order Report as PDF"
           >
             <FileDown size={15} className="text-[#FD9139]" strokeWidth={2.5} />
-            <span className="whitespace-nowrap">सारथी सेवा पर्ची (PDF)</span>
+            <span className="whitespace-nowrap">Order Slip (PDF)</span>
           </button>
         </div>
       </div>
@@ -1374,19 +1372,19 @@ export default function TransportView() {
             <div className="absolute bottom-4 inset-x-4 z-20 pointer-events-none hidden sm:flex items-center justify-between p-3 rounded-2xl bg-white/95 dark:bg-[#1E1B1C]/90 backdrop-blur-md border border-stone-200/90 dark:border-white/10 shadow-xl text-xs text-stone-900 dark:text-white">
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-800 dark:text-[#FD9139] text-[10px] font-black border border-amber-500/30 font-['Outfit']">
-                  🛕 पवित्र रसोई
+                  Pickup: Kitchen
                 </span>
                 <span className="font-bold truncate max-w-[140px] text-stone-900 dark:text-white font-['Outfit']">
-                  {activeShop?.name || 'रसोई काउन्टर'}
+                  {activeShop?.name || 'Kitchen Counter'}
                 </span>
               </div>
-              <ArrowRight size={14} className="text-[#CB785C] stroke-[2.5]" />
+              <ArrowRight size={14} className="text-[#FD9139] stroke-[2.5]" />
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 text-[10px] font-black border border-emerald-500/30 font-['Outfit']">
-                  🌸 भक्त सेवा धाम
+                  Drop-off: Customer
                 </span>
                 <span className="font-bold truncate max-w-[160px] text-stone-900 dark:text-white font-['Outfit']">
-                  {activeOrder.customerAddress || activeOrder.deliveryAddress || 'श्री धाम वृन्दावन'}
+                  {activeOrder.customerAddress || activeOrder.deliveryAddress || 'Vrindavan'}
                 </span>
               </div>
             </div>
@@ -1407,8 +1405,8 @@ export default function TransportView() {
                       <h4 className="font-bold text-sm tracking-tight font-['Outfit'] text-stone-900 dark:text-white truncate">
                         {activeOrder.customerName || 'Customer'}
                       </h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-300 border border-stone-300 dark:border-white/10 shrink-0 font-mono">
-                        #{activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'}
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/30 shrink-0 font-mono">
+                        {getOrderDisplayToken(activeOrder)}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-amber-500 text-xs mt-0.5 font-['Plus_Jakarta_Sans']">
@@ -1427,7 +1425,7 @@ export default function TransportView() {
                 <div className="flex items-center gap-1.5 shrink-0">
                   {activeOrder.customerPhone && (
                     <a
-                      href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order #${activeOrder.id ? activeOrder.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}.`)}`}
+                      href={`https://wa.me/91${activeOrder.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Radhe Radhe ${activeOrder.customerName || 'Ji'}! I am your Sarathi Rider delivering your Foody Vrinda order ${getOrderDisplayToken(activeOrder)}.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-9 h-9 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-500/20 flex items-center justify-center transition-all active:scale-95 shadow-sm"
@@ -1537,25 +1535,25 @@ export default function TransportView() {
                     className="w-full py-3.5 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10 text-stone-900 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] font-['Outfit']"
                   >
                     <Compass className="w-4 h-4 text-[#FD9139]" />
-                    <span>Google Maps पर मार्ग देखें</span>
+                    <span>Navigate in Google Maps</span>
                   </a>
                 )}
 
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
                     onClick={() => handleInitiatePickup(activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[#FD9139] to-[#CB785C] hover:opacity-95 text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
                   >
-                    <span>भोगशाला से प्रसाद उठाएं</span>
+                    <span>Pick Up from Kitchen</span>
                     <ArrowRight className="w-4 h-4 stroke-[2.5] shrink-0" />
                   </button>
                 ) : (
                   <button
                     onClick={() => handleInitiateDelivery(activeOrder)}
-                    className="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5] shrink-0" />
-                    <span>भक्त को भोग अर्पण संपन्न</span>
+                    <span>Complete Delivery</span>
                   </button>
                 )}
               </div>
@@ -1585,7 +1583,7 @@ export default function TransportView() {
                       >
                         <div className="min-w-0 pr-2">
                           <p className="font-bold text-stone-900 dark:text-white text-xs truncate">
-                            #{o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : 'ORDER'} • {o.customerName || 'Customer'}
+                            {getOrderDisplayToken(o)} • {o.customerName || 'Customer'}
                           </p>
                           <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
                             {o.customerAddress || o.deliveryAddress || 'Vrindavan'}
@@ -1612,47 +1610,51 @@ export default function TransportView() {
             <Search className="w-4 h-4 absolute left-4.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-neutral-400" />
             <input
               type="text"
-              placeholder="खोजें: भोग टोकन #ID, भक्त का नाम, दुकान या व्यंजन... (Search order, devotee, dish)"
+              placeholder="Search order token (#FV-XXXX), customer, restaurant..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#CB785C] dark:focus:border-[#CB785C] transition-all font-['Plus_Jakarta_Sans'] shadow-xs"
+              className="w-full h-12 bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#FD9139] dark:focus:border-[#FD9139] transition-all font-['Plus_Jakarta_Sans'] shadow-xs"
             />
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-[32px] p-10 sm:p-14 text-center shadow-lg flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#FD9139]/20 via-[#CB785C]/15 to-amber-500/10 border border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] mb-4 shadow-sm text-2xl select-none">
-                🦚
+            <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl p-10 sm:p-14 text-center shadow-sm flex flex-col items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] mb-3">
+                <Truck size={28} strokeWidth={1.8} />
               </div>
-              <h3 className="text-lg sm:text-xl font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
-                {riderTab === 'active' ? 'कोई सक्रिय सेवा नहीं (No Active Deliveries)' :
-                 riderTab === 'upcoming' ? 'कोई आगामी भोग नहीं (No Upcoming Orders)' :
-                 riderTab === 'completed' ? 'आज की संपन्न सेवाएँ अभी शून्य हैं' : 'कोई पिछला सेवा इतिहास नहीं'}
+              <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
+                {riderTab === 'active' ? 'No Active Deliveries' :
+                  riderTab === 'upcoming' ? 'No Available Orders' :
+                    riderTab === 'completed' ? 'No Completed Deliveries Today' : 'No Delivery History'}
               </h3>
-              <p className="text-xs sm:text-sm text-stone-600 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto mt-1">
+              <p className="text-xs sm:text-sm text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto mt-1">
                 {riderTab === 'active' && upcomingPickups.length > 0
-                  ? `श्री धाम वृन्दावन में ${upcomingPickups.length} नए भोग उपलब्ध हैं। आगामी टैब में जाकर सारथी सेवा स्वीकारें!`
-                  : 'श्री धाम वृन्दावन में इस समय कोई नया भोग अर्पण शेष नहीं है। नए आदेश प्राप्त होते ही सारथी ध्वनि बजेगी।'}
+                  ? `You have no ongoing trips right now. ${upcomingPickups.length} new delivery orders are available to claim.`
+                  : riderTab === 'active'
+                    ? 'You have no ongoing trips right now. New delivery dispatch requests will alert here.'
+                    : riderTab === 'upcoming'
+                      ? 'All current orders are assigned or completed. New orders will appear automatically.'
+                      : 'Delivered orders will appear here once completed.'}
               </p>
               {riderTab === 'active' && upcomingPickups.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setRiderTab('upcoming')}
-                  className="mt-4 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#FD9139] to-[#CB785C] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-md cursor-pointer font-['Outfit'] active:scale-95"
+                  className="mt-4 px-5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer font-['Outfit'] active:scale-95"
                 >
-                  <span>⚡ नए भोग देखें ({upcomingPickups.length})</span>
+                  <span>View Available Orders ({upcomingPickups.length})</span>
                   <ArrowRight size={14} />
                 </button>
               )}
             </div>
           ) : (
-            <div className={`grid gap-5 ${filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
+            <div className={`grid gap-4 sm:gap-5 ${filteredOrders.length === 1 ? 'grid-cols-1 max-w-2xl' :
               filteredOrders.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
                 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
               }`}>
               {filteredOrders.map(order => {
-                const shopName = allShops.find(s => s.id === order.shopId)?.name || order.shopName || 'पवित्र रसोई';
-                const shopAddress = allShops.find(s => s.id === order.shopId)?.address || 'श्री धाम वृन्दावन, रसोई काउन्टर';
+                const shopName = allShops.find(s => s.id === order.shopId)?.name || order.shopName || 'Foody Kitchen';
+                const shopAddress = allShops.find(s => s.id === order.shopId)?.address || 'Vrindavan Kitchen Counter';
                 const status = String(order.status || '').toLowerCase().trim();
                 const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(status);
                 const isInTransit = ['out_for_delivery', 'picked_up', 'in_transit'].includes(status);
@@ -1667,10 +1669,10 @@ export default function TransportView() {
                 const orderItems = Array.isArray(order.items)
                   ? order.items
                   : (typeof order.items === 'string'
-                      ? (() => { try { return JSON.parse(order.items); } catch { return []; } })()
-                      : []);
+                    ? (() => { try { return JSON.parse(order.items); } catch { return []; } })()
+                    : []);
                 const itemCount = orderItems.reduce((acc, i) => acc + (Number(i.quantity) || 1), 0) || order.item_count || 1;
-                const itemsText = orderItems.map(i => `${i.quantity ? `${i.quantity}x ` : '1x '}${i.name || 'प्रसाद'}`).join(' • ') || order.itemsSummary || order.items_summary || 'सात्विक भोग थाली';
+                const itemsText = orderItems.map(i => `${i.quantity ? `${i.quantity}x ` : '1x '}${i.name || 'Dish'}`).join(' • ') || order.itemsSummary || order.items_summary || 'Order Items';
 
                 // Payment breakdown
                 const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
@@ -1693,192 +1695,182 @@ export default function TransportView() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-[32px] p-5 sm:p-6 flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden"
+                    className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-sm"
                   >
-                    {/* Top Decorative Terracotta / Saffron Accent Border */}
-                    <div className={`absolute top-0 left-0 right-0 h-1.5 ${
-                      isClaimable ? 'bg-gradient-to-r from-[#FD9139] via-[#CB785C] to-emerald-500' :
-                      isAwaitingKitchen ? 'bg-gradient-to-r from-amber-500 via-orange-400 to-[#CB785C]' :
-                      isReady ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500' :
-                      isInTransit ? 'bg-gradient-to-r from-[#FD9139] via-amber-400 to-[#CB785C]' :
-                      'bg-emerald-600'
-                    }`} />
-
                     <div className="space-y-3.5">
-                      {/* 1. Authentic Braj Ribbon: Motif + Order Token + Age Pill */}
+                      {/* 1. Header: Order Token + Time Ago + Status Pill */}
                       <div className="flex items-center justify-between pb-3 border-b border-stone-200/80 dark:border-white/10 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-base select-none">🦚</span>
-                          <span className="font-black text-amber-800 dark:text-amber-300 font-['Outfit'] tracking-wider uppercase text-[11px] sm:text-xs">
-                            श्री धाम वृन्दावन • सारथी सेवा पर्ची
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-stone-900 dark:text-white text-sm sm:text-base tracking-wider">
+                            {getOrderDisplayToken(order)}
+                          </span>
+                          <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">
+                            • {timeAgoStr}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-wider px-2 py-0.5 rounded-lg bg-amber-500/10 dark:bg-white/5 border border-amber-500/20 dark:border-white/10">
-                            #{order.id.slice(-6).toUpperCase()}
-                          </span>
-                          <span className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 bg-stone-100 dark:bg-white/5 px-2 py-0.5 rounded-full border border-stone-200 dark:border-white/10">
-                            ⚡ {timeAgoStr}
-                          </span>
+
+                        {/* Status Badge */}
+                        <div>
+                          {isReady ? (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/25 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Ready for Pickup</span>
+                            </span>
+                          ) : isAwaitingKitchen ? (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/25 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              <span>Kitchen Cooking</span>
+                            </span>
+                          ) : isInTransit ? (
+                            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#FD9139] bg-[#FD9139]/15 px-2.5 py-1 rounded-full border border-[#FD9139]/30 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] animate-pulse" />
+                              <span>Out for Delivery</span>
+                            </span>
+                          ) : isDelivered ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/25 font-['Outfit']">
+                              <Check size={12} strokeWidth={3} />
+                              <span>Delivered</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 bg-stone-100 dark:bg-white/5 px-2.5 py-1 rounded-full border border-stone-200 dark:border-white/10 font-['Outfit']">
+                              {status.replace(/_/g, ' ')}
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {/* 2. Hero Rider Dakshina & Bhent Card (High-Contrast Rider Focus) */}
-                      <div className="grid grid-cols-2 gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-[#1A1819] dark:to-[#1E1B1C] border border-amber-500/20 dark:border-white/10 shadow-xs">
-                        {/* Left: सारथी दक्षिणा */}
+                      {/* 2. Hero Rider Payout & Customer Payment Strip */}
+                      <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200/80 dark:border-white/5">
+                        {/* Left: Rider Earning */}
                         <div className="flex flex-col justify-center">
-                          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-['Outfit']">
-                            <Zap size={13} className="text-emerald-500 fill-emerald-500" />
-                            <span>सेवा दक्षिणा (Earning)</span>
-                          </div>
-                          <div className="flex items-baseline gap-1.5 mt-0.5">
-                            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-[#CEF3E7] font-['Outfit'] tracking-tight">
-                              ₹{riderEarning}
-                            </span>
-                            <span className="text-[10px] font-bold text-emerald-800/80 dark:text-emerald-400/80">
-                              सीधा खाता/नकद
-                            </span>
-                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
+                            Delivery Earning
+                          </span>
+                          <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-['Outfit'] mt-0.5">
+                            ₹{riderEarning}
+                          </span>
                         </div>
 
-                        {/* Right: प्रसाद भेंट भुगतान */}
-                        <div className="flex flex-col justify-center border-l border-amber-500/20 dark:border-white/10 pl-3.5">
-                          <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-stone-600 dark:text-neutral-400 font-['Outfit']">
-                            <Banknote size={13} className={isCash && !isCollected ? 'text-amber-500' : 'text-emerald-500'} />
-                            <span>{isCash ? (isCollected ? 'भेंट प्राप्त' : 'नकद भेंट संग्रह') : 'प्रसाद भेंट'}</span>
-                          </div>
+                        {/* Right: Payment Status */}
+                        <div className="flex flex-col justify-center border-l border-stone-200 dark:border-white/10 pl-3.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
+                            Customer Payment
+                          </span>
                           <div className="mt-0.5">
                             {isCash ? (
                               isCollected ? (
-                                <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 font-['Outfit'] flex items-center gap-1">
-                                  <Check size={14} className="stroke-[3]" />
-                                  ₹{totalBill} चुकता
+                                <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 font-['Outfit'] flex items-center gap-1">
+                                  <Check size={13} strokeWidth={3} />
+                                  ₹{totalBill} Collected
                                 </span>
                               ) : (
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 font-['Outfit']">
-                                    ₹{totalBill}
-                                  </span>
-                                  <span className="text-[10px] font-black uppercase tracking-wide bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
-                                    COD संग्रह
-                                  </span>
-                                </div>
+                                <span className="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/25 font-['Outfit'] inline-block">
+                                  Collect ₹{totalBill} Cash
+                                </span>
                               )
                             ) : (
-                              <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 font-['Outfit'] flex items-center gap-1.5">
-                                <Check size={14} className="stroke-[3]" />
-                                भेंट ऑनलाइन चुकता
+                              <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/25 font-['Outfit'] flex items-center gap-1 w-fit">
+                                <Check size={12} strokeWidth={3} />
+                                Paid Online (₹{totalBill})
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* 3. Sacred Route Corridor (पवित्र सेवा मार्ग) */}
-                      <div className="p-4 rounded-2xl bg-stone-50/90 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 space-y-3 shadow-xs">
-                        {/* Waypoint 1: पवित्र रसोई भोगशाला */}
+                      {/* 3. 2-Stop Waypoint Corridor */}
+                      <div className="p-3.5 rounded-xl bg-stone-50/70 dark:bg-[#1E1B1C]/70 border border-stone-200/80 dark:border-white/5 space-y-3">
+                        {/* Waypoint 1: Restaurant Pickup */}
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FD9139]/20 to-[#CB785C]/20 border border-[#FD9139]/30 text-amber-600 dark:text-[#FD9139] flex items-center justify-center shrink-0 shadow-xs text-sm">
-                            🛕
+                          <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/25 flex items-center justify-center shrink-0 mt-0.5">
+                            <Store size={14} strokeWidth={2.5} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-700 dark:text-[#FD9139] font-['Outfit']">
-                                उद्गम • पवित्र भोगशाला
+                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] font-['Outfit']">
+                                Pickup Restaurant
                               </span>
-                              <span className="text-[10px] font-mono font-bold text-stone-700 dark:text-neutral-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25 shrink-0">
-                                {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km` : 'निकट वृन्दावन'}
+                              <span className="text-[10px] font-mono font-bold text-stone-700 dark:text-neutral-300 bg-stone-200/80 dark:bg-white/10 px-2 py-0.5 rounded-full border border-stone-300 dark:border-white/10 shrink-0">
+                                {order.pickupDistanceKm != null ? `${order.pickupDistanceKm} km` : '0.8 km'}
                               </span>
                             </div>
-                            <p className="font-black text-stone-900 dark:text-white text-sm sm:text-base truncate mt-0.5 font-['Outfit']">
+                            <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate mt-0.5 font-['Outfit']">
                               {shopName}
                             </p>
-                            <p className="text-xs text-stone-500 dark:text-neutral-400 truncate mt-0.5 font-['Plus_Jakarta_Sans']">
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate font-['Plus_Jakarta_Sans']">
                               {shopAddress}
                             </p>
                           </div>
                         </div>
 
-                        {/* Connecting Route Track */}
-                        <div className="ml-4 pl-0.5 border-l-2 border-dashed border-[#CB785C]/40 dark:border-[#FD9139]/30 h-5 flex items-center">
-                          <span className="text-[10px] -ml-2 text-stone-400 select-none">🛵</span>
-                        </div>
+                        {/* Vertical Corridor Connector */}
+                        <div className="ml-3.5 pl-0 border-l border-stone-300 dark:border-white/10 h-3" />
 
-                        {/* Waypoint 2: भक्त सेवा धाम */}
+                        {/* Waypoint 2: Customer Drop-off */}
                         <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs text-sm">
-                            🌸
+                          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 flex items-center justify-center shrink-0 mt-0.5">
+                            <MapPin size={14} strokeWidth={2.5} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-['Outfit']">
-                                गंतव्य • भक्त सेवा धाम
+                              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-['Outfit']">
+                                Drop-off Location
                               </span>
                               {order.customerPhone && !isUnclaimed && (
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <a
                                     href={`tel:${order.customerPhone}`}
-                                    className="flex items-center gap-1 text-[11px] font-black text-white bg-[#CB785C] hover:bg-[#b8694f] px-2.5 py-1 rounded-full shadow-xs cursor-pointer font-['Outfit']"
+                                    className="flex items-center gap-1 text-[11px] font-black text-[#121214] bg-[#FD9139] hover:bg-[#e07d2c] px-2.5 py-1 rounded-full shadow-xs cursor-pointer font-['Outfit'] apple-tap-target"
                                   >
                                     <Phone size={11} strokeWidth={2.5} />
-                                    <span>कॉल करें</span>
+                                    <span>Call</span>
                                   </a>
                                   <a
-                                    href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`राधे राधे ${order.customerName || 'भक्त जी'}! मैं आपका सारथी फूड्डी वृन्दा से आपका प्रसाद लेकर आ रहा हूँ (ऑर्डर #${order.id.slice(-6).toUpperCase()})।`)}`}
+                                    href={`https://wa.me/91${order.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Hello ${order.customerName || 'Customer'}! I am your Foody Vrinda delivery partner on the way with your order ${getOrderDisplayToken(order)}.`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-7 h-7 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-xs cursor-pointer"
+                                    className="w-6 h-6 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-xs cursor-pointer apple-tap-target"
                                     title="WhatsApp Customer"
                                   >
-                                    <MessageCircle size={13} strokeWidth={2.5} />
+                                    <MessageCircle size={12} strokeWidth={2.5} />
                                   </a>
                                 </div>
                               )}
                             </div>
-                            <p className="font-black text-stone-900 dark:text-white text-sm sm:text-base truncate mt-0.5 font-['Outfit']">
-                              भक्त: {order.customerName || 'श्रद्धालु भक्त'}
+                            <p className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate mt-0.5 font-['Outfit']">
+                              {order.customerName || 'Customer'}
                             </p>
-                            <p className="text-xs text-stone-500 dark:text-neutral-400 truncate mt-0.5 font-['Plus_Jakarta_Sans']">
-                              {order.deliveryAddress || order.customerAddress || 'श्री धाम वृन्दावन, परिक्रमा मार्ग क्षेत्र'}
+                            <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate font-['Plus_Jakarta_Sans']">
+                              {order.deliveryAddress || order.customerAddress || 'Vrindavan Area'}
                             </p>
                             {isUnclaimed && (
-                              <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                                <span>🔒 सेवा स्वीकारते ही भक्त का पूरा पता व मोबाइल खुलेगा</span>
+                              <div className="mt-1 flex items-center gap-1 text-[10px] font-medium text-stone-500 dark:text-neutral-400">
+                                <span>🔒 Address & phone unlock upon accepting order</span>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* 4. Thakur Ji Bhog Thali Preview */}
-                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-amber-500/10 dark:bg-white/5 border border-amber-500/20 dark:border-white/10 text-xs text-stone-800 dark:text-neutral-200">
-                        <span className="text-sm select-none">🌿</span>
-                        <div className="min-w-0 flex-1 truncate">
-                          <span className="font-bold text-amber-900 dark:text-amber-300 mr-1.5 font-['Outfit']">
-                            भोग थाली:
-                          </span>
-                          <span className="font-medium font-['Plus_Jakarta_Sans']">
-                            {itemsText}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-black uppercase text-amber-800 dark:text-[#FD9139] bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/25 shrink-0 font-['Outfit']">
-                          {itemCount} {itemCount === 1 ? 'पात्र' : 'पात्र'}
+                      {/* 4. Order Items 1-Liner Preview */}
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-200/80 dark:border-white/5 text-xs text-stone-700 dark:text-neutral-300">
+                        <ShoppingBag size={14} className="text-stone-400 shrink-0" />
+                        <span className="font-medium truncate font-['Plus_Jakarta_Sans']">
+                          {itemCount} item{itemCount > 1 ? 's' : ''} • {itemsText}
                         </span>
                       </div>
 
                       {/* 5. Kitchen Prep Status Banner (When Order is Still Cooking) */}
                       {isAwaitingKitchen && (
-                        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-amber-500/25 border border-amber-500/40 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
-                              <Flame size={18} className="text-amber-600 dark:text-amber-400 animate-pulse fill-amber-500/30" />
-                            </div>
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 text-xs">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Flame size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
                             <div className="min-w-0">
-                              <p className="font-black text-stone-900 dark:text-white font-['Outfit'] text-xs sm:text-sm">
-                                रसोई में ताज़ा भोग निर्माण जारी है
+                              <p className="font-bold text-stone-900 dark:text-white font-['Outfit'] text-xs">
+                                Kitchen Cooking · Ready in ~15-20 min
                               </p>
-                              <p className="text-[11px] text-stone-600 dark:text-neutral-300 truncate mt-0.5 font-['Plus_Jakarta_Sans']">
-                                भोग तैयार होते ही सारथी सेवा हेतु खुलेगा
+                              <p className="text-[10px] text-stone-500 dark:text-neutral-400 truncate">
+                                Available for pickup as soon as kitchen finishes
                               </p>
                             </div>
                           </div>
@@ -1888,17 +1880,17 @@ export default function TransportView() {
                               onClick={async () => {
                                 try {
                                   await updateCloudOrderStatus(order.id, 'ready_for_pickup');
-                                  showToast("भोग तैयार! अब सारथी सेवा हेतु उपलब्ध है।", "success");
+                                  showToast("Marked Ready for Pickup!", "success");
                                   fetchRiderOrders();
                                 } catch (e) {
-                                  showToast("स्थिति अपडेट विफल रही", "error");
+                                  showToast("Failed to update status", "error");
                                 }
                               }}
-                              className="py-2.5 px-3.5 rounded-xl bg-[#CB785C] hover:bg-[#b8694f] text-white font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer shrink-0 font-['Outfit']"
-                              title="रसोईया 1-Tap: भोग तैयार करें"
+                              className="py-1.5 px-3 rounded-lg bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs flex items-center gap-1 shadow-xs cursor-pointer shrink-0 font-['Outfit'] apple-tap-target"
+                              title="Kitchen Staff: Mark Order Ready"
                             >
-                              <PackageCheck size={15} />
-                              <span>⚡ भोग तैयार (Mark Ready)</span>
+                              <PackageCheck size={13} />
+                              <span>Mark Ready</span>
                             </button>
                           )}
                         </div>
@@ -1907,60 +1899,60 @@ export default function TransportView() {
 
                     {/* 6. Rider Actions: High-Contrast Ergonomic Buttons */}
                     {isClaimable ? (
-                      <div className="pt-2 font-['Plus_Jakarta_Sans']">
+                      <div className="pt-1 font-['Plus_Jakarta_Sans']">
                         <button
                           data-tour="delivery-accept"
                           type="button"
                           onClick={() => handleClaimOrder(order.id)}
                           disabled={isClaimingOrderId === order.id}
-                          className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[#FD9139] via-[#CB785C] to-[#FD9139] hover:opacity-95 active:scale-[0.98] text-[#121214] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-[0_6px_22px_rgba(253,145,57,0.35)] cursor-pointer disabled:opacity-50 font-['Outfit']"
+                          className="w-full h-12 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit'] active:scale-[0.99]"
                         >
                           {isClaimingOrderId === order.id ? (
-                            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-[#121214] border-t-transparent rounded-full animate-spin" />
                           ) : (
-                            <span className="text-lg select-none">🛞</span>
+                            <Truck size={16} strokeWidth={2.5} />
                           )}
                           <span>
                             {isClaimingOrderId === order.id
-                              ? 'सारथी सेवा दर्ज हो रही है...'
-                              : `श्री सारथी सेवा स्वीकारें · दक्षिणा ₹${riderEarning}`}
+                              ? 'Claiming Delivery...'
+                              : `Accept Delivery · Earn ₹${riderEarning}`}
                           </span>
                         </button>
                       </div>
                     ) : isAwaitingKitchen ? null : (
-                      <div className="pt-2 flex gap-2.5 font-['Plus_Jakarta_Sans']">
+                      <div className="pt-1 flex gap-2 font-['Plus_Jakarta_Sans']">
                         <button
                           onClick={() => {
                             setSelectedOrder(order);
                             setViewMode('map');
                           }}
-                          className="flex-1 py-3.5 px-3 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-[0.98] text-stone-900 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-stone-200 dark:border-white/10 font-['Outfit']"
+                          className="flex-1 h-11 px-3 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-[0.99] text-stone-900 dark:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border border-stone-200 dark:border-white/10 font-['Outfit'] cursor-pointer"
                         >
                           <Map className="w-4 h-4 text-[#FD9139]" />
-                          <span>{isInTransit ? 'भक्त मार्ग (Map)' : 'रसोई मार्ग (Map)'}</span>
+                          <span>Map</span>
                         </button>
 
                         {isReady ? (
                           <button
                             onClick={() => handleInitiatePickup(order)}
-                            className="flex-1 py-3.5 px-3 rounded-2xl bg-gradient-to-r from-[#FD9139] to-[#CB785C] hover:opacity-95 active:scale-[0.98] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(253,145,57,0.25)] cursor-pointer font-['Outfit']"
+                            className="flex-1 h-11 px-3 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] active:scale-[0.99] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer font-['Outfit']"
                           >
-                            <span>भोगशाला से प्रसाद उठाएं</span>
+                            <span>Start Pickup</span>
                             <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                           </button>
                         ) : isInTransit ? (
                           <button
                             data-tour="delivery-complete"
                             onClick={() => handleInitiateDelivery(order)}
-                            className="flex-1 py-3.5 px-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-[0_4px_16px_rgba(16,185,129,0.3)] cursor-pointer font-['Outfit']"
+                            className="flex-1 h-11 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer font-['Outfit']"
                           >
                             <Check className="w-4 h-4 stroke-[3]" />
-                            <span>भोग अर्पण संपन्न (Delivered)</span>
+                            <span>Delivered</span>
                           </button>
                         ) : isDelivered ? (
-                          <div className="flex-1 py-3 px-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 font-['Outfit']">
+                          <div className="flex-1 h-11 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 font-['Outfit']">
                             <CheckCircle2 size={14} className="text-emerald-500" />
-                            <span>सेवा संपन्न</span>
+                            <span>Delivered</span>
                           </div>
                         ) : null}
                       </div>
@@ -1985,7 +1977,7 @@ export default function TransportView() {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2">
             {/* Card 1: COD Cash in Hand */}
-            <div data-tour="delivery-earnings" className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-lg flex flex-col justify-between transition-all ${cashCheck.isExceeded
+            <div data-tour="delivery-earnings" className={`p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border shadow-sm flex flex-col justify-between transition-all ${cashCheck.isExceeded
               ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
               : 'bg-white dark:bg-[#282526] border-stone-200 dark:border-white/10 text-stone-900 dark:text-white'
               }`}>
@@ -1998,19 +1990,19 @@ export default function TransportView() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider font-['Outfit'] truncate">
-                      🪙 नकद भेंट संग्रह • COD Cash
+                      COD Cash in Hand
                     </p>
                   </div>
                 </div>
 
                 {cashCheck.isExceeded ? (
                   <span className="text-[10px] font-black bg-rose-500 text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-sm shrink-0 whitespace-nowrap">
-                    दैनिक सीमा पूर्ण
+                    Daily Cap Reached
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 shadow-xs shrink-0 whitespace-nowrap font-['Outfit']">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>सेवा हेतु उपलब्ध</span>
+                    <span>Ready for Delivery</span>
                   </span>
                 )}
               </div>
@@ -2022,7 +2014,7 @@ export default function TransportView() {
                     ₹{ledger.cashInHand}
                   </span>
                   <span className="text-xs sm:text-sm font-bold text-stone-500 dark:text-zinc-400 font-['Outfit']">
-                    / ₹{RIDER_MAX_CASH_LIMIT} दैनिक सीमा
+                    / ₹{RIDER_MAX_CASH_LIMIT} Daily Cap
                   </span>
                 </div>
                 <span className="text-xs font-black font-['Outfit'] text-stone-600 dark:text-zinc-400 shrink-0">
@@ -2031,21 +2023,21 @@ export default function TransportView() {
               </div>
 
               <div className="flex items-center justify-between text-[11px] font-bold text-stone-600 dark:text-zinc-400 mb-2 font-['Plus_Jakarta_Sans']">
-                <span>आज संगृहीत नकद भेंट (Collected Today)</span>
+                <span>Collected Today (COD)</span>
                 <span className="font-black text-stone-900 dark:text-white font-['Outfit']">₹{totalCodCollectedToday}</span>
               </div>
 
               {/* Recessed Luxury Progress Bar Track */}
               <div className="w-full bg-stone-300/80 dark:bg-[#151314] h-2.5 rounded-full border border-stone-300 dark:border-white/5 p-0.5 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 min-w-[4px] ${cashCheck.isExceeded ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-[#CB785C] shadow-[0_0_10px_rgba(203,120,92,0.4)]'}`}
+                  className={`h-full rounded-full transition-all duration-500 min-w-[4px] ${cashCheck.isExceeded ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 'bg-[#FD9139] shadow-[0_0_10px_rgba(253,145,57,0.4)]'}`}
                   style={{ width: `${Math.max(2, cashPercent)}%` }}
                 />
               </div>
             </div>
 
             {/* Card 2: Sarathi Trust & CIBIL Score */}
-            <div className="p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 shadow-lg flex flex-col justify-between transition-all">
+            <div className="p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 shadow-sm flex flex-col justify-between transition-all">
               {/* Row 1: Icon + Title on Left, Badge on Right */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -2054,7 +2046,7 @@ export default function TransportView() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] sm:text-[11px] font-black text-amber-800 dark:text-[#FD9139] uppercase tracking-wider font-['Outfit'] truncate">
-                      ⭐ श्री सारथी प्रतिष्ठा • Trust Score
+                      Rider Trust Score
                     </p>
                   </div>
                 </div>
@@ -2062,17 +2054,17 @@ export default function TransportView() {
                 <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black px-3 py-1 rounded-full border shadow-xs shrink-0 whitespace-nowrap font-['Outfit'] ${trustScore >= 750 ? 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
                   }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${trustScore >= 750 ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'}`} />
-                  <span>{trustScore >= 750 ? 'शीर्ष सारथी (Top Sarathi)' : 'सक्रिय सारथी'}</span>
+                  <span>{trustScore >= 750 ? 'Top Rider' : 'Active Partner'}</span>
                 </span>
               </div>
 
               {/* Row 2: Score + Total Pts with zero wrapping */}
               <div className="flex items-baseline justify-between gap-2 mt-4 mb-2.5">
                 <div className="flex items-baseline gap-2 flex-nowrap whitespace-nowrap">
-                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-outfit tracking-tight">
+                  <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
                     {trustScore}
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 font-outfit">
+                  <span className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 font-['Outfit']">
                     / 900 Pts
                   </span>
                 </div>
@@ -2219,7 +2211,7 @@ export default function TransportView() {
                   : `Ask customer ${getOrderCustomerName(otpModalState.order)} for the 4-digit code in their app.`}
               </p>
               <div className="flex items-center justify-between text-[11px] text-stone-400 font-mono pt-1 border-t border-white/5">
-                <span>Order #{otpModalState.order.id ? otpModalState.order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}</span>
+                <span>Order {getOrderDisplayToken(otpModalState.order)}</span>
                 <span className="text-stone-300 font-semibold truncate max-w-[180px]">
                   {getOrderItemSummary(otpModalState.order)}
                 </span>
@@ -2232,7 +2224,7 @@ export default function TransportView() {
                 <div className="flex items-center gap-2 min-w-0">
                   <PackageCheck className="w-4 h-4 text-amber-400 shrink-0" />
                   <span className="text-[11px] text-amber-200 font-semibold truncate">
-                    QC Check: {otpModalState.order.items?.length || 1} items & label match #{otpModalState.order.id?.slice(-5).toUpperCase()}
+                    QC Check: {otpModalState.order.items?.length || 1} items & label match {getOrderDisplayToken(otpModalState.order)}
                   </span>
                 </div>
                 <span className="text-[10px] font-bold text-amber-400 font-mono shrink-0 uppercase bg-amber-500/20 px-2 py-0.5 rounded-md">

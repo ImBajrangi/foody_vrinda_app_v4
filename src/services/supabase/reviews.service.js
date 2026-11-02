@@ -7,6 +7,7 @@
 import { supabase } from './client.js';
 import { safeStorage, dispatchSafeEvent, getDefaultActiveShopId } from './cache.js';
 import { updateUserTrustScore } from './operations.service.js';
+import { getOrderDisplayToken } from './orders.service.js';
 
 // ========================================================================
 // 1. REVIEWS & RATINGS CLOUD APIS
@@ -116,13 +117,13 @@ export async function recordMultiStaffReview({
   // 1. Award / Deduct CIBIL Points for Chef
   if (chefId && !String(chefId).startsWith('chef_shop-')) {
     const chefPoints = chefRating >= 4 ? (chefRating === 5 ? 12 : 6) : -15;
-    await updateUserTrustScore(chefId, chefPoints, `Customer Food Review (${chefRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
+    await updateUserTrustScore(chefId, chefPoints, `Customer Food Review (${chefRating}⭐) for Order ${getOrderDisplayToken({ id: orderId })}`);
   }
 
   // 2. Award / Deduct CIBIL Points for Delivery Sarathi
   if (riderId) {
     const riderPoints = riderRating >= 4 ? (riderRating === 5 ? 12 : 6) : -15;
-    await updateUserTrustScore(riderId, riderPoints, `Customer Delivery Review (${riderRating}⭐) for Order #${orderId?.slice(-5) || ''}`);
+    await updateUserTrustScore(riderId, riderPoints, `Customer Delivery Review (${riderRating}⭐) for Order ${getOrderDisplayToken({ id: orderId })}`);
   }
 
   // 3. Save comprehensive review in Supabase

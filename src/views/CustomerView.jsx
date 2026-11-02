@@ -1100,6 +1100,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     };
     window.addEventListener('foody_users_changed', handleUsersChanged);
     window.addEventListener('storage', handleUsersChanged);
+    window.addEventListener('foody_rider_duty_changed', handleUsersChanged);
 
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
@@ -1111,6 +1112,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       clearInterval(interval);
       window.removeEventListener('foody_users_changed', handleUsersChanged);
       window.removeEventListener('storage', handleUsersChanged);
+      window.removeEventListener('foody_rider_duty_changed', handleUsersChanged);
     };
   }, []);
 
@@ -1203,31 +1205,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     cartGroupedByShop.length > 0
       ? cartGroupedByShop.every(g => {
           const shop = g.shop;
-          if (!shop) return onlineRidersCount > 0 || isShopSelfDelivery;
+          if (!shop) return true;
+          // Kitchen specifically disabled delivery
           if (shop.delivery_available === false || shop.deliveryAvailable === false) return false;
-          return Boolean(
-            onlineRidersCount > 0 ||
-            isShopSelfDelivery ||
-            shop.self_delivery ||
-            shop.can_deliver ||
-            shop.selfDelivery ||
-            shop.canDeliver
-          );
+          return true;
         })
       : (
           effectiveOrderShop
-            ? (
-                (effectiveOrderShop.delivery_available !== false && effectiveOrderShop.deliveryAvailable !== false) &&
-                Boolean(
-                  onlineRidersCount > 0 ||
-                  isShopSelfDelivery ||
-                  effectiveOrderShop.self_delivery ||
-                  effectiveOrderShop.can_deliver ||
-                  effectiveOrderShop.selfDelivery ||
-                  effectiveOrderShop.canDeliver
-                )
-              )
-            : (onlineRidersCount > 0 || isShopSelfDelivery)
+            ? (effectiveOrderShop.delivery_available !== false && effectiveOrderShop.deliveryAvailable !== false)
+            : true
         )
   );
 
@@ -2964,8 +2950,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </span>
                   <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
                     {onlineRidersCount > 0
-                      ? `${onlineRidersCount} Sarathi Riders Active`
-                      : (isShopSelfDelivery ? 'Kitchen Self-Delivery Active' : (isDeliveryAvailable ? 'Doorstep Delivery Available' : 'Counter Open · Delivery Offline'))}
+                      ? `${onlineRidersCount} Delivery Partner${onlineRidersCount > 1 ? 's' : ''} Active`
+                      : (isDeliveryAvailable ? 'Doorstep Delivery Available' : 'Counter Open · Delivery Offline')}
                   </span>
                 </div>
 

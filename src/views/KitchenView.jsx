@@ -19,7 +19,8 @@ import {
   verifyOrderOTP,
   generateWhatsAppOrderShareLink,
   getPurgedOrderIds,
-  purgeOrder
+  purgeOrder,
+  getOrderDisplayToken
 } from '../supabase';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
@@ -180,7 +181,7 @@ export default function KitchenView() {
   // Fast Realtime notification listener strictly bound to activeShopId
   useFastNotify(activeShopId, 'kitchen', (alertData) => {
     playRoleAlarm('kitchen', alertData, true);
-    showToast(`Order #${alertData.orderId.slice(-6).toUpperCase()} received in kitchen!`, "info");
+    showToast(`Order ${getOrderDisplayToken({ id: alertData.orderId, order_token: alertData.orderToken, order_short_code: alertData.orderShortCode })} received in kitchen!`, "info");
   });
 
   // 2. & 9. Load active orders (new & preparing) from Supabase Realtime & Strict Isolation
@@ -474,11 +475,11 @@ export default function KitchenView() {
           role: 'kitchen',
           shopId: activeShopId,
           orderId: cloudOrder.id,
-          message: `New manual ${isPickup ? 'Counter' : 'Delivery'} order #${cloudOrder.id.slice(-6).toUpperCase()} created for ${orderPayload.customerName}.`
+          message: `New manual ${isPickup ? 'Counter' : 'Delivery'} order ${getOrderDisplayToken(cloudOrder)} created for ${orderPayload.customerName}.`
         });
       } catch (_) {}
 
-      showToast(`Order #${cloudOrder.id.slice(-6).toUpperCase()} Created!`, "success");
+      showToast(`Order ${getOrderDisplayToken(cloudOrder)} Created!`, "success");
       handleCloseCreateModal();
     } catch (err) {
       console.error(err);
@@ -500,7 +501,7 @@ export default function KitchenView() {
           role: 'delivery',
           shopId: activeShopId,
           title: `Food in Preparation: Head to Kitchen`,
-          message: `Chef started cooking Order #${orderId ? orderId.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}. Head to kitchen for instant hot pickup!`,
+          message: `Chef started cooking Order ${getOrderDisplayToken({ id: orderId })}. Head to kitchen for instant hot pickup!`,
           orderId
         });
       } catch (err) { }
@@ -911,7 +912,7 @@ export default function KitchenView() {
                       <div className="flex items-center gap-1.5">
                         <ShoppingBag size={15} className="text-amber-600 dark:text-[#FD9139]" />
                         <h3 className="font-black text-stone-900 dark:text-white text-sm sm:text-base font-outfit font-sans">
-                          Order #{order.id.slice(-6).toUpperCase()}
+                          Order {getOrderDisplayToken(order)}
                         </h3>
                       </div>
                       <p className="text-[11px] text-stone-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
@@ -1843,7 +1844,7 @@ export default function KitchenView() {
                 Ask devotee <strong className="text-stone-900 dark:text-white">{getOrderCustomerName(counterOtpModal.order)}</strong> for the 4-digit code shown in their app.
               </p>
               <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-zinc-400 font-mono pt-1">
-                <span>Order #{counterOtpModal.order.id ? counterOtpModal.order.id.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase() : ''}</span>
+                <span>Order {getOrderDisplayToken(counterOtpModal.order)}</span>
                 <span>{counterOtpModal.order.items?.length || 1} items · ₹{counterOtpModal.order.totalAmount || counterOtpModal.order.total_amount || 0}</span>
               </div>
             </div>

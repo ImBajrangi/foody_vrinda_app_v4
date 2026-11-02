@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { subscribeCloudOrders } from '../supabase';
+import { subscribeCloudOrders, getOrderDisplayToken } from '../supabase';
 
 /**
  * High-speed Realtime Staff Notification Hook
@@ -75,7 +75,7 @@ export function useFastNotify(shopIds, role, onAlert) {
             if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
               try {
                 new Notification(alertTitle, {
-                  body: `Order #${(order.id || '').slice(-6).toUpperCase()} • ₹${order.total_amount || order.totalAmount || 0} (${order.customer_name || 'Customer'})`,
+                  body: `Order ${getOrderDisplayToken(order)} • ₹${order.total_amount || order.totalAmount || 0} (${order.customer_name || 'Customer'})`,
                   icon: '/favicon.ico',
                   tag: alertKey
                 });

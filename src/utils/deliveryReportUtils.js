@@ -5,7 +5,7 @@
  * COD cash reconciliation, and certified digital audit seals.
  */
 
-import { getOrderItemSummary } from '../supabase';
+import { getOrderItemSummary, getOrderDisplayToken } from '../supabase';
 
 /**
  * Formats a currency string in INR
@@ -68,7 +68,7 @@ export function exportRiderOrdersCSV(orders = [], riderDetails = {}) {
     ];
 
     const rows = orders.map((o, idx) => {
-      const orderId = (o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6) : `TRIP-${idx + 1}`).toUpperCase();
+      const orderId = getOrderDisplayToken(o);
       const shop = (o.shop_name || o.shopName || 'Satvik Kitchen').replace(/"/g, '""');
       const cust = (o.customer_name || o.customerName || 'Devotee Customer').replace(/"/g, '""');
       const phone = (o.customer_phone || o.customerPhone || '').replace(/"/g, '""');
@@ -159,7 +159,7 @@ export function printVerifiedDriverStatementPDF(orders = [], riderDetails = {}) 
   const tableRows = orders.map((o, idx) => {
     const isCod = ['cash', 'cod'].includes(String(o.payment_method || o.paymentMethod || '').toLowerCase());
     const isDelivered = ['completed', 'delivered'].includes(o.status);
-    const orderId = (o.id ? o.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6) : `TRIP-${idx + 1}`).toUpperCase();
+    const orderId = getOrderDisplayToken(o);
     const shop = o.shop_name || o.shopName || 'Radha Rani Fast Food';
     const customer = o.customer_name || o.customerName || 'Devotee Customer';
     const customerPhone = o.customer_phone || o.customerPhone || '';

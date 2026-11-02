@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary, getCachedShops } from '../supabase';
+import { getCloudMenus, supabase, resolveDishCutout, getOrderItemSummary, getCachedShops, getOrderDisplayToken } from '../supabase';
 import { 
   Search, Store, Utensils, Receipt, X, ChevronRight, ShoppingBag, 
   Flame, Clock, MapPin, Plus, Minus, Tag, TrendingUp, RotateCcw, 
@@ -353,12 +353,14 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
           if (!isOwnOrder(order)) return false;
           const itemsString = order.items?.map(i => (i.name || '').toLowerCase()).join(' ') || '';
           const orderId = String(order.id || '').toLowerCase();
-          const shortId = orderId.slice(-6);
+          const token = getOrderDisplayToken(order).toLowerCase();
+          const strippedToken = token.replace(/[^a-z0-9]/g, '');
 
           return (
             itemsString.includes(cleanTerm) ||
             orderId.includes(strippedTerm) ||
-            shortId.includes(strippedTerm)
+            token.includes(cleanTerm) ||
+            strippedToken.includes(strippedTerm)
           );
         });
       } catch (err) {
@@ -1033,8 +1035,8 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
                         >
                           <div className="min-w-0 flex-1 mr-2">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-mono font-black text-xs text-amber-700 dark:text-[#FD9139] bg-amber-500/10 dark:bg-[#FD9139]/10 px-1.5 py-0.5 rounded">
-                                #{order.id?.length > 12 ? `${order.id.slice(0, 6)}…${order.id.slice(-5)}` : order.id}
+                              <span className="font-mono font-black text-xs text-amber-700 dark:text-[#FD9139] bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded">
+                                {getOrderDisplayToken(order)}
                               </span>
                               <span className="font-bold text-stone-900 dark:text-white text-xs sm:text-sm truncate font-['Outfit']">
                                 {shopName}
