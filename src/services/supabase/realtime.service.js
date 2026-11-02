@@ -76,29 +76,40 @@ export class RealtimeMultiplexer {
   }
 
   reconnect() {
+    if (this._isReconnecting) return;
+    this._isReconnecting = true;
+    try {
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
+      if (this.isSubscribed && this.channel && this.channel.state === 'joined') {
+        return;
+      }
+      if (this.channel) {
+        const oldChannel = this.channel;
+        this.channel = null;
+        try {
+          supabase.removeChannel(oldChannel);
+        } catch (_) {}
+      }
+      this.isSubscribed = false;
+      this._wasDisconnected = true;
+      this.ensureSubscribed();
+    } finally {
+      this._isReconnecting = false;
+    }
+  }
+
+  scheduleReconnect(delayMs) {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    if (this.isSubscribed && this.channel && this.channel.state === 'joined') {
-      return;
-    }
-    if (this.channel) {
-      try {
-        supabase.removeChannel(this.channel);
-      } catch (_) {}
-      this.channel = null;
-    }
-    this.isSubscribed = false;
-    this._wasDisconnected = true;
-    this.ensureSubscribed();
-  }
-
-  scheduleReconnect(delayMs) {
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     const delay = typeof delayMs === 'number' ? delayMs : Math.min(1500 * Math.pow(1.5, this._reconnectAttempts || 0), 15000);
     this._reconnectAttempts = (this._reconnectAttempts || 0) + 1;
     this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
       if (this.hasActiveListeners() && (!this.isSubscribed || !this.channel || this.channel.state !== 'joined')) {
         this.reconnect();
       }
@@ -288,11 +299,8 @@ export class RealtimeMultiplexer {
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             this._wasDisconnected = true;
             this.isSubscribed = false;
-            if (this.channel) {
-              try {
-                supabase.removeChannel(this.channel);
-              } catch (_) {}
-            }
+            // Channel is already closed or errored by the Realtime client.
+            // Do NOT call supabase.removeChannel synchronously here, as it triggers recursive 'CLOSED' events and stack overflow.
             this.channel = null;
 
             if (this.hasActiveListeners()) {

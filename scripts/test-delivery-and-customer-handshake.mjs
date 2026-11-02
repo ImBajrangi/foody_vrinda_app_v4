@@ -235,7 +235,9 @@ async function runTest() {
     status: 'new',
     fulfillment_type: 'delivery',
     payment_method: 'cod',
-    cash_status: 'pending'
+    cash_status: 'pending',
+    pickup_otp: '1080',
+    delivery_otp: '1080'
   };
 
   const { error: placeErr } = await supabase.from('foody_orders').insert(orderPayload);

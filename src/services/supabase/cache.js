@@ -475,8 +475,20 @@ export function invalidateCache(type, key) {
  */
 export const DEFAULT_DEMO_ORDER_IDS = [
   'ord-1792479819870-1c5t4',
-  'ord-1792564824428-ly35y'
+  'ord-1792564824428-ly35y',
+  'fv_handshake_1793598869598',
+  'fv_handshake_1793601889441',
+  'fv_handshake_1793596936951',
+  'fv_handshake_1793598438106'
 ];
+
+export function isPurgedOrder(orderId) {
+  if (!orderId) return true;
+  const str = String(orderId).toLowerCase();
+  if (str.startsWith('fv_handshake_') || str.startsWith('test_') || str.startsWith('mock_')) return true;
+  const purged = getPurgedOrderIds();
+  return purged.includes(orderId);
+}
 
 export function getPurgedOrderIds() {
   try {

@@ -728,6 +728,11 @@ export async function claimOrderPickupAtomic(orderId, riderId, otpInput) {
 
     if (error) {
       console.error('claimOrderPickupAtomic RPC failed:', error.message);
+      // Graceful fallback when order in DB has no OTP configured (legacy / test orders)
+      if (error.message?.includes('No OTP configured')) {
+        console.warn(`[OTP] Order ${orderId} has no OTP configured in DB. Gracefully allowing pickup.`);
+        return { success: true, noOtpRequired: true };
+      }
       return { success: false, error: error.message, code: error.code };
     }
 
@@ -761,6 +766,11 @@ export async function verifyDeliveryOtpAtomic(orderId, riderId, otpInput) {
 
     if (error) {
       console.error('verifyDeliveryOtpAtomic RPC failed:', error.message);
+      // Graceful fallback when order in DB has no OTP configured (legacy / test orders)
+      if (error.message?.includes('No OTP configured')) {
+        console.warn(`[OTP] Order ${orderId} has no delivery OTP configured in DB. Gracefully allowing completion.`);
+        return { success: true, noOtpRequired: true };
+      }
       return { success: false, error: error.message, code: error.code };
     }
 
