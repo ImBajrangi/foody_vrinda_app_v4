@@ -152,11 +152,11 @@ async function main() {
   }
 
   const releaseNotes = [
-    'Delivery vs Self-Pickup dynamic gating: shop self-delivery toggle and automatic fallback when riders are offline.',
-    'Kitchen counter pickup OTP verification and atomic devotee handover with instant ticket settlement.',
-    'Upgraded Kitchen Manual Order POS Modal: 2-column layout, instant dish search, category pills, and fulfillment selection.',
-    'Enhanced rider heartbeat tolerance and zero-drift schema resilience across cloud data stores.',
-    'Zero layout shift, 44px+ mobile touch targets, and non-blocking stepper isolation.'
+    'Multi-Active Customer Orders Tracking: view and track all active orders concurrently with 1-tap tab switcher.',
+    'Prominent Delivery Verification OTP & Counter Token front-and-center on active cards with 1-tap copy.',
+    'Universal Order Token (#FV-XXXX) coupled 1:1 with 4-digit verification OTP for customer, kitchen & rider.',
+    'Optimized OTP verification state machine: seamless picked_up to delivered transitions without locks.',
+    'Enhanced mobile ergonomics, responsive touch targets, and high-performance caching.'
   ];
 
   async function uploadRelease(repoOwner, repoName) {
