@@ -50,6 +50,7 @@ import {
   Search,
   PackageCheck,
   Store,
+  ShoppingBag,
   Check,
   Star,
   User,
