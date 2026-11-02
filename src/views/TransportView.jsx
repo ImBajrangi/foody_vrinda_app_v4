@@ -1595,6 +1595,7 @@ export default function TransportView() {
                 const isCooking = ['new', 'pending', 'placed', 'preparing'].includes(status);
                 const isDelivered = ['completed', 'delivered'].includes(status);
                 const hasRider = Boolean(order.rider_id || order.riderId || order.isClaimed === true);
+                const isUnclaimed = !hasRider;
                 const isClaimable = !hasRider && isReady;
                 const isAwaitingKitchen = !hasRider && isCooking;
 
