@@ -29,7 +29,9 @@ const SUITES = [
   { name: '2. Developer API & DB Sync', file: 'scripts/test-developer-api-sync.mjs' },
   { name: '3. Atomic Shop Deletion & Zero-Bleed', file: 'scripts/test-atomic-shop-deletion.mjs' },
   { name: '4. Combo Offer Engine & Margins', file: 'scripts/test-combo-engine.mjs' },
-  { name: '5. Strict Shop Isolation & Leaks', file: 'scripts/test-shop-isolation.mjs' }
+  { name: '5. Strict Shop Isolation & Leaks', file: 'scripts/test-shop-isolation.mjs' },
+  { name: '6. Unprivileged Customer Delivery Option Flow', file: 'scripts/test-customer-unprivileged-flow.mjs' },
+  { name: '7. Delivery Sarathi (Ready for Delivery) & Customer Handshake', file: 'scripts/test-delivery-and-customer-handshake.mjs' }
 ];
 
 async function runChildSuite(suite) {

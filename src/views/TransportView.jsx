@@ -77,8 +77,27 @@ export default function TransportView() {
     }
   });
 
-  // Delivery boy invariant: Default is strictly OFF/offline when opening the app.
-  const [isRiderOnDuty, setIsRiderOnDuty] = useState(false);
+  const SHIFT_WINDOW_MS = 60 * 60 * 1000; // 1-Hour Rolling Shift Duration
+
+  // Delivery boy presence state:
+  // Invariant: Never auto-enable offline riders on app launch. Must click "Ready to Deliver" first.
+  // Once enabled, valid for 1 hour. Any launch/panel switch within that hour extends it for another hour.
+  const [isRiderOnDuty, setIsRiderOnDuty] = useState(() => {
+    try {
+      const stored = localStorage.getItem('foody_rider_on_duty');
+      const expiresAtStr = localStorage.getItem('foody_rider_shift_expires_at');
+      const shiftExpiresAt = expiresAtStr ? parseInt(expiresAtStr, 10) : 0;
+      const now = Date.now();
+
+      // Only on duty if explicitly marked on duty AND shift hasn't expired yet
+      if (stored === 'true' && shiftExpiresAt > now) {
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  });
   const isTogglingDutyRef = useRef(false);
   const [riderCoords, setRiderCoords] = useState(() => ({ lat: 27.5706, lng: 77.6593 }));
   const [riderTab, setRiderTab] = useState('active'); // 'active' | 'upcoming' | 'completed' | 'all'
@@ -153,24 +172,85 @@ export default function TransportView() {
     };
   }, []);
 
-  // On mount / app opening: guarantee rider starts OFF-duty both in local state and cloud
+  // 1-Hour Rolling Shift Manager:
+  // Invariant: Offline riders NEVER auto-enable on launch. They must explicitly click "Ready to Deliver".
+  // Once enabled, valid for 1 hour. Any subsequent launch or panel switch within that hour extends it for another hour.
   useEffect(() => {
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
+    const now = Date.now();
+    let isStoredOnDuty = false;
+    let shiftExpiresAt = 0;
+
     try {
-      localStorage.setItem('foody_rider_on_duty', 'false');
+      isStoredOnDuty = localStorage.getItem('foody_rider_on_duty') === 'true';
+      const expiresStr = localStorage.getItem('foody_rider_shift_expires_at');
+      shiftExpiresAt = expiresStr ? parseInt(expiresStr, 10) : 0;
     } catch { /* ignore */ }
 
-    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
-    updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
-
-    const handleBeforeUnload = () => {
+    if (isStoredOnDuty && shiftExpiresAt > now) {
+      // Rider was already active within the 1-hour window:
+      // Rolling refresh: Extend for another full 1 hour from current active launch
+      const newExpiresAt = now + SHIFT_WINDOW_MS;
+      try {
+        localStorage.setItem('foody_rider_shift_expires_at', String(newExpiresAt));
+        localStorage.setItem('foody_rider_on_duty', 'true');
+      } catch { /* ignore */ }
+      setIsRiderOnDuty(true);
+      updateUserOnlineStatus(riderId, true, riderCoordsRef.current).catch(() => { });
+    } else {
+      // Offline or 1-hour shift expired:
+      // Keep/mark them offline. Never auto-enable!
+      try {
+        localStorage.setItem('foody_rider_on_duty', 'false');
+        localStorage.removeItem('foody_rider_shift_expires_at');
+      } catch { /* ignore */ }
+      setIsRiderOnDuty(false);
       updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
-    };
+    }
+    // Note: Do NOT set user offline in unmount cleanup, preserving active rider duty when switching panels
   }, [activeUser?.id, activeUser?.email]);
+
+  // Periodic Shift Watchdog: checks expiration and keeps active shift rolling
+  useEffect(() => {
+    if (!isRiderOnDuty) return;
+
+    const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
+
+    const checkInterval = setInterval(() => {
+      const now = Date.now();
+      let shiftExpiresAt = 0;
+      try {
+        const expiresStr = localStorage.getItem('foody_rider_shift_expires_at');
+        shiftExpiresAt = expiresStr ? parseInt(expiresStr, 10) : 0;
+      } catch { /* ignore */ }
+
+      if (now >= shiftExpiresAt) {
+        // 1-hour window expired without extension
+        setIsRiderOnDuty(false);
+        try {
+          localStorage.setItem('foody_rider_on_duty', 'false');
+          localStorage.removeItem('foody_rider_shift_expires_at');
+        } catch { /* ignore */ }
+        updateUserOnlineStatus(riderId, false, riderCoordsRef.current).catch(() => { });
+        showToast("Shift ended · Offline (1 hour window elapsed)", "info");
+      } else {
+        // If app is currently active in foreground, keep rolling the window forward
+        if (typeof document !== 'undefined' && !document.hidden) {
+          const remainingMs = shiftExpiresAt - now;
+          // When less than 50 minutes remain, roll forward to full 1 hour
+          if (remainingMs < 50 * 60 * 1000) {
+            const extendedExpires = now + SHIFT_WINDOW_MS;
+            try {
+              localStorage.setItem('foody_rider_shift_expires_at', String(extendedExpires));
+            } catch { /* ignore */ }
+            updateUserOnlineStatus(riderId, true, riderCoordsRef.current).catch(() => { });
+          }
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(checkInterval);
+  }, [isRiderOnDuty, activeUser?.id, activeUser?.email, showToast]);
 
   // Live Realtime GPS Broadcaster for Delivery Sarathis (throttled to avoid redundant egress)
   useEffect(() => {
@@ -211,21 +291,43 @@ export default function TransportView() {
     if (isTogglingDutyRef.current) return;
     isTogglingDutyRef.current = true;
     const nextState = !isRiderOnDuty;
-    setIsRiderOnDuty(nextState);
-    try {
-      localStorage.setItem('foody_rider_on_duty', String(nextState));
-    } catch { /* ignore */ }
-
+    const now = Date.now();
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
-    try {
-      await updateUserOnlineStatus(riderId, nextState, riderCoordsRef.current);
-    } catch { /* ignore */ } finally {
-      setTimeout(() => {
-        isTogglingDutyRef.current = false;
-      }, 500);
-    }
 
-    showToast(nextState ? "You are ON DUTY (Receiving live tasks)" : "You are OFF DUTY (Break mode)", nextState ? "success" : "info");
+    if (nextState) {
+      // Explicitly clicked ON: Start 1-hour active rolling shift
+      const shiftExpiresAt = now + SHIFT_WINDOW_MS;
+      setIsRiderOnDuty(true);
+      try {
+        localStorage.setItem('foody_rider_on_duty', 'true');
+        localStorage.setItem('foody_rider_shift_expires_at', String(shiftExpiresAt));
+      } catch { /* ignore */ }
+
+      try {
+        await updateUserOnlineStatus(riderId, true, riderCoordsRef.current);
+      } catch { /* ignore */ } finally {
+        setTimeout(() => {
+          isTogglingDutyRef.current = false;
+        }, 500);
+      }
+      showToast("You are ON DUTY · Available for deliveries (1 hr rolling shift)", "success");
+    } else {
+      // Explicitly clicked OFF: Immediately go offline
+      setIsRiderOnDuty(false);
+      try {
+        localStorage.setItem('foody_rider_on_duty', 'false');
+        localStorage.removeItem('foody_rider_shift_expires_at');
+      } catch { /* ignore */ }
+
+      try {
+        await updateUserOnlineStatus(riderId, false, riderCoordsRef.current);
+      } catch { /* ignore */ } finally {
+        setTimeout(() => {
+          isTogglingDutyRef.current = false;
+        }, 500);
+      }
+      showToast("You are OFF DUTY (Break mode)", "info");
+    }
   };
 
   // Load delivery orders: independent fleet across all platform outlets (including today's ended history)

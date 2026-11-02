@@ -267,11 +267,16 @@ export async function updateCloudShop(shopId, shopData) {
           shopType: updatedShop.shopType,
           openingTime: updatedShop.openingTime,
           closingTime: updatedShop.closingTime,
-          isOnline: updatedShop.isOnline
+          isOnline: updatedShop.isOnline,
+          self_delivery: Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? updatedShop.can_deliver ?? false),
+          can_deliver: Boolean(updatedShop.can_deliver ?? updatedShop.canDeliver ?? updatedShop.self_delivery ?? false),
+          delivery_available: Boolean(updatedShop.delivery_available ?? updatedShop.deliveryAvailable ?? true),
+          deliveryAvailable: Boolean(updatedShop.delivery_available ?? updatedShop.deliveryAvailable ?? true)
         },
         alarm_settings: updatedShop.alarmSettings,
         self_delivery: Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? false),
         can_deliver: Boolean(updatedShop.can_deliver ?? updatedShop.canDeliver ?? false),
+        delivery_available: Boolean(updatedShop.delivery_available ?? updatedShop.deliveryAvailable ?? true),
         updated_at: new Date().toISOString()
       };
 
@@ -306,7 +311,16 @@ export async function updateCloudShop(shopId, shopData) {
       // 2. Targeted update if RPC was bypassed, failed, or if other fields (e.g. paymentSettings, self_delivery) are being saved
       if (!rpcSucceeded || !isOnlyToggle) {
         const updateFields = {
+          name: fullShopPayload.name,
+          address: fullShopPayload.address,
+          coordinates: fullShopPayload.coordinates,
+          shop_type: fullShopPayload.shop_type,
+          minimum_order_amount: fullShopPayload.minimum_order_amount,
+          delivery_charge: fullShopPayload.delivery_charge,
+          gst_percentage: fullShopPayload.gst_percentage,
+          operating_hours: fullShopPayload.operating_hours,
           payment_settings: fullShopPayload.payment_settings,
+          alarm_settings: fullShopPayload.alarm_settings,
           is_open: fullShopPayload.is_open,
           is_online: fullShopPayload.is_online,
           self_delivery: fullShopPayload.self_delivery,

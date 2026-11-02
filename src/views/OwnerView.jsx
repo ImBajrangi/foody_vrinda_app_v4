@@ -495,6 +495,7 @@ export default function OwnerView() {
     address: '',
     minimumOrderAmount: '100',
     deliveryCharge: '30',
+    deliveryAvailable: true,
     gstPercentage: '5',
     lat: '27.5706',
     lng: '77.6593',
@@ -510,19 +511,33 @@ export default function OwnerView() {
     imageUrl: ''
   });
 
-  // Sync shop form dynamically with active kitchen
+  const lastInitializedShopIdRef = useRef(null);
+
+  // Sync shop form dynamically with active kitchen (only on initial mount or when switching kitchen branch)
   useEffect(() => {
     const target = editingShop || currentShop;
-    if (target) {
-      if (!editingShop) {
-        setEditingShop(target);
+    if (target?.id) {
+      if (lastInitializedShopIdRef.current === target.id) {
+        return;
       }
+      lastInitializedShopIdRef.current = target.id;
+      setEditingShop(target);
+
+      const rawDeliveryAvail = target.deliveryAvailable !== undefined
+        ? target.deliveryAvailable
+        : (target.delivery_available !== undefined
+          ? target.delivery_available
+          : (target.paymentSettings?.delivery_available !== undefined
+            ? target.paymentSettings.delivery_available
+            : (target.shopType !== 'shop')));
+
       setShopForm({
         name: target.name || '',
         shopType: target.shopType || target.shop_type || target.paymentSettings?.shopType || 'hotel',
         address: target.address || '',
         minimumOrderAmount: String(target.minimumOrderAmount ?? target.minimum_order_amount ?? 100),
         deliveryCharge: String(target.deliveryCharge ?? target.delivery_charge ?? 0),
+        deliveryAvailable: Boolean(rawDeliveryAvail),
         gstPercentage: String(target.gstPercentage ?? target.gst_percentage ?? 5),
         lat: target.coordinates?.lat ? String(target.coordinates.lat) : '27.5706',
         lng: target.coordinates?.lng ? String(target.coordinates.lng) : '77.6593',
@@ -546,7 +561,7 @@ export default function OwnerView() {
         lng: parseFloat(target.coordinates?.lng) || 77.6593
       });
     }
-  }, [currentUserShopId, currentShop]);
+  }, [currentUserShopId, currentShop?.id]);
 
   // Real-time Supabase users listener
   useEffect(() => {
@@ -1222,12 +1237,28 @@ export default function OwnerView() {
     }
 
     try {
+      const deliveryAvailable = Boolean(shopForm.deliveryAvailable);
+      const isSelfDeliveryEffective = Boolean(
+        isSelfDeliveryActive ||
+        targetShop?.self_delivery ||
+        targetShop?.selfDelivery ||
+        targetShop?.can_deliver ||
+        targetShop?.canDeliver ||
+        targetShop?.paymentSettings?.self_delivery
+      );
+
       const shopUpdateData = {
         name: shopForm.name || targetShop?.name || 'Foody Kitchen',
         shopType: shopForm.shopType || targetShop?.shopType || 'hotel',
         address: shopForm.address || targetShop?.address || '',
         minimumOrderAmount: parseFloat(shopForm.minimumOrderAmount) || 0,
         deliveryCharge: parseFloat(shopForm.deliveryCharge) || 0,
+        deliveryAvailable,
+        delivery_available: deliveryAvailable,
+        self_delivery: isSelfDeliveryEffective,
+        selfDelivery: isSelfDeliveryEffective,
+        can_deliver: isSelfDeliveryEffective,
+        canDeliver: isSelfDeliveryEffective,
         gstPercentage: parseFloat(shopForm.gstPercentage) || 0,
         estimatedWaitTime: shopForm.estimatedWaitTime || '15-20',
         showWaitTime: Boolean(shopForm.showWaitTime),
@@ -1246,11 +1277,19 @@ export default function OwnerView() {
           timePeriods: shopForm.timePeriods || ['morning', 'forenoon', 'afternoon', 'evening', 'night'],
           daysOpen: shopForm.daysOpen || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         },
+        paymentSettings: {
+          ...(targetShop?.paymentSettings || targetShop?.payment_settings || {}),
+          delivery_available: deliveryAvailable,
+          deliveryAvailable,
+          self_delivery: isSelfDeliveryEffective,
+          can_deliver: isSelfDeliveryEffective
+        },
         imageUrl: shopForm.imageUrl || targetShop?.imageUrl || ''
       };
 
       // Supabase & Local Cache Sync
       await updateCloudShop(shopId, shopUpdateData);
+      setEditingShop(prev => prev ? { ...prev, ...shopUpdateData } : { id: shopId, ...shopUpdateData });
 
       setToast({ message: "Kitchen operational settings saved!", type: "success" });
       if (refreshShops) {
@@ -1265,10 +1304,10 @@ export default function OwnerView() {
   const [isShopOnline, setIsShopOnline] = useState(() => {
     return currentShop?.isOnline !== false && currentShop?.isOpen !== false;
   });
-  const isTogglingRef = useRef(false);
+  const isTogglingOnlineRef = useRef(false);
 
   useEffect(() => {
-    if (isTogglingRef.current) return;
+    if (isTogglingOnlineRef.current) return;
     const authoritativeOnline = currentShop?.isOnline !== false && currentShop?.isOpen !== false;
     setIsShopOnline(authoritativeOnline);
   }, [currentShop?.id, currentShop?.isOnline, currentShop?.isOpen]);
@@ -1276,11 +1315,13 @@ export default function OwnerView() {
   const handleToggleShopOnline = async () => {
     const targetShop = editingShop || currentShop;
     if (!targetShop?.id) return;
-    if (isTogglingRef.current) return;
-    isTogglingRef.current = true;
+    if (isTogglingOnlineRef.current) return;
+    isTogglingOnlineRef.current = true;
 
     const nextOnline = !isShopOnline;
     setIsShopOnline(nextOnline);
+    setEditingShop(prev => prev ? { ...prev, isOnline: nextOnline, isOpen: nextOnline, is_online: nextOnline, is_open: nextOnline } : prev);
+
     setToast({
       message: nextOnline ? `"${targetShop.name}" is now ONLINE (Accepting Orders)` : `"${targetShop.name}" is now OFFLINE (Orders Paused)`,
       type: nextOnline ? "success" : "warning"
@@ -1293,35 +1334,61 @@ export default function OwnerView() {
         isOpen: nextOnline,
         is_open: nextOnline
       });
-      if (refreshShops) {
-        await refreshShops();
-      }
     } catch (e) {
       console.error("Toggle shop online error:", e);
       setIsShopOnline(!nextOnline);
+      setEditingShop(prev => prev ? { ...prev, isOnline: !nextOnline, isOpen: !nextOnline, is_online: !nextOnline, is_open: !nextOnline } : prev);
       setToast({ message: "Failed to update online status", type: "error" });
     } finally {
       setTimeout(() => {
-        isTogglingRef.current = false;
-      }, 500);
+        isTogglingOnlineRef.current = false;
+      }, 1000);
     }
   };
 
-  const isSelfDeliveryActive = Boolean(
-    activeShop?.self_delivery ||
-    activeShop?.can_deliver ||
-    userData?.can_deliver ||
-    userData?.canDeliver ||
-    userData?.self_delivery ||
-    hasDevPermission(userData, 'can_deliver')
-  );
+  const [isSelfDeliveryActive, setIsSelfDeliveryActive] = useState(() => {
+    return Boolean(
+      activeShop?.self_delivery ||
+      activeShop?.can_deliver ||
+      userData?.can_deliver ||
+      userData?.canDeliver ||
+      userData?.self_delivery ||
+      hasDevPermission(userData, 'can_deliver')
+    );
+  });
+  const isTogglingSelfDeliveryRef = useRef(false);
+
+  useEffect(() => {
+    if (isTogglingSelfDeliveryRef.current) return;
+    const authoritativeSelfDelivery = Boolean(
+      activeShop?.self_delivery ||
+      activeShop?.can_deliver ||
+      userData?.can_deliver ||
+      userData?.canDeliver ||
+      userData?.self_delivery ||
+      hasDevPermission(userData, 'can_deliver')
+    );
+    setIsSelfDeliveryActive(authoritativeSelfDelivery);
+  }, [
+    activeShop?.id,
+    activeShop?.self_delivery,
+    activeShop?.can_deliver,
+    userData?.can_deliver,
+    userData?.canDeliver,
+    userData?.self_delivery
+  ]);
 
   const handleToggleSelfDelivery = async () => {
     if (!activeShopId) return;
     const targetUserId = user?.id || userData?.id;
     if (!targetUserId) return;
+    if (isTogglingSelfDeliveryRef.current) return;
+    isTogglingSelfDeliveryRef.current = true;
 
     const nextVal = !isSelfDeliveryActive;
+    setIsSelfDeliveryActive(nextVal);
+    setEditingShop(prev => prev ? { ...prev, self_delivery: nextVal, can_deliver: nextVal } : prev);
+
     const rawPerms = userData?.devPermissions ?? userData?.dev_permissions;
     let updatedDevPermissions = Array.isArray(rawPerms)
       ? [...rawPerms]
@@ -1342,30 +1409,31 @@ export default function OwnerView() {
       dev_permissions: updatedDevPermissions
     };
 
-    if (updateUserCapabilities) {
-      await updateUserCapabilities(targetUserId, updates);
-    } else {
-      await updateCloudUser(targetUserId, updates);
-    }
-
-    try {
-      await updateCloudShop(activeShopId, {
-        self_delivery: nextVal,
-        can_deliver: nextVal
-      });
-      if (refreshShops) {
-        refreshShops();
-      }
-    } catch (shopSyncErr) {
-      console.warn("Could not sync shop self-delivery status:", shopSyncErr);
-    }
-
     setToast({
       message: nextVal
         ? "Self-Delivery Mode ENABLED: You can now deliver orders via the 'Rider' tab in the header."
         : "Self-Delivery Mode DISABLED.",
       type: nextVal ? "success" : "info"
     });
+
+    try {
+      if (updateUserCapabilities) {
+        await updateUserCapabilities(targetUserId, updates);
+      } else {
+        await updateCloudUser(targetUserId, updates);
+      }
+
+      await updateCloudShop(activeShopId, {
+        self_delivery: nextVal,
+        can_deliver: nextVal
+      });
+    } catch (shopSyncErr) {
+      console.warn("Could not sync shop self-delivery status:", shopSyncErr);
+    } finally {
+      setTimeout(() => {
+        isTogglingSelfDeliveryRef.current = false;
+      }, 1000);
+    }
   };
 
   // Menu items Add/Edit
@@ -2444,7 +2512,7 @@ export default function OwnerView() {
                           2. Pricing, Delivery & Taxation
                         </h4>
                         <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
-                          Min Order: ₹{shopForm.minimumOrderAmount || 0} • Delivery: ₹{shopForm.deliveryCharge || 0} • GST: {shopForm.gstPercentage || 0}%
+                          Min Order: ₹{shopForm.minimumOrderAmount || 0} • Delivery: ₹{shopForm.deliveryCharge || 0} ({shopForm.deliveryAvailable ? 'Enabled' : 'Disabled'}) • GST: {shopForm.gstPercentage || 0}%
                         </p>
                       </div>
                     </div>
@@ -2461,7 +2529,37 @@ export default function OwnerView() {
 
                   {!collapsedShopSections.pricing && (
                     <div className="p-4 sm:p-5 pt-0 space-y-4 border-t border-stone-200 dark:border-white/5 animate-fadeIn">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                      {/* Doorstep Delivery Service Master Switch */}
+                      <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-stone-50 dark:bg-[#282526] border border-stone-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">
+                              Doorstep Delivery Fulfillment
+                            </span>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${shopForm.deliveryAvailable ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' : 'bg-stone-200 text-stone-600 dark:bg-white/10 dark:text-neutral-400'}`}>
+                              {shopForm.deliveryAvailable ? 'Delivery Active' : 'Pickup Only'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans']">
+                            {shopForm.deliveryAvailable
+                              ? 'Customers can order doorstep delivery with live tracking & Sarathi fleet dispatch.'
+                              : 'Doorstep delivery is suspended. Customers can only select Counter Self-Pickup.'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShopForm(prev => ({ ...prev, deliveryAvailable: !prev.deliveryAvailable }))}
+                          className={`h-9 px-4 rounded-xl text-xs font-bold border transition-colors duration-150 cursor-pointer flex items-center justify-center gap-2 shrink-0 ${shopForm.deliveryAvailable
+                            ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
+                            : 'bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 border-stone-300 dark:border-white/10 hover:bg-stone-300/80'
+                            }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${shopForm.deliveryAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-neutral-500'}`} />
+                          <span>{shopForm.deliveryAvailable ? 'Delivery: ENABLED' : 'Delivery: DISABLED'}</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                         <div>
                           <label className="block text-xs font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
                             Minimum Order Value (₹) *

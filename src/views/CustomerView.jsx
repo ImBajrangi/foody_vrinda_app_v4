@@ -416,9 +416,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [fulfillmentType, setFulfillmentType] = useState(() => {
     try {
       const saved = localStorage.getItem('foody_fulfillment_type');
-      return (saved === 'pickup' || saved === 'delivery') ? saved : 'pickup';
+      return (saved === 'pickup' || saved === 'delivery') ? saved : 'delivery';
     } catch {
-      return 'pickup';
+      return 'delivery';
     }
   });
 
@@ -1168,32 +1168,60 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const isShopSelfDelivery = Boolean(
     cartGroupedByShop.length > 0
       ? cartGroupedByShop.every(g => {
-          if (g.shop?.self_delivery || g.shop?.can_deliver) return true;
+          if (g.shop?.self_delivery || g.shop?.can_deliver || g.shop?.selfDelivery || g.shop?.canDeliver) return true;
           const cachedStaff = (getCachedUsers() || []).filter(u =>
             (u.shop_id === g.shopId || (Array.isArray(u.shop_ids) && u.shop_ids.includes(g.shopId))) &&
-            (u.can_deliver || u.canDeliver || u.self_delivery) &&
-            (u.is_online !== false && u.isOnline !== false)
+            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery)
           );
           return cachedStaff.length > 0;
         })
       : (
           effectiveOrderShop?.self_delivery ||
           effectiveOrderShop?.can_deliver ||
+          effectiveOrderShop?.selfDelivery ||
+          effectiveOrderShop?.canDeliver ||
           (getCachedUsers() || []).some(u =>
             (u.shop_id === effectiveOrderShop?.id || (Array.isArray(u.shop_ids) && u.shop_ids.includes(effectiveOrderShop?.id))) &&
-            (u.can_deliver || u.canDeliver || u.self_delivery) &&
-            (u.is_online !== false && u.isOnline !== false)
+            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery)
           )
         )
   );
 
   const isDeliveryAvailable = Boolean(
-    onlineRidersCount > 0 || isShopSelfDelivery
+    cartGroupedByShop.length > 0
+      ? cartGroupedByShop.every(g => {
+          const shop = g.shop;
+          if (!shop) return onlineRidersCount > 0 || isShopSelfDelivery;
+          if (shop.delivery_available === false || shop.deliveryAvailable === false) return false;
+          return Boolean(
+            onlineRidersCount > 0 ||
+            isShopSelfDelivery ||
+            shop.self_delivery ||
+            shop.can_deliver ||
+            shop.selfDelivery ||
+            shop.canDeliver
+          );
+        })
+      : (
+          effectiveOrderShop
+            ? (
+                (effectiveOrderShop.delivery_available !== false && effectiveOrderShop.deliveryAvailable !== false) &&
+                Boolean(
+                  onlineRidersCount > 0 ||
+                  isShopSelfDelivery ||
+                  effectiveOrderShop.self_delivery ||
+                  effectiveOrderShop.can_deliver ||
+                  effectiveOrderShop.selfDelivery ||
+                  effectiveOrderShop.canDeliver
+                )
+              )
+            : (onlineRidersCount > 0 || isShopSelfDelivery)
+        )
   );
 
   const handleSetFulfillmentType = useCallback((type) => {
     if (type === 'delivery' && !isDeliveryAvailable) {
-      showToast("Delivery Unavailable", 'info', "Delivery riders are offline and this kitchen does not offer self-delivery. Counter pickup is selected.");
+      showToast("Delivery Unavailable", 'info', "This kitchen currently does not offer doorstep delivery. Counter pickup is selected.");
       setFulfillmentType('pickup');
       try {
         localStorage.setItem('foody_fulfillment_type', 'pickup');
@@ -2925,7 +2953,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <span className="text-[10px] text-stone-500 dark:text-zinc-500 font-medium">
                     {onlineRidersCount > 0
                       ? `${onlineRidersCount} Sarathi Riders Active`
-                      : (isDeliveryAvailable ? 'Kitchen Self-Delivery Available' : 'Riders Offline • Counter Open')}
+                      : (isShopSelfDelivery ? 'Kitchen Self-Delivery Active' : (isDeliveryAvailable ? 'Doorstep Delivery Available' : 'Counter Open · Delivery Offline'))}
                   </span>
                 </div>
 

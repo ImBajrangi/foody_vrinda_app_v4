@@ -207,12 +207,12 @@ export function AuthProvider({ children }) {
       const n = next[i];
       if (!p || !n) return false;
       if (p.id !== n.id || p.name !== n.name) return false;
-      if (p.isOpen !== n.isOpen || p.is_open !== n.is_open) return false;
-      if (p.isOnline !== n.isOnline || p.is_online !== n.is_online) return false;
+      if (Boolean(p.isOpen ?? p.is_open) !== Boolean(n.isOpen ?? n.is_open)) return false;
+      if (Boolean(p.isOnline ?? p.is_online) !== Boolean(n.isOnline ?? n.is_online)) return false;
       if (Boolean(p.self_delivery ?? p.selfDelivery ?? p.can_deliver) !== Boolean(n.self_delivery ?? n.selfDelivery ?? n.can_deliver)) return false;
-      if (p.deliveryCharge !== n.deliveryCharge || p.delivery_charge !== n.delivery_charge) return false;
-      if (p.onlinePaymentsEnabled !== n.onlinePaymentsEnabled || p.codEnabled !== n.codEnabled) return false;
-      if (JSON.stringify(p.paymentSettings) !== JSON.stringify(n.paymentSettings)) return false;
+      if (Number(p.deliveryCharge ?? p.delivery_charge ?? 0) !== Number(n.deliveryCharge ?? n.delivery_charge ?? 0)) return false;
+      if (Boolean(p.onlinePaymentsEnabled ?? p.paymentSettings?.onlinePaymentsEnabled) !== Boolean(n.onlinePaymentsEnabled ?? n.paymentSettings?.onlinePaymentsEnabled)) return false;
+      if (Boolean(p.codEnabled ?? p.paymentSettings?.codEnabled) !== Boolean(n.codEnabled ?? n.paymentSettings?.codEnabled)) return false;
     }
     return true;
   };

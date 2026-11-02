@@ -522,7 +522,7 @@ export default function App() {
     } else if (type === 'kitchen') {
       setCurrentTab('kitchen');
     } else if (type === 'driver' || type === 'early_dispatch' || type === 'pickup_ready') {
-      setCurrentTab('transport');
+      setCurrentTab('delivery');
     } else {
       setCurrentTab('customer');
     }

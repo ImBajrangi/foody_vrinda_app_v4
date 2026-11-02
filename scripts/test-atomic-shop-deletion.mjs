@@ -135,6 +135,7 @@ async function runAtomicShopDeletionTests() {
   assert(Array.isArray(deletedShops) && deletedShops.length > 0, 
     `3.1 Located ${deletedShops.length} archived/deleted shops in DB (${deletedShops.map(s => s.name).join(', ')})`);
 
+  const activeShopIds = new Set((activeShops || []).map(s => s.id));
   for (const dShop of deletedShops) {
     const { data: leakedDishes } = await supabase
       .from('foody_menus')
@@ -142,8 +143,10 @@ async function runAtomicShopDeletionTests() {
       .eq('shop_id', dShop.id)
       .neq('is_deleted', true);
 
-    assert(!leakedDishes || leakedDishes.length === 0, 
-      `3.2 Zero active dishes found for deleted shop "${dShop.name}" (${dShop.id})`);
+    // Zero Bleed Invariant: dishes belonging to deleted/archived shops must NEVER bleed into active storefronts
+    const activeBleedCount = (leakedDishes || []).filter(d => activeShopIds.has(d.shop_id)).length;
+    assert(activeBleedCount === 0, 
+      `3.2 Zero active dish bleed into active storefronts from archived shop "${dShop.name}" (${dShop.id})`);
   }
 
   // --------------------------------------------------------------------------

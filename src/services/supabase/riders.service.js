@@ -551,12 +551,21 @@ export function isRiderOnline(user) {
 
   if (!hasExplicitOnDuty) return false;
 
-  // Stale heartbeat guard: If rider explicitly toggled on_duty, allow active shift window (4 hours).
-  // This prevents Android/iOS background sleep from dropping active riders after 20 minutes.
+  // Shift window guard: If rider has an active 1-hour rolling shift timestamp, enforce it
+  const shiftExpires = user.shift_expires_at || user.shiftExpiresAt;
+  if (shiftExpires) {
+    const expiresMs = new Date(shiftExpires).getTime();
+    if (!isNaN(expiresMs) && Date.now() > expiresMs) {
+      return false;
+    }
+  }
+
+  // Stale heartbeat guard: 1-hour rolling shift window (60 minutes).
+  // Riders remain active as long as they interact or refresh within the hour.
   const lastSeen = user.last_seen_at || user.lastSeenAt || user.last_location_at || user.lastLocationAt || user.updatedAt || user.updated_at;
   if (lastSeen) {
     const ageMs = Date.now() - new Date(lastSeen).getTime();
-    const maxStaleMs = isDutyString ? (4 * 60 * 60 * 1000) : (30 * 60 * 1000);
+    const maxStaleMs = 60 * 60 * 1000; // 1-hour rolling window
     if (!isNaN(ageMs) && ageMs > maxStaleMs) {
       return false;
     }

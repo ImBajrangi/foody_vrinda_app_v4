@@ -164,19 +164,34 @@ export function normalizeShop(s) {
     ?? rawPaymentSettings.global_payment_config?.codEnabled
     ?? undefined;
 
+  const shopType = s.shop_type || s.shopType || s.payment_settings?.shopType || rawPaymentSettings.shopType || 'hotel';
+  const alarmSettings = s.alarm_settings ?? s.alarmSettings ?? { kitchenNew: true, kitchenReady: false, deliveryReady: true };
+  const openingTime = s.opening_time || s.openingTime || '08:00';
+  const closingTime = s.closing_time || s.closingTime || '22:30';
+  const isOnline = s.is_online ?? s.isOnline ?? (s.isOpen ?? s.is_open ?? true);
+
+  const selfDelivery = Boolean(
+    s.self_delivery ?? s.selfDelivery ?? s.can_deliver ?? s.canDeliver ??
+    rawPaymentSettings.self_delivery ?? rawPaymentSettings.selfDelivery ??
+    rawPaymentSettings.can_deliver ?? rawPaymentSettings.canDeliver ?? false
+  );
+
+  const deliveryAvailable = Boolean(
+    s.delivery_available !== false &&
+    s.deliveryAvailable !== false &&
+    rawPaymentSettings.delivery_available !== false &&
+    rawPaymentSettings.deliveryAvailable !== false
+  );
+
   const paymentSettings = {
     ...rawPaymentSettings,
     onlinePaymentsEnabled,
     codEnabled,
+    self_delivery: selfDelivery,
+    delivery_available: deliveryAvailable,
     ...(globalOnlinePaymentsEnabled !== undefined ? { globalOnlinePaymentsEnabled } : {}),
     ...(globalCodEnabled !== undefined ? { globalCodEnabled } : {})
   };
-
-  const alarmSettings = s.alarm_settings ?? s.alarmSettings ?? { kitchenNew: true, kitchenReady: false, deliveryReady: true };
-  const shopType = s.shop_type || s.shopType || s.payment_settings?.shopType || 'hotel'; // 'hotel' (Restaurant/Kitchen) | 'shop' (Retail Prasad Stall)
-  const openingTime = s.opening_time || s.openingTime || '08:00';
-  const closingTime = s.closing_time || s.closingTime || '22:30';
-  const isOnline = s.is_online ?? s.isOnline ?? (s.isOpen ?? s.is_open ?? true);
 
   return {
     ...s,
@@ -210,10 +225,12 @@ export function normalizeShop(s) {
     online_payments_enabled: onlinePaymentsEnabled,
     codEnabled,
     cod_enabled: codEnabled,
-    self_delivery: Boolean(s.self_delivery ?? s.selfDelivery ?? s.can_deliver ?? s.canDeliver ?? false),
-    selfDelivery: Boolean(s.self_delivery ?? s.selfDelivery ?? s.can_deliver ?? s.canDeliver ?? false),
-    can_deliver: Boolean(s.can_deliver ?? s.canDeliver ?? s.self_delivery ?? s.selfDelivery ?? false),
-    canDeliver: Boolean(s.can_deliver ?? s.canDeliver ?? s.self_delivery ?? s.selfDelivery ?? false)
+    delivery_available: deliveryAvailable,
+    deliveryAvailable,
+    self_delivery: selfDelivery,
+    selfDelivery,
+    can_deliver: selfDelivery,
+    canDeliver: selfDelivery
   };
 }
 

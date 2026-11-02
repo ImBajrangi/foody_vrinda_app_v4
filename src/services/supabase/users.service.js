@@ -628,7 +628,9 @@ export async function recordLoggedInUser(userProfile) {
   const fcmToken = userProfile.fcm_token || userProfile.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || existingUser?.fcm_token || null;
 
   const isDeliveryRole = finalRole === 'delivery' || finalRole === 'rider';
-  const defaultOnline = isDeliveryRole ? false : true;
+  const storedRiderDuty = typeof localStorage !== 'undefined' ? (localStorage.getItem('foody_rider_on_duty') === 'true') : false;
+  const currentOnlineDuty = existingUser ? Boolean(existingUser.is_online || existingUser.isOnline || (existingUser.duty_status === 'on_duty')) : false;
+  const defaultOnline = isDeliveryRole ? (currentOnlineDuty || storedRiderDuty) : true;
 
   const loggedUsersPayload = {
     id: cleanId,
@@ -678,7 +680,9 @@ export async function recordLoggedInUser(userProfile) {
   let next;
   if (idx >= 0) {
     next = [...current];
-    const prevDuty = isDeliveryRole ? false : (next[idx].isOnline ?? true);
+    const prevDuty = isDeliveryRole
+      ? Boolean(next[idx].duty_status === 'on_duty' || next[idx].isOnline === true || next[idx].is_online === true || storedRiderDuty)
+      : (next[idx].isOnline ?? true);
     next[idx] = {
       ...next[idx],
       ...loggedUsersPayload,
