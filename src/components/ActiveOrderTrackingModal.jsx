@@ -33,7 +33,7 @@ import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
 import { useNotifications } from '../context/NotificationContext';
 import { useBackHandler } from '../hooks/useBackHandler';
 
-export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [] }) {
+export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, onToast, allShops = [], allActiveOrders = [], onSwitchOrder }) {
   const { systemNotificationPermission, requestSystemNotificationPermission } = useNotifications();
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -716,12 +716,38 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               e.stopPropagation();
               handleAnimatedClose(true);
             }}
-            className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer pointer-events-auto backdrop-blur-md transition-all"
+            className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer pointer-events-auto backdrop-blur-md transition-all shrink-0"
             title="Close / Shrink to floating capsule"
             aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
           </button>
+
+          {/* Multi-Order Switcher Pill Strip */}
+          {allActiveOrders && allActiveOrders.length > 1 && (
+            <div className="flex items-center gap-1 pointer-events-auto bg-[#181617]/90 p-1 rounded-full border border-white/20 backdrop-blur-md overflow-x-auto no-scrollbar max-w-[170px] sm:max-w-xs shadow-lg">
+              {allActiveOrders.map(ord => {
+                const isCurrent = ord.id === currentOrder?.id;
+                return (
+                  <button
+                    key={ord.id}
+                    type="button"
+                    onClick={() => {
+                      if (onSwitchOrder) onSwitchOrder(ord);
+                      setLiveOrder(ord);
+                    }}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase font-mono transition-all shrink-0 cursor-pointer ${
+                      isCurrent 
+                        ? 'bg-[#FD9139] text-[#121214] shadow-xs' 
+                        : 'text-stone-300 hover:text-white'
+                    }`}
+                  >
+                    {getOrderDisplayToken(ord)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Right Action Controls: Re-center + Minimize */}
           <div className="flex items-center gap-2 pointer-events-auto">

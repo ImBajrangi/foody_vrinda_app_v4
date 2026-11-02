@@ -59,7 +59,9 @@ import {
   UserCheck,
   LogIn,
   Globe,
-  ArrowRight
+  ArrowRight,
+  Copy,
+  KeyRound
 } from 'lucide-react';
 import ActiveOrderCapsule from '../components/ActiveOrderCapsule';
 import SocialLinksBar from '../components/ui/SocialLinksBar';
@@ -70,6 +72,7 @@ import {
   getCloudMenus,
   subscribeCloudMenus,
   subscribeSingleCloudOrder,
+  subscribeCloudOrders,
   resolveDishCutout,
   invalidateCache,
   isShopCurrentlyOpen,
@@ -82,7 +85,9 @@ import {
   setCachedItem,
   getPurgedOrderIds,
   purgeOrder,
-  getCachedShops
+  getCachedShops,
+  getOrderDisplayToken,
+  getOrderOTP
 } from '../supabase';
 import useGeolocation from '../hooks/useGeolocation';
 import { useNotifications } from '../context/NotificationContext';
@@ -570,7 +575,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const { onlineAvailable, codAvailable, globalOnline, globalCod } = resolveShopPaymentOptions(currentCartShop);
 
 
-  // Tracking orders & History
+  // Multi-Active Customer Orders Tracking State
+  const [activeCustomerOrders, setActiveCustomerOrders] = useState([]);
+  const [selectedActiveOrderId, setSelectedActiveOrderId] = useState(() => {
+    return trackingOrderId || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_active_tracking_id') : null);
+  });
+  const [copiedOtpId, setCopiedOtpId] = useState(null);
   const [trackingOrder, setTrackingOrder] = useState(null);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
@@ -921,147 +931,211 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     };
   }, [selectedShopId]);
 
-  // Auto-switch to tracking view if trackingOrderId is set (Immediate Fetch + Supabase Realtime)
+  // 🌟 MULTI-ACTIVE CUSTOMER ORDERS TRACKING COORDINATOR (Realtime Omni-Channel Sync)
+  // Ensures ALL active customer orders are tracked concurrently with OTPs, tokens & live statuses
   useEffect(() => {
-    const purgedIds = getPurgedOrderIds();
-    if (!trackingOrderId || purgedIds.includes(trackingOrderId)) {
-      setTrackingOrder(null);
-      setIsTrackingModalOpen(false);
-      if (trackingOrderId && setTrackingOrderId) setTrackingOrderId(null);
-      try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
-      return;
+    if (trackingOrderId) {
+      setSelectedActiveOrderId(trackingOrderId);
     }
-
-    let isMounted = true;
-
-    // 1. Immediate cloud fetch to display detailed view info without delay
-    async function loadTargetOrder() {
-      try {
-        let orderRecord = null;
-        const TRACKING_ORDER_FIELDS = 'id, shop_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, fulfillment_type, pickup_otp, delivery_otp, rider_name, rider_phone, rider_avatar, created_at, updated_at';
-
-        // Try exact match first
-        const { data, error } = await supabase
-          .from('foody_orders')
-          .select(TRACKING_ORDER_FIELDS)
-          .eq('id', trackingOrderId)
-          .maybeSingle();
-
-        if (data) {
-          orderRecord = data;
-        } else {
-          // If not found and it's a short 5-character ID or substring, try ilike search
-          const cleanSearch = trackingOrderId.replace(/[^a-zA-Z0-9-]/g, '');
-          if (cleanSearch) {
-            const { data: searchResults } = await supabase
-              .from('foody_orders')
-              .select(TRACKING_ORDER_FIELDS)
-              .ilike('id', `%${cleanSearch}%`)
-              .limit(1);
-
-            if (searchResults && searchResults.length > 0) {
-              orderRecord = searchResults[0];
-            }
-          }
-
-          // Fallback to local storage order history if offline or local mock
-          if (!orderRecord) {
-            try {
-              const rawHist = localStorage.getItem('foody_orders_history');
-              if (rawHist) {
-                const hist = JSON.parse(rawHist);
-                const found = hist.find(o =>
-                  o.id === trackingOrderId ||
-                  (o.id && o.id.toLowerCase().includes(trackingOrderId.toLowerCase()))
-                );
-                if (found) orderRecord = found;
-              }
-            } catch (_) { }
-          }
-        }
-
-        if (orderRecord && isMounted) {
-          const cachedShops = getCachedShops() || [];
-          const matchedTargetShop = allShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId)) || cachedShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId));
-          const parsedItems = Array.isArray(orderRecord.items)
-            ? orderRecord.items
-            : (typeof orderRecord.items === 'string'
-                ? (() => { try { return JSON.parse(orderRecord.items); } catch { return []; } })()
-                : []);
-
-          const mapped = {
-            ...orderRecord,
-            id: orderRecord.id,
-            shopId: orderRecord.shop_id || orderRecord.shopId,
-            shopName: matchedTargetShop?.name || orderRecord.shop_name || orderRecord.shopName || 'Foody Vrinda Sacred Kitchen',
-            shopAddress: matchedTargetShop?.address || orderRecord.shop_address || orderRecord.shopAddress || 'Chatikara Road, Raman Reti, Vrindavan',
-            shopPhone: matchedTargetShop?.phone || orderRecord.shop_phone || null,
-            customerName: orderRecord.customer_name || orderRecord.customerName,
-            customerPhone: orderRecord.customer_phone || orderRecord.customerPhone,
-            customerAddress: orderRecord.customer_address || orderRecord.customerAddress,
-            deliveryAddress: orderRecord.delivery_address || orderRecord.deliveryAddress,
-            totalAmount: orderRecord.total_amount || orderRecord.totalAmount,
-            subtotal: orderRecord.subtotal,
-            deliveryCharge: orderRecord.delivery_charge || orderRecord.deliveryCharge,
-            gstAmount: orderRecord.gst_amount || orderRecord.gstAmount,
-            cookingNotes: orderRecord.cooking_notes || orderRecord.cookingNotes,
-            paymentMethod: orderRecord.payment_method || orderRecord.paymentMethod,
-            deliveryCoordinates: orderRecord.delivery_coordinates || orderRecord.deliveryCoordinates,
-            createdAt: orderRecord.created_at || orderRecord.createdAt,
-            items: parsedItems
-          };
-          if (['delivered', 'completed', 'cancelled'].includes(mapped.status)) {
-            setTrackingOrder(null);
-            if (setTrackingOrderId) setTrackingOrderId(null);
-            try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
-          } else {
-            setTrackingOrder(mapped);
-          }
-          // Keep modal minimized on initial load/reload so the storefront stays clean and accessible
-        }
-      } catch (err) {
-        console.warn('loadTargetOrder exception:', err);
-      }
-    }
-
-    loadTargetOrder();
-
-    // 2. Realtime WebSocket subscription for live status changes
-    const unsubSupabase = subscribeSingleCloudOrder(trackingOrderId, (updatedOrder) => {
-      if (!updatedOrder || !isMounted) return;
-      setTrackingOrder(prev => ({ ...(prev || {}), ...updatedOrder }));
-      if (updatedOrder.status === 'delivered' || updatedOrder.status === 'completed') {
-        setIsTrackingModalOpen(false);
-        setTrackingOrder(null);
-        if (setTrackingOrderId) setTrackingOrderId(null);
-        try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
-        setTimeout(() => {
-          setReviewOrderTarget(updatedOrder);
-          setIsReviewModalOpen(true);
-        }, 600);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      if (unsubSupabase) unsubSupabase();
-    };
   }, [trackingOrderId]);
 
-  // Handle cross-tab/global demo order purge
-  useEffect(() => {
-    const handleOrdersPurged = () => {
+  const fetchActiveCustomerOrders = useCallback(async () => {
+    try {
       const purgedIds = getPurgedOrderIds();
-      if (trackingOrderId && purgedIds.includes(trackingOrderId)) {
+      const sessionOrderIds = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
+        } catch {
+          return [];
+        }
+      })();
+
+      const candidateIds = new Set(sessionOrderIds);
+      if (trackingOrderId) candidateIds.add(trackingOrderId);
+      if (selectedActiveOrderId) candidateIds.add(selectedActiveOrderId);
+
+      const cleanPhone = (user?.phone || '').replace(/\D/g, '');
+      const isAuthenticated = Boolean(user?.id && !String(user?.id).startsWith('guest-'));
+
+      const ACTIVE_STATUSES = [
+        'new', 'confirmed', 'accepted', 'preparing', 'cooking',
+        'ready_for_pickup', 'ready', 'rider_assigned', 'rider_arriving',
+        'picked_up', 'out_for_delivery'
+      ];
+      const TRACKING_ORDER_FIELDS = 'id, order_short_code, order_token, shop_id, user_id, customer_name, customer_phone, customer_address, delivery_address, delivery_coordinates, items, subtotal, delivery_charge, gst_amount, total_amount, status, payment_method, cash_status, cooking_notes, fulfillment_type, pickup_otp, delivery_otp, rider_name, rider_phone, rider_avatar, created_at, updated_at';
+
+      const candidateList = Array.from(candidateIds).filter(id => id && !purgedIds.includes(id));
+      const fetchedMap = new Map();
+
+      // 1. Fetch by candidate session/tracking order IDs
+      if (candidateList.length > 0) {
+        const { data: idOrders } = await supabase
+          .from('foody_orders')
+          .select(TRACKING_ORDER_FIELDS)
+          .in('id', candidateList.slice(0, 20));
+        if (Array.isArray(idOrders)) {
+          idOrders.forEach(o => {
+            if (ACTIVE_STATUSES.includes(o.status)) fetchedMap.set(o.id, o);
+          });
+        }
+      }
+
+      // 2. Fetch authenticated or phone-linked active orders
+      if (isAuthenticated) {
+        let q = supabase
+          .from('foody_orders')
+          .select(TRACKING_ORDER_FIELDS)
+          .in('status', ACTIVE_STATUSES)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (cleanPhone && cleanPhone.length >= 10) {
+          q = q.or(`user_id.eq.${user.id},customer_phone.eq.${cleanPhone}`);
+        } else {
+          q = q.eq('user_id', user.id);
+        }
+        const { data: authOrders } = await q;
+        if (Array.isArray(authOrders)) {
+          authOrders.forEach(o => {
+            if (!purgedIds.includes(o.id)) fetchedMap.set(o.id, o);
+          });
+        }
+      } else if (cleanPhone && cleanPhone.length >= 10) {
+        const { data: phoneOrders } = await supabase
+          .from('foody_orders')
+          .select(TRACKING_ORDER_FIELDS)
+          .eq('customer_phone', cleanPhone)
+          .in('status', ACTIVE_STATUSES)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (Array.isArray(phoneOrders)) {
+          phoneOrders.forEach(o => {
+            if (!purgedIds.includes(o.id)) fetchedMap.set(o.id, o);
+          });
+        }
+      }
+
+      // 3. Fallback to local storage order history if offline
+      try {
+        const rawHist = localStorage.getItem('foody_orders_history');
+        if (rawHist) {
+          const hist = JSON.parse(rawHist);
+          if (Array.isArray(hist)) {
+            hist.forEach(o => {
+              if (o?.id && !purgedIds.includes(o.id) && ACTIVE_STATUSES.includes(o.status) && !fetchedMap.has(o.id)) {
+                if (candidateIds.has(o.id) || o.userId === user?.id || (cleanPhone && String(o.customerPhone || '').includes(cleanPhone))) {
+                  fetchedMap.set(o.id, o);
+                }
+              }
+            });
+          }
+        }
+      } catch (_) {}
+
+      // Map each order with shop details & parsed items
+      const cachedShops = getCachedShops() || [];
+      const mappedActiveList = Array.from(fetchedMap.values()).map(orderRecord => {
+        const matchedTargetShop = allShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId)) || cachedShops.find(s => s.id === (orderRecord.shop_id || orderRecord.shopId));
+        const parsedItems = Array.isArray(orderRecord.items)
+          ? orderRecord.items
+          : (typeof orderRecord.items === 'string'
+              ? (() => { try { return JSON.parse(orderRecord.items); } catch { return []; } })()
+              : []);
+
+        return {
+          ...orderRecord,
+          id: orderRecord.id,
+          order_token: orderRecord.order_token || orderRecord.order_short_code,
+          order_short_code: orderRecord.order_short_code || orderRecord.order_token,
+          shopId: orderRecord.shop_id || orderRecord.shopId,
+          shopName: matchedTargetShop?.name || orderRecord.shop_name || orderRecord.shopName || 'Foody Vrinda Sacred Kitchen',
+          shopAddress: matchedTargetShop?.address || orderRecord.shop_address || orderRecord.shopAddress || 'Chatikara Road, Raman Reti, Vrindavan',
+          shopPhone: matchedTargetShop?.phone || orderRecord.shop_phone || null,
+          customerName: orderRecord.customer_name || orderRecord.customerName,
+          customerPhone: orderRecord.customer_phone || orderRecord.customerPhone,
+          customerAddress: orderRecord.customer_address || orderRecord.customerAddress,
+          deliveryAddress: orderRecord.delivery_address || orderRecord.deliveryAddress,
+          totalAmount: orderRecord.total_amount || orderRecord.totalAmount,
+          subtotal: orderRecord.subtotal,
+          deliveryCharge: orderRecord.delivery_charge || orderRecord.deliveryCharge,
+          gstAmount: orderRecord.gst_amount || orderRecord.gstAmount,
+          cookingNotes: orderRecord.cooking_notes || orderRecord.cookingNotes,
+          paymentMethod: orderRecord.payment_method || orderRecord.paymentMethod,
+          deliveryCoordinates: orderRecord.delivery_coordinates || orderRecord.deliveryCoordinates,
+          createdAt: orderRecord.created_at || orderRecord.createdAt,
+          items: parsedItems
+        };
+      }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      setActiveCustomerOrders(mappedActiveList);
+
+      // Keep trackingOrder aligned to selectedActiveOrderId or latest active order
+      if (mappedActiveList.length > 0) {
+        const found = mappedActiveList.find(o => o.id === selectedActiveOrderId) || mappedActiveList[0];
+        setSelectedActiveOrderId(found.id);
+        setTrackingOrder(found);
+      } else {
         setTrackingOrder(null);
+        setSelectedActiveOrderId(null);
         setIsTrackingModalOpen(false);
         if (setTrackingOrderId) setTrackingOrderId(null);
         try { localStorage.removeItem('foody_active_tracking_id'); } catch (_) {}
       }
+    } catch (err) {
+      console.warn('fetchActiveCustomerOrders error:', err);
+    }
+  }, [allShops, trackingOrderId, selectedActiveOrderId, user?.id, user?.phone, setTrackingOrderId]);
+
+  // Initial load and periodic refresh of active orders
+  useEffect(() => {
+    fetchActiveCustomerOrders();
+    const interval = setInterval(fetchActiveCustomerOrders, 12000);
+    return () => clearInterval(interval);
+  }, [fetchActiveCustomerOrders]);
+
+  // Realtime Supabase PostgreSQL live updates for active customer orders
+  useEffect(() => {
+    const unsub = subscribeCloudOrders('all', (updatedOrder) => {
+      if (!updatedOrder?.id) return;
+      const purgedIds = getPurgedOrderIds();
+      if (purgedIds.includes(updatedOrder.id)) return;
+
+      setActiveCustomerOrders(prev => {
+        const exists = prev.some(o => o.id === updatedOrder.id);
+        if (['delivered', 'completed', 'cancelled'].includes(updatedOrder.status)) {
+          if (exists) {
+            setTimeout(() => {
+              setReviewOrderTarget(updatedOrder);
+              setIsReviewModalOpen(true);
+            }, 600);
+          }
+          return prev.filter(o => o.id !== updatedOrder.id);
+        }
+        if (exists) {
+          return prev.map(o => o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o);
+        }
+        // If it's a new active order for this user/session, refresh
+        fetchActiveCustomerOrders();
+        return prev;
+      });
+
+      setTrackingOrder(prev => {
+        if (prev?.id === updatedOrder.id) {
+          if (['delivered', 'completed', 'cancelled'].includes(updatedOrder.status)) {
+            return null;
+          }
+          return { ...prev, ...updatedOrder };
+        }
+        return prev;
+      });
+    });
+
+    const handleLocalOrdersChanged = () => fetchActiveCustomerOrders();
+    window.addEventListener('foody_orders_changed', handleLocalOrdersChanged);
+    return () => {
+      if (unsub) unsub();
+      window.removeEventListener('foody_orders_changed', handleLocalOrdersChanged);
     };
-    window.addEventListener('foody_orders_changed', handleOrdersPurged);
-    return () => window.removeEventListener('foody_orders_changed', handleOrdersPurged);
-  }, [trackingOrderId, setTrackingOrderId]);
+  }, [fetchActiveCustomerOrders]);
 
   // Dynamic Shops handling
 
@@ -1505,7 +1579,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         setShowCartDrawer(false);
         if (createdOrders[0]?.id) {
           setTrackingOrderId(createdOrders[0].id);
+          setSelectedActiveOrderId(createdOrders[0].id);
         }
+        fetchActiveCustomerOrders();
         // Prompt for OS Notifications for real-time tracking
         requestSystemNotificationPermission();
       } catch (err) {
@@ -1560,7 +1636,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             setShowCartDrawer(false);
             if (createdOrders[0]?.id) {
               setTrackingOrderId(createdOrders[0].id);
+              setSelectedActiveOrderId(createdOrders[0].id);
             }
+            fetchActiveCustomerOrders();
             // Prompt for OS Notifications for real-time tracking
             requestSystemNotificationPermission();
           } catch (cloudErr) {
@@ -1616,7 +1694,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           setShowCartDrawer(false);
           if (createdOrders[0]?.id) {
             setTrackingOrderId(createdOrders[0].id);
+            setSelectedActiveOrderId(createdOrders[0].id);
           }
+          fetchActiveCustomerOrders();
         } catch (simErr) {
           console.error("Simulation order creation error:", simErr);
           showToast("Order failed", 'error', 'Please try again');
@@ -2124,111 +2204,231 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         </div>
       </div>
 
-      {/* 4. ACTIVE ORDER TRACKING BANNER (IF ANY) */}
-      {trackingOrder && (() => {
-        const bannerShop = allShops.find(s => s.id === (trackingOrder.shopId || trackingOrder.shop_id)) || getCachedShops()?.find(s => s.id === (trackingOrder.shopId || trackingOrder.shop_id));
-        const bannerShopName = trackingOrder.shopName || trackingOrder.shop_name || bannerShop?.name || 'Foody Vrinda Sacred Kitchen';
-        const bannerItems = Array.isArray(trackingOrder.items)
-          ? trackingOrder.items
-          : (typeof trackingOrder.items === 'string'
-              ? (() => { try { return JSON.parse(trackingOrder.items); } catch { return []; } })()
+      {/* 4. MULTI-ACTIVE ORDERS TRACKING DECK (All Active Orders, Tokens & Live OTPs) */}
+      {activeCustomerOrders.length > 0 && (() => {
+        const currentActiveOrder = activeCustomerOrders.find(o => o.id === selectedActiveOrderId) || activeCustomerOrders[0];
+        if (!currentActiveOrder) return null;
+
+        const bannerShop = allShops.find(s => s.id === (currentActiveOrder.shopId || currentActiveOrder.shop_id)) || getCachedShops()?.find(s => s.id === (currentActiveOrder.shopId || currentActiveOrder.shop_id));
+        const bannerShopName = currentActiveOrder.shopName || currentActiveOrder.shop_name || bannerShop?.name || 'Foody Vrinda Sacred Kitchen';
+        const bannerItems = Array.isArray(currentActiveOrder.items)
+          ? currentActiveOrder.items
+          : (typeof currentActiveOrder.items === 'string'
+              ? (() => { try { return JSON.parse(currentActiveOrder.items); } catch { return []; } })()
               : []);
         const bannerItemsCount = bannerItems.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
-        const bannerTotal = Number(trackingOrder.totalAmount || trackingOrder.total_amount || 0);
+        const bannerTotal = Number(currentActiveOrder.totalAmount || currentActiveOrder.total_amount || 0);
+        const isPickup = currentActiveOrder.fulfillment_type === 'pickup' || currentActiveOrder.fulfillmentType === 'pickup';
+        const currentOtp = getOrderOTP(currentActiveOrder, isPickup ? 'pickup' : 'delivery');
+        const displayToken = getOrderDisplayToken(currentActiveOrder);
 
         return (
-          <div
-            onClick={() => setIsTrackingModalOpen(true)}
-            className="mb-6 bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#E0FF33]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#E0FF33]/40 transition-all active:scale-[0.99]"
-          >
-            {/* Subtle Accent Glow Line */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#E0FF33]/60 to-transparent pointer-events-none" />
-
-            {/* Top Row: Status Capsule + Order ID on Left | Dismiss X on Right */}
-            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 text-amber-900 dark:text-[#E0FF33] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#E0FF33] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#E0FF33]"></span>
+          <div className="mb-6 space-y-2.5">
+            {/* Multi-Order Tabs Switcher Strip (Rendered when 2+ active orders exist) */}
+            {activeCustomerOrders.length > 1 && (
+              <div className="flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] font-['Outfit']">
+                    Active Orders ({activeCustomerOrders.length})
                   </span>
-                  <span>Active Order</span>
-                </span>
+                  <span className="text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
+                    Tap to view details & OTP
+                  </span>
+                </div>
+              </div>
+            )}
 
-                <span className="text-[11px] sm:text-xs font-black text-amber-700 dark:text-[#FD9139] font-mono tracking-tight shrink-0 bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded-md">
-                  #{trackingOrder.id ? (trackingOrder.id.length > 14 ? trackingOrder.id.slice(-8).toUpperCase() : trackingOrder.id.toUpperCase()) : 'ORDER'}
-                </span>
+            {activeCustomerOrders.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {activeCustomerOrders.map(ord => {
+                  const isSelected = ord.id === currentActiveOrder.id;
+                  const token = getOrderDisplayToken(ord);
+                  const ordIsPickup = ord.fulfillment_type === 'pickup' || ord.fulfillmentType === 'pickup';
+                  const otp = getOrderOTP(ord, ordIsPickup ? 'pickup' : 'delivery');
+                  return (
+                    <button
+                      key={ord.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedActiveOrderId(ord.id);
+                        setTrackingOrder(ord);
+                      }}
+                      className={`px-3 py-2 rounded-2xl flex items-center gap-2 border text-xs transition-all cursor-pointer shrink-0 ${
+                        isSelected
+                          ? 'bg-[#FD9139] text-[#121214] font-black border-[#FD9139] shadow-md shadow-[#FD9139]/25 scale-[1.02]'
+                          : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-zinc-300 border-stone-200 dark:border-white/10 hover:border-amber-500/40'
+                      }`}
+                    >
+                      <span className="font-mono font-black">{token}</span>
+                      <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-[#121214]' : 'bg-emerald-500'} animate-pulse`} />
+                      <span className="capitalize font-bold text-[11px] truncate max-w-[90px]">
+                        {ord.status?.replace(/_/g, ' ')}
+                      </span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-black ${
+                        isSelected ? 'bg-black/15 text-[#121214]' : 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
+                      }`}>
+                        OTP {otp}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-                <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
+            {/* Main Interactive Active Order Card */}
+            <div
+              onClick={() => {
+                setTrackingOrder(currentActiveOrder);
+                setIsTrackingModalOpen(true);
+              }}
+              className="bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#FD9139]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 transition-all active:scale-[0.99] space-y-3"
+            >
+              {/* Subtle Accent Glow Line */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#FD9139]/60 to-transparent pointer-events-none" />
 
-                <span className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 capitalize truncate">
-                  {trackingOrder.status?.replace(/_/g, ' ')}
-                </span>
+              {/* Top Row: Status Capsule + Order Token on Left | Dismiss X on Right */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 text-amber-900 dark:text-[#FD9139] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#FD9139] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#FD9139]"></span>
+                    </span>
+                    <span>Active Order</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard?.writeText(displayToken);
+                      setCopiedOtpId(`token_${currentActiveOrder.id}`);
+                      showToast(`Copied Token ${displayToken}`, 'success');
+                      setTimeout(() => setCopiedOtpId(null), 2000);
+                    }}
+                    className="text-[11px] sm:text-xs font-black text-amber-700 dark:text-[#FD9139] font-mono tracking-tight shrink-0 bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-amber-500/20 transition-colors"
+                    title="Tap to copy token"
+                  >
+                    <span>{displayToken}</span>
+                    {copiedOtpId === `token_${currentActiveOrder.id}` ? (
+                      <Check size={11} className="text-emerald-500" />
+                    ) : (
+                      <Copy size={11} className="opacity-60" />
+                    )}
+                  </button>
+
+                  <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
+
+                  <span className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 capitalize truncate">
+                    {currentActiveOrder.status?.replace(/_/g, ' ')}
+                  </span>
+                </div>
+
+                {/* Dismiss X Button (Removes order from active tracker) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCustomerOrders(prev => prev.filter(o => o.id !== currentActiveOrder.id));
+                    if (selectedActiveOrderId === currentActiveOrder.id) {
+                      const next = activeCustomerOrders.find(o => o.id !== currentActiveOrder.id);
+                      setSelectedActiveOrderId(next?.id || null);
+                      setTrackingOrder(next || null);
+                    }
+                  }}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
+                  title="Dismiss banner"
+                  aria-label="Dismiss tracking banner"
+                >
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                </button>
               </div>
 
-              {/* Dismiss X Button (Stops propagation so it doesn't open the modal) */}
-              <button
+              {/* 🔐 PROMINENT OTP BADGE (Always visible so customer can verify instantly) */}
+              <div
                 onClick={(e) => {
                   e.stopPropagation();
-                  setTrackingOrderId(null);
-                  setIsTrackingModalOpen(false);
+                  navigator.clipboard?.writeText(currentOtp);
+                  setCopiedOtpId(currentActiveOrder.id);
+                  showToast(`Copied OTP ${currentOtp}`, 'success');
+                  setTimeout(() => setCopiedOtpId(null), 2000);
                 }}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
-                title="Dismiss banner"
-                aria-label="Dismiss tracking banner"
+                className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 hover:border-amber-500/50 transition-all cursor-pointer shadow-xs"
+                title="Tap to copy OTP"
               >
-                <X className="w-3.5 h-3.5 stroke-[2.5]" />
-              </button>
-            </div>
-
-            {/* Main Content & Action Row */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#E0FF33]/15 border border-amber-500/25 dark:border-[#E0FF33]/30 flex items-center justify-center text-amber-700 dark:text-[#E0FF33] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                  <Navigation className="w-4.5 h-4.5 fill-current" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 dark:bg-[#FD9139]/25 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
+                    <KeyRound size={16} className="stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-900 dark:text-[#FD9139] font-['Outfit']">
+                        {isPickup ? 'Counter Pickup Token' : 'Delivery Verification OTP'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 dark:text-zinc-300 truncate font-medium">
+                      {isPickup ? 'Show to kitchen staff at counter' : 'Share with Sarathi upon delivery'}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-[#FD9139] truncate">
-                    <Store size={13} className="shrink-0" />
-                    <span className="truncate">{bannerShopName}</span>
-                  </div>
-                  <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
-                    {trackingOrder.status === 'out_for_delivery'
-                      ? 'Rider is on the way!'
-                      : trackingOrder.status === 'completed' || trackingOrder.status === 'delivered'
-                        ? 'Order delivered successfully!'
-                        : 'Cooking in the kitchen...'}
-                  </h4>
-                  <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
-                    <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
-                    <span>•</span>
-                    <span className="font-bold text-stone-800 dark:text-white font-mono">₹{bannerTotal}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-amber-800 dark:text-[#FD9139] px-3 py-1 rounded-xl bg-white dark:bg-[#151314] border border-amber-500/40 dark:border-[#FD9139]/40 shadow-xs">
+                    {currentOtp}
+                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center text-stone-600 dark:text-white border border-stone-200 dark:border-white/10 shrink-0">
+                    {copiedOtpId === currentActiveOrder.id ? (
+                      <Check size={14} className="text-emerald-500 stroke-[3]" />
+                    ) : (
+                      <Copy size={14} className="stroke-[2.2]" />
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                {(trackingOrder.status === 'delivered' || trackingOrder.status === 'completed') && (
+              {/* Main Content & Action Row */}
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                    <Navigation className="w-4.5 h-4.5 fill-current" />
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-[#FD9139] truncate">
+                      <Store size={13} className="shrink-0" />
+                      <span className="truncate">{bannerShopName}</span>
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
+                      {currentActiveOrder.status === 'out_for_delivery'
+                        ? 'Rider is on the way!'
+                        : currentActiveOrder.status === 'ready_for_pickup'
+                          ? (isPickup ? 'Prasad ready at counter!' : 'Packed & waiting for rider')
+                          : currentActiveOrder.status === 'completed' || currentActiveOrder.status === 'delivered'
+                            ? 'Order delivered successfully!'
+                            : 'Cooking in sacred kitchen...'}
+                    </h4>
+                    <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
+                      <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
+                      <span>•</span>
+                      <span className="font-bold text-stone-800 dark:text-white font-mono">₹{bannerTotal}</span>
+                      <span>•</span>
+                      <span className="capitalize">{currentActiveOrder.paymentMethod || 'cash'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => {
-                      setReviewOrderTarget(trackingOrder);
-                      setIsReviewModalOpen(true);
+                      setTrackingOrder(currentActiveOrder);
+                      setIsTrackingModalOpen(true);
                     }}
-                    className="px-3 sm:px-4 py-2 rounded-full bg-amber-500 dark:bg-[#E0FF33] text-white dark:text-black font-black text-xs hover:opacity-90 shadow-sm flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer font-['Outfit']"
+                    className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
                   >
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span className="hidden sm:inline">Rate</span>
+                    <Navigation size={12} className="fill-current" />
+                    <span>Track Map</span>
                   </button>
-                )}
-                <button
-                  onClick={() => setIsTrackingModalOpen(true)}
-                  className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
-                >
-                  <Navigation size={12} className="fill-current" />
-                  <span>Track</span>
-                </button>
+                </div>
               </div>
             </div>
           </div>
@@ -3497,11 +3697,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           />
         )}
 
-        {/* Live Order CARTO Map Tracking HUD Modal (Exact Screenshot Layout) */}
+        {/* Live Order CARTO Map Tracking HUD Modal (Multi-Order Capable) */}
         {isTrackingModalOpen && trackingOrder && (
           <ActiveOrderTrackingModal
             order={trackingOrder}
             allShops={allShops}
+            allActiveOrders={activeCustomerOrders}
+            onSwitchOrder={(ord) => {
+              setTrackingOrder(ord);
+              setSelectedActiveOrderId(ord.id);
+            }}
             onToast={showToast}
             onClose={() => setIsTrackingModalOpen(false)}
             onRateOrder={(order) => {

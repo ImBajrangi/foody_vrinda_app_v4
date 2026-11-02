@@ -18,7 +18,7 @@ import {
   Banknote,
   PackageCheck
 } from 'lucide-react';
-import { supabase, subscribeCloudOrders, getPurgedOrderIds, getCachedShops, getOrderDisplayToken } from '../supabase';
+import { supabase, subscribeCloudOrders, getPurgedOrderIds, getCachedShops, getOrderDisplayToken, getOrderOTP } from '../supabase';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBottomSheetDrag } from '../hooks/useBottomSheetDrag';
@@ -505,6 +505,34 @@ export default function OrderHistoryDrawer({
                         )}
                       </div>
                     </div>
+
+                    {/* 2.5 ACTIVE ORDER OTP / TOKEN BADGE (Prominently displayed for immediate handover) */}
+                    {['new', 'confirmed', 'accepted', 'preparing', 'cooking', 'ready_for_pickup', 'ready', 'rider_assigned', 'rider_arriving', 'picked_up', 'out_for_delivery'].includes(order.status) && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 shadow-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] font-['Outfit']">
+                            {isPickup ? 'Counter Token' : 'Delivery OTP'}
+                          </span>
+                          <span className="text-[11px] text-stone-500 dark:text-zinc-400">
+                            {isPickup ? 'Show at counter' : 'Share with Sarathi'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-amber-700 dark:text-[#FD9139] tracking-widest bg-white dark:bg-[#151314] px-2.5 py-0.5 rounded-lg border border-amber-500/30 dark:border-[#FD9139]/30 shadow-xs">
+                            {getOrderOTP(order, isPickup ? 'pickup' : 'delivery')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyOrderId(e, getOrderOTP(order, isPickup ? 'pickup' : 'delivery'))}
+                            className="p-1 rounded-md bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 dark:text-white transition-all cursor-pointer active:scale-95"
+                            title="Copy OTP"
+                            aria-label="Copy verification OTP"
+                          >
+                            <Copy size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Delivery Target Address line if delivery */}
                     {!isPickup && (order.delivery_address || order.customer_address) && (
