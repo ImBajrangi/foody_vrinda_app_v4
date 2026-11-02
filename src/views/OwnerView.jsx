@@ -940,12 +940,14 @@ export default function OwnerView() {
       }
     };
     window.addEventListener('foody_orders_changed', handleOrdersChanged);
+    window.addEventListener('foody_realtime_reconnected', handleOrdersChanged);
 
     return () => {
       isCurrent = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
       window.removeEventListener('foody_order_created', handleLocalOrderCreated);
       window.removeEventListener('foody_orders_changed', handleOrdersChanged);
+      window.removeEventListener('foody_realtime_reconnected', handleOrdersChanged);
     };
   }, [activeShopId]);
 
@@ -1402,11 +1404,7 @@ export default function OwnerView() {
 
     const updates = {
       can_deliver: nextVal,
-      self_delivery: nextVal,
-      delivery_status: nextVal ? 'approved' : (userData?.delivery_status || 'approved'),
-      delivery_type: 'shop',
-      devPermissions: updatedDevPermissions,
-      dev_permissions: updatedDevPermissions
+      self_delivery: nextVal
     };
 
     setToast({

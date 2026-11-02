@@ -1091,6 +1091,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       updateRiderStatus(users);
     });
 
+    const handleUsersChanged = (e) => {
+      if (e?.detail?.users) {
+        updateRiderStatus(e.detail.users);
+      } else {
+        updateRiderStatus(getCachedUsers());
+      }
+    };
+    window.addEventListener('foody_users_changed', handleUsersChanged);
+    window.addEventListener('storage', handleUsersChanged);
+
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       updateRiderStatus(getCachedUsers());
@@ -1099,6 +1109,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
     return () => {
       if (unsubscribe) unsubscribe();
       clearInterval(interval);
+      window.removeEventListener('foody_users_changed', handleUsersChanged);
+      window.removeEventListener('storage', handleUsersChanged);
     };
   }, []);
 
@@ -1171,7 +1183,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           if (g.shop?.self_delivery || g.shop?.can_deliver || g.shop?.selfDelivery || g.shop?.canDeliver) return true;
           const cachedStaff = (getCachedUsers() || []).filter(u =>
             (u.shop_id === g.shopId || (Array.isArray(u.shop_ids) && u.shop_ids.includes(g.shopId))) &&
-            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery)
+            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery || u.delivery_status === 'approved' || u.deliveryStatus === 'approved')
           );
           return cachedStaff.length > 0;
         })
@@ -1182,7 +1194,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           effectiveOrderShop?.canDeliver ||
           (getCachedUsers() || []).some(u =>
             (u.shop_id === effectiveOrderShop?.id || (Array.isArray(u.shop_ids) && u.shop_ids.includes(effectiveOrderShop?.id))) &&
-            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery)
+            (u.can_deliver || u.canDeliver || u.self_delivery || u.selfDelivery || u.delivery_status === 'approved' || u.deliveryStatus === 'approved')
           )
         )
   );

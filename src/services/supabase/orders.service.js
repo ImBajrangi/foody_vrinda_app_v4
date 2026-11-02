@@ -138,20 +138,35 @@ export function calculateAuthoritativeOrderTotals(shopId, items = [], fulfillmen
  * Database transactions MUST succeed first; push notifications happen as best-effort.
  * A push failure never interrupts order state transition or UI flow.
  */
+let _pushFunctionDisabledUntil = 0;
+
 function dispatchOrderPushNotificationAsync(type, record, extra = {}) {
+  // If push function is circuit-broken due to preflight/500 failure, skip
+  if (Date.now() < _pushFunctionDisabledUntil) return;
+
+  // On desktop/localhost browsers without native push, skip edge function invocation to avoid preflight 500 spam
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isNative = typeof window.Capacitor !== 'undefined' && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform();
+    if (isLocal && !isNative) {
+      return;
+    }
+  }
+
   Promise.resolve().then(async () => {
     try {
-      await supabase.functions.invoke('order-push-notification', {
+      const { error } = await supabase.functions.invoke('order-push-notification', {
         body: {
           type,
           table: 'foody_orders',
           record: { id: record?.id, ...record, ...extra }
         }
       });
-    } catch (invokeErr) {
-      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        console.debug('Background push notification notice (non-fatal):', invokeErr?.message || invokeErr);
+      if (error) {
+        _pushFunctionDisabledUntil = Date.now() + 15 * 60 * 1000;
       }
+    } catch (_) {
+      _pushFunctionDisabledUntil = Date.now() + 15 * 60 * 1000;
     }
   }).catch(() => { });
 }
@@ -617,6 +632,10 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
  * Calls get_available_deliveries RPC with optional rider GPS coords for radius filtering
  */
 export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
+  if (isTableWriteForbidden('get_available_deliveries')) {
+    return [];
+  }
+
   try {
     const rpcParams = {};
     if (coords && coords.lat != null && coords.lng != null) {
@@ -626,7 +645,9 @@ export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
     }
     const { data, error } = await supabase.rpc('get_available_deliveries', rpcParams);
     if (error) {
-      console.warn('fetchAvailableDeliveries RPC error:', error.message);
+      if (error.code === 'P0001' || error.message?.includes('PERMISSION_DENIED') || error.code === '42501' || error.status === 400 || error.status === 403) {
+        markTableWriteForbidden('get_available_deliveries');
+      }
       return [];
     }
     const rawList = Array.isArray(data) ? data : [];

@@ -264,9 +264,11 @@ export function AuthProvider({ children }) {
     };
 
     window.addEventListener('foody_shops_changed', handleShopsChanged);
+    window.addEventListener('foody_realtime_reconnected', handleShopsChanged);
     window.addEventListener('storage', handleShopsChanged);
     return () => {
       window.removeEventListener('foody_shops_changed', handleShopsChanged);
+      window.removeEventListener('foody_realtime_reconnected', handleShopsChanged);
       window.removeEventListener('storage', handleShopsChanged);
     };
   }, []);

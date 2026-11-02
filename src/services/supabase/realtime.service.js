@@ -35,21 +35,98 @@ export class RealtimeMultiplexer {
     this.isSubscribed = false;
     this.userDebounceTimer = null;
     this.pendingUserChanges = [];
+    this._wasDisconnected = false;
+    this._reconnectAttempts = 0;
+    this.reconnectTimer = null;
+    this._setupLifecycleHandlers();
+  }
+
+  _setupLifecycleHandlers() {
+    if (typeof window === 'undefined') return;
+
+    window.addEventListener('online', () => {
+      if (this.hasActiveListeners() && (!this.isSubscribed || !this.channel || this.channel.state !== 'joined')) {
+        this._reconnectAttempts = 0;
+        this.reconnect();
+      }
+    });
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && this.hasActiveListeners()) {
+          if (!this.isSubscribed || !this.channel || this.channel.state !== 'joined') {
+            this._reconnectAttempts = 0;
+            this.reconnect();
+          }
+        }
+      });
+    }
+  }
+
+  hasActiveListeners() {
+    return (
+      this.orderListeners.size > 0 ||
+      this.singleOrderListeners.size > 0 ||
+      this.notificationListeners.size > 0 ||
+      this.userListeners.size > 0 ||
+      this.menuListeners.size > 0 ||
+      this.shopListeners.size > 0 ||
+      this.offerListeners.size > 0
+    );
+  }
+
+  reconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.isSubscribed && this.channel && this.channel.state === 'joined') {
+      return;
+    }
+    if (this.channel) {
+      try {
+        supabase.removeChannel(this.channel);
+      } catch (_) {}
+      this.channel = null;
+    }
+    this.isSubscribed = false;
+    this._wasDisconnected = true;
+    this.ensureSubscribed();
+  }
+
+  scheduleReconnect(delayMs) {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    const delay = typeof delayMs === 'number' ? delayMs : Math.min(1500 * Math.pow(1.5, this._reconnectAttempts || 0), 15000);
+    this._reconnectAttempts = (this._reconnectAttempts || 0) + 1;
+    this.reconnectTimer = setTimeout(() => {
+      if (this.hasActiveListeners() && (!this.isSubscribed || !this.channel || this.channel.state !== 'joined')) {
+        this.reconnect();
+      }
+    }, delay);
   }
 
   ensureSubscribed() {
-    if (this.isSubscribed || this.channel) return;
+    if (this.isSubscribed && this.channel && this.channel.state === 'joined') return;
 
-    // Reuse existing channel if already registered on Supabase client
+    // Reuse or clean up existing channel if already registered on Supabase client
     try {
       const existingChannels = typeof supabase.getChannels === 'function' ? supabase.getChannels() : [];
       const existing = existingChannels.find(c => c && (c.topic === 'realtime:foody-global-multiplex' || c.topic === 'foody-global-multiplex'));
       if (existing) {
-        this.channel = existing;
         if (existing.state === 'joined') {
+          this.channel = existing;
           this.isSubscribed = true;
+          return;
+        } else if (existing.state === 'joining') {
+          this.channel = existing;
+          return;
+        } else {
+          try {
+            supabase.removeChannel(existing);
+          } catch (_) {}
+          this.channel = null;
+          this.isSubscribed = false;
         }
-        return;
       }
     } catch (e) { }
 
@@ -188,6 +265,13 @@ export class RealtimeMultiplexer {
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
+            if (this.reconnectTimer) {
+              clearTimeout(this.reconnectTimer);
+              this.reconnectTimer = null;
+            }
+            this._reconnectAttempts = 0;
+            this.isSubscribed = true;
+
             // On reconnect: invalidate stale cache and refetch authoritative data from DB
             if (this._wasDisconnected) {
               this._wasDisconnected = false;
@@ -201,16 +285,27 @@ export class RealtimeMultiplexer {
                 window.dispatchEvent(new CustomEvent('foody_realtime_reconnected'));
               }
             }
-            this.isSubscribed = true;
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             this._wasDisconnected = true;
             this.isSubscribed = false;
+            if (this.channel) {
+              try {
+                supabase.removeChannel(this.channel);
+              } catch (_) {}
+            }
             this.channel = null;
+
+            if (this.hasActiveListeners()) {
+              this.scheduleReconnect();
+            }
           }
         });
     } catch (err) {
       this.isSubscribed = false;
       this.channel = null;
+      if (this.hasActiveListeners()) {
+        this.scheduleReconnect();
+      }
     }
   }
 

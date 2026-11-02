@@ -14,6 +14,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     params: {
       eventsPerSecond: 10,
     },
+    heartbeatIntervalMs: 15000,
+    timeout: 10000,
   },
 });
 

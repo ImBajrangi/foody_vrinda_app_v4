@@ -960,55 +960,64 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
   const resolvedDeliveryStatus = updates.delivery_status || updates.deliveryStatus || userExists?.delivery_status || userExists?.deliveryStatus || (updates.role === 'delivery' || userExists?.role === 'delivery' ? 'approved' : 'approved');
   const resolvedDeliveryType = updates.delivery_type || updates.deliveryType || userExists?.delivery_type || userExists?.deliveryType || (updates.role === 'delivery' || userExists?.role === 'delivery' ? 'independent' : 'independent');
 
-  const fullLoggedPayload = {
-    id: targetId,
-    display_name: updates.displayName || updates.display_name || userExists?.displayName || resolvedEmail?.split('@')[0] || `User (${targetId.slice(0, 6)})`,
-    email: resolvedEmail,
-    phone: resolvedPhone,
-    avatar_url: updates.avatarUrl || updates.avatar_url || userExists?.avatarUrl || '',
-    address: updates.address !== undefined ? updates.address : (userExists?.address || ''),
-    role: updates.role || userExists?.role || 'customer',
-    shop_id: updates.shopId || updates.shop_id || userExists?.shopId || getDefaultActiveShopId(),
-    shop_ids: updates.shopIds || updates.shop_ids || userExists?.shopIds || [getDefaultActiveShopId()].filter(Boolean),
-    dev_permissions: normalizeDevPermissions(updates.devPermissions || updates.dev_permissions || userExists?.devPermissions),
-    delivery_status: resolvedDeliveryStatus,
-    delivery_type: resolvedDeliveryType,
-    trust_score: Number(resolvedTrust),
-    cibil_score: Number(resolvedTrust),
-    cash_in_hand: Number(resolvedCash),
-    unsettled_debt: Number(resolvedDebt),
-    is_active: Boolean(isOnlineVal),
-    can_deliver: Boolean(updates.can_deliver ?? updates.canDeliver ?? updates.self_delivery ?? userExists?.can_deliver ?? false),
-    can_manage_kitchen: Boolean(updates.can_manage_kitchen ?? updates.canManageKitchen ?? userExists?.can_manage_kitchen ?? false),
-    last_login_at: nowIso,
+  // Targeted Cloud DB Payloads (Only write provided fields to prevent trigger violations & missing column errors)
+  const dynamicPayload = {
     updated_at: nowIso
   };
 
-  const fullStandardPayload = {
-    id: targetId,
-    display_name: fullLoggedPayload.display_name,
-    email: resolvedEmail,
-    phone: resolvedPhone,
-    avatar_url: fullLoggedPayload.avatar_url,
-    address: fullLoggedPayload.address,
-    role: fullLoggedPayload.role,
-    shop_id: fullLoggedPayload.shop_id,
-    shop_ids: fullLoggedPayload.shop_ids,
-    dev_permissions: fullLoggedPayload.dev_permissions,
-    delivery_status: resolvedDeliveryStatus,
-    delivery_type: resolvedDeliveryType,
-    trust_score: Number(resolvedTrust),
-    cibil_score: Number(resolvedTrust),
-    cash_in_hand: Number(resolvedCash),
-    unsettled_debt: Number(resolvedDebt),
-    is_active: Boolean(isOnlineVal),
-    last_seen_at: nowIso,
-    updated_at: nowIso
-  };
+  if (updates.displayName !== undefined || updates.display_name !== undefined) {
+    dynamicPayload.display_name = updates.displayName || updates.display_name;
+  }
+  if (updates.email !== undefined) dynamicPayload.email = resolvedEmail;
+  if (updates.phone !== undefined) dynamicPayload.phone = resolvedPhone;
+  if (updates.avatarUrl !== undefined || updates.avatar_url !== undefined) {
+    dynamicPayload.avatar_url = updates.avatarUrl || updates.avatar_url;
+  }
+  if (updates.address !== undefined) dynamicPayload.address = updates.address;
+  if (updates.can_deliver !== undefined || updates.canDeliver !== undefined || updates.self_delivery !== undefined) {
+    dynamicPayload.can_deliver = Boolean(updates.can_deliver ?? updates.canDeliver ?? updates.self_delivery);
+  }
+  if (updates.can_manage_kitchen !== undefined || updates.canManageKitchen !== undefined) {
+    dynamicPayload.can_manage_kitchen = Boolean(updates.can_manage_kitchen ?? updates.canManageKitchen);
+  }
+  if (updates.is_active !== undefined || updates.isActive !== undefined || updates.isOnline !== undefined || updates.is_online !== undefined) {
+    dynamicPayload.is_active = Boolean(isOnlineVal);
+  }
+  if (updates.shop_id !== undefined || updates.shopId !== undefined) {
+    dynamicPayload.shop_id = updates.shopId || updates.shop_id;
+  }
+  if (updates.shop_ids !== undefined || updates.shopIds !== undefined) {
+    dynamicPayload.shop_ids = updates.shopIds || updates.shop_ids;
+  }
+  if (updates.role !== undefined) {
+    dynamicPayload.role = updates.role;
+  }
+  if (updates.delivery_status !== undefined || updates.deliveryStatus !== undefined) {
+    dynamicPayload.delivery_status = updates.delivery_status || updates.deliveryStatus;
+  }
+  if (updates.delivery_type !== undefined || updates.deliveryType !== undefined) {
+    dynamicPayload.delivery_type = updates.delivery_type || updates.deliveryType;
+  }
+  if (updates.dev_permissions !== undefined || updates.devPermissions !== undefined) {
+    dynamicPayload.dev_permissions = normalizeDevPermissions(updates.devPermissions || updates.dev_permissions);
+  }
+  if (updates.trust_score !== undefined || updates.trustScore !== undefined) {
+    dynamicPayload.trust_score = Number(resolvedTrust);
+  }
+  if (updates.cash_in_hand !== undefined || updates.cashInHand !== undefined) {
+    dynamicPayload.cash_in_hand = Number(resolvedCash);
+  }
+  if (updates.unsettled_debt !== undefined || updates.unsettledDebt !== undefined) {
+    dynamicPayload.unsettled_debt = Number(resolvedDebt);
+  }
+
+  const loggedDbPayload = { ...dynamicPayload };
+  const standardDbPayload = { ...dynamicPayload, last_seen_at: nowIso };
+  delete standardDbPayload.last_login_at;
 
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error: err1 } = await supabase.from('foody_logged_users').update(fullLoggedPayload).eq('id', userId);
+      const { error: err1 } = await supabase.from('foody_logged_users').update(loggedDbPayload).eq('id', userId);
       if (err1 && isForbiddenError(err1)) {
         markTableWriteForbidden('foody_logged_users');
       }
@@ -1021,7 +1030,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error: err2 } = await supabase.from('foody_users').update(fullStandardPayload).eq('id', userId);
+      const { error: err2 } = await supabase.from('foody_users').update(standardDbPayload).eq('id', userId);
       if (err2 && isForbiddenError(err2)) {
         markTableWriteForbidden('foody_users');
       }
@@ -1048,13 +1057,16 @@ export async function updateUserOnlineStatus(userId, isOnline = true, coordinate
   const currentUsers = getCachedUsers();
   const updatedList = currentUsers.map(u => {
     if (String(u.id).trim() === cleanId) {
-      const isDelivery = u.role === 'delivery' || u.role === 'rider';
+      const isApprovedPartner = u.delivery_status === 'approved' || u.deliveryStatus === 'approved';
+      const canDeliver = Boolean(u.can_deliver || u.canDeliver || isApprovedPartner);
       return {
         ...u,
         isOnline: activeBool,
         is_online: activeBool,
         isActive: u.isActive ?? u.is_active ?? true,
         is_active: u.is_active ?? u.isActive ?? true,
+        can_deliver: canDeliver,
+        canDeliver: canDeliver,
         duty_status: activeBool ? 'on_duty' : 'off_duty',
         coordinates: coordinates || u.coordinates,
         lat: coordinates?.lat ?? u.lat,

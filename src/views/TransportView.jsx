@@ -122,10 +122,15 @@ export default function TransportView() {
   const mapInstanceRef = useRef(null);
   const routeGroupRef = useRef(null);
   const riderCoordsRef = useRef(riderCoords);
+  const isRiderOnDutyRef = useRef(isRiderOnDuty);
 
   useEffect(() => {
     riderCoordsRef.current = riderCoords;
   }, [riderCoords]);
+
+  useEffect(() => {
+    isRiderOnDutyRef.current = isRiderOnDuty;
+  }, [isRiderOnDuty]);
 
   // 3. Audio Alarm hook
   const { isPlaying, activeAlert, playRoleAlarm, stopAlarm } = useAudioAlarm();
@@ -298,6 +303,7 @@ export default function TransportView() {
       // Explicitly clicked ON: Start 1-hour active rolling shift
       const shiftExpiresAt = now + SHIFT_WINDOW_MS;
       setIsRiderOnDuty(true);
+      isRiderOnDutyRef.current = true;
       try {
         localStorage.setItem('foody_rider_on_duty', 'true');
         localStorage.setItem('foody_rider_shift_expires_at', String(shiftExpiresAt));
@@ -305,15 +311,21 @@ export default function TransportView() {
 
       try {
         await updateUserOnlineStatus(riderId, true, riderCoordsRef.current);
+        if (activeUser?.id) {
+          await supabase.from('foody_users').update({ can_deliver: true }).eq('id', activeUser.id);
+        }
       } catch { /* ignore */ } finally {
         setTimeout(() => {
           isTogglingDutyRef.current = false;
         }, 500);
       }
+      fetchRiderOrders();
       showToast("You are ON DUTY · Available for deliveries (1 hr rolling shift)", "success");
     } else {
       // Explicitly clicked OFF: Immediately go offline
       setIsRiderOnDuty(false);
+      isRiderOnDutyRef.current = false;
+      setAvailableOrders([]);
       try {
         localStorage.setItem('foody_rider_on_duty', 'false');
         localStorage.removeItem('foody_rider_shift_expires_at');
@@ -364,7 +376,7 @@ export default function TransportView() {
           cashStatus: o.cash_status,
           cookingNotes: o.cooking_notes,
           createdAt: o.created_at,
-          isClaimed: true
+          isClaimed: Boolean(o.rider_id || o.riderId)
         }));
         setOrders(mapped);
 
@@ -382,8 +394,11 @@ export default function TransportView() {
         }
       }
 
-      // 2. Fetch available unclaimed deliveries (Privacy-Preserving PII Masked, Geospatial filtered)
-      const available = await fetchAvailableDeliveries(riderCoordsRef.current);
+      // 2. Fetch available unclaimed deliveries only when rider is actively ON DUTY
+      let available = [];
+      if (isRiderOnDutyRef.current) {
+        available = await fetchAvailableDeliveries(riderCoordsRef.current);
+      }
       const purged = getPurgedOrderIds();
       setAvailableOrders((available || []).filter(o => !purged.includes(o.id)));
     } catch (err) {
@@ -864,6 +879,13 @@ export default function TransportView() {
 
   const handleClaimOrder = async (orderId) => {
     stopAlarm();
+    const targetOrder = orders.find(o => o.id === orderId) || availableOrders.find(o => o.id === orderId);
+    const targetStatus = String(targetOrder?.status || '').toLowerCase().trim();
+    if (!['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(targetStatus)) {
+      showToast("Order is still being prepared by kitchen. You can claim it once marked Ready for Pickup!", "warning");
+      return;
+    }
+
     try {
       setIsClaimingOrderId(orderId);
       const res = await claimDeliveryOrder(orderId);
@@ -1027,13 +1049,19 @@ export default function TransportView() {
   const upcomingPickups = useMemo(() => {
     const assigned = orders.filter(o => ['new', 'pending', 'placed', 'preparing', 'ready_for_pickup', 'ready', 'out_of_kitchen'].includes(o.status));
     const assignedIds = new Set(assigned.map(o => o.id));
-    const unclaimed = availableOrders.filter(o => !assignedIds.has(o.id));
+    const activeOrCompletedIds = new Set(orders.map(o => o.id));
+    const unclaimed = availableOrders.filter(o => !assignedIds.has(o.id) && !activeOrCompletedIds.has(o.id));
     return [...unclaimed, ...assigned];
   }, [orders, availableOrders]);
 
   const completedToday = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return orders.filter(o => ['completed', 'delivered'].includes(o.status) && (o.created_at || '').startsWith(today));
+    return orders.filter(o => ['completed', 'delivered'].includes(o.status) && ((o.delivered_at || o.created_at || '').startsWith(today)));
+  }, [orders]);
+
+  const orderHistory = useMemo(() => {
+    // Order History strictly contains concluded deliveries, NEVER active trips or upcoming pickups
+    return orders.filter(o => ['completed', 'delivered', 'cancelled'].includes(o.status));
   }, [orders]);
 
   const totalCodCollectedToday = useMemo(() => {
@@ -1053,9 +1081,9 @@ export default function TransportView() {
         return completedToday;
       case 'all':
       default:
-        return orders;
+        return orderHistory;
     }
-  }, [riderTab, activeTrips, upcomingPickups, completedToday, orders]);
+  }, [riderTab, activeTrips, upcomingPickups, completedToday, orderHistory]);
 
   const filteredOrders = useMemo(() => {
     const term = searchQuery.toLowerCase().trim();
@@ -1243,7 +1271,7 @@ export default function TransportView() {
               <List size={14} />
               <span>Order History</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
-                {orders.length}
+                {orderHistory.length}
               </span>
             </button>
           </div>
@@ -1561,8 +1589,14 @@ export default function TransportView() {
               }`}>
               {filteredOrders.map(order => {
                 const shopName = allShops.find(s => s.id === order.shopId)?.name || order.shopName || 'Kitchen';
-                const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(order.status);
-                const isUnclaimed = !order.rider_id && !order.riderId && order.isClaimed !== true;
+                const status = String(order.status || '').toLowerCase().trim();
+                const isReady = ['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(status);
+                const isInTransit = ['out_for_delivery', 'picked_up', 'in_transit'].includes(status);
+                const isCooking = ['new', 'pending', 'placed', 'preparing'].includes(status);
+                const isDelivered = ['completed', 'delivered'].includes(status);
+                const hasRider = Boolean(order.rider_id || order.riderId || order.isClaimed === true);
+                const isClaimable = !hasRider && isReady;
+                const isAwaitingKitchen = !hasRider && isCooking;
 
                 return (
                   <div
@@ -1570,7 +1604,7 @@ export default function TransportView() {
                     className="bg-white dark:bg-[#282526] border border-stone-300 dark:border-white/5 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-500/40 dark:hover:border-white/10 transition-all shadow-xl relative overflow-hidden"
                   >
                     {/* Status Top Accent Bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${isUnclaimed ? 'bg-emerald-500' : isReady ? 'bg-amber-500' : 'bg-[#FD9139]'}`} />
+                    <div className={`absolute top-0 left-0 right-0 h-1 ${isClaimable ? 'bg-emerald-500' : isAwaitingKitchen ? 'bg-amber-500' : isReady ? 'bg-emerald-500' : isInTransit ? 'bg-[#FD9139]' : isDelivered ? 'bg-emerald-600' : 'bg-amber-400'}`} />
 
                     <div className="space-y-3.5">
                       {/* Header: Order ID & Status Pill */}
@@ -1585,18 +1619,30 @@ export default function TransportView() {
                           </p>
                         </div>
 
-                        {isUnclaimed ? (
+                        {isClaimable ? (
                           <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
                             <span className="w-1.5 h-1.5 rounded-full animate-ping bg-emerald-500" />
                             <span>Available to Claim</span>
                           </span>
+                        ) : isAwaitingKitchen ? (
+                          <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-amber-500" />
+                            <span>Kitchen Preparing</span>
+                          </span>
+                        ) : isReady ? (
+                          <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-500" />
+                            <span>Ready for Pickup</span>
+                          </span>
+                        ) : isInTransit ? (
+                          <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-[#FD9139]/15 text-stone-900 dark:text-[#FD9139] border-[#FD9139]/30">
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-[#FD9139]" />
+                            <span>In Transit</span>
+                          </span>
                         ) : (
-                          <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${isReady
-                            ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                            : 'bg-[#FD9139]/15 text-stone-900 dark:text-[#FD9139] border-[#FD9139]/30'
-                            }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isReady ? 'bg-amber-500' : 'bg-[#FD9139]'}`} />
-                            <span>{isReady ? 'Ready for Pickup' : 'In Transit'}</span>
+                          <span className="px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-wider border flex items-center gap-1.5 shadow-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Delivered</span>
                           </span>
                         )}
                       </div>
@@ -1701,7 +1747,7 @@ export default function TransportView() {
                     </div>
 
                     {/* Action Buttons: Unified Platform UI/UX */}
-                    {isUnclaimed ? (
+                    {isClaimable ? (
                       <div className="pt-2 font-['Plus_Jakarta_Sans']">
                         <button
                           data-tour="delivery-accept"
@@ -1715,8 +1761,34 @@ export default function TransportView() {
                           ) : (
                             <Truck className="w-4 h-4 stroke-[2.5]" />
                           )}
-                          <span>{isClaimingOrderId === order.id ? 'Claiming Order...' : '🛵 Claim Delivery'}</span>
+                          <span>{isClaimingOrderId === order.id ? 'Claiming Order...' : 'Claim Delivery'}</span>
                         </button>
+                      </div>
+                    ) : isAwaitingKitchen ? (
+                      <div className="pt-2 flex flex-col sm:flex-row gap-2 font-['Plus_Jakarta_Sans']">
+                        <div className="flex-1 py-3.5 px-3 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 select-none shadow-xs">
+                          <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 animate-spin" />
+                          <span>Kitchen Cooking · Claimable When Ready</span>
+                        </div>
+                        {(activeUser?.role === 'owner' || activeUser?.role === 'developer' || activeUser?.can_manage_kitchen) && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await updateCloudOrderStatus(order.id, 'ready_for_pickup');
+                                showToast("Marked Ready for Pickup!", "success");
+                                fetchRiderOrders();
+                              } catch (e) {
+                                showToast("Failed to update status", "error");
+                              }
+                            }}
+                            className="py-3 px-3.5 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+                            title="Kitchen Staff 1-Tap: Mark Ready for Pickup"
+                          >
+                            <PackageCheck size={14} />
+                            <span>Mark Ready</span>
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="pt-2 flex gap-2.5 font-['Plus_Jakarta_Sans']">
@@ -1739,7 +1811,7 @@ export default function TransportView() {
                             <span>Start Ride</span>
                             <ArrowRight className="w-4 h-4" />
                           </button>
-                        ) : (
+                        ) : isInTransit ? (
                           <button
                             data-tour="delivery-complete"
                             onClick={() => handleInitiateDelivery(order)}
@@ -1748,6 +1820,16 @@ export default function TransportView() {
                             <Check className="w-4 h-4 stroke-[3]" />
                             <span>Delivered</span>
                           </button>
+                        ) : isCooking ? (
+                          <div className="flex-1 py-3.5 px-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 select-none">
+                            <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            <span>Kitchen Prep</span>
+                          </div>
+                        ) : (
+                          <div className="flex-1 py-3.5 px-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 select-none">
+                            <Check className="w-4 h-4 text-emerald-500 stroke-[3]" />
+                            <span>Delivered</span>
+                          </div>
                         )}
                       </div>
                     )}

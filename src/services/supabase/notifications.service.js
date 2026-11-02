@@ -1,10 +1,14 @@
-import { supabase } from './client.js';
+import { supabase, isTableWriteForbidden, markTableWriteForbidden } from './client.js';
 
 // ========================================================================
 // NOTIFICATIONS CREATION & READ
 // ========================================================================
 
 export async function createCloudNotification({ userId, role, shopId, orderId, message }) {
+  if (isTableWriteForbidden('foody_notifications')) {
+    return null;
+  }
+
   try {
     const notifId = `notif-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const { data, error } = await supabase
@@ -22,21 +26,32 @@ export async function createCloudNotification({ userId, role, shopId, orderId, m
       .select()
       .single();
 
-    if (error) console.warn('createCloudNotification note:', error.message);
+    if (error) {
+      if (error.code === '42501' || String(error.message || '').includes('violates row-level security') || error.status === 403) {
+        markTableWriteForbidden('foody_notifications');
+      }
+      return null;
+    }
     return data;
   } catch (err) {
-    console.warn('createCloudNotification exception:', err.message);
+    if (String(err?.message || '').includes('violates row-level security') || err?.status === 403) {
+      markTableWriteForbidden('foody_notifications');
+    }
     return null;
   }
 }
 
 export async function markCloudNotificationRead(notifId, isRead = true) {
+  if (isTableWriteForbidden('foody_notifications')) {
+    return;
+  }
   try {
-    await supabase
+    const { error } = await supabase
       .from('foody_notifications')
       .update({ read: isRead })
       .eq('id', notifId);
-  } catch (err) {
-    console.warn('markCloudNotificationRead warning:', err.message);
-  }
+    if (error && (error.code === '42501' || error.status === 403)) {
+      markTableWriteForbidden('foody_notifications');
+    }
+  } catch (_) { }
 }

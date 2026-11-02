@@ -535,8 +535,12 @@ if (typeof window !== 'undefined') {
 export function isRiderOnline(user) {
   if (!user) return false;
   const role = String(user.role || '').toLowerCase().trim();
-  const isDelivery = role === 'delivery' || role === 'rider' || role === 'sarathi';
-  if (!isDelivery) return false;
+  const isDeliveryRole = role === 'delivery' || role === 'rider' || role === 'sarathi';
+  const isApprovedPartner = user.delivery_status === 'approved' || user.deliveryStatus === 'approved';
+  const hasDeliveryPermission = Boolean(user.can_deliver || user.canDeliver || user.self_delivery || user.selfDelivery);
+
+  // Eligible as rider if has delivery role, approved partner status, or delivery permissions
+  if (!isDeliveryRole && !isApprovedPartner && !hasDeliveryPermission) return false;
 
   // Account status check: suspended or explicitly inactive accounts cannot be on duty
   const deliveryStatus = user.delivery_status || user.deliveryStatus;

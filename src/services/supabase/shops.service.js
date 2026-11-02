@@ -300,8 +300,7 @@ export async function updateCloudShop(shopId, shopData) {
         const { data: rpcData, error: rpcErr } = await supabase.rpc('toggle_shop_status', {
           p_shop_id: updatedShop.id,
           p_is_open: Boolean(updatedShop.isOpen),
-          p_is_online: Boolean(updatedShop.isOnline),
-          p_self_delivery: Boolean(updatedShop.self_delivery ?? updatedShop.selfDelivery ?? false)
+          p_is_online: Boolean(updatedShop.isOnline)
         });
         if (!rpcErr && rpcData) {
           rpcSucceeded = true;

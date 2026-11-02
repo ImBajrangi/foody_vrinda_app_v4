@@ -138,7 +138,9 @@ async function runTest() {
       delivery_available: true,
       deliveryAvailable: true,
       self_delivery: false,
-      can_deliver: false
+      can_deliver: false,
+      selfDelivery: false,
+      canDeliver: false
     },
     shopName: activeKitchen.name,
     subtotal: 150,
