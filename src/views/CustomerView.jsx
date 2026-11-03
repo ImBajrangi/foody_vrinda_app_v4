@@ -480,6 +480,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const nameInputRef = useRef(null);
   const phoneInputRef = useRef(null);
   const addressInputRef = useRef(null);
+  const addressCardRef = useRef(null);
 
   const triggerShake = (field) => {
     setShakeField(field);
@@ -544,10 +545,16 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   }, []);
 
   const handleAutoFillLocation = async () => {
+    setIsUserTypingAddress(false);
+    setShowAddressDropdown(false);
+    setAddressSuggestions([]);
     showToast("Detecting GPS location...", "info");
     try {
       const loc = await geo.requestLocation();
       if (loc && loc.address) {
+        setIsUserTypingAddress(false);
+        setShowAddressDropdown(false);
+        setAddressSuggestions([]);
         setCheckoutAddress(loc.address);
         if (loc.coords && isValidCoordinates(loc.coords)) {
           setDeliveryCoords(loc.coords);
@@ -636,14 +643,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
+  const [isUserTypingAddress, setIsUserTypingAddress] = useState(false);
   const [toast, setToast] = useState(null);
   const [isDetailClosing, setIsDetailClosing] = useState(false);
   const [isCartClosing, setIsCartClosing] = useState(false);
   const [isShopClosing, setIsShopClosing] = useState(false);
 
-  // Debounced address autocomplete
+  // Debounced address autocomplete - only triggers when customer is actively typing
   useEffect(() => {
-    if (!checkoutAddress || checkoutAddress.trim().length < 3) {
+    if (!isUserTypingAddress || !checkoutAddress || checkoutAddress.trim().length < 3) {
       setAddressSuggestions([]);
       setShowAddressDropdown(false);
       return;
@@ -653,15 +661,33 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
       setIsFetchingAddress(true);
       try {
         const results = await fetchAddressSuggestions(checkoutAddress);
-        setAddressSuggestions(results || []);
-        setShowAddressDropdown(results && results.length > 0);
+        if (isUserTypingAddress) {
+          setAddressSuggestions(results || []);
+          setShowAddressDropdown(Boolean(results && results.length > 0));
+        }
       } finally {
         setIsFetchingAddress(false);
       }
     }, 280);
 
     return () => clearTimeout(timer);
-  }, [checkoutAddress]);
+  }, [checkoutAddress, isUserTypingAddress]);
+
+  // Click-away / tap-away dismiss listener for address suggestions
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (addressCardRef.current && !addressCardRef.current.contains(e.target)) {
+        setShowAddressDropdown(false);
+        setIsUserTypingAddress(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
 
   // 120fps ultra-fluid native gesture hooks (Apple & Android predictive standard)
   const {
@@ -1869,6 +1895,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <MapPicker
             initialCoords={deliveryCoords}
             onLocationSelect={async (coords) => {
+              setIsUserTypingAddress(false);
+              setShowAddressDropdown(false);
+              setAddressSuggestions([]);
               if (isValidCoordinates(coords)) {
                 setDeliveryCoords(coords);
                 setCoordinateSource('gps');
@@ -1881,6 +1910,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               try {
                 const cleanAddr = await reverseGeocodeCoords(coords.lat, coords.lng);
                 if (cleanAddr) {
+                  setIsUserTypingAddress(false);
+                  setShowAddressDropdown(false);
+                  setAddressSuggestions([]);
                   setCheckoutAddress(cleanAddr);
                 }
               } catch (e) {
@@ -3416,114 +3448,147 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Conditional: Address Input for Delivery vs Counter Pickup Card */}
                 {fulfillmentType === 'delivery' ? (
-                  <div className="relative">
-                    <div className={`relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${shakeField === 'address'
+                  <div
+                    ref={addressCardRef}
+                    className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all space-y-2.5 ${shakeField === 'address'
                       ? 'animate-shake bg-red-950/25 border-2 border-red-500 ring-2 ring-red-500/30'
                       : 'bg-stone-50 dark:bg-[#181617] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 focus-within:border-amber-500/80 dark:focus-within:border-[#FD9139]/70 focus-within:ring-2 focus-within:ring-amber-500/20 dark:focus-within:ring-[#FD9139]/20 shadow-2xs'
-                      }`}>
-                      {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
-                      <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139]'
-                            }`}>
-                            <MapPin size={17} className="stroke-[2.5]" />
-                          </div>
-                          <div className="min-w-0">
-                            <label className="block text-xs font-black uppercase tracking-wider text-stone-700 dark:text-zinc-300 leading-none font-['Outfit']">
-                              Delivery Address
-                            </label>
-                            {shakeField === 'address' && (
-                              <span className="text-[11px] font-bold text-red-500 dark:text-red-400 leading-none mt-1 inline-block animate-fade-in">Address Required</span>
-                            )}
-                          </div>
+                      }`}
+                  >
+                    {/* Top Header Row: Label + Live GPS Auto-Fill Action */}
+                    <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-inner ${shakeField === 'address' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-600 dark:text-[#FD9139]'
+                          }`}>
+                          <MapPin size={17} className="stroke-[2.5]" />
                         </div>
-
-                        {/* Top-Right Quick Auto-Fill GPS Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleAutoFillLocation();
-                          }}
-                          className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
-                          title="Auto-fill GPS address or pin on map"
-                        >
-                          <span className="w-4.5 h-4.5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                            <Compass size={11} strokeWidth={2.8} className="text-white" />
-                          </span>
-                          <span>Auto-Fill GPS</span>
-                        </button>
+                        <div className="min-w-0">
+                          <label className="block text-xs font-black uppercase tracking-wider text-stone-700 dark:text-zinc-300 leading-none font-['Outfit']">
+                            Delivery Address
+                          </label>
+                          {shakeField === 'address' && (
+                            <span className="text-[11px] font-bold text-red-500 dark:text-red-400 leading-none mt-1 inline-block animate-fade-in">Address Required</span>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Full-Width Spacious Multi-Line Address Textarea */}
-                      <div className="pt-0.5">
-                        <textarea
-                          ref={addressInputRef}
-                          rows={2}
-                          value={checkoutAddress}
-                          onChange={(e) => {
-                            setCheckoutAddress(e.target.value);
-                            if (shakeField === 'address') setShakeField(null);
-                          }}
-                          placeholder="Enter street, ashram, apartment, flat no., or landmark in Vrindavan..."
-                          className="w-full min-h-[58px] sm:min-h-[64px] text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-relaxed resize-none"
-                        />
-                      </div>
-
-                      {/* Bottom Context Helper & Clear Button */}
-                      {checkoutAddress.trim().length > 0 && (
-                        <div className="flex items-center justify-between pt-1 border-t border-stone-200/60 dark:border-white/5 text-xs text-stone-500 dark:text-zinc-400">
-                          <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
-                            <Check size={13} strokeWidth={3} />
-                            <span>Address Recorded</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setCheckoutAddress('')}
-                            className="text-stone-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 text-xs font-bold transition-colors cursor-pointer"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      )}
+                      {/* Top-Right Quick Auto-Fill GPS Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAutoFillLocation();
+                        }}
+                        className="h-8 px-3 rounded-full bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs apple-tap-target font-['Outfit']"
+                        title="Auto-fill GPS address or pin on map"
+                      >
+                        <span className="w-4.5 h-4.5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                          <Compass size={11} strokeWidth={2.8} className="text-white" />
+                        </span>
+                        <span>Auto-Fill GPS</span>
+                      </button>
                     </div>
 
-                    {/* OpenStreetMap Nominatim / Vedic Landmark Autocomplete Dropdown */}
+                    {/* Full-Width Spacious Multi-Line Address Textarea */}
+                    <div className="pt-0.5">
+                      <textarea
+                        ref={addressInputRef}
+                        rows={2}
+                        value={checkoutAddress}
+                        onChange={(e) => {
+                          setIsUserTypingAddress(true);
+                          setCheckoutAddress(e.target.value);
+                          if (shakeField === 'address') setShakeField(null);
+                        }}
+                        onFocus={() => {
+                          if (addressSuggestions.length > 0 && isUserTypingAddress) {
+                            setShowAddressDropdown(true);
+                          }
+                        }}
+                        placeholder="Enter street, ashram, apartment, flat no., or landmark in Vrindavan..."
+                        className="w-full min-h-[58px] sm:min-h-[64px] text-sm sm:text-base font-bold text-stone-900 dark:text-white bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 placeholder:text-stone-400 dark:placeholder:text-zinc-600 font-['Plus_Jakarta_Sans'] leading-relaxed resize-none"
+                      />
+                    </div>
+
+                    {/* In-Flow Suggestions List: Natural expansion with ZERO overlap over payment methods */}
                     {showAddressDropdown && addressSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-stone-900 dark:bg-[#201D1E] border border-stone-700 dark:border-[#FD9139]/30 rounded-2xl p-2 shadow-2xl z-30 max-h-48 overflow-y-auto no-scrollbar space-y-1 backdrop-blur-xl">
-                        {isFetchingAddress && (
-                          <p className="text-xs text-zinc-400 px-3 py-1 font-medium">Searching landmarks...</p>
-                        )}
-                        {addressSuggestions.map((item, idx) => (
+                      <div className="pt-2 border-t border-stone-200/80 dark:border-white/10 space-y-1.5 animate-fade-in">
+                        <div className="flex items-center justify-between px-1 text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-400">
+                          <span>{isFetchingAddress ? 'Searching...' : 'Suggested Locations'}</span>
                           <button
-                            key={idx}
                             type="button"
-                            onClick={() => {
-                              const chosenAddr = item.address || item.display_name || item.title || item.name || '';
-                              setCheckoutAddress(chosenAddr);
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setShowAddressDropdown(false);
-                              const lat = parseFloat(item.lat || item.latitude);
-                              const lng = parseFloat(item.lng || item.lon || item.longitude);
-                              if (!isNaN(lat) && !isNaN(lng)) {
-                                const coords = { lat, lng };
-                                setDeliveryCoords(coords);
-                                setCoordinateSource('gps');
-                                try {
-                                  localStorage.setItem('deliveryCoords', JSON.stringify(coords));
-                                } catch (_) {}
-                              }
-                              showToast("Address Selected", "success");
+                              setIsUserTypingAddress(false);
                             }}
-                            className="w-full text-left p-2.5 rounded-xl hover:bg-white/10 transition-all text-xs flex items-start gap-2 text-zinc-200 hover:text-white cursor-pointer"
+                            className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 text-xs font-semibold cursor-pointer"
                           >
-                            <MapPin size={15} className="text-amber-500 dark:text-[#FD9139] mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="font-bold text-white truncate text-xs sm:text-sm">{item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}</p>
-                              <p className="text-xs text-zinc-400 truncate">{item.address || item.display_name || ''}</p>
-                            </div>
+                            Dismiss ✕
                           </button>
-                        ))}
+                        </div>
+                        <div className="max-h-48 overflow-y-auto no-scrollbar space-y-1">
+                          {addressSuggestions.map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                const chosenAddr = item.address || item.display_name || item.title || item.name || '';
+                                setIsUserTypingAddress(false);
+                                setShowAddressDropdown(false);
+                                setAddressSuggestions([]);
+                                setCheckoutAddress(chosenAddr);
+                                const lat = parseFloat(item.lat || item.latitude);
+                                const lng = parseFloat(item.lng || item.lon || item.longitude);
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                  const coords = { lat, lng };
+                                  setDeliveryCoords(coords);
+                                  setCoordinateSource('gps');
+                                  try {
+                                    localStorage.setItem('deliveryCoords', JSON.stringify(coords));
+                                  } catch (_) {}
+                                }
+                                showToast("Address Selected", "success");
+                              }}
+                              className="w-full text-left p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-white/5 dark:hover:bg-white/10 transition-colors text-xs flex items-start gap-2.5 cursor-pointer border border-stone-200/60 dark:border-white/5"
+                            >
+                              <div className="w-6 h-6 rounded-lg bg-amber-500/15 dark:bg-[#FD9139]/15 flex items-center justify-center shrink-0 mt-0.5">
+                                <MapPin size={13} className="text-amber-600 dark:text-[#FD9139]" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-stone-900 dark:text-white truncate text-xs sm:text-sm">
+                                  {item.title || item.name || (item.address ? item.address.split(',')[0] : 'Landmark')}
+                                </p>
+                                <p className="text-[11px] text-stone-500 dark:text-zinc-400 truncate">
+                                  {item.address || item.display_name || ''}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom Context Helper & Clear Button */}
+                    {checkoutAddress.trim().length > 0 && (
+                      <div className="flex items-center justify-between pt-1 border-t border-stone-200/60 dark:border-white/5 text-xs text-stone-500 dark:text-zinc-400">
+                        <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
+                          <Check size={13} strokeWidth={3} />
+                          <span>Address Recorded</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCheckoutAddress('');
+                            setIsUserTypingAddress(false);
+                            setShowAddressDropdown(false);
+                            setAddressSuggestions([]);
+                          }}
+                          className="text-stone-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Clear
+                        </button>
                       </div>
                     )}
                   </div>
