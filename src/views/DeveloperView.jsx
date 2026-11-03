@@ -48,6 +48,11 @@ import {
   Calendar,
   Mail,
   Phone,
+  Radio,
+  Send,
+  Smartphone,
+  BellRing,
+  MessageSquare,
   Bike,
   ChevronDown,
   ChevronUp,
@@ -107,11 +112,14 @@ import {
   purgeAllOrdersFromCloud,
   setDeliveryPartnerStatus,
   updateUserOnlineStatus,
-  resolveDishCutout
+  resolveDishCutout,
+  sendStaffBroadcastNotification,
+  fetchStaffBroadcastHistory
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
 import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
 import { PRESET_DISHES } from '../constants/presetDishes';
+import { nativeNotify } from '../services/nativeNotificationService';
 
 const hasDevPermission = (target, key) => {
   if (!target) return false;
@@ -262,10 +270,167 @@ export default function DeveloperView({ setCurrentTab }) {
     payments: false,
     simulator: false,
     users: false,
+    broadcast: false,
     alarm: false,
     updates: false,
     uiLab: false
   });
+
+  // --- REALTIME STAFF BROADCAST STATE ---
+  const [broadcastTargetCategory, setBroadcastTargetCategory] = useState('staff');
+  const [broadcastShopId, setBroadcastShopId] = useState('all');
+  const [broadcastTargetUserId, setBroadcastTargetUserId] = useState('');
+  const [broadcastTitle, setBroadcastTitle] = useState('⚡ Kitchen & Rider Protocol');
+  const [broadcastMessage, setBroadcastMessage] = useState('Immediate staff attention required: please verify all outgoing order seals and live status.');
+  const [broadcastPriority, setBroadcastPriority] = useState('normal');
+  const [broadcastSound, setBroadcastSound] = useState('soft_pulse');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastHistory, setBroadcastHistory] = useState([]);
+  const [broadcastLiveLog, setBroadcastLiveLog] = useState([]);
+  const [webNotificationPerm, setWebNotificationPerm] = useState(() => nativeNotify.getSystemNotificationPermission());
+
+  // Filtered target recipients for live audience preview & FCM count
+  const filteredBroadcastRecipients = useMemo(() => {
+    if (!usersList || usersList.length === 0) return [];
+    return usersList.filter(u => {
+      if (broadcastTargetCategory === 'individual') {
+        return u.id === broadcastTargetUserId;
+      }
+      if (broadcastShopId !== 'all' && u.shop_id && u.shop_id !== broadcastShopId && !['developer', 'grand_admin'].includes(u.role)) {
+        return false;
+      }
+      if (broadcastTargetCategory === 'all') return true;
+      if (broadcastTargetCategory === 'staff') {
+        return ['owner', 'kitchen', 'delivery', 'rider', 'developer', 'grand_admin', 'admin'].includes(u.role);
+      }
+      if (broadcastTargetCategory === 'kitchen') {
+        return ['kitchen', 'owner', 'developer', 'grand_admin'].includes(u.role);
+      }
+      if (broadcastTargetCategory === 'delivery') {
+        return ['delivery', 'rider', 'developer', 'grand_admin'].includes(u.role);
+      }
+      if (broadcastTargetCategory === 'owner') {
+        return ['owner', 'developer', 'grand_admin'].includes(u.role);
+      }
+      return u.role === broadcastTargetCategory;
+    });
+  }, [usersList, broadcastTargetCategory, broadcastTargetUserId, broadcastShopId]);
+
+  const fcmDeviceCount = useMemo(() => {
+    return filteredBroadcastRecipients.filter(u => Boolean(u.fcm_token || u.fcmToken)).length;
+  }, [filteredBroadcastRecipients]);
+
+  // Request browser permission for system notifications
+  const handleRequestWebPermission = async () => {
+    const perm = await nativeNotify.requestSystemNotificationPermission();
+    setWebNotificationPerm(perm);
+    if (perm === 'granted') {
+      setToast({ message: "Browser System Notifications Granted!", type: "success" });
+    } else {
+      setToast({ message: `Notification permission: ${perm}`, type: "info" });
+    }
+  };
+
+  // Test direct system notification on developer's own device/browser
+  const handleTestMySystem = async () => {
+    try {
+      await nativeNotify.displaySystemNotification({
+        title: `🧪 [Test] ${broadcastTitle || 'System Notification'}`,
+        body: broadcastMessage || 'Direct OS system tray & phone alert test.',
+        priority: broadcastPriority,
+        sound: broadcastSound,
+        data: { test: true }
+      });
+      setToast({ message: "System notification fired directly to your OS tray & speakers!", type: "success" });
+    } catch (err) {
+      setToast({ message: "Test alert error: " + err.message, type: "error" });
+    }
+  };
+
+  // Dispatch live broadcast
+  const handleSendBroadcast = async () => {
+    if (!broadcastTitle.trim() || !broadcastMessage.trim()) {
+      setToast({ message: "Please enter both Title and Message", type: "error" });
+      return;
+    }
+    if (broadcastTargetCategory === 'individual' && !broadcastTargetUserId) {
+      setToast({ message: "Please select an individual user recipient", type: "error" });
+      return;
+    }
+
+    setIsBroadcasting(true);
+    try {
+      const result = await sendStaffBroadcastNotification({
+        title: broadcastTitle.trim(),
+        message: broadcastMessage.trim(),
+        targetRole: broadcastTargetCategory === 'individual' ? 'individual' : broadcastTargetCategory,
+        targetShopId: broadcastShopId,
+        targetUserId: broadcastTargetCategory === 'individual' ? broadcastTargetUserId : null,
+        priority: broadcastPriority,
+        sound: broadcastSound,
+        senderId: profile?.id || null,
+        senderName: profile?.display_name || profile?.name || 'Developer',
+        data: {
+          category: broadcastTargetCategory,
+          timestamp: Date.now()
+        }
+      });
+
+      const logEntry = {
+        id: result.notificationId,
+        title: broadcastTitle.trim(),
+        message: broadcastMessage.trim(),
+        target: broadcastTargetCategory,
+        targetCount: result.totalTargetUsers,
+        fcmCount: result.fcmTokensCount,
+        priority: broadcastPriority,
+        dispatchedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        status: 'Delivered (Realtime + System)'
+      };
+
+      setBroadcastLiveLog(prev => [logEntry, ...prev.slice(0, 19)]);
+      setBroadcastHistory(prev => [logEntry, ...prev]);
+
+      setToast({
+        message: `Broadcast Dispatched! Realtime delivered to ${result.totalTargetUsers} user(s) (${result.fcmTokensCount} phone push devices).`,
+        type: "success"
+      });
+    } catch (err) {
+      console.error("Broadcast failed:", err);
+      setToast({ message: "Failed to broadcast: " + err.message, type: "error" });
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  // Load broadcast history and attach realtime listener
+  useEffect(() => {
+    fetchStaffBroadcastHistory(25).then(hist => {
+      if (hist && hist.length > 0) {
+        setBroadcastHistory(hist);
+      }
+    });
+
+    const handleIncomingBroadcast = (e) => {
+      const notif = e.detail;
+      if (notif) {
+        setBroadcastLiveLog(prev => [{
+          id: notif.id,
+          title: notif.title || 'Staff Notice',
+          message: notif.message,
+          target: notif.role || 'all',
+          priority: notif.priority || 'normal',
+          dispatchedAt: new Date(notif.created_at || notif.createdAt || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          status: 'Realtime Verified'
+        }, ...prev.filter(item => item.id !== notif.id).slice(0, 19)]);
+      }
+    };
+
+    window.addEventListener('foody:notification-received', handleIncomingBroadcast);
+    return () => {
+      window.removeEventListener('foody:notification-received', handleIncomingBroadcast);
+    };
+  }, []);
 
   const toggleSection = (key) => {
     setCollapsedSections(prev => ({
@@ -1606,6 +1771,7 @@ export default function DeveloperView({ setCurrentTab }) {
         {[
           { id: 'all', label: 'View All', icon: Layers },
           { id: 'impersonation', label: 'Impersonate', icon: UserCheck },
+          { id: 'broadcast', label: 'Broadcast', icon: Radio, badge: broadcastLiveLog.length || broadcastHistory.length },
           { id: 'shops', label: 'Kitchens', icon: Store, badge: stats.shops },
           { id: 'dishes', label: 'Dishes', icon: UtensilsCrossed, badge: stats.items },
           { id: 'combos', label: 'Combos', icon: Gift },
@@ -1786,6 +1952,384 @@ export default function DeveloperView({ setCurrentTab }) {
                     <ShieldCheck className="w-4 h-4" />
                     <span>Launch Store Owner View</span>
                   </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Realtime Staff & System Broadcast Dispatcher */}
+        {(activeDevTab === 'all' || activeDevTab === 'broadcast') && (
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-5 shadow-xl transition-all">
+            {/* Header with Title, Collapse Toggle, and Web Permission Badge */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+              <button
+                type="button"
+                onClick={() => toggleSection('broadcast')}
+                className="flex items-start sm:items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
+              >
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center shrink-0">
+                  <Radio className="w-4 h-4 animate-pulse" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
+                      Staff Realtime Broadcast & System Dispatcher
+                    </h3>
+                    <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'broadcast' || !collapsedSections.broadcast) ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5 truncate">
+                    Send customized push alerts directly to staff phone notification trays & web browsers in real time.
+                  </p>
+                </div>
+              </button>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {webNotificationPerm === 'granted' ? (
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span>System Push Active</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleRequestWebPermission}
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <BellRing className="w-3.5 h-3.5" />
+                    <span>Enable OS Notifications</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {(activeDevTab === 'broadcast' || !collapsedSections.broadcast) && (
+              <div className="space-y-5 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* Quick Templates Bar */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
+                    Quick Operational Templates
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      {
+                        label: '⚡ Kitchen Rush',
+                        cat: 'kitchen',
+                        title: '[Kitchen Alert] Peak Rush Protocol Active',
+                        msg: 'High order volume in progress. Please prioritize cooking ready items and verify order tokens.',
+                        prio: 'urgent',
+                        snd: 'kitchen'
+                      },
+                      {
+                        label: '🛵 Delivery Fleet Standby',
+                        cat: 'delivery',
+                        title: '[Fleet Alert] Orders Ready for Instant Pickup',
+                        msg: 'Multiple orders packed at kitchen counters. Standby on duty for immediate GPS pickup navigation.',
+                        prio: 'high',
+                        snd: 'delivery'
+                      },
+                      {
+                        label: '🏪 Store Owner Notice',
+                        cat: 'owner',
+                        title: '[Store Notice] Daily Cash & Settlement Review',
+                        msg: 'Please review unsettled cash orders and verify kitchen shift handover.',
+                        prio: 'normal',
+                        snd: 'owner'
+                      },
+                      {
+                        label: '👥 All Staff Protocol',
+                        cat: 'staff',
+                        title: '[Staff Protocol] Shift Handover & Quality Check',
+                        msg: 'Shift transition underway. All kitchen and delivery personnel must complete their station checklist.',
+                        prio: 'normal',
+                        snd: 'soft_pulse'
+                      },
+                      {
+                        label: '📢 System Maintenance',
+                        cat: 'all',
+                        title: '[System Notice] Platform Maintenance Tonight',
+                        msg: 'Foody Vrinda cloud maintenance scheduled for 11:30 PM. Active orders will be fulfilled smoothly.',
+                        prio: 'normal',
+                        snd: 'natural_water_drop'
+                      }
+                    ].map((tpl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setBroadcastTargetCategory(tpl.cat);
+                          setBroadcastTitle(tpl.title);
+                          setBroadcastMessage(tpl.msg);
+                          setBroadcastPriority(tpl.prio);
+                          setBroadcastSound(tpl.snd);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-stone-200/70 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 hover:text-stone-900 dark:text-neutral-300 dark:hover:text-white transition-all cursor-pointer border border-stone-300/40 dark:border-white/5"
+                      >
+                        {tpl.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* Left Column (7 cols): Recipient Selector & Message Composer */}
+                  <div className="lg:col-span-7 space-y-4">
+                    {/* Target Category Selector */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-between">
+                        <span>1. Target Audience Category</span>
+                        <span className="text-[11px] font-mono text-amber-700 dark:text-[#FD9139]">
+                          {filteredBroadcastRecipients.length} User(s) • {fcmDeviceCount} Phone Push Device(s)
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          { id: 'staff', label: '👥 All Staff', desc: 'Kitchen + Fleet + Owners' },
+                          { id: 'kitchen', label: '👨‍🍳 Kitchen Staff', desc: 'Chefs & Kitchen Crew' },
+                          { id: 'delivery', label: '🛵 Delivery Fleet', desc: 'Sarathi Delivery Partners' },
+                          { id: 'owner', label: '🏪 Store Owners', desc: 'Restaurant Managers' },
+                          { id: 'individual', label: '👤 Specific User', desc: 'Select 1 Member' },
+                          { id: 'all', label: '🌐 All Users', desc: 'Devotees & Staff' }
+                        ].map(cat => {
+                          const isSelected = broadcastTargetCategory === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setBroadcastTargetCategory(cat.id)}
+                              className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${isSelected
+                                ? 'bg-amber-600 text-white border-transparent dark:bg-[#FD9139] dark:text-white shadow-sm font-black'
+                                : 'bg-stone-50 hover:bg-stone-200/70 text-stone-800 border-stone-200 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:bg-white/10'
+                                }`}
+                            >
+                              <p className="text-xs font-bold truncate leading-tight">{cat.label}</p>
+                              <p className={`text-[10px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-stone-500 dark:text-neutral-500'}`}>{cat.desc}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Conditional: Select Specific Individual User */}
+                    {broadcastTargetCategory === 'individual' && (
+                      <div className="p-3 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 space-y-2 animate-fadeIn">
+                        <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
+                          <span>Select Individual Staff / User</span>
+                        </label>
+                        <select
+                          value={broadcastTargetUserId}
+                          onChange={(e) => setBroadcastTargetUserId(e.target.value)}
+                          className="w-full text-xs font-medium p-2.5 rounded-xl bg-stone-100 dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500"
+                        >
+                          <option value="">-- Choose User Recipient --</option>
+                          {usersList.map(u => (
+                            <option key={u.id} value={u.id}>
+                              {u.display_name || u.name || 'User'} ({u.role?.toUpperCase()}) — {u.phone || u.email || 'No contact'} {u.fcm_token ? '📱 Push Ready' : '🌐 Web Only'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Shop Branch Scope Filter */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-between">
+                        <span>2. Kitchen Branch Scope</span>
+                        <span className="text-[10px] text-stone-500 dark:text-neutral-500">Filter notifications by kitchen location</span>
+                      </label>
+                      <select
+                        value={broadcastShopId}
+                        onChange={(e) => setBroadcastShopId(e.target.value)}
+                        className="w-full text-xs font-medium p-2.5 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500"
+                      >
+                        <option value="all">🌐 All Kitchens & Branches (Global Broadcast)</option>
+                        {allShops.map(s => (
+                          <option key={s.id} value={s.id}>
+                            🏪 {s.name} ({s.address || 'Vrindavan'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Notification Title & Body */}
+                    <div className="space-y-3 p-4 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-between">
+                          <span>3. Notification Title</span>
+                          <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-mono">Direct OS tray header</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={broadcastTitle}
+                          onChange={(e) => setBroadcastTitle(e.target.value)}
+                          placeholder="e.g. ⚡ Kitchen Rush Alert #FV-108"
+                          className="w-full text-xs font-bold p-2.5 rounded-xl bg-stone-100 dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-between">
+                          <span>Notification Message Body</span>
+                          <span className="text-[10px] text-stone-500 dark:text-neutral-500 font-mono">Delivered to phone lock screen</span>
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={broadcastMessage}
+                          onChange={(e) => setBroadcastMessage(e.target.value)}
+                          placeholder="Type clear instructions for staff..."
+                          className="w-full text-xs font-medium p-2.5 rounded-xl bg-stone-100 dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500 resize-none leading-relaxed"
+                        />
+                      </div>
+
+                      {/* Priority Selector */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-white/5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400">Priority:</span>
+                          {[
+                            { id: 'normal', label: '🟢 Normal', desc: 'Standard chime' },
+                            { id: 'high', label: '🟡 High', desc: 'Loud chime' },
+                            { id: 'urgent', label: '🔴 Urgent Alarm', desc: 'Persistent alert' }
+                          ].map(prio => (
+                            <button
+                              key={prio.id}
+                              type="button"
+                              onClick={() => setBroadcastPriority(prio.id)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${broadcastPriority === prio.id
+                                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white font-black'
+                                : 'bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                                }`}
+                              title={prio.desc}
+                            >
+                              {prio.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Direct System Test Button */}
+                        <button
+                          type="button"
+                          onClick={handleTestMySystem}
+                          className="px-3 py-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                          title="Fires direct test notification on your current device right now"
+                        >
+                          <Smartphone className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
+                          <span>Test on My Device</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Primary Dispatch Action */}
+                    <button
+                      type="button"
+                      onClick={handleSendBroadcast}
+                      disabled={isBroadcasting || !broadcastTitle.trim() || !broadcastMessage.trim()}
+                      className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-50 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98 cursor-pointer font-['Outfit']"
+                    >
+                      {isBroadcasting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>Dispatching Realtime Broadcast...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 text-white stroke-[2.5]" />
+                          <span>Dispatch Realtime Broadcast to {filteredBroadcastRecipients.length} User(s)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Right Column (5 cols): Live Realtime Flow Monitor */}
+                  <div className="lg:col-span-5 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-stone-200 dark:border-white/5 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                          <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">
+                            Live Delivery Monitor
+                          </h4>
+                        </div>
+                        <span className="text-[10px] font-mono text-stone-500 dark:text-neutral-400">
+                          Supabase Realtime Stream
+                        </span>
+                      </div>
+
+                      {/* Recipient Audience Summary */}
+                      <div className="p-3 rounded-xl bg-stone-100 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-stone-500 dark:text-neutral-400">Audience Scope:</span>
+                          <span className="font-bold text-stone-900 dark:text-white uppercase font-['Outfit']">
+                            {broadcastTargetCategory}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-stone-500 dark:text-neutral-400">Active Recipients:</span>
+                          <span className="font-black text-amber-700 dark:text-[#FD9139]">
+                            {filteredBroadcastRecipients.length} Registered User(s)
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-stone-500 dark:text-neutral-400">FCM Push Hardware Tokens:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            {fcmDeviceCount} Mobile Device(s)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Live Event Stream Feed */}
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit'] flex items-center justify-between">
+                          <span>Live Broadcast Feed</span>
+                          <span className="text-[10px] font-mono text-stone-400">
+                            {(broadcastLiveLog.length || broadcastHistory.length)} events
+                          </span>
+                        </label>
+
+                        <div className="max-h-72 overflow-y-auto no-scrollbar space-y-2">
+                          {(broadcastLiveLog.length > 0 ? broadcastLiveLog : broadcastHistory).length === 0 ? (
+                            <div className="py-8 text-center text-xs text-stone-400 dark:text-neutral-500 space-y-1">
+                              <Bell className="w-6 h-6 mx-auto opacity-30" />
+                              <p>No broadcast dispatched yet.</p>
+                              <p className="text-[10px]">Use the composer on the left to broadcast to staff.</p>
+                            </div>
+                          ) : (
+                            (broadcastLiveLog.length > 0 ? broadcastLiveLog : broadcastHistory).map((entry, idx) => (
+                              <div
+                                key={entry.id || idx}
+                                className="p-3 rounded-xl bg-white dark:bg-[#151314] border border-stone-200/70 dark:border-white/5 space-y-1.5 shadow-2xs"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-xs text-stone-900 dark:text-white truncate">
+                                    {entry.title || 'Staff Broadcast'}
+                                  </span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase font-['Outfit'] shrink-0 bg-amber-500/10 text-amber-700 dark:text-[#FD9139] border border-amber-500/20">
+                                    {entry.target || entry.role || 'staff'}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-stone-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                                  {entry.message}
+                                </p>
+                                <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-white/5 text-[10px] text-stone-400 font-mono">
+                                  <span>{entry.dispatchedAt || (entry.created_at ? new Date(entry.created_at).toLocaleTimeString() : 'Just now')}</span>
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                                    <Check className="w-3 h-3 stroke-[3]" />
+                                    <span>Realtime Stream & Tray Alert</span>
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 text-[10px] text-stone-400 dark:text-neutral-500 border-t border-stone-200 dark:border-white/5 leading-tight">
+                      ℹ️ System notifications deliver to macOS Notification Center, Windows Action Center, Android status bar, and phone notification trays.
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

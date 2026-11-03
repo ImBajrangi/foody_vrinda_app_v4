@@ -1261,6 +1261,140 @@ class NativeNotificationService {
       console.warn('Failed to schedule owner alert:', e);
     }
   }
+
+  /**
+   * Check current browser/native system notification permission state
+   */
+  getSystemNotificationPermission() {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission; // 'granted' | 'denied' | 'default'
+    }
+    return 'unsupported';
+  }
+
+  /**
+   * Request native system / browser notification permission
+   */
+  async requestSystemNotificationPermission() {
+    if (this.isNative) {
+      try {
+        const res = await PushNotifications.requestPermissions();
+        await LocalNotifications.requestPermissions();
+        return res?.receive || 'default';
+      } catch (err) {
+        console.warn('Native permission request note:', err);
+        return 'default';
+      }
+    }
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const perm = await Notification.requestPermission();
+        return perm;
+      } catch (err) {
+        console.warn('Browser permission request note:', err);
+        return 'default';
+      }
+    }
+    return 'unsupported';
+  }
+
+  /**
+   * Universal System Notification Dispatcher
+   * Delivers direct notifications to OS System Tray (macOS/Windows/Android/iOS) + Audible chime + Haptics + In-App Toast
+   */
+  async displaySystemNotification({
+    title,
+    body,
+    icon = '/foody-vrinda-logo.webp',
+    badge = '/pwa-192x192.webp',
+    sound = 'soft_pulse',
+    tag,
+    data = {},
+    priority = 'normal'
+  }) {
+    const isUrgent = priority === 'urgent' || priority === 'emergency';
+
+    // 1. Audio chime & trial playback
+    if (isUrgent) {
+      this.playChime('owner');
+      this.hapticNotification(NotificationType.Warning);
+    } else {
+      this.playTrialSound(sound || 'soft_pulse');
+      this.hapticNotification(NotificationType.Success);
+    }
+
+    // 2. Native Mobile Platform (Capacitor Android / iOS)
+    if (this.isNative) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: Math.floor(Date.now() % 100000),
+              channelId: isUrgent ? 'system_alerts' : 'order_updates',
+              smallIcon: 'ic_stat_notification',
+              largeIcon: 'splash_icon',
+              iconColor: '#FF751F',
+              sound: this.getActiveTrialSoundFile(),
+              extra: data,
+            },
+          ],
+        });
+      } catch (e) {
+        console.warn('Native LocalNotifications schedule error:', e);
+      }
+    }
+    // 3. Web Browser System Notification API (Windows Action Center, macOS Notification Center, Android Chrome)
+    else if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        if (Notification.permission === 'granted') {
+          // If service worker is ready, use reg.showNotification to survive background tabs
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification(title, {
+                body,
+                icon,
+                badge,
+                tag: tag || `foody-${Date.now()}`,
+                data,
+                requireInteraction: isUrgent,
+                vibrate: isUrgent ? [300, 100, 300, 100, 300] : [200, 100, 200]
+              }).catch(() => {
+                new Notification(title, { body, icon, badge, tag });
+              });
+            }).catch(() => {
+              new Notification(title, { body, icon, badge, tag });
+            });
+          } else {
+            new Notification(title, { body, icon, badge, tag });
+          }
+        } else if (Notification.permission === 'default') {
+          // Ask user permission once
+          Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+              new Notification(title, { body, icon, badge, tag });
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Web Notification API notice:', err);
+      }
+    }
+
+    // 4. In-App Realtime Reactive Events (Dynamic Island Toast & System Event)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('foody:system-notification-received', {
+        detail: { title, body, data, priority, timestamp: Date.now() }
+      }));
+      window.dispatchEvent(new CustomEvent('foody_toast', {
+        detail: {
+          message: `${title} · ${body}`,
+          type: isUrgent ? 'warning' : 'info'
+        }
+      }));
+    }
+  }
 }
 
 export const nativeNotify = new NativeNotificationService();

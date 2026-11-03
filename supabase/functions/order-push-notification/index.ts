@@ -173,6 +173,100 @@ serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const body = await req.json();
 
+    // --- BRANCH: STAFF_BROADCAST OR CUSTOM_NOTIFICATION ---
+    const requestType = body?.type;
+    if (requestType === "STAFF_BROADCAST" || requestType === "CUSTOM_NOTIFICATION") {
+      const {
+        title,
+        message,
+        body: notifBody,
+        target_role,
+        target_shop_id,
+        target_user_id,
+        priority,
+        sound,
+        data: extraData
+      } = body;
+
+      const notifTitle = title || "🌸 Foody Vrinda Staff Notice";
+      const notifMessage = message || notifBody || "You have an update from the developer.";
+      const notifSound = sound || (priority === 'urgent' ? "owner_alert" : "soft_pulse");
+      const notifChannel = priority === 'urgent' ? "system_alerts" : "order_updates";
+
+      const googleAccessToken = await getGoogleAccessToken(serviceAccount);
+      const results: any[] = [];
+
+      // Query target users from foody_logged_users who possess an active FCM token
+      let query = supabase
+        .from("foody_logged_users")
+        .select("id, display_name, role, shop_id, fcm_token")
+        .not("fcm_token", "is", null);
+
+      if (target_user_id) {
+        query = query.eq("id", target_user_id);
+      } else {
+        if (target_role && target_role !== 'all') {
+          if (target_role === 'staff') {
+            query = query.in("role", ["owner", "kitchen", "delivery", "rider", "developer", "grand_admin", "admin"]);
+          } else if (target_role === 'delivery' || target_role === 'rider') {
+            query = query.in("role", ["delivery", "rider"]);
+          } else {
+            query = query.eq("role", target_role);
+          }
+        }
+        if (target_shop_id && target_shop_id !== 'all') {
+          query = query.eq("shop_id", target_shop_id);
+        }
+      }
+
+      const { data: targetUsers, error: usersErr } = await query;
+      const validRecipients = (targetUsers || []).filter(u => Boolean(u.fcm_token));
+
+      for (const recipient of validRecipients) {
+        try {
+          const res = await sendFCMMessage(
+            projectId,
+            googleAccessToken,
+            recipient.fcm_token,
+            { title: notifTitle, body: notifMessage },
+            notifChannel,
+            notifSound,
+            {
+              type: "staff_broadcast",
+              priority: priority || "normal",
+              sender: "developer",
+              notifId: body?.notification_id || `staff_fcm_${Date.now()}`,
+              ...(extraData || {})
+            }
+          );
+          results.push({
+            userId: recipient.id,
+            name: recipient.display_name || recipient.role,
+            role: recipient.role,
+            success: res.ok,
+            status: res.status
+          });
+        } catch (fcmErr: any) {
+          results.push({
+            userId: recipient.id,
+            name: recipient.display_name || recipient.role,
+            error: fcmErr?.message || String(fcmErr)
+          });
+        }
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: "staff_broadcast",
+          target_count: validRecipients.length,
+          delivered_count: results.filter(r => r.success).length,
+          results
+        }),
+        { status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+      );
+    }
+
     // Supabase Webhook payload format
     const { type, record, old_record } = body;
     const order = record || body.order;

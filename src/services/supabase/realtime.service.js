@@ -22,6 +22,7 @@ import {
   getCachedUsers,
   saveCachedUsers
 } from './users.service.js';
+import { nativeNotify } from '../nativeNotificationService.js';
 
 export class RealtimeMultiplexer {
   constructor() {
@@ -228,13 +229,84 @@ export class RealtimeMultiplexer {
             const notif = {
               id: payload.new.id,
               userId: payload.new.user_id,
-              role: payload.new.role,
-              shopId: payload.new.shop_id,
+              role: payload.new.role || 'all',
+              shopId: payload.new.shop_id || 'all',
               orderId: payload.new.order_id,
+              title: payload.new.title || 'Foody Vrinda Notice',
               message: payload.new.message,
-              read: payload.new.read,
+              type: payload.new.type || 'staff_custom',
+              priority: payload.new.priority || 'normal',
+              sound: payload.new.sound || 'default',
+              category: payload.new.category || 'general',
+              senderId: payload.new.sender_id,
+              senderName: payload.new.sender_name || 'Developer',
+              data: payload.new.data || {},
+              read: payload.new.read || payload.new.is_read || false,
               createdAt: payload.new.created_at
             };
+
+            // Realtime System Notification Delivery Check
+            try {
+              let currentUserId = null;
+              let currentUserRole = 'customer';
+              let currentShopId = null;
+
+              if (typeof localStorage !== 'undefined') {
+                try {
+                  const rawUser = localStorage.getItem('foody_user_data');
+                  if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    currentUserId = parsed.id || null;
+                    currentUserRole = parsed.role || 'customer';
+                    currentShopId = parsed.shop_id || null;
+                  }
+                } catch (_) {}
+              }
+
+              // Evaluate recipient match for current client
+              let isMatch = false;
+              if (notif.userId && notif.userId === currentUserId) {
+                isMatch = true;
+              } else if (!notif.userId) {
+                const targetRole = (notif.role || 'all').toLowerCase();
+                const targetShop = notif.shopId || 'all';
+
+                const shopMatches = targetShop === 'all' || !currentShopId || targetShop === currentShopId;
+
+                if (shopMatches) {
+                  if (targetRole === 'all') {
+                    isMatch = true;
+                  } else if (targetRole === 'staff') {
+                    isMatch = ['owner', 'kitchen', 'delivery', 'rider', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
+                  } else if (targetRole === 'kitchen') {
+                    isMatch = ['kitchen', 'owner', 'developer', 'grand_admin'].includes(currentUserRole);
+                  } else if (targetRole === 'delivery' || targetRole === 'rider') {
+                    isMatch = ['delivery', 'rider', 'developer', 'grand_admin'].includes(currentUserRole);
+                  } else if (targetRole === 'owner') {
+                    isMatch = ['owner', 'developer', 'grand_admin'].includes(currentUserRole);
+                  } else if (targetRole === currentUserRole) {
+                    isMatch = true;
+                  }
+                }
+              }
+
+              // Deliver DIRECT SYSTEM NOTIFICATION to device / browser if matched
+              if (isMatch) {
+                nativeNotify.displaySystemNotification({
+                  title: notif.title,
+                  body: notif.message,
+                  sound: notif.sound,
+                  priority: notif.priority,
+                  data: notif,
+                  tag: `staff-broadcast-${notif.id}`
+                });
+              }
+
+              // Always broadcast application event for live reactive views (Developer monitor, badges)
+              dispatchSafeEvent('foody:notification-received', notif);
+            } catch (notifyErr) {
+              console.warn('Realtime system notification delivery note:', notifyErr);
+            }
 
             this.notificationListeners.forEach(listener => {
               try {
