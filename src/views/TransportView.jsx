@@ -1706,7 +1706,7 @@ export default function TransportView() {
                             {getOrderDisplayToken(order)}
                           </span>
                           <span className="text-[11px] font-medium text-stone-500 dark:text-neutral-400">
-                            • {timeAgoStr}
+                            {timeAgoStr}
                           </span>
                         </div>
 

@@ -129,9 +129,21 @@ export function generateSecureOrderOTP() {
 }
 
 export function getOrderOTP(orderOrId, type = 'delivery') {
-  if (!orderOrId) return '1080';
+  if (!orderOrId) return null;
   const orderObj = typeof orderOrId === 'object' && orderOrId !== null ? orderOrId : null;
   const orderId = orderObj?.id || (typeof orderOrId === 'string' ? orderOrId : '');
+
+  // 0. Expiry Check: If order is completed/delivered or OTP was marked used, OTP is expired
+  if (orderObj) {
+    const status = String(orderObj.status || '').toLowerCase();
+    const isCompleted = ['delivered', 'completed', 'cancelled'].includes(status);
+    const isUsed = type === 'pickup'
+      ? Boolean(orderObj.pickup_otp_used_at || orderObj.pickupOtpUsedAt)
+      : Boolean(orderObj.delivery_otp_used_at || orderObj.deliveryOtpUsedAt);
+    if (isCompleted || isUsed) {
+      return null;
+    }
+  }
 
   // 1. Direct explicit OTP in order object
   if (orderObj) {
@@ -141,13 +153,15 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
     if (type === 'delivery' && (orderObj.deliveryOtp || orderObj.delivery_otp)) {
       return String(orderObj.deliveryOtp || orderObj.delivery_otp).trim();
     }
+  }
 
-    // 2. Extract authoritative 4-digit code from Universal Order Token (#FV-XXXX -> XXXX)
-    const tokenStr = String(orderObj.order_token || orderObj.orderToken || orderObj.order_short_code || orderObj.orderShortCode || '');
-    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
-    if (tokenDigits && tokenDigits.length === 4) {
-      return tokenDigits;
-    }
+  // 2. Check persistent secure storage
+  if (orderId) {
+    try {
+      const key = `foody_order_otp_${orderId}_${type}`;
+      const stored = safeStorage.getItem(key);
+      if (stored) return String(stored).trim();
+    } catch { /* ignore */ }
   }
 
   // 3. Check cached orders in memory
@@ -155,30 +169,36 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
     const cachedOrders = getCachedItem('orders', 'all') || [];
     const found = cachedOrders.find(o => o.id === orderId);
     if (found) {
+      const foundStatus = String(found.status || '').toLowerCase();
+      const isFoundCompleted = ['delivered', 'completed', 'cancelled'].includes(foundStatus);
+      const isFoundUsed = type === 'pickup'
+        ? Boolean(found.pickup_otp_used_at || found.pickupOtpUsedAt)
+        : Boolean(found.delivery_otp_used_at || found.deliveryOtpUsedAt);
+      if (isFoundCompleted || isFoundUsed) return null;
+
       if (type === 'pickup' && (found.pickupOtp || found.pickup_otp)) return String(found.pickupOtp || found.pickup_otp).trim();
       if (type === 'delivery' && (found.deliveryOtp || found.delivery_otp)) return String(found.deliveryOtp || found.delivery_otp).trim();
-      const cachedTokenStr = String(found.order_token || found.order_short_code || '');
-      const cachedTokenDigits = cachedTokenStr.replace(/\D/g, '').slice(-4);
-      if (cachedTokenDigits && cachedTokenDigits.length === 4) return cachedTokenDigits;
     }
   }
 
-  // 4. Check persistent storage
-  try {
-    const key = `foody_order_otp_${orderId}_${type}`;
-    const stored = safeStorage.getItem(key);
-    if (stored) return String(stored).trim();
-  } catch { /* ignore */ }
-
-  // 5. Extract fallback 4 numeric digits from order ID (ord-1793618514416-0dky6 -> 4416)
+  // 4. Deterministic fallback for legacy orders (Guaranteed distinct from Order Token)
   if (orderId) {
-    const idDigits = String(orderId).replace(/\D/g, '').slice(-4);
-    if (idDigits && idDigits.length === 4) {
-      return idDigits;
+    let hash = 5381;
+    const seed = `${orderId}_${type}_foody_secure_salt`;
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) + hash) + seed.charCodeAt(i);
+      hash = hash & hash;
     }
+    let otp = Math.abs(hash % 9000) + 1000;
+    const tokenStr = String(orderObj?.order_token || orderObj?.order_short_code || '');
+    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
+    if (tokenDigits && String(otp) === tokenDigits) {
+      otp = ((otp + 1111) % 9000) + 1000;
+    }
+    return String(otp);
   }
 
-  return '1080';
+  return null;
 }
 
 export function verifyOrderOTP(orderOrId, type, enteredOtp) {
@@ -193,6 +213,19 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
   const orderId = orderObj?.id || (typeof orderOrId === 'string' ? orderOrId : '');
   if (!orderId && !orderObj) return false;
 
+  // 0. Expiry Check: If already completed or used, reject
+  if (orderObj) {
+    const status = String(orderObj.status || '').toLowerCase();
+    const isCompleted = ['delivered', 'completed', 'cancelled'].includes(status);
+    const isUsed = type === 'pickup'
+      ? Boolean(orderObj.pickup_otp_used_at || orderObj.pickupOtpUsedAt)
+      : Boolean(orderObj.delivery_otp_used_at || orderObj.deliveryOtpUsedAt);
+    if (isCompleted || isUsed) {
+      console.warn(`[OTP] Order ${orderId} OTP is expired or already used.`);
+      return false;
+    }
+  }
+
   // Rate-limiting protection (max 5 failed attempts per order/type)
   const attemptKey = `foody_otp_attempts_${orderId || 'generic'}_${type}`;
   let attempts = 0;
@@ -205,7 +238,7 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     return false;
   }
 
-  // Extract set of authoritative candidates for valid OTP
+  // Extract set of authoritative candidates for valid OTP (strictly decoupled from token)
   const candidates = new Set();
 
   // Candidate A: Explicit OTP fields on order
@@ -214,27 +247,24 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
       ? (orderObj.pickup_otp || orderObj.pickupOtp)
       : (orderObj.delivery_otp || orderObj.deliveryOtp);
     if (rawOtp) candidates.add(String(rawOtp).trim());
+  }
 
-    // Candidate B: Universal Order Token digits (#FV-7330 -> 7330)
-    const tokenStr = String(orderObj.order_token || orderObj.orderToken || orderObj.order_short_code || orderObj.orderShortCode || '');
-    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
-    if (tokenDigits && tokenDigits.length === 4) candidates.add(tokenDigits);
+  // Candidate B: Persistent storage OTP
+  if (orderId) {
+    try {
+      const stored = safeStorage.getItem(`foody_order_otp_${orderId}_${type}`);
+      if (stored) candidates.add(String(stored).trim());
+    } catch { /* ignore */ }
   }
 
   // Candidate C: Standard getOrderOTP output
   const stdOtp = getOrderOTP(orderOrId, type);
   if (stdOtp) candidates.add(String(stdOtp).trim());
 
-  // Candidate D: Trailing 4 digits from order ID
-  if (orderId) {
-    const idDigits = String(orderId).replace(/\D/g, '').slice(-4);
-    if (idDigits && idDigits.length === 4) candidates.add(idDigits);
-  }
-
   // Direct match check
   let isMatch = candidates.has(cleanEntered);
 
-  // Candidate E: Hash-first fallback check if order object contains SHA-256 hash
+  // Candidate D: Cryptographic Hash check if order object contains SHA-256 hash
   if (!isMatch && orderObj) {
     const hashCol = type === 'pickup'
       ? (orderObj.pickupOtpHash || orderObj.pickup_otp_hash)
@@ -251,9 +281,10 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     return false;
   }
 
-  // Success: Clear attempt counter
+  // Success: Clear attempt counter and expire client-side stored OTP
   try {
     safeStorage.removeItem(attemptKey);
+    safeStorage.removeItem(`foody_order_otp_${orderId}_${type}`);
   } catch { /* ignore */ }
   return true;
 }

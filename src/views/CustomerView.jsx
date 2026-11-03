@@ -2249,13 +2249,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         const bannerItemsCount = bannerItems.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
         const bannerTotal = Number(currentActiveOrder.totalAmount || currentActiveOrder.total_amount || 0);
         const isPickup = currentActiveOrder.fulfillment_type === 'pickup' || currentActiveOrder.fulfillmentType === 'pickup';
-        const currentOtp = getOrderOTP(currentActiveOrder, isPickup ? 'pickup' : 'delivery');
-        const displayToken = getOrderDisplayToken(currentActiveOrder);
-
         const statusLower = (currentActiveOrder.status || '').toLowerCase();
         const isOutForDelivery = statusLower === 'out_for_delivery' || statusLower === 'in_transit';
         const isReady = statusLower === 'ready_for_pickup' || statusLower === 'ready';
         const isCompleted = statusLower === 'completed' || statusLower === 'delivered';
+        const currentOtp = isCompleted ? null : getOrderOTP(currentActiveOrder, isPickup ? 'pickup' : 'delivery');
+        const displayToken = getOrderDisplayToken(currentActiveOrder);
 
         const statusHeadline = isOutForDelivery
           ? 'Rider is on the way!'
@@ -2343,7 +2342,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
                 {/* Right: OTP + Track Live + Expand */}
                 <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {currentOtp && (
+                  {isCompleted ? (
+                    <div className="h-7 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-1">
+                      <Check size={11} className="text-emerald-500 stroke-[3]" />
+                      <span className="font-bold text-[11px] text-emerald-600 dark:text-emerald-400 font-['Outfit']">Verified</span>
+                    </div>
+                  ) : currentOtp ? (
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
@@ -2365,7 +2369,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         <Copy size={10} className="text-stone-400 opacity-60 ml-0.5" />
                       )}
                     </div>
-                  )}
+                  ) : null}
 
                   <button
                     type="button"
@@ -2492,7 +2496,12 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   {/* Right: Integrated OTP Pill + Track Map Button */}
                   <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
                     {/* Delivery / Counter OTP Badge */}
-                    {currentOtp && (
+                    {isCompleted ? (
+                      <div className="h-9 px-3 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-1.5">
+                        <Check size={13} className="text-emerald-500 stroke-[3]" />
+                        <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400 font-['Outfit']">Verified</span>
+                      </div>
+                    ) : currentOtp ? (
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2517,7 +2526,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           <Copy size={11} className="text-stone-500 dark:text-stone-400 group-hover/otp:text-stone-800 dark:group-hover/otp:text-white ml-0.5 opacity-70" />
                         )}
                       </div>
-                    )}
+                    ) : null}
 
                     {/* Track Map CTA */}
                     <button

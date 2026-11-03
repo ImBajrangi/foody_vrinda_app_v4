@@ -314,7 +314,7 @@ export async function getCloudUsers(forceRefresh = false) {
     try {
       // 1. Fetch from foody_logged_users (with safe order fallback & bounded limit)
       let loggedData = [];
-      const LOGGED_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, last_login_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
+      const LOGGED_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, fcm_token, last_login_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
       try {
         const { data, error } = await supabase
           .from('foody_logged_users')
@@ -330,7 +330,7 @@ export async function getCloudUsers(forceRefresh = false) {
 
       // 2. Fetch from foody_users as well to ensure total multi-app sync
       let usersData = [];
-      const USERS_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, last_seen_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
+      const USERS_FIELDS = 'id, display_name, email, phone, avatar_url, role, shop_id, shop_ids, is_active, is_online, duty_status, fcm_token, last_seen_at, can_deliver, delivery_status, delivery_type, created_at, updated_at';
       try {
         const { data, error } = await supabase
           .from('foody_users')
@@ -397,7 +397,9 @@ export async function getCloudUsers(forceRefresh = false) {
             self_delivery: Boolean(userCandidate.self_delivery ?? userCandidate.selfDelivery ?? prev.self_delivery ?? prev.selfDelivery ?? false),
             selfDelivery: Boolean(userCandidate.self_delivery ?? userCandidate.selfDelivery ?? prev.self_delivery ?? prev.selfDelivery ?? false),
             isActive: userCandidate.isActive !== undefined ? userCandidate.isActive : (prev.isActive ?? true),
-            is_active: userCandidate.is_active !== undefined ? userCandidate.is_active : (prev.is_active ?? true)
+            is_active: userCandidate.is_active !== undefined ? userCandidate.is_active : (prev.is_active ?? true),
+            fcm_token: userCandidate.fcm_token || userCandidate.fcmToken || prev.fcm_token || prev.fcmToken || null,
+            fcmToken: userCandidate.fcm_token || userCandidate.fcmToken || prev.fcm_token || prev.fcmToken || null
           };
         } else {
           deduplicatedUsers.push(userCandidate);
@@ -437,6 +439,8 @@ export async function getCloudUsers(forceRefresh = false) {
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
           deliveryType: u.delivery_type || 'independent',
+          fcm_token: u.fcm_token || null,
+          fcmToken: u.fcm_token || null,
           lastLoginAt: u.last_seen_at || u.updated_at || u.created_at,
           last_seen_at: u.last_seen_at || u.updated_at || u.created_at,
           createdAt: u.created_at,
@@ -472,6 +476,8 @@ export async function getCloudUsers(forceRefresh = false) {
           deliveryStatus: u.delivery_status || 'approved',
           delivery_type: u.delivery_type || 'independent',
           deliveryType: u.delivery_type || 'independent',
+          fcm_token: u.fcm_token || null,
+          fcmToken: u.fcm_token || null,
           lastLoginAt: u.last_login_at || u.updated_at || u.created_at,
           last_seen_at: u.updated_at || u.last_login_at || u.created_at,
           createdAt: u.created_at,

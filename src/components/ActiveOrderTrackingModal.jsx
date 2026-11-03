@@ -822,7 +822,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               setIsExpanded(!isExpanded);
             }}
             className="sticky top-0 z-40 bg-[#181617]/95 backdrop-blur-md pt-3 pb-2.5 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none border-b border-white/[0.06]"
-            title="Tap to toggle • Drag down to close"
+            aria-label="Toggle bottom sheet height"
           >
             <div className="w-12 h-1.5 bg-white/30 hover:bg-white/50 rounded-full mb-2.5 transition-colors" />
             <div className="w-full flex items-center justify-between text-stone-300 text-[11px] font-bold">
@@ -875,7 +875,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 setIsExpanded(true);
               }}
               className="px-4 pb-3 flex items-center justify-between cursor-pointer select-none touch-none"
-              title="Tap to expand details • Drag down to close"
+              aria-label="Expand order details"
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-3">
                 <div className="w-9 h-9 rounded-xl bg-[#221F20] border border-white/10 flex items-center justify-center text-[#FD9139] shrink-0 shadow-sm">

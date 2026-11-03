@@ -276,6 +276,8 @@ export default function DeveloperView({ setCurrentTab }) {
     uiLab: false
   });
 
+  const [usersList, setUsersList] = useState(() => getCachedUsers());
+
   // --- REALTIME STAFF BROADCAST STATE ---
   const [broadcastTargetCategory, setBroadcastTargetCategory] = useState('staff');
   const [broadcastShopId, setBroadcastShopId] = useState('all');
@@ -317,8 +319,13 @@ export default function DeveloperView({ setCurrentTab }) {
   }, [usersList, broadcastTargetCategory, broadcastTargetUserId, broadcastShopId]);
 
   const fcmDeviceCount = useMemo(() => {
-    return filteredBroadcastRecipients.filter(u => Boolean(u.fcm_token || u.fcmToken)).length;
-  }, [filteredBroadcastRecipients]);
+    const listCount = filteredBroadcastRecipients.filter(u => Boolean(u.fcm_token || u.fcmToken)).length;
+    const localFcm = typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null;
+    if (localFcm && listCount === 0 && filteredBroadcastRecipients.some(u => u.id === activeUser?.id)) {
+      return 1;
+    }
+    return listCount;
+  }, [filteredBroadcastRecipients, activeUser]);
 
   // Request browser permission for system notifications
   const handleRequestWebPermission = async () => {
@@ -521,7 +528,6 @@ export default function DeveloperView({ setCurrentTab }) {
     stopAlarm
   } = useAudioAlarm();
 
-  const [usersList, setUsersList] = useState(() => getCachedUsers());
   const [isSyncingAccount, setIsSyncingAccount] = useState(false);
 
   // Helper for deep equality comparison of list entities to prevent DOM flicker
@@ -543,6 +549,7 @@ export default function DeveloperView({ setCurrentTab }) {
       if (itemA.shopId !== itemB.shopId) return false;
       if (itemA.active !== itemB.active || itemA.isActive !== itemB.isActive || itemA.is_active !== itemB.is_active) return false;
       if (itemA.onlinePaymentsEnabled !== itemB.onlinePaymentsEnabled || itemA.codEnabled !== itemB.codEnabled) return false;
+      if ((itemA.fcm_token || itemA.fcmToken) !== (itemB.fcm_token || itemB.fcmToken)) return false;
     }
     return true;
   };
@@ -2054,22 +2061,29 @@ export default function DeveloperView({ setCurrentTab }) {
                         prio: 'normal',
                         snd: 'natural_water_drop'
                       }
-                    ].map((tpl, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setBroadcastTargetCategory(tpl.cat);
-                          setBroadcastTitle(tpl.title);
-                          setBroadcastMessage(tpl.msg);
-                          setBroadcastPriority(tpl.prio);
-                          setBroadcastSound(tpl.snd);
-                        }}
-                        className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-stone-200/70 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 text-stone-700 hover:text-stone-900 dark:text-neutral-300 dark:hover:text-white transition-all cursor-pointer border border-stone-300/40 dark:border-white/5"
-                      >
-                        {tpl.label}
-                      </button>
-                    ))}
+                    ].map((tpl, idx) => {
+                      const isTemplateActive = broadcastTitle === tpl.title;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setBroadcastTargetCategory(tpl.cat);
+                            setBroadcastTitle(tpl.title);
+                            setBroadcastMessage(tpl.msg);
+                            setBroadcastPriority(tpl.prio);
+                            setBroadcastSound(tpl.snd);
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border shadow-2xs ${isTemplateActive
+                            ? 'bg-amber-600 dark:bg-[#FD9139] !text-white border-transparent shadow-xs ring-2 ring-amber-500/20'
+                            : 'bg-white dark:bg-[#151314] hover:bg-amber-500/10 dark:hover:bg-[#FD9139]/15 text-stone-700 dark:text-stone-300 hover:text-amber-700 dark:hover:text-[#FD9139] border-stone-200/90 dark:border-white/10 hover:border-amber-500/30 dark:hover:border-[#FD9139]/30'
+                            }`}
+                          style={isTemplateActive ? { color: '#ffffff' } : undefined}
+                        >
+                          <span style={isTemplateActive ? { color: '#ffffff' } : undefined}>{tpl.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -2099,13 +2113,31 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={cat.id}
                               type="button"
                               onClick={() => setBroadcastTargetCategory(cat.id)}
-                              className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${isSelected
-                                ? 'bg-amber-600 text-white border-transparent dark:bg-[#FD9139] dark:text-white shadow-sm font-black'
-                                : 'bg-stone-50 hover:bg-stone-200/70 text-stone-800 border-stone-200 dark:bg-[#1E1B1C] dark:text-neutral-300 dark:border-white/5 dark:hover:bg-white/10'
+                              className={`p-3 rounded-2xl text-left border transition-all cursor-pointer shadow-xs relative overflow-hidden ${isSelected
+                                ? 'bg-gradient-to-r from-amber-600 to-[#CB785C] dark:from-[#FD9139] dark:to-[#CB785C] !text-white border-transparent shadow-md ring-2 ring-amber-500/30'
+                                : 'bg-white dark:bg-[#151314] hover:bg-stone-100 dark:hover:bg-white/5 text-stone-900 dark:text-neutral-200 border-stone-200/90 dark:border-white/10'
                                 }`}
+                              style={isSelected ? { color: '#ffffff' } : undefined}
                             >
-                              <p className="text-xs font-bold truncate leading-tight">{cat.label}</p>
-                              <p className={`text-[10px] truncate mt-0.5 ${isSelected ? 'text-white/80' : 'text-stone-500 dark:text-neutral-500'}`}>{cat.desc}</p>
+                              <div className="flex items-center justify-between gap-1">
+                                <p
+                                  className={`text-xs font-black truncate leading-tight font-['Outfit'] ${isSelected ? '!text-white' : 'text-stone-900 dark:text-white'}`}
+                                  style={isSelected ? { color: '#ffffff' } : undefined}
+                                >
+                                  {cat.label}
+                                </p>
+                                {isSelected && (
+                                  <span className="w-4 h-4 rounded-full bg-white/25 flex items-center justify-center shrink-0">
+                                    <Check size={10} strokeWidth={3} className="text-white" />
+                                  </span>
+                                )}
+                              </div>
+                              <p
+                                className={`text-[10px] truncate mt-1 ${isSelected ? '!text-white/90 font-medium' : 'text-stone-500 dark:text-neutral-400'}`}
+                                style={isSelected ? { color: 'rgba(255, 255, 255, 0.92)' } : undefined}
+                              >
+                                {cat.desc}
+                              </p>
                             </button>
                           );
                         })}
@@ -2143,7 +2175,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       <select
                         value={broadcastShopId}
                         onChange={(e) => setBroadcastShopId(e.target.value)}
-                        className="w-full text-xs font-medium p-2.5 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500"
+                        className="w-full text-xs font-semibold p-3 rounded-xl bg-white dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 outline-none focus:border-amber-500 shadow-2xs"
                       >
                         <option value="all">🌐 All Kitchens & Branches (Global Broadcast)</option>
                         {allShops.map(s => (
@@ -2155,7 +2187,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     </div>
 
                     {/* Notification Title & Body */}
-                    <div className="space-y-3 p-4 rounded-2xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5">
+                    <div className="space-y-3.5 p-4 rounded-2xl bg-white dark:bg-[#151314] border border-stone-200/90 dark:border-white/10 shadow-xs">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center justify-between">
                           <span>3. Notification Title</span>
@@ -2166,7 +2198,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={broadcastTitle}
                           onChange={(e) => setBroadcastTitle(e.target.value)}
                           placeholder="e.g. ⚡ Kitchen Rush Alert #FV-108"
-                          className="w-full text-xs font-bold p-2.5 rounded-xl bg-stone-100 dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500"
+                          className="w-full text-xs font-bold p-3 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-amber-500"
                         />
                       </div>
 
@@ -2180,12 +2212,12 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={broadcastMessage}
                           onChange={(e) => setBroadcastMessage(e.target.value)}
                           placeholder="Type clear instructions for staff..."
-                          className="w-full text-xs font-medium p-2.5 rounded-xl bg-stone-100 dark:bg-[#151314] text-stone-900 dark:text-white border border-stone-200 dark:border-white/10 outline-none focus:border-amber-500 resize-none leading-relaxed"
+                          className="w-full text-xs font-medium p-3 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-amber-500 resize-none leading-relaxed"
                         />
                       </div>
 
                       {/* Priority Selector */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-stone-200 dark:border-white/5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/80 dark:border-white/10">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400">Priority:</span>
                           {[
@@ -2197,13 +2229,13 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={prio.id}
                               type="button"
                               onClick={() => setBroadcastPriority(prio.id)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${broadcastPriority === prio.id
-                                ? 'bg-amber-600 text-white dark:bg-[#FD9139] dark:text-white font-black'
-                                : 'bg-stone-200/70 dark:bg-white/5 text-stone-700 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${broadcastPriority === prio.id
+                                ? 'bg-gradient-to-r from-amber-600 to-[#CB785C] dark:from-[#FD9139] dark:to-[#CB785C] !text-white font-black shadow-xs'
+                                : 'bg-stone-100 hover:bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white border border-stone-200/70 dark:border-white/5'
                                 }`}
                               title={prio.desc}
                             >
-                              {prio.label}
+                              <span className={broadcastPriority === prio.id ? '!text-white' : ''}>{prio.label}</span>
                             </button>
                           ))}
                         </div>
@@ -2212,7 +2244,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         <button
                           type="button"
                           onClick={handleTestMySystem}
-                          className="px-3 py-1.5 rounded-xl bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                          className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs border border-stone-200/80 dark:border-white/10"
                           title="Fires direct test notification on your current device right now"
                         >
                           <Smartphone className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
@@ -2226,17 +2258,17 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={handleSendBroadcast}
                       disabled={isBroadcasting || !broadcastTitle.trim() || !broadcastMessage.trim()}
-                      className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] disabled:opacity-50 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98 cursor-pointer font-['Outfit']"
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-[#CB785C] hover:from-amber-700 hover:to-[#B6654A] dark:from-[#FD9139] dark:to-[#CB785C] disabled:opacity-50 !text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98 cursor-pointer font-['Outfit']"
                     >
                       {isBroadcasting ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin text-white" />
-                          <span>Dispatching Realtime Broadcast...</span>
+                          <Loader2 className="w-4 h-4 animate-spin !text-white" />
+                          <span className="!text-white">Dispatching Realtime Broadcast...</span>
                         </>
                       ) : (
                         <>
-                          <Send className="w-4 h-4 text-white stroke-[2.5]" />
-                          <span>Dispatch Realtime Broadcast to {filteredBroadcastRecipients.length} User(s)</span>
+                          <Send className="w-4 h-4 !text-white stroke-[2.5]" />
+                          <span className="!text-white">Dispatch Realtime Broadcast to {filteredBroadcastRecipients.length} User(s)</span>
                         </>
                       )}
                     </button>

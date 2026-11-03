@@ -259,13 +259,20 @@ export async function createCloudOrder(orderData) {
 
     // Single Source of Truth: Authoritative Universal Order Token (#FV-XXXX)
     const orderToken = orderData.order_token || orderData.orderToken || orderData.order_short_code || orderData.orderShortCode || generateUniversalOrderToken();
+    const tokenDigits = String(orderToken).replace(/\D/g, '').slice(-4);
 
-    // 🔐 UNIFIED UNIVERSAL TOKEN & OTP SYSTEM:
-    // The 4 numeric digits of the order token (#FV-XXXX -> XXXX) are permanently synchronized as the OTP!
-    // Customer, Kitchen Chef, Sarathi Rider, and PostgreSQL Database all share the identical 4-digit code.
-    const tokenDigits = String(orderToken).replace(/\D/g, '').slice(-4) || generateSecureOrderOTP();
-    const generatedPickupOtp = tokenDigits;
-    const generatedDeliveryOtp = tokenDigits;
+    // 🔐 UNIQUE, INDEPENDENT WORKING OTP:
+    // OTP is decoupled from the Order Token (#FV-XXXX) to guarantee secrecy and distinctness.
+    let generatedDeliveryOtp = orderData.delivery_otp || orderData.deliveryOtp || generateSecureOrderOTP();
+    // Guarantee that OTP is distinct from the order token digits
+    while (tokenDigits && generatedDeliveryOtp === tokenDigits) {
+      generatedDeliveryOtp = generateSecureOrderOTP();
+    }
+
+    let generatedPickupOtp = orderData.pickup_otp || orderData.pickupOtp || generateSecureOrderOTP();
+    while ((tokenDigits && generatedPickupOtp === tokenDigits) || generatedPickupOtp === generatedDeliveryOtp) {
+      generatedPickupOtp = generateSecureOrderOTP();
+    }
 
     // Active food delivery order preparation, cooking, transit, and handover regularly spans 30-90+ mins.
     // OTP is kept valid for the full 24-hour active fulfillment window to prevent premature rejection.
@@ -274,6 +281,12 @@ export async function createCloudOrder(orderData) {
     // 🔐 Compute SHA-256 cryptographic hashes for atomic database verification
     const pickupOtpHash = await computeSha256Hex(generatedPickupOtp);
     const deliveryOtpHash = await computeSha256Hex(generatedDeliveryOtp);
+
+    // Persist OTPs in secure local storage for instant retrieval & offline resilience
+    try {
+      safeStorage.setItem(`foody_order_otp_${orderId}_delivery`, generatedDeliveryOtp);
+      safeStorage.setItem(`foody_order_otp_${orderId}_pickup`, generatedPickupOtp);
+    } catch { /* ignore */ }
 
     const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null) || null;
 
@@ -538,6 +551,10 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       rider_rating: 'rider_rating',
       riderAvatar: 'rider_avatar',
       rider_avatar: 'rider_avatar',
+      deliveryOtpUsedAt: 'delivery_otp_used_at',
+      delivery_otp_used_at: 'delivery_otp_used_at',
+      pickupOtpUsedAt: 'pickup_otp_used_at',
+      pickup_otp_used_at: 'pickup_otp_used_at',
       createdBy: 'created_by',
       created_by: 'created_by'
     };
@@ -549,6 +566,17 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
           payload[dbCol] = value;
         }
       }
+    }
+
+    // 🔐 Expiry & Settlement Guard: When order is delivered/completed, mark OTP used & expire local cache
+    if (payload.status === 'delivered' || payload.status === 'completed') {
+      if (!payload.delivery_otp_used_at) {
+        payload.delivery_otp_used_at = new Date().toISOString();
+      }
+      try {
+        safeStorage.removeItem(`foody_order_otp_${orderId}_delivery`);
+        safeStorage.removeItem(`foody_order_otp_${orderId}_pickup`);
+      } catch { /* ignore */ }
     }
 
     // Immediately update local caches for zero perceived latency
@@ -812,36 +840,80 @@ export async function claimOrderPickupAtomic(orderId, riderId, otpInput) {
  */
 export async function verifyDeliveryOtpAtomic(orderId, riderId, otpInput) {
   try {
+    const cleanOtp = String(otpInput).trim();
     const { data, error } = await supabase.rpc('verify_delivery_otp_atomic', {
       p_order_id: orderId,
       p_rider_id: riderId,
-      p_otp_input: String(otpInput).trim()
+      p_otp_input: cleanOtp
     });
 
     if (error) {
       console.warn('verifyDeliveryOtpAtomic RPC note:', error.message);
-      // Graceful fallback for state machine conflicts (e.g. picked_up -> delivered) or legacy orders
+
+      // 🔐 Strictly REJECT invalid OTP attempts — never complete on wrong PIN!
       if (
-        error.message?.includes('No OTP configured') ||
-        error.message?.includes('State Machine Violation') ||
-        error.message?.includes('STATE_ERROR') ||
-        error.message?.includes('Invalid delivery OTP')
+        error.message?.includes('Invalid delivery OTP') ||
+        error.message?.includes('rate limit exceeded')
       ) {
-        console.warn(`[OTP] Order ${orderId} delivery completion fallback triggered.`);
-        const fallbackRes = await updateCloudOrderStatus(orderId, 'completed', {
-          cash_status: 'collected',
-          delivered_at: new Date().toISOString()
-        });
-        return { success: true, fallback: true, data: fallbackRes };
+        return { success: false, error: 'Incorrect OTP entered. Please ask customer for the correct 4-digit PIN.' };
       }
+
+      if (error.message?.includes('already been used') || error.message?.includes('expired')) {
+        return { success: false, error: 'This delivery OTP has already expired or been used.' };
+      }
+
+      // Concurrency/fallback check for RPC permission or caller-id issues:
+      // Verify directly against order row in foody_orders
+      try {
+        const { data: ord, error: ordErr } = await supabase
+          .from('foody_orders')
+          .select('id, delivery_otp, delivery_otp_hash, delivery_otp_used_at, status, shop_id')
+          .eq('id', orderId)
+          .single();
+
+        if (!ordErr && ord) {
+          if (ord.delivery_otp_used_at || ord.status === 'delivered' || ord.status === 'completed') {
+            return { success: false, error: 'Delivery OTP has already expired.' };
+          }
+          const enteredHash = await computeSha256Hex(cleanOtp);
+          const matchesHash = ord.delivery_otp_hash && (ord.delivery_otp_hash === enteredHash);
+          const matchesPlain = ord.delivery_otp && (String(ord.delivery_otp).trim() === cleanOtp);
+          const localStoredOtp = safeStorage.getItem(`foody_order_otp_${orderId}_delivery`);
+          const matchesLocal = localStoredOtp && cleanOtp === String(localStoredOtp).trim();
+
+          if (matchesHash || matchesPlain || matchesLocal) {
+            // Valid OTP! Mark delivered and expire OTP atomically
+            const fallbackRes = await updateCloudOrderStatus(orderId, 'completed', {
+              delivery_otp: null,
+              delivery_otp_used_at: new Date().toISOString(),
+              delivered_at: new Date().toISOString(),
+              cash_status: 'collected'
+            });
+            try {
+              safeStorage.removeItem(`foody_order_otp_${orderId}_delivery`);
+            } catch { /* ignore */ }
+            return { success: true, fallback: true, data: fallbackRes };
+          } else {
+            return { success: false, error: 'Incorrect OTP entered. Please ask customer for the correct 4-digit PIN.' };
+          }
+        }
+      } catch (checkErr) {
+        console.warn('Fallback direct order OTP verification check exception:', checkErr);
+      }
+
       return { success: false, error: error.message, code: error.code };
     }
+
+    // Success via RPC: clear client storage so OTP expires immediately
+    try {
+      safeStorage.removeItem(`foody_order_otp_${orderId}_delivery`);
+    } catch { /* ignore */ }
 
     // Invalidate local cache and sync updated order
     ['all', data?.shop_id].filter(Boolean).forEach(sKey => {
       const cached = getCachedItem('orders', sKey);
       if (cached && Array.isArray(cached)) {
-        const updated = cached.map(o => o.id === orderId ? { ...o, ...data } : o);
+        const updated = cached.map(o => o.id === orderId ? { ...o, ...data, delivery_otp: null } : o);
         setCachedItem('orders', sKey, updated);
       }
     });

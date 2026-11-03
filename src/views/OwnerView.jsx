@@ -187,6 +187,7 @@ export default function OwnerView() {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
+  const lastLoadedShopIdRef = useRef(activeShopId);
 
   // Responsive Onboarding Tour Tab Auto-Switch Listener
   useEffect(() => {
@@ -898,6 +899,7 @@ export default function OwnerView() {
             (o.shop_id ?? o.shopId) === requestedShopId &&
             !purged.includes(o.id)
           );
+          lastLoadedShopIdRef.current = requestedShopId;
           setOrders(isolatedData.map(o => ({
             id: o.id,
             ...o,
@@ -1085,6 +1087,10 @@ export default function OwnerView() {
   // 10. CROSS-SHOP DEV ASSERTION
   useEffect(() => {
     if (import.meta.env?.DEV || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) {
+      // Guard: Only verify once orders state has settled for the active shop
+      // to eliminate false-positive transition noise when switching kitchen branches
+      if (!activeShopId || lastLoadedShopIdRef.current !== activeShopId) return;
+
       orders.forEach(order => {
         const orderShopId = order.shop_id ?? order.shopId;
         if (activeShopId && orderShopId && orderShopId !== activeShopId) {
