@@ -2222,56 +2222,63 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
         const currentOtp = getOrderOTP(currentActiveOrder, isPickup ? 'pickup' : 'delivery');
         const displayToken = getOrderDisplayToken(currentActiveOrder);
 
+        const statusLower = (currentActiveOrder.status || '').toLowerCase();
+        const isOutForDelivery = statusLower === 'out_for_delivery' || statusLower === 'in_transit';
+        const isReady = statusLower === 'ready_for_pickup' || statusLower === 'ready';
+        const isCompleted = statusLower === 'completed' || statusLower === 'delivered';
+
+        const statusHeadline = isOutForDelivery
+          ? 'Rider is on the way!'
+          : isReady
+            ? (isPickup ? 'Prasad ready at counter!' : 'Packed & waiting for rider')
+            : isCompleted
+              ? 'Order delivered successfully!'
+              : 'Cooking in sacred kitchen...';
+
         return (
-          <div className="mb-6 space-y-2.5">
+          <div className="mb-6 space-y-3">
             {/* Multi-Order Tabs Switcher Strip (Rendered when 2+ active orders exist) */}
             {activeCustomerOrders.length > 1 && (
-              <div className="flex items-center justify-between gap-2 px-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] font-['Outfit']">
-                    Active Orders ({activeCustomerOrders.length})
-                  </span>
-                  <span className="text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
-                    Tap to view details & OTP
-                  </span>
+              <div className="space-y-1.5 px-0.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-[#FD9139] font-['Outfit']">
+                      Active Orders ({activeCustomerOrders.length})
+                    </span>
+                    <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium">
+                      • Tap to switch
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {activeCustomerOrders.length > 1 && (
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                {activeCustomerOrders.map(ord => {
-                  const isSelected = ord.id === currentActiveOrder.id;
-                  const token = getOrderDisplayToken(ord);
-                  const ordIsPickup = ord.fulfillment_type === 'pickup' || ord.fulfillmentType === 'pickup';
-                  const otp = getOrderOTP(ord, ordIsPickup ? 'pickup' : 'delivery');
-                  return (
-                    <button
-                      key={ord.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedActiveOrderId(ord.id);
-                        setTrackingOrder(ord);
-                      }}
-                      className={`px-3 py-2 rounded-2xl flex items-center gap-2 border text-xs transition-all cursor-pointer shrink-0 ${
-                        isSelected
-                          ? 'bg-[#FD9139] text-[#121214] font-black border-[#FD9139] shadow-md shadow-[#FD9139]/25 scale-[1.02]'
-                          : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-zinc-300 border-stone-200 dark:border-white/10 hover:border-amber-500/40'
-                      }`}
-                    >
-                      <span className="font-mono font-black">{token}</span>
-                      <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-[#121214]' : 'bg-emerald-500'} animate-pulse`} />
-                      <span className="capitalize font-bold text-[11px] truncate max-w-[90px]">
-                        {ord.status?.replace(/_/g, ' ')}
-                      </span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-black ${
-                        isSelected ? 'bg-black/15 text-[#121214]' : 'bg-amber-500/15 text-amber-700 dark:text-[#FD9139]'
-                      }`}>
-                        OTP {otp}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                  {activeCustomerOrders.map(ord => {
+                    const isSelected = ord.id === currentActiveOrder.id;
+                    const token = getOrderDisplayToken(ord);
+                    const ordStatus = (ord.status || 'new').replace(/_/g, ' ');
+                    return (
+                      <button
+                        key={ord.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedActiveOrderId(ord.id);
+                          setTrackingOrder(ord);
+                        }}
+                        className={`h-9 px-3.5 rounded-full flex items-center gap-2 border text-xs font-bold transition-all cursor-pointer shrink-0 font-['Outfit'] ${
+                          isSelected
+                            ? 'bg-[#FD9139] text-stone-950 border-[#FD9139] shadow-sm font-black'
+                            : 'bg-white dark:bg-[#1E1B1C] text-stone-700 dark:text-stone-300 border-stone-200/90 dark:border-white/10 hover:border-amber-500/40'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-stone-950' : 'bg-emerald-500'} animate-pulse shrink-0`} />
+                        <span className="font-mono tracking-tight">{token}</span>
+                        <span className={`capitalize text-[11px] font-semibold truncate max-w-[85px] ${isSelected ? 'text-stone-950/80' : 'text-stone-500 dark:text-stone-400'}`}>
+                          {ordStatus}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -2281,22 +2288,24 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 setTrackingOrder(currentActiveOrder);
                 setIsTrackingModalOpen(true);
               }}
-              className="bg-gradient-to-br from-white via-[#FAF7F2] to-[#F5EFEB] dark:from-[#282526] dark:via-[#221F20] dark:to-[#1C1A1B] border border-amber-500/25 dark:border-[#FD9139]/25 rounded-[26px] sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(28,25,23,0.06)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.45)] relative apple-modal-spring overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 transition-all active:scale-[0.99] space-y-3"
+              className="bg-white dark:bg-[#1E1B1C] border border-amber-500/25 dark:border-white/10 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)] relative overflow-hidden cursor-pointer group hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 transition-colors space-y-3.5"
             >
-              {/* Subtle Accent Glow Line */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/60 dark:via-[#FD9139]/60 to-transparent pointer-events-none" />
+              {/* Top Accent Orange Gradient Highlight Line */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FD9139]/70 to-transparent pointer-events-none" />
 
-              {/* Top Row: Status Capsule + Order Token on Left | Dismiss X on Right */}
+              {/* Top Row: Token Pill + Live Pulse Indicator on Left | Dismiss (X) on Right */}
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 text-amber-900 dark:text-[#FD9139] text-[10px] sm:text-xs font-black uppercase tracking-wider font-['Outfit'] shrink-0">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  {/* Live Status Pill */}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] sm:text-[11px] font-black uppercase tracking-wider font-['Outfit'] shrink-0">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 dark:bg-[#FD9139] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 dark:bg-[#FD9139]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <span>Active Order</span>
+                    <span>Live Tracking</span>
                   </span>
 
+                  {/* Universal Token Badge */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -2306,26 +2315,25 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       showToast(`Copied Token ${displayToken}`, 'success');
                       setTimeout(() => setCopiedOtpId(null), 2000);
                     }}
-                    className="text-[11px] sm:text-xs font-black text-amber-700 dark:text-[#FD9139] font-mono tracking-tight shrink-0 bg-amber-500/10 dark:bg-[#FD9139]/10 px-2 py-0.5 rounded-md flex items-center gap-1 hover:bg-amber-500/20 transition-colors"
+                    className="text-xs font-black text-amber-800 dark:text-[#FD9139] font-mono tracking-tight shrink-0 bg-amber-500/10 dark:bg-[#FD9139]/10 px-2.5 py-1 rounded-lg border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center gap-1.5 hover:bg-amber-500/20 transition-colors cursor-pointer"
                     title="Tap to copy token"
                   >
                     <span>{displayToken}</span>
                     {copiedOtpId === `token_${currentActiveOrder.id}` ? (
-                      <Check size={11} className="text-emerald-500" />
+                      <Check size={12} className="text-emerald-500 stroke-[3]" />
                     ) : (
-                      <Copy size={11} className="opacity-60" />
+                      <Copy size={12} className="opacity-60" />
                     )}
                   </button>
 
-                  <span className="text-[11px] font-bold text-stone-400 dark:text-zinc-500 shrink-0">·</span>
-
-                  <span className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 capitalize truncate">
-                    {currentActiveOrder.status?.replace(/_/g, ' ')}
+                  <span className="text-xs font-bold text-stone-500 dark:text-stone-400 capitalize truncate">
+                    • {currentActiveOrder.status?.replace(/_/g, ' ')}
                   </span>
                 </div>
 
-                {/* Dismiss X Button (Removes order from active tracker) */}
+                {/* Dismiss X Button */}
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveCustomerOrders(prev => prev.filter(o => o.id !== currentActiveOrder.id));
@@ -2335,15 +2343,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       setTrackingOrder(next || null);
                     }
                   }}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 text-stone-600 hover:text-stone-950 dark:text-zinc-300 dark:hover:text-white flex items-center justify-center border border-stone-300/80 dark:border-white/10 shadow-xs shrink-0 cursor-pointer transition-all active:scale-90"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.16] text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white flex items-center justify-center border border-stone-200/80 dark:border-white/10 transition-colors shrink-0 cursor-pointer"
                   title="Dismiss banner"
                   aria-label="Dismiss tracking banner"
                 >
-                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <X className="w-3.5 h-3.5 stroke-[2.4]" />
                 </button>
               </div>
 
-              {/* 🔐 PROMINENT OTP BADGE (Always visible so customer can verify instantly) */}
+              {/* 🔐 PROMINENT VIP OTP CARD (Clean, High-Contrast Luxury Design) */}
               <div
                 onClick={(e) => {
                   e.stopPropagation();
@@ -2352,30 +2360,28 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   showToast(`Copied OTP ${currentOtp}`, 'success');
                   setTimeout(() => setCopiedOtpId(null), 2000);
                 }}
-                className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 hover:border-amber-500/50 transition-all cursor-pointer shadow-xs"
+                className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-amber-50/70 dark:bg-[#151314] border border-amber-500/25 dark:border-[#FD9139]/25 hover:border-amber-500/40 dark:hover:border-[#FD9139]/40 transition-colors cursor-pointer shadow-2xs"
                 title="Tap to copy OTP"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 dark:bg-[#FD9139]/25 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
-                    <KeyRound size={16} className="stroke-[2.5]" />
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0">
+                    <KeyRound size={17} className="stroke-[2.5]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-900 dark:text-[#FD9139] font-['Outfit']">
-                        {isPickup ? 'Counter Pickup Token' : 'Delivery Verification OTP'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-stone-600 dark:text-zinc-300 truncate font-medium">
-                      {isPickup ? 'Show to kitchen staff at counter' : 'Share with Sarathi upon delivery'}
+                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-900 dark:text-stone-200 font-['Outfit'] block truncate">
+                      {isPickup ? 'Counter Pickup Token' : 'Delivery Verification OTP'}
+                    </span>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate font-medium">
+                      {isPickup ? 'Share with kitchen staff at counter' : 'Share with Sarathi rider upon delivery'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-amber-800 dark:text-[#FD9139] px-3 py-1 rounded-xl bg-white dark:bg-[#151314] border border-amber-500/40 dark:border-[#FD9139]/40 shadow-xs">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-amber-800 dark:text-[#FD9139] px-3 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] border border-amber-500/30 dark:border-[#FD9139]/35 shadow-xs">
                     {currentOtp}
                   </span>
-                  <div className="w-8 h-8 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center text-stone-600 dark:text-white border border-stone-200 dark:border-white/10 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-white dark:bg-white/[0.08] hover:bg-stone-100 dark:hover:bg-white/[0.15] flex items-center justify-center text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white border border-stone-200 dark:border-white/10 transition-colors shrink-0">
                     {copiedOtpId === currentActiveOrder.id ? (
                       <Check size={14} className="text-emerald-500 stroke-[3]" />
                     ) : (
@@ -2385,45 +2391,40 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 </div>
               </div>
 
-              {/* Main Content & Action Row */}
-              <div className="flex items-center justify-between gap-3 pt-1">
+              {/* Bottom Row: Order Status, Price & Brand Track Map CTA */}
+              <div className="flex items-center justify-between gap-3 pt-0.5">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-700 dark:text-[#FD9139] shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-xs">
                     <Navigation className="w-4.5 h-4.5 fill-current" />
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-[#FD9139] truncate">
-                      <Store size={13} className="shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-stone-700 dark:text-stone-300 truncate">
+                      <Store size={13} className="text-[#FD9139] shrink-0" />
                       <span className="truncate">{bannerShopName}</span>
                     </div>
-                    <h4 className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
-                      {currentActiveOrder.status === 'out_for_delivery'
-                        ? 'Rider is on the way!'
-                        : currentActiveOrder.status === 'ready_for_pickup'
-                          ? (isPickup ? 'Prasad ready at counter!' : 'Packed & waiting for rider')
-                          : currentActiveOrder.status === 'completed' || currentActiveOrder.status === 'delivered'
-                            ? 'Order delivered successfully!'
-                            : 'Cooking in sacred kitchen...'}
+                    <h4 className="text-xs sm:text-sm font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight truncate">
+                      {statusHeadline}
                     </h4>
-                    <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-zinc-400 font-medium">
+                    <div className="flex items-center gap-1.5 text-[11px] text-stone-500 dark:text-stone-400 font-medium">
                       <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
                       <span>•</span>
-                      <span className="font-bold text-stone-800 dark:text-white font-mono">₹{bannerTotal}</span>
+                      <span className="font-bold text-amber-800 dark:text-[#FD9139] font-mono">₹{bannerTotal}</span>
                       <span>•</span>
                       <span className="capitalize">{currentActiveOrder.paymentMethod || 'cash'}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                {/* Track Map CTA: Signature Foody Vrinda Brand Style */}
+                <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
+                    type="button"
                     onClick={() => {
                       setTrackingOrder(currentActiveOrder);
                       setIsTrackingModalOpen(true);
                     }}
-                    className="btn-map-track px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                    className="btn-map-track px-4 sm:px-5 py-2.5 rounded-full font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
                   >
                     <Navigation size={12} className="fill-current" />
                     <span>Track Map</span>
