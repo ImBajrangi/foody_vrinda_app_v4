@@ -2372,25 +2372,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   >
                     <ChevronDown size={14} className="text-[#FD9139]" />
                   </button>
-
-                  {/* Dismiss X */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveCustomerOrders(prev => prev.filter(o => o.id !== currentActiveOrder.id));
-                      if (selectedActiveOrderId === currentActiveOrder.id) {
-                        const next = activeCustomerOrders.find(o => o.id !== currentActiveOrder.id);
-                        setSelectedActiveOrderId(next?.id || null);
-                        setTrackingOrder(next || null);
-                      }
-                    }}
-                    className="w-7 h-7 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
-                    title="Dismiss tracking card"
-                    aria-label="Dismiss tracking card"
-                  >
-                    <X size={13} className="stroke-[2.2]" />
-                  </button>
                 </div>
               </div>
             ) : (
@@ -2458,25 +2439,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       aria-label="Minimize tracking card"
                     >
                       <ChevronUp size={14} className="text-stone-400 hover:text-[#FD9139]" />
-                    </button>
-
-                    {/* Dismiss Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveCustomerOrders(prev => prev.filter(o => o.id !== currentActiveOrder.id));
-                        if (selectedActiveOrderId === currentActiveOrder.id) {
-                          const next = activeCustomerOrders.find(o => o.id !== currentActiveOrder.id);
-                          setSelectedActiveOrderId(next?.id || null);
-                          setTrackingOrder(next || null);
-                        }
-                      }}
-                      className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
-                      title="Dismiss tracking card"
-                      aria-label="Dismiss tracking card"
-                    >
-                      <X size={13} className="stroke-[2.2]" />
                     </button>
                   </div>
                 </div>
