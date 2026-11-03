@@ -568,6 +568,16 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
       }
     }
 
+    // 🔐 Expiry & Settlement Guard: When order is picked up, mark pickup OTP used & expire local cache
+    if (payload.status === 'out_for_delivery' || payload.status === 'picked_up') {
+      if (!payload.pickup_otp_used_at) {
+        payload.pickup_otp_used_at = new Date().toISOString();
+      }
+      try {
+        safeStorage.removeItem(`foody_order_otp_${orderId}_pickup`);
+      } catch { /* ignore */ }
+    }
+
     // 🔐 Expiry & Settlement Guard: When order is delivered/completed, mark OTP used & expire local cache
     if (payload.status === 'delivered' || payload.status === 'completed') {
       if (!payload.delivery_otp_used_at) {
@@ -839,8 +849,13 @@ export async function claimOrderPickupAtomic(orderId, riderId, otpInput) {
           if (matches) {
             const fallbackRes = await updateCloudOrderStatus(orderId, 'out_for_delivery', {
               rider_id: riderId,
+              pickup_otp: null,
+              pickup_otp_used_at: new Date().toISOString(),
               picked_up_at: new Date().toISOString()
             });
+            try {
+              safeStorage.removeItem(`foody_order_otp_${orderId}_pickup`);
+            } catch { /* ignore */ }
             return { success: true, fallback: true, data: fallbackRes };
           }
         }

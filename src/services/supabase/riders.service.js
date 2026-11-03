@@ -145,7 +145,7 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
     }
   }
 
-  // 1. Direct explicit OTP in order object
+  // 1. Direct explicit dynamic OTP in order object
   if (orderObj) {
     if (type === 'pickup' && (orderObj.pickupOtp || orderObj.pickup_otp)) {
       return String(orderObj.pickupOtp || orderObj.pickup_otp).trim();
@@ -153,13 +153,15 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
     if (type === 'delivery' && (orderObj.deliveryOtp || orderObj.delivery_otp)) {
       return String(orderObj.deliveryOtp || orderObj.delivery_otp).trim();
     }
+  }
 
-    // 2. Authoritative 4-digit code from Universal Order Token (#FV-XXXX -> XXXX) — Old version standard
-    const tokenStr = String(orderObj.order_token || orderObj.orderToken || orderObj.order_short_code || orderObj.orderShortCode || '');
-    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
-    if (tokenDigits && tokenDigits.length === 4) {
-      return tokenDigits;
-    }
+  // 2. Check persistent secure storage
+  if (orderId) {
+    try {
+      const key = `foody_order_otp_${orderId}_${type}`;
+      const stored = safeStorage.getItem(key);
+      if (stored) return String(stored).trim();
+    } catch { /* ignore */ }
   }
 
   // 3. Check cached orders in memory
@@ -179,28 +181,18 @@ export function getOrderOTP(orderOrId, type = 'delivery') {
 
       if (type === 'pickup' && (found.pickupOtp || found.pickup_otp)) return String(found.pickupOtp || found.pickup_otp).trim();
       if (type === 'delivery' && (found.deliveryOtp || found.delivery_otp)) return String(found.deliveryOtp || found.delivery_otp).trim();
-
-      const cachedTokenStr = String(found.order_token || found.orderToken || found.order_short_code || found.orderShortCode || '');
-      const cachedTokenDigits = cachedTokenStr.replace(/\D/g, '').slice(-4);
-      if (cachedTokenDigits && cachedTokenDigits.length === 4) return cachedTokenDigits;
     }
   }
 
-  // 4. Check persistent storage
+  // 4. Deterministic fallback for legacy mock orders with no DB OTP
   if (orderId) {
-    try {
-      const key = `foody_order_otp_${orderId}_${type}`;
-      const stored = safeStorage.getItem(key);
-      if (stored) return String(stored).trim();
-    } catch { /* ignore */ }
-  }
-
-  // 5. Fallback 4 numeric digits from order ID (ord-1793618514416-0dky6 -> 4416)
-  if (orderId) {
-    const idDigits = String(orderId).replace(/\D/g, '').slice(-4);
-    if (idDigits && idDigits.length === 4) {
-      return idDigits;
+    let hash = 5381;
+    const seed = `${orderId}_${type}_foody_salt_secure`;
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) + hash) + seed.charCodeAt(i);
+      hash = hash & hash;
     }
+    return (Math.abs(hash % 9000) + 1000).toString();
   }
 
   return '1080';
@@ -231,23 +223,18 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     }
   }
 
-  // Collect ALL legitimate candidate PINs for this order
+  // Collect valid candidates for this exact order & type
   const candidates = new Set();
 
-  // Candidate A: Explicit OTP fields on order
+  // Candidate A: Explicit dynamic OTP fields on order
   if (orderObj) {
     const rawOtp = type === 'pickup'
       ? (orderObj.pickup_otp || orderObj.pickupOtp)
       : (orderObj.delivery_otp || orderObj.deliveryOtp);
     if (rawOtp) candidates.add(String(rawOtp).trim());
-
-    // Candidate B: Universal Order Token digits (#FV-XXXX -> XXXX) — Old version standard
-    const tokenStr = String(orderObj.order_token || orderObj.orderToken || orderObj.order_short_code || orderObj.orderShortCode || '');
-    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
-    if (tokenDigits && tokenDigits.length === 4) candidates.add(tokenDigits);
   }
 
-  // Candidate C: Persistent storage OTP
+  // Candidate B: Persistent storage OTP
   if (orderId) {
     try {
       const stored = safeStorage.getItem(`foody_order_otp_${orderId}_${type}`);
@@ -255,22 +242,20 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     } catch { /* ignore */ }
   }
 
-  // Candidate D: Standard getOrderOTP output
+  // Candidate C: Standard getOrderOTP output
   const stdOtp = getOrderOTP(orderOrId, type);
   if (stdOtp) candidates.add(String(stdOtp).trim());
 
-  // Candidate E: If orderId was passed or extracted, check getOrderOTP(orderId)
+  // Candidate D: If orderId was passed or extracted, check getOrderOTP(orderId)
   if (orderId) {
     const idOtp = getOrderOTP(orderId, type);
     if (idOtp) candidates.add(String(idOtp).trim());
-    const idDigits = String(orderId).replace(/\D/g, '').slice(-4);
-    if (idDigits && idDigits.length === 4) candidates.add(idDigits);
   }
 
   // Direct match check
   let isMatch = candidates.has(cleanEntered);
 
-  // Candidate F: Cryptographic Hash check if order object contains SHA-256 hash
+  // Candidate E: Cryptographic Hash check if order object contains SHA-256 hash
   if (!isMatch && orderObj) {
     const hashCol = type === 'pickup'
       ? (orderObj.pickupOtpHash || orderObj.pickup_otp_hash)
@@ -280,7 +265,7 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     }
   }
 
-  // Candidate G: Check cached order token digits or OTP
+  // Candidate F: Memory cached order OTP
   if (!isMatch && orderId) {
     const cachedOrders = [
       ...(getCachedItem('orders', 'all') || []),
@@ -288,11 +273,6 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     ];
     const found = cachedOrders.find(o => o.id === orderId);
     if (found) {
-      const foundToken = String(found.order_token || found.orderToken || found.order_short_code || found.orderShortCode || '');
-      const foundDigits = foundToken.replace(/\D/g, '').slice(-4);
-      if (foundDigits && foundDigits === cleanEntered) {
-        isMatch = true;
-      }
       const foundOtp = type === 'pickup' ? (found.pickup_otp || found.pickupOtp) : (found.delivery_otp || found.deliveryOtp);
       if (foundOtp && String(foundOtp).trim() === cleanEntered) {
         isMatch = true;
@@ -300,10 +280,17 @@ export function verifyOrderOTP(orderOrId, type, enteredOtp) {
     }
   }
 
+  // Candidate G: Backward-compatibility for older orders created prior to this session
+  if (!isMatch && orderObj) {
+    const tokenStr = String(orderObj.order_token || orderObj.orderToken || orderObj.order_short_code || orderObj.orderShortCode || '');
+    const tokenDigits = tokenStr.replace(/\D/g, '').slice(-4);
+    if (tokenDigits && tokenDigits === cleanEntered) {
+      isMatch = true;
+    }
+  }
+
   if (isMatch) {
     try {
-      const attemptKey = `foody_otp_attempts_${orderId || 'generic'}_${type}`;
-      safeStorage.removeItem(attemptKey);
       safeStorage.removeItem(`foody_order_otp_${orderId}_${type}`);
     } catch { /* ignore */ }
     return true;
