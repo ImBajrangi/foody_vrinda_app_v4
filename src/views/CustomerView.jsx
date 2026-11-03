@@ -2253,35 +2253,37 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           <div className="mb-6 space-y-2">
             {/* Multi-Order Tabs Switcher Strip (Rendered when 2+ active orders exist) */}
             {activeCustomerOrders.length > 1 && (
-              <div className="flex items-center gap-1.5 p-1 rounded-full bg-stone-100/90 dark:bg-[#151314]/90 border border-stone-200/80 dark:border-white/[0.08] shadow-xs max-w-full overflow-x-auto no-scrollbar w-fit">
-                <div className="px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-white/[0.08] text-[10px] font-black uppercase tracking-wider text-stone-700 dark:text-stone-300 font-['Outfit'] shrink-0">
-                  Orders ({activeCustomerOrders.length})
+              <div className="flex items-center justify-between gap-2 mb-1.5 px-0.5">
+                <div className="inline-flex items-center p-1 rounded-full bg-stone-100/90 dark:bg-[#151314]/90 border border-stone-200/80 dark:border-white/[0.08] shadow-xs max-w-full overflow-x-auto no-scrollbar">
+                  {activeCustomerOrders.map(ord => {
+                    const isSelected = ord.id === currentActiveOrder.id;
+                    const token = getOrderDisplayToken(ord);
+                    const ordShop = allShops.find(s => s.id === (ord.shopId || ord.shop_id))?.name || ord.shopName || ord.shop_name || 'Kitchen';
+                    const shortShop = ordShop.split(' ')[0] || 'Kitchen';
+                    return (
+                      <button
+                        key={ord.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedActiveOrderId(ord.id);
+                          setTrackingOrder(ord);
+                        }}
+                        className={`h-7 px-3.5 rounded-full flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shrink-0 font-['Outfit'] ${
+                          isSelected
+                            ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs font-black border border-stone-200/90 dark:border-white/10'
+                            : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <span className="font-mono tracking-tight font-black">{token}</span>
+                        <span className="opacity-30 font-normal">·</span>
+                        <span className="truncate max-w-[90px] font-medium">{shortShop}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                {activeCustomerOrders.map(ord => {
-                  const isSelected = ord.id === currentActiveOrder.id;
-                  const token = getOrderDisplayToken(ord);
-                  const ordShop = allShops.find(s => s.id === (ord.shopId || ord.shop_id))?.name || ord.shopName || ord.shop_name || 'Kitchen';
-                  const shortShop = ordShop.split(' ')[0] || 'Kitchen';
-                  return (
-                    <button
-                      key={ord.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedActiveOrderId(ord.id);
-                        setTrackingOrder(ord);
-                      }}
-                      className={`h-7 px-3 rounded-full flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shrink-0 font-['Outfit'] ${
-                        isSelected
-                          ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs font-black border border-stone-200/90 dark:border-white/10'
-                          : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-white/5 border border-transparent'
-                      }`}
-                    >
-                      <span className="font-mono tracking-tight font-black">{token}</span>
-                      <span className="opacity-30">/</span>
-                      <span className="truncate max-w-[85px] font-medium">{shortShop}</span>
-                    </button>
-                  );
-                })}
+                <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 font-['Outfit'] px-1.5 shrink-0">
+                  {activeCustomerOrders.length} Active
+                </span>
               </div>
             )}
 
