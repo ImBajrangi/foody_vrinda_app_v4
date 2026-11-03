@@ -3051,28 +3051,44 @@ button[disabled] svg {
 }
 
 /* Universal Light Mode Hover Rules (Prevent White-on-White or Low-Contrast on Hover) */
-.light button:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover,
-.light a:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover,
-.light div[class*="hover:text-white"]:hover,
-.light span[class*="hover:text-white"]:hover {
+.light button:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"]):not([class*="bg-emerald-600"]):not([class*="bg-cyan-600"]):not([class*="bg-purple-600"])[class*="hover:text-white"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light a:not([class*="bg-amber"]):not([class*="bg-[#FD9139]"]):not([class*="bg-[#FCA65E]"]):not([class*="bg-stone-900"]):not([class*="bg-black"])[class*="hover:text-white"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light div[class*="hover:text-white"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light span[class*="hover:text-white"]:hover:not(.preserve-dark):not(.preserve-dark *) {
   color: #1C1917 !important;
 }
 
-.light [class*="hover:text-zinc-100"]:hover,
-.light [class*="hover:text-zinc-200"]:hover,
-.light [class*="hover:text-zinc-300"]:hover,
-.light [class*="hover:text-neutral-100"]:hover,
-.light [class*="hover:text-neutral-200"]:hover,
-.light [class*="hover:text-neutral-300"]:hover {
+.light [class*="hover:text-zinc-100"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:text-zinc-200"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:text-zinc-300"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:text-neutral-100"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:text-neutral-200"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:text-neutral-300"]:hover:not(.preserve-dark):not(.preserve-dark *) {
   color: #1C1917 !important;
 }
 
-.light [class*="hover:bg-white/5"]:hover,
-.light [class*="hover:bg-white/10"]:hover,
-.light [class*="hover:bg-white/15"]:hover,
-.light [class*="hover:bg-white/20"]:hover {
+.light [class*="hover:bg-white/5"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:bg-white/10"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:bg-white/15"]:hover:not(.preserve-dark):not(.preserve-dark *),
+.light [class*="hover:bg-white/20"]:hover:not(.preserve-dark):not(.preserve-dark *) {
   background-color: #E2DBD0 !important;
   color: #1C1917 !important;
+}
+
+/* Explicit Hover Protections for Dark Bottom Sheets and Modal Preserves */
+.preserve-dark [class*="hover:text-white"]:hover,
+.preserve-dark button[class*="hover:text-white"]:hover,
+.preserve-dark span[class*="hover:text-white"]:hover,
+.preserve-dark a[class*="hover:text-white"]:hover,
+.light .preserve-dark [class*="hover:text-white"]:hover,
+.light .preserve-dark span[class*="hover:text-white"]:hover,
+.light .preserve-dark button[class*="hover:text-white"]:hover {
+  color: #FFFFFF !important;
+}
+
+.preserve-dark [class*="hover:bg-white/"]:hover,
+.light .preserve-dark [class*="hover:bg-white/"]:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .light [class*="hover:bg-[#322E30]"]:hover,

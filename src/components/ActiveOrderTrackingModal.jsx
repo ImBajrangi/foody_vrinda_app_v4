@@ -858,8 +858,8 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     {copiedOrderId ? <Check size={10} className="text-emerald-400 stroke-[3]" /> : <Copy size={10} className="opacity-60" />}
                   </button>
                 )}
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-stone-300 hover:text-white transition-colors text-[10px] font-semibold">
-                  {isExpanded ? 'Drag down' : 'Tap to expand'}
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.08] hover:bg-white/15 border border-white/15 hover:border-white/25 text-stone-200 hover:text-white transition-all text-[10px] font-bold cursor-pointer shadow-xs">
+                  <span>{isExpanded ? 'Drag down' : 'Tap to expand'}</span>
                   {isExpanded ? <ChevronDown size={12} className="text-[#FD9139]" /> : <ChevronUp size={12} className="text-[#FD9139]" />}
                 </span>
               </div>

@@ -88,8 +88,8 @@ export async function reverseGeocodeCoords(lat, lng) {
         const tokens = data.display_name.split(',').map(s => s.trim()).filter(Boolean);
         const uniqueTokens = [];
         for (const tok of tokens) {
-          const isDuplicate = uniqueTokens.some(u => 
-            u.toLowerCase() === tok.toLowerCase() || 
+          const isDuplicate = uniqueTokens.some(u =>
+            u.toLowerCase() === tok.toLowerCase() ||
             (u.includes('Mathura') && tok.includes('मथुरा'))
           );
           if (!isDuplicate && !['India', 'IN'].includes(tok)) {
@@ -138,7 +138,7 @@ export async function fetchAddressSuggestions(query) {
 
     if (response.ok) {
       const data = await response.json();
-      
+
       // Deduplicate overlapping OSM way segments with identical titles/addresses
       const seenKeys = new Set();
       const osmResults = [];
@@ -147,7 +147,7 @@ export async function fetchAddressSuggestions(query) {
         const road = item.address?.road || item.address?.pedestrian || '';
         const suburb = item.address?.suburb || item.address?.neighbourhood || item.address?.residential || '';
         const rawTitle = item.name || item.display_name.split(',')[0].trim();
-        
+
         // If it's a road and we know the colony/suburb, clarify: "Mathura Road (Chhatikara)"
         let cleanTitle = rawTitle;
         if (road && suburb && cleanTitle.toLowerCase() === road.toLowerCase()) {
