@@ -2254,9 +2254,8 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
             {/* Multi-Order Tabs Switcher Strip (Rendered when 2+ active orders exist) */}
             {activeCustomerOrders.length > 1 && (
               <div className="flex items-center gap-1.5 p-1 rounded-full bg-stone-100/90 dark:bg-[#151314]/90 border border-stone-200/80 dark:border-white/[0.08] shadow-xs max-w-full overflow-x-auto no-scrollbar w-fit">
-                <div className="flex items-center gap-1.5 px-2.5 text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 font-['Outfit'] shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] animate-pulse" />
-                  <span>Orders ({activeCustomerOrders.length})</span>
+                <div className="px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-white/[0.08] text-[10px] font-black uppercase tracking-wider text-stone-700 dark:text-stone-300 font-['Outfit'] shrink-0">
+                  Orders ({activeCustomerOrders.length})
                 </div>
                 {activeCustomerOrders.map(ord => {
                   const isSelected = ord.id === currentActiveOrder.id;
@@ -2274,11 +2273,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                       className={`h-7 px-3 rounded-full flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shrink-0 font-['Outfit'] ${
                         isSelected
                           ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs font-black border border-stone-200/90 dark:border-white/10'
-                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-white/5 border border-transparent'
+                          : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/50 dark:hover:bg-white/5 border border-transparent'
                       }`}
                     >
-                      <span className="font-mono tracking-tight font-bold">{token}</span>
-                      <span className="text-stone-300 dark:text-white/20">•</span>
+                      <span className="font-mono tracking-tight font-black">{token}</span>
+                      <span className="opacity-30">/</span>
                       <span className="truncate max-w-[85px] font-medium">{shortShop}</span>
                     </button>
                   );
@@ -2306,18 +2305,15 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   <span className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
                     {bannerShopName}
                   </span>
-                  <span className="text-stone-300 dark:text-white/20">•</span>
-                  <span className="font-mono font-bold text-[11px] text-amber-800 dark:text-[#FD9139] shrink-0">
+                  <span className="font-mono font-bold text-[11px] text-amber-800 dark:text-[#FD9139] px-2 py-0.5 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/12 border border-amber-500/20 dark:border-[#FD9139]/25 shrink-0">
                     {displayToken}
                   </span>
-                  <span className="text-stone-300 dark:text-white/20 hidden sm:inline">•</span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0 truncate">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="hidden xs:inline">{statusBadgeLabel}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-bold font-['Outfit'] shrink-0">
+                    {statusBadgeLabel}
                   </span>
                 </div>
 
-                {/* Right: OTP + Track Live + Expand + Close */}
+                {/* Right: OTP + Track Live + Expand */}
                 <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                   {currentOtp && (
                     <div
@@ -2366,7 +2362,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         localStorage.setItem('foody_tracking_card_minimized', 'false');
                       }
                     }}
-                    className="w-7 h-7 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-7 h-7 rounded-full text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white bg-stone-100 hover:bg-stone-200 dark:bg-white/[0.08] dark:hover:bg-white/15 border border-stone-200/80 dark:border-white/10 flex items-center justify-center transition-colors cursor-pointer"
                     title="Expand tracking card"
                     aria-label="Expand tracking card"
                   >
@@ -2386,7 +2382,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                 {/* Top Accent Orange Highlight */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FD9139]/50 to-transparent pointer-events-none" />
 
-                {/* Row 1: Context Header (Shop Name + Token + Status Badge + Minimize + Close X) */}
+                {/* Row 1: Context Header (Shop Name + Token + Status Badge + Minimize) */}
                 <div className="flex items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
@@ -2405,23 +2401,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           showToast(`Copied Token ${displayToken}`, 'success');
                           setTimeout(() => setCopiedOtpId(null), 2000);
                         }}
-                        className="font-mono font-bold text-[11px] text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-white/[0.06] hover:bg-stone-200 dark:hover:bg-white/10 px-2 py-0.5 rounded-full border border-stone-200 dark:border-white/10 flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
+                        className="font-mono font-bold text-[11px] text-stone-800 dark:text-[#FD9139] bg-stone-100 dark:bg-[#FD9139]/10 hover:bg-stone-200 dark:hover:bg-[#FD9139]/20 px-2.5 py-0.5 rounded-full border border-stone-200/80 dark:border-[#FD9139]/25 flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
                         title="Tap to copy token"
                       >
                         <span>{displayToken}</span>
                         {copiedOtpId === `token_${currentActiveOrder.id}` ? (
                           <Check size={10} className="text-emerald-500 stroke-[3]" />
                         ) : (
-                          <Copy size={10} className="opacity-50" />
+                          <Copy size={10} className="opacity-60" />
                         )}
                       </button>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] sm:text-[11px] font-bold font-['Outfit']">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>{statusBadgeLabel}</span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-bold font-['Outfit']">
+                      {statusBadgeLabel}
                     </span>
 
                     {/* Minimize Button */}
@@ -2434,20 +2429,20 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                           localStorage.setItem('foody_tracking_card_minimized', 'true');
                         }
                       }}
-                      className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-full text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white bg-stone-100 hover:bg-stone-200 dark:bg-white/[0.08] dark:hover:bg-white/15 border border-stone-200/80 dark:border-white/10 flex items-center justify-center transition-colors cursor-pointer"
                       title="Minimize tracking card"
                       aria-label="Minimize tracking card"
                     >
-                      <ChevronUp size={14} className="text-stone-400 hover:text-[#FD9139]" />
+                      <ChevronUp size={14} className="text-stone-600 dark:text-stone-300" />
                     </button>
                   </div>
                 </div>
 
                 {/* Subtle 3-Stage Progress Track (Live Activity Cue) */}
                 <div className="grid grid-cols-3 gap-1.5 py-0.5">
-                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 1 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
-                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 2 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
-                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 3 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-white/10'}`} />
+                  <div className={`h-1.5 rounded-full transition-all duration-500 ${orderStep >= 1 ? 'bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.35)]' : 'bg-stone-200 dark:bg-white/10'}`} />
+                  <div className={`h-1.5 rounded-full transition-all duration-500 ${orderStep >= 2 ? 'bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.35)]' : 'bg-stone-200 dark:bg-white/10'}`} />
+                  <div className={`h-1.5 rounded-full transition-all duration-500 ${orderStep >= 3 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.35)]' : 'bg-stone-200 dark:bg-white/10'}`} />
                 </div>
 
                 {/* Row 2: Status Details (Left) + Integrated Actions (OTP & Track CTA on Right) */}
@@ -2457,11 +2452,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     <h4 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
                       {statusHeadline}
                     </h4>
-                    <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-medium">
+                    <div className="flex items-center gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">
                       <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
-                      <span className="opacity-40">•</span>
+                      <span className="text-stone-300 dark:text-white/20">/</span>
                       <span className="font-bold text-amber-800 dark:text-[#FD9139] font-mono">₹{bannerTotal}</span>
-                      <span className="opacity-40">•</span>
+                      <span className="text-stone-300 dark:text-white/20">/</span>
                       <span className="capitalize">{currentActiveOrder.paymentMethod || 'cash'}</span>
                     </div>
                   </div>
@@ -2482,7 +2477,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         title="Tap to copy OTP"
                       >
                         <KeyRound size={13} className="text-[#FD9139] stroke-[2.4]" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300">
                           {isPickup ? 'PIN' : 'OTP'}
                         </span>
                         <span className="font-mono font-black text-xs sm:text-sm text-stone-900 dark:text-[#FD9139] tracking-wider">
@@ -2491,7 +2486,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         {copiedOtpId === currentActiveOrder.id ? (
                           <Check size={11} className="text-emerald-500 stroke-[3] ml-0.5" />
                         ) : (
-                          <Copy size={11} className="text-stone-400 group-hover/otp:text-stone-700 dark:group-hover/otp:text-stone-200 ml-0.5 opacity-60" />
+                          <Copy size={11} className="text-stone-500 dark:text-stone-400 group-hover/otp:text-stone-800 dark:group-hover/otp:text-white ml-0.5 opacity-70" />
                         )}
                       </div>
                     )}

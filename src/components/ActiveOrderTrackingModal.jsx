@@ -737,7 +737,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
             <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
           </button>
 
-          {/* Multi-Order Switcher Pill Strip */}
+          {/* Multi-Order Switcher Pill Strip (Clean Apple Segmented Design with Zero Clutter Dots) */}
           {allActiveOrders && allActiveOrders.length > 1 && (
             <div className="flex items-center gap-1 pointer-events-auto bg-[#181617]/90 p-1 rounded-full border border-white/10 backdrop-blur-xl overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-xs shadow-lg">
               {allActiveOrders.map(ord => {
@@ -750,13 +750,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       if (onSwitchOrder) onSwitchOrder(ord);
                       setLiveOrder(ord);
                     }}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold font-mono transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all shrink-0 cursor-pointer ${
                       isCurrent 
-                        ? 'bg-white/15 text-white shadow-xs border border-white/10' 
-                        : 'text-stone-400 hover:text-stone-200'
+                        ? 'bg-white/20 text-white shadow-xs border border-white/20 font-black' 
+                        : 'text-stone-300 hover:text-white border border-transparent'
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-[#FD9139] animate-pulse' : 'bg-transparent'}`} />
                     <span>{getOrderDisplayToken(ord)}</span>
                   </button>
                 );
@@ -1142,10 +1141,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                           <KeyRound size={15} className="stroke-[2.4]" />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block leading-none">
+                          <span className="text-[10px] font-bold text-stone-300 uppercase tracking-wider block leading-none">
                             Delivery Verification PIN
                           </span>
-                          <span className="text-[11px] text-stone-300 font-medium truncate block mt-0.5">
+                          <span className="text-[11px] text-stone-200 font-medium truncate block mt-0.5">
                             Share with Sarathi upon delivery
                           </span>
                         </div>
@@ -1174,10 +1173,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     </div>
 
                     {/* Delivery Destination Address */}
-                    <div className="flex items-center gap-2 pt-1 text-xs text-stone-400 border-t border-white/[0.06]">
+                    <div className="flex items-center gap-2 pt-1 text-xs text-stone-300 border-t border-white/[0.06]">
                       <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
-                      <span className="font-semibold text-stone-200">{getAddressLabel()}:</span>
-                      <span className="truncate flex-1 text-stone-400">{customerAddress}</span>
+                      <span className="font-semibold text-stone-100">{getAddressLabel()}:</span>
+                      <span className="truncate flex-1 text-stone-300">{customerAddress}</span>
                     </div>
                   </>
                 )}
