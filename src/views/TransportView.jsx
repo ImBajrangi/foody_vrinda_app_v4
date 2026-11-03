@@ -1194,9 +1194,9 @@ export default function TransportView() {
       )}
 
       {/* MAIN OPERATIONS HEADER BAR: Modern Driver Dispatch Standard */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-stone-100 dark:bg-[#282526] p-4 sm:p-5 md:p-6 rounded-[28px] sm:rounded-[32px] border border-stone-200 dark:border-white/10 shadow-xl overflow-hidden">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white dark:bg-[#1E1B1C] p-4 sm:p-5 md:p-6 rounded-[24px] sm:rounded-[30px] border border-stone-200/90 dark:border-white/10 shadow-xs overflow-hidden">
         <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-sm">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/25 dark:border-[#FD9139]/30 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0 shadow-xs">
             <Truck size={26} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
@@ -1208,7 +1208,7 @@ export default function TransportView() {
                 {activeTrips.length} Active Trips
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-neutral-300 font-medium mt-1 truncate font-['Plus_Jakarta_Sans']">
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-medium mt-1 truncate font-['Plus_Jakarta_Sans']">
               Live GPS route dispatch, order pickup & delivery navigation
             </p>
           </div>
@@ -1220,26 +1220,26 @@ export default function TransportView() {
             data-tour="delivery-go-online"
             type="button"
             onClick={toggleRiderDuty}
-            className={`h-11 sm:h-12 px-5 min-w-[210px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-all cursor-pointer w-full sm:w-auto shrink-0 shadow-sm ${isRiderOnDuty
+            className={`h-11 sm:h-12 px-5 min-w-[210px] rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 border transition-all cursor-pointer w-full sm:w-auto shrink-0 shadow-xs ${isRiderOnDuty
               ? 'bg-emerald-500/15 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25'
-              : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-zinc-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-300/80'
+              : 'bg-stone-100 dark:bg-white/[0.06] text-stone-700 dark:text-stone-300 border-stone-300/80 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
               }`}
             title="Toggle Ready to Deliver Duty Availability"
           >
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-zinc-500'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isRiderOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-stone-400 dark:bg-stone-500'}`} />
             <span className="whitespace-nowrap font-black font-['Outfit'] select-none">
-              {isRiderOnDuty ? 'Ready to Deliver · ON' : 'Offline · Break Mode'}
+              {isRiderOnDuty ? 'Ready to Deliver · Online' : 'Offline · On Break'}
             </span>
           </button>
 
           {/* List vs Carto View Switcher: Ergonomic segmented control */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-white/95 dark:bg-[#1E1B1C] p-1.5 rounded-full border border-stone-200 dark:border-white/10 shadow-sm w-full sm:w-auto shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-stone-100 dark:bg-[#151314] p-1.5 rounded-full border border-stone-200/90 dark:border-white/10 shadow-xs w-full sm:w-auto shrink-0">
             <button
               data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-sm'
-                : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white'
                 }`}
             >
               <List size={14} className="shrink-0" />
@@ -1249,8 +1249,8 @@ export default function TransportView() {
               data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-sm'
-                : 'text-stone-600 hover:text-stone-950 dark:text-neutral-400 dark:hover:text-white'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white'
                 }`}
             >
               <Map size={14} className="shrink-0" />
@@ -1264,17 +1264,17 @@ export default function TransportView() {
       <div className="space-y-3">
         {/* Tab Switcher Pills & Direct Order Slip Trigger */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/95 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 overflow-x-auto no-scrollbar shadow-sm flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 overflow-x-auto no-scrollbar shadow-xs flex-1 min-w-0">
             <button
               onClick={() => setRiderTab('active')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <Truck size={14} />
               <span>Active</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {activeTrips.length}
               </span>
             </button>
@@ -1282,13 +1282,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('upcoming')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <Clock size={14} />
               <span>Available</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {upcomingPickups.length}
               </span>
             </button>
@@ -1296,13 +1296,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('completed')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <CheckCircle2 size={14} />
               <span>Completed</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {completedToday.length}
               </span>
             </button>
@@ -1310,13 +1310,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('all')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-[0_4px_16px_rgba(253,145,57,0.35)]'
-                : 'text-stone-600 dark:text-neutral-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-amber-500/10'
+                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <List size={14} />
               <span>Order History</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-neutral-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {orderHistory.length}
               </span>
             </button>
@@ -1326,7 +1326,7 @@ export default function TransportView() {
           <button
             type="button"
             onClick={handleDownloadShiftSlip}
-            className="h-10 px-4 rounded-full bg-white hover:bg-stone-100 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200 dark:border-white/10 text-stone-800 dark:text-neutral-200 hover:text-[#FD9139] dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-sm apple-tap-target w-full sm:w-auto"
+            className="h-10 px-4 rounded-full bg-white hover:bg-stone-100 dark:bg-[#1E1B1C] dark:hover:bg-[#282526] border border-stone-200/90 dark:border-white/10 text-stone-700 dark:text-stone-200 hover:text-[#FD9139] dark:hover:text-[#FD9139] text-xs font-bold font-['Outfit'] flex items-center justify-center gap-2 shrink-0 transition-all cursor-pointer shadow-xs apple-tap-target w-full sm:w-auto"
             title="Download or Print Today's Order Report as PDF"
           >
             <FileDown size={15} className="text-[#FD9139]" strokeWidth={2.5} />
@@ -1608,27 +1608,27 @@ export default function TransportView() {
       {(viewMode === 'list' || !activeOrder) && (
         <div className="space-y-5">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-4.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-neutral-400" />
+            <Search className="w-4 h-4 absolute left-4.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search order token (#FV-XXXX), customer, restaurant..."
+              placeholder="Search by Order Token (#FV-XXXX), customer, restaurant, or dish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-full pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-[#FD9139] dark:focus:border-[#FD9139] transition-all font-['Plus_Jakarta_Sans'] shadow-xs"
+              className="w-full h-12 bg-white dark:bg-[#151314] border border-stone-200/90 dark:border-white/10 rounded-2xl pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[#FD9139] transition-all font-['Plus_Jakarta_Sans'] shadow-xs"
             />
           </div>
 
           {filteredOrders.length === 0 ? (
-            <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl p-10 sm:p-14 text-center shadow-sm flex flex-col items-center justify-center">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-[#FD9139] mb-3">
-                <Truck size={28} strokeWidth={1.8} />
+            <div data-tour="delivery-orders delivery-accept delivery-complete" className="bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 rounded-3xl p-10 sm:p-14 text-center shadow-xs flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/12 border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center justify-center text-amber-600 dark:text-[#FD9139] mb-3.5 shadow-xs">
+                <Truck size={30} strokeWidth={2} />
               </div>
               <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight">
                 {riderTab === 'active' ? 'No Active Deliveries' :
                   riderTab === 'upcoming' ? 'No Available Orders' :
                     riderTab === 'completed' ? 'No Completed Deliveries Today' : 'No Delivery History'}
               </h3>
-              <p className="text-xs sm:text-sm text-stone-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto mt-1">
+              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-['Plus_Jakarta_Sans'] max-w-sm mx-auto mt-1 leading-relaxed">
                 {riderTab === 'active' && upcomingPickups.length > 0
                   ? `You have no ongoing trips right now. ${upcomingPickups.length} new delivery orders are available to claim.`
                   : riderTab === 'active'
@@ -1641,7 +1641,7 @@ export default function TransportView() {
                 <button
                   type="button"
                   onClick={() => setRiderTab('upcoming')}
-                  className="mt-4 px-5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer font-['Outfit'] active:scale-95"
+                  className="mt-4 px-5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer font-['Outfit'] active:scale-95"
                 >
                   <span>View Available Orders ({upcomingPickups.length})</span>
                   <ArrowRight size={14} />
@@ -1696,7 +1696,7 @@ export default function TransportView() {
                 return (
                   <div
                     key={order.id}
-                    className="bg-white dark:bg-[#282526] border border-stone-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-sm"
+                    className="bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-xs"
                   >
                     <div className="space-y-3.5">
                       {/* 1. Header: Order Token + Time Ago + Status Pill */}
@@ -1741,7 +1741,7 @@ export default function TransportView() {
                       </div>
 
                       {/* 2. Hero Rider Payout & Customer Payment Strip */}
-                      <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200/80 dark:border-white/5">
+                      <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-200/80 dark:border-white/5">
                         {/* Left: Rider Earning */}
                         <div className="flex flex-col justify-center">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">

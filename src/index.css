@@ -3136,7 +3136,7 @@ button[disabled] svg {
 /* 7. Modal & Drawer Containers in Light Mode */
 .light .modal-content,
 .light .drawer-content,
-.light [role="dialog"],
+.light [role="dialog"]:not(.preserve-dark):not([class*="fixed"]):not([class*="inset-0"]),
 .light .apple-modal-content {
   background-color: #FFFFFF !important;
   color: #1C1917 !important;
