@@ -1679,7 +1679,6 @@ export default function TransportView() {
                 const rawMethod = String(order.payment_method || order.paymentMethod || '').toLowerCase().trim();
                 const isCash = rawMethod === 'cash' || rawMethod === 'cod';
                 const isCollected = order.cash_status === 'collected' || order.cashStatus === 'collected' || order.cash_collected || order.cashCollected;
-                const riderEarning = Number(order.deliveryCharge || order.delivery_charge || 45);
                 const totalBill = Number(order.totalAmount || order.total_amount || 0);
 
                 // Time format
@@ -1747,8 +1746,9 @@ export default function TransportView() {
                           <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-neutral-400 font-['Outfit']">
                             Delivery Earning
                           </span>
-                          <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-['Outfit'] mt-0.5">
-                            ₹{riderEarning}
+                          <span className="text-xs sm:text-sm font-black text-amber-700 dark:text-[#FD9139] font-['Outfit'] mt-1 inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#FD9139]" />
+                            Not Decided
                           </span>
                         </div>
 
@@ -1916,7 +1916,7 @@ export default function TransportView() {
                           <span>
                             {isClaimingOrderId === order.id
                               ? 'Claiming Delivery...'
-                              : `Accept Delivery · Earn ₹${riderEarning}`}
+                              : 'Accept Delivery'}
                           </span>
                         </button>
                       </div>
