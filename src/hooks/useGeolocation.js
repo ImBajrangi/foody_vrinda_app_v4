@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { reverseGeocodeCoords } from '../services/addressService';
 
 const GEO_CACHE_KEY = 'foody_geo_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 min
@@ -16,16 +17,7 @@ export default function useGeolocation() {
   const [denied, setDenied] = useState(false);
 
   const reverseGeocode = useCallback(async (lat, lng) => {
-    try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18`);
-      const d = await r.json();
-      if (d?.display_name) {
-        // Shorten: take first 3 parts
-        const parts = d.display_name.split(',').slice(0, 3).map(s => s.trim());
-        return parts.join(', ');
-      }
-    } catch {}
-    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    return await reverseGeocodeCoords(lat, lng);
   }, []);
 
   const requestLocation = useCallback(async () => {

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useBackHandler } from '../hooks/useBackHandler';
-import { fetchAddressSuggestions } from '../services/addressService';
+import { fetchAddressSuggestions, reverseGeocodeCoords } from '../services/addressService';
 import {
   isContaminatedPickupAddress,
   sanitizeCustomerAddress,
@@ -1879,10 +1879,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               setShowMapPicker(false);
               showToast("Location Pinned", "success");
               try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`);
-                const data = await res.json();
-                if (data && (data.display_name || data.name)) {
-                  setCheckoutAddress(data.display_name || data.name);
+                const cleanAddr = await reverseGeocodeCoords(coords.lat, coords.lng);
+                if (cleanAddr) {
+                  setCheckoutAddress(cleanAddr);
                 }
               } catch (e) {
                 console.warn("Reverse geocoding error:", e);
