@@ -28,6 +28,7 @@ import FoodyMascot from '../foody/FoodyMascot';
 import {
   MapPin,
   ChevronDown,
+  ChevronUp,
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
@@ -583,6 +584,9 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
   const [copiedOtpId, setCopiedOtpId] = useState(null);
   const [trackingOrder, setTrackingOrder] = useState(null);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+  const [isTrackingCardMinimized, setIsTrackingCardMinimized] = useState(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('foody_tracking_card_minimized') === 'true' : false;
+  });
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
 
   useEffect(() => {
@@ -2282,55 +2286,94 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               </div>
             )}
 
-            {/* Main Interactive Active Order Card (Ultra-Sleek Dynamic Island Floating Card) */}
-            <div
-              onClick={() => {
-                setTrackingOrder(currentActiveOrder);
-                setIsTrackingModalOpen(true);
-              }}
-              className="bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/[0.08] rounded-[24px] sm:rounded-[28px] p-3.5 sm:p-4.5 shadow-sm dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)] relative overflow-hidden cursor-pointer group hover:border-[#FD9139]/40 transition-colors space-y-3"
-            >
-              {/* Top Accent Orange Highlight */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FD9139]/50 to-transparent pointer-events-none" />
+            {/* Main Interactive Active Order Card (Supports Expanded and Minimized Modes) */}
+            {isTrackingCardMinimized ? (
+              <div
+                onClick={() => {
+                  setTrackingOrder(currentActiveOrder);
+                  setIsTrackingModalOpen(true);
+                }}
+                className="bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/[0.08] rounded-full px-3.5 py-2 shadow-xs dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] relative overflow-hidden cursor-pointer group hover:border-[#FD9139]/40 transition-all flex items-center justify-between gap-2.5"
+              >
+                {/* Top Accent Orange Highlight */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FD9139]/50 to-transparent pointer-events-none" />
 
-              {/* Row 1: Context Header (Shop Name + Token + Status Badge + Close X) */}
-              <div className="flex items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
-                    <Store size={15} />
+                {/* Left: Store + Token + Status */}
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-6 h-6 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                    <Store size={12} />
                   </div>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
-                      {bannerShopName}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard?.writeText(displayToken);
-                        setCopiedOtpId(`token_${currentActiveOrder.id}`);
-                        showToast(`Copied Token ${displayToken}`, 'success');
-                        setTimeout(() => setCopiedOtpId(null), 2000);
-                      }}
-                      className="font-mono font-bold text-[11px] text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-white/[0.06] hover:bg-stone-200 dark:hover:bg-white/10 px-2 py-0.5 rounded-full border border-stone-200 dark:border-white/10 flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
-                      title="Tap to copy token"
-                    >
-                      <span>{displayToken}</span>
-                      {copiedOtpId === `token_${currentActiveOrder.id}` ? (
-                        <Check size={10} className="text-emerald-500 stroke-[3]" />
-                      ) : (
-                        <Copy size={10} className="opacity-50" />
-                      )}
-                    </button>
-                  </div>
+                  <span className="text-xs font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                    {bannerShopName}
+                  </span>
+                  <span className="text-stone-300 dark:text-white/20">•</span>
+                  <span className="font-mono font-bold text-[11px] text-amber-800 dark:text-[#FD9139] shrink-0">
+                    {displayToken}
+                  </span>
+                  <span className="text-stone-300 dark:text-white/20 hidden sm:inline">•</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="hidden xs:inline">{statusBadgeLabel}</span>
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] sm:text-[11px] font-bold font-['Outfit']">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>{statusBadgeLabel}</span>
-                  </span>
+                {/* Right: OTP + Track Live + Expand + Close */}
+                <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {currentOtp && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard?.writeText(currentOtp);
+                        setCopiedOtpId(currentActiveOrder.id);
+                        showToast(`Copied OTP ${currentOtp}`, 'success');
+                        setTimeout(() => setCopiedOtpId(null), 2000);
+                      }}
+                      className="h-7 px-2.5 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/12 border border-amber-500/25 dark:border-[#FD9139]/30 hover:border-amber-500/40 flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Tap to copy OTP"
+                    >
+                      <KeyRound size={11} className="text-[#FD9139] stroke-[2.4]" />
+                      <span className="font-mono font-black text-xs text-stone-900 dark:text-[#FD9139]">
+                        {currentOtp}
+                      </span>
+                      {copiedOtpId === currentActiveOrder.id ? (
+                        <Check size={10} className="text-emerald-500 stroke-[3] ml-0.5" />
+                      ) : (
+                        <Copy size={10} className="text-stone-400 opacity-60 ml-0.5" />
+                      )}
+                    </div>
+                  )}
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTrackingOrder(currentActiveOrder);
+                      setIsTrackingModalOpen(true);
+                    }}
+                    className="btn-map-track h-7 px-2.5 rounded-full font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                    title="Track on map"
+                  >
+                    <Navigation size={10} className="fill-current" />
+                    <span className="hidden sm:inline">Track</span>
+                  </button>
+
+                  {/* Expand Chevron Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTrackingCardMinimized(false);
+                      if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem('foody_tracking_card_minimized', 'false');
+                      }
+                    }}
+                    className="w-7 h-7 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Expand tracking card"
+                    aria-label="Expand tracking card"
+                  >
+                    <ChevronDown size={14} className="text-[#FD9139]" />
+                  </button>
+
+                  {/* Dismiss X */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -2342,7 +2385,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         setTrackingOrder(next || null);
                       }
                     }}
-                    className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-7 h-7 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
                     title="Dismiss tracking card"
                     aria-label="Dismiss tracking card"
                   >
@@ -2350,75 +2393,163 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </button>
                 </div>
               </div>
+            ) : (
+              /* Expanded Full Card */
+              <div
+                onClick={() => {
+                  setTrackingOrder(currentActiveOrder);
+                  setIsTrackingModalOpen(true);
+                }}
+                className="bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/[0.08] rounded-[24px] sm:rounded-[28px] p-3.5 sm:p-4.5 shadow-sm dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)] relative overflow-hidden cursor-pointer group hover:border-[#FD9139]/40 transition-colors space-y-3"
+              >
+                {/* Top Accent Orange Highlight */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FD9139]/50 to-transparent pointer-events-none" />
 
-              {/* Subtle 3-Stage Progress Track (Live Activity Cue) */}
-              <div className="grid grid-cols-3 gap-1.5 py-0.5">
-                <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 1 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
-                <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 2 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
-                <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 3 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-white/10'}`} />
-              </div>
+                {/* Row 1: Context Header (Shop Name + Token + Status Badge + Minimize + Close X) */}
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-[#FD9139]/15 border border-amber-500/20 dark:border-[#FD9139]/25 flex items-center justify-center text-amber-600 dark:text-[#FD9139] shrink-0">
+                      <Store size={15} />
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-white font-['Outfit'] truncate">
+                        {bannerShopName}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard?.writeText(displayToken);
+                          setCopiedOtpId(`token_${currentActiveOrder.id}`);
+                          showToast(`Copied Token ${displayToken}`, 'success');
+                          setTimeout(() => setCopiedOtpId(null), 2000);
+                        }}
+                        className="font-mono font-bold text-[11px] text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-white/[0.06] hover:bg-stone-200 dark:hover:bg-white/10 px-2 py-0.5 rounded-full border border-stone-200 dark:border-white/10 flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
+                        title="Tap to copy token"
+                      >
+                        <span>{displayToken}</span>
+                        {copiedOtpId === `token_${currentActiveOrder.id}` ? (
+                          <Check size={10} className="text-emerald-500 stroke-[3]" />
+                        ) : (
+                          <Copy size={10} className="opacity-50" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Row 2: Status Details (Left) + Integrated Actions (OTP & Track CTA on Right) */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
-                {/* Left: Headline & Bill Summary */}
-                <div className="min-w-0 space-y-0.5">
-                  <h4 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
-                    {statusHeadline}
-                  </h4>
-                  <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-medium">
-                    <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
-                    <span className="opacity-40">•</span>
-                    <span className="font-bold text-amber-800 dark:text-[#FD9139] font-mono">₹{bannerTotal}</span>
-                    <span className="opacity-40">•</span>
-                    <span className="capitalize">{currentActiveOrder.paymentMethod || 'cash'}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] sm:text-[11px] font-bold font-['Outfit']">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>{statusBadgeLabel}</span>
+                    </span>
+
+                    {/* Minimize Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsTrackingCardMinimized(true);
+                        if (typeof localStorage !== 'undefined') {
+                          localStorage.setItem('foody_tracking_card_minimized', 'true');
+                        }
+                      }}
+                      className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Minimize tracking card"
+                      aria-label="Minimize tracking card"
+                    >
+                      <ChevronUp size={14} className="text-stone-400 hover:text-[#FD9139]" />
+                    </button>
+
+                    {/* Dismiss Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveCustomerOrders(prev => prev.filter(o => o.id !== currentActiveOrder.id));
+                        if (selectedActiveOrderId === currentActiveOrder.id) {
+                          const next = activeCustomerOrders.find(o => o.id !== currentActiveOrder.id);
+                          setSelectedActiveOrderId(next?.id || null);
+                          setTrackingOrder(next || null);
+                        }
+                      }}
+                      className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-800 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Dismiss tracking card"
+                      aria-label="Dismiss tracking card"
+                    >
+                      <X size={13} className="stroke-[2.2]" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Right: Integrated OTP Pill + Track Map Button */}
-                <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
-                  {/* Delivery / Counter OTP Badge */}
-                  {currentOtp && (
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard?.writeText(currentOtp);
-                        setCopiedOtpId(currentActiveOrder.id);
-                        showToast(`Copied OTP ${currentOtp}`, 'success');
-                        setTimeout(() => setCopiedOtpId(null), 2000);
-                      }}
-                      className="h-9 px-3 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/12 border border-amber-500/25 dark:border-[#FD9139]/30 hover:border-amber-500/40 flex items-center gap-1.5 cursor-pointer transition-colors group/otp"
-                      title="Tap to copy OTP"
-                    >
-                      <KeyRound size={13} className="text-[#FD9139] stroke-[2.4]" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                        {isPickup ? 'PIN' : 'OTP'}
-                      </span>
-                      <span className="font-mono font-black text-xs sm:text-sm text-stone-900 dark:text-[#FD9139] tracking-wider">
-                        {currentOtp}
-                      </span>
-                      {copiedOtpId === currentActiveOrder.id ? (
-                        <Check size={11} className="text-emerald-500 stroke-[3] ml-0.5" />
-                      ) : (
-                        <Copy size={11} className="text-stone-400 group-hover/otp:text-stone-700 dark:group-hover/otp:text-stone-200 ml-0.5 opacity-60" />
-                      )}
-                    </div>
-                  )}
+                {/* Subtle 3-Stage Progress Track (Live Activity Cue) */}
+                <div className="grid grid-cols-3 gap-1.5 py-0.5">
+                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 1 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
+                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 2 ? 'bg-[#FD9139]' : 'bg-stone-200 dark:bg-white/10'}`} />
+                  <div className={`h-1 rounded-full transition-all duration-500 ${orderStep >= 3 ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-white/10'}`} />
+                </div>
 
-                  {/* Track Map CTA */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTrackingOrder(currentActiveOrder);
-                      setIsTrackingModalOpen(true);
-                    }}
-                    className="btn-map-track h-9 px-3.5 rounded-full font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
-                  >
-                    <Navigation size={12} className="fill-current" />
-                    <span>Track Live</span>
-                  </button>
+                {/* Row 2: Status Details (Left) + Integrated Actions (OTP & Track CTA on Right) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
+                  {/* Left: Headline & Bill Summary */}
+                  <div className="min-w-0 space-y-0.5">
+                    <h4 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit'] tracking-tight truncate">
+                      {statusHeadline}
+                    </h4>
+                    <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-medium">
+                      <span>{bannerItemsCount} {bannerItemsCount === 1 ? 'item' : 'items'}</span>
+                      <span className="opacity-40">•</span>
+                      <span className="font-bold text-amber-800 dark:text-[#FD9139] font-mono">₹{bannerTotal}</span>
+                      <span className="opacity-40">•</span>
+                      <span className="capitalize">{currentActiveOrder.paymentMethod || 'cash'}</span>
+                    </div>
+                  </div>
+
+                  {/* Right: Integrated OTP Pill + Track Map Button */}
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap" onClick={(e) => e.stopPropagation()}>
+                    {/* Delivery / Counter OTP Badge */}
+                    {currentOtp && (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard?.writeText(currentOtp);
+                          setCopiedOtpId(currentActiveOrder.id);
+                          showToast(`Copied OTP ${currentOtp}`, 'success');
+                          setTimeout(() => setCopiedOtpId(null), 2000);
+                        }}
+                        className="h-9 px-3 rounded-full bg-amber-500/10 dark:bg-[#FD9139]/12 border border-amber-500/25 dark:border-[#FD9139]/30 hover:border-amber-500/40 flex items-center gap-1.5 cursor-pointer transition-colors group/otp"
+                        title="Tap to copy OTP"
+                      >
+                        <KeyRound size={13} className="text-[#FD9139] stroke-[2.4]" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                          {isPickup ? 'PIN' : 'OTP'}
+                        </span>
+                        <span className="font-mono font-black text-xs sm:text-sm text-stone-900 dark:text-[#FD9139] tracking-wider">
+                          {currentOtp}
+                        </span>
+                        {copiedOtpId === currentActiveOrder.id ? (
+                          <Check size={11} className="text-emerald-500 stroke-[3] ml-0.5" />
+                        ) : (
+                          <Copy size={11} className="text-stone-400 group-hover/otp:text-stone-700 dark:group-hover/otp:text-stone-200 ml-0.5 opacity-60" />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Track Map CTA */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTrackingOrder(currentActiveOrder);
+                        setIsTrackingModalOpen(true);
+                      }}
+                      className="btn-map-track h-9 px-3.5 rounded-full font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer font-['Outfit'] shrink-0"
+                    >
+                      <Navigation size={12} className="fill-current" />
+                      <span>Track Live</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         );
       })()}
