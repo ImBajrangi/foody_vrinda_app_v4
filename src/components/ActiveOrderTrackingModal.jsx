@@ -25,7 +25,9 @@ import {
   Flame,
   Ticket,
   Lock,
-  Navigation
+  Navigation,
+  Store,
+  KeyRound
 } from 'lucide-react';
 import { subscribeSingleCloudOrder, resolveDishCutout, getOrderOTP, getCachedShops, getOrderDisplayToken } from '../supabase';
 import FoodyMascot from '../foody/FoodyMascot';
@@ -633,13 +635,25 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
     return `${minTime}–${maxTime} min window`;
   };
 
+  const isAssigned = Boolean(currentOrder?.rider_id || currentOrder?.rider_name || currentOrder?.riderName);
   const isOutForDelivery = status === 'out_for_delivery';
   const isDelivered = status === 'completed' || status === 'delivered';
 
-  const riderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.courier_name || currentOrder?.courierName || (isOutForDelivery || isDelivered ? (isPickup ? 'Store Counter' : 'Govind Das (Sarathi)') : shop?.managerName || 'Kitchen Dispatch');
+  const assignedRiderName = currentOrder?.rider_name || currentOrder?.riderName || currentOrder?.courier_name || currentOrder?.courierName;
+  const partnerDisplayName = (isOutForDelivery || isDelivered || isAssigned)
+    ? (assignedRiderName || (isPickup ? 'Store Counter' : 'Govind Das (Sarathi)'))
+    : (shop?.name ? `${shop.name} Kitchen` : 'Sacred Kitchen Team');
+
   const riderPhone = (currentOrder?.rider_phone || currentOrder?.riderPhone || shop?.phone || shop?.contactPhone || '9876543210').replace(/\D/g, '').slice(-10);
   const riderRating = parseFloat(currentOrder?.rider_rating || shop?.rating || 4.9).toFixed(1);
-  const riderPhoto = currentOrder?.rider_avatar || currentOrder?.rider_photo || shop?.managerPhoto || shop?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
+
+  const partnerRoleSubtitle = (isOutForDelivery || isDelivered || isAssigned)
+    ? `⭐ ${riderRating} · Verified Sarathi Partner`
+    : `⭐ ${riderRating} · Sacred Kitchen Team`;
+
+  const partnerPhoto = (isOutForDelivery || isDelivered || isAssigned)
+    ? (currentOrder?.rider_avatar || currentOrder?.rider_photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80')
+    : (shop?.image || shop?.managerPhoto || 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=120&auto=format&fit=crop&q=80');
 
   const customerAddress = currentOrder?.customerAddress || currentOrder?.delivery_address || currentOrder?.deliveryAddress || 'Vrindavan Dham';
   const getAddressLabel = () => {
@@ -716,16 +730,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               e.stopPropagation();
               handleAnimatedClose(true);
             }}
-            className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer pointer-events-auto backdrop-blur-md transition-all shrink-0"
+            className="w-9.5 h-9.5 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/10 cursor-pointer pointer-events-auto backdrop-blur-xl transition-all shadow-md shrink-0"
             title="Close / Shrink to floating capsule"
             aria-label="Back"
           >
-            <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+            <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
           </button>
 
           {/* Multi-Order Switcher Pill Strip */}
           {allActiveOrders && allActiveOrders.length > 1 && (
-            <div className="flex items-center gap-1 pointer-events-auto bg-[#181617]/90 p-1 rounded-full border border-white/20 backdrop-blur-md overflow-x-auto no-scrollbar max-w-[170px] sm:max-w-xs shadow-lg">
+            <div className="flex items-center gap-1 pointer-events-auto bg-[#181617]/90 p-1 rounded-full border border-white/10 backdrop-blur-xl overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-xs shadow-lg">
               {allActiveOrders.map(ord => {
                 const isCurrent = ord.id === currentOrder?.id;
                 return (
@@ -736,13 +750,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       if (onSwitchOrder) onSwitchOrder(ord);
                       setLiveOrder(ord);
                     }}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase font-mono transition-all shrink-0 cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold font-mono transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
                       isCurrent 
-                        ? 'bg-[#FD9139] text-[#121214] shadow-xs' 
-                        : 'text-stone-300 hover:text-white'
+                        ? 'bg-white/15 text-white shadow-xs border border-white/10' 
+                        : 'text-stone-400 hover:text-stone-200'
                     }`}
                   >
-                    {getOrderDisplayToken(ord)}
+                    <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-[#FD9139] animate-pulse' : 'bg-transparent'}`} />
+                    <span>{getOrderDisplayToken(ord)}</span>
                   </button>
                 );
               })}
@@ -760,11 +775,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 e.stopPropagation();
                 handleRecenter();
               }}
-              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer backdrop-blur-md transition-all"
+              className="w-9.5 h-9.5 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-white active:scale-95 flex items-center justify-center border border-white/10 cursor-pointer backdrop-blur-xl transition-all shadow-md"
               title="Re-center Live Route"
               aria-label="Re-center"
             >
-              <RotateCcw className="w-4.5 h-4.5 stroke-[2.4]" />
+              <RotateCcw className="w-4 h-4 stroke-[2.4]" />
             </button>
             <button
               type="button"
@@ -775,11 +790,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 e.stopPropagation();
                 handleAnimatedClose(true);
               }}
-              className="w-10 h-10 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-[#FD9139] active:scale-95 flex items-center justify-center border border-[#FD9139]/40 cursor-pointer backdrop-blur-md transition-all"
+              className="w-9.5 h-9.5 rounded-full bg-[#181617]/90 hover:bg-[#252223] text-[#FD9139] active:scale-95 flex items-center justify-center border border-[#FD9139]/30 cursor-pointer backdrop-blur-xl transition-all shadow-md"
               title="Minimize to Floating Capsule"
               aria-label="Minimize"
             >
-              <Minimize2 className="w-4.5 h-4.5 stroke-[2.4]" />
+              <Minimize2 className="w-4 h-4 stroke-[2.4]" />
             </button>
           </div>
         </div>
@@ -807,19 +822,19 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               if (modalHasMoved && modalHasMoved()) return;
               setIsExpanded(!isExpanded);
             }}
-            className="sticky top-0 z-40 bg-[#181617]/95 backdrop-blur-md pt-3 pb-2.5 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none border-b border-white/[0.04]"
+            className="sticky top-0 z-40 bg-[#181617]/95 backdrop-blur-md pt-3 pb-2.5 px-4 cursor-grab active:cursor-grabbing select-none flex flex-col items-center hover:bg-white/[0.02] transition-colors touch-none border-b border-white/[0.06]"
             title="Tap to toggle • Drag down to close"
           >
-            <div className="w-12 h-1.5 bg-white/35 hover:bg-white/50 rounded-full mb-2.5 transition-colors" />
+            <div className="w-12 h-1.5 bg-white/30 hover:bg-white/50 rounded-full mb-2.5 transition-colors" />
             <div className="w-full flex items-center justify-between text-stone-300 text-[11px] font-bold">
               <span className="flex items-center gap-2 text-white min-w-0">
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD9139] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FD9139]"></span>
                 </span>
-                <span className="font-['Outfit'] font-black uppercase text-[10px] sm:text-[11px] tracking-wider text-[#FD9139] truncate">
+                <span className="font-['Outfit'] font-black uppercase text-[11px] tracking-wider text-[#FD9139] truncate">
                   {isExpanded 
-                    ? `Order ${getOrderDisplayToken(currentOrder)}`
+                    ? (isPickup ? 'Counter Pickup Tracking' : 'Live Delivery Tracking')
                     : milestones.active}
                 </span>
               </span>
@@ -837,14 +852,14 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                         if (onToast) onToast(`Order token copied: ${tok}`, 'success');
                       }
                     }}
-                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-mono font-bold text-stone-300 hover:text-white transition-all cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] hover:bg-white/10 text-[11px] font-mono font-bold text-stone-200 hover:text-white border border-white/10 transition-colors cursor-pointer"
                     title="Copy Order Token"
                   >
                     <span>{getOrderDisplayToken(currentOrder)}</span>
-                    {copiedOrderId ? <Check size={10} className="text-emerald-400 stroke-[3]" /> : <Copy size={10} />}
+                    {copiedOrderId ? <Check size={10} className="text-emerald-400 stroke-[3]" /> : <Copy size={10} className="opacity-60" />}
                   </button>
                 )}
-                <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/15 text-stone-200 hover:text-white transition-colors text-[10px] font-semibold">
+                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-stone-300 hover:text-white transition-colors text-[10px] font-semibold">
                   {isExpanded ? 'Drag down' : 'Tap to expand'}
                   {isExpanded ? <ChevronDown size={12} className="text-[#FD9139]" /> : <ChevronUp size={12} className="text-[#FD9139]" />}
                 </span>
@@ -887,10 +902,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           {isExpanded && (
             <div className="px-4 pb-5 space-y-3">
 
-              {/* 1. Main Status, ETA & Stepper Card (Minimal & Theme Relatable) */}
-              <div className="bg-[#221F20] border border-white/[0.08] rounded-2xl p-4 shadow-sm">
+              {/* 1. Main Status, ETA & Stepper Card (Refined Apple Live Activity Standard) */}
+              <div className="bg-[#221F20] border border-white/[0.08] rounded-2xl p-4 shadow-sm space-y-3.5">
                 {/* Status + Time Pill Header */}
-                <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="relative flex h-2 w-2 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD9139] opacity-75"></span>
@@ -908,31 +923,34 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 </div>
 
                 {/* Hero ETA Display */}
-                <div className="mb-4">
-                  <div className="flex items-baseline gap-2">
+                <div>
+                  <div className="flex items-baseline gap-2.5">
                     <h3 className="text-3xl sm:text-4xl font-black text-white font-['Outfit'] tracking-tight">
                       {getDynamicEstimatedTime()}
                     </h3>
-                    <span className="text-xs font-semibold text-stone-400">
+                    <span className="text-xs font-medium text-stone-400">
                       {isPickup ? 'Estimated Ready' : 'Estimated Arrival'}
                     </span>
                   </div>
-                  <p className="text-xs text-stone-400 mt-1 truncate">
-                    {isPickup 
-                      ? `Counter collection at ${shortShopName || 'Kitchen'} · ${realDistance || '2.2km'}` 
-                      : `From ${shop?.name || 'Kitchen'} · ${realDistance || '2.2km'}`}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-stone-400 mt-1 truncate">
+                    <Store size={13} className="text-[#FD9139] shrink-0" />
+                    <span>
+                      {isPickup 
+                        ? `Counter collection at ${shortShopName || 'Kitchen'} · ${realDistance || '2.2km'}` 
+                        : <>From <strong className="text-stone-200 font-semibold">{shop?.name || 'Kitchen'}</strong> · {realDistance || '2.2km'}</>}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Minimal Connected Stepper */}
-                <div className="pt-1">
+                <div className="pt-2">
                   <div className="relative flex items-start justify-between px-3">
                     {/* Track Underlay */}
-                    <div className="absolute left-6 right-6 top-3.5 -translate-y-1/2 h-0.5 bg-white/10 z-0" />
+                    <div className="absolute left-7 right-7 top-4 -translate-y-1/2 h-0.5 bg-white/10 z-0" />
                     {/* Active Track Progress */}
                     <div 
-                      className="absolute left-6 top-3.5 -translate-y-1/2 h-0.5 bg-[#FD9139] z-0 transition-all duration-500"
-                      style={{ width: `calc((100% - 48px) * ${Math.min(currentStage, 3) / 3})` }}
+                      className="absolute left-7 top-4 -translate-y-1/2 h-0.5 bg-gradient-to-r from-[#FD9139] to-[#FFA24D] z-0 transition-all duration-500 shadow-[0_0_8px_rgba(253,145,57,0.4)]"
+                      style={{ width: `calc((100% - 56px) * ${Math.min(currentStage, 3) / 3})` }}
                     />
 
                     {[
@@ -948,11 +966,11 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       return (
                         <div key={idx} className="flex flex-col items-center relative z-10">
                           <div 
-                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                               isCurrent 
-                                ? 'bg-[#FD9139] text-white shadow-[0_0_12px_rgba(253,145,57,0.5)] ring-4 ring-[#FD9139]/20 scale-105' 
+                                ? 'bg-gradient-to-tr from-[#FD9139] to-[#FFA24D] text-stone-950 shadow-[0_4px_14px_rgba(253,145,57,0.45)] ring-4 ring-[#FD9139]/20' 
                                 : isPassed 
-                                  ? 'bg-[#FD9139] text-white' 
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' 
                                   : 'bg-[#181617] text-stone-500 border border-white/15'
                             }`}
                           >
@@ -977,7 +995,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                 {/* Subtle Lockscreen Updates Banner */}
                 {systemNotificationPermission !== 'granted' && systemNotificationPermission !== 'unsupported' && (
-                  <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <BellRing className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
                       <span className="text-[11px] text-stone-300 truncate">Lock screen live status updates</span>
@@ -994,24 +1012,21 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
               </div>
 
               {/* 2. Pickup Token / Partner Dispatch Hub */}
-              <div className="bg-[#221F20] border border-white/[0.12] rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-sm">
+              <div className="bg-[#221F20] border border-white/[0.08] rounded-2xl p-4 space-y-3.5 shadow-sm">
                 {isPickup ? (
                   <>
                     {/* Pickup Token Block */}
-                    <div className="flex items-center justify-between gap-3 bg-[#181617] rounded-xl p-3.5 border border-[#FD9139]/40 shadow-inner">
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Ticket className="w-3.5 h-3.5 text-[#FD9139]" />
-                          <span className="text-[10px] font-black uppercase tracking-wider text-[#FD9139] font-['Outfit']">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#FD9139]/12 border border-[#FD9139]/25 flex items-center justify-center text-[#FD9139] shrink-0">
+                          <Ticket size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block leading-none">
                             Counter Pickup Token
                           </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl sm:text-3xl font-black text-[#FD9139] font-['Outfit'] tracking-wider drop-shadow-[0_2px_8px_rgba(253,145,57,0.3)]">
-                            #{otpCode}
-                          </span>
-                          <span className="text-[11px] text-stone-300 font-medium">
-                            Show at counter
+                          <span className="text-[11px] text-stone-300 font-medium truncate block mt-0.5">
+                            Show token at counter to claim fresh Prasad
                           </span>
                         </div>
                       </div>
@@ -1024,18 +1039,16 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                           setTimeout(() => setCopiedOtp(false), 2000);
                           if (onToast) onToast(`Copied Token #${otpCode}`, 'success');
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-bold text-white border border-white/10 transition-all cursor-pointer shrink-0"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#FD9139]/10 hover:bg-[#FD9139]/15 border border-[#FD9139]/30 transition-colors cursor-pointer shrink-0"
+                        title="Tap to copy token"
                       >
+                        <span className="font-mono font-black text-base text-[#FD9139] tracking-wider leading-none">
+                          #{otpCode}
+                        </span>
                         {copiedOtp ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-emerald-400">Copied</span>
-                          </>
+                          <Check size={13} className="text-emerald-400 stroke-[3]" />
                         ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5 text-[#FD9139]" />
-                            <span className="text-stone-200">Copy</span>
-                          </>
+                          <Copy size={13} className="text-[#FD9139] opacity-70" />
                         )}
                       </button>
                     </div>
@@ -1046,7 +1059,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                         <p className="text-xs font-bold text-white font-['Outfit'] truncate">
                           {shop?.name || 'Foody Vrinda Sacred Kitchen'}
                         </p>
-                        <p className="text-[11px] text-stone-300 truncate mt-0.5">
+                        <p className="text-[11px] text-stone-400 truncate mt-0.5">
                           {shop?.address || 'Chatikara Road, Raman Reti, Vrindavan'}
                         </p>
                       </div>
@@ -1056,7 +1069,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                           href={`https://www.google.com/maps/dir/?api=1&destination=${shop?.coordinates?.lat || 27.5706},${shop?.coordinates?.lng || 77.6593}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2.5 py-1.5 rounded-xl bg-[#FD9139]/20 hover:bg-[#FD9139]/30 border border-[#FD9139]/40 text-[#FD9139] text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                          className="h-8 px-3 rounded-full bg-[#FD9139]/15 hover:bg-[#FD9139]/25 border border-[#FD9139]/30 text-[#FD9139] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer font-['Outfit']"
                           title="Get Directions"
                         >
                           <Navigation className="w-3.5 h-3.5" />
@@ -1065,7 +1078,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                         <a
                           href={`tel:${riderPhone}`}
-                          className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-[#FD9139] flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-xs"
+                          className="w-8 h-8 rounded-full bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 text-stone-200 flex items-center justify-center transition-colors cursor-pointer"
                           title="Call Kitchen"
                         >
                           <Phone className="w-3.5 h-3.5" />
@@ -1078,10 +1091,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                     {/* Delivery Partner Sarathi Row */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 rounded-full overflow-hidden border border-[#FD9139]/40 bg-[#181617] shrink-0">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border border-[#FD9139]/35 bg-[#181617] shrink-0">
                           <img
-                            src={riderPhoto}
-                            alt={riderName}
+                            src={partnerPhoto}
+                            alt={partnerDisplayName}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -1089,12 +1102,12 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <h4 className="text-xs font-bold text-white font-['Outfit'] truncate">
-                              {riderName}
+                              {partnerDisplayName}
                             </h4>
                             <ShieldCheck className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
                           </div>
                           <p className="text-[11px] text-stone-400 mt-0.5">
-                            ⭐ {riderRating} · {isOutForDelivery ? 'Sarathi Partner' : 'Kitchen Dispatch'}
+                            {partnerRoleSubtitle}
                           </p>
                         </div>
                       </div>
@@ -1104,7 +1117,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                           href={`https://wa.me/91${riderPhone}?text=${encodeURIComponent(`Radhe Radhe! Checking status for Order ${getOrderDisplayToken(currentOrder)}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2.5 py-1.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                          className="h-8 px-3 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer font-['Outfit']"
                           title="WhatsApp chat"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
@@ -1113,7 +1126,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
 
                         <a
                           href={`tel:${riderPhone}`}
-                          className="px-2.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                          className="h-8 px-3 rounded-full bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 text-stone-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer font-['Outfit']"
                           title="Call"
                         >
                           <Phone className="w-3.5 h-3.5" />
@@ -1122,44 +1135,49 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                       </div>
                     </div>
 
-                    {/* Delivery PIN Row */}
-                    <div className="flex items-center justify-between bg-[#181617] rounded-xl px-3 py-2 border border-white/[0.06]">
-                      <div>
-                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                          Delivery Verification PIN
-                        </span>
-                        <p className="text-xs text-stone-300 font-medium">
-                          Share with Sarathi upon delivery
-                        </p>
+                    {/* Delivery PIN Row (Refined Luxury Security Strip) */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#FD9139]/12 border border-[#FD9139]/25 flex items-center justify-center text-[#FD9139] shrink-0">
+                          <KeyRound size={15} className="stroke-[2.4]" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block leading-none">
+                            Delivery Verification PIN
+                          </span>
+                          <span className="text-[11px] text-stone-300 font-medium truncate block mt-0.5">
+                            Share with Sarathi upon delivery
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-black text-[#FD9139] font-['Outfit'] tracking-widest bg-white/[0.04] px-2.5 py-1 rounded-lg border border-[#FD9139]/30">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(otpCode);
+                          setCopiedOtp(true);
+                          setTimeout(() => setCopiedOtp(false), 2000);
+                          if (onToast) onToast(`Copied PIN ${otpCode}`, 'success');
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#FD9139]/10 hover:bg-[#FD9139]/15 border border-[#FD9139]/30 transition-colors cursor-pointer shrink-0"
+                        title="Tap to copy PIN"
+                      >
+                        <span className="font-mono font-black text-base text-[#FD9139] tracking-widest leading-none">
                           {otpCode}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard?.writeText(otpCode);
-                            setCopiedOtp(true);
-                            setTimeout(() => setCopiedOtp(false), 2000);
-                            if (onToast) onToast(`Copied PIN ${otpCode}`, 'success');
-                          }}
-                          className="text-stone-400 hover:text-white p-1 transition-colors cursor-pointer"
-                          title="Copy PIN"
-                        >
-                          {copiedOtp ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#FD9139]" />}
-                        </button>
-                      </div>
+                        {copiedOtp ? (
+                          <Check size={13} className="text-emerald-400 stroke-[3]" />
+                        ) : (
+                          <Copy size={13} className="text-[#FD9139] opacity-70" />
+                        )}
+                      </button>
                     </div>
 
                     {/* Delivery Destination Address */}
-                    <div className="flex items-start gap-2.5 pt-1 text-[11px] text-stone-400 border-t border-white/[0.06]">
-                      <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <span className="font-semibold text-stone-300">{getAddressLabel()}: </span>
-                        <span className="truncate">{customerAddress}</span>
-                      </div>
+                    <div className="flex items-center gap-2 pt-1 text-xs text-stone-400 border-t border-white/[0.06]">
+                      <MapPin className="w-3.5 h-3.5 text-[#FD9139] shrink-0" />
+                      <span className="font-semibold text-stone-200">{getAddressLabel()}:</span>
+                      <span className="truncate flex-1 text-stone-400">{customerAddress}</span>
                     </div>
                   </>
                 )}
@@ -1180,7 +1198,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
                 const totalAmount = Number(currentOrder?.total_amount ?? currentOrder?.totalAmount) || (subtotal + deliveryFee + gstAmount);
 
                 return (
-                  <div className="bg-[#221F20] rounded-2xl p-3.5 border border-white/[0.12] text-xs shadow-sm">
+                  <div className="bg-[#221F20] rounded-2xl p-3.5 border border-white/[0.08] text-xs shadow-sm">
                     <button
                       onClick={() => setShowItems(!showItems)}
                       className="w-full flex items-center justify-between text-stone-200 hover:text-white font-bold cursor-pointer transition-colors"
