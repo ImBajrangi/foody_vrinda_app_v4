@@ -164,14 +164,17 @@ export async function recordCashSettlement({ riderId, shopId, expectedAmount, re
 // 3. RIDER CASH FLOATING LIMIT (DEFAULT: ₹3,000 CAP)
 // ========================================================================
 
-export const RIDER_MAX_CASH_LIMIT = 3000;
+export const RIDER_MAX_CASH_LIMIT = 1000;
 
-export function isRiderCashLimitExceeded(riderId, pendingOrderAmount = 0) {
+export function isRiderCashLimitExceeded(riderId, pendingOrderAmount = 0, currentLiveCash = null) {
   const ledger = getRiderCashLedger(riderId);
-  const currentTotal = Number(ledger.cashInHand || 0) + Number(ledger.unsettledDebt || 0) + Number(pendingOrderAmount || 0);
+  const baseCash = (currentLiveCash !== null && currentLiveCash !== undefined)
+    ? Number(currentLiveCash)
+    : Number(ledger.cashInHand || 0);
+  const currentTotal = baseCash + Number(ledger.unsettledDebt || 0) + Number(pendingOrderAmount || 0);
   return {
     isExceeded: currentTotal >= RIDER_MAX_CASH_LIMIT,
-    currentCash: Number(ledger.cashInHand || 0),
+    currentCash: baseCash,
     maxLimit: RIDER_MAX_CASH_LIMIT,
     excessAmount: Math.max(0, currentTotal - RIDER_MAX_CASH_LIMIT)
   };

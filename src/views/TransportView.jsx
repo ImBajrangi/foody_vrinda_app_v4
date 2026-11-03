@@ -1970,9 +1970,10 @@ export default function TransportView() {
       {(() => {
         const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
         const ledger = getRiderCashLedger(riderId);
-        const cashCheck = isRiderCashLimitExceeded(riderId);
+        const liveCashInHand = Math.max(0, (ledger.cashInHand || 0) + totalCodCollectedToday - (ledger.settledToday || 0));
+        const cashCheck = isRiderCashLimitExceeded(riderId, 0, liveCashInHand);
         const trustScore = getUserTrustScore(riderId);
-        const cashPercent = Math.min(100, Math.round((ledger.cashInHand / RIDER_MAX_CASH_LIMIT) * 100));
+        const cashPercent = Math.min(100, Math.round((liveCashInHand / RIDER_MAX_CASH_LIMIT) * 100));
         const trustPercent = Math.min(100, Math.round((trustScore / 900) * 100));
 
         return (
@@ -2012,10 +2013,10 @@ export default function TransportView() {
               <div className="flex items-baseline justify-between gap-2 mt-4 mb-1">
                 <div className="flex items-baseline gap-2 flex-nowrap whitespace-nowrap">
                   <span className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-white font-['Outfit'] tracking-tight">
-                    ₹{ledger.cashInHand}
+                    ₹{liveCashInHand}
                   </span>
                   <span className="text-xs sm:text-sm font-bold text-stone-500 dark:text-zinc-400 font-['Outfit']">
-                    / ₹{RIDER_MAX_CASH_LIMIT} Daily Cap
+                    / ₹{RIDER_MAX_CASH_LIMIT >= 1000 && RIDER_MAX_CASH_LIMIT % 1000 === 0 ? `${RIDER_MAX_CASH_LIMIT / 1000}k` : RIDER_MAX_CASH_LIMIT} Daily Cap
                   </span>
                 </div>
                 <span className="text-xs font-black font-['Outfit'] text-stone-600 dark:text-zinc-400 shrink-0">

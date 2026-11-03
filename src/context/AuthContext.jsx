@@ -576,6 +576,19 @@ export function AuthProvider({ children }) {
           setCurrentShopName(resolveShopName(userProfile.shopId));
           localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
           syncUserToCloudList(userProfile);
+
+          // 🎁 Auto-provision user wallet & bind referral code (seamless for Google OAuth, Email, etc.)
+          const pendingRef = typeof window !== 'undefined' ? localStorage.getItem('foody_pending_referral_code') : null;
+          initUserWallet(currentSbUser.id, pendingRef, currentSbUser.app_metadata?.provider || 'google').then((res) => {
+            if (pendingRef && res?.success) {
+              try { localStorage.removeItem('foody_pending_referral_code'); } catch (_) {}
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('foody:referral-applied', { detail: { code: pendingRef } }));
+              }
+            }
+          }).catch((err) => {
+            console.debug('[AuthContext] Wallet init for session note:', err);
+          });
         } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
           const email = parsedSaved.email || '';
           const savedRole = parsedSaved.role;
@@ -1039,6 +1052,17 @@ export function AuthProvider({ children }) {
     setCurrentShopName(null);
     localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
     await recordLoggedInUser(userProfile).catch(() => { });
+
+    // 🎁 Auto-provision user wallet & bind referral code on new phone account creation
+    const pendingRef = typeof window !== 'undefined' ? localStorage.getItem('foody_pending_referral_code') : null;
+    initUserWallet(newCustomer.id, pendingRef, 'phone').then((res) => {
+      if (pendingRef && res?.success) {
+        try { localStorage.removeItem('foody_pending_referral_code'); } catch (_) {}
+      }
+    }).catch((err) => {
+      console.warn('[AuthContext] Wallet init on phone signup notice:', err);
+    });
+
     nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');
 
     // Mark newly registered user eligible for first-visit tutorial

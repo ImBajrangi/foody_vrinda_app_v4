@@ -143,6 +143,38 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const [signupPhone, setSignupPhone] = useState('');
   const [signupAddress, setSignupAddress] = useState('');
 
+  // Referral / Invitation code state for new registrations & Google Sign-In
+  const [referralCodeInput, setReferralCodeInput] = useState(() => {
+    return (typeof window !== 'undefined' ? localStorage.getItem('foody_pending_referral_code') : '') || '';
+  });
+  const [showReferralInput, setShowReferralInput] = useState(() => {
+    return Boolean(typeof window !== 'undefined' && localStorage.getItem('foody_pending_referral_code'));
+  });
+
+  useEffect(() => {
+    const handleRefDetected = (e) => {
+      const code = e?.detail?.code;
+      if (code) {
+        setReferralCodeInput(code.toUpperCase());
+        setShowReferralInput(true);
+      }
+    };
+    window.addEventListener('foody:referral-detected', handleRefDetected);
+    return () => window.removeEventListener('foody:referral-detected', handleRefDetected);
+  }, []);
+
+  const handleReferralCodeChange = (val) => {
+    const clean = val.replace(/[^a-zA-Z0-9_-]/g, '').toUpperCase();
+    setReferralCodeInput(clean);
+    try {
+      if (clean) {
+        localStorage.setItem('foody_pending_referral_code', clean);
+      } else {
+        localStorage.removeItem('foody_pending_referral_code');
+      }
+    } catch (_) {}
+  };
+
   // Profile inline editing states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressInput, setAddressInput] = useState('');
@@ -1274,6 +1306,42 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       </div>
                     </div>
 
+                    {/* Optional Referral / Invite Code in Step 1 */}
+                    <div className="pt-1">
+                      {!showReferralInput ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowReferralInput(true)}
+                          className="text-[11px] font-bold text-amber-600 dark:text-[#FD9139] hover:underline flex items-center gap-1.5 cursor-pointer py-1"
+                        >
+                          <Gift className="w-3.5 h-3.5" />
+                          <span>Have an invite / referral code?</span>
+                        </button>
+                      ) : (
+                        <div className="p-3 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 space-y-1.5 animate-fade-in">
+                          <div className="flex items-center justify-between text-xs font-bold text-stone-900 dark:text-white">
+                            <span className="flex items-center gap-1.5 font-['Outfit'] text-[10px] uppercase tracking-wider text-amber-700 dark:text-[#FD9139]">
+                              <Gift className="w-3.5 h-3.5" />
+                              Invite / Referral Code
+                            </span>
+                            {referralCodeInput && (
+                              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
+                                Applied ✓
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={referralCodeInput}
+                            onChange={(e) => handleReferralCodeChange(e.target.value)}
+                            placeholder="e.g. FVC8SE7J"
+                            maxLength={16}
+                            className="w-full bg-white dark:bg-[#1E1B1C] border border-amber-500/40 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-black text-stone-900 dark:text-white placeholder:text-stone-400 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FD9139]/30"
+                          />
+                        </div>
+                      )}
+                    </div>
+
                     <p className="text-[11px] text-stone-500 dark:text-zinc-500 leading-relaxed px-0.5">
                       Used for live delivery notifications and SMS order updates.
                     </p>
@@ -1455,6 +1523,43 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               {/* Google Sign-In Option (When logging in) */}
               {!isSignup && (
                 <div className="pt-2 border-t border-stone-200 dark:border-white/5 space-y-2">
+                  {/* 🎁 Referral / Invitation Code (Auto-binds on Google Sign-In) */}
+                  {!showReferralInput ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowReferralInput(true)}
+                      className="text-[11px] font-bold text-amber-600 dark:text-[#FD9139] hover:underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer py-1"
+                    >
+                      <Gift className="w-3.5 h-3.5" />
+                      <span>Have an invite / referral code?</span>
+                    </button>
+                  ) : (
+                    <div className="p-3 rounded-2xl bg-amber-500/10 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/30 space-y-1.5 animate-fade-in text-left">
+                      <div className="flex items-center justify-between text-xs font-bold text-stone-900 dark:text-white">
+                        <span className="flex items-center gap-1.5 font-['Outfit'] text-[10px] uppercase tracking-wider text-amber-700 dark:text-[#FD9139]">
+                          <Gift className="w-3.5 h-3.5" />
+                          Invite / Referral Code
+                        </span>
+                        {referralCodeInput && (
+                          <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
+                            Applied ✓
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={referralCodeInput}
+                        onChange={(e) => handleReferralCodeChange(e.target.value)}
+                        placeholder="e.g. FVC8SE7J"
+                        maxLength={16}
+                        className="w-full bg-white dark:bg-[#1E1B1C] border border-amber-500/40 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-black text-stone-900 dark:text-white placeholder:text-stone-400 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FD9139]/30"
+                      />
+                      <p className="text-[10px] text-stone-500 dark:text-zinc-400">
+                        Code applies automatically when you sign in with Google or Email.
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
