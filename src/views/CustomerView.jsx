@@ -1004,7 +1004,18 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           .in('id', candidateList.slice(0, 20));
         if (Array.isArray(idOrders)) {
           idOrders.forEach(o => {
-            if (ACTIVE_STATUSES.includes(o.status)) fetchedMap.set(o.id, o);
+            if (ACTIVE_STATUSES.includes(o.status)) {
+              // 🛡️ User Isolation Guard: If authenticated, strictly ensure order belongs to this user or registered phone
+              if (isAuthenticated) {
+                const belongsToUser = o.user_id === user.id;
+                const matchesPhone = cleanPhone && cleanPhone.length >= 10 && String(o.customer_phone || '').replace(/\D/g, '').endsWith(cleanPhone.slice(-10));
+                if (belongsToUser || matchesPhone) {
+                  fetchedMap.set(o.id, o);
+                }
+              } else {
+                fetchedMap.set(o.id, o);
+              }
+            }
           });
         }
       }
@@ -1051,7 +1062,13 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
           if (Array.isArray(hist)) {
             hist.forEach(o => {
               if (o?.id && !purgedIds.includes(o.id) && ACTIVE_STATUSES.includes(o.status) && !fetchedMap.has(o.id)) {
-                if (candidateIds.has(o.id) || o.userId === user?.id || (cleanPhone && String(o.customerPhone || '').includes(cleanPhone))) {
+                if (isAuthenticated) {
+                  const belongsToUser = (o.userId === user?.id || o.user_id === user?.id);
+                  const matchesPhone = cleanPhone && cleanPhone.length >= 10 && String(o.customerPhone || o.customer_phone || '').replace(/\D/g, '').endsWith(cleanPhone.slice(-10));
+                  if (belongsToUser || matchesPhone) {
+                    fetchedMap.set(o.id, o);
+                  }
+                } else if (candidateIds.has(o.id)) {
                   fetchedMap.set(o.id, o);
                 }
               }

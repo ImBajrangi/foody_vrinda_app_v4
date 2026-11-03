@@ -515,6 +515,17 @@ export function AuthProvider({ children }) {
           currentSbUser.photoURL = avatarUrl;
           setUser(currentSbUser);
 
+          // 🛡️ Account Boundary Guard: If a different account logged in on this device, wipe previous account's tracking & order history
+          if (parsedSaved?.id && parsedSaved.id !== currentSbUser.id) {
+            try {
+              localStorage.removeItem('foody_my_session_orders');
+              localStorage.removeItem('foody_active_tracking_id');
+              localStorage.removeItem('foody_orders_history');
+              localStorage.removeItem('foody_customer_orders_cache');
+              window.dispatchEvent(new CustomEvent('foody_orders_changed', { detail: { action: 'user_switch' } }));
+            } catch { /* ignore */ }
+          }
+
           // Check live database role first for instant synchronization
           let liveProfile = null;
           try {
@@ -1040,11 +1051,17 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('foody_user_data');
     localStorage.removeItem('foody_customer_orders_cache');
     localStorage.removeItem('foody_my_session_orders');
+    localStorage.removeItem('foody_active_tracking_id');
+    localStorage.removeItem('foody_orders_history');
+    localStorage.removeItem('foody_tracking_card_minimized');
     localStorage.removeItem('customerName');
     localStorage.removeItem('customerPhone');
     localStorage.removeItem('customerAddress');
     localStorage.removeItem('deliveryCoords');
     localStorage.removeItem('foody_fulfillment_type');
+    try {
+      window.dispatchEvent(new CustomEvent('foody_orders_changed', { detail: { action: 'logout' } }));
+    } catch { /* ignore */ }
     try {
       await supabase.auth.signOut();
     } catch (e) { }

@@ -133,7 +133,7 @@ export default function OrderHistoryDrawer({
           }
         }
 
-        // Merge any explicit device session orders
+        // Merge any explicit device session orders (with strict user boundary if logged in)
         if (sessionOrderIds.length > 0) {
           const missingIds = sessionOrderIds.filter(id => !fetchedOrdersMap.has(id));
           if (missingIds.length > 0) {
@@ -142,7 +142,17 @@ export default function OrderHistoryDrawer({
               .select(CUSTOMER_ORDER_FIELDS)
               .in('id', missingIds.slice(0, 15));
             if (Array.isArray(sessionData)) {
-              sessionData.forEach(o => fetchedOrdersMap.set(o.id, o));
+              sessionData.forEach(o => {
+                if (isAuthenticated) {
+                  const belongsToUser = (o.user_id === userId);
+                  const matchesPhone = cleanPhone && cleanPhone.length >= 10 && String(o.customer_phone || '').replace(/\D/g, '').endsWith(cleanPhone.slice(-10));
+                  if (belongsToUser || matchesPhone) {
+                    fetchedOrdersMap.set(o.id, o);
+                  }
+                } else {
+                  fetchedOrdersMap.set(o.id, o);
+                }
+              });
             }
           }
         }
