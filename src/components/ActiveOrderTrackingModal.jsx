@@ -671,10 +671,10 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
       case 'new':
         return { active: 'Order Placed & Verified', past: 'Awaiting Kitchen Preparation', icon: PackageCheck };
       case 'preparing':
-        return { active: 'Cooking in Pure Desi Ghee', past: 'Order Confirmed by Kitchen', icon: Utensils };
+        return { active: 'Preparing in Sacred Kitchen', past: 'Order Confirmed by Kitchen', icon: Utensils };
       case 'ready_for_pickup':
         return isPickup
-          ? { active: `Ready for Counter Pickup at ${shortShopName}`, past: 'Cooked in Pure Desi Ghee', icon: PackageCheck }
+          ? { active: `Ready for Counter Pickup at ${shortShopName}`, past: 'Prepared Freshly', icon: PackageCheck }
           : { active: 'Packed & Awaiting Pickup', past: 'Prasad Cooked Freshly', icon: PackageCheck };
       case 'out_for_delivery':
         return isPickup

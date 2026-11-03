@@ -32,7 +32,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
-  Flame,
   Zap,
   Banknote,
   ShieldCheck,
@@ -1737,15 +1736,11 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
 
   // Map live database items into rich, responsive UI cards (memoized to eliminate mobile lag)
   const displayItems = useMemo(() => {
-    return (menuItems || []).map((it, i) => ({
+    return (menuItems || []).map((it) => ({
       ...it,
       image: resolveDishCutout(it.image || it.imageUrl, it.name, it.category),
-      subtitle: it.subtitle || (it.category === 'Thali & Meals' ? 'Rich gravy, hot rotis' : (it.category === 'Sweets & Prasad' ? 'Desi ghee, saffron flavored' : 'Cheesy crisp, special price')),
-      kcal: it.kcal || `${Math.round(220 + ((it.price || 140) * 0.8))} kcal`,
-      carbs: it.carbs || `${Math.round(35 + (i * 4))}g`,
-      fat: it.fat || `${Math.round(14 + (i * 3))}g`,
-      protein: it.protein || `${Math.round(18 + (i * 4))}g`,
-      tag: it.tag || (it.category === 'Sweets & Prasad' ? 'Sacred Prasad' : (it.category === 'Thali & Meals' ? 'Pure Desi Ghee' : 'Full Protein'))
+      subtitle: it.subtitle || '',
+      tag: it.tag || null
     }));
   }, [menuItems]);
 
@@ -2823,20 +2818,22 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   </div>
                 )}
 
-                {/* Floating Tag Pill */}
-                <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
-                  {selectedDishDetails.isAvailable === false || selectedDishDetails.is_available === false ? (
+                {/* Floating Tag Pill (Only for Out of Stock or Curated Combos) */}
+                {(selectedDishDetails.isAvailable === false || selectedDishDetails.is_available === false) ? (
+                  <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
                     <span className="bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-rose-500/30 flex items-center gap-1.5 backdrop-blur-sm">
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                       <span>Currently Out of Stock</span>
                     </span>
-                  ) : (
+                  </div>
+                ) : selectedDishDetails.isCombo ? (
+                  <div className="absolute bottom-0 left-0 sm:bottom-1 sm:left-1 z-10 flex items-center pointer-events-none">
                     <span className="bg-white/95 dark:bg-[#282526] text-stone-900 dark:text-[#FD9139] text-[10px] sm:text-xs font-black px-2.5 sm:px-3 py-1 rounded-full shadow-md border border-stone-200 dark:border-[#FD9139]/20 flex items-center gap-1 backdrop-blur-sm">
                       <Sparkles size={11} className="shrink-0 text-amber-600 dark:text-[#FD9139]" />
-                      <span>{selectedDishDetails.isCombo ? `👑 ${selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length || 2} Items Feast` : (selectedDishDetails.tag || (selectedDishDetails.category === 'Sweets & Prasad' ? 'Sacred Prasad' : '100% Pure Satvik'))}</span>
+                      <span>👑 {selectedDishDetails.combo_items?.length || selectedDishDetails.comboItems?.length || 2} Items Feast</span>
                     </span>
-                  )}
-                </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -2862,7 +2859,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                   {selectedDishDetails.name}
                 </h2>
 
-                {/* Price & Clean Energy Row */}
+                {/* Price Row */}
                 <div className="flex justify-between items-center py-1 border-y border-stone-200/80 dark:border-white/5">
                   <div className="flex items-baseline gap-2">
                     <div className="text-2xl sm:text-3xl font-black text-stone-950 dark:text-[#FD9139] font-['Outfit']">
@@ -2873,12 +2870,6 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                         ₹{selectedDishDetails.originalPrice}
                       </span>
                     )}
-                  </div>
-
-                  {/* Clean, Non-Exaggerated Nutrition Indicator */}
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-white/5 border border-amber-200 dark:border-white/5 text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400">
-                    <Flame size={13} className="text-amber-600 dark:text-amber-400 fill-amber-400/20" />
-                    <span>Pure Desi Ghee</span>
                   </div>
                 </div>
 
