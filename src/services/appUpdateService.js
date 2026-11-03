@@ -3,8 +3,8 @@ import { Browser } from '@capacitor/browser';
 import { supabase } from '../supabase.js';
 
 export const CURRENT_APP_VERSION = {
-  versionCode: 35,
-  versionName: '1.1.24',
+  versionCode: 36,
+  versionName: '1.1.25',
   buildDate: '2026-11-03'
 };
 
