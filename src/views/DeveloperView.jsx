@@ -321,11 +321,12 @@ export default function DeveloperView({ setCurrentTab }) {
   const fcmDeviceCount = useMemo(() => {
     const listCount = filteredBroadcastRecipients.filter(u => Boolean(u.fcm_token || u.fcmToken)).length;
     const localFcm = typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null;
-    if (localFcm && listCount === 0 && filteredBroadcastRecipients.some(u => u.id === activeUser?.id)) {
-      return 1;
+    const currentUserId = user?.id || userData?.id;
+    if (localFcm && (listCount === 0 || !filteredBroadcastRecipients.some(u => Boolean(u.fcm_token || u.fcmToken)))) {
+      return Math.max(listCount, 1);
     }
     return listCount;
-  }, [filteredBroadcastRecipients, activeUser]);
+  }, [filteredBroadcastRecipients, user, userData]);
 
   // Request browser permission for system notifications
   const handleRequestWebPermission = async () => {

@@ -712,7 +712,7 @@ export default function ActiveOrderTrackingModal({ order, onClose, onRateOrder, 
           <div
             {...modalHandleProps}
             className="w-48 h-11 flex items-center justify-center cursor-grab active:cursor-grabbing pointer-events-auto touch-none"
-            title="Drag down to close"
+            aria-label="Drag handle"
           >
             <div className="w-12 h-1.5 bg-black/40 hover:bg-black/60 rounded-full transition-colors shadow-sm" />
           </div>

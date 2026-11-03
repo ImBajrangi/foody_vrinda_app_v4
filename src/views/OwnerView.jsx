@@ -187,7 +187,7 @@ export default function OwnerView() {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
-  const lastLoadedShopIdRef = useRef(activeShopId);
+  const lastLoadedShopIdRef = useRef(null);
 
   // Responsive Onboarding Tour Tab Auto-Switch Listener
   useEffect(() => {
@@ -869,6 +869,7 @@ export default function OwnerView() {
 
   // 2. & 9. Fetch shop-specific orders for analytics and audit with Supabase Realtime & Strict Isolation
   useEffect(() => {
+    lastLoadedShopIdRef.current = null;
     // Guard: never query orders when activeShopId is null, undefined, empty, or invalid
     if (!activeShopId) {
       setOrders([]);
@@ -895,23 +896,26 @@ export default function OwnerView() {
         if (!error && data) {
           const purged = getPurgedOrderIds();
           // Hard defense before state commit: only accept orders belonging to requestedShopId and not purged
-          const isolatedData = data.filter(o =>
-            (o.shop_id ?? o.shopId) === requestedShopId &&
-            !purged.includes(o.id)
-          );
-          lastLoadedShopIdRef.current = requestedShopId;
-          setOrders(isolatedData.map(o => ({
-            id: o.id,
-            ...o,
-            shopId: o.shop_id,
-            customerName: o.customer_name,
-            customerPhone: o.customer_phone,
-            deliveryAddress: o.delivery_address,
-            totalAmount: o.total_amount,
-            paymentMethod: o.payment_method,
-            cashStatus: o.cash_status,
-            createdAt: o.created_at
-          })));
+          const isolatedData = data.filter(o => {
+            const sid = o.shop_id ?? o.shopId;
+            return sid === requestedShopId && !purged.includes(o.id);
+          });
+          if (isCurrent && activeShopId === requestedShopId) {
+            setOrders(isolatedData.map(o => ({
+              id: o.id,
+              ...o,
+              shopId: requestedShopId,
+              shop_id: requestedShopId,
+              customerName: o.customer_name,
+              customerPhone: o.customer_phone,
+              deliveryAddress: o.delivery_address,
+              totalAmount: o.total_amount,
+              paymentMethod: o.payment_method,
+              cashStatus: o.cash_status,
+              createdAt: o.created_at
+            })));
+            lastLoadedShopIdRef.current = requestedShopId;
+          }
         }
       } catch (err) {
         if (!isCurrent) return;
@@ -947,6 +951,7 @@ export default function OwnerView() {
 
     return () => {
       isCurrent = false;
+      lastLoadedShopIdRef.current = null;
       if (unsubscribeSupabase) unsubscribeSupabase();
       window.removeEventListener('foody_order_created', handleLocalOrderCreated);
       window.removeEventListener('foody_orders_changed', handleOrdersChanged);
@@ -1089,13 +1094,13 @@ export default function OwnerView() {
     if (import.meta.env?.DEV || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) {
       // Guard: Only verify once orders state has settled for the active shop
       // to eliminate false-positive transition noise when switching kitchen branches
-      if (!activeShopId || lastLoadedShopIdRef.current !== activeShopId) return;
+      if (!activeShopId || !lastLoadedShopIdRef.current || lastLoadedShopIdRef.current !== activeShopId) return;
 
       orders.forEach(order => {
         const orderShopId = order.shop_id ?? order.shopId;
         if (activeShopId && orderShopId && orderShopId !== activeShopId) {
-          console.error(
-            '[SHOP ISOLATION VIOLATION]',
+          console.warn(
+            '[SHOP ISOLATION GUARD]',
             { activeShopId, orderShopId, orderId: order.id }
           );
         }

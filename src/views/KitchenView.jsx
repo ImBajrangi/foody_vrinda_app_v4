@@ -975,7 +975,7 @@ export default function KitchenView() {
                               shopName: currentShop?.name || 'Foody Vrinda Kitchen',
                               status: order.status,
                               totalAmount: order.totalAmount,
-                              deliveryOtp: getOrderOTP(order.id, 'delivery')
+                              deliveryOtp: getOrderOTP(order, 'delivery')
                             })}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -1032,7 +1032,7 @@ export default function KitchenView() {
                           <span>Rider Pickup OTP</span>
                         </span>
                         <span className="px-2.5 py-0.5 rounded-md font-mono font-black text-xs text-[#FD9139] bg-[#FD9139]/15 tracking-widest">
-                          {getOrderOTP(order.id, 'pickup')}
+                          {getOrderOTP(order, 'pickup')}
                         </span>
                       </div>
                     )}
@@ -1129,7 +1129,7 @@ export default function KitchenView() {
                           <span>Awaiting Sarathi Pickup</span>
                         </div>
                         <p className="text-[11px] text-stone-600 dark:text-zinc-400">
-                          Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#FD9139] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#FD9139]/20">{getOrderOTP(order.id, 'pickup')}</strong>
+                          Hand over prasad when Sarathi enters OTP: <strong className="font-mono text-xs text-amber-800 dark:text-[#FD9139] font-black px-1.5 py-0.5 rounded bg-amber-500/20 dark:bg-[#FD9139]/20">{getOrderOTP(order, 'pickup')}</strong>
                         </p>
                       </div>
                     )

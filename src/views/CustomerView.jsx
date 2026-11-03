@@ -3050,7 +3050,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
               {/* Drag Handle Bar (Interactive Drag Down Area - Mobile Only) */}
               <div
                 className="w-full py-2.5 -mt-3 mb-1 flex items-center justify-center sm:hidden pointer-events-none"
-                title="Drag down to close"
+                aria-label="Drag handle"
               >
                 <div className="w-12 h-1.5 bg-stone-300 dark:bg-zinc-600 hover:bg-stone-400 dark:hover:bg-zinc-500 active:bg-stone-500 dark:active:bg-zinc-400 rounded-full transition-colors" />
               </div>
@@ -3521,7 +3521,7 @@ export default function CustomerView({ trackingOrderId, setTrackingOrderId }) {
                     </div>
 
                     {/* In-Flow Suggestions List: Natural expansion with ZERO overlap over payment methods */}
-                    {showAddressDropdown && addressSuggestions.length > 0 && (
+                    {showAddressDropdown && addressSuggestions.length > 0 && isUserTypingAddress && (
                       <div className="pt-2 border-t border-stone-200/80 dark:border-white/10 space-y-1.5 animate-fade-in">
                         <div className="flex items-center justify-between px-1 text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-zinc-400">
                           <span>{isFetchingAddress ? 'Searching...' : 'Suggested Locations'}</span>
