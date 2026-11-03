@@ -1611,7 +1611,7 @@ export default function TransportView() {
             <Search className="w-4 h-4 absolute left-4.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by Order Token (#FV-XXXX), customer, restaurant, or dish..."
+              placeholder="Search by Orders here"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-12 bg-white dark:bg-[#151314] border border-stone-200/90 dark:border-white/10 rounded-2xl pl-11 pr-4 text-xs sm:text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:border-[#FD9139] transition-all font-['Plus_Jakarta_Sans'] shadow-xs"
