@@ -5032,7 +5032,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   onClick={() => setMascotPreviewState(st.id)}
                   className={`py-2.5 px-2 rounded-xl font-bold text-xs capitalize transition-all cursor-pointer ${
                     mascotPreviewState === st.id
-                      ? 'bg-[#FD9139] text-stone-950 shadow-md font-black scale-102'
+                      ? 'bg-[#FD9139] text-white shadow-md font-black scale-102'
                       : 'bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-700 dark:text-stone-300'
                   }`}
                 >

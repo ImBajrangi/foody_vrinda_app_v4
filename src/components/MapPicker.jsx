@@ -221,7 +221,7 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
             </button>
             <button 
               onClick={handleSave} 
-              className="flex-1 sm:flex-none px-6 py-2.5 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] text-black font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+              className="flex-1 sm:flex-none px-6 py-2.5 rounded-2xl bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
             >
               <Check className="w-4 h-4" />
               <span>Confirm Location</span>

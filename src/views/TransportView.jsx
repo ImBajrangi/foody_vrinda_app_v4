@@ -1204,7 +1204,7 @@ export default function TransportView() {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-stone-900 dark:text-white tracking-tight font-['Outfit'] flex items-center gap-2">
                 <span>Rider Dispatch</span>
               </h1>
-              <span className="bg-[#FD9139] text-[#121214] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0 font-['Outfit'] shadow-xs">
+              <span className="bg-[#FD9139] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase shrink-0 font-['Outfit'] shadow-xs">
                 {activeTrips.length} Active Trips
               </span>
             </div>
@@ -1238,7 +1238,7 @@ export default function TransportView() {
               data-tour="delivery-orders"
               onClick={() => setViewMode('list')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'list'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white'
                 }`}
             >
@@ -1249,7 +1249,7 @@ export default function TransportView() {
               data-tour="delivery-navigation"
               onClick={() => setViewMode('map')}
               className={`h-8 sm:h-9 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${viewMode === 'map'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white'
                 }`}
             >
@@ -1268,13 +1268,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('active')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'active'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <Truck size={14} />
               <span>Active</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'active' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {activeTrips.length}
               </span>
             </button>
@@ -1282,13 +1282,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('upcoming')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'upcoming'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <Clock size={14} />
               <span>Available</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {upcomingPickups.length}
               </span>
             </button>
@@ -1296,13 +1296,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('completed')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'completed'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <CheckCircle2 size={14} />
               <span>Completed</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'completed' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {completedToday.length}
               </span>
             </button>
@@ -1310,13 +1310,13 @@ export default function TransportView() {
             <button
               onClick={() => setRiderTab('all')}
               className={`py-2 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 font-['Outfit'] ${riderTab === 'all'
-                ? 'bg-[#FD9139] text-[#121214] font-black shadow-xs'
+                ? 'bg-[#FD9139] text-white font-black shadow-xs'
                 : 'text-stone-600 dark:text-stone-300 hover:text-[#FD9139] dark:hover:text-[#FD9139] hover:bg-stone-100 dark:hover:bg-white/[0.04]'
                 }`}
             >
               <List size={14} />
               <span>Order History</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-[#121214]/15 text-[#121214]' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'all' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {orderHistory.length}
               </span>
             </button>
@@ -1543,7 +1543,7 @@ export default function TransportView() {
                 {['ready_for_pickup', 'ready', 'out_of_kitchen'].includes(activeOrder.status) ? (
                   <button
                     onClick={() => handleInitiatePickup(activeOrder)}
-                    className="w-full py-3.5 px-4 rounded-2xl bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-[#FD9139] hover:bg-[#e07d2c] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer whitespace-nowrap font-['Outfit']"
                   >
                     <span>Pick Up from Kitchen</span>
                     <ArrowRight className="w-4 h-4 stroke-[2.5] shrink-0" />
@@ -1641,7 +1641,7 @@ export default function TransportView() {
                 <button
                   type="button"
                   onClick={() => setRiderTab('upcoming')}
-                  className="mt-4 px-5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer font-['Outfit'] active:scale-95"
+                  className="mt-4 px-5 py-2.5 rounded-full bg-[#FD9139] hover:bg-[#e07d2c] text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer font-['Outfit'] active:scale-95"
                 >
                   <span>View Available Orders ({upcomingPickups.length})</span>
                   <ArrowRight size={14} />
@@ -1821,7 +1821,7 @@ export default function TransportView() {
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <a
                                     href={`tel:${order.customerPhone}`}
-                                    className="flex items-center gap-1 text-[11px] font-black text-[#121214] bg-[#FD9139] hover:bg-[#e07d2c] px-2.5 py-1 rounded-full shadow-xs cursor-pointer font-['Outfit'] apple-tap-target"
+                                    className="flex items-center gap-1 text-[11px] font-black text-white bg-[#FD9139] hover:bg-[#e07d2c] px-2.5 py-1 rounded-full shadow-xs cursor-pointer font-['Outfit'] apple-tap-target"
                                   >
                                     <Phone size={11} strokeWidth={2.5} />
                                     <span>Call</span>
@@ -1887,7 +1887,7 @@ export default function TransportView() {
                                   showToast("Failed to update status", "error");
                                 }
                               }}
-                              className="py-1.5 px-3 rounded-lg bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-xs flex items-center gap-1 shadow-xs cursor-pointer shrink-0 font-['Outfit'] apple-tap-target"
+                              className="py-1.5 px-3 rounded-lg bg-[#FD9139] hover:bg-[#e07d2c] text-white font-black text-xs flex items-center gap-1 shadow-xs cursor-pointer shrink-0 font-['Outfit'] apple-tap-target"
                               title="Kitchen Staff: Mark Order Ready"
                             >
                               <PackageCheck size={13} />
@@ -1906,10 +1906,10 @@ export default function TransportView() {
                           type="button"
                           onClick={() => handleClaimOrder(order.id)}
                           disabled={isClaimingOrderId === order.id}
-                          className="w-full h-12 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] text-[#121214] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit'] active:scale-[0.99]"
+                          className="w-full h-12 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit'] active:scale-[0.99]"
                         >
                           {isClaimingOrderId === order.id ? (
-                            <div className="w-4 h-4 border-2 border-[#121214] border-t-transparent rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <Truck size={16} strokeWidth={2.5} />
                           )}
@@ -1936,7 +1936,7 @@ export default function TransportView() {
                         {isReady ? (
                           <button
                             onClick={() => handleInitiatePickup(order)}
-                            className="flex-1 h-11 px-3 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] active:scale-[0.99] text-[#121214] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer font-['Outfit']"
+                            className="flex-1 h-11 px-3 rounded-xl bg-[#FD9139] hover:bg-[#e07d2c] active:scale-[0.99] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer font-['Outfit']"
                           >
                             <span>Start Pickup</span>
                             <ArrowRight className="w-4 h-4 stroke-[2.5]" />

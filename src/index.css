@@ -3336,7 +3336,7 @@ button[disabled] svg {
 /* Live Map Track Banner Button: Unified Luxury Brand Orange Standard */
 .btn-map-track {
   background: linear-gradient(135deg, #FD9139 0%, #FF8C2B 100%) !important;
-  color: #121011 !important;
+  color: #FFFFFF !important;
   box-shadow: 0 4px 16px rgba(253, 145, 57, 0.3) !important;
   transition: opacity 0.15s ease, filter 0.15s ease !important;
 }
@@ -3349,9 +3349,9 @@ button[disabled] svg {
 .btn-map-track svg,
 .btn-map-track:hover span,
 .btn-map-track:hover svg {
-  color: #121011 !important;
-  stroke: #121011 !important;
-  fill: #121011 !important;
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+  fill: #FFFFFF !important;
 }
 
 /* Dedicated Stepper Capsule Styling (Theme-Adaptive CSS) */

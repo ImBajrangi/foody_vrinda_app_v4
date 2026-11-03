@@ -1012,11 +1012,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       title="Obsidian Dark"
                       className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
                         themeMode === 'dark'
-                          ? 'bg-[#FD9139] text-black shadow-xs font-black'
+                          ? 'bg-[#FD9139] text-white shadow-xs font-black'
                           : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
                       }`}
                     >
-                      <Moon size={11} className={themeMode === 'dark' ? "text-black" : "opacity-70"} />
+                      <Moon size={11} className={themeMode === 'dark' ? "text-white" : "opacity-70"} />
                       <span>Dark</span>
                     </button>
                   </div>
