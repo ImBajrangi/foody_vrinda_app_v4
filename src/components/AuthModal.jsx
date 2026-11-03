@@ -1479,7 +1479,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setSelectedDesk('kitchen');
                         } else {
                           setSelectedDesk('customer');
-                          setLoginMethod('phone');
                         }
                       }}
                       className="text-[11px] text-stone-500 hover:text-stone-800 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"

@@ -1084,7 +1084,7 @@ export default function OwnerView() {
 
   // 10. CROSS-SHOP DEV ASSERTION
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) {
+    if (import.meta.env?.DEV || (typeof window !== 'undefined' && window.location.hostname === 'localhost')) {
       orders.forEach(order => {
         const orderShopId = order.shop_id ?? order.shopId;
         if (activeShopId && orderShopId && orderShopId !== activeShopId) {

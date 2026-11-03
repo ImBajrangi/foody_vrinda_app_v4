@@ -38,24 +38,25 @@ export async function getCloudMenus(shopId = 'all') {
   }
 
   const promise = (async () => {
-    try {
-      const deletedShopIds = getDeletedShopIds();
-      const validShops = getCachedShops();
-      const validShopIdSet = new Set(validShops.map(s => s.id));
+    const deletedShopIds = getDeletedShopIds();
+    const validShops = getCachedShops();
+    const validShopIdSet = new Set(validShops.map(s => s.id));
 
-      const filterValidDishes = (list) => {
-        if (!Array.isArray(list)) return [];
-        return list.filter(item => {
-          if (!item) return false;
-          if (item.is_deleted === true || item.isDeleted === true) return false;
-          const sId = item.shopId || item.shop_id;
-          if (!sId) return false;
-          if (deletedShopIds.has(sId)) return false;
-          if (validShopIdSet.size > 0 && !validShopIdSet.has(sId)) return false;
-          if (shopId && shopId !== 'all' && sId !== shopId) return false;
-          return true;
-        });
-      };
+    const filterValidDishes = (list) => {
+      if (!Array.isArray(list)) return [];
+      return list.filter(item => {
+        if (!item) return false;
+        if (item.is_deleted === true || item.isDeleted === true) return false;
+        const sId = item.shopId || item.shop_id;
+        if (!sId) return false;
+        if (deletedShopIds.has(sId)) return false;
+        if (validShopIdSet.size > 0 && !validShopIdSet.has(sId)) return false;
+        if (shopId && shopId !== 'all' && sId !== shopId) return false;
+        return true;
+      });
+    };
+
+    try {
 
       if (isOffline) {
         const offlineFallback = filterValidDishes(cached || getCachedItem('menus', shopId, true));

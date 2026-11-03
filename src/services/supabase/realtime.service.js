@@ -15,7 +15,8 @@ import {
 import {
   getCachedOffers,
   saveCachedOffers,
-  getCachedPresets
+  getCachedPresets,
+  saveCachedPresets
 } from './menus.service.js';
 import {
   getCachedUsers,

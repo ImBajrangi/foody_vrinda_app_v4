@@ -275,8 +275,11 @@ export async function createCloudOrder(orderData) {
     const pickupOtpHash = await computeSha256Hex(generatedPickupOtp);
     const deliveryOtpHash = await computeSha256Hex(generatedDeliveryOtp);
 
+    const activeFcmToken = orderData.fcm_token || orderData.fcmToken || (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage.getItem('foody_fcm_token') : null) || null;
+
     const orderPayload = {
       id: orderId,
+      order_token: orderToken,
       order_short_code: orderToken,
       shop_id: shopId,
       user_id: orderData.userId || orderData.user_id || null,
@@ -358,7 +361,7 @@ export async function createCloudOrder(orderData) {
 
     // Valid columns in foody_orders table
     const VALID_ORDER_COLUMNS = new Set([
-      'id', 'order_short_code', 'shop_id', 'user_id', 'customer_name', 'customer_phone', 'customer_address',
+      'id', 'order_token', 'order_short_code', 'shop_id', 'user_id', 'customer_name', 'customer_phone', 'customer_address',
       'delivery_address', 'delivery_coordinates', 'items', 'subtotal', 'delivery_charge',
       'gst_amount', 'total_amount', 'status', 'payment_method', 'payment_id', 'cash_status',
       'cooking_notes', 'created_by', 'created_at', 'updated_at', 'fulfillment_type',
@@ -428,6 +431,10 @@ export async function createCloudOrder(orderData) {
     const finalOrder = { 
       ...normalizedCreated, 
       ...(data || {}),
+      order_token: data?.order_token || orderToken,
+      orderToken: data?.order_token || orderToken,
+      order_short_code: data?.order_short_code || orderToken,
+      orderShortCode: data?.order_short_code || orderToken,
       shopName: targetShop?.name || orderData.shopName || orderData.shop_name || 'Foody Vrinda Sacred Kitchen',
       shopAddress: targetShop?.address || orderData.shopAddress || orderData.shop_address || 'Chatikara Road, Raman Reti, Vrindavan',
       shopPhone: targetShop?.phone || orderData.shopPhone || null
