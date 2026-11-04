@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, X, Navigation, Compass, Check } from 'lucide-react';
+import { getPreciseDeviceLocation } from '../services/deviceLocation';
 
 export default function MapPicker({ initialCoords, initialLat, initialLng, onClose, onLocationSelect, onSelect }) {
   const mapContainerRef = useRef(null);
@@ -109,19 +110,15 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
       updateCoordinates(e.latlng.lat, e.latlng.lng);
     });
 
-    // Geolocation fallback
-    if (navigator.geolocation && isNaN(parseFloat(initialLat)) && !initialCoords) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          if (!mapInstanceRef.current) return;
-          const centerLat = pos.coords.latitude;
-          const centerLng = pos.coords.longitude;
-          map.flyTo([centerLat, centerLng], 16, { duration: 1 });
-          updateCoordinates(centerLat, centerLng);
-        },
-        () => {},
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 }
-      );
+    // High-precision Geolocation fallback
+    if (isNaN(parseFloat(initialLat)) && !initialCoords) {
+      getPreciseDeviceLocation({ enableHighAccuracy: true }).then((res) => {
+        if (!mapInstanceRef.current || !res?.coords) return;
+        const centerLat = res.coords.lat;
+        const centerLng = res.coords.lng;
+        map.flyTo([centerLat, centerLng], 16, { duration: 1 });
+        updateCoordinates(centerLat, centerLng);
+      }).catch(() => {});
     }
 
     return () => {
@@ -132,19 +129,18 @@ export default function MapPicker({ initialCoords, initialLat, initialLng, onClo
     };
   }, [startLat, startLng, initialCoords, initialLat, updateCoordinates]);
 
-  const handleLocateMe = () => {
-    if (!navigator.geolocation || !mapInstanceRef.current) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (!mapInstanceRef.current) return;
-        const centerLat = pos.coords.latitude;
-        const centerLng = pos.coords.longitude;
-        mapInstanceRef.current.flyTo([centerLat, centerLng], 16, { duration: 1.2 });
-        updateCoordinates(centerLat, centerLng);
-      },
-      () => {},
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 }
-    );
+  const handleLocateMe = async () => {
+    if (!mapInstanceRef.current) return;
+    try {
+      const res = await getPreciseDeviceLocation({ enableHighAccuracy: true });
+      if (!mapInstanceRef.current || !res?.coords) return;
+      const centerLat = res.coords.lat;
+      const centerLng = res.coords.lng;
+      mapInstanceRef.current.flyTo([centerLat, centerLng], 17, { duration: 1.2 });
+      updateCoordinates(centerLat, centerLng);
+    } catch (err) {
+      console.warn("handleLocateMe note:", err);
+    }
   };
 
   const handleSave = () => {

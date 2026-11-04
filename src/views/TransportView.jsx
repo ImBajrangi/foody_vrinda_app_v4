@@ -27,6 +27,7 @@ import {
   getPurgedOrderIds
 } from '../supabase';
 import { printVerifiedDriverStatementPDF } from '../utils/deliveryReportUtils';
+import { watchDeviceLocation } from '../services/deviceLocation';
 import DynamicToast from '../components/ui/DynamicToast';
 import ActiveAlarmBanner from '../components/ui/ActiveAlarmBanner';
 import OneTimeCode from '../components/ui/OneTimeCode';
@@ -265,15 +266,14 @@ export default function TransportView() {
 
   // Live Realtime GPS Broadcaster for Delivery Sarathis (throttled to avoid redundant egress)
   useEffect(() => {
-    if (!isRiderOnDuty || typeof window === 'undefined' || !navigator.geolocation) return;
+    if (!isRiderOnDuty || typeof window === 'undefined') return;
 
     const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
     let lastBroadcastTime = Date.now();
     let lastCoords = null;
 
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    const stopWatching = watchDeviceLocation(
+      (coords) => {
         setRiderCoords(coords);
 
         const now = Date.now();
@@ -288,13 +288,13 @@ export default function TransportView() {
         }
       },
       (err) => {
-        console.warn("GPS broadcast note:", err.message);
+        console.warn("GPS broadcast note:", err?.message || err);
       },
       { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
     );
 
     return () => {
-      navigator.geolocation.clearWatch(watchId);
+      stopWatching();
     };
   }, [isRiderOnDuty, activeUser]);
 

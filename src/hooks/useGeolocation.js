@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { reverseGeocodeCoords } from '../services/addressService';
-
-const GEO_CACHE_KEY = 'foody_geo_cache';
-const CACHE_TTL = 5 * 60 * 1000; // 5 min
+import { getPreciseDeviceLocation, getLastCachedLocation } from '../services/deviceLocation';
 
 export default function useGeolocation() {
-  const [coords, setCoords] = useState(() => {
-    try {
-      const c = JSON.parse(localStorage.getItem(GEO_CACHE_KEY));
-      if (c && Date.now() - c.ts < CACHE_TTL) return { lat: c.lat, lng: c.lng };
-    } catch {}
-    return null;
-  });
+  const [coords, setCoords] = useState(() => getLastCachedLocation());
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [denied, setDenied] = useState(false);
@@ -21,65 +13,45 @@ export default function useGeolocation() {
   }, []);
 
   const requestLocation = useCallback(async () => {
-    if (!navigator.geolocation) { setDenied(true); return null; }
     setLoading(true);
+    setDenied(false);
 
-    return new Promise((resolve) => {
-      // Helper to process valid position
-      const handleSuccess = async (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    try {
+      const result = await getPreciseDeviceLocation({ enableHighAccuracy: true });
+
+      if (result.error === 'PERMISSION_DENIED') {
+        setDenied(true);
+        setLoading(false);
+        return null;
+      }
+
+      if (result.coords) {
+        const loc = { lat: result.coords.lat, lng: result.coords.lng };
         setCoords(loc);
-        try {
-          localStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ ...loc, ts: Date.now() }));
-        } catch (_) {}
         const addr = await reverseGeocode(loc.lat, loc.lng);
         setAddress(addr);
         setLoading(false);
         setDenied(false);
-        resolve({ coords: loc, address: addr });
-      };
+        return { coords: loc, address: addr };
+      }
 
-      const isMobilePlatform = typeof navigator !== 'undefined' && 
-        (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Boolean(window.Capacitor?.isNativePlatform?.()));
-
-      // On desktop (macOS / PC), enableHighAccuracy: true causes CoreLocation to fail with kCLErrorLocationUnknown
-      // because laptops lack GPS chips. Only mobile devices should attempt high-accuracy GPS first.
-      navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        (err) => {
-          if (err && err.code === 1) { // PERMISSION_DENIED
-            setDenied(true);
-            setLoading(false);
-            resolve(null);
-            return;
-          }
-
-          // If mobile high-accuracy failed, fallback to standard cell/WiFi location
-          if (isMobilePlatform) {
-            navigator.geolocation.getCurrentPosition(
-              handleSuccess,
-              () => {
-                setLoading(false);
-                resolve(null);
-              },
-              { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
-            );
-          } else {
-            setLoading(false);
-            resolve(null);
-          }
-        },
-        { enableHighAccuracy: isMobilePlatform, timeout: 8000, maximumAge: 60000 }
-      );
-    });
+      setLoading(false);
+      return null;
+    } catch (err) {
+      console.warn("useGeolocation request notice:", err);
+      setLoading(false);
+      return null;
+    }
   }, [reverseGeocode]);
 
   // Auto-request on mount if previously granted
   useEffect(() => {
-    navigator.permissions?.query({ name: 'geolocation' }).then(r => {
-      if (r.state === 'granted') requestLocation();
-      else if (r.state === 'denied') setDenied(true);
-    }).catch(() => {});
+    if (typeof navigator !== 'undefined' && navigator.permissions?.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then(r => {
+        if (r.state === 'granted') requestLocation();
+        else if (r.state === 'denied') setDenied(true);
+      }).catch(() => {});
+    }
   }, [requestLocation]);
 
   return { coords, address, loading, denied, requestLocation };
