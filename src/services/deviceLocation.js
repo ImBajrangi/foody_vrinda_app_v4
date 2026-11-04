@@ -244,3 +244,4 @@ export function watchDeviceLocation(onLocation, onError, options = {}) {
 
   return () => {};
 }
+
