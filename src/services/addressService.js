@@ -3,11 +3,13 @@
  * 
  * Provides:
  * 1. Intelligent Hierarchical Reverse Geocoder:
- *    [House/Plot] + [Gali/Road] + [Landmark/Mandir/POI] + [Mohalla/Hamlet] + [Village/Town] + [District] + [Pincode]
- *    Full coverage across Barsana, Aajnokh, Vrindavan, Govardhan, Nandgaon, Chhata & Mathura district.
+ *    [House/Plot] + [Gali/Road] + [Landmark/Mandir/POI] + [Mohalla/Hamlet] + [Village/Town/City] + [Tehsil] + [District] + [Pincode]
+ *    100% dynamic, precise to the user's actual GPS location without any hardcoded city/district defaults.
  * 2. High-performance caching for ultra-responsive mobile experience on low & high-end devices.
- * 3. Scoped Braj autocomplete without restrictive Vrindavan-only hardcoding.
+ * 3. Open Nominatim Autocomplete prioritized around user's current device vicinity when available.
  */
+
+import { getLastCachedLocation } from './deviceLocation.js';
 
 const SUGGESTIONS_CACHE_KEY = 'foody_address_cache';
 const REVERSE_CACHE_KEY = 'foody_reverse_geo_cache';
@@ -45,7 +47,8 @@ function setStorageCache(key, entryKey, value) {
 /**
  * Intelligent Structured Hierarchical Reverse Geocoder
  * Parses live OSM Nominatim addressdetails into a precise hierarchical address:
- * Gali + Landmark/Mandir + Mohalla + Village/Town (Barsana/Aajnokh/Vrindavan) + District (Mathura) + Pincode
+ * Gali + Landmark/Mandir + Mohalla + Village/Town/City + Tehsil + District + Pincode
+ * 100% dynamic and true to the user's actual location.
  */
 export async function reverseGeocodeCoords(lat, lng) {
   const numLat = parseFloat(lat);
@@ -105,33 +108,27 @@ export async function reverseGeocodeCoords(lat, lng) {
         mohalla = hamlet;
       }
 
-      // 5. Village / Town / Gram Panchayat (Barsana, Aajnokh, Vrindavan, Govardhan, Nandgaon, etc.)
-      let villageTown = (a.village || a.town || '').trim();
-      if (!villageTown && a.city && !/mathura/i.test(a.city)) {
-        villageTown = a.city.trim();
-      }
-      if (!villageTown && hamlet) {
-        villageTown = hamlet;
-      }
-      // If landmark or healthcare explicitly identifies village (e.g. SubCentre Ajnokh in Gajipur revenue area)
-      if (/ajnokh/i.test(landmark) && !/ajnokh/i.test(villageTown)) {
-        villageTown = villageTown ? `Aajnokh (${villageTown})` : 'Aajnokh';
-      }
+      // 5. Village / Town / City (100% dynamic based on user's actual location)
+      const village = (a.village || '').trim();
+      const town = (a.town || '').trim();
+      const city = (a.city || '').trim();
+      const cityDistrict = (a.city_district || '').trim();
 
-      // 6. Tehsil / Municipality (e.g. Chhata, Mathura)
-      const tehsil = (a.municipality || '').trim();
+      // 6. Tehsil / Municipality / Sub-district
+      const tehsil = (a.municipality || a.subdistrict || '').trim();
 
-      // 7. District (county normalized from Hindi 'मथुरा' to Mathura)
+      // 7. District (County / State District) - Dynamic, NEVER hardcoded or forced
       let district = (a.county || a.state_district || '').trim();
-      if (!district || district.includes('मथुरा') || /mathura/i.test(district)) {
-        district = 'Mathura';
-      }
+      if (district.includes('मथुरा')) district = 'Mathura';
+      else if (district.includes('आगरा')) district = 'Agra';
+      // Clean trailing "Tehsil", "District", or Hindi "जिला"
+      district = district.replace(/\s+(Tehsil|District|जिल[ाे])$/i, '').trim();
 
       // 8. Pincode
       const pincode = (a.postcode || '').trim();
 
       // Assemble hierarchically with intelligent deduplication:
-      // Gali/Road -> Landmark/Mandir -> Mohalla -> Village/Town -> Tehsil -> District -> Pincode
+      // Gali/Road -> Landmark/Mandir -> Mohalla -> Village/Town/City -> Tehsil -> District -> Pincode
       const parts = [];
 
       const addPart = (val) => {
@@ -153,11 +150,17 @@ export async function reverseGeocodeCoords(lat, lng) {
       if (streetPart) addPart(streetPart);
       if (landmark) addPart(landmark);
       if (mohalla) addPart(mohalla);
-      if (villageTown) addPart(villageTown);
-      if (tehsil && tehsil.toLowerCase() !== (villageTown || '').toLowerCase() && tehsil.toLowerCase() !== district.toLowerCase()) {
+      if (village) addPart(village);
+      if (town && town.toLowerCase() !== village.toLowerCase()) addPart(town);
+      if (city && city.toLowerCase() !== town.toLowerCase() && city.toLowerCase() !== village.toLowerCase()) addPart(city);
+      if (!village && !town && !city && cityDistrict) addPart(cityDistrict);
+      if (!village && !town && !city && hamlet) addPart(hamlet);
+      if (tehsil && 
+          tehsil.toLowerCase() !== (town || village || city).toLowerCase() && 
+          tehsil.toLowerCase() !== district.toLowerCase()) {
         addPart(tehsil);
       }
-      addPart(district);
+      if (district) addPart(district);
       if (pincode) addPart(pincode);
 
       let formattedAddress = '';
@@ -169,8 +172,7 @@ export async function reverseGeocodeCoords(lat, lng) {
         const uniqueTokens = [];
         for (const tok of tokens) {
           const isDuplicate = uniqueTokens.some(u =>
-            u.toLowerCase() === tok.toLowerCase() ||
-            (u.includes('Mathura') && tok.includes('मथुरा'))
+            u.toLowerCase() === tok.toLowerCase()
           );
           if (!isDuplicate && !['India', 'IN'].includes(tok)) {
             uniqueTokens.push(tok);
@@ -194,13 +196,13 @@ export async function reverseGeocodeCoords(lat, lng) {
 }
 
 /**
- * Address Autocomplete with Live OSM Search & Mathura/Braj Regional Scoping
+ * Address Autocomplete with Dynamic Search Prioritized Around User Vicinity
  */
 export async function fetchAddressSuggestions(query) {
   let cleanQuery = (query || '').trim();
   if (cleanQuery.length < 2) return [];
 
-  // Normalize common colloquial spellings in the Braj region
+  // Normalize common colloquial spellings if user typed "aajnokh"
   if (/^aajnokh/i.test(cleanQuery)) {
     cleanQuery = cleanQuery.replace(/^aajnokh/i, 'Ajnokh');
   }
@@ -220,13 +222,20 @@ export async function fetchAddressSuggestions(query) {
   }
 
   try {
-    // Intelligent scoping:
-    // If the query already mentions a specific Braj area, search it as-is.
-    // If not, scope to Mathura district rather than hardcoded Vrindavan.
-    const hasRegionalContext = /mathura|vrindavan|barsana|ajnokh|govardhan|nandgaon|chhata|kosi|uttar pradesh/i.test(cleanQuery);
-    const primaryQuery = hasRegionalContext ? cleanQuery : `${cleanQuery}, Mathura, Uttar Pradesh`;
+    // Dynamic search: Never append a hardcoded city.
+    // If the device has a known GPS location, prioritize vicinity using viewbox (bounded=0).
+    let viewboxParam = '';
+    const cachedLoc = getLastCachedLocation();
+    if (cachedLoc && cachedLoc.lat && cachedLoc.lng) {
+      const delta = 0.5; // ~50km radius favoring user's actual vicinity
+      const minLng = (cachedLoc.lng - delta).toFixed(4);
+      const maxLat = (cachedLoc.lat + delta).toFixed(4);
+      const maxLng = (cachedLoc.lng + delta).toFixed(4);
+      const minLat = (cachedLoc.lat - delta).toFixed(4);
+      viewboxParam = `&viewbox=${minLng},${maxLat},${maxLng},${minLat}&bounded=0`;
+    }
 
-    const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(primaryQuery)}&format=json&addressdetails=1&limit=8&countrycodes=in`;
+    const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanQuery)}${viewboxParam}&format=json&addressdetails=1&limit=8&countrycodes=in`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
@@ -244,23 +253,6 @@ export async function fetchAddressSuggestions(query) {
     let data = [];
     if (response.ok) {
       data = await response.json();
-    }
-
-    // Fallback: If scoped query returned 0 results, retry with bare query in India
-    if ((!data || data.length === 0) && !hasRegionalContext) {
-      const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanQuery)}&format=json&addressdetails=1&limit=6&countrycodes=in`;
-      const fallbackController = new AbortController();
-      const fbTimeoutId = setTimeout(() => fallbackController.abort(), 3500);
-      try {
-        const fbRes = await fetch(fallbackUrl, {
-          signal: fallbackController.signal,
-          headers
-        });
-        clearTimeout(fbTimeoutId);
-        if (fbRes.ok) {
-          data = await fbRes.json();
-        }
-      } catch (_) {}
     }
 
     if (data && data.length > 0) {
@@ -283,7 +275,7 @@ export async function fetchAddressSuggestions(query) {
         const cleanAddress = (item.display_name || '')
           .split(',')
           .map(s => s.trim())
-          .filter(s => s && !['India', 'IN'].includes(s) && !s.includes('मथुरा'))
+          .filter(s => s && !['India', 'IN'].includes(s))
           .join(', ');
 
         const dedupeKey = `${cleanTitle.toLowerCase()}|${(item.address?.postcode || '')}|${(item.address?.suburb || item.address?.village || '').toLowerCase()}`;
