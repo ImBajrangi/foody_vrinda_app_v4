@@ -112,7 +112,7 @@ export default function AppInstallModal({ isOpen, onClose }) {
       <div 
         ref={sheetRef}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-full sm:max-w-[390px] bg-[#1E1B1C] border-t sm:border border-white/10 rounded-t-[36px] sm:rounded-[36px] shadow-[0_-16px_50px_rgba(0,0,0,0.85)] sm:shadow-[0_24px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(253,145,57,0.2)] relative flex flex-col text-white overflow-hidden apple-sheet-spring"
+        className="w-full max-w-full sm:max-w-[390px] bg-[#FAF7F2] dark:bg-[#1E1B1C] border-t sm:border border-stone-200/80 dark:border-white/10 rounded-t-[36px] sm:rounded-[36px] shadow-[0_-16px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_-16px_50px_rgba(0,0,0,0.85)] sm:shadow-[0_24px_70px_rgba(0,0,0,0.15)] sm:dark:shadow-[0_24px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(253,145,57,0.2)] relative flex flex-col text-stone-900 dark:text-white overflow-hidden apple-sheet-spring"
       >
         {/* Ambient Warm Duolingo-Grade Radiant Aura */}
         <div className="absolute -top-24 -left-24 w-56 h-56 bg-[#FD9139]/20 rounded-full blur-3xl pointer-events-none" />
@@ -123,7 +123,7 @@ export default function AppInstallModal({ isOpen, onClose }) {
           {...handleProps}
           className="w-full pt-3 pb-2 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none shrink-0"
         >
-          <div className="w-12 h-1.5 rounded-full bg-white/25 active:bg-white/50 transition-colors" />
+          <div className="w-12 h-1.5 rounded-full bg-stone-300 dark:bg-white/25 active:bg-stone-400 dark:active:bg-white/50 transition-colors" />
         </div>
 
         {/* Top Header: Brand Name + Game-Style XP Badge + Tactile 3D Close */}
@@ -137,14 +137,14 @@ export default function AppInstallModal({ isOpen, onClose }) {
               />
             </div>
             <div className="flex items-center min-w-0">
-              <FoodyVrindaWordmark className="h-[14px] sm:h-[16px] w-auto inline-block text-white shrink-0" />
+              <FoodyVrindaWordmark className="h-[15px] sm:h-[17px] w-auto inline-block text-stone-900 dark:text-white shrink-0" />
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => dismiss()}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border-b-2 border-white/20 active:translate-y-0.5 active:border-b-0 flex items-center justify-center text-zinc-300 hover:text-white transition-all cursor-pointer shrink-0"
+            className="w-9 h-9 rounded-full bg-stone-200/70 hover:bg-stone-300 dark:bg-white/10 dark:hover:bg-white/20 border-b-2 border-stone-300 dark:border-white/20 active:translate-y-0.5 active:border-b-0 flex items-center justify-center text-stone-600 hover:text-stone-900 dark:text-zinc-300 dark:hover:text-white transition-all cursor-pointer shrink-0"
             aria-label="Close"
           >
             <X size={16} strokeWidth={2.5} />
@@ -220,7 +220,7 @@ export default function AppInstallModal({ isOpen, onClose }) {
             <button
               type="button"
               onClick={handlePWAInstall}
-              className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 border-b-[3px] border-b-white/20 active:translate-y-0.5 active:border-b-0 text-zinc-200 hover:text-white font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer font-['Outfit'] uppercase tracking-wider"
+              className="w-full py-3 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-white/5 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10 border-b-[3px] border-b-stone-300 dark:border-b-white/20 active:translate-y-0.5 active:border-b-0 text-stone-800 dark:text-zinc-200 hover:text-stone-900 dark:hover:text-white font-black text-xs flex items-center justify-center gap-2 transition-all cursor-pointer font-['Outfit'] uppercase tracking-wider"
             >
               <Sparkles size={14} className="text-[#FD9139]" />
               <span>Add to Home Screen</span>
@@ -229,11 +229,11 @@ export default function AppInstallModal({ isOpen, onClose }) {
 
           {/* iOS Safari Minimal Hint */}
           {isIOS && (
-            <div className="py-1 text-center text-[11px] text-zinc-400 font-medium flex items-center justify-center gap-1">
+            <div className="py-1 text-center text-[11px] text-stone-500 dark:text-zinc-400 font-medium flex items-center justify-center gap-1">
               <span>iOS: Tap</span>
-              <Share2 size={11} className="inline text-zinc-300" />
+              <Share2 size={11} className="inline text-stone-600 dark:text-zinc-300" />
               <span>Share &gt; Add to Home Screen</span>
-              <PlusSquare size={11} className="inline text-zinc-300" />
+              <PlusSquare size={11} className="inline text-stone-600 dark:text-zinc-300" />
             </div>
           )}
         </div>
