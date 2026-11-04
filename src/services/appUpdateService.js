@@ -122,14 +122,22 @@ class AppUpdateService {
   }
 
   /**
-   * Launch direct APK download and package installer via official GitHub Release
+   * Launch direct APK download and package installer via high-speed Firebase CDN
    */
   async startUpdate(apkUrl) {
-    const defaultGithubUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
-    const candidateUrl = apkUrl || this.cachedUpdate?.apkUrl;
-    const targetUrl = (candidateUrl && candidateUrl.includes('github.com'))
-      ? candidateUrl
-      : defaultGithubUrl;
+    const isBrowserEnv = typeof window !== 'undefined';
+    const isFirebaseOrCustomDomain = isBrowserEnv && (
+      window.location.hostname.includes('web.app') ||
+      window.location.hostname.includes('firebaseapp.com') ||
+      window.location.hostname.includes('vrindopnishad.in')
+    );
+    const originApkUrl = (isBrowserEnv && isFirebaseOrCustomDomain)
+      ? `${window.location.origin}/Foody-Vrinda-Latest.apk`
+      : 'https://vrinda-cloud-kitchen.web.app/Foody-Vrinda-Latest.apk';
+    const fallbackGithubUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+
+    // Prioritize direct Firebase CDN for zero-redirect 100% reliable Android download
+    const targetUrl = apkUrl || originApkUrl || fallbackGithubUrl;
 
     if (Capacitor.isNativePlatform()) {
       // In native Android, open via system browser so Android DownloadManager processes it in the notification bar

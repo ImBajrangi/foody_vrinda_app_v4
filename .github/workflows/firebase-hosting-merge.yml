@@ -1,0 +1,45 @@
+name: Deploy to Firebase Hosting on Merge
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.agents/**'
+
+jobs:
+  build_and_deploy:
+    name: Build & Deploy to Firebase Hosting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web Production Bundle
+        run: npm run build
+
+      - name: Ensure APK is in Distribution Bundle
+        run: |
+          if [ -f "Foody-Vrinda-Latest.apk" ]; then
+            cp Foody-Vrinda-Latest.apk dist/Foody-Vrinda-Latest.apk
+            echo "Copied Foody-Vrinda-Latest.apk into dist/"
+          fi
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_VRINDA_CLOUD_KITCHEN }}'
+          channelId: live
+          projectId: vrinda-cloud-kitchen
+
