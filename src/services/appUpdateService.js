@@ -122,25 +122,18 @@ class AppUpdateService {
   }
 
   /**
-   * Launch direct APK download and package installer via high-speed Firebase CDN
+   * Launch direct APK download and package installer via high-speed Fastly edge CDN
    */
   async startUpdate(apkUrl) {
-    const isBrowserEnv = typeof window !== 'undefined';
-    const isFirebaseOrCustomDomain = isBrowserEnv && (
-      window.location.hostname.includes('web.app') ||
-      window.location.hostname.includes('firebaseapp.com') ||
-      window.location.hostname.includes('vrindopnishad.in')
-    );
-    const originApkUrl = (isBrowserEnv && isFirebaseOrCustomDomain)
-      ? `${window.location.origin}/Foody-Vrinda-Latest.apk`
-      : 'https://vrinda-cloud-kitchen.web.app/Foody-Vrinda-Latest.apk';
-    const fallbackGithubUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
+    // Fastly edge CDN URL (Mumbai node) with zero-redirect HTTP 200 stream
+    const rawFastlyCdnUrl = 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk';
+    const fallbackReleaseUrl = 'https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk';
 
-    // Prioritize direct Firebase CDN for zero-redirect 100% reliable Android download
-    const targetUrl = apkUrl || originApkUrl || fallbackGithubUrl;
+    // Prioritize direct zero-redirect CDN stream to prevent Android 100% download hang
+    const targetUrl = apkUrl || rawFastlyCdnUrl || fallbackReleaseUrl;
 
     if (Capacitor.isNativePlatform()) {
-      // In native Android, open via system browser so Android DownloadManager processes it in the notification bar
+      // In native Android app, open via system browser so Android DownloadManager processes it in the notification bar
       try {
         await Browser.open({ url: targetUrl, windowName: '_system' });
       } catch (err) {
@@ -154,18 +147,15 @@ class AppUpdateService {
         }
       }
     } else {
-      // In web browser, trigger direct download anchor
-      if (typeof document !== 'undefined') {
+      // In mobile web browser, trigger direct navigation so native DownloadManager
+      // downloads the file in notification tray without opening a dead blank tab
+      if (typeof window !== 'undefined') {
         const link = document.createElement('a');
         link.href = targetUrl;
         link.download = 'Foody-Vrinda-Latest.apk';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      } else if (typeof window !== 'undefined') {
-        window.open(targetUrl, '_blank');
       }
     }
   }

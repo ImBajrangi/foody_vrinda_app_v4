@@ -45,3 +45,4 @@ android/app/google-services.json
 
 release/
 graphify-out/
+.firebase/

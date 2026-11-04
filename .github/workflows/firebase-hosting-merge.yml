@@ -28,13 +28,6 @@ jobs:
       - name: Build Web Production Bundle
         run: npm run build
 
-      - name: Ensure APK is in Distribution Bundle
-        run: |
-          if [ -f "Foody-Vrinda-Latest.apk" ]; then
-            cp Foody-Vrinda-Latest.apk dist/Foody-Vrinda-Latest.apk
-            echo "Copied Foody-Vrinda-Latest.apk into dist/"
-          fi
-
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
