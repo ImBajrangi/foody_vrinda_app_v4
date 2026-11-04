@@ -591,28 +591,65 @@ export function AuthProvider({ children }) {
           });
         } else if (parsedSaved && parsedSaved.isLoggedInUser && parsedSaved.id !== 'master-dev-emergency') {
           const email = parsedSaved.email || '';
+          const cleanPhone = (parsedSaved.phone || '').replace(/\D/g, '');
+
+          // Live cloud synchronization for phone-logged sessions
+          let liveProfile = null;
+          try {
+            liveProfile = await getLiveUserRoleAndProfile(parsedSaved.id, email, cleanPhone);
+          } catch (e) { }
+
+          const effectiveRecord = liveProfile || parsedSaved;
+          const incomingRole = effectiveRecord.role;
           const savedRole = parsedSaved.role;
-          const safeRole = resolveRole(undefined, userRoleRef.current, savedRole);
+          const safeRole = resolveRole(incomingRole, userRoleRef.current, savedRole);
           const safeName = resolveDisplayName(
-            undefined,
+            effectiveRecord.displayName || effectiveRecord.display_name,
             undefined,
             parsedSaved.displayName,
             email,
-            parsedSaved.phone
+            effectiveRecord.phone || parsedSaved.phone
           );
 
+          let activeShopId = effectiveRecord.shopId || parsedSaved.shopId || null;
+          let activeShopIds = Array.isArray(effectiveRecord.shopIds) && effectiveRecord.shopIds.length > 0
+            ? effectiveRecord.shopIds.filter(Boolean).map(String)
+            : (Array.isArray(parsedSaved.shopIds) && parsedSaved.shopIds.length > 0
+              ? parsedSaved.shopIds.filter(Boolean).map(String)
+              : (activeShopId ? [activeShopId] : []));
+
+          if (activeShopId && !activeShopIds.includes(activeShopId)) {
+            activeShopIds = [activeShopId, ...activeShopIds];
+          }
+
+          const userProfile = {
+            ...parsedSaved,
+            ...(liveProfile || {}),
+            id: effectiveRecord.id || parsedSaved.id,
+            email: effectiveRecord.email || email,
+            phone: effectiveRecord.phone || parsedSaved.phone || '',
+            role: safeRole,
+            displayName: safeName,
+            shopId: activeShopId,
+            shopIds: activeShopIds,
+            isLoggedInUser: true
+          };
+
           setUser({
-            id: parsedSaved.id,
-            email,
-            phone: parsedSaved.phone || '',
+            id: userProfile.id,
+            email: userProfile.email,
+            phone: userProfile.phone,
             displayName: safeName,
             isLoggedInUser: true
           });
-          setUserData({ ...parsedSaved, role: safeRole, displayName: safeName });
+          setUserData(userProfile);
           setUserRole(safeRole);
-          setCurrentUserShopId(parsedSaved.shopId || null);
-          setCurrentUserShopIds(parsedSaved.shopIds || (parsedSaved.shopId ? [parsedSaved.shopId] : []));
-          setCurrentShopName(resolveShopName(parsedSaved.shopId) || null);
+          setCurrentUserShopId(activeShopId);
+          setCurrentUserShopIds(activeShopIds);
+          setCurrentShopName(resolveShopName(activeShopId) || null);
+          try {
+            localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
+          } catch (e) { }
         } else {
           const guestUser = { uid: 'guest-' + Date.now(), isAnonymous: true };
           setUser(guestUser);
@@ -906,11 +943,18 @@ export function AuthProvider({ children }) {
 
 
   const loginWithEmail = async (email, password) => {
-    const cleanEmail = email.trim().toLowerCase();
+    const rawInput = (email || '').trim();
+    const cleanDigits = rawInput.replace(/\D/g, '');
+    // Smart Routing: If user typed their 10-digit mobile number in the login field
+    if (cleanDigits.length === 10 && (!rawInput.includes('@') || rawInput.endsWith('@foodyvrinda.com'))) {
+      return loginWithPhoneLookup(cleanDigits);
+    }
+
+    const cleanEmail = rawInput.toLowerCase();
     const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     if (error) {
       if (error.message?.toLowerCase().includes('invalid login credentials') || error.status === 400) {
-        throw new Error('Invalid email or password. If you are a new member, please register below.');
+        throw new Error('Invalid credentials. If you are a staff member, sign in with your 10-digit mobile number.');
       }
       if (error.message?.toLowerCase().includes('email not confirmed')) {
         throw new Error('Please check your email inbox to verify your account, or sign in with your mobile number.');
@@ -1013,17 +1057,49 @@ export function AuthProvider({ children }) {
     }
 
     if (existing) {
+      const assignedRole = existing.role || 'customer';
+      let resolvedShopId = existing.shopId || null;
+      let resolvedShopIds = Array.isArray(existing.shopIds) && existing.shopIds.length > 0
+        ? existing.shopIds.filter(Boolean).map(String)
+        : (resolvedShopId ? [resolvedShopId] : []);
+
+      if (resolvedShopId && !resolvedShopIds.includes(resolvedShopId)) {
+        resolvedShopIds = [resolvedShopId, ...resolvedShopIds];
+      }
+
+      // If user is kitchen/owner, validate that their shop exists among active non-deleted shops
+      if (['kitchen', 'owner'].includes(assignedRole)) {
+        const activeShopsList = (allShops || []).filter(s => s.is_active !== false && !s.is_deleted && s.id !== 'shop-vrinda-main');
+        const isAssignedValid = activeShopsList.some(s => s.id === resolvedShopId);
+        if (!isAssignedValid) {
+          // Check if any shop in resolvedShopIds is valid
+          const validFromList = resolvedShopIds.find(id => activeShopsList.some(s => s.id === id));
+          if (validFromList) {
+            resolvedShopId = validFromList;
+          } else if (activeShopsList.length > 0) {
+            resolvedShopId = activeShopsList[0].id;
+            if (!resolvedShopIds.includes(resolvedShopId)) {
+              resolvedShopIds = [resolvedShopId, ...resolvedShopIds];
+            }
+          }
+        }
+      }
+
       const userProfile = {
         ...existing,
         isLoggedInUser: true,
-        shopIds: existing.shopIds || (existing.shopId ? [existing.shopId] : ['shop-vrinda-main'])
+        phone: clean,
+        role: assignedRole,
+        shopId: resolvedShopId,
+        shopIds: resolvedShopIds
       };
+
       setUser({ id: existing.id, phone: clean, displayName: existing.displayName, isLoggedInUser: true });
       setUserData(userProfile);
-      setUserRole(userProfile.role || 'customer');
-      setCurrentUserShopId(userProfile.shopId || null);
-      setCurrentUserShopIds(userProfile.shopIds);
-      setCurrentShopName(resolveShopName(userProfile.shopId) || null);
+      setUserRole(assignedRole);
+      setCurrentUserShopId(resolvedShopId);
+      setCurrentUserShopIds(resolvedShopIds);
+      setCurrentShopName(resolveShopName(resolvedShopId) || null);
       localStorage.setItem('foody_user_data', JSON.stringify(userProfile));
       await recordLoggedInUser(userProfile).catch(() => { });
       nativeNotify.notifyLogin(userProfile.displayName || 'Devotee');

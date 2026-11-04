@@ -506,13 +506,20 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
   const cleanId = String(userId || '').trim();
   const cleanEmail = (email || '').toLowerCase().trim();
   const cleanPhone = (phone || '').replace(/\D/g, '');
+  const cleanPhone10 = cleanPhone.slice(-10);
 
-  if (!cleanId && !cleanEmail && !cleanPhone) return null;
+  if (!cleanId && !cleanEmail && !cleanPhone10) return null;
 
   const filters = [];
   if (cleanId) filters.push(`id.eq.${cleanId}`);
   if (cleanEmail) filters.push(`email.eq.${cleanEmail}`);
-  if (cleanPhone && cleanPhone.length >= 10) filters.push(`phone.eq.${cleanPhone}`);
+  if (cleanPhone10 && cleanPhone10.length === 10) {
+    filters.push(`phone.eq.${cleanPhone10}`);
+    filters.push(`phone.eq.+91${cleanPhone10}`);
+    filters.push(`phone.eq.91${cleanPhone10}`);
+  } else if (cleanPhone) {
+    filters.push(`phone.eq.${cleanPhone}`);
+  }
 
   const resolveCleanName = (rawName, uEmail, uPhone) => {
     if (rawName && typeof rawName === 'string' && rawName.trim() && rawName.trim() !== 'User') {
@@ -529,7 +536,51 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     return 'Devotee';
   };
 
+  const resolveNormalizedShops = (dbShopId, dbShopIds, role) => {
+    const cleanShopId = dbShopId && dbShopId !== 'all' ? String(dbShopId).trim() : null;
+    let arr = Array.isArray(dbShopIds) ? dbShopIds.filter(Boolean).map(String) : [];
+    if (cleanShopId && !arr.includes(cleanShopId)) {
+      arr = [cleanShopId, ...arr];
+    }
+    const isShopStaffRole = ['kitchen', 'owner'].includes(role);
+    const finalShopId = cleanShopId || (arr.length > 0 ? arr[0] : (isShopStaffRole ? getDefaultActiveShopId() : null));
+    const finalShopIds = arr.length > 0 ? arr : (finalShopId ? [finalShopId] : []);
+    return { shopId: finalShopId, shopIds: finalShopIds };
+  };
+
   const USER_PROFILE_FIELDS = 'id, display_name, email, phone, avatar_url, address, role, shop_id, shop_ids, dev_permissions, is_active, delivery_status, delivery_type';
+
+  // Fast-path: Server-side secure RPC lookup for phone logins
+  if (cleanPhone10 && cleanPhone10.length === 10 && !cleanId && !cleanEmail) {
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('lookup_phone_user_profile', { p_phone: cleanPhone10 });
+      if (!rpcErr && rpcRes && rpcRes.success && rpcRes.user) {
+        const u = rpcRes.user;
+        const effectiveRole = u.role || undefined;
+        const { shopId: normShopId, shopIds: normShopIds } = resolveNormalizedShops(u.shop_id, u.shop_ids, effectiveRole);
+        return {
+          id: u.id,
+          displayName: resolveCleanName(u.display_name, u.email, u.phone),
+          email: u.email || '',
+          phone: u.phone || '',
+          avatarUrl: u.avatar_url || '',
+          address: u.address || '',
+          role: effectiveRole,
+          shopId: normShopId,
+          shopIds: normShopIds,
+          devPermissions: normalizeDevPermissions(u.dev_permissions),
+          isActive: u.is_active ?? true,
+          is_active: u.is_active ?? true,
+          isOnline: u.is_active ?? true,
+          delivery_status: u.delivery_status || 'approved',
+          deliveryStatus: u.delivery_status || 'approved',
+          delivery_type: u.delivery_type || 'independent',
+          deliveryType: u.delivery_type || 'independent',
+          isLoggedInUser: true
+        };
+      }
+    } catch (_) { }
+  }
 
   try {
     let query = supabase.from('foody_logged_users').select(USER_PROFILE_FIELDS);
@@ -541,6 +592,8 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     }
     const { data, error } = await query.limit(1).maybeSingle();
     if (!error && data) {
+      const effectiveRole = data.role || undefined;
+      const { shopId: normShopId, shopIds: normShopIds } = resolveNormalizedShops(data.shop_id, data.shop_ids, effectiveRole);
       return {
         id: data.id,
         displayName: resolveCleanName(data.display_name, data.email, data.phone),
@@ -548,9 +601,9 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         phone: data.phone || '',
         avatarUrl: data.avatar_url || '',
         address: data.address || '',
-        role: data.role || undefined,
-        shopId: data.shop_id || getDefaultActiveShopId(),
-        shopIds: data.shop_ids || (data.shop_id ? [data.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
+        role: effectiveRole,
+        shopId: normShopId,
+        shopIds: normShopIds,
         devPermissions: normalizeDevPermissions(data.dev_permissions),
         isActive: data.is_active ?? true,
         is_active: data.is_active ?? true,
@@ -575,6 +628,8 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
     }
     const { data: uData, error: uErr } = await uQuery.limit(1).maybeSingle();
     if (!uErr && uData) {
+      const effectiveRole = uData.role || undefined;
+      const { shopId: normShopId, shopIds: normShopIds } = resolveNormalizedShops(uData.shop_id, uData.shop_ids, effectiveRole);
       return {
         id: uData.id,
         displayName: resolveCleanName(uData.display_name, uData.email, uData.phone),
@@ -582,9 +637,9 @@ export async function getLiveUserRoleAndProfile(userId, email, phone) {
         phone: uData.phone || '',
         avatarUrl: uData.avatar_url || '',
         address: uData.address || '',
-        role: uData.role || undefined,
-        shopId: uData.shop_id || getDefaultActiveShopId(),
-        shopIds: uData.shop_ids || (uData.shop_id ? [uData.shop_id] : [getDefaultActiveShopId()].filter(Boolean)),
+        role: effectiveRole,
+        shopId: normShopId,
+        shopIds: normShopIds,
         devPermissions: normalizeDevPermissions(uData.dev_permissions),
         isActive: uData.is_active ?? true,
         is_active: uData.is_active ?? true,
@@ -609,8 +664,10 @@ export async function recordLoggedInUser(userProfile) {
   const cleanPhone = (userProfile.phone || '').replace(/\D/g, '');
   const cleanName = userProfile.displayName || userProfile.name || cleanEmail.split('@')[0] || `User (${cleanId.slice(0, 6)})`;
   const cleanAvatar = userProfile.avatar_url || userProfile.photoURL || userProfile.avatarUrl || '';
-  const cleanShop = userProfile.shopId || getDefaultActiveShopId();
-  const cleanShops = userProfile.shopIds || (cleanShop ? [cleanShop] : []);
+  const cleanShop = userProfile.shopId || null;
+  const cleanShops = Array.isArray(userProfile.shopIds) && userProfile.shopIds.length > 0
+    ? userProfile.shopIds.filter(Boolean)
+    : (cleanShop ? [cleanShop] : []);
   const loginMethod = userProfile.loginMethod || (cleanEmail ? 'email' : (cleanPhone ? 'phone' : 'google'));
 
   const current = getCachedUsers();
@@ -627,8 +684,17 @@ export async function recordLoggedInUser(userProfile) {
     || (userProfile.role && userProfile.role !== 'customer' ? userProfile.role : null)
     || 'customer';
 
-  const finalShop = userProfile.shopId || existingUser?.shopId || cleanShop;
-  const finalShops = userProfile.shopIds || existingUser?.shopIds || cleanShops;
+  const isShopStaffRole = ['kitchen', 'owner'].includes(finalRole);
+  const finalShop = userProfile.shopId !== undefined
+    ? userProfile.shopId
+    : (existingUser?.shopId !== undefined ? existingUser.shopId : (isShopStaffRole ? getDefaultActiveShopId() : null));
+
+  let finalShops = Array.isArray(userProfile.shopIds) && userProfile.shopIds.length > 0
+    ? userProfile.shopIds.filter(Boolean)
+    : (Array.isArray(existingUser?.shopIds) && existingUser.shopIds.length > 0 ? existingUser.shopIds.filter(Boolean) : (finalShop ? [finalShop] : []));
+  if (finalShop && !finalShops.includes(finalShop)) {
+    finalShops = [finalShop, ...finalShops];
+  }
   const nowIso = new Date().toISOString();
 
   const fcmToken = userProfile.fcm_token || userProfile.fcmToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('foody_fcm_token') : null) || existingUser?.fcm_token || null;
@@ -778,6 +844,16 @@ export async function createCloudUser(userData) {
     userData.role = 'customer';
   }
 
+  const userRole = userData.role || 'customer';
+  const isShopStaffRole = ['kitchen', 'owner'].includes(userRole);
+  const userShopId = userData.shopId !== undefined ? userData.shopId : (isShopStaffRole ? getDefaultActiveShopId() : null);
+  let userShopIds = Array.isArray(userData.shopIds) && userData.shopIds.length > 0 
+    ? userData.shopIds.filter(Boolean) 
+    : (userShopId ? [userShopId] : []);
+  if (userShopId && !userShopIds.includes(userShopId)) {
+    userShopIds = [userShopId, ...userShopIds];
+  }
+
   const newUser = {
     id: userId,
     displayName: userData.displayName || userData.name || `User (${(userData.phone || '').slice(-4)})`,
@@ -785,9 +861,9 @@ export async function createCloudUser(userData) {
     phone: userData.phone || '',
     avatarUrl: userData.avatarUrl || userData.avatar_url || '',
     address: userData.address || '',
-    role: userData.role || 'customer',
-    shopId: userData.shopId || getDefaultActiveShopId(),
-    shopIds: userData.shopIds || (userData.shopId ? [userData.shopId] : [getDefaultActiveShopId()].filter(Boolean)),
+    role: userRole,
+    shopId: userShopId,
+    shopIds: userShopIds,
     devPermissions: normalizeDevPermissions(userData.devPermissions || userData.dev_permissions),
     isActive: userData.isActive ?? userData.is_active ?? true,
     lastLoginAt: nowIso,
@@ -933,6 +1009,18 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
           ? updates.display_name
           : (resolvedEmail ? resolvedEmail.split('@')[0] : (resolvedPhone ? `Member (${resolvedPhone.slice(-4)})` : 'Devotee')));
 
+    const userRole = updates.role || 'customer';
+    const isShopStaffRole = ['kitchen', 'owner'].includes(userRole);
+    const userShopId = updates.shopId !== undefined 
+      ? updates.shopId 
+      : (updates.shop_id !== undefined ? updates.shop_id : (isShopStaffRole ? getDefaultActiveShopId() : null));
+    let userShopIds = Array.isArray(updates.shopIds) && updates.shopIds.length > 0 
+      ? updates.shopIds.filter(Boolean) 
+      : (Array.isArray(updates.shop_ids) && updates.shop_ids.length > 0 ? updates.shop_ids.filter(Boolean) : (userShopId ? [userShopId] : []));
+    if (userShopId && !userShopIds.includes(userShopId)) {
+      userShopIds = [userShopId, ...userShopIds];
+    }
+
     const newUser = {
       id: targetId,
       displayName: resolvedName,
@@ -940,9 +1028,9 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
       phone: resolvedPhone,
       avatarUrl: updates.avatarUrl || updates.avatar_url || '',
       address: updates.address || '',
-      role: updates.role || 'customer',
-      shopId: updates.shopId || updates.shop_id || getDefaultActiveShopId(),
-      shopIds: updates.shopIds || updates.shop_ids || [updates.shopId || updates.shop_id || getDefaultActiveShopId()].filter(Boolean),
+      role: userRole,
+      shopId: userShopId,
+      shopIds: userShopIds,
       devPermissions: normalizeDevPermissions(updates.devPermissions || updates.dev_permissions),
       isActive: updates.isActive ?? updates.is_active ?? true,
       ...updates,
@@ -1023,7 +1111,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
 
   if (!isTableWriteForbidden('foody_logged_users')) {
     try {
-      const { error: err1 } = await supabase.from('foody_logged_users').update(loggedDbPayload).eq('id', userId);
+      const { error: err1 } = await supabase.from('foody_logged_users').update(loggedDbPayload).eq('id', targetId);
       if (err1 && isForbiddenError(err1)) {
         markTableWriteForbidden('foody_logged_users');
       }
@@ -1036,7 +1124,7 @@ export async function updateCloudUser(userIdOrData, updatesObj = {}) {
 
   if (!isTableWriteForbidden('foody_users')) {
     try {
-      const { error: err2 } = await supabase.from('foody_users').update(standardDbPayload).eq('id', userId);
+      const { error: err2 } = await supabase.from('foody_users').update(standardDbPayload).eq('id', targetId);
       if (err2 && isForbiddenError(err2)) {
         markTableWriteForbidden('foody_users');
       }

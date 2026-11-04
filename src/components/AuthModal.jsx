@@ -77,7 +77,7 @@ const DESK_CONFIG = {
   },
   owner: {
     icon: Store,
-    title: 'Admin & Store Owner',
+    title: 'Store Owner',
     subtitle: 'Revenue metrics, dish catalog & settlements',
     badge: 'Store Owner',
     color: '#FD9139',
@@ -110,6 +110,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     loginWithEmail,
     signupWithEmail,
     loginWithGoogle,
+    loginWithPhoneLookup,
     impersonate,
     updateUserRole,
     updateUserProfile,
@@ -121,6 +122,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
 
   const [selectedDesk, setSelectedDesk] = useState('customer');
+  const [loginMethod, setLoginMethod] = useState('phone'); // 'phone' | 'email'
   const [isSignup, setIsSignup] = useState(false);
   const [signupStep, setSignupStep] = useState(1); // 1: Identity | 2: Credentials | 3: Delivery
   const [showStaffSignIn, setShowStaffSignIn] = useState(false);
@@ -137,6 +139,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   }, [isOpen, initialMode]);
 
   // Form fields
+  const [phoneInput, setPhoneInput] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -172,7 +175,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       } else {
         localStorage.removeItem('foody_pending_referral_code');
       }
-    } catch (_) {}
+    } catch (_) { }
   };
 
   // Profile inline editing states
@@ -302,6 +305,30 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     setError('');
     if (signupStep > 1) {
       setSignupStep(prev => prev - 1);
+    }
+  };
+
+  // Phone Lookup Sign In
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    const cleanDigits = phoneInput.replace(/\D/g, '');
+    if (cleanDigits.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const profile = await loginWithPhoneLookup(cleanDigits);
+      setSuccessMsg(`Welcome back, ${profile.displayName || 'Devotee'}!`);
+      setTimeout(() => {
+        handleAnimatedClose();
+      }, 450);
+    } catch (err) {
+      setError(err.message || 'Phone sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -622,7 +649,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     )}
                   </div>
 
-                  {/* Role Badge (Hidden for customers, grand admin & developers) */}
+                  {/* Role Badge (Hidden for customers, developers) */}
                   {(() => {
                     const effectiveDisplayRole = actualRole || userData?.role || userRole;
                     const isMasterAdmin = effectiveDisplayRole === 'grand_admin' || isGrandAdmin;
@@ -632,12 +659,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                     }
                     return (
                       <div className="shrink-0">
-                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 shadow-xs ${
-                          effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/25' :
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 shadow-xs ${effectiveDisplayRole === 'kitchen' ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-500/25' :
                           effectiveDisplayRole === 'delivery' ? 'bg-cyan-500/10 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400 border border-cyan-500/25' :
-                          effectiveDisplayRole === 'owner' ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/25 dark:border-[#FD9139]/30' :
-                            ''
-                        }`}>
+                            effectiveDisplayRole === 'owner' ? 'bg-amber-500/10 text-amber-700 dark:bg-[#FD9139]/15 dark:text-[#FD9139] border border-amber-500/25 dark:border-[#FD9139]/30' :
+                              ''
+                          }`}>
                           {effectiveDisplayRole === 'kitchen' ? (
                             <>
                               <ChefHat className="w-3 h-3 text-amber-600 dark:text-amber-400" />
@@ -780,11 +806,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setPhoneEditInput(cleanMob.slice(-10));
                           setIsEditingPhone(true);
                         }}
-                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                          hasValidPhone
-                            ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
-                            : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
-                        }`}
+                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${hasValidPhone
+                          ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
+                          : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
+                          }`}
                       >
                         {hasValidPhone ? 'Edit' : '+ Add'}
                       </button>
@@ -890,11 +915,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                           setAddressInput(sanitizeCustomerAddress(userData?.address || userData?.customerAddress || ''));
                           setIsEditingAddress(true);
                         }}
-                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                          hasValidAddress
-                            ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
-                            : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
-                        }`}
+                        className={`h-8 px-3.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${hasValidAddress
+                          ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-700 dark:text-zinc-300'
+                          : 'bg-amber-500 hover:bg-amber-600 dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] text-white shadow-xs'
+                          }`}
                       >
                         {hasValidAddress ? 'Edit' : '+ Add'}
                       </button>
@@ -1016,11 +1040,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="button"
                       onClick={() => setTheme('system')}
                       title="System Default"
-                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                        themeMode === 'system'
-                          ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-xs'
-                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'system'
+                        ? 'bg-amber-500 dark:bg-[#FD9139] text-white shadow-xs'
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        }`}
                     >
                       <Laptop size={11} className={themeMode === 'system' ? "text-white" : "opacity-70"} />
                       <span>System</span>
@@ -1029,11 +1052,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="button"
                       onClick={() => setTheme('light')}
                       title="Divine Light"
-                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                        themeMode === 'light'
-                          ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80'
-                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'light'
+                        ? 'bg-white text-stone-950 shadow-xs border border-stone-300/80'
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        }`}
                     >
                       <Sun size={11} className={themeMode === 'light' ? "text-amber-500" : "opacity-70"} />
                       <span>Light</span>
@@ -1042,11 +1064,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                       type="button"
                       onClick={() => setTheme('dark')}
                       title="Obsidian Dark"
-                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                        themeMode === 'dark'
-                          ? 'bg-[#FD9139] text-white shadow-xs font-black'
-                          : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
-                      }`}
+                      className={`px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${themeMode === 'dark'
+                        ? 'bg-[#FD9139] text-white shadow-xs font-black'
+                        : 'text-stone-600 hover:text-stone-950 dark:text-zinc-400 dark:hover:text-white'
+                        }`}
                     >
                       <Moon size={11} className={themeMode === 'dark' ? "text-white" : "opacity-70"} />
                       <span>Dark</span>
@@ -1265,7 +1286,108 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                 </div>
               )}
 
-              {/* EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */}
+              {/* Login Method Switcher (Phone vs Email) when not in multi-step signup */}
+              {!isSignup && (
+                <div className="grid grid-cols-2 p-1 bg-stone-100 dark:bg-[#151314] rounded-2xl border border-stone-200 dark:border-white/5 gap-1 animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMethod('phone');
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all select-none cursor-pointer ${
+                      loginMethod === 'phone'
+                        ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs border border-stone-200 dark:border-white/10 font-extrabold'
+                        : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
+                    <span>Mobile Login</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMethod('email');
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all select-none cursor-pointer ${
+                      loginMethod === 'email'
+                        ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs border border-stone-200 dark:border-white/10 font-extrabold'
+                        : 'text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    <Mail className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
+                    <span>Email & Password</span>
+                  </button>
+                </div>
+              )}
+
+              {/* PHONE SIGN-IN FORM */}
+              {!isSignup && loginMethod === 'phone' ? (
+                <form onSubmit={handlePhoneSubmit} className="space-y-4 pt-1">
+                  <div className="p-4 rounded-3xl bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 space-y-3.5 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-stone-500 dark:text-zinc-400 uppercase tracking-wider">
+                        Registered Mobile Number
+                      </span>
+                      <span className="text-[10px] text-amber-600 dark:text-[#FD9139] font-bold">Quick Access</span>
+                    </div>
+
+                    <div className="relative flex items-center min-h-[50px] sm:min-h-[54px] bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 rounded-2xl focus-within:border-stone-900 dark:focus-within:border-[#FD9139]/40 focus-within:ring-2 focus-within:ring-stone-900/10 dark:focus-within:ring-[#FD9139]/10 transition-all px-4 py-1.5">
+                      <Phone className="w-4 h-4 text-stone-400 dark:text-zinc-500 shrink-0 mr-2.5" />
+                      <span className="text-xs sm:text-sm font-black text-stone-900 dark:text-[#FD9139] pr-2.5 border-r border-stone-300 dark:border-white/10 select-none font-['Outfit']">+91</span>
+                      <input
+                        type="tel"
+                        value={phoneInput}
+                        onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
+                        placeholder="10-digit mobile number"
+                        maxLength={10}
+                        required
+                        autoFocus
+                        className="flex-1 bg-transparent pl-3 py-2 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-zinc-500 focus:outline-none font-['Plus_Jakarta_Sans'] font-semibold tracking-wider"
+                      />
+                    </div>
+
+                    <p className="text-[11px] text-stone-500 dark:text-zinc-500 leading-relaxed px-0.5">
+                      Enter your 10-digit mobile number. Staff, kitchen chefs, delivery riders and devotees are signed in with their registered store rules.
+                    </p>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-1">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-6 rounded-full bg-stone-900 hover:bg-black text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] dark:text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer font-['Outfit'] apple-tap-target disabled:opacity-60 disabled:bg-stone-200 disabled:text-stone-500 dark:disabled:bg-white/10 dark:disabled:text-zinc-500 disabled:cursor-not-allowed"
+                    >
+                      <span>{loading ? 'Verifying Phone...' : 'Sign In with Mobile'}</span>
+                      <ArrowRight className="w-4 h-4 shrink-0 transition-colors" />
+                    </button>
+                  </div>
+
+                  {/* Switch to Sign Up */}
+                  <div className="text-center pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSignup(true);
+                        setSignupStep(1);
+                        setError('');
+                        setSuccessMsg('');
+                      }}
+                      className="text-xs text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      Don&apos;t have an account?{' '}
+                      <span className="text-amber-600 hover:text-amber-700 dark:text-[#FD9139] font-bold underline ml-1">
+                        Register in 3 Steps
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              ) : (
+              /* EMAIL SIGN-IN & STEP-BY-STEP SIGNUP */
               <form onSubmit={handleEmailSubmit} className="space-y-4 pt-1">
 
                 {/* ── STEP 1: IDENTITY ── */}
@@ -1519,6 +1641,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   </button>
                 </div>
               </form>
+              )}
 
               {/* Google Sign-In Option (When logging in) */}
               {!isSignup && (

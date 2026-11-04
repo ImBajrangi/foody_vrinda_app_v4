@@ -401,8 +401,10 @@ export function saveCachedShops(shopsList) {
 }
 
 export function getDefaultActiveShopId() {
-  const list = getCachedShops();
-  const valid = list.find(s => s.isOpen !== false && s.is_deleted !== true) || list[0];
+  const list = getCachedShops() || [];
+  const valid = list.find(s => s.is_active !== false && s.is_deleted !== true && s.isOpen !== false && s.id !== 'shop-vrinda-main')
+    || list.find(s => s.is_active !== false && s.is_deleted !== true && s.id !== 'shop-vrinda-main')
+    || list.find(s => s.is_deleted !== true);
   return valid ? valid.id : '';
 }
 
