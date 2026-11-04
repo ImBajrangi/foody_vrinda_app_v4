@@ -185,7 +185,7 @@ export default function QuantityPickerSheet({
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&auto=format&fit=crop&q=80';
+                  e.currentTarget.src = resolveDishCutout('', item?.name, item?.category);
                 }}
               />
             </div>

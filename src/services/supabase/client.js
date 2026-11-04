@@ -195,7 +195,8 @@ export const POSTIMG_VIEWER_TO_DIRECT = {
   'fVfJ2Rp4': 'https://i.postimg.cc/FH23KfxK/Basket-of-Golden-Garlic-Naan.png',
   'tsNYS4wG': 'https://i.postimg.cc/FH23Kfxz/Golden-Kachori-Platter-with-Chutneys.png',
   'ftsKVx2c': 'https://i.postimg.cc/KzkssftH/Copper-Thali-with-Chole-Kulche.png',
-  'phvZmDGD': 'https://i.postimg.cc/B6Lwwp2w/Vibrant-Garnished-Potato-Chaat-Bowl.png'
+  'phvZmDGD': 'https://i.postimg.cc/B6Lwwp2w/Vibrant-Garnished-Potato-Chaat-Bowl.png',
+  'k47Z6tQ4': 'https://i.postimg.cc/pd6bm2TQ/Creamy-Paneer-Curry-Bowl.png'
 };
 
 // Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
@@ -213,6 +214,12 @@ export function resolveDishCutout(image, name = '', category = '') {
       if (match && POSTIMG_VIEWER_TO_DIRECT[match[1]]) {
         trimmed = POSTIMG_VIEWER_TO_DIRECT[match[1]];
       }
+    }
+
+    // Intercept dead/broken PostImage links or typo hashes:
+    // Sahi Paneer broken hash 'k47Z6tQ4' -> authentic local preset / verified CDN
+    if (trimmed.includes('k47Z6tQ4') || trimmed.includes('Creamy-Shahi-Paneer-Curry-Bowl')) {
+      trimmed = '/dishes/presets/creamy-paneer-curry-bowl.webp';
     }
 
     if (
@@ -303,6 +310,13 @@ export function resolveDishCutout(image, name = '', category = '') {
       // f) Upgrade generic curry to authentic Matar Paneer copper bowl
       if (trimmed.includes('curry.webp') && (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer'))) {
         return '/dishes/presets/matar-paneer-copper-bowl.webp';
+      }
+      // f2) Upgrade generic curry or broken hash to authentic Creamy Shahi Paneer bowl
+      if (
+        (trimmed.includes('curry.webp') || trimmed.includes('curry.png') || trimmed.includes('k47Z6tQ4')) &&
+        (lowerName.includes('sahi paneer') || lowerName.includes('shahi paneer'))
+      ) {
+        return '/dishes/presets/creamy-paneer-curry-bowl.webp';
       }
 
       // Don't override user's image unless it's a known generic unsplash placeholder

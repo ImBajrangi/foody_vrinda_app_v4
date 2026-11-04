@@ -164,6 +164,13 @@ export function resolveDishCutout(image, name = '', category = '') {
       if (trimmed.includes('curry.webp') && (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer'))) {
         return '/dishes/presets/matar-paneer-copper-bowl.webp';
       }
+      // f2) Upgrade generic curry or broken hash to authentic Creamy Shahi Paneer bowl
+      if (
+        (trimmed.includes('curry.webp') || trimmed.includes('curry.png') || trimmed.includes('k47Z6tQ4')) &&
+        (lowerName.includes('sahi paneer') || lowerName.includes('shahi paneer'))
+      ) {
+        return '/dishes/presets/creamy-paneer-curry-bowl.webp';
+      }
 
       // Don't override user's image unless it's a known generic unsplash placeholder
       if (!trimmed.includes('unsplash.com/photo-1546833999-b9f581a1996d')) {

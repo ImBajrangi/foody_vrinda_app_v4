@@ -523,6 +523,14 @@ export function purgeOrder(orderId) {
         safeStorage.setItem('foody_my_session_orders', JSON.stringify(parsed.filter(id => id !== cleanId)));
       }
     }
+    const notifsRaw = safeStorage.getItem('foody_vrinda_notifications_v3');
+    if (notifsRaw) {
+      const parsedNotifs = JSON.parse(notifsRaw);
+      if (Array.isArray(parsedNotifs)) {
+        const cleanedNotifs = parsedNotifs.filter(n => n.orderId !== cleanId && n.order_id !== cleanId && !String(n.id || '').includes(cleanId));
+        safeStorage.setItem('foody_vrinda_notifications_v3', JSON.stringify(cleanedNotifs));
+      }
+    }
   } catch (_) {}
 
   invalidateCache('orders');
@@ -539,6 +547,18 @@ export function purgeAllDemoOrders(extraIds = []) {
   safeStorage.removeItem('foody_my_session_orders');
   safeStorage.removeItem('foody_customer_orders_cache');
   memoryCache.orders = {};
+
+  // Also clean up any cached order notifications in localStorage
+  try {
+    const notifsRaw = safeStorage.getItem('foody_vrinda_notifications_v3');
+    if (notifsRaw) {
+      const parsedNotifs = JSON.parse(notifsRaw);
+      if (Array.isArray(parsedNotifs)) {
+        const cleanedNotifs = parsedNotifs.filter(n => !n.orderId && !n.order_id && !String(n.id || '').startsWith('order-status-'));
+        safeStorage.setItem('foody_vrinda_notifications_v3', JSON.stringify(cleanedNotifs));
+      }
+    }
+  } catch (_) {}
 
   dispatchSafeEvent('foody_orders_changed', { purgedAll: true, purgedCount: allIds.length });
   return allIds;

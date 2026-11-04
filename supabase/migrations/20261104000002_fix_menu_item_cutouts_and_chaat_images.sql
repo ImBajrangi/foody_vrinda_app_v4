@@ -16,9 +16,9 @@ WHERE
 -- 2. Upgrade Sahi Paneer / Shahi Paneer to authentic creamy paneer curry cutout
 UPDATE public.foody_menus
 SET 
-  image = 'https://i.postimg.cc/k47Z6tQ4/Creamy-Shahi-Paneer-Curry-Bowl.png',
+  image = 'https://i.postimg.cc/pd6bm2TQ/Creamy-Paneer-Curry-Bowl.png',
   updated_at = NOW()
 WHERE 
-  (LOWER(name) LIKE '%sahi paneer%' OR LOWER(name) LIKE '%shahi paneer%') 
-  AND (image IS NULL OR image LIKE '%curry.webp' OR image LIKE '%curry.png');
+  id = 'menu-brb-sahi-paneer'
+  OR (LOWER(name) LIKE '%sahi paneer%' OR LOWER(name) LIKE '%shahi paneer%');
 

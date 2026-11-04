@@ -2,18 +2,49 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { 
+  supabase,
   subscribeCloudNotifications, 
   markCloudNotificationRead, 
   createCloudNotification, 
   subscribeCloudOrders,
   getOrderItemSummary,
-  getOrderCustomerName
+  getOrderCustomerName,
+  getPurgedOrderIds
 } from '../supabase';
 import { nativeNotify } from '../services/nativeNotificationService';
 
 const NotificationContext = createContext(null);
 
 const STORAGE_KEY = 'foody_vrinda_notifications_v3';
+
+// Utility to filter out synthetic test order notifications and test probes
+function isTestNotification(n) {
+  if (!n) return true;
+  const title = (n.title || '').toLowerCase();
+  const msg = (n.message || '').toLowerCase();
+  const id = String(n.id || '').toLowerCase();
+  const orderId = String(n.orderId || n.order_id || '').toLowerCase();
+
+  try {
+    const purgedIds = typeof getPurgedOrderIds === 'function' ? getPurgedOrderIds() : [];
+    if (orderId && purgedIds.includes(orderId)) return true;
+  } catch (_) {}
+
+  return (
+    id.includes('test') ||
+    id.includes('probe') ||
+    id.includes('audit') ||
+    orderId.includes('test') ||
+    title.includes('test devo') ||
+    title.includes('test cust') ||
+    title.includes('test user') ||
+    title.includes('order flow') ||
+    msg.includes('test devo') ||
+    msg.includes('test cust') ||
+    msg.includes('test user') ||
+    msg.includes('probe')
+  );
+}
 
 // Clean, welcoming initial notification seeds (NO fake order IDs)
 const DEFAULT_SEEDS = [
@@ -45,9 +76,9 @@ export function NotificationProvider({ children }) {
       if (cached !== null && cached !== undefined) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
-          // Filter out legacy mock seed order W399A and streamline verbose legacy text
+          // Filter out legacy mock seeds, synthetic test notifications, and streamline verbose legacy text
           const sanitized = parsed
-            .filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A')
+            .filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A' && !isTestNotification(n))
             .map(n => {
               let msg = n.message || '';
               if (msg.includes('Experience 100% Satvik Divine Bhog & Prasad')) {
@@ -86,6 +117,33 @@ export function NotificationProvider({ children }) {
     });
   }, []);
 
+  // Automatically sanitize any synthetic test order notifications on mount
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(n => n.id !== 'seed-notif-1' && n.orderId !== 'W399A' && !isTestNotification(n));
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+            setNotifications(cleaned);
+          }
+        }
+      }
+      const sessionRaw = localStorage.getItem('foody_my_session_orders');
+      if (sessionRaw) {
+        const sessionOrders = JSON.parse(sessionRaw);
+        if (Array.isArray(sessionOrders)) {
+          const validSessionOrders = sessionOrders.filter(id => !String(id).toLowerCase().includes('test'));
+          if (validSessionOrders.length !== sessionOrders.length) {
+            localStorage.setItem('foody_my_session_orders', JSON.stringify(validSessionOrders));
+          }
+        }
+      }
+    } catch (_) {}
+  }, []);
+
   // When user is a guest with no placed orders, sanitize away any leaked foreign order notifications
   useEffect(() => {
     const isGuest = !user || user.isAnonymous || !userData?.isLoggedInUser;
@@ -94,7 +152,7 @@ export function NotificationProvider({ children }) {
         const sessionOrders = JSON.parse(localStorage.getItem('foody_my_session_orders') || '[]');
         setNotifications(prev => {
           const filtered = prev.filter(n => {
-            if (n.type === 'order' && n.orderId) {
+            if ((n.type === 'order' || n.type === 'delivery' || n.type === 'kitchen') && n.orderId) {
               return sessionOrders.includes(n.orderId);
             }
             return true;
@@ -106,6 +164,105 @@ export function NotificationProvider({ children }) {
       }
     }
   }, [user, userData]);
+
+  // Listen for local and realtime order purge events across windows / tabs
+  useEffect(() => {
+    const handleOrdersChanged = (e) => {
+      const detail = e.detail || {};
+      if (detail.purgedAll) {
+        setNotifications(prev => {
+          const nonOrderNotifs = prev.filter(n => !n.orderId && !n.order_id && !String(n.id || '').startsWith('order-status-'));
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(nonOrderNotifs));
+          } catch (_) {}
+          return nonOrderNotifs;
+        });
+      } else if (detail.purgedOrderId) {
+        setNotifications(prev => {
+          const remaining = prev.filter(n => (
+            n.orderId !== detail.purgedOrderId && 
+            n.order_id !== detail.purgedOrderId && 
+            !String(n.id || '').includes(detail.purgedOrderId)
+          ));
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
+          } catch (_) {}
+          return remaining;
+        });
+      }
+    };
+
+    window.addEventListener('foody_orders_changed', handleOrdersChanged);
+    return () => {
+      window.removeEventListener('foody_orders_changed', handleOrdersChanged);
+    };
+  }, []);
+
+  // Active Database Reconciliation: Sweep away orphaned notifications for purged/deleted orders
+  useEffect(() => {
+    let isMounted = true;
+
+    async function pruneOrphanedOrderNotifications() {
+      try {
+        const purgedIds = new Set(typeof getPurgedOrderIds === 'function' ? getPurgedOrderIds() : []);
+        
+        // Find any notifications tied to an order ID
+        const orderNotifs = notifications.filter(n => {
+          const oid = n.orderId || n.order_id || (String(n.id || '').startsWith('order-status-') ? String(n.id).split('-')[2] : null);
+          return Boolean(oid);
+        });
+
+        if (orderNotifs.length === 0) return;
+
+        const candidateIds = Array.from(new Set(
+          orderNotifs.map(n => n.orderId || n.order_id || (String(n.id || '').startsWith('order-status-') ? String(n.id).split('-')[2] : null)).filter(Boolean)
+        ));
+
+        if (candidateIds.length === 0) return;
+
+        // Check against Supabase foody_orders
+        const { data: existingRows, error } = await supabase
+          .from('foody_orders')
+          .select('id')
+          .in('id', candidateIds);
+
+        if (error) {
+          console.debug('Prune orphaned order notifications check error:', error.message);
+          return;
+        }
+
+        if (!isMounted) return;
+
+        const liveOrderIdSet = new Set((existingRows || []).map(r => r.id));
+
+        setNotifications(prev => {
+          const valid = prev.filter(n => {
+            const oid = n.orderId || n.order_id || (String(n.id || '').startsWith('order-status-') ? String(n.id).split('-')[2] : null);
+            if (oid) {
+              if (purgedIds.has(oid)) return false;
+              if (!liveOrderIdSet.has(oid)) return false; // Order was purged/deleted from DB!
+            }
+            return true;
+          });
+
+          if (valid.length !== prev.length) {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+            } catch (_) {}
+          }
+          return valid;
+        });
+      } catch (err) {
+        console.debug('Prune orphaned order notifications exception:', err);
+      }
+    }
+
+    pruneOrphanedOrderNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [notifications.length]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter(n => !n.read).length;
