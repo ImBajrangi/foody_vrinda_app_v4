@@ -125,6 +125,79 @@ if (typeof supabase !== 'undefined' && supabase?.auth) {
 // Pure Database-Driven Architecture: Zero hardcoded shops
 export const SEED_SHOPS = [];
 
+// Master Cloud CDN Direct Image Library (postimg.cc direct URLs)
+export const MASTER_CLOUD_DISH_IMAGES = {
+  pizza_slice: 'https://i.postimg.cc/JnHwJ9DD/Cheesy-Veggie-Pizza-Slice-Pull.png',
+  chole_naan: 'https://i.postimg.cc/k4Rr8k6B/Chole-Curry-with-Naan-Platter.png',
+  creamy_paneer: 'https://i.postimg.cc/pd6bm2TQ/Creamy-Paneer-Curry-Bowl.png',
+  samosas: 'https://i.postimg.cc/Y9LcgJGv/Crispy-Samosas-in-Wicker-Basket.png',
+  spring_rolls: 'https://i.postimg.cc/Hx8G5fcb/Crispy-Spring-Rolls-with-Chutneys.png',
+  garlic_naan: 'https://i.postimg.cc/rmR6Wv01/Garlic-Naan-with-Three-Chutneys.png',
+  jalebi: 'https://i.postimg.cc/yd3q9wgF/Glossy-Jalebi-Bowl-with-Pistachio-Garnish.png',
+  hakka_noodles: 'https://i.postimg.cc/Y9LcgJGN/Glossy-Stir-Fried-Noodles-in-Black-Bowl.png',
+  schezwan_noodles: 'https://i.postimg.cc/50QcvZYm/Glossy-Vegetable-Stir-Fried-Noodles-Bowl.png',
+  puff_pastry: 'https://i.postimg.cc/zBHmW9bj/Golden-Cheesy-Triangle-Puff-with-Ketchup.png',
+  chole_bhature: 'https://i.postimg.cc/k4Rr8k6w/Golden-Chole-Bhature-Feast.png',
+  grilled_cheese: 'https://i.postimg.cc/MTfkRhMd/Gooey-Grilled-Cheese-with-Tomato-and-Basil.png',
+  club_sandwich: 'https://i.postimg.cc/fLS4X6t8/Grilled-Vegetable-Cheese-Sandwich-Platter-(1).png',
+  desi_sandwich: 'https://i.postimg.cc/rmR6Wv0h/Grilled-Veggie-Cheese-Sandwich-with-Dip-(2).png',
+  burger: 'https://i.postimg.cc/xCNrHWJx/Indulgent-Loaded-Fusion-Burger.png',
+  aloo_tikki_chaat: 'https://i.postimg.cc/j5nVNGw3/Loaded-Chole-Aloo-Tikki-Chaat.png',
+  papdi_chaat: 'https://i.postimg.cc/hjQFxHzY/Loaded-Indian-Chaat-Bowl-with-Sev-and-Chutneys.png',
+  handi_paneer: 'https://i.postimg.cc/j5nVNGw9/Ornate-Copper-Bowl-of-Paneer-Curry.png',
+  barfi: 'https://i.postimg.cc/hjQFxHzH/Pistachio-Garnished-Barfi-on-Ornate-Platter.png',
+  french_fries: 'https://i.postimg.cc/B6PWDdLr/Seasoned-Fries-with-Ketchup-Dip.png',
+  kaju_katli: 'https://i.postimg.cc/G2WWjqGq/Silver-Leaf-Kaju-Katli-on-Ornate-Platter.png',
+  steamed_momos: 'https://i.postimg.cc/W3BB7XgW/Steamed-Momos-with-Spicy-Chutney.png',
+  farmhouse_pizza: 'https://i.postimg.cc/TwzzcCgS/Stretchy-Loaded-Veggie-Cheese-Pizza.png',
+  dahi_vada: 'https://i.postimg.cc/zBssk0K9/Vibrant-Dahi-Vada-Chaat-Platter.png',
+  vegetable_biryani: 'https://i.postimg.cc/PJVx9Y4g/Antique-Copper-Bowl-of-Vegetable-Biryani.png',
+  basket_garlic_naan: 'https://i.postimg.cc/RCwxYcPv/Basket-of-Golden-Garlic-Naan.png',
+  matar_paneer: 'https://i.postimg.cc/XNwH6W4x/Matar-Paneer-in-Ornate-Copper-Bowl.png',
+  charred_rotis: 'https://i.postimg.cc/bYQCfPpg/Woven-Basket-of-Charred-Rotis.png',
+  kachori_platter: 'https://i.postimg.cc/FH23Kfxz/Golden-Kachori-Platter-with-Chutneys.png',
+  chole_kulche_thali: 'https://i.postimg.cc/KzkssftH/Copper-Thali-with-Chole-Kulche.png',
+  aloo_chaat_bowl: 'https://i.postimg.cc/B6Lwwp2w/Vibrant-Garnished-Potato-Chaat-Bowl.png'
+};
+
+// Automatic Postimg Viewer Page to Direct Raw CDN Image Converter
+export const POSTIMG_VIEWER_TO_DIRECT = {
+  'DJhY3pcn': 'https://i.postimg.cc/JnHwJ9DD/Cheesy-Veggie-Pizza-Slice-Pull.png',
+  'TLxHvNc6': 'https://i.postimg.cc/k4Rr8k6B/Chole-Curry-with-Naan-Platter.png',
+  'Ff3nqX01': 'https://i.postimg.cc/pd6bm2TQ/Creamy-Paneer-Curry-Bowl.png',
+  'JD8dCYQ8': 'https://i.postimg.cc/Y9LcgJGv/Crispy-Samosas-in-Wicker-Basket.png',
+  'r0TY2Z9p': 'https://i.postimg.cc/Hx8G5fcb/Crispy-Spring-Rolls-with-Chutneys.png',
+  'dkFScN93': 'https://i.postimg.cc/rmR6Wv01/Garlic-Naan-with-Three-Chutneys.png',
+  'qhrZHDGR': 'https://i.postimg.cc/yd3q9wgF/Glossy-Jalebi-Bowl-with-Pistachio-Garnish.png',
+  'r0TY2Z9z': 'https://i.postimg.cc/Y9LcgJGN/Glossy-Stir-Fried-Noodles-in-Black-Bowl.png',
+  'HcmP1vtJ': 'https://i.postimg.cc/50QcvZYm/Glossy-Vegetable-Stir-Fried-Noodles-Bowl.png',
+  'ygKrCpTg': 'https://i.postimg.cc/zBHmW9bj/Golden-Cheesy-Triangle-Puff-with-Ketchup.png',
+  '5YJkWKmF': 'https://i.postimg.cc/k4Rr8k6w/Golden-Chole-Bhature-Feast.png',
+  'r0TY2Z9r': 'https://i.postimg.cc/MTfkRhMd/Gooey-Grilled-Cheese-with-Tomato-and-Basil.png',
+  '5YJkWKmz': 'https://i.postimg.cc/fLS4X6t8/Grilled-Vegetable-Cheese-Sandwich-Platter-(1).png',
+  'k6ChPYy8': 'https://i.postimg.cc/rmR6Wv0h/Grilled-Veggie-Cheese-Sandwich-with-Dip-(2).png',
+  '8JGngXbM': 'https://i.postimg.cc/xCNrHWJx/Indulgent-Loaded-Fusion-Burger.png',
+  'R6mbxpTw': 'https://i.postimg.cc/j5nVNGw3/Loaded-Chole-Aloo-Tikki-Chaat.png',
+  'YG7yBDxN': 'https://i.postimg.cc/hjQFxHzY/Loaded-Indian-Chaat-Bowl-with-Sev-and-Chutneys.png',
+  'BL3wf7Cc': 'https://i.postimg.cc/j5nVNGw9/Ornate-Copper-Bowl-of-Paneer-Curry.png',
+  'TLxHvNc9': 'https://i.postimg.cc/hjQFxHzH/Pistachio-Garnished-Barfi-on-Ornate-Platter.png',
+  'k6ChPYys': 'https://i.postimg.cc/B6PWDdLr/Seasoned-Fries-with-Ketchup-Dip.png',
+  'S2G1SLZM': 'https://i.postimg.cc/G2WWjqGq/Silver-Leaf-Kaju-Katli-on-Ornate-Platter.png',
+  '0MCXkGtD': 'https://i.postimg.cc/W3BB7XgW/Steamed-Momos-with-Spicy-Chutney.png',
+  '5YmK45Pq': 'https://i.postimg.cc/TwzzcCgS/Stretchy-Loaded-Veggie-Cheese-Pizza.png',
+  'Q9qY8g6b': 'https://i.postimg.cc/zBssk0K9/Vibrant-Dahi-Vada-Chaat-Platter.png',
+  'GTYdsB6K': 'https://i.postimg.cc/PJVx9Y4g/Antique-Copper-Bowl-of-Vegetable-Biryani.png',
+  'HjWNc7DN': 'https://i.postimg.cc/RCwxYcPv/Basket-of-Golden-Garlic-Naan.png',
+  'yW8X0wJS': 'https://i.postimg.cc/XNwH6W4x/Matar-Paneer-in-Ornate-Copper-Bowl.png',
+  'Btnc2d8P': 'https://i.postimg.cc/bYQCfPpg/Woven-Basket-of-Charred-Rotis.png',
+  'phGj0L9L': 'https://i.postimg.cc/x8YP1knM/Crispy-Samosas-in-Wicker-Basket.png',
+  'K1DRq8VC': 'https://i.postimg.cc/P5BYqLMf/Antique-Copper-Bowl-of-Vegetable-Biryani.png',
+  'fVfJ2Rp4': 'https://i.postimg.cc/FH23KfxK/Basket-of-Golden-Garlic-Naan.png',
+  'tsNYS4wG': 'https://i.postimg.cc/FH23Kfxz/Golden-Kachori-Platter-with-Chutneys.png',
+  'ftsKVx2c': 'https://i.postimg.cc/KzkssftH/Copper-Thali-with-Chole-Kulche.png',
+  'phvZmDGD': 'https://i.postimg.cc/B6Lwwp2w/Vibrant-Garnished-Potato-Chaat-Bowl.png'
+};
+
 // Helper to intelligently resolve dish images with full support for user AI uploads, custom URLs, and crisp transparent PNG cutouts
 export function resolveDishCutout(image, name = '', category = '') {
   const lowerName = (name || '').toLowerCase().trim();
@@ -132,7 +205,16 @@ export function resolveDishCutout(image, name = '', category = '') {
 
   // 1. If a valid custom user image or upload is supplied, ALWAYS honor and preserve it
   if (image && typeof image === 'string') {
-    const trimmed = image.trim();
+    let trimmed = image.trim();
+
+    // Auto-convert postimg.cc viewer HTML pages to direct raw CDN image URLs
+    if (trimmed.includes('postimg.cc/') && !trimmed.includes('i.postimg.cc/')) {
+      const match = trimmed.match(/postimg\.cc\/([a-zA-Z0-9]+)/);
+      if (match && POSTIMG_VIEWER_TO_DIRECT[match[1]]) {
+        trimmed = POSTIMG_VIEWER_TO_DIRECT[match[1]];
+      }
+    }
+
     if (
       trimmed.startsWith('data:image/') ||
       trimmed.startsWith('blob:') ||
@@ -160,7 +242,7 @@ export function resolveDishCutout(image, name = '', category = '') {
         trimmed.includes('Crispy-Samosas-in-Wicker-Basket.png') ||
         (trimmed.includes('samosa') && !lowerName.includes('samosa'))
       ) {
-        if (lowerName.includes('kachori')) {
+        if (lowerName.includes('kachori') || lowerName.includes('khasta') || lowerName.includes('bedmi')) {
           return '/dishes/presets/golden-kachori-platter.webp';
         }
         if (
@@ -173,11 +255,31 @@ export function resolveDishCutout(image, name = '', category = '') {
         }
         if (
           lowerName.includes('aalu') ||
-          lowerName.includes('aloo chaat') ||
-          lowerName.includes('aalu chaat') ||
-          lowerName.includes('potato chaat')
+          lowerName.includes('aloo') ||
+          lowerName.includes('potato') ||
+          lowerName.includes('batata')
         ) {
+          if (lowerName.includes('tikki') || lowerName.includes('cutlet')) {
+            return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
+          }
           return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
+        }
+        if (
+          lowerName.includes('chaat') ||
+          lowerName.includes('chat') ||
+          lowerCat.includes('chaat') ||
+          lowerCat.includes('chat')
+        ) {
+          return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+        }
+        if (lowerName.includes('spring roll') || lowerName.includes('roll')) {
+          return '/dishes/presets/crispy-spring-rolls.webp';
+        }
+        if (lowerName.includes('puff') || lowerName.includes('patties')) {
+          return '/dishes/presets/golden-cheesy-triangle-puff.webp';
+        }
+        if (lowerName.includes('sandwich') || lowerName.includes('toast')) {
+          return '/dishes/presets/grilled-veggie-cheese-sandwich.webp';
         }
       }
       // d2) Upgrade legacy chole naan to authentic copper thali chole kulche
@@ -235,7 +337,7 @@ export function resolveDishCutout(image, name = '', category = '') {
   // C. Paneer, Curries & Dals
   if (lowerName.includes('matar paneer') || lowerName.includes('mutter paneer') || lowerName.includes('aloo matar') || lowerName.includes('paneer bhurji')) return '/dishes/presets/matar-paneer-copper-bowl.webp';
   if (lowerName.includes('handi paneer') || lowerName.includes('korma') || lowerName.includes('dal makhani') || lowerName.includes('dal tadka') || lowerName.includes('yellow dal') || lowerName.includes('rajma') || lowerName.includes('chana masala')) return '/dishes/presets/handi-paneer-curry.webp';
-  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer makhani') || lowerName.includes('kadai paneer') || lowerName.includes('kadhai paneer') || lowerName.includes('paneer lababdar') || lowerName.includes('malai kofta') || lowerName.includes('kofta')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
+  if (lowerName.includes('malai paneer') || lowerName.includes('shahi paneer') || lowerName.includes('sahi paneer') || lowerName.includes('paneer butter') || lowerName.includes('paneer makhani') || lowerName.includes('kadai paneer') || lowerName.includes('kadhai paneer') || lowerName.includes('paneer lababdar') || lowerName.includes('malai kofta') || lowerName.includes('kofta')) return '/dishes/presets/creamy-paneer-curry-bowl.webp';
 
   // D. Burgers, Pizzas & Sandwiches
   if (lowerName.includes('burger')) return '/dishes/presets/indulgent-fusion-burger.webp';
@@ -253,20 +355,75 @@ export function resolveDishCutout(image, name = '', category = '') {
   if (lowerName.includes('puff') || lowerName.includes('patties') || lowerName.includes('patty')) return '/dishes/presets/golden-cheesy-triangle-puff.webp';
   if (lowerName.includes('fry') || lowerName.includes('fries') || lowerName.includes('french fries') || lowerName.includes('wedges') || lowerName.includes('nugget')) return '/dishes/presets/seasoned-crispy-fries.webp';
 
-  // F. Chaat & Street Food
+  // F. Chaat, Street Food & Samosa Safeguards
+  const isAlooOrPotato =
+    lowerName.includes('aalu') ||
+    lowerName.includes('aloo') ||
+    lowerName.includes('potato') ||
+    lowerName.includes('batata');
+
+  const isChaatOrChat =
+    lowerName.includes('chaat') ||
+    lowerName.includes('chat');
+
+  // Aloo Chat / Aalu Chaat / Potato Chaat -> Vibrant Potato Chaat Bowl
   if (
-    lowerName.includes('aalu chaat') ||
+    (isAlooOrPotato && isChaatOrChat) ||
+    lowerName.includes('aloo chat') ||
+    lowerName.includes('aalu chat') ||
     lowerName.includes('aloo chaat') ||
+    lowerName.includes('aalu chaat') ||
     lowerName.includes('potato chaat') ||
-    (lowerName.includes('aalu') && lowerName.includes('chaat')) ||
-    (lowerName.includes('aloo') && lowerName.includes('chaat'))
+    lowerName.includes('potato chat')
   ) {
     return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
   }
-  if (lowerName.includes('dahi vada') || lowerName.includes('bhalla') || lowerName.includes('dahi bhalla') || lowerName.includes('dahi pakodi')) return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
-  if (lowerName.includes('tikki') || lowerName.includes('aloo tikki') || lowerName.includes('cutlet') || lowerName.includes('ragda')) return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
-  if (lowerName.includes('papdi') || lowerName.includes('chaat') || lowerName.includes('sev') || lowerName.includes('bhel') || lowerName.includes('pani puri') || lowerName.includes('golgappe') || lowerName.includes('puchka')) return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
-  if (lowerName.includes('samosa') || lowerName.includes('pakora') || lowerName.includes('pakoda') || lowerName.includes('bhajiya') || lowerName.includes('fritter')) return '/dishes/presets/crispy-samosas-basket.webp';
+
+  // Aloo Tikki / Chole Tikki
+  if (
+    lowerName.includes('tikki') ||
+    lowerName.includes('aloo tikki') ||
+    lowerName.includes('aalu tikki') ||
+    lowerName.includes('cutlet') ||
+    lowerName.includes('ragda')
+  ) {
+    return '/dishes/presets/loaded-chole-aloo-tikki-chaat.webp';
+  }
+
+  // Dahi Vada / Dahi Bhalla
+  if (
+    lowerName.includes('dahi vada') ||
+    lowerName.includes('bhalla') ||
+    lowerName.includes('dahi bhalla') ||
+    lowerName.includes('dahi pakodi')
+  ) {
+    return '/dishes/presets/vibrant-dahi-vada-chaat.webp';
+  }
+
+  // Papdi Chaat, Sev Puri, Bhel, Golgappe, etc.
+  if (
+    lowerName.includes('papdi') ||
+    isChaatOrChat ||
+    lowerName.includes('sev') ||
+    lowerName.includes('bhel') ||
+    lowerName.includes('pani puri') ||
+    lowerName.includes('golgappe') ||
+    lowerName.includes('puchka') ||
+    lowerName.includes('raj kachori')
+  ) {
+    return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+  }
+
+  // ONLY authentic samosas, pakoras, bhajiyas get the samosa basket
+  if (
+    lowerName.includes('samosa') ||
+    lowerName.includes('pakora') ||
+    lowerName.includes('pakoda') ||
+    lowerName.includes('bhajiya') ||
+    lowerName.includes('fritter')
+  ) {
+    return '/dishes/presets/crispy-samosas-basket.webp';
+  }
 
   // G. Traditional Sweets & Mithai
   if (lowerName.includes('jalebi') || lowerName.includes('imarti') || lowerName.includes('ghevar') || lowerName.includes('malpua')) return '/dishes/presets/glossy-kesar-jalebi.webp';
@@ -282,7 +439,17 @@ export function resolveDishCutout(image, name = '', category = '') {
   // J. Curries & Rice Fallbacks
   if (lowerName.includes('curry') || lowerName.includes('makhani') || lowerName.includes('paneer') || lowerName.includes('sabzi') || lowerName.includes('dal') || lowerName.includes('gravy') || lowerCat.includes('curry') || lowerCat.includes('main')) return '/dishes/curry.webp';
   if (lowerName.includes('rice') || lowerName.includes('pulao') || lowerName.includes('bhog') || lowerName.includes('khichdi') || lowerCat.includes('rice')) return '/dishes/rice.webp';
-  if (lowerCat.includes('snack') || lowerName.includes('snack')) return '/dishes/presets/crispy-samosas-basket.webp';
+
+  // K. Category-Level Fallbacks (Never force samosas onto general snacks or chaats)
+  if (lowerCat.includes('chat') || lowerCat.includes('chaat')) {
+    if (isAlooOrPotato) return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
+    return '/dishes/presets/loaded-papdi-chaat-bowl.webp';
+  }
+
+  if (lowerCat.includes('snack') || lowerName.includes('snack')) {
+    if (isAlooOrPotato) return '/dishes/presets/vibrant-potato-chaat-bowl.webp';
+    return '/dishes/presets/crispy-spring-rolls.webp';
+  }
 
   return '/dishes/thali.webp';
 }
