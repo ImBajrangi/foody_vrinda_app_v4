@@ -129,7 +129,8 @@ BEGIN
         p_rider_id := v_rider_id,
         p_shop_id := v_shop_a,
         p_amount_received := 100.00,
-        p_idempotency_key := 'idem_step1_' || v_order_id
+        p_idempotency_key := 'idem_step1_' || v_order_id,
+        p_order_ids := ARRAY[v_order_id]
     );
     v_settlement_id_1 := v_settle_res ->> 'settlement_id';
 
@@ -155,6 +156,44 @@ BEGIN
         INSERT INTO _billing_test_results VALUES ('TEST_03', 'Handover 1 (₹100 of ₹500): alloc=100, remaining=400, cash_status=collected', 'remaining=400, debt=400', 'remaining=' || v_alloc.remaining_order_debt || ', user_debt=' || v_user.unsettled_debt, 'PASS');
     ELSE
         INSERT INTO _billing_test_results VALUES ('TEST_03', 'Handover 1 (₹100 of ₹500): alloc=100, remaining=400, cash_status=collected', 'remaining=400, debt=400', 'alloc=' || v_alloc.amount_allocated || ', order_status=' || v_order.cash_status || ', user_debt=' || v_user.unsettled_debt, 'FAIL');
+    END IF;
+
+    -- -------------------------------------------------------------------------
+    -- TEST 10: IDEMPOTENCY PAYLOAD COLLISION (Explicit order list vs omitted list)
+    -- The original Handover 1 used ARRAY[v_order_id]. Replaying the same key
+    -- without p_order_ids must be rejected as a different request payload.
+    -- -------------------------------------------------------------------------
+    v_err_caught := false;
+    v_err_msg := '';
+    BEGIN
+        PERFORM public.record_rider_cash_settlement(
+            p_rider_id := v_rider_id,
+            p_shop_id := v_shop_a,
+            p_amount_received := 100.00,
+            p_idempotency_key := 'idem_step1_' || v_order_id,
+            p_order_ids := NULL
+        );
+    EXCEPTION WHEN OTHERS THEN
+        v_err_caught := true;
+        v_err_msg := SQLERRM;
+    END;
+
+    IF v_err_caught AND v_err_msg LIKE '%IDEMPOTENCY_KEY_COLLISION%' THEN
+        INSERT INTO _billing_test_results VALUES (
+            'TEST_10',
+            'Idempotency Payload Collision (Explicit order selection cannot replay as automatic selection)',
+            'IDEMPOTENCY_KEY_COLLISION Exception',
+            v_err_msg,
+            'PASS'
+        );
+    ELSE
+        INSERT INTO _billing_test_results VALUES (
+            'TEST_10',
+            'Idempotency Payload Collision (Explicit order selection cannot replay as automatic selection)',
+            'IDEMPOTENCY_KEY_COLLISION Exception',
+            COALESCE(v_err_msg, 'Mismatched replay was accepted'),
+            'FAIL'
+        );
     END IF;
 
     -- -------------------------------------------------------------------------
