@@ -154,4 +154,8 @@ CREATE TRIGGER trg_cod_collection_ledger
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_cod_collection_ledger();
 
+-- This is a trigger-only function, not a public RPC endpoint. PostgreSQL
+-- required EXECUTE when CREATE TRIGGER ran above; revoke API access afterward.
+REVOKE ALL ON FUNCTION public.handle_cod_collection_ledger() FROM PUBLIC, anon, authenticated;
+
 NOTIFY pgrst, 'reload schema';
