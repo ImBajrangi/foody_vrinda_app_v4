@@ -1,3 +1,10 @@
+> **SUPERSEDED AUDIT REPORT — 10 November 2026**
+> This report records an earlier checkpoint at commit `2b9c4a2`. It is retained for historical context only.
+> Use `ProductDetails/BILLING_FINAL_AUDIT_HANDOFF_20261110.md` for the current branch state, follow-up migrations, honest CI scope, and outstanding Alpha/Dev verification.
+> In particular, the historical “9/9 PostgreSQL integration” output is a report-provided SQL harness result, not a CI-executed live database test. The current Node billing test also contains local model/unit checks; see the final handoff for the distinction.
+
+---
+
 # FOODY VRINDA — BILLING, CASH FLOW RECONCILIATION & FINANCIAL LEDGER
 ## Comprehensive Engineering Remediation & Authoritative Audit Report
 
