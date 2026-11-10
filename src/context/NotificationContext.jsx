@@ -533,6 +533,33 @@ export function NotificationProvider({ children }) {
     };
   }, [user?.id, user?.uid]);
 
+  // Subscribe to Application-Wide Realtime Broadcast Events (Staff alerts, dev announcements)
+  useEffect(() => {
+    const handleBroadcastNotification = (e) => {
+      const notif = e.detail;
+      if (!notif) return;
+      if (isTestNotification(notif)) return;
+
+      if (addNotificationRef.current) {
+        addNotificationRef.current({
+          id: notif.id,
+          title: notif.title || 'Foody Vrinda Notice',
+          message: notif.message,
+          type: notif.type || 'staff_custom',
+          orderId: notif.order_id || notif.orderId || null,
+          read: notif.read || false,
+          createdAt: notif.created_at || notif.createdAt || new Date().toISOString(),
+          skipSound: true // Native notification service already triggered audio chime
+        });
+      }
+    };
+
+    window.addEventListener('foody:notification-received', handleBroadcastNotification);
+    return () => {
+      window.removeEventListener('foody:notification-received', handleBroadcastNotification);
+    };
+  }, []);
+
   // Initialize native hardware notifications (Android channels & permissions)
   useEffect(() => {
     nativeNotify.init();

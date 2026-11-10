@@ -30,6 +30,7 @@ export class RealtimeMultiplexer {
     this.orderListeners = new Set();
     this.singleOrderListeners = new Map(); // [orderId]: Set of callbacks
     this.notificationListeners = new Set();
+    this._processedNotificationIds = new Set();
     this.userListeners = new Set();
     this.menuListeners = new Set();
     this.shopListeners = new Set();
@@ -244,77 +245,15 @@ export class RealtimeMultiplexer {
               read: payload.new.read || payload.new.is_read || false,
               createdAt: payload.new.created_at
             };
-
-            // Realtime System Notification Delivery Check
-            try {
-              let currentUserId = null;
-              let currentUserRole = 'customer';
-              let currentShopId = null;
-
-              if (typeof localStorage !== 'undefined') {
-                try {
-                  const rawUser = localStorage.getItem('foody_user_data');
-                  if (rawUser) {
-                    const parsed = JSON.parse(rawUser);
-                    currentUserId = parsed.id || null;
-                    currentUserRole = parsed.role || 'customer';
-                    currentShopId = parsed.shop_id || null;
-                  }
-                } catch (_) {}
-              }
-
-              // Evaluate recipient match for current client
-              let isMatch = false;
-              if (notif.userId && notif.userId === currentUserId) {
-                isMatch = true;
-              } else if (!notif.userId) {
-                const targetRole = (notif.role || 'all').toLowerCase();
-                const targetShop = notif.shopId || 'all';
-
-                const shopMatches = targetShop === 'all' || !currentShopId || targetShop === currentShopId;
-
-                if (shopMatches) {
-                  if (targetRole === 'all') {
-                    isMatch = true;
-                  } else if (targetRole === 'staff') {
-                    isMatch = ['owner', 'kitchen', 'delivery', 'rider', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
-                  } else if (targetRole === 'kitchen') {
-                    isMatch = ['kitchen', 'owner', 'developer', 'grand_admin'].includes(currentUserRole);
-                  } else if (targetRole === 'delivery' || targetRole === 'rider') {
-                    isMatch = ['delivery', 'rider', 'developer', 'grand_admin'].includes(currentUserRole);
-                  } else if (targetRole === 'owner') {
-                    isMatch = ['owner', 'developer', 'grand_admin'].includes(currentUserRole);
-                  } else if (targetRole === currentUserRole) {
-                    isMatch = true;
-                  }
-                }
-              }
-
-              // Deliver DIRECT SYSTEM NOTIFICATION to device / browser if matched
-              if (isMatch) {
-                nativeNotify.displaySystemNotification({
-                  title: notif.title,
-                  body: notif.message,
-                  sound: notif.sound,
-                  priority: notif.priority,
-                  data: notif,
-                  tag: `staff-broadcast-${notif.id}`
-                });
-              }
-
-              // Always broadcast application event for live reactive views (Developer monitor, badges)
-              dispatchSafeEvent('foody:notification-received', notif);
-            } catch (notifyErr) {
-              console.warn('Realtime system notification delivery note:', notifyErr);
-            }
-
-            this.notificationListeners.forEach(listener => {
-              try {
-                if (!listener.userId || listener.userId === notif.userId) {
-                  listener.callback(notif);
-                }
-              } catch (e) { }
-            });
+            this.handleNotificationPayload(notif);
+          }
+        )
+        .on(
+          'broadcast',
+          { event: 'staff_broadcast' },
+          (payload) => {
+            const raw = payload?.payload || payload;
+            if (raw) this.handleNotificationPayload(raw);
           }
         )
         .on(
@@ -740,6 +679,109 @@ export class RealtimeMultiplexer {
     };
   }
 
+  broadcastNotification(notif) {
+    if (!notif) return;
+    this.ensureSubscribed();
+    if (this.channel) {
+      try {
+        this.channel.send({
+          type: 'broadcast',
+          event: 'staff_broadcast',
+          payload: notif
+        });
+      } catch (err) {
+        console.warn('Realtime channel broadcast send note:', err);
+      }
+    }
+    // Deliver locally to current sender/receiver immediately
+    this.handleNotificationPayload(notif);
+  }
+
+  handleNotificationPayload(notif) {
+    if (!notif || !notif.id) return;
+
+    // Deduplicate within active session (prevents duplicate audio/toast from multiplexing broadcast & postgres_changes)
+    if (this._processedNotificationIds.has(notif.id)) return;
+    this._processedNotificationIds.add(notif.id);
+    if (this._processedNotificationIds.size > 200) {
+      const first = this._processedNotificationIds.values().next().value;
+      this._processedNotificationIds.delete(first);
+    }
+
+    let isMatch = false;
+    try {
+      let currentUserId = null;
+      let currentUserRole = 'customer';
+      let currentShopId = null;
+
+      if (typeof localStorage !== 'undefined') {
+        try {
+          const rawUser = localStorage.getItem('foody_user_data');
+          if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            currentUserId = parsed.id || null;
+            currentUserRole = (parsed.role || 'customer').toLowerCase();
+            currentShopId = parsed.shop_id || parsed.shopId || null;
+          }
+        } catch (_) {}
+      }
+
+      // Evaluate recipient match for current client
+      if (notif.userId && notif.userId === currentUserId) {
+        isMatch = true;
+      } else if (!notif.userId) {
+        const targetRole = (notif.role || 'all').toLowerCase();
+        const targetShop = notif.shopId || notif.shop_id || 'all';
+
+        const isDev = ['developer', 'grand_admin', 'admin'].includes(currentUserRole);
+        const isRider = ['delivery', 'rider'].includes(currentUserRole);
+        const shopMatches = targetShop === 'all' || isDev || isRider || (currentShopId && targetShop === currentShopId);
+
+        if (shopMatches) {
+          if (targetRole === 'all') {
+            isMatch = true;
+          } else if (targetRole === 'staff') {
+            isMatch = ['owner', 'kitchen', 'delivery', 'rider', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
+          } else if (targetRole === 'kitchen') {
+            isMatch = ['kitchen', 'owner', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
+          } else if (targetRole === 'delivery' || targetRole === 'rider') {
+            isMatch = ['delivery', 'rider', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
+          } else if (targetRole === 'owner') {
+            isMatch = ['owner', 'developer', 'grand_admin', 'admin'].includes(currentUserRole);
+          } else if (targetRole === currentUserRole) {
+            isMatch = true;
+          }
+        }
+      }
+
+      // Deliver DIRECT SYSTEM NOTIFICATION to device / browser if matched
+      if (isMatch) {
+        nativeNotify.displaySystemNotification({
+          title: notif.title || 'Foody Vrinda Notice',
+          body: notif.message,
+          sound: notif.sound || 'default',
+          priority: notif.priority || 'normal',
+          data: notif,
+          tag: `staff-broadcast-${notif.id}`
+        });
+
+        // Always broadcast application event for live reactive views (Developer monitor, badges)
+        dispatchSafeEvent('foody:notification-received', notif);
+      }
+    } catch (notifyErr) {
+      console.warn('Realtime system notification delivery note:', notifyErr);
+    }
+
+    this.notificationListeners.forEach(listener => {
+      try {
+        const matches = !listener.userId || listener.userId === notif.userId || (!notif.userId && isMatch);
+        if (matches) {
+          listener.callback(notif);
+        }
+      } catch (e) { }
+    });
+  }
+
   subscribeNotifications(userId, callback) {
     this.ensureSubscribed();
     const listenerObj = { userId, callback };
@@ -808,6 +850,10 @@ export function subscribeSingleCloudOrder(orderId, onUpdate) {
 
 export function subscribeCloudNotifications(userId, onNotification) {
   return multiplexer.subscribeNotifications(userId, onNotification);
+}
+
+export function broadcastCloudNotification(notif) {
+  return multiplexer.broadcastNotification(notif);
 }
 
 export function subscribeCloudMenus(onUpdate) {

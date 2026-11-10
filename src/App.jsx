@@ -52,6 +52,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import FoodySplash from './foody/FoodySplash';
 import ActiveAlarmBanner from './components/ui/ActiveAlarmBanner';
 import OfflineInfoBar from './components/ui/OfflineInfoBar';
+import DynamicToast from './components/ui/DynamicToast';
 
 export default function App() {
 
@@ -69,6 +70,31 @@ export default function App() {
   const { setSelectedShopId } = useCart();
   const { audioUnlocked, enableAudio, isPlaying, activeAlert, stopAlarm } = useAudioAlarm();
   const { isLight, theme } = useTheme();
+
+  const [globalToast, setGlobalToast] = useState(null);
+
+  // App-Wide Realtime Dynamic Toast Listener (Dispatches notifications directly to active UI)
+  useEffect(() => {
+    const handleToastEvent = (e) => {
+      const d = e.detail;
+      if (!d) return;
+      if (typeof d === 'string') {
+        setGlobalToast({ message: d, type: 'info' });
+      } else {
+        setGlobalToast({
+          message: d.message || d.title || 'Foody Vrinda Notice',
+          desc: d.desc || d.body || null,
+          type: d.type || (d.priority === 'urgent' || d.priority === 'emergency' ? 'warning' : 'info'),
+          duration: d.duration || 4000
+        });
+      }
+    };
+
+    window.addEventListener('foody_toast', handleToastEvent);
+    return () => {
+      window.removeEventListener('foody_toast', handleToastEvent);
+    };
+  }, []);
 
   // Instant Native Splash Dismissal on Initial React Mount (Zero Startup Latency)
   useEffect(() => {
@@ -649,11 +675,11 @@ export default function App() {
               )}
 
               {currentTab === 'developer' && (
-                isAuthorizedDeveloper ? (
+                (isAuthorizedDeveloper || isPlatformAdmin) ? (
                   <DeveloperView setCurrentTab={setCurrentTab} />
                 ) : (
                   <UnauthorizedAccessScreen
-                    requiredRole="Developer"
+                    requiredRole="Admin / Developer"
                     onAuthenticate={() => setIsAuthOpen(true)}
                     onReturnStore={() => setCurrentTab('customer')}
                   />
@@ -756,6 +782,13 @@ export default function App() {
                   setCurrentTab(targetRole);
                 }
               }}
+            />
+          )}
+
+          {globalToast && (
+            <DynamicToast
+              toast={globalToast}
+              onClose={() => setGlobalToast(null)}
             />
           )}
         </Suspense>

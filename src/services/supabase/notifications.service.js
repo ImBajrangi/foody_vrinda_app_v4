@@ -1,5 +1,6 @@
 import { supabase, isTableWriteForbidden, markTableWriteForbidden } from './client.js';
 import { nativeNotify } from '../nativeNotificationService.js';
+import { multiplexer } from './realtime.service.js';
 
 // ========================================================================
 // NOTIFICATIONS CREATION, READ & STAFF REALTIME BROADCAST
@@ -107,7 +108,35 @@ export async function sendStaffBroadcastNotification({
     }
   }
 
-  // 3. Query Target Recipient Information & FCM Tokens from foody_logged_users
+  // 3. Ultra-low latency websocket broadcast across all connected devices
+  try {
+    const finalNotifId = broadcastResult?.notification_id || notifId;
+    multiplexer.broadcastNotification({
+      id: finalNotifId,
+      title,
+      message,
+      type: 'staff_custom',
+      role: targetRole || 'all',
+      shopId: targetShopId || 'all',
+      shop_id: targetShopId || 'all',
+      userId: targetUserId || null,
+      user_id: targetUserId || null,
+      priority: priority || 'normal',
+      sound: sound || 'default',
+      category: category || 'general',
+      senderId: senderId || null,
+      sender_id: senderId || null,
+      senderName: senderName || 'Developer',
+      sender_name: senderName || 'Developer',
+      data: data || {},
+      read: false,
+      createdAt: new Date().toISOString()
+    });
+  } catch (bcErr) {
+    console.info('Multiplexer notification broadcast note:', bcErr?.message || bcErr);
+  }
+
+  // 4. Query Target Recipient Information & FCM Tokens from foody_logged_users
   let recipients = [];
   let fcmCount = 0;
   try {

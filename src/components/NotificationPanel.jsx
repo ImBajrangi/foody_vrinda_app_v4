@@ -90,6 +90,14 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
   const getNotificationDetails = (notif) => {
     const text = (notif.title + ' ' + notif.message).toLowerCase();
     
+    if (notif.type === 'staff_custom' || notif.type === 'broadcast' || text.includes('protocol') || text.includes('broadcast') || text.includes('staff')) {
+      return {
+        icon: <BellRing size={18} className="text-amber-600 dark:text-[#FD9139] stroke-[2.3]" />,
+        iconBg: 'bg-amber-500/15 dark:bg-[#FD9139]/20 border-amber-500/30 dark:border-[#FD9139]/30',
+        tag: 'Staff Notice',
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/25 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/35'
+      };
+    }
     if (text.includes('delivered') || text.includes('completed')) {
       return {
         icon: <Check size={18} className="text-emerald-600 dark:text-emerald-400 stroke-[3]" />,

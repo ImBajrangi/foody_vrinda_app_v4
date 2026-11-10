@@ -111,10 +111,13 @@ export const AUTHORIZED_ADMIN_EMAILS = [
 ];
 
 export const isDeveloperUser = (email = '', role = '') => {
-  if (role === 'developer' || role === 'grand_admin') return true;
+  if (role === 'developer' || role === 'grand_admin' || role === 'admin') return true;
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  return AUTHORIZED_DEV_EMAILS.length > 0 && AUTHORIZED_DEV_EMAILS.includes(clean);
+  return (
+    (AUTHORIZED_DEV_EMAILS.length > 0 && AUTHORIZED_DEV_EMAILS.includes(clean)) ||
+    (AUTHORIZED_ADMIN_EMAILS.length > 0 && AUTHORIZED_ADMIN_EMAILS.includes(clean))
+  );
 };
 
 export const isAdminUser = (email = '', role = '') => {
@@ -1291,7 +1294,9 @@ export function AuthProvider({ children }) {
   const isAuthorizedDeveloper = Boolean(
     user && !user.isAnonymous && (
       isGrandAdmin ||
-      (isDevUser && ['developer', 'grand_admin'].includes(userRole))
+      ['developer', 'grand_admin', 'admin'].includes(userRole) ||
+      ['developer', 'grand_admin', 'admin'].includes(userData?.role) ||
+      (isDevUser && ['developer', 'grand_admin', 'admin'].includes(userRole))
     )
   );
 
@@ -1299,8 +1304,8 @@ export function AuthProvider({ children }) {
     user && !user.isAnonymous && (
       isGrandAdmin ||
       isAuthorizedDeveloper ||
-      ['developer', 'grand_admin'].includes(userRole) ||
-      ['developer', 'grand_admin'].includes(userData?.role)
+      ['developer', 'grand_admin', 'admin'].includes(userRole) ||
+      ['developer', 'grand_admin', 'admin'].includes(userData?.role)
     )
   );
 

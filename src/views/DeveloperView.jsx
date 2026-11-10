@@ -376,8 +376,8 @@ export default function DeveloperView({ setCurrentTab }) {
         targetUserId: broadcastTargetCategory === 'individual' ? broadcastTargetUserId : null,
         priority: broadcastPriority,
         sound: broadcastSound,
-        senderId: profile?.id || null,
-        senderName: profile?.display_name || profile?.name || 'Developer',
+        senderId: user?.id || userData?.id || null,
+        senderName: userData?.displayName || userData?.display_name || userData?.name || user?.email || 'Developer',
         data: {
           category: broadcastTargetCategory,
           timestamp: Date.now()
