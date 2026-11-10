@@ -91,3 +91,20 @@ This workflow is a validation gate, not an automated deployment pipeline.
 ## Release decision
 
 **Do not merge or release to Production yet.** The feature-branch code and CI gates are green, but financial database acceptance is incomplete until the target Alpha/Dev environment is confirmed, migrations are applied there, and the SQL integration harness passes against that database. Once those steps pass, run a final review before a separately approved merge/release.
+
+
+## Supplemental review — corrections to proposed Alpha runbook
+
+A follow-up review against the current branch found these details:
+
+1. **The proposed baseline file is absent.** `Queries/supabase_schema.sql` does not exist in this branch. The repository contains earlier application migrations and the two older `Queries/09` and `Queries/10` SQL files, but not the referenced full baseline schema export. Therefore the proposed “fresh Supabase project → apply `Queries/supabase_schema.sql`” path cannot be followed as written. A disposable database must first be initialized with a verified copy of the app's complete prerequisite schema; do not substitute a production database export without explicit environment approval.
+
+2. **The current harness has 10 assertions, not 9.** It includes `TEST_10`, which verifies that an idempotency key first used with an explicit `p_order_ids` list is rejected when replayed with `p_order_ids = NULL`. The first partial handover fixture explicitly supplies `ARRAY[v_order_id]` for this check.
+
+3. **Cleanup semantics:** The harness creates a temporary result table, then executes fixture creation, DB calls, assertions and cleanup inside one PL/pgSQL `DO` statement. On a successful run it deletes the ephemeral fixture rows before emitting the results. It is not wrapped in a separate explicit outer `BEGIN/COMMIT` block. An uncaught exception in the `DO` statement rolls that statement's fixture changes back. The result-failure check is a separate final `DO` statement and raises an error if any verdict is not PASS.
+
+4. **Harness syntax fix:** A malformed dollar-quote delimiter in the final assertion block was corrected in commit `5de1e1e`; the final block now opens with `DO $$` and closes with `END $$;`. This is a SQL harness change, not proof of a successful database run.
+
+5. **Latest repository state:** branch head is `5de1e1e4ba66cbf22b9e93369bf20d6c88983707`. CI run #134 was in progress at the time of this supplemental review; the last fully completed and verified workflow remains run #133 at commit `1faeabb`. Main remains `87926e0fe6f26fdd889a136aceb64dec7c7b00e7`.
+
+**Environment acceptance remains blocked:** no known disposable Alpha project has been identified, migrations 1–5 have not been applied to a confirmed Alpha database, and the 10-assertion SQL harness has not been executed against one.
