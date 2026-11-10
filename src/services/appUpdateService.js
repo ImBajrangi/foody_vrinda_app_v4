@@ -8,9 +8,211 @@ export const CURRENT_APP_VERSION = {
   buildDate: '2026-11-04'
 };
 
+export const DEFAULT_APP_VERSIONS = [
+  {
+    versionName: '1.1.34',
+    versionCode: 45,
+    status: 'upcoming', // 'upcoming' | 'current' | 'supported' | 'deprecated'
+    releaseDate: '2026-11-10',
+    title: 'v1.1.34 (Build 45) — Dynamic Island Broadcaster & Realtime Telemetry',
+    highlights: [
+      'Realtime WebSocket notification broadcaster with role-scoped targeting',
+      'Apple Dynamic Island interactive alert capsules with zero clipping',
+      'Acoustic synthesizer with role-based haptic chimes',
+      'High-speed Fastly edge CDN zero-redirect APK downloads'
+    ],
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: false,
+    minSupportedVersionCode: 43
+  },
+  {
+    versionName: '1.1.33',
+    versionCode: 44,
+    status: 'current',
+    releaseDate: '2026-11-04',
+    title: 'v1.1.33 (Build 44) — Fastly Edge CDN & Cash Settlement Engine',
+    highlights: [
+      'Automated COD cash reconciliation with digital counter receipt',
+      'Instant Rider Dispatch sync & live GPS route navigation',
+      'Multi-kitchen branch switching & store owner access portal'
+    ],
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: false,
+    minSupportedVersionCode: 43
+  },
+  {
+    versionName: '1.1.32',
+    versionCode: 43,
+    status: 'supported',
+    releaseDate: '2026-10-28',
+    title: 'v1.1.32 (Build 43) — Bottom Sheet Invariants & Theme Guard',
+    highlights: [
+      'Continuous-interpolation bottom sheet dismissals without CSS hitching',
+      'Obsidian luxury dark theme standard across all surfaces'
+    ],
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: false,
+    minSupportedVersionCode: 15
+  },
+  {
+    versionName: '1.1.4',
+    versionCode: 15,
+    status: 'deprecated',
+    releaseDate: '2026-10-15',
+    title: 'v1.1.4 (Build 15) — Mascot Studio & Rewards Bar',
+    highlights: [
+      '120fps swipe gestures & Prasad Rewards Bar',
+      'Offline cart caching & local storage synchronization'
+    ],
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: true,
+    minSupportedVersionCode: 10
+  },
+  {
+    versionName: '1.1.0',
+    versionCode: 10,
+    status: 'deprecated',
+    releaseDate: '2026-09-20',
+    title: 'v1.1.0 (Build 10) — Initial Foundation Release',
+    highlights: [
+      'Core Satvik prasad ordering and delivery checkout engine'
+    ],
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: true,
+    minSupportedVersionCode: 10
+  }
+];
+
 class AppUpdateService {
   constructor() {
     this.cachedUpdate = null;
+    this.cachedVersions = null;
+  }
+
+  /**
+   * Fetch structured version history matrix (Current, Upcoming, and Older Versions)
+   * Stored in Supabase foody_shops.payment_settings.app_versions with fallback to DEFAULT_APP_VERSIONS
+   */
+  async getVersionRegistry() {
+    try {
+      const { data, error } = await supabase
+        .from('foody_shops')
+        .select('payment_settings')
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && Array.isArray(data?.payment_settings?.app_versions) && data.payment_settings.app_versions.length > 0) {
+        this.cachedVersions = data.payment_settings.app_versions;
+        return this.cachedVersions;
+      }
+    } catch (err) {
+      console.warn('AppUpdateService getVersionRegistry error:', err);
+    }
+    this.cachedVersions = DEFAULT_APP_VERSIONS;
+    return DEFAULT_APP_VERSIONS;
+  }
+
+  /**
+   * Persist updated version history matrix into Supabase Cloud
+   */
+  async saveVersionRegistry(versions) {
+    try {
+      const { data: shop } = await supabase
+        .from('foody_shops')
+        .select('id, payment_settings')
+        .limit(1)
+        .maybeSingle();
+
+      if (!shop?.id) throw new Error('No shop configuration found in Supabase');
+
+      const existingSettings = shop.payment_settings || {};
+      const updatedSettings = {
+        ...existingSettings,
+        app_versions: versions,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('foody_shops')
+        .update({ payment_settings: updatedSettings, updated_at: new Date().toISOString() })
+        .eq('id', shop.id);
+
+      if (error) throw error;
+      this.cachedVersions = versions;
+      return { success: true };
+    } catch (e) {
+      console.error('Save version registry error:', e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  /**
+   * Formulates structured update announcement broadcast payloads for admins
+   * @param {Object} options
+   * @param {Object} options.targetVersion - The target release being announced (e.g. v1.1.34)
+   * @param {string} options.messageType - 'upcoming' | 'live' | 'mandatory'
+   * @param {string} options.audienceScope - 'all' | 'staff' | 'delivery' | 'kitchen'
+   */
+  formatUpdateMessage({ targetVersion = null, messageType = 'live', audienceScope = 'all' } = {}) {
+    const ver = targetVersion || DEFAULT_APP_VERSIONS[0];
+    const verTag = `v${ver.versionName}`;
+    const buildTag = `(Build ${ver.versionCode})`;
+
+    switch (messageType) {
+      case 'upcoming':
+        return {
+          title: `⏳ The New Update is Coming! ${verTag}`,
+          message: `The new Foody Vrinda update is coming soon! You will be able to update your app for 3x speed, real-time broadcasts & dynamic island alerts.`,
+          priority: 'normal',
+          sound: 'soft_pulse',
+          type: 'app_update',
+          targetCategory: audienceScope,
+          data: {
+            type: 'app_update',
+            versionName: ver.versionName,
+            versionCode: ver.versionCode,
+            apkUrl: ver.apkUrl,
+            messageType: 'upcoming'
+          }
+        };
+
+      case 'mandatory':
+        return {
+          title: `⚠️ Mandatory Update Required · ${verTag}`,
+          message: `Critical system update ${verTag} ${buildTag} required. Please update your Foody Vrinda app now to avoid service interruptions.`,
+          priority: 'urgent',
+          sound: 'alarm_high',
+          type: 'app_update',
+          targetCategory: audienceScope,
+          data: {
+            type: 'app_update',
+            versionName: ver.versionName,
+            versionCode: ver.versionCode,
+            apkUrl: ver.apkUrl,
+            isMandatory: true,
+            messageType: 'mandatory'
+          }
+        };
+
+      case 'live':
+      default:
+        return {
+          title: `🚀 The New Update is Live! ${verTag}`,
+          message: `The new update is coming / live (${verTag}). You can update your app now for 3x speed, live order tracking & fresh rewards!`,
+          priority: 'high',
+          sound: 'soft_pulse',
+          type: 'app_update',
+          targetCategory: audienceScope,
+          data: {
+            type: 'app_update',
+            versionName: ver.versionName,
+            versionCode: ver.versionCode,
+            apkUrl: ver.apkUrl,
+            isMandatory: Boolean(ver.isMandatory),
+            messageType: 'live'
+          }
+        };
+    }
   }
 
   /**

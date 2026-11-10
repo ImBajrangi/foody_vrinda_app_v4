@@ -67,6 +67,9 @@ import {
   Edit2,
   Edit3,
   AlertCircle,
+  AlertTriangle,
+  Download,
+  ArrowRight,
   Check,
   Activity,
   Zap,
@@ -117,7 +120,7 @@ import {
   fetchStaffBroadcastHistory
 } from '../supabase';
 import { isDeveloperUser } from '../context/AuthContext';
-import appUpdateService, { CURRENT_APP_VERSION } from '../services/appUpdateService';
+import appUpdateService, { CURRENT_APP_VERSION, DEFAULT_APP_VERSIONS } from '../services/appUpdateService';
 import { PRESET_DISHES } from '../constants/presetDishes';
 import { nativeNotify } from '../services/nativeNotificationService';
 
@@ -464,13 +467,225 @@ export default function DeveloperView({ setCurrentTab }) {
   const [isMascotModalOpen, setIsMascotModalOpen] = useState(false);
   const [mascotPreviewState, setMascotPreviewState] = useState('idle');
 
-  // --- APP RELEASES / AUTO-UPDATE STATE ---
-  const [releaseVersionName, setReleaseVersionName] = useState('1.1.4');
-  const [releaseVersionCode, setReleaseVersionCode] = useState(15);
-  const [releaseApkUrl, setReleaseApkUrl] = useState('https://github.com/ImBajrangi/foody_vrinda_app_v4/releases/latest/download/Foody-Vrinda-Latest.apk');
-  const [releaseNotes, setReleaseNotes] = useState('Native 120fps swipe-down gesture to dismiss FV Rewards bar seamlessly.\nUnified Obsidian dark header surface with zero color discrepancy.\nDirect mobile access to Prasad Rewards & Orders from profile.\nHigh-visibility Radiant Yellow selection highlight tokens across the platform.');
+  // --- APP RELEASES / AUTO-UPDATE & VERSION REGISTRY STATE ---
+  const [versionRegistry, setVersionRegistry] = useState(DEFAULT_APP_VERSIONS);
+  const [selectedTargetVersion, setSelectedTargetVersion] = useState(DEFAULT_APP_VERSIONS[0]);
+  const [updateBroadcastMode, setUpdateBroadcastMode] = useState('live'); // 'live' | 'upcoming' | 'mandatory'
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [isSavingVersions, setIsSavingVersions] = useState(false);
+  const [versionDraft, setVersionDraft] = useState({
+    versionName: '1.1.35',
+    versionCode: 46,
+    status: 'upcoming',
+    releaseDate: new Date().toISOString().split('T')[0],
+    title: 'Foody Vrinda v1.1.35 — Dynamic Broadcaster & Telemetry',
+    highlights: 'Realtime order tracking\nDynamic Island alerts\nFastly Edge CDN 3x faster',
+    apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+    isMandatory: false,
+    minSupportedVersionCode: 43
+  });
+
+  const [releaseVersionName, setReleaseVersionName] = useState('1.1.34');
+  const [releaseVersionCode, setReleaseVersionCode] = useState(45);
+  const [releaseApkUrl, setReleaseApkUrl] = useState('https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk');
+  const [releaseNotes, setReleaseNotes] = useState('Realtime WebSocket notification broadcaster for admin & staff.\nApple Dynamic Island interactive alert capsules with zero clipping.\nHigh-speed Fastly edge CDN zero-redirect APK download stream.\nAcoustic synthesizer with role-based haptic chimes.');
   const [releaseMandatory, setReleaseMandatory] = useState(false);
   const [isPublishingRelease, setIsPublishingRelease] = useState(false);
+
+  // Sync version registry from Supabase on mount
+  useEffect(() => {
+    appUpdateService.getVersionRegistry().then(versions => {
+      if (versions && versions.length > 0) {
+        setVersionRegistry(versions);
+        const upcomingOrCurrent = versions.find(v => v.status === 'upcoming') || versions.find(v => v.status === 'current') || versions[0];
+        if (upcomingOrCurrent) {
+          setSelectedTargetVersion(upcomingOrCurrent);
+          setReleaseVersionName(upcomingOrCurrent.versionName);
+          setReleaseVersionCode(upcomingOrCurrent.versionCode);
+          setReleaseApkUrl(upcomingOrCurrent.apkUrl || 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk');
+          setReleaseNotes(Array.isArray(upcomingOrCurrent.highlights) ? upcomingOrCurrent.highlights.join('\n') : (upcomingOrCurrent.highlights || ''));
+          setReleaseMandatory(Boolean(upcomingOrCurrent.isMandatory));
+        }
+      }
+    });
+  }, []);
+
+  // Pre-load update message into Broadcaster Composer
+  const handleSelectVersionForBroadcast = (ver, mode = updateBroadcastMode) => {
+    const targetVer = ver || selectedTargetVersion || versionRegistry[0];
+    const payload = appUpdateService.formatUpdateMessage({ targetVersion: targetVer, messageType: mode });
+    setBroadcastTitle(payload.title);
+    setBroadcastMessage(payload.message);
+    setBroadcastPriority(payload.priority);
+    setBroadcastSound(payload.sound);
+    setBroadcastTargetCategory('all');
+    setMobileBroadcasterTab('compose');
+    setCollapsedSections(prev => ({ ...prev, broadcast: false }));
+    setToast({ message: `Loaded ${targetVer.versionName} (${mode}) update message into broadcaster!`, type: 'info' });
+
+    // Smooth scroll up to composer
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('staff-broadcast-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Instant 1-Click dispatch of update announcement to all connected phones/browsers
+  const handleInstantDispatchUpdate = async (ver, mode = updateBroadcastMode) => {
+    const targetVer = ver || selectedTargetVersion || versionRegistry[0];
+    const payload = appUpdateService.formatUpdateMessage({ targetVersion: targetVer, messageType: mode });
+    setIsBroadcasting(true);
+    try {
+      const result = await sendStaffBroadcastNotification({
+        title: payload.title,
+        message: payload.message,
+        targetRole: 'all',
+        targetShopId: 'all',
+        targetUserId: null,
+        priority: payload.priority,
+        sound: payload.sound,
+        category: 'app_update',
+        senderId: user?.id || userData?.id || null,
+        senderName: userData?.displayName || userData?.display_name || user?.email || 'Developer',
+        data: payload.data
+      });
+
+      const logEntry = {
+        id: result.notificationId,
+        title: payload.title,
+        message: payload.message,
+        target: 'all',
+        targetCount: result.totalTargetUsers,
+        fcmCount: result.fcmTokensCount,
+        priority: payload.priority,
+        dispatchedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        status: `Delivered (Update ${mode.toUpperCase()})`
+      };
+
+      setBroadcastLiveLog(prev => [logEntry, ...prev.slice(0, 19)]);
+      setBroadcastHistory(prev => [logEntry, ...prev]);
+
+      setToast({
+        message: `Dispatched update alert for v${targetVer.versionName} to ${result.totalTargetUsers} user(s) in real time!`,
+        type: 'success'
+      });
+      logActivity(`Broadcasted app update v${targetVer.versionName} (${mode}) to all users`, 'success');
+    } catch (err) {
+      console.error('Update broadcast failed:', err);
+      setToast({ message: 'Failed to broadcast update: ' + err.message, type: 'error' });
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  // Set a version as the active 'current' version
+  const handleSetCurrentVersion = async (ver) => {
+    const updated = versionRegistry.map(v => {
+      if (v.versionCode === ver.versionCode) return { ...v, status: 'current' };
+      if (v.status === 'current') return { ...v, status: 'supported' };
+      return v;
+    });
+    setVersionRegistry(updated);
+    setSelectedTargetVersion(ver);
+    setReleaseVersionName(ver.versionName);
+    setReleaseVersionCode(ver.versionCode);
+    setReleaseApkUrl(ver.apkUrl);
+    setReleaseNotes(Array.isArray(ver.highlights) ? ver.highlights.join('\n') : (ver.highlights || ''));
+    setReleaseMandatory(Boolean(ver.isMandatory));
+    await appUpdateService.saveVersionRegistry(updated);
+    setToast({ message: `v${ver.versionName} is now the Current Active Version!`, type: 'success' });
+    logActivity(`Promoted v${ver.versionName} (Build ${ver.versionCode}) to Current Active Version`, 'success');
+  };
+
+  // Save new or modified version definition
+  const handleSaveVersionDraft = async (e) => {
+    if (e) e.preventDefault();
+    setIsSavingVersions(true);
+    try {
+      const highlightsArr = typeof versionDraft.highlights === 'string'
+        ? versionDraft.highlights.split('\n').map(s => s.trim()).filter(Boolean)
+        : (Array.isArray(versionDraft.highlights) ? versionDraft.highlights : []);
+
+      const newObj = {
+        versionName: String(versionDraft.versionName).trim().replace(/^v/, ''),
+        versionCode: parseInt(versionDraft.versionCode, 10),
+        status: versionDraft.status || 'upcoming',
+        releaseDate: versionDraft.releaseDate || new Date().toISOString().split('T')[0],
+        title: versionDraft.title || `Foody Vrinda v${versionDraft.versionName}`,
+        highlights: highlightsArr.length > 0 ? highlightsArr : ['Performance improvements & security updates.'],
+        apkUrl: String(versionDraft.apkUrl || '').trim() || 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+        isMandatory: Boolean(versionDraft.isMandatory),
+        minSupportedVersionCode: parseInt(versionDraft.minSupportedVersionCode || 43, 10)
+      };
+
+      let updated;
+      const existsIdx = versionRegistry.findIndex(v => v.versionCode === newObj.versionCode);
+      if (existsIdx >= 0) {
+        updated = [...versionRegistry];
+        updated[existsIdx] = newObj;
+      } else {
+        updated = [newObj, ...versionRegistry];
+      }
+      updated.sort((a, b) => (b.versionCode || 0) - (a.versionCode || 0));
+
+      setVersionRegistry(updated);
+      setSelectedTargetVersion(newObj);
+      await appUpdateService.saveVersionRegistry(updated);
+      setIsVersionModalOpen(false);
+      setToast({ message: `Version v${newObj.versionName} saved to registry!`, type: 'success' });
+      logActivity(`Saved version v${newObj.versionName} (Build ${newObj.versionCode}) to registry`, 'success');
+    } catch (err) {
+      setToast({ message: 'Error saving version: ' + err.message, type: 'error' });
+    } finally {
+      setIsSavingVersions(false);
+    }
+  };
+
+  // Delete version from registry
+  const handleDeleteVersion = async (code) => {
+    if (code === CURRENT_APP_VERSION.versionCode) {
+      setToast({ message: 'Cannot delete the currently installed version!', type: 'error' });
+      return;
+    }
+    const updated = versionRegistry.filter(v => v.versionCode !== code);
+    setVersionRegistry(updated);
+    await appUpdateService.saveVersionRegistry(updated);
+    setToast({ message: 'Version removed from registry', type: 'info' });
+  };
+
+  // Open modal to edit existing version
+  const handleOpenEditVersion = (ver) => {
+    setVersionDraft({
+      versionName: ver.versionName,
+      versionCode: ver.versionCode,
+      status: ver.status || 'supported',
+      releaseDate: ver.releaseDate || new Date().toISOString().split('T')[0],
+      title: ver.title || `Foody Vrinda v${ver.versionName}`,
+      highlights: Array.isArray(ver.highlights) ? ver.highlights.join('\n') : (ver.highlights || ''),
+      apkUrl: ver.apkUrl || 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+      isMandatory: Boolean(ver.isMandatory),
+      minSupportedVersionCode: ver.minSupportedVersionCode || 43
+    });
+    setIsVersionModalOpen(true);
+  };
+
+  // Open modal to create new version
+  const handleOpenNewVersion = () => {
+    const highestCode = Math.max(...versionRegistry.map(v => v.versionCode || 0), 44);
+    const nextCode = highestCode + 1;
+    setVersionDraft({
+      versionName: `1.1.${nextCode - 10}`,
+      versionCode: nextCode,
+      status: 'upcoming',
+      releaseDate: new Date().toISOString().split('T')[0],
+      title: `Foody Vrinda v1.1.${nextCode - 10} — Next Release`,
+      highlights: 'Dynamic Island interactive notifications.\n3x faster Fastly edge CDN downloads.\nSub-second order state synchronization.',
+      apkUrl: 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+      isMandatory: false,
+      minSupportedVersionCode: 43
+    });
+    setIsVersionModalOpen(true);
+  };
 
   const handlePublishRemoteRelease = async (e) => {
     if (e) e.preventDefault();
@@ -1981,7 +2196,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
         {/* Realtime Staff & System Broadcast Dispatcher */}
         {(activeDevTab === 'all' || activeDevTab === 'broadcast') && (
-          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 md:col-span-2 space-y-4 sm:space-y-5 shadow-xl transition-all">
+          <div id="staff-broadcast-section" className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 md:col-span-2 space-y-4 sm:space-y-5 shadow-xl transition-all">
             {/* Header: Title, Active Beacon & Mobile Tab Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <button
@@ -2045,6 +2260,30 @@ export default function DeveloperView({ setCurrentTab }) {
 
                   <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1 -mx-1 px-1 touch-pan-x">
                     {[
+                      {
+                        label: '🚀 The New Update is Live',
+                        cat: 'all',
+                        title: '🚀 The New Update is Live! (v1.1.34)',
+                        msg: 'The new update is coming / live (v1.1.34). You can update your app now for 3x speed, live order tracking & fresh rewards!',
+                        prio: 'high',
+                        snd: 'soft_pulse'
+                      },
+                      {
+                        label: '⏳ Update Coming Soon',
+                        cat: 'all',
+                        title: '⏳ The New Update is Coming! (v1.1.34)',
+                        msg: 'The new Foody Vrinda update is coming soon! You will be able to update your app for 3x speed, real-time broadcasts & dynamic island alerts.',
+                        prio: 'normal',
+                        snd: 'soft_pulse'
+                      },
+                      {
+                        label: '⚠️ Mandatory Update Alert',
+                        cat: 'all',
+                        title: '⚠️ Critical App Update Required (v1.1.34)',
+                        msg: 'Critical system update required. Please update your Foody Vrinda app now to avoid service interruptions.',
+                        prio: 'urgent',
+                        snd: 'alarm_high'
+                      },
                       {
                         label: '⚡ Kitchen Rush',
                         cat: 'kitchen',
@@ -5250,29 +5489,32 @@ export default function DeveloperView({ setCurrentTab }) {
           </div>
         )}
 
-        {/* 10. Live App Updates & Remote Release Manager */}
+        {/* 10. Live App Updates, Version Matrix & Remote Release Manager */}
         {(activeDevTab === 'all' || activeDevTab === 'updates' || activeDevTab === 'alarm') && (
-          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
+          <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 md:col-span-2 space-y-4 shadow-xl transition-all">
             <button
               type="button"
               onClick={() => toggleSection('updates')}
               className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0">
-                  <Zap className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 dark:bg-[#FD9139]/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 dark:border-[#FD9139]/30 flex items-center justify-center shrink-0">
+                  <Zap className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
-                      Live App Update & Release Engine
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
+                      Live App Update & Version Release Engine
                     </h3>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-500/30 font-['Outfit']">
                       Installed: v{CURRENT_APP_VERSION.versionName} (b{CURRENT_APP_VERSION.versionCode})
                     </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30 font-['Outfit']">
+                      {versionRegistry.length} Defined Versions
+                    </span>
                   </div>
-                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate">
-                    Publish remote OTA app updates to all customer, rider & staff phones without manual sharing.
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate mt-0.5">
+                    Define active releases, older builds, and send update messages like "The new update is coming. You can update your app now."
                   </p>
                 </div>
               </div>
@@ -5285,89 +5527,552 @@ export default function DeveloperView({ setCurrentTab }) {
             </button>
 
             {(activeDevTab === 'updates' || !collapsedSections.updates) && (
-              <form onSubmit={handlePublishRemoteRelease} className="space-y-4 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-5 pt-3 border-t border-stone-200 dark:border-white/5 dev-section-expand">
+                {/* 1. Header Bar with Actions */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Version Name</label>
-                    <input
-                      type="text"
-                      value={releaseVersionName}
-                      onChange={e => setReleaseVersionName(e.target.value)}
-                      placeholder="e.g. 1.1.3"
-                      required
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
-                    />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-[#CB785C]" />
+                      <span>1. App Version Matrix & Deployment Registry</span>
+                    </h4>
+                    <p className="text-[11px] text-stone-500 dark:text-neutral-400">
+                      Catalog active release, upcoming builds, and older supported/deprecated versions.
+                    </p>
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Target Version Code</label>
-                    <input
-                      type="number"
-                      value={releaseVersionCode}
-                      onChange={e => setReleaseVersionCode(parseInt(e.target.value, 10))}
-                      placeholder="e.g. 14"
-                      required
-                      className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
-                    />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleOpenNewVersion}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#CB785C] to-[#BA674C] hover:brightness-105 active:scale-95 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Define New Version</span>
+                    </button>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2 pt-6">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={releaseMandatory}
-                        onChange={e => setReleaseMandatory(e.target.checked)}
-                        className="w-4 h-4 rounded accent-amber-600 dark:accent-[#FD9139]"
-                      />
-                      <span className="text-xs font-bold text-stone-800 dark:text-zinc-200">Mandatory (Block old versions)</span>
+                {/* 2. Spotlight Cards: Current Live Version & Upcoming Target */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Current Active Release */}
+                  {(() => {
+                    const currentVer = versionRegistry.find(v => v.status === 'current') || versionRegistry[0];
+                    return (
+                      <div className="p-4 rounded-[22px] bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/30 flex flex-col justify-between space-y-3.5 shadow-xs">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                              <span>Current Live Release (Production)</span>
+                            </span>
+                            <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400">
+                              {currentVer.releaseDate}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h5 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">
+                              v{currentVer.versionName} <span className="text-xs text-stone-500 dark:text-neutral-400 font-mono font-bold">(Build {currentVer.versionCode})</span>
+                            </h5>
+                            <p className="text-xs text-stone-600 dark:text-neutral-300 mt-0.5 font-medium">
+                              {currentVer.title}
+                            </p>
+                          </div>
+
+                          {/* Highlights */}
+                          <div className="space-y-1 pt-1">
+                            {(Array.isArray(currentVer.highlights) ? currentVer.highlights : [currentVer.highlights]).slice(0, 3).map((h, i) => (
+                              <div key={i} className="flex items-start gap-1.5 text-[11px] text-stone-600 dark:text-neutral-300 leading-tight">
+                                <Check className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                                <span>{h}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Action Row */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-emerald-500/20">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectVersionForBroadcast(currentVer, 'live')}
+                            className="flex-1 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
+                            title="Load 'Update Now Live' broadcast into composer"
+                          >
+                            <Radio className="w-3.5 h-3.5" />
+                            <span>Compose "Update Live" Alert</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInstantDispatchUpdate(currentVer, 'live')}
+                            disabled={isBroadcasting}
+                            className="py-2 px-3 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-[#252223] text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 font-['Outfit']"
+                            title="Instant 1-Click dispatch to all devices"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>1-Click Send</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditVersion(currentVer)}
+                            className="p-2 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
+                            title="Edit version details"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Upcoming Target Release */}
+                  {(() => {
+                    const upcomingVer = versionRegistry.find(v => v.status === 'upcoming') || versionRegistry.find(v => (v.versionCode || 0) > CURRENT_APP_VERSION.versionCode);
+                    if (!upcomingVer) return (
+                      <div className="p-4 rounded-[22px] bg-stone-50 dark:bg-[#1C1A1B] border border-dashed border-stone-300 dark:border-white/10 flex flex-col items-center justify-center text-center p-6 space-y-2">
+                        <Sparkles className="w-6 h-6 text-stone-400 dark:text-neutral-500" />
+                        <h5 className="font-['Outfit'] font-bold text-xs text-stone-700 dark:text-neutral-300">No Upcoming Target Defined</h5>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-400 max-w-xs">
+                          Define the next planned release (e.g. v1.1.34) to announce "The new update is coming" to users.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleOpenNewVersion}
+                          className="mt-2 px-3.5 py-1.5 rounded-xl bg-amber-500/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 text-xs font-bold cursor-pointer"
+                        >
+                          + Define Next Release
+                        </button>
+                      </div>
+                    );
+
+                    return (
+                      <div className="p-4 rounded-[22px] bg-sky-500/5 dark:bg-sky-500/10 border border-sky-500/30 flex flex-col justify-between space-y-3.5 shadow-xs">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/30 flex items-center gap-1.5 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                              <span>Upcoming Release (Rolling Out Soon)</span>
+                            </span>
+                            <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400">
+                              Target: {upcomingVer.releaseDate}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h5 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">
+                              v{upcomingVer.versionName} <span className="text-xs text-stone-500 dark:text-neutral-400 font-mono font-bold">(Build {upcomingVer.versionCode})</span>
+                            </h5>
+                            <p className="text-xs text-stone-600 dark:text-neutral-300 mt-0.5 font-medium">
+                              {upcomingVer.title}
+                            </p>
+                          </div>
+
+                          {/* Highlights */}
+                          <div className="space-y-1 pt-1">
+                            {(Array.isArray(upcomingVer.highlights) ? upcomingVer.highlights : [upcomingVer.highlights]).slice(0, 3).map((h, i) => (
+                              <div key={i} className="flex items-start gap-1.5 text-[11px] text-stone-600 dark:text-neutral-300 leading-tight">
+                                <Sparkles className="w-3 h-3 text-sky-500 shrink-0 mt-0.5" />
+                                <span>{h}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Action Row */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-sky-500/20">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectVersionForBroadcast(upcomingVer, 'upcoming')}
+                            className="flex-1 py-2 px-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
+                            title="Load 'Update is Coming' announcement into composer"
+                          >
+                            <Radio className="w-3.5 h-3.5" />
+                            <span>Broadcast "Update Coming" Alert</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInstantDispatchUpdate(upcomingVer, 'upcoming')}
+                            disabled={isBroadcasting}
+                            className="py-2 px-3 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-[#252223] text-sky-700 dark:text-sky-300 border border-sky-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 font-['Outfit']"
+                            title="Instant 1-Click dispatch to all devices"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>1-Click Send</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetCurrentVersion(upcomingVer)}
+                            className="p-2 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
+                            title="Promote to Current Active Version"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* 3. Comprehensive Version History Matrix (Concentric: outer rounded-[20px] p-2 -> inner rounded-[12px]) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-neutral-300 font-['Outfit'] flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#CB785C]" />
+                      <span>Defined App Versions & History Matrix</span>
                     </label>
+                    <span className="text-[10px] font-mono text-stone-500 dark:text-neutral-400">
+                      {versionRegistry.length} Versions Cataloged
+                    </span>
+                  </div>
+
+                  <div className="p-2 rounded-[20px] bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-2">
+                    {versionRegistry.map((ver) => {
+                      const isCurrent = ver.status === 'current' || ver.versionCode === CURRENT_APP_VERSION.versionCode;
+                      const isUpcoming = ver.status === 'upcoming';
+                      const isDeprecated = ver.status === 'deprecated' || ver.isMandatory;
+
+                      return (
+                        <div
+                          key={ver.versionCode}
+                          className={`p-3 rounded-[12px] border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                            isCurrent
+                              ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30'
+                              : isUpcoming
+                              ? 'bg-sky-500/5 dark:bg-sky-500/10 border-sky-500/30'
+                              : isDeprecated
+                              ? 'bg-rose-500/5 dark:bg-rose-500/10 border-rose-500/25'
+                              : 'bg-stone-50 dark:bg-[#151314] border-stone-200/80 dark:border-white/5'
+                          }`}
+                        >
+                          <div className="flex items-start sm:items-center gap-3 min-w-0">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border font-mono font-black text-xs ${
+                              isCurrent
+                                ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30'
+                                : isUpcoming
+                                ? 'bg-sky-500/20 text-sky-800 dark:text-sky-300 border-sky-500/30'
+                                : isDeprecated
+                                ? 'bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-500/30'
+                                : 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                            }`}>
+                              b{ver.versionCode}
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-['Outfit'] font-black text-sm text-stone-900 dark:text-white">
+                                  v{ver.versionName}
+                                </span>
+                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border font-['Outfit'] ${
+                                  isCurrent
+                                    ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30'
+                                    : isUpcoming
+                                    ? 'bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/30'
+                                    : isDeprecated
+                                    ? 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30'
+                                    : 'bg-stone-200/80 dark:bg-white/10 text-stone-700 dark:text-neutral-300 border-stone-300 dark:border-white/10'
+                                }`}>
+                                  {isCurrent ? 'Current Live' : isUpcoming ? 'Upcoming' : isDeprecated ? 'Deprecated' : 'Supported'}
+                                </span>
+                                {ver.isMandatory && (
+                                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-['Outfit']">
+                                    Mandatory
+                                  </span>
+                                )}
+                                <span className="text-[10px] font-mono text-stone-400">
+                                  Released: {ver.releaseDate}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-stone-500 dark:text-neutral-400 truncate mt-0.5 max-w-md">
+                                {ver.title || (Array.isArray(ver.highlights) ? ver.highlights.join(' • ') : ver.highlights)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Version Action Strip */}
+                          <div className="flex items-center gap-1.5 shrink-0 self-end md:self-center flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectVersionForBroadcast(ver, isUpcoming ? 'upcoming' : (isDeprecated ? 'mandatory' : 'live'))}
+                              className="px-2.5 py-1.5 rounded-lg bg-stone-200/80 dark:bg-white/10 hover:bg-[#CB785C] hover:text-white text-stone-800 dark:text-neutral-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
+                              title="Send update notification for this version"
+                            >
+                              <Radio className="w-3 h-3" />
+                              <span>Send Update Alert</span>
+                            </button>
+
+                            {!isCurrent && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetCurrentVersion(ver)}
+                                className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
+                                title="Promote to Current Active Version"
+                              >
+                                <Check className="w-3 h-3 stroke-[2.5]" />
+                                <span>Set Current</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditVersion(ver)}
+                              className="p-1.5 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
+                              title="Edit version metadata"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+
+                            {!isCurrent && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteVersion(ver.versionCode)}
+                                className="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                                title="Remove version from registry"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Direct APK Download Link (Official GitHub Release)</label>
-                  <input
-                    type="url"
-                    value={releaseApkUrl}
-                    onChange={e => setReleaseApkUrl(e.target.value)}
-                    placeholder="https://github.com/.../Foody-Vrinda-Latest.apk"
-                    required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139]"
-                  />
+                {/* 4. Quick 1-Click Update Broadcaster Control Box (Concentric: outer rounded-[24px] p-4 -> inner rounded-[14px]) */}
+                <div className="p-4 sm:p-5 rounded-[24px] bg-stone-50 dark:bg-[#181617] border border-stone-200/90 dark:border-white/10 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-3">
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
+                        <Send className="w-3.5 h-3.5 text-[#CB785C]" />
+                        <span>2. One-Click App Update Broadcaster</span>
+                      </h4>
+                      <p className="text-[11px] text-stone-500 dark:text-neutral-400">
+                        Dispatch version-targeted update alerts directly to all user & staff screens in real time.
+                      </p>
+                    </div>
+
+                    {/* Target Version Selector */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider font-['Outfit']">Target:</span>
+                      <select
+                        value={selectedTargetVersion?.versionCode || ''}
+                        onChange={(e) => {
+                          const code = parseInt(e.target.value, 10);
+                          const found = versionRegistry.find(v => v.versionCode === code);
+                          if (found) setSelectedTargetVersion(found);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-xs font-black text-[#CB785C] focus:outline-none"
+                      >
+                        {versionRegistry.map(v => (
+                          <option key={v.versionCode} value={v.versionCode}>
+                            v{v.versionName} (Build {v.versionCode}) • {v.status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Message Style Switcher: 3 Elevated Pills */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      {
+                        id: 'live',
+                        title: '🚀 The New Update is Live',
+                        desc: '"The new update is coming / live (v1.1.34). You can update your app now."'
+                      },
+                      {
+                        id: 'upcoming',
+                        title: '⏳ Update is Coming Soon',
+                        desc: '"The new update is coming soon! Get ready for fresh speed & features."'
+                      },
+                      {
+                        id: 'mandatory',
+                        title: '⚠️ Mandatory Upgrade Alert',
+                        desc: '"Critical update required. Please update now to continue ordering."'
+                      }
+                    ].map(style => {
+                      const isSelected = updateBroadcastMode === style.id;
+                      return (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => setUpdateBroadcastMode(style.id)}
+                          className={`p-3 rounded-[14px] text-left border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-white dark:bg-[#282526] border-[#CB785C] shadow-sm ring-1 ring-[#CB785C]'
+                              : 'bg-white/60 dark:bg-[#1E1B1C]/60 hover:bg-white dark:hover:bg-[#1E1B1C] border-stone-200/80 dark:border-white/5'
+                          }`}
+                        >
+                          <span className={`text-xs font-black block font-['Outfit'] ${isSelected ? 'text-[#CB785C]' : 'text-stone-800 dark:text-neutral-200'}`}>
+                            {style.title}
+                          </span>
+                          <span className="text-[10px] text-stone-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-tight block">
+                            {style.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Live Preview Card */}
+                  {(() => {
+                    const previewMsg = appUpdateService.formatUpdateMessage({ targetVersion: selectedTargetVersion, messageType: updateBroadcastMode });
+                    return (
+                      <div className="p-3.5 rounded-[14px] bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-2 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 font-['Outfit']">Notification Preview</span>
+                          <span className="text-[10px] font-bold text-[#CB785C] bg-[#CB785C]/10 px-2 py-0.5 rounded-full border border-[#CB785C]/20">
+                            Type: app_update • Priority: {previewMsg.priority}
+                          </span>
+                        </div>
+                        <div className="font-bold text-xs text-stone-900 dark:text-white flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                          <span>{previewMsg.title}</span>
+                        </div>
+                        <p className="text-[11px] text-stone-600 dark:text-neutral-300 leading-relaxed pl-5">
+                          {previewMsg.message}
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Action Row */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('foody:check-app-update', {
+                            detail: {
+                              force: true,
+                              targetVersion: selectedTargetVersion?.versionName,
+                              targetVersionCode: selectedTargetVersion?.versionCode,
+                              apkUrl: selectedTargetVersion?.apkUrl,
+                              isMandatory: updateBroadcastMode === 'mandatory'
+                            }
+                          }));
+                        }}
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 font-['Outfit']"
+                      >
+                        <RefreshCw size={13} />
+                        <span>Test In-App Update Prompt</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectVersionForBroadcast(selectedTargetVersion, updateBroadcastMode)}
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 font-['Outfit']"
+                        title="Load into Broadcaster Composer above for custom adjustments"
+                      >
+                        <Edit2 size={13} />
+                        <span>Open in Broadcaster</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInstantDispatchUpdate(selectedTargetVersion, updateBroadcastMode)}
+                      disabled={isBroadcasting}
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#CB785C] via-[#DC7F62] to-[#B86246] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_8px_20px_-4px_rgba(203,120,92,0.45)] transition-all cursor-pointer disabled:opacity-50 font-['Outfit']"
+                    >
+                      {isBroadcasting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Dispatching Update Notice...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>Dispatch Update Broadcast to All Users</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1">Release Notes (Line by line)</label>
-                  <textarea
-                    value={releaseNotes}
-                    onChange={e => setReleaseNotes(e.target.value)}
-                    rows={3}
-                    required
-                    className="w-full bg-white dark:bg-[#1E1B1C] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-amber-600 dark:focus:border-[#FD9139] custom-scrollbar"
-                  />
-                </div>
+                {/* 5. Cloud Release Config Form */}
+                <form onSubmit={handlePublishRemoteRelease} className="p-4 rounded-[20px] bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-3.5">
+                  <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/5 pb-2.5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
+                      <Database className="w-3.5 h-3.5 text-[#CB785C]" />
+                      <span>3. Remote Release Cloud Registry Sync</span>
+                    </h4>
+                    <span className="text-[10px] font-mono text-stone-500 dark:text-neutral-400">
+                      Syncs foody_shops.payment_settings
+                    </span>
+                  </div>
 
-                <div className="flex items-center justify-between gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent('foody:check-app-update'));
-                    }}
-                    className="px-4 py-2 rounded-xl bg-stone-200 dark:bg-white/5 hover:bg-stone-300 dark:hover:bg-white/10 text-stone-800 dark:text-zinc-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
-                  >
-                    <RefreshCw size={13} />
-                    <span>Test In-App Update Prompt</span>
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Target Version Name</label>
+                      <input
+                        type="text"
+                        value={releaseVersionName}
+                        onChange={e => setReleaseVersionName(e.target.value)}
+                        placeholder="e.g. 1.1.34"
+                        required
+                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                      />
+                    </div>
 
-                  <button
-                    type="submit"
-                    disabled={isPublishingRelease}
-                    className="px-6 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
-                  >
-                    {isPublishingRelease ? 'Publishing to Cloud...' : 'Publish Update to All Devices'}
-                  </button>
-                </div>
-              </form>
+                    <div>
+                      <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Target Version Code</label>
+                      <input
+                        type="number"
+                        value={releaseVersionCode}
+                        onChange={e => setReleaseVersionCode(parseInt(e.target.value, 10))}
+                        placeholder="e.g. 45"
+                        required
+                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-6">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={releaseMandatory}
+                          onChange={e => setReleaseMandatory(e.target.checked)}
+                          className="w-4 h-4 rounded accent-[#CB785C]"
+                        />
+                        <span className="text-xs font-bold text-stone-800 dark:text-neutral-200">Mandatory (Block old versions)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Direct APK Download Link (Official GitHub / Fastly CDN)</label>
+                    <input
+                      type="url"
+                      value={releaseApkUrl}
+                      onChange={e => setReleaseApkUrl(e.target.value)}
+                      placeholder="https://..."
+                      required
+                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Release Notes (Line by line)</label>
+                    <textarea
+                      value={releaseNotes}
+                      onChange={e => setReleaseNotes(e.target.value)}
+                      rows={3}
+                      required
+                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C] custom-scrollbar"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-1">
+                    <button
+                      type="submit"
+                      disabled={isPublishingRelease}
+                      className="px-6 py-2.5 rounded-xl bg-stone-900 text-white dark:bg-white dark:text-stone-900 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50 font-['Outfit']"
+                    >
+                      {isPublishingRelease ? 'Publishing to Cloud...' : 'Publish Update to Cloud Registry'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
           </div>
         )}
@@ -5722,6 +6427,152 @@ export default function DeveloperView({ setCurrentTab }) {
             <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-4 leading-relaxed">
               Platform mascot animation rendered via pure vector math & requestAnimationFrame for maximum 60fps performance on all devices.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* 13. Version Matrix Definition & Edit Modal */}
+      {isVersionModalOpen && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-[#FAF7F2] dark:bg-[#1E1B1C] border border-stone-300/80 dark:border-white/10 rounded-[28px] p-6 shadow-2xl relative flex flex-col gap-4 text-stone-900 dark:text-white max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-200/80 dark:border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 flex items-center justify-center">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-['Outfit'] font-black text-sm uppercase tracking-wider text-stone-900 dark:text-white">
+                    {versionDraft.versionCode ? `Configure Release v${versionDraft.versionName}` : 'Define New App Release'}
+                  </h3>
+                  <p className="text-[11px] text-stone-500 dark:text-neutral-400">
+                    Register version code, release notes, and update policy.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVersionModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-stone-200/80 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 flex items-center justify-center text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveVersionDraft} className="space-y-3.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Version Name</label>
+                  <input
+                    type="text"
+                    value={versionDraft.versionName}
+                    onChange={e => setVersionDraft(prev => ({ ...prev, versionName: e.target.value }))}
+                    placeholder="e.g. 1.1.34"
+                    required
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Version Code</label>
+                  <input
+                    type="number"
+                    value={versionDraft.versionCode}
+                    onChange={e => setVersionDraft(prev => ({ ...prev, versionCode: parseInt(e.target.value, 10) }))}
+                    placeholder="e.g. 45"
+                    required
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Status Tag</label>
+                  <select
+                    value={versionDraft.status}
+                    onChange={e => setVersionDraft(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  >
+                    <option value="upcoming">Upcoming Release (Rolling out)</option>
+                    <option value="current">Current Active (Production)</option>
+                    <option value="supported">Older Supported Version</option>
+                    <option value="deprecated">Deprecated / Old (Mandatory)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Release Date</label>
+                  <input
+                    type="date"
+                    value={versionDraft.releaseDate}
+                    onChange={e => setVersionDraft(prev => ({ ...prev, releaseDate: e.target.value }))}
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Descriptive Title</label>
+                <input
+                  type="text"
+                  value={versionDraft.title}
+                  onChange={e => setVersionDraft(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="e.g. Foody Vrinda v1.1.34 — Realtime Telemetry"
+                  required
+                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Direct APK Download Link (Fastly CDN / GitHub)</label>
+                <input
+                  type="url"
+                  value={versionDraft.apkUrl}
+                  onChange={e => setVersionDraft(prev => ({ ...prev, apkUrl: e.target.value }))}
+                  placeholder="https://..."
+                  required
+                  className="w-full bg-white dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider mb-1 font-['Outfit']">Feature Highlights & Release Notes (1 per line)</label>
+                <textarea
+                  value={versionDraft.highlights}
+                  onChange={e => setVersionDraft(prev => ({ ...prev, highlights: e.target.value }))}
+                  rows={3}
+                  required
+                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C] custom-scrollbar"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-stone-100 dark:bg-[#151314] border border-stone-200/80 dark:border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={versionDraft.isMandatory}
+                    onChange={e => setVersionDraft(prev => ({ ...prev, isMandatory: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-[#CB785C]"
+                  />
+                  <span className="text-xs font-bold text-stone-800 dark:text-neutral-200">Mandatory Update (Forces user to install)</span>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsVersionModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-stone-600 dark:text-neutral-400 hover:bg-stone-200 dark:hover:bg-white/5 cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingVersions}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#CB785C] to-[#BA674C] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit']"
+                >
+                  {isSavingVersions ? 'Saving to Cloud...' : 'Save Version Definition'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

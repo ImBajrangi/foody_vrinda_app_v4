@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ShoppingBag, Sparkles, Heart, HeartOff, Check, AlertCircle, AlertTriangle, Store } from 'lucide-react';
+import { ShoppingBag, Sparkles, Heart, HeartOff, Check, AlertCircle, AlertTriangle, Store, Zap } from 'lucide-react';
 
 export default function DynamicToast({ 
   toast,
@@ -57,9 +57,15 @@ export default function DynamicToast({
     };
   }, [rawTitle, duration, triggerDismiss]);
 
-  // Instant Tap / Pointer Down Dismissal
+  // Instant Tap / Pointer Down Dismissal + Action trigger
   const handlePointerDown = (e) => {
     e.stopPropagation();
+    const str = `${rawTitle} ${rawDesc || ''}`.toLowerCase();
+    if (str.includes('update') || str.includes('v1.')) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('foody:check-app-update', { detail: { force: true } }));
+      }
+    }
     triggerDismiss();
   };
 
@@ -74,6 +80,12 @@ export default function DynamicToast({
       const deltaY = e.changedTouches[0].clientY - touchStartY.current;
       // Swipe up to dismiss or immediate tap
       if (deltaY < -8 || Math.abs(deltaY) < 5) {
+        const str = `${rawTitle} ${rawDesc || ''}`.toLowerCase();
+        if (str.includes('update') || str.includes('v1.')) {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('foody:check-app-update', { detail: { force: true } }));
+          }
+        }
         triggerDismiss();
       }
     }
@@ -198,6 +210,9 @@ export default function DynamicToast({
     }
     if (isShopAction) {
       return <Store size={16} strokeWidth={2.4} className="text-amber-300" />;
+    }
+    if (effectiveTypeRaw === 'app_update' || titleLower.includes('update') || titleLower.includes('v1.')) {
+      return <Zap size={16} strokeWidth={2.4} className="text-amber-400 fill-amber-400" />;
     }
     if (isBasketAction && effectiveTypeRaw === 'success') {
       return <ShoppingBag size={16} strokeWidth={2.4} className="text-emerald-300" />;

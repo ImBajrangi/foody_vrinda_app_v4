@@ -24,6 +24,7 @@ export async function sendStaffBroadcastNotification({
   data = {}
 }) {
   const notifId = `notif_staff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const resolvedType = (category === 'app_update' || data?.type === 'app_update') ? 'app_update' : 'staff_custom';
   let rpcSuccess = false;
   let broadcastResult = null;
 
@@ -59,7 +60,7 @@ export async function sendStaffBroadcastNotification({
         id: notifId,
         title,
         message,
-        type: 'staff_custom',
+        type: resolvedType,
         role: targetRole || 'all',
         shop_id: targetShopId || 'all',
         user_id: targetUserId || null,
@@ -86,7 +87,7 @@ export async function sendStaffBroadcastNotification({
             id: notifId,
             title,
             message,
-            type: 'staff_custom',
+            type: resolvedType,
             role: targetRole || 'all',
             shop_id: targetShopId || 'all',
             user_id: targetUserId || null,
@@ -115,7 +116,7 @@ export async function sendStaffBroadcastNotification({
       id: finalNotifId,
       title,
       message,
-      type: 'staff_custom',
+      type: resolvedType,
       role: targetRole || 'all',
       shopId: targetShopId || 'all',
       shop_id: targetShopId || 'all',

@@ -24,7 +24,7 @@ import {
   shouldAutoLaunchTutorial,
   clearNewUserTutorialEligibility
 } from './services/tutorialService';
-import appUpdateService from './services/appUpdateService';
+import appUpdateService, { CURRENT_APP_VERSION } from './services/appUpdateService';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const hasDevPermission = (userObj, key) => {
@@ -250,11 +250,26 @@ export default function App() {
       }
     }, 1000);
 
-    const handleManualCheck = async () => {
+    const handleManualCheck = async (e) => {
       try {
         const info = await appUpdateService.checkForUpdates();
-        if (info?.hasUpdate) {
-          setUpdateInfo(info);
+        if (info?.hasUpdate || e?.detail?.force) {
+          const resolvedInfo = (info && info.hasUpdate) ? info : {
+            ...(info || {}),
+            hasUpdate: true,
+            latestVersion: e?.detail?.targetVersion || info?.latestVersion || '1.1.34',
+            latestVersionCode: e?.detail?.targetVersionCode || info?.latestVersionCode || 45,
+            currentVersion: CURRENT_APP_VERSION.versionName,
+            currentVersionCode: CURRENT_APP_VERSION.versionCode,
+            apkUrl: e?.detail?.apkUrl || info?.apkUrl || 'https://raw.githubusercontent.com/ImBajrangi/foody_vrinda_app_v4/main/Foody-Vrinda-Latest.apk',
+            releaseNotes: (info?.releaseNotes && info.releaseNotes.length > 0) ? info.releaseNotes : [
+              'Realtime WebSocket notification broadcaster for admin & staff.',
+              'Interactive Dynamic Island toast alerts with zero clipping.',
+              'High-speed Fastly edge CDN zero-redirect APK download stream.'
+            ],
+            isMandatory: Boolean(e?.detail?.isMandatory || info?.isMandatory)
+          };
+          setUpdateInfo(resolvedInfo);
           setIsUpdateOpen(true);
         }
       } catch (_) { }

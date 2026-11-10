@@ -16,7 +16,9 @@ import {
   Utensils, 
   Bike, 
   ShoppingBag,
-  Gift
+  Gift,
+  Zap,
+  Download
 } from 'lucide-react';
 
 export default function NotificationPanel({ isOpen, onClose, onNotificationClick }) {
@@ -78,8 +80,25 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
 
   if (!isOpen) return null;
 
-  const handleNotificationItemClick = (id, orderId) => {
+  const handleNotificationItemClick = (id, orderId, notif = null) => {
     toggleNotificationRead(id, true);
+    const text = ((notif?.title || '') + ' ' + (notif?.message || '')).toLowerCase();
+    const isAppUpdate = notif?.type === 'app_update' || text.includes('update') || text.includes('v1.');
+
+    if (isAppUpdate) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('foody:check-app-update', { 
+          detail: { 
+            force: true,
+            targetVersion: notif?.data?.versionName,
+            apkUrl: notif?.data?.apkUrl
+          } 
+        }));
+      }
+      handleAnimatedClose();
+      return;
+    }
+
     if (onNotificationClick && orderId) {
       onNotificationClick(orderId);
       handleAnimatedClose();
@@ -90,6 +109,15 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
   const getNotificationDetails = (notif) => {
     const text = (notif.title + ' ' + notif.message).toLowerCase();
     
+    if (notif.type === 'app_update' || text.includes('update') || text.includes('v1.')) {
+      return {
+        icon: <Zap size={18} className="text-amber-500 fill-amber-400 stroke-[2.3]" />,
+        iconBg: 'bg-amber-500/15 dark:bg-[#FD9139]/20 border-amber-500/30 dark:border-[#FD9139]/30',
+        tag: 'App Update',
+        tagBg: 'bg-amber-500/15 text-amber-900 dark:bg-[#FD9139]/25 dark:text-[#FD9139] border-amber-500/30 dark:border-[#FD9139]/35'
+      };
+    }
+
     if (notif.type === 'staff_custom' || notif.type === 'broadcast' || text.includes('protocol') || text.includes('broadcast') || text.includes('staff')) {
       return {
         icon: <BellRing size={18} className="text-amber-600 dark:text-[#FD9139] stroke-[2.3]" />,
@@ -305,7 +333,7 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
               return (
                 <div 
                   key={n.id} 
-                  onClick={() => handleNotificationItemClick(n.id, n.orderId)}
+                  onClick={() => handleNotificationItemClick(n.id, n.orderId, n)}
                   className={`p-4 rounded-3xl transition-all cursor-pointer border relative group ${
                     isUnread 
                       ? 'bg-white dark:bg-[#282526] border-amber-500/35 dark:border-[#FD9139]/30 shadow-md hover:shadow-lg' 
@@ -347,12 +375,24 @@ export default function NotificationPanel({ isOpen, onClose, onNotificationClick
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleNotificationItemClick(n.id, n.orderId);
+                          handleNotificationItemClick(n.id, n.orderId, n);
                         }}
                         className="h-9 px-4 rounded-xl bg-[#FD9139] hover:bg-[#FCA65E] text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-md shadow-[#FD9139]/20 active:scale-95"
                       >
                         <span>Track Order</span>
                         <ArrowRight size={13} className="stroke-[3]" />
+                      </button>
+                    ) : (n.type === 'app_update' || ((n.title || '') + ' ' + (n.message || '')).toLowerCase().includes('update')) ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNotificationItemClick(n.id, n.orderId, n);
+                        }}
+                        className="h-9 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-[#FD9139] hover:brightness-105 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-all shadow-md active:scale-95"
+                      >
+                        <span>Update Now</span>
+                        <Download size={13} className="stroke-[3]" />
                       </button>
                     ) : (
                       <span />
