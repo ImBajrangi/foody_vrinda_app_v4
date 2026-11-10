@@ -44,46 +44,44 @@ jobs:
       - name: Financial Ledger, Authorization & Concurrency Tests
         run: npm run test:billing
         env:
-          VITE_SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY }}
 
       - name: Production Bundle Verification
         run: npm run build
 
   deploy_dev:
-    name: Deploy to Alpha / Dev
+    name: Alpha / Dev Gate (No Remote Deployment)
     needs: validate_and_test
     if: startsWith(github.ref, 'refs/heads/feature/')
     runs-on: ubuntu-latest
     env:
       TARGET_ENV: development
     steps:
-      - name: Alpha Environment Gate
+      - name: Verify Alpha Gate Only
         run: |
-          echo "Triggered Alpha/Dev deployment pipeline for branch ${GITHUB_REF_NAME}"
+          echo "Alpha/Dev gate passed for branch ${GITHUB_REF_NAME}. No deployment or database migration was executed."
 
   deploy_staging:
-    name: Deploy to Beta / Staging
+    name: Beta / Staging Gate (No Remote Deployment)
     needs: validate_and_test
     if: github.ref == 'refs/heads/beta'
     runs-on: ubuntu-latest
     env:
       TARGET_ENV: staging
     steps:
-      - name: Beta Environment Gate
+      - name: Verify Beta Gate Only
         run: |
-          echo "Triggered Beta/Staging deployment pipeline"
-          echo "Target database: Beta Supabase (Synthetic data only)"
+          echo "Beta/Staging gate passed. No deployment or database migration was executed."
 
   deploy_production:
-    name: Deploy to Production
+    name: Production Gate (No Remote Deployment)
     needs: validate_and_test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       TARGET_ENV: production
     steps:
-      - name: Production Deployment Gate
+      - name: Verify Production Gate Only
         run: |
-          echo "Multi-Environment Production Safety Gate Passed."
-          echo "Applying version-controlled migrations and deploying to live production."
+          echo "Production gate passed. This workflow does not deploy code or apply database migrations."
