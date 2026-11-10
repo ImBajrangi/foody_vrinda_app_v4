@@ -1,4 +1,15 @@
 #!/usr/bin/env node
+// Polyfill global WebSocket for headless CI environments on Node.js < 22
+if (typeof globalThis.WebSocket === 'undefined') {
+  globalThis.WebSocket = class WebSocketPolyfill {
+    constructor() {}
+    addEventListener() {}
+    removeEventListener() {}
+    send() {}
+    close() {}
+  };
+}
+
 /**
  * ============================================================================
  * FOODY VRINDA — AUTHORITATIVE BILLING, CASH RECONCILIATION & HANDOVER TEST SUITE
