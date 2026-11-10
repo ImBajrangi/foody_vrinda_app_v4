@@ -31,7 +31,8 @@ const SUITES = [
   { name: '4. Combo Offer Engine & Margins', file: 'scripts/test-combo-engine.mjs' },
   { name: '5. Strict Shop Isolation & Leaks', file: 'scripts/test-shop-isolation.mjs' },
   { name: '6. Unprivileged Customer Delivery Option Flow', file: 'scripts/test-customer-unprivileged-flow.mjs' },
-  { name: '7. Delivery Sarathi (Ready for Delivery) & Customer Handshake', file: 'scripts/test-delivery-and-customer-handshake.mjs' }
+  { name: '7. Delivery Sarathi (Ready for Delivery) & Customer Handshake', file: 'scripts/test-delivery-and-customer-handshake.mjs' },
+  { name: '8. Authoritative Billing & Cash Reconciliation', file: 'scripts/test-billing-cashflow-and-settlements.mjs' }
 ];
 
 async function runChildSuite(suite) {

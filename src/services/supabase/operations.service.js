@@ -275,6 +275,80 @@ export async function settleRiderCashHandover({
 }
 
 /**
+ * 🔄 Authoritative Pending Settlements Offline Retry Worker
+ * Replays queued settlement requests against the server when network reconnects.
+ * Preserves the original idempotency key to prevent double charging/settling.
+ */
+export async function flushPendingSettlements() {
+  if (typeof window === 'undefined' || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    return { flushed: 0, remaining: 0 };
+  }
+  const pendingKey = 'foody_pending_settlements';
+  let queue = [];
+  try {
+    queue = JSON.parse(safeStorage.getItem(pendingKey) || '[]');
+  } catch (_) {
+    queue = [];
+  }
+  if (!Array.isArray(queue) || queue.length === 0) return { flushed: 0, remaining: 0 };
+
+  const remainingQueue = [];
+  let flushedCount = 0;
+
+  for (const item of queue) {
+    try {
+      const { data, error } = await supabase.rpc('record_rider_cash_settlement', {
+        p_rider_id: item.riderId,
+        p_shop_id: item.shopId,
+        p_amount_received: item.amountReceived,
+        p_declared_amount: item.declaredAmount,
+        p_idempotency_key: item.idempotencyKey,
+        p_order_ids: Array.isArray(item.orderIds) && item.orderIds.length > 0 ? item.orderIds : null,
+        p_notes: item.notes || null,
+        p_settled_by: item.settledBy || 'Shopkeeper'
+      });
+
+      if (error) {
+        const isNetwork = error.message?.includes('Failed to fetch')
+          || error.message?.includes('NetworkError')
+          || error.message?.includes('timeout')
+          || error.name === 'AbortError';
+
+        if (isNetwork) {
+          item.retryCount = (item.retryCount || 0) + 1;
+          remainingQueue.push(item);
+        } else {
+          // Terminal business error / rejection: drop from queue and log
+          console.error(`Pending settlement terminal failure (${item.idempotencyKey}):`, error);
+          dispatchSafeEvent('foody:settlement_rejected', { item, error });
+        }
+      } else if (data && data.success) {
+        flushedCount++;
+        dispatchSafeEvent('foody:settlement_flushed', { item, result: data });
+      } else {
+        remainingQueue.push(item);
+      }
+    } catch (err) {
+      item.retryCount = (item.retryCount || 0) + 1;
+      remainingQueue.push(item);
+    }
+  }
+
+  try {
+    safeStorage.setItem(pendingKey, JSON.stringify(remainingQueue));
+  } catch (_) {}
+
+  return { flushed: flushedCount, remaining: remainingQueue.length };
+}
+
+// Auto-register listener in browser environment
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    flushPendingSettlements().catch(console.error);
+  });
+}
+
+/**
  * 📊 Fetch Shop Settlement History (SWR Cache-First Pattern)
  */
 export async function getShopSettlementHistory(shopId, { limit = 50, offset = 0, forceRefresh = false } = {}) {

@@ -3,18 +3,21 @@
 -- AUTHORITATIVE BILLING, CASH RECONCILIATION & RIDER HANDOVER LEDGER
 -- ========================================================================
 -- 1. Double-Entry Financial Ledger (foody_cash_accounts, foody_cash_ledger_entries)
--- 2. Immutable Settlement Registry (foody_cash_settlements, foody_cash_settlement_allocations)
+-- 2. Immutable Settlement Registry (foody_cash_settlements, foody_cash_settlement_allocations, foody_cash_settlement_reversals)
 -- 3. Balanced Journal & Audit Logging (foody_cash_journals, foody_cash_journal_lines, foody_financial_audit_logs)
 -- 4. Authoritative Security Definer Access Helpers (can_manage_shop_finances)
 -- 5. Strict Zero-Trust Action-Specific RLS Policies (Anon revoked; Authenticated isolated by role/shop)
 -- 6. Atomic Row-Locked Settlement RPC: public.record_rider_cash_settlement(...)
 --    - Enforces auth.uid() identity derivation
---    - Validates rider, shop, and all explicitly selected orders (Rejects batch on any invalid order)
+--    - Locks account before idempotency resolution (strict concurrency serialization)
+--    - Calculates true order outstanding balance using all previous committed allocations
+--    - Revalidates explicit order IDs after row locks inside transaction
+--    - Deterministic FIFO waterfall allocation storing accurate previously_settled & remaining_order_debt
 --    - Idempotency collision prevention (detects same key with differing payload)
 --    - Balanced double-entry journals & suspense allocation for excess cash
--- 7. COD Collection Trigger (trg_cod_collection_ledger)
--- 8. Append-Only Settlement Reversal RPC (record_settlement_reversal)
--- 9. Authoritative Query RPCs: get_shop_cash_settlements, get_rider_outstanding_orders, get_shop_cashflow_summary
+-- 7. COD Collection Trigger (trg_cod_collection_ledger) with reversal-suppression guard
+-- 8. Append-Only Settlement Reversal RPC (record_settlement_reversal) with database-enforced idempotency
+-- 9. Authoritative Query RPCs with true outstanding balances: get_shop_cash_settlements, get_rider_outstanding_orders, get_shop_cashflow_summary
 -- ========================================================================
 
 -- STEP 1: FINANCIAL ACCOUNTS TABLE (Rider-Shop Custody Balance)
@@ -47,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.foody_cash_settlements (
     cashier_received_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (cashier_received_amount >= 0),
     shortage_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (shortage_amount >= 0),
     excess_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (excess_amount >= 0),
-    status TEXT NOT NULL DEFAULT 'full_settlement' CHECK (status IN ('full_settlement', 'partial_settlement', 'excess_settlement', 'disputed', 'settled', 'under_review')),
+    status TEXT NOT NULL DEFAULT 'full_settlement' CHECK (status IN ('full_settlement', 'partial_settlement', 'excess_settlement', 'disputed', 'settled', 'under_review', 'reversed')),
     declared_by TEXT NOT NULL DEFAULT 'Rider',
     received_by TEXT NOT NULL DEFAULT 'Shopkeeper',
     notes TEXT,
@@ -120,7 +123,25 @@ CREATE TABLE IF NOT EXISTS public.foody_cash_settlement_allocations (
 CREATE INDEX IF NOT EXISTS idx_allocations_order ON public.foody_cash_settlement_allocations (order_id);
 CREATE INDEX IF NOT EXISTS idx_allocations_settlement ON public.foody_cash_settlement_allocations (settlement_id);
 
--- STEP 4: FINANCIAL LEDGER ENTRIES TABLE (Append-Only Transactional Ledger)
+-- STEP 4: SETTLEMENT REVERSALS TABLE (Audit Registry of Reversed Batches)
+-- ------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.foody_cash_settlement_reversals (
+    id TEXT PRIMARY KEY DEFAULT ('rev_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
+    settlement_id TEXT NOT NULL REFERENCES public.foody_cash_settlements(id) ON DELETE RESTRICT,
+    shop_id TEXT NOT NULL REFERENCES public.foody_shops(id) ON DELETE RESTRICT,
+    rider_id TEXT NOT NULL,
+    reversed_by TEXT NOT NULL,
+    reversal_amount NUMERIC(10,2) NOT NULL CHECK (reversal_amount >= 0),
+    reversal_reference TEXT UNIQUE,
+    reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_settlement_reversal UNIQUE (settlement_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reversals_settlement ON public.foody_cash_settlement_reversals (settlement_id);
+CREATE INDEX IF NOT EXISTS idx_reversals_shop ON public.foody_cash_settlement_reversals (shop_id);
+
+-- STEP 5: FINANCIAL LEDGER ENTRIES TABLE (Append-Only Transactional Ledger)
 -- ------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.foody_cash_ledger_entries (
     id TEXT PRIMARY KEY DEFAULT ('led_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
@@ -143,7 +164,7 @@ CREATE INDEX IF NOT EXISTS idx_ledger_shop ON public.foody_cash_ledger_entries (
 CREATE INDEX IF NOT EXISTS idx_ledger_order ON public.foody_cash_ledger_entries (order_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_created ON public.foody_cash_ledger_entries (created_at DESC);
 
--- STEP 5: BALANCED DOUBLE-ENTRY JOURNALS & LINES
+-- STEP 6: BALANCED DOUBLE-ENTRY JOURNALS & LINES
 -- ------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.foody_cash_journals (
     id TEXT PRIMARY KEY DEFAULT ('jrn_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
@@ -165,7 +186,7 @@ CREATE TABLE IF NOT EXISTS public.foody_cash_journal_lines (
 
 CREATE INDEX IF NOT EXISTS idx_journal_lines_journal ON public.foody_cash_journal_lines (journal_id);
 
--- STEP 6: FINANCIAL AUDIT LOGS
+-- STEP 7: FINANCIAL AUDIT LOGS
 -- ------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.foody_financial_audit_logs (
     id TEXT PRIMARY KEY DEFAULT ('fau_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16)),
@@ -181,7 +202,7 @@ CREATE TABLE IF NOT EXISTS public.foody_financial_audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_financial_audit_created ON public.foody_financial_audit_logs (created_at DESC);
 
--- STEP 7: IMMUTABILITY TAMPER-PROOF TRIGGERS (Append-Only Guarantee)
+-- STEP 8: IMMUTABILITY TAMPER-PROOF TRIGGERS (Append-Only Guarantee)
 -- ------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.prevent_financial_ledger_tamper()
 RETURNS TRIGGER AS $$
@@ -200,6 +221,11 @@ CREATE TRIGGER trg_prevent_allocations_tamper
     BEFORE UPDATE OR DELETE ON public.foody_cash_settlement_allocations
     FOR EACH ROW EXECUTE FUNCTION public.prevent_financial_ledger_tamper();
 
+DROP TRIGGER IF EXISTS trg_prevent_reversals_tamper ON public.foody_cash_settlement_reversals;
+CREATE TRIGGER trg_prevent_reversals_tamper
+    BEFORE UPDATE OR DELETE ON public.foody_cash_settlement_reversals
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_financial_ledger_tamper();
+
 DROP TRIGGER IF EXISTS trg_prevent_journals_tamper ON public.foody_cash_journals;
 CREATE TRIGGER trg_prevent_journals_tamper
     BEFORE UPDATE OR DELETE ON public.foody_cash_journals
@@ -215,7 +241,7 @@ CREATE TRIGGER trg_prevent_audit_logs_tamper
     BEFORE UPDATE OR DELETE ON public.foody_financial_audit_logs
     FOR EACH ROW EXECUTE FUNCTION public.prevent_financial_ledger_tamper();
 
--- STEP 8: AUTHORITATIVE SECURITY DEFINER ACCESS HELPERS
+-- STEP 9: AUTHORITATIVE SECURITY DEFINER ACCESS HELPERS
 -- ------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.can_manage_shop_finances(p_shop_id TEXT)
 RETURNS BOOLEAN
@@ -244,7 +270,7 @@ AS $$
   );
 $$;
 
--- STEP 9: AUTHORITATIVE ATOMIC SETTLEMENT RPC
+-- STEP 10: AUTHORITATIVE ATOMIC SETTLEMENT RPC
 -- ------------------------------------------------------------------------
 -- Drop all historical overloads dynamically to guarantee zero PostgREST PGRST203 ambiguity
 DO $$ 
@@ -306,6 +332,7 @@ DECLARE
     v_settled_order_ids TEXT[] := ARRAY[]::TEXT[];
     v_allocated_orders JSONB := '[]'::jsonb;
     v_invalid_order_ids TEXT[];
+    v_order_allocated_ids TEXT[];
 BEGIN
     -- 1. Derive authenticated caller identity strictly from auth.uid()
     v_caller_id := auth.uid()::text;
@@ -369,7 +396,22 @@ BEGIN
         RAISE EXCEPTION 'INVALID_SHOP: Shop "%" does not exist.', p_shop_id;
     END IF;
 
-    -- 4. Idempotency Check & Payload Collision Detection
+    IF NOT EXISTS (SELECT 1 FROM public.foody_users WHERE id = p_rider_id)
+       AND NOT EXISTS (SELECT 1 FROM public.foody_logged_users WHERE id = p_rider_id) THEN
+        RAISE EXCEPTION 'INVALID_RIDER: Rider "%" does not exist.', p_rider_id;
+    END IF;
+
+    -- 4. CONCURRENCY: Lock rider-shop financial account row FIRST to serialize same-rider requests
+    INSERT INTO public.foody_cash_accounts (rider_id, shop_id, outstanding_amount, total_collected, total_settled)
+    VALUES (p_rider_id, p_shop_id, 0.00, 0.00, 0.00)
+    ON CONFLICT (rider_id, shop_id) DO NOTHING;
+
+    SELECT id, outstanding_amount INTO v_account_id, v_current_account_outstanding
+    FROM public.foody_cash_accounts
+    WHERE rider_id = p_rider_id AND shop_id = p_shop_id
+    FOR UPDATE;
+
+    -- 5. Idempotency Check & Payload Collision Detection (Inside Account Lock)
     IF p_idempotency_key IS NOT NULL AND pg_catalog.trim(p_idempotency_key) <> '' THEN
         SELECT s.* INTO v_existing_settlement
         FROM public.foody_cash_settlements s
@@ -379,8 +421,21 @@ BEGIN
             -- Verify identical payload to prevent same-key reuse with different parameters
             IF v_existing_settlement.rider_id <> p_rider_id 
                OR v_existing_settlement.shop_id <> p_shop_id 
-               OR v_existing_settlement.cashier_received_amount <> v_amount_received THEN
+               OR v_existing_settlement.cashier_received_amount <> v_amount_received 
+               OR v_existing_settlement.rider_declared_amount <> v_declared_amount THEN
                 RAISE EXCEPTION 'IDEMPOTENCY_KEY_COLLISION: Key "%" was already used with different parameters.', p_idempotency_key;
+            END IF;
+
+            -- Check allocated orders match requested order_ids
+            SELECT pg_catalog.array_agg(order_id ORDER BY order_id) INTO v_order_allocated_ids
+            FROM public.foody_cash_settlement_allocations
+            WHERE settlement_id = v_existing_settlement.id;
+
+            IF p_order_ids IS NOT NULL AND pg_catalog.array_length(p_order_ids, 1) > 0 THEN
+                IF v_order_allocated_ids IS NOT NULL 
+                   AND NOT (v_order_allocated_ids <@ p_order_ids AND p_order_ids <@ v_order_allocated_ids) THEN
+                    RAISE EXCEPTION 'IDEMPOTENCY_KEY_COLLISION: Key "%" was already used with a different order list.', p_idempotency_key;
+                END IF;
             END IF;
 
             -- Return original committed authoritative receipt
@@ -402,66 +457,78 @@ BEGIN
         END IF;
     END IF;
 
-    -- 5. Strict Explicit Order Validation (Batch fails if ANY requested order is invalid)
-    IF p_order_ids IS NOT NULL AND pg_catalog.array_length(p_order_ids, 1) > 0 THEN
-        SELECT pg_catalog.array_agg(oid) INTO v_invalid_order_ids
-        FROM pg_catalog.unnest(p_order_ids) oid
-        WHERE oid NOT IN (
-            SELECT o.id FROM public.foody_orders o
-            WHERE o.id = ANY(p_order_ids)
-              AND o.shop_id = p_shop_id
-              AND o.rider_id = p_rider_id
-              AND o.payment_method IN ('cash', 'cod')
-              AND o.cash_status = 'collected'
-              AND o.settlement_id IS NULL
-        );
-
-        IF v_invalid_order_ids IS NOT NULL AND pg_catalog.array_length(v_invalid_order_ids, 1) > 0 THEN
-            RAISE EXCEPTION 'INVALID_ORDERS_SELECTED: The following order(s) are invalid, already settled, or do not belong to rider "%" at shop "%": %',
-                p_rider_id, p_shop_id, pg_catalog.array_to_string(v_invalid_order_ids, ', ');
-        END IF;
-    END IF;
-
-    -- 6. Lock rider-shop financial account row
-    INSERT INTO public.foody_cash_accounts (rider_id, shop_id, outstanding_amount, total_collected, total_settled)
-    VALUES (p_rider_id, p_shop_id, 0.00, 0.00, 0.00)
-    ON CONFLICT (rider_id, shop_id) DO NOTHING;
-
-    SELECT id, outstanding_amount INTO v_account_id, v_current_account_outstanding
-    FROM public.foody_cash_accounts
-    WHERE rider_id = p_rider_id AND shop_id = p_shop_id
-    FOR UPDATE;
-
-    -- 7. DETERMINISTIC ROW LOCKING (Ascending ID order, NO aggregate in FOR UPDATE)
+    -- 6. DETERMINISTIC ROW LOCKING & OUTSTANDING DEBT CALCULATION (Using All Prior Allocations)
     CREATE TEMP TABLE IF NOT EXISTS tmp_orders_to_settle (
         id TEXT PRIMARY KEY,
-        total_amount NUMERIC(10,2),
+        order_total NUMERIC(10,2),
+        previously_settled NUMERIC(10,2),
+        outstanding_amount NUMERIC(10,2),
         created_at TIMESTAMPTZ
     ) ON COMMIT DROP;
     DELETE FROM tmp_orders_to_settle;
 
     IF p_order_ids IS NOT NULL AND pg_catalog.array_length(p_order_ids, 1) > 0 THEN
-        INSERT INTO tmp_orders_to_settle (id, total_amount, created_at)
-        SELECT o.id, o.total_amount, o.created_at
+        INSERT INTO tmp_orders_to_settle (id, order_total, previously_settled, outstanding_amount, created_at)
+        SELECT 
+            o.id,
+            o.total_amount,
+            COALESCE(prev.settled_sum, 0.00),
+            (o.total_amount - COALESCE(prev.settled_sum, 0.00)),
+            o.created_at
         FROM public.foody_orders o
+        LEFT JOIN (
+            SELECT a.order_id, SUM(a.amount_allocated) AS settled_sum
+            FROM public.foody_cash_settlement_allocations a
+            JOIN public.foody_cash_settlements st ON st.id = a.settlement_id
+            WHERE st.status <> 'reversed'
+            GROUP BY a.order_id
+        ) prev ON prev.order_id = o.id
         WHERE o.id = ANY(p_order_ids)
+          AND o.shop_id = p_shop_id
+          AND o.rider_id = p_rider_id
+          AND o.payment_method IN ('cash', 'cod')
+          AND o.cash_status = 'collected'
         ORDER BY o.created_at ASC, o.id ASC
-        FOR UPDATE;
+        FOR UPDATE OF o;
+
+        -- 7. REVALIDATE EXPLICIT ORDER IDS AFTER ACQUIRING ROW LOCKS
+        SELECT pg_catalog.array_agg(oid) INTO v_invalid_order_ids
+        FROM pg_catalog.unnest(p_order_ids) oid
+        WHERE oid NOT IN (
+            SELECT id FROM tmp_orders_to_settle WHERE outstanding_amount > 0
+        );
+
+        IF v_invalid_order_ids IS NOT NULL AND pg_catalog.array_length(v_invalid_order_ids, 1) > 0 THEN
+            RAISE EXCEPTION 'CONCURRENT_MODIFICATION_OR_INVALID_ORDER: The following order(s) are invalid, already settled by a concurrent transaction, or do not belong to rider "%" at shop "%": %',
+                p_rider_id, p_shop_id, pg_catalog.array_to_string(v_invalid_order_ids, ', ');
+        END IF;
     ELSE
-        INSERT INTO tmp_orders_to_settle (id, total_amount, created_at)
-        SELECT o.id, o.total_amount, o.created_at
+        INSERT INTO tmp_orders_to_settle (id, order_total, previously_settled, outstanding_amount, created_at)
+        SELECT 
+            o.id,
+            o.total_amount,
+            COALESCE(prev.settled_sum, 0.00),
+            (o.total_amount - COALESCE(prev.settled_sum, 0.00)),
+            o.created_at
         FROM public.foody_orders o
+        LEFT JOIN (
+            SELECT a.order_id, SUM(a.amount_allocated) AS settled_sum
+            FROM public.foody_cash_settlement_allocations a
+            JOIN public.foody_cash_settlements st ON st.id = a.settlement_id
+            WHERE st.status <> 'reversed'
+            GROUP BY a.order_id
+        ) prev ON prev.order_id = o.id
         WHERE o.rider_id = p_rider_id
           AND o.shop_id = p_shop_id
           AND o.payment_method IN ('cash', 'cod')
           AND o.cash_status = 'collected'
-          AND o.settlement_id IS NULL
+          AND (o.total_amount - COALESCE(prev.settled_sum, 0.00)) > 0
         ORDER BY o.created_at ASC, o.id ASC
-        FOR UPDATE;
+        FOR UPDATE OF o;
     END IF;
 
-    -- 8. Calculate expected cash from individually locked rows
-    SELECT COALESCE(SUM(total_amount), 0.00), COUNT(*)
+    -- 8. Calculate true expected cash from individually locked outstanding debts
+    SELECT COALESCE(SUM(outstanding_amount), 0.00), COUNT(*)
     INTO v_expected_amount, v_order_count
     FROM tmp_orders_to_settle;
 
@@ -494,15 +561,15 @@ BEGIN
         p_rider_id, v_cashier_name, p_notes, NULLIF(pg_catalog.trim(p_idempotency_key), ''), NOW()
     );
 
-    -- 11. Deterministic FIFO Waterfall Allocation (Never mark unpaid orders settled)
+    -- 11. Deterministic FIFO Waterfall Allocation (Tracking previously_settled and remaining_debt)
     v_remaining_to_allocate := v_amount_received;
 
-    FOR v_rec IN SELECT id, total_amount FROM tmp_orders_to_settle ORDER BY created_at ASC, id ASC LOOP
-        IF v_remaining_to_allocate >= v_rec.total_amount THEN
-            v_alloc_for_order := v_rec.total_amount;
+    FOR v_rec IN SELECT id, order_total, previously_settled, outstanding_amount, created_at FROM tmp_orders_to_settle ORDER BY created_at ASC, id ASC LOOP
+        IF v_remaining_to_allocate >= v_rec.outstanding_amount THEN
+            v_alloc_for_order := v_rec.outstanding_amount;
             v_order_debt_remaining := 0.00;
 
-            -- 100% covered: Mark order settled
+            -- 100% satisfied: Mark order settled
             UPDATE public.foody_orders
             SET settlement_id = v_settlement_id,
                 cash_status = 'settled',
@@ -512,7 +579,7 @@ BEGIN
             v_settled_order_ids := pg_catalog.array_append(v_settled_order_ids, v_rec.id);
         ELSIF v_remaining_to_allocate > 0 THEN
             v_alloc_for_order := v_remaining_to_allocate;
-            v_order_debt_remaining := v_rec.total_amount - v_alloc_for_order;
+            v_order_debt_remaining := v_rec.outstanding_amount - v_alloc_for_order;
 
             -- Incomplete partial payment: cash_status stays 'collected' to preserve liability!
             UPDATE public.foody_orders
@@ -520,24 +587,25 @@ BEGIN
             WHERE id = v_rec.id;
         ELSE
             v_alloc_for_order := 0.00;
-            v_order_debt_remaining := v_rec.total_amount;
+            v_order_debt_remaining := v_rec.outstanding_amount;
         END IF;
 
         v_remaining_to_allocate := GREATEST(0.00, v_remaining_to_allocate - v_alloc_for_order);
         v_allocated_total := v_allocated_total + v_alloc_for_order;
 
-        -- Record allocation
+        -- Record allocation with accurate previously_settled and remaining debt
         INSERT INTO public.foody_cash_settlement_allocations (
             settlement_id, order_id, amount_allocated, order_total,
             previously_settled, remaining_order_debt, created_at
         ) VALUES (
-            v_settlement_id, v_rec.id, v_alloc_for_order, v_rec.total_amount,
-            0.00, v_order_debt_remaining, NOW()
+            v_settlement_id, v_rec.id, v_alloc_for_order, v_rec.order_total,
+            v_rec.previously_settled, v_order_debt_remaining, NOW()
         );
 
         v_allocated_orders := v_allocated_orders || pg_catalog.jsonb_build_object(
             'order_id', v_rec.id,
-            'order_total', v_rec.total_amount,
+            'order_total', v_rec.order_total,
+            'previously_settled', v_rec.previously_settled,
             'allocated', v_alloc_for_order,
             'remaining_debt', v_order_debt_remaining,
             'is_fully_settled', (v_order_debt_remaining = 0)
@@ -591,13 +659,13 @@ BEGIN
         VALUES (v_journal_id, 'Cashier Suspense / Excess Cash (Liability)', 0.00, v_excess, v_settlement_id, NOW());
     END IF;
 
-    -- 14. Update Account Projections (Maintain true liability; no silent concealment)
+    -- 14. Update Account Projections (total_settled counts order allocations only; no silent clamping)
     UPDATE public.foody_cash_accounts
     SET outstanding_amount = CASE 
             WHEN outstanding_amount >= v_allocated_total THEN outstanding_amount - v_allocated_total 
             ELSE 0.00 
         END,
-        total_settled = total_settled + v_amount_received,
+        total_settled = total_settled + v_allocated_total,
         updated_at = NOW()
     WHERE id = v_account_id;
 
@@ -650,7 +718,7 @@ BEGIN
 END;
 $$;
 
--- STEP 10: COD COLLECTION TRIGGER (Append-Only Collection Accounting)
+-- STEP 11: COD COLLECTION TRIGGER (Append-Only Collection Accounting with Reversal Guard)
 -- ------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.handle_cod_collection_ledger()
 RETURNS TRIGGER
@@ -663,6 +731,11 @@ DECLARE
     v_jrn_id TEXT;
     v_actor TEXT;
 BEGIN
+    -- Guard: Suppress collection trigger when inside a settlement reversal transaction
+    IF pg_catalog.current_setting('foody.in_reversal', true) = 'true' THEN
+        RETURN NEW;
+    END IF;
+
     -- Only fire when order transitions to 'collected' with cash/cod and a valid rider
     IF (NEW.payment_method IN ('cash', 'cod') 
         AND NEW.cash_status = 'collected' 
@@ -713,7 +786,7 @@ CREATE TRIGGER trg_cod_collection_ledger
     AFTER UPDATE OF cash_status ON public.foody_orders
     FOR EACH ROW EXECUTE FUNCTION public.handle_cod_collection_ledger();
 
--- STEP 11: APPEND-ONLY SETTLEMENT REVERSAL / REFUND RPC
+-- STEP 12: APPEND-ONLY SETTLEMENT REVERSAL / REFUND RPC (With Database-Enforced Idempotency)
 -- ------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.record_settlement_reversal(
     p_settlement_id TEXT,
@@ -729,38 +802,66 @@ DECLARE
     v_caller_id TEXT;
     v_jrn_id TEXT;
     v_alloc RECORD;
+    v_actual_reversed_allocations NUMERIC(10,2) := 0.00;
 BEGIN
     v_caller_id := auth.uid()::text;
     IF v_caller_id IS NULL AND current_user NOT IN ('service_role', 'postgres', 'supabase_admin') THEN
         RAISE EXCEPTION 'UNAUTHENTICATED: Caller must be authenticated to reverse settlement.';
     END IF;
 
-    SELECT * INTO v_settlement FROM public.foody_cash_settlements WHERE id = p_settlement_id;
+    -- 1. Lock the original settlement row
+    SELECT * INTO v_settlement 
+    FROM public.foody_cash_settlements 
+    WHERE id = p_settlement_id 
+    FOR UPDATE;
+
     IF NOT FOUND THEN
         RAISE EXCEPTION 'NOT_FOUND: Settlement "%" does not exist.', p_settlement_id;
+    END IF;
+
+    -- 2. Reject repeated reversals (Database-enforced reversal idempotency)
+    IF v_settlement.status = 'reversed' 
+       OR EXISTS (SELECT 1 FROM public.foody_cash_settlement_reversals WHERE settlement_id = p_settlement_id) THEN
+        RAISE EXCEPTION 'ALREADY_REVERSED: Settlement "%" has already been reversed.', p_settlement_id;
     END IF;
 
     IF current_user NOT IN ('service_role', 'postgres', 'supabase_admin') AND NOT public.can_manage_shop_finances(v_settlement.shop_id) THEN
         RAISE EXCEPTION 'UNAUTHORIZED: Not authorized to reverse settlements for shop "%".', v_settlement.shop_id;
     END IF;
 
-    -- Create reversal journal
+    -- 3. Calculate actual reversed allocations
+    SELECT COALESCE(SUM(amount_allocated), 0.00) 
+    INTO v_actual_reversed_allocations 
+    FROM public.foody_cash_settlement_allocations 
+    WHERE settlement_id = p_settlement_id;
+
+    -- 4. Suppress COD collection trigger during reversal state restoration
+    PERFORM pg_catalog.set_config('foody.in_reversal', 'true', true);
+
+    -- 5. Record unique settlement reversal entry
+    INSERT INTO public.foody_cash_settlement_reversals (
+        settlement_id, shop_id, rider_id, reversed_by, reversal_amount, reversal_reference, reason, created_at
+    ) VALUES (
+        p_settlement_id, v_settlement.shop_id, v_settlement.rider_id, COALESCE(v_caller_id, 'system'),
+        v_settlement.cashier_received_amount, ('rev_ref_' || p_settlement_id), p_reason, NOW()
+    );
+
+    -- 6. Create reversal journal and balanced lines
     v_jrn_id := 'jrn_' || substr(md5(random()::text || clock_timestamp()::text), 1, 16);
     INSERT INTO public.foody_cash_journals (id, settlement_id, transaction_type, reference, created_at)
     VALUES (v_jrn_id, p_settlement_id, 'settlement_reversal', p_settlement_id, NOW());
 
-    -- Reversing lines:
     INSERT INTO public.foody_cash_journal_lines (journal_id, account_name, debit, credit, reference, created_at)
     VALUES
         (v_jrn_id, 'Cash In Kitchen Register (Asset)', 0.00, v_settlement.cashier_received_amount, p_settlement_id, NOW()),
-        (v_jrn_id, 'Rider Custody Receivable (Asset)', (v_settlement.cashier_received_amount - v_settlement.excess_amount), 0.00, p_settlement_id, NOW());
+        (v_jrn_id, 'Rider Custody Receivable (Asset)', v_actual_reversed_allocations, 0.00, p_settlement_id, NOW());
 
     IF v_settlement.excess_amount > 0 THEN
         INSERT INTO public.foody_cash_journal_lines (journal_id, account_name, debit, credit, reference, created_at)
         VALUES (v_jrn_id, 'Cashier Suspense / Excess Cash (Liability)', v_settlement.excess_amount, 0.00, p_settlement_id, NOW());
     END IF;
 
-    -- Append-only ledger entries for reversal
+    -- 7. Append-only ledger entries for reversal
     INSERT INTO public.foody_cash_ledger_entries (
         rider_id, shop_id, settlement_id, transaction_type, direction, amount, reference_id, actor_id, notes, created_at
     ) VALUES (
@@ -769,30 +870,35 @@ BEGIN
         format('Reversal of settlement %s: %s', p_settlement_id, p_reason), NOW()
     );
 
-    -- Reinstate order cash_status to 'collected' and clear settlement_id
+    -- 8. Restore orders: reinstate cash_status to 'collected' and clear settlement_id
     FOR v_alloc IN SELECT order_id FROM public.foody_cash_settlement_allocations WHERE settlement_id = p_settlement_id LOOP
         UPDATE public.foody_orders
         SET cash_status = 'collected', settlement_id = NULL, updated_at = NOW()
         WHERE id = v_alloc.order_id;
     END LOOP;
 
-    -- Restore account balance
+    -- 9. Restore account balances
     UPDATE public.foody_cash_accounts
-    SET outstanding_amount = outstanding_amount + (v_settlement.cashier_received_amount - v_settlement.excess_amount),
+    SET outstanding_amount = outstanding_amount + v_actual_reversed_allocations,
         total_settled = CASE 
-            WHEN total_settled >= v_settlement.cashier_received_amount THEN total_settled - v_settlement.cashier_received_amount 
+            WHEN total_settled >= v_actual_reversed_allocations THEN total_settled - v_actual_reversed_allocations 
             ELSE 0.00 
         END,
         updated_at = NOW()
     WHERE rider_id = v_settlement.rider_id AND shop_id = v_settlement.shop_id;
 
-    -- Log audit
+    -- 10. Update settlement status to 'reversed' (Original receipt is preserved permanently)
+    UPDATE public.foody_cash_settlements
+    SET status = 'reversed'
+    WHERE id = p_settlement_id;
+
+    -- 11. Log financial audit
     INSERT INTO public.foody_financial_audit_logs (
         actor_id, actor_role, action, resource_type, resource_id, previous_state, new_state, created_at
     ) VALUES (
         COALESCE(v_caller_id, 'system'), 'cashier', 'reverse_settlement', 'foody_cash_settlements', p_settlement_id,
         pg_catalog.row_to_json(v_settlement)::jsonb,
-        pg_catalog.jsonb_build_object('reversed', true, 'reason', p_reason),
+        pg_catalog.jsonb_build_object('reversed', true, 'reason', p_reason, 'restored_allocations', v_actual_reversed_allocations),
         NOW()
     );
 
@@ -800,10 +906,10 @@ BEGIN
 END;
 $$;
 
--- STEP 12: AUTHORITATIVE QUERY RPCS WITH SHOP ISOLATION
+-- STEP 13: AUTHORITATIVE QUERY RPCS WITH SHOP ISOLATION & TRUE OUTSTANDING BALANCES
 -- ------------------------------------------------------------------------
 
--- 12.1 Get Shop Settlements History
+-- 13.1 Get Shop Settlements History
 CREATE OR REPLACE FUNCTION public.get_shop_cash_settlements(
     p_shop_id TEXT,
     p_limit INT DEFAULT 50,
@@ -859,7 +965,7 @@ BEGIN
 END;
 $$;
 
--- 12.2 Get Active Rider Outstanding Cash by Shop
+-- 13.2 Get Active Rider Outstanding Cash by Shop (Returning True Remaining Debt)
 CREATE OR REPLACE FUNCTION public.get_rider_outstanding_orders(
     p_rider_id TEXT,
     p_shop_id TEXT
@@ -888,22 +994,29 @@ BEGIN
     SELECT 
         o.id,
         COALESCE(o.order_short_code, o.order_token, o.id) AS order_token,
-        o.total_amount,
+        (o.total_amount - COALESCE(prev.settled_sum, 0.00)) AS total_amount,
         o.customer_name,
         o.customer_phone,
         o.delivered_at,
         o.cash_status
     FROM public.foody_orders o
+    LEFT JOIN (
+        SELECT a.order_id, SUM(a.amount_allocated) AS settled_sum
+        FROM public.foody_cash_settlement_allocations a
+        JOIN public.foody_cash_settlements st ON st.id = a.settlement_id
+        WHERE st.status <> 'reversed'
+        GROUP BY a.order_id
+    ) prev ON prev.order_id = o.id
     WHERE o.rider_id = p_rider_id
       AND o.shop_id = p_shop_id
       AND o.payment_method IN ('cash', 'cod')
       AND o.cash_status = 'collected'
-      AND o.settlement_id IS NULL
+      AND (o.total_amount - COALESCE(prev.settled_sum, 0.00)) > 0
     ORDER BY o.created_at ASC;
 END;
 $$;
 
--- 12.3 Get Shop Cashflow Summary
+-- 13.3 Get Shop Cashflow Summary (Accurate Float & True Settled Allocation Sums)
 CREATE OR REPLACE FUNCTION public.get_shop_cashflow_summary(p_shop_id TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -943,23 +1056,29 @@ BEGIN
       AND payment_method IN ('cash', 'cod')
       AND (rider_id IS NULL OR fulfillment_type = 'pickup');
 
-    -- Rider Cash In Transit (Delivered COD orders held by couriers awaiting return)
-    SELECT COALESCE(SUM(total_amount), 0.00), COUNT(DISTINCT rider_id)
+    -- Rider Cash In Transit (True remaining debt of delivered COD orders held by couriers)
+    SELECT COALESCE(SUM(o.total_amount - COALESCE(alloc.settled_sum, 0.00)), 0.00), COUNT(DISTINCT o.rider_id)
     INTO v_rider_cash_in_transit, v_active_riders_count
-    FROM public.foody_orders
-    WHERE shop_id = p_shop_id
-      AND payment_method IN ('cash', 'cod')
-      AND cash_status = 'collected'
-      AND settlement_id IS NULL
-      AND rider_id IS NOT NULL;
+    FROM public.foody_orders o
+    LEFT JOIN (
+        SELECT a.order_id, SUM(a.amount_allocated) as settled_sum
+        FROM public.foody_cash_settlement_allocations a
+        JOIN public.foody_cash_settlements st ON st.id = a.settlement_id
+        WHERE st.status <> 'reversed'
+        GROUP BY a.order_id
+    ) alloc ON alloc.order_id = o.id
+    WHERE o.shop_id = p_shop_id
+      AND o.payment_method IN ('cash', 'cod')
+      AND o.cash_status = 'collected'
+      AND (o.total_amount - COALESCE(alloc.settled_sum, 0.00)) > 0
+      AND o.rider_id IS NOT NULL;
 
-    -- Rider Cash Reconciled (Settled Handovers)
-    SELECT COALESCE(SUM(total_amount), 0.00)
+    -- Rider Cash Reconciled (Sum of non-reversed settlement allocations)
+    SELECT COALESCE(SUM(a.amount_allocated), 0.00)
     INTO v_rider_cash_settled
-    FROM public.foody_orders
-    WHERE shop_id = p_shop_id
-      AND payment_method IN ('cash', 'cod')
-      AND cash_status = 'settled';
+    FROM public.foody_cash_settlement_allocations a
+    JOIN public.foody_cash_settlements s ON s.id = a.settlement_id
+    WHERE s.shop_id = p_shop_id AND s.status <> 'reversed';
 
     RETURN pg_catalog.jsonb_build_object(
         'shop_id', p_shop_id,
@@ -973,11 +1092,12 @@ BEGIN
 END;
 $$;
 
--- STEP 13: STRICT ZERO-TRUST RLS POLICIES & PERMISSIONS
+-- STEP 14: STRICT ZERO-TRUST RLS POLICIES & PERMISSIONS
 -- ------------------------------------------------------------------------
 ALTER TABLE public.foody_cash_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_cash_settlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_cash_settlement_allocations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.foody_cash_settlement_reversals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_cash_ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_cash_journals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.foody_cash_journal_lines ENABLE ROW LEVEL SECURITY;
@@ -987,6 +1107,7 @@ ALTER TABLE public.foody_financial_audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access cash accounts" ON public.foody_cash_accounts;
 DROP POLICY IF EXISTS "Public access cash settlements" ON public.foody_cash_settlements;
 DROP POLICY IF EXISTS "Public access cash allocations" ON public.foody_cash_settlement_allocations;
+DROP POLICY IF EXISTS "Public access cash reversals" ON public.foody_cash_settlement_reversals;
 DROP POLICY IF EXISTS "Public access cash ledger" ON public.foody_cash_ledger_entries;
 DROP POLICY IF EXISTS "Public access cash journals" ON public.foody_cash_journals;
 DROP POLICY IF EXISTS "Public access cash journal lines" ON public.foody_cash_journal_lines;
@@ -1021,6 +1142,15 @@ CREATE POLICY "Authorized read cash allocations" ON public.foody_cash_settlement
             WHERE s.id = settlement_id
               AND (s.rider_id = auth.uid()::text OR public.can_manage_shop_finances(s.shop_id))
         )
+    );
+
+DROP POLICY IF EXISTS "Authorized read settlement reversals" ON public.foody_cash_settlement_reversals;
+CREATE POLICY "Authorized read settlement reversals" ON public.foody_cash_settlement_reversals
+    FOR SELECT TO authenticated
+    USING (
+        public.is_platform_admin() 
+        OR auth.uid()::text = rider_id 
+        OR public.can_manage_shop_finances(shop_id)
     );
 
 DROP POLICY IF EXISTS "Authorized read cash ledger" ON public.foody_cash_ledger_entries;
@@ -1069,6 +1199,7 @@ CREATE POLICY "Authorized read financial audit" ON public.foody_financial_audit_
 REVOKE ALL ON public.foody_cash_accounts FROM anon, public;
 REVOKE ALL ON public.foody_cash_settlements FROM anon, public;
 REVOKE ALL ON public.foody_cash_settlement_allocations FROM anon, public;
+REVOKE ALL ON public.foody_cash_settlement_reversals FROM anon, public;
 REVOKE ALL ON public.foody_cash_ledger_entries FROM anon, public;
 REVOKE ALL ON public.foody_cash_journals FROM anon, public;
 REVOKE ALL ON public.foody_cash_journal_lines FROM anon, public;
@@ -1078,6 +1209,7 @@ REVOKE ALL ON public.foody_financial_audit_logs FROM anon, public;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_accounts FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_settlements FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_settlement_allocations FROM authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_settlement_reversals FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_ledger_entries FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_journals FROM authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.foody_cash_journal_lines FROM authenticated;
@@ -1086,6 +1218,7 @@ REVOKE INSERT, UPDATE, DELETE ON public.foody_financial_audit_logs FROM authenti
 GRANT SELECT ON public.foody_cash_accounts TO authenticated, service_role;
 GRANT SELECT ON public.foody_cash_settlements TO authenticated, service_role;
 GRANT SELECT ON public.foody_cash_settlement_allocations TO authenticated, service_role;
+GRANT SELECT ON public.foody_cash_settlement_reversals TO authenticated, service_role;
 GRANT SELECT ON public.foody_cash_ledger_entries TO authenticated, service_role;
 GRANT SELECT ON public.foody_cash_journals TO authenticated, service_role;
 GRANT SELECT ON public.foody_cash_journal_lines TO authenticated, service_role;
@@ -1094,6 +1227,7 @@ GRANT SELECT ON public.foody_financial_audit_logs TO authenticated, service_role
 GRANT ALL ON public.foody_cash_accounts TO service_role;
 GRANT ALL ON public.foody_cash_settlements TO service_role;
 GRANT ALL ON public.foody_cash_settlement_allocations TO service_role;
+GRANT ALL ON public.foody_cash_settlement_reversals TO service_role;
 GRANT ALL ON public.foody_cash_ledger_entries TO service_role;
 GRANT ALL ON public.foody_cash_journals TO service_role;
 GRANT ALL ON public.foody_cash_journal_lines TO service_role;
@@ -1118,6 +1252,7 @@ DO $$ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_accounts;
     ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_settlements;
     ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_settlement_allocations;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_settlement_reversals;
     ALTER PUBLICATION supabase_realtime ADD TABLE public.foody_cash_ledger_entries;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
