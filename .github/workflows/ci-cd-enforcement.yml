@@ -39,7 +39,13 @@ jobs:
         run: npm ci
 
       - name: Audit Migrations for Production Safety
-        run: node scripts/lint-migrations.js
+        run: npm run lint:migrations
+
+      - name: Financial Ledger, Authorization & Concurrency Tests
+        run: npm run test:billing
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.DEV_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.DEV_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Production Bundle Verification
         run: npm run build

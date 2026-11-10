@@ -145,9 +145,8 @@ export async function settleRiderCashHandover({
   }
 
   let dbResult = null;
-  let usedFallback = false;
 
-  // 1. Attempt authoritative database RPC (Atomic PostgreSQL transaction)
+  // 1. Authoritative Database RPC (Single Atomic PostgreSQL Transaction)
   try {
     const { data, error } = await supabase.rpc('record_rider_cash_settlement', {
       p_rider_id: cleanRiderId,
@@ -161,218 +160,65 @@ export async function settleRiderCashHandover({
     });
 
     if (error) {
-      console.warn('record_rider_cash_settlement RPC note:', error.message);
-      // If error is a business validation error, throw directly
-      if (error.message?.includes('NO_SETTLEMENT_PENDING') || error.message?.includes('INVALID_AMOUNT')) {
-        throw new Error(error.message);
+      const isNetwork = (typeof window !== 'undefined' && typeof navigator !== 'undefined' && !navigator.onLine)
+        || error.message?.includes('Failed to fetch')
+        || error.message?.includes('NetworkError')
+        || error.message?.includes('timeout')
+        || error.name === 'AbortError';
+
+      if (isNetwork) {
+        try {
+          const pendingKey = 'foody_pending_settlements';
+          const pendingQueue = JSON.parse(safeStorage.getItem(pendingKey) || '[]');
+          pendingQueue.push({
+            riderId: cleanRiderId,
+            shopId: cleanShopId,
+            amountReceived: received,
+            declaredAmount: declared,
+            idempotencyKey: key,
+            orderIds,
+            settledBy,
+            notes,
+            queuedAt: nowIso,
+            retryCount: 0
+          });
+          safeStorage.setItem(pendingKey, JSON.stringify(pendingQueue));
+        } catch (_) {}
+
+        return {
+          success: false,
+          isOfflinePending: true,
+          idempotencyKey: key,
+          message: 'Network offline: Cash handover queued for synchronization. Authoritative balance remains unchanged until server confirmation.'
+        };
       }
-    } else if (data && data.success) {
-      dbResult = data;
+
+      // Business rejection, authorization failure, or schema violation:
+      // Authoritative database rejection must be exposed directly with no client fallback!
+      console.error('record_rider_cash_settlement RPC rejection:', error);
+      throw new Error(error.message || `Financial Settlement Error (Code: ${error.code || 'UNKNOWN'})`);
     }
+
+    if (!data || !data.success) {
+      throw new Error('Financial Settlement Error: Database transaction rolled back without confirmation.');
+    }
+
+    dbResult = data;
   } catch (err) {
-    if (err.message?.includes('NO_SETTLEMENT_PENDING') || err.message?.includes('INVALID_AMOUNT')) {
-      throw err;
-    }
-    console.warn('record_rider_cash_settlement RPC exception, initiating verified direct fallback:', err);
+    if (err.isOfflinePending) return err;
+    console.error('settleRiderCashHandover failed:', err.message);
+    throw err;
   }
 
-  // 2. Resilient Direct Fallback (if RPC migration is pending or returned schema cache mismatch)
-  if (!dbResult) {
-    usedFallback = true;
-    const settlementId = `csh_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-
-    // Check if idempotent settlement already exists
-    if (key) {
-      try {
-        const idemRaw = safeStorage.getItem(`foody_idem_${key}`);
-        if (idemRaw) {
-          const cachedMatch = JSON.parse(idemRaw);
-          return {
-            success: true,
-            settlementId: cachedMatch.id || cachedMatch.settlement_id,
-            settlement: cachedMatch,
-            status: cachedMatch.status,
-            shortageAmount: Number(cachedMatch.shortage_amount || 0),
-            excessAmount: Number(cachedMatch.excess_amount || 0),
-            expectedAmount: Number(cachedMatch.expected_amount || 0),
-            receivedAmount: Number(cachedMatch.received_amount || cachedMatch.cashier_received_amount || 0),
-            isIdempotentReplay: true
-          };
-        }
-      } catch (_) {}
-
-      try {
-        const { data: existing } = await supabase
-          .from('foody_cash_settlements')
-          .select('*')
-          .eq('idempotency_key', key)
-          .maybeSingle();
-
-        if (existing) {
-          return {
-            success: true,
-            settlementId: existing.id,
-            settlement: existing,
-            status: existing.status,
-            shortageAmount: Number(existing.shortage_amount || 0),
-            excessAmount: Number(existing.excess_amount || 0),
-            expectedAmount: Number(existing.expected_amount || 0),
-            receivedAmount: Number(existing.cashier_received_amount || 0),
-            isIdempotentReplay: true
-          };
-        }
-      } catch (_) {}
-
-      try {
-        const histKey = `foody_cache_settlements_${cleanShopId}`;
-        const cachedHist = JSON.parse(safeStorage.getItem(histKey) || '[]');
-        const cachedMatch = cachedHist.find(s => s.idempotency_key === key);
-        if (cachedMatch) {
-          return {
-            success: true,
-            settlementId: cachedMatch.id || cachedMatch.settlement_id,
-            settlement: cachedMatch,
-            status: cachedMatch.status,
-            shortageAmount: Number(cachedMatch.shortage_amount || 0),
-            excessAmount: Number(cachedMatch.excess_amount || 0),
-            expectedAmount: Number(cachedMatch.expected_amount || 0),
-            receivedAmount: Number(cachedMatch.received_amount || cachedMatch.cashier_received_amount || 0),
-            isIdempotentReplay: true
-          };
-        }
-      } catch (_) {}
-    }
-
-    // Query eligible unsettled orders for this rider and kitchen
-    let query = supabase
-      .from('foody_orders')
-      .select('id, total_amount, cash_status, status, created_at')
-      .eq('rider_id', cleanRiderId)
-      .eq('shop_id', cleanShopId)
-      .in('payment_method', ['cash', 'cod'])
-      .eq('cash_status', 'collected')
-      .is('settlement_id', null)
-      .order('created_at', { ascending: true });
-
-    if (Array.isArray(orderIds) && orderIds.length > 0) {
-      query = query.in('id', orderIds);
-    }
-
-    const { data: eligibleOrders, error: orderErr } = await query;
-    if (orderErr) throw new Error(`Could not query unsettled orders: ${orderErr.message}`);
-
-    const calculatedFromOrders = (eligibleOrders || []).reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-    const expectedTotal = calculatedFromOrders > 0 ? calculatedFromOrders : Math.max(0, declared);
-    if (expectedTotal <= 0 && received <= 0) {
-      throw new Error(`No unsettled cash collections found for rider "${cleanRiderId}" at kitchen "${cleanShopId}".`);
-    }
-
-    const shortage = Math.max(0, expectedTotal - received);
-    const excess = Math.max(0, received - expectedTotal);
-    let status = 'full_settlement';
-    if (received < expectedTotal) status = 'partial_settlement';
-    else if (excess > 0) status = 'excess_settlement';
-
-    // Waterfall allocation to orders
-    let remainingToAlloc = received;
-    const settledOrderIds = [];
-    const allocations = [];
-
-    for (const ord of (eligibleOrders || [])) {
-      const orderAmt = Number(ord.total_amount || 0);
-      if (remainingToAlloc >= orderAmt) {
-        // Fully settled
-        remainingToAlloc -= orderAmt;
-        settledOrderIds.push(ord.id);
-        allocations.push({ order_id: ord.id, allocated: orderAmt, remaining_debt: 0, is_fully_settled: true });
-
-        await supabase
-          .from('foody_orders')
-          .update({ cash_status: 'settled', settlement_id: settlementId, updated_at: nowIso })
-          .eq('id', ord.id)
-          .catch(() => {});
-      } else if (remainingToAlloc > 0) {
-        // Partial settlement for this order
-        const partialAmt = remainingToAlloc;
-        const remainingDebt = orderAmt - partialAmt;
-        remainingToAlloc = 0;
-        allocations.push({ order_id: ord.id, allocated: partialAmt, remaining_debt: remainingDebt, is_fully_settled: false });
-
-        await supabase
-          .from('foody_orders')
-          .update({ updated_at: nowIso })
-          .eq('id', ord.id)
-          .catch(() => {});
-      } else {
-        allocations.push({ order_id: ord.id, allocated: 0, remaining_debt: orderAmt, is_fully_settled: false });
-      }
-    }
-
-    // Insert master settlement record into foody_cash_settlements
-    const settlementRecord = {
-      id: settlementId,
-      shop_id: cleanShopId,
-      rider_id: cleanRiderId,
-      expected_amount: expectedTotal,
-      rider_declared_amount: declared,
-      cashier_received_amount: received,
-      shortage_amount: shortage,
-      excess_amount: excess,
-      status: status,
-      declared_by: cleanRiderId,
-      received_by: settledBy,
-      notes: notes || `Direct Handover Settlement (${status})`,
-      idempotency_key: key,
-      created_at: nowIso
-    };
-
-    try {
-      await supabase.from('foody_cash_settlements').insert([settlementRecord]);
-    } catch (insErr) {
-      console.warn('foody_cash_settlements insert note:', insErr.message);
-    }
-
-    // Update rider profile cash_in_hand
-    try {
-      const { data: userProfile } = await supabase.from('foody_users').select('cash_in_hand, unsettled_debt').eq('id', cleanRiderId).single();
-      const currentCash = Number(userProfile?.cash_in_hand || 0);
-      const currentDebt = Number(userProfile?.unsettled_debt || 0);
-      const newCash = Math.max(0, currentCash - (expectedTotal - shortage));
-      const newDebt = Math.max(0, currentDebt + shortage);
-
-      await supabase.from('foody_users').update({ cash_in_hand: newCash, unsettled_debt: newDebt }).eq('id', cleanRiderId);
-      await supabase.from('foody_logged_users').update({ cash_in_hand: newCash, unsettled_debt: newDebt }).eq('id', cleanRiderId);
-    } catch (_) {}
-
-    dbResult = {
-      success: true,
-      settlement_id: settlementId,
-      rider_id: cleanRiderId,
-      shop_id: cleanShopId,
-      expected_amount: expectedTotal,
-      received_amount: received,
-      declared_amount: declared,
-      shortage_amount: shortage,
-      excess_amount: excess,
-      status: status,
-      order_count: (eligibleOrders || []).length,
-      settled_orders: settledOrderIds,
-      allocations: allocations,
-      cashier_name: effectiveSettledBy,
-      created_at: nowIso,
-      idempotency_key: key,
-      fallback_executed: true
-    };
-  }
-
-  // 3. Update Local Storage Cache & Rider Trust Score Projection
+  // 2. Authoritative Result Processing & SWR Local Projections
+  // (Zero direct mutations on foody_users or foody_orders from the browser)
   const cibilBonus = dbResult.status === 'full_settlement' || dbResult.status === 'excess_settlement' ? 15 : -10;
-  await updateUserTrustScore(cleanRiderId, cibilBonus, `Counter Cash Handover (${dbResult.status}: ₹${received}/₹${dbResult.expected_amount})`);
+  await updateUserTrustScore(cleanRiderId, cibilBonus, `Counter Cash Handover (${dbResult.status}: ₹${received}/₹${dbResult.expected_amount})`).catch(() => {});
 
   const currentLedger = getRiderCashLedger(cleanRiderId);
   const updatedLedger = {
     cashInHand: Math.max(0, Number(currentLedger.cashInHand || 0) - (Number(dbResult.received_amount) - Number(dbResult.excess_amount || 0))),
-    unsettledDebt: (dbResult.shortage_amount || 0),
+    unsettledDebt: Number(dbResult.shortage_amount || 0),
     settledToday: (currentLedger.settledToday || 0) + received,
     lastSettledAt: nowIso,
     history: [
@@ -394,14 +240,13 @@ export async function settleRiderCashHandover({
       safeStorage.setItem(`foody_idem_${key}`, JSON.stringify(dbResult));
     }
     safeStorage.setItem(`foody_rider_cash_${cleanRiderId}`, JSON.stringify(updatedLedger));
-    // Cache settlement into local history cache for this shop
     const histKey = `foody_cache_settlements_${cleanShopId}`;
     const cachedHist = JSON.parse(safeStorage.getItem(histKey) || '[]');
-    const mergedHist = [dbResult, ...cachedHist.filter(s => s.id !== dbResult.settlement_id)].slice(0, 100);
+    const mergedHist = [dbResult, ...cachedHist.filter(s => (s.id || s.settlement_id) !== (dbResult.settlement_id || dbResult.id))].slice(0, 100);
     safeStorage.setItem(histKey, JSON.stringify(mergedHist));
   } catch (_) {}
 
-  // 4. Dispatch Real-Time Cross-App Events
+  // 3. Dispatch Local UI Events (Coordination Only, Never Financial Confirmation)
   dispatchSafeEvent('foody_cash_settled', {
     riderId: cleanRiderId,
     shopId: cleanShopId,
@@ -424,7 +269,8 @@ export async function settleRiderCashHandover({
     shortageAmount: Number(dbResult.shortage_amount || 0),
     excessAmount: Number(dbResult.excess_amount || 0),
     expectedAmount: Number(dbResult.expected_amount || 0),
-    receivedAmount: Number(dbResult.received_amount || dbResult.cashier_received_amount || 0)
+    receivedAmount: Number(dbResult.received_amount || dbResult.cashier_received_amount || 0),
+    isIdempotentReplay: Boolean(dbResult.idempotent_replay)
   };
 }
 
@@ -455,36 +301,26 @@ export async function getShopSettlementHistory(shopId, { limit = 50, offset = 0,
 
 async function fetchShopSettlementHistoryFromCloud(shopId, limit = 50, offset = 0, fallback = []) {
   try {
-    // 1. Try Authoritative RPC
+    // Authoritative RPC with independent shop-level authorization verification
     const { data: rpcData, error: rpcErr } = await supabase.rpc('get_shop_cash_settlements', {
       p_shop_id: shopId,
       p_limit: limit,
       p_offset: offset
     });
 
-    if (!rpcErr && Array.isArray(rpcData)) {
+    if (rpcErr) {
+      console.warn('get_shop_cash_settlements RPC authorization or execution failure:', rpcErr.message);
+      return fallback || [];
+    }
+
+    if (Array.isArray(rpcData)) {
       try {
         if (offset === 0) safeStorage.setItem(`foody_cache_settlements_${shopId}`, JSON.stringify(rpcData));
       } catch (_) {}
       return rpcData;
     }
-
-    // 2. Direct table fallback
-    const { data: tableData, error: tblErr } = await supabase
-      .from('foody_cash_settlements')
-      .select('*')
-      .eq('shop_id', shopId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (!tblErr && Array.isArray(tableData)) {
-      try {
-        if (offset === 0) safeStorage.setItem(`foody_cache_settlements_${shopId}`, JSON.stringify(tableData));
-      } catch (_) {}
-      return tableData;
-    }
   } catch (e) {
-    console.warn('fetchShopSettlementHistoryFromCloud notice:', e);
+    console.warn('fetchShopSettlementHistoryFromCloud exception:', e);
   }
 
   return fallback || [];
@@ -492,37 +328,26 @@ async function fetchShopSettlementHistoryFromCloud(shopId, limit = 50, offset = 
 
 /**
  * 🛵 Get Active Rider Outstanding Cash and Orders for a specific shop
+ * Authoritative RPC with caller authorization check
  */
 export async function getRiderOutstandingCash(riderId, shopId) {
   const cleanRiderId = String(riderId || '').trim();
   const cleanShopId = String(shopId || getDefaultActiveShopId()).trim();
 
   try {
-    // 1. Try RPC
     const { data: rpcData, error: rpcErr } = await supabase.rpc('get_rider_outstanding_orders', {
       p_rider_id: cleanRiderId,
       p_shop_id: cleanShopId
     });
 
-    if (!rpcErr && Array.isArray(rpcData)) {
-      const total = rpcData.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-      return { totalOutstanding: total, orderCount: rpcData.length, orders: rpcData };
+    if (rpcErr) {
+      console.warn('get_rider_outstanding_orders RPC failure:', rpcErr.message);
+      return { totalOutstanding: 0, orderCount: 0, orders: [], error: rpcErr.message };
     }
 
-    // 2. Direct query fallback
-    const { data: orders, error: ordErr } = await supabase
-      .from('foody_orders')
-      .select('id, order_short_code, total_amount, customer_name, customer_phone, delivered_at, cash_status')
-      .eq('rider_id', cleanRiderId)
-      .eq('shop_id', cleanShopId)
-      .in('payment_method', ['cash', 'cod'])
-      .eq('cash_status', 'collected')
-      .is('settlement_id', null)
-      .order('created_at', { ascending: true });
-
-    if (!ordErr && Array.isArray(orders)) {
-      const total = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-      return { totalOutstanding: total, orderCount: orders.length, orders };
+    if (Array.isArray(rpcData)) {
+      const total = rpcData.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+      return { totalOutstanding: total, orderCount: rpcData.length, orders: rpcData };
     }
   } catch (e) {
     console.warn('getRiderOutstandingCash exception:', e);

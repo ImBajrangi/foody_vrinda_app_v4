@@ -461,14 +461,24 @@ export default function TransportView() {
     });
 
     // 3. Realtime Supabase stream for Cash Handover & Settlements across devices
+    const processedSettlementIds = new Set();
     const unsubscribeSettlements = subscribeCloudSettlements ? subscribeCloudSettlements((settlement) => {
       if (!isSubscribed) return;
-      const myId = activeUser?.id || activeUser?.email || '';
-      if (settlement && (settlement.rider_id === myId || !settlement.rider_id)) {
-        const amt = settlement.cashier_received_amount || settlement.received_amount || 0;
-        showToast(`Cash Handover Confirmed — ₹${amt} Received by Kitchen`, 'success');
-        fetchRiderOrders();
+      const myId = activeUser?.id;
+      // Security Enforcement: Reject missing rider_id; Rider only processes their own authenticated settlement events
+      if (!myId || !settlement || !settlement.rider_id) return;
+      if (String(settlement.rider_id).trim() !== String(myId).trim()) return;
+
+      const sId = settlement.id || settlement.settlement_id;
+      if (sId) {
+        if (processedSettlementIds.has(sId)) return; // Duplicate event protection
+        processedSettlementIds.add(sId);
       }
+
+      const amt = Number(settlement.cashier_received_amount || settlement.received_amount || 0);
+      showToast(`+1 Cash Reconciled · ₹${amt} Handed Over`, 'success');
+      // Re-fetch authoritative account and order data from server
+      fetchRiderOrders();
     }) : null;
 
     const handleOrdersChanged = () => {

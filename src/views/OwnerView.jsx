@@ -1203,6 +1203,121 @@ export default function OwnerView() {
     });
   }, [isolatedOrders, billingSearchQuery, billingStatusFilter]);
 
+  // Cash Handover Modal Handlers
+  const handleOpenRiderHandoverModal = useCallback((rider) => {
+    setSelectedRiderHandover(rider);
+    setHandoverReceivedAmount(String(rider.totalCash || rider.outstandingCash || ''));
+    setHandoverDeclaredAmount(String(rider.totalCash || rider.outstandingCash || ''));
+    setHandoverNotes('');
+  }, []);
+
+  const handleCloseRiderHandoverModal = useCallback(() => {
+    if (handoverSubmitting) return;
+    setSelectedRiderHandover(null);
+    setHandoverReceivedAmount('');
+    setHandoverDeclaredAmount('');
+    setHandoverNotes('');
+  }, [handoverSubmitting]);
+
+  const handleSubmitRiderHandover = useCallback(async () => {
+    if (!selectedRiderHandover || !activeShopId) return;
+    const received = parseFloat(handoverReceivedAmount);
+    if (isNaN(received) || received < 0) {
+      setToast({ message: 'Please enter a valid received cash amount.', type: 'warning' });
+      return;
+    }
+
+    setHandoverSubmitting(true);
+    try {
+      const key = `csh_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const orderIds = (selectedRiderHandover.orders || []).map(o => o.id);
+
+      const res = await settleRiderCashHandover({
+        riderId: selectedRiderHandover.riderId,
+        shopId: activeShopId,
+        amountReceived: received,
+        declaredAmount: parseFloat(handoverDeclaredAmount) || received,
+        idempotencyKey: key,
+        orderIds: orderIds.length > 0 ? orderIds : null,
+        notes: handoverNotes
+      });
+
+      if (res.isOfflinePending) {
+        setToast({ message: res.message, type: 'warning' });
+      } else {
+        setToast({
+          message: `Cash Handover Confirmed! ₹${res.receivedAmount || received} Received and Locked in Ledger.`,
+          type: 'success'
+        });
+        const refreshed = await getShopSettlementHistory(activeShopId, { forceRefresh: true });
+        if (Array.isArray(refreshed)) setSettlements(refreshed);
+      }
+      setSelectedRiderHandover(null);
+      setHandoverReceivedAmount('');
+      setHandoverDeclaredAmount('');
+      setHandoverNotes('');
+    } catch (err) {
+      setToast({ message: err.message || 'Settlement failed. Please check ledger logs.', type: 'error' });
+    } finally {
+      setHandoverSubmitting(false);
+    }
+  }, [selectedRiderHandover, activeShopId, handoverReceivedAmount, handoverDeclaredAmount, handoverNotes]);
+
+  // RFC-4180 Compliant Financial CSV Export
+  const handleExportBillingCSV = useCallback(() => {
+    try {
+      const escapeCsv = (str) => `"${String(str ?? '').replace(/"/g, '""')}"`;
+      let csvContent = '';
+
+      if (settlementSubTab === 'receipts') {
+        const headers = ['Settlement ID', 'Date & Time', 'Courier Name', 'Courier ID', 'Expected Float (INR)', 'Received Amount (INR)', 'Shortage (INR)', 'Excess (INR)', 'Status', 'Received By', 'Notes'];
+        const rows = settlements.map(s => [
+          escapeCsv(s.id),
+          escapeCsv(s.created_at ? new Date(s.created_at).toLocaleString('en-IN') : 'N/A'),
+          escapeCsv(s.rider_name || 'Courier'),
+          escapeCsv(s.rider_id),
+          escapeCsv(s.expected_amount || 0),
+          escapeCsv(s.cashier_received_amount || s.received_amount || 0),
+          escapeCsv(s.shortage_amount || 0),
+          escapeCsv(s.excess_amount || 0),
+          escapeCsv(s.status),
+          escapeCsv(s.received_by || 'Cashier'),
+          escapeCsv(s.notes || '')
+        ]);
+        csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      } else {
+        const headers = ['Order Token', 'Order ID', 'Date & Time', 'Customer Name', 'Customer Phone', 'Payment Method', 'Total Amount (INR)', 'Cash Status', 'Courier Name', 'Courier ID', 'Settlement ID'];
+        const rows = filteredBillingOrders.map(o => [
+          escapeCsv(getOrderDisplayToken(o)),
+          escapeCsv(o.id),
+          escapeCsv(o.createdAt ? new Date(o.createdAt).toLocaleString('en-IN') : 'N/A'),
+          escapeCsv(o.customerName || o.customer_name || 'Walk-in'),
+          escapeCsv(o.customerPhone || o.customer_phone || ''),
+          escapeCsv(o.paymentMethod || o.payment_method || 'N/A'),
+          escapeCsv(o.totalAmount || o.total_amount || 0),
+          escapeCsv(o.cashStatus || o.cash_status || 'none'),
+          escapeCsv(o.riderName || o.rider_name || 'N/A'),
+          escapeCsv(o.riderId || o.rider_id || 'N/A'),
+          escapeCsv(o.settlementId || o.settlement_id || 'Unsettled')
+        ]);
+        csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `foody_vrinda_billing_${settlementSubTab}_${activeShopId}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setToast({ message: `Exported ${settlementSubTab === 'receipts' ? settlements.length : filteredBillingOrders.length} records to CSV.`, type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Failed to export CSV: ' + e.message, type: 'error' });
+    }
+  }, [settlementSubTab, settlements, filteredBillingOrders, activeShopId]);
+
   // Chart data: Daily Sales
   const salesByDate = {};
   completedOrders.forEach(order => {
