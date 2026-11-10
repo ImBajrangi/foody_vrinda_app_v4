@@ -716,11 +716,10 @@ export async function updateCloudOrderStatus(orderId, newStatus, extra = {}) {
  * Calls get_available_deliveries RPC with optional rider GPS coords for radius filtering
  */
 export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
-  if (isTableWriteForbidden('get_available_deliveries')) {
-    return [];
-  }
-
   try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.removeItem('foody_forbidden_write_get_available_deliveries');
+    }
     const rpcParams = {};
     if (coords && coords.lat != null && coords.lng != null) {
       rpcParams.p_lat = Number(coords.lat);
@@ -729,9 +728,7 @@ export async function fetchAvailableDeliveries(coords = null, radiusKm = 15.0) {
     }
     const { data, error } = await supabase.rpc('get_available_deliveries', rpcParams);
     if (error) {
-      if (error.code === 'P0001' || error.message?.includes('PERMISSION_DENIED') || error.code === '42501' || error.status === 400 || error.status === 403) {
-        markTableWriteForbidden('get_available_deliveries');
-      }
+      console.warn('[fetchAvailableDeliveries] note:', error.message);
       return [];
     }
     const rawList = Array.isArray(data) ? data : [];

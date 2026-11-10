@@ -367,10 +367,27 @@ export default function TransportView() {
 
       if (!error && data) {
         const purged = getPurgedOrderIds();
+        const isPrivileged = Boolean(
+          activeUser?.role === 'grand_admin' ||
+          activeUser?.role === 'developer' ||
+          activeUser?.role === 'owner' ||
+          activeUser?.role === 'admin' ||
+          activeUser?.email === 'developer@foodyvrinda.com'
+        );
+        const isDevHost = Boolean(
+          typeof window !== 'undefined' && (
+            window.location.hostname === 'localhost' ||
+            window.location.hostname.includes('127.0.0.1') ||
+            window.location.hostname.includes('pages.dev') ||
+            window.location.search.includes('dev')
+          )
+        );
+        const allowTestOrders = isPrivileged || isDevHost;
+
         // Enforce strict client-side exclusion of counter pickup orders, test orders, and purged demo orders
         const deliveryOnly = data.filter(o => {
           const fType = String(o.fulfillment_type || o.fulfillmentType || '').toLowerCase().trim();
-          const isTestOrder = String(o.id || '').toLowerCase().startsWith('fv_handshake_') || String(o.id || '').toLowerCase().startsWith('test_');
+          const isTestOrder = !allowTestOrders && (String(o.id || '').toLowerCase().startsWith('fv_handshake_') || String(o.id || '').toLowerCase().startsWith('test_'));
           return fType !== 'pickup' && !purged.includes(o.id) && !isTestOrder;
         });
 
@@ -412,7 +429,23 @@ export default function TransportView() {
         available = await fetchAvailableDeliveries(riderCoordsRef.current);
       }
       const purged = getPurgedOrderIds();
-      setAvailableOrders((available || []).filter(o => !purged.includes(o.id) && !String(o.id || '').toLowerCase().startsWith('fv_handshake_') && !String(o.id || '').toLowerCase().startsWith('test_')));
+      const isPrivileged = Boolean(
+        activeUser?.role === 'grand_admin' ||
+        activeUser?.role === 'developer' ||
+        activeUser?.role === 'owner' ||
+        activeUser?.role === 'admin' ||
+        activeUser?.email === 'developer@foodyvrinda.com'
+      );
+      const isDevHost = Boolean(
+        typeof window !== 'undefined' && (
+          window.location.hostname === 'localhost' ||
+          window.location.hostname.includes('127.0.0.1') ||
+          window.location.hostname.includes('pages.dev') ||
+          window.location.search.includes('dev')
+        )
+      );
+      const allowTestOrders = isPrivileged || isDevHost;
+      setAvailableOrders((available || []).filter(o => !purged.includes(o.id) && (allowTestOrders || (!String(o.id || '').toLowerCase().startsWith('fv_handshake_') && !String(o.id || '').toLowerCase().startsWith('test_')))));
     } catch (err) {
       console.warn('Supabase fetchRiderOrders note:', err.message);
     }
@@ -1341,7 +1374,7 @@ export default function TransportView() {
             >
               <Clock size={14} />
               <span>Available</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-white/25 text-white' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${riderTab === 'upcoming' ? 'bg-white/25 text-white' : upcomingPickups.length > 0 ? 'bg-[#FD9139] text-white animate-pulse' : 'bg-stone-100 dark:bg-white/10 text-stone-600 dark:text-stone-300 border border-stone-200/60 dark:border-transparent'}`}>
                 {upcomingPickups.length}
               </span>
             </button>
