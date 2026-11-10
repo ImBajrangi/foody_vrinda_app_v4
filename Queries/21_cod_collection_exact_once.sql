@@ -48,8 +48,9 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF NEW.payment_method NOT IN ('cash', 'cod')
-       OR NEW.cash_status <> 'collected'
+    IF NEW.payment_method IS NULL
+       OR NEW.payment_method NOT IN ('cash', 'cod')
+       OR NEW.cash_status IS DISTINCT FROM 'collected'
        OR NEW.rider_id IS NULL THEN
         RETURN NEW;
     END IF;
