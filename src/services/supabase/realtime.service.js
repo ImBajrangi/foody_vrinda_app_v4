@@ -64,6 +64,20 @@ export class RealtimeMultiplexer {
         }
       });
     }
+
+    // Native Capacitor Mobile Lifecycle (iOS & Android foreground resume sync)
+    try {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive && this.hasActiveListeners()) {
+            if (!this.isSubscribed || !this.channel || this.channel.state !== 'joined') {
+              this._reconnectAttempts = 0;
+              this.reconnect();
+            }
+          }
+        });
+      }).catch(() => {});
+    } catch (_) {}
   }
 
   hasActiveListeners() {

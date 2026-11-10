@@ -1266,6 +1266,9 @@ class NativeNotificationService {
    * Check current browser/native system notification permission state
    */
   getSystemNotificationPermission() {
+    if (this.isNative) {
+      return this._nativePermission || 'granted';
+    }
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission; // 'granted' | 'denied' | 'default'
     }
