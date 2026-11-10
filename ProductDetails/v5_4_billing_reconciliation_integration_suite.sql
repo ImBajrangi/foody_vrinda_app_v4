@@ -367,7 +367,7 @@ FROM _billing_test_results
 ORDER BY test_id;
 
 -- Fail the SQL Editor run if any integration assertion failed.
-DO $
+DO $$
 DECLARE
     v_failed_count INTEGER;
 BEGIN
@@ -382,4 +382,4 @@ BEGIN
 
     RAISE NOTICE 'BILLING_INTEGRATION_PASSED: % database assertions passed.',
         (SELECT COUNT(*) FROM _billing_test_results);
-END $;
+END $$;
