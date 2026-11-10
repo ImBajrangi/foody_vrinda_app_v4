@@ -151,9 +151,9 @@ BEGIN
             v_requested_order_ids := CASE
                 WHEN COALESCE(pg_catalog.array_length(p_order_ids, 1), 0) > 0 THEN
                     ARRAY(
-                        SELECT DISTINCT requested_id
-                        FROM pg_catalog.unnest(p_order_ids) AS requested_id
-                        ORDER BY requested_id
+                        SELECT DISTINCT u.requested_id
+                        FROM pg_catalog.unnest(p_order_ids) AS u(requested_id)
+                        ORDER BY u.requested_id
                     )
                 ELSE NULL
             END;
@@ -307,9 +307,9 @@ BEGIN
     v_requested_order_ids := CASE
         WHEN COALESCE(pg_catalog.array_length(p_order_ids, 1), 0) > 0 THEN
             ARRAY(
-                SELECT DISTINCT requested_id
-                FROM pg_catalog.unnest(p_order_ids) AS requested_id
-                ORDER BY requested_id
+                SELECT DISTINCT u.requested_id
+                FROM pg_catalog.unnest(p_order_ids) AS u(requested_id)
+                ORDER BY u.requested_id
             )
         ELSE NULL
     END;
