@@ -1,7 +1,7 @@
 -- ========================================================================
 -- FOODY VRINDA — V5.4 AUTHORITATIVE BILLING & CASH RECONCILIATION TEST SUITE
 -- ========================================================================
--- PURPOSE: Real PostgreSQL Database Integration Tests
+-- PURPOSE: Real PostgreSQL Database Integration Tests (Run only on a disposable Alpha/Dev database after migrations 20261110000001 through 20261110000005)
 --   1. Strict cross-shop authorization & SECURITY DEFINER protection (Shop A vs Shop B)
 --   2. Real COD collection trigger & double-entry journal posting
 --   3. Real P0 Partial Settlement (₹500 order -> ₹100 handover -> ₹400 handover)
@@ -10,6 +10,7 @@
 --   6. Real Idempotency Replay (Zero duplicate journal lines)
 --   7. Real Settlement Reversal with database-enforced idempotency & trigger suppression
 --   8. Immutable tamper protection triggers on financial ledgers
+--   9. Idempotency payload mismatch rejection (explicit order list vs NULL)
 --
 -- EXECUTION: Run in Supabase SQL Editor against Alpha / Dev Database
 -- ========================================================================
@@ -364,3 +365,21 @@ END $$;
 SELECT test_id, description, expected, observed, verdict 
 FROM _billing_test_results 
 ORDER BY test_id;
+
+-- Fail the SQL Editor run if any integration assertion failed.
+DO $
+DECLARE
+    v_failed_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO v_failed_count
+    FROM _billing_test_results
+    WHERE verdict <> 'PASS';
+
+    IF v_failed_count > 0 THEN
+        RAISE EXCEPTION 'BILLING_INTEGRATION_FAILED: % of % database assertions failed.',
+            v_failed_count, (SELECT COUNT(*) FROM _billing_test_results);
+    END IF;
+
+    RAISE NOTICE 'BILLING_INTEGRATION_PASSED: % database assertions passed.',
+        (SELECT COUNT(*) FROM _billing_test_results);
+END $;
