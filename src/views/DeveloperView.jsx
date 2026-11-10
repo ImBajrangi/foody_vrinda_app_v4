@@ -1982,9 +1982,9 @@ export default function DeveloperView({ setCurrentTab }) {
 
           <div className="flex items-center gap-3 shrink-0">
             {/* Live sync status */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#CB785C]/12 border border-[#CB785C]/30 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#CB785C]" />
-              <span className="text-[10px] font-bold text-[#CB785C] dark:text-[#E2886C] uppercase tracking-wider font-['Outfit']">Live Sync</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FD9139]/12 border border-[#FD9139]/30 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.6)]" />
+              <span className="text-[10px] font-bold text-[#FD9139] uppercase tracking-wider font-['Outfit']">Live Sync</span>
             </div>
 
             {/* Auth badge */}
@@ -2029,7 +2029,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <Activity className="w-3.5 h-3.5" />
               </div>
               <h3 className="text-xs font-black text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit']">Recent Activity</h3>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#CB785C]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139]" />
             </div>
             <button
               type="button"
@@ -5572,10 +5572,10 @@ export default function DeveloperView({ setCurrentTab }) {
                     <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-amber-600 dark:group-hover:text-[#FD9139] transition-colors">
                       Live App Update & Version Release Engine
                     </h3>
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#CB785C]/15 text-[#CB785C] dark:text-[#E2886C] border border-[#CB785C]/30 font-['Outfit']">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/30 font-['Outfit']">
                       Installed: v{CURRENT_APP_VERSION.versionName} (b{CURRENT_APP_VERSION.versionCode})
                     </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30 font-['Outfit']">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FD9139]/10 text-[#FD9139] border border-[#FD9139]/25 font-['Outfit']">
                       {versionRegistry.length} Defined Versions
                     </span>
                   </div>
@@ -5598,7 +5598,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-[#CB785C]" />
+                      <Layers className="w-4 h-4 text-[#FD9139]" />
                       <span>1. App Version Matrix & Deployment Registry</span>
                     </h4>
                     <p className="text-[11px] text-stone-500 dark:text-neutral-400">
@@ -5610,7 +5610,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     <button
                       type="button"
                       onClick={handleOpenNewVersion}
-                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#CB785C] to-[#BA674C] hover:brightness-105 active:scale-95 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#FD9139] to-[#E57A24] hover:brightness-105 active:scale-95 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Define New Version</span>
@@ -5624,11 +5624,11 @@ export default function DeveloperView({ setCurrentTab }) {
                   {(() => {
                     const currentVer = versionRegistry.find(v => v.status === 'current') || versionRegistry[0];
                     return (
-                      <div className="p-4 rounded-[22px] bg-[#CB785C]/5 dark:bg-[#CB785C]/10 border border-[#CB785C]/30 flex flex-col justify-between space-y-3.5 shadow-xs">
+                      <div className="p-4 rounded-[22px] bg-[#FD9139]/8 border border-[#FD9139]/30 flex flex-col justify-between space-y-3.5 shadow-xs">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#CB785C]/20 text-[#CB785C] dark:text-[#E2886C] border border-[#CB785C]/30 flex items-center gap-1.5 font-['Outfit']">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#CB785C] shrink-0" />
+                            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#FD9139]/20 text-[#FD9139] border border-[#FD9139]/35 flex items-center gap-1.5 font-['Outfit']">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.6)] shrink-0" />
                               <span>Current Live Release (Production)</span>
                             </span>
                             <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400">
@@ -5649,7 +5649,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           <div className="space-y-1 pt-1">
                             {(Array.isArray(currentVer.highlights) ? currentVer.highlights : [currentVer.highlights]).slice(0, 3).map((h, i) => (
                               <div key={i} className="flex items-start gap-1.5 text-[11px] text-stone-600 dark:text-neutral-300 leading-tight">
-                                <Check className="w-3 h-3 text-[#CB785C] shrink-0 mt-0.5" />
+                                <Check className="w-3 h-3 text-[#FD9139] shrink-0 mt-0.5" />
                                 <span>{h}</span>
                               </div>
                             ))}
@@ -5657,11 +5657,11 @@ export default function DeveloperView({ setCurrentTab }) {
                         </div>
 
                         {/* Action Row */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-[#CB785C]/20">
+                        <div className="flex items-center gap-2 pt-2 border-t border-[#FD9139]/20">
                           <button
                             type="button"
                             onClick={() => handleSelectVersionForBroadcast(currentVer, 'live')}
-                            className="flex-1 py-2 px-2.5 rounded-xl bg-gradient-to-r from-[#CB785C] to-[#BA674C] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
+                            className="flex-1 py-2 px-2.5 rounded-xl bg-gradient-to-r from-[#FD9139] to-[#E57A24] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer font-['Outfit']"
                             title="Load 'Update Now Live' broadcast into composer"
                           >
                             <Radio className="w-3.5 h-3.5" />
@@ -5671,7 +5671,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             type="button"
                             onClick={() => handleInstantDispatchUpdate(currentVer, 'live')}
                             disabled={isBroadcasting}
-                            className="py-2 px-3 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-[#252223] text-[#CB785C] dark:text-[#E2886C] border border-[#CB785C]/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 font-['Outfit']"
+                            className="py-2 px-3 rounded-xl bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-[#252223] text-[#FD9139] border border-[#FD9139]/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 font-['Outfit'] hover:bg-[#FD9139]/10"
                             title="Instant 1-Click dispatch to all devices"
                           >
                             <Send className="w-3.5 h-3.5" />
@@ -5770,7 +5770,7 @@ export default function DeveloperView({ setCurrentTab }) {
                             className="p-2 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-200/90 dark:border-white/10 text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
                             title="Promote to Current Active Version"
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#CB785C]" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#FD9139]" />
                           </button>
                         </div>
                       </div>
@@ -5782,7 +5782,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-neutral-300 font-['Outfit'] flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#CB785C]" />
+                      <Clock className="w-3.5 h-3.5 text-[#FD9139]" />
                       <span>Defined App Versions & History Matrix</span>
                     </label>
                     <span className="text-[10px] font-mono text-stone-500 dark:text-neutral-400">
@@ -5801,7 +5801,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           key={ver.versionCode}
                           className={`p-3 rounded-[12px] border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
                             isCurrent
-                              ? 'bg-[#CB785C]/5 dark:bg-[#CB785C]/10 border-[#CB785C]/30'
+                              ? 'bg-[#FD9139]/8 border-[#FD9139]/35'
                               : isUpcoming
                               ? 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/30'
                               : isDeprecated
@@ -5812,7 +5812,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           <div className="flex items-start sm:items-center gap-3 min-w-0">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border font-mono font-black text-xs ${
                               isCurrent
-                                ? 'bg-[#CB785C]/20 text-[#CB785C] dark:text-[#E2886C] border-[#CB785C]/30'
+                                ? 'bg-[#FD9139]/20 text-[#FD9139] border-[#FD9139]/30'
                                 : isUpcoming
                                 ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/30'
                                 : isDeprecated
@@ -5829,7 +5829,7 @@ export default function DeveloperView({ setCurrentTab }) {
                                 </span>
                                 <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border font-['Outfit'] ${
                                   isCurrent
-                                    ? 'bg-[#CB785C]/15 text-[#CB785C] dark:text-[#E2886C] border-[#CB785C]/30'
+                                    ? 'bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/30'
                                     : isUpcoming
                                     ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
                                     : isDeprecated
@@ -5858,10 +5858,10 @@ export default function DeveloperView({ setCurrentTab }) {
                             <button
                               type="button"
                               onClick={() => handleSelectVersionForBroadcast(ver, isUpcoming ? 'upcoming' : (isDeprecated ? 'mandatory' : 'live'))}
-                              className="px-2.5 py-1.5 rounded-lg bg-stone-200/80 dark:bg-white/10 hover:bg-[#CB785C] hover:text-white text-stone-800 dark:text-neutral-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
+                              className="px-2.5 py-1.5 rounded-lg bg-stone-200/80 dark:bg-white/10 hover:bg-[#FD9139] hover:text-white text-stone-800 dark:text-neutral-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
                               title="Send update notification for this version"
                             >
-                              <Radio className="w-3.5 h-3.5 text-[#CB785C]" />
+                              <Radio className="w-3.5 h-3.5 text-[#FD9139]" />
                               <span>Send Update Alert</span>
                             </button>
 
@@ -5869,7 +5869,7 @@ export default function DeveloperView({ setCurrentTab }) {
                               <button
                                 type="button"
                                 onClick={() => handleSetCurrentVersion(ver)}
-                                className="px-2.5 py-1.5 rounded-lg bg-[#CB785C]/15 hover:bg-[#CB785C]/25 text-[#CB785C] dark:text-[#E2886C] border border-[#CB785C]/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
+                                className="px-2.5 py-1.5 rounded-lg bg-[#FD9139]/15 hover:bg-[#FD9139]/25 text-[#FD9139] border border-[#FD9139]/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 font-['Outfit']"
                                 title="Promote to Current Active Version"
                               >
                                 <Check className="w-3 h-3 stroke-[2.5]" />
@@ -5908,7 +5908,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200/80 dark:border-white/5 pb-3">
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
-                        <Send className="w-3.5 h-3.5 text-[#CB785C]" />
+                        <Send className="w-3.5 h-3.5 text-[#FD9139]" />
                         <span>2. One-Click App Update Broadcaster</span>
                       </h4>
                       <p className="text-[11px] text-stone-500 dark:text-neutral-400">
@@ -5926,7 +5926,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           const found = versionRegistry.find(v => v.versionCode === code);
                           if (found) setSelectedTargetVersion(found);
                         }}
-                        className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-xs font-black text-[#CB785C] focus:outline-none"
+                        className="px-2.5 py-1 rounded-xl bg-white dark:bg-[#1E1B1C] border border-stone-300 dark:border-white/10 text-xs font-black text-[#FD9139] focus:outline-none"
                       >
                         {versionRegistry.map(v => (
                           <option key={v.versionCode} value={v.versionCode}>
@@ -5964,11 +5964,11 @@ export default function DeveloperView({ setCurrentTab }) {
                           onClick={() => setUpdateBroadcastMode(style.id)}
                           className={`p-3 rounded-[14px] text-left border transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-white dark:bg-[#282526] border-[#CB785C] shadow-sm ring-1 ring-[#CB785C]'
+                              ? 'bg-white dark:bg-[#282526] border-[#FD9139] shadow-sm ring-1 ring-[#FD9139]'
                               : 'bg-white/60 dark:bg-[#1E1B1C]/60 hover:bg-white dark:hover:bg-[#1E1B1C] border-stone-200/80 dark:border-white/5'
                           }`}
                         >
-                          <span className={`text-xs font-black block font-['Outfit'] ${isSelected ? 'text-[#CB785C]' : 'text-stone-800 dark:text-neutral-200'}`}>
+                          <span className={`text-xs font-black block font-['Outfit'] ${isSelected ? 'text-[#FD9139]' : 'text-stone-800 dark:text-neutral-200'}`}>
                             {style.title}
                           </span>
                           <span className="text-[10px] text-stone-500 dark:text-neutral-400 mt-1 line-clamp-2 leading-tight block">
@@ -5986,12 +5986,12 @@ export default function DeveloperView({ setCurrentTab }) {
                       <div className="p-3.5 rounded-[14px] bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-2 shadow-2xs">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 font-['Outfit']">Notification Preview</span>
-                          <span className="text-[10px] font-bold text-[#CB785C] bg-[#CB785C]/10 px-2 py-0.5 rounded-full border border-[#CB785C]/20">
+                          <span className="text-[10px] font-bold text-[#FD9139] bg-[#FD9139]/12 px-2 py-0.5 rounded-full border border-[#FD9139]/25 font-['Outfit']">
                             Type: app_update • Priority: {previewMsg.priority}
                           </span>
                         </div>
                         <div className="font-bold text-xs text-stone-900 dark:text-white flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                          <Zap className="w-3.5 h-3.5 text-[#FD9139] fill-[#FD9139] shrink-0" />
                           <span>{previewMsg.title}</span>
                         </div>
                         <p className="text-[11px] text-stone-600 dark:text-neutral-300 leading-relaxed pl-5">
@@ -6038,7 +6038,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={() => handleInstantDispatchUpdate(selectedTargetVersion, updateBroadcastMode)}
                       disabled={isBroadcasting}
-                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#CB785C] via-[#DC7F62] to-[#B86246] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_8px_20px_-4px_rgba(203,120,92,0.45)] transition-all cursor-pointer disabled:opacity-50 font-['Outfit']"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FD9139] via-[#FB8526] to-[#E57A24] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_8px_20px_-4px_rgba(253,145,57,0.45)] transition-all cursor-pointer disabled:opacity-50 font-['Outfit']"
                     >
                       {isBroadcasting ? (
                         <>
@@ -6059,7 +6059,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <form onSubmit={handlePublishRemoteRelease} className="p-4 rounded-[20px] bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-3.5">
                   <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/5 pb-2.5">
                     <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit'] flex items-center gap-1.5">
-                      <Database className="w-3.5 h-3.5 text-[#CB785C]" />
+                      <Database className="w-3.5 h-3.5 text-[#FD9139]" />
                       <span>3. Remote Release Cloud Registry Sync</span>
                     </h4>
                     <span className="text-[10px] font-mono text-stone-500 dark:text-neutral-400">
@@ -6076,7 +6076,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         onChange={e => setReleaseVersionName(e.target.value)}
                         placeholder="e.g. 1.1.34"
                         required
-                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                       />
                     </div>
 
@@ -6088,7 +6088,7 @@ export default function DeveloperView({ setCurrentTab }) {
                         onChange={e => setReleaseVersionCode(parseInt(e.target.value, 10))}
                         placeholder="e.g. 45"
                         required
-                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                        className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                       />
                     </div>
 
@@ -6098,7 +6098,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           type="checkbox"
                           checked={releaseMandatory}
                           onChange={e => setReleaseMandatory(e.target.checked)}
-                          className="w-4 h-4 rounded accent-[#CB785C]"
+                          className="w-4 h-4 rounded accent-[#FD9139]"
                         />
                         <span className="text-xs font-bold text-stone-800 dark:text-neutral-200">Mandatory (Block old versions)</span>
                       </label>
@@ -6113,7 +6113,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       onChange={e => setReleaseApkUrl(e.target.value)}
                       placeholder="https://..."
                       required
-                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                     />
                   </div>
 
@@ -6124,7 +6124,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       onChange={e => setReleaseNotes(e.target.value)}
                       rows={3}
                       required
-                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C] custom-scrollbar"
+                      className="w-full bg-stone-50 dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139] custom-scrollbar"
                     />
                   </div>
 
@@ -6534,7 +6534,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     onChange={e => setVersionDraft(prev => ({ ...prev, versionName: e.target.value }))}
                     placeholder="e.g. 1.1.34"
                     required
-                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                   />
                 </div>
                 <div>
@@ -6545,7 +6545,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     onChange={e => setVersionDraft(prev => ({ ...prev, versionCode: parseInt(e.target.value, 10) }))}
                     placeholder="e.g. 45"
                     required
-                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                   />
                 </div>
               </div>
@@ -6556,7 +6556,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   <select
                     value={versionDraft.status}
                     onChange={e => setVersionDraft(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                   >
                     <option value="upcoming">Upcoming Release (Rolling out)</option>
                     <option value="current">Current Active (Production)</option>
@@ -6570,7 +6570,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     type="date"
                     value={versionDraft.releaseDate}
                     onChange={e => setVersionDraft(prev => ({ ...prev, releaseDate: e.target.value }))}
-                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                    className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                   />
                 </div>
               </div>
@@ -6583,7 +6583,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   onChange={e => setVersionDraft(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g. Foody Vrinda v1.1.34 — Realtime Telemetry"
                   required
-                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                 />
               </div>
 
@@ -6595,7 +6595,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   onChange={e => setVersionDraft(prev => ({ ...prev, apkUrl: e.target.value }))}
                   placeholder="https://..."
                   required
-                  className="w-full bg-white dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C]"
+                  className="w-full bg-white dark:bg-[#151314] text-xs font-mono text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139]"
                 />
               </div>
 
@@ -6606,7 +6606,7 @@ export default function DeveloperView({ setCurrentTab }) {
                   onChange={e => setVersionDraft(prev => ({ ...prev, highlights: e.target.value }))}
                   rows={3}
                   required
-                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#CB785C] custom-scrollbar"
+                  className="w-full bg-white dark:bg-[#151314] text-xs text-stone-900 dark:text-white border border-stone-300 dark:border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-[#FD9139] custom-scrollbar"
                 />
               </div>
 
@@ -6616,7 +6616,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     type="checkbox"
                     checked={versionDraft.isMandatory}
                     onChange={e => setVersionDraft(prev => ({ ...prev, isMandatory: e.target.checked }))}
-                    className="w-4 h-4 rounded accent-[#CB785C]"
+                    className="w-4 h-4 rounded accent-[#FD9139]"
                   />
                   <span className="text-xs font-bold text-stone-800 dark:text-neutral-200">Mandatory Update (Forces user to install)</span>
                 </label>
@@ -6633,7 +6633,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <button
                   type="submit"
                   disabled={isSavingVersions}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#CB785C] to-[#BA674C] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit']"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FD9139] to-[#E57A24] hover:brightness-105 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50 font-['Outfit']"
                 >
                   {isSavingVersions ? 'Saving to Cloud...' : 'Save Version Definition'}
                 </button>

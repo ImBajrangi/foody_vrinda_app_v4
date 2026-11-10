@@ -499,7 +499,7 @@ export default function UnifiedSearchModal({ isOpen, onClose, onSelectShop, onSe
             {/* Search Input Bar (Duolingo 3D Tactile Input + Push Cancel) */}
             <div className="p-3 sm:p-4 pt-1 sm:pt-3.5 flex items-center gap-2.5 sm:gap-3">
               {/* Integrated Search Input Capsule with tactile 3D bottom bevel */}
-              <div className="flex-1 min-w-0 h-12 bg-white dark:bg-[#161415] border-2 border-b-[4px] border-stone-200 dark:border-white/15 focus-within:border-[#FD9139] focus-within:border-b-[#CB785C] rounded-2xl px-3.5 flex items-center gap-2.5 transition-all shadow-inner">
+              <div className="flex-1 min-w-0 h-12 bg-white dark:bg-[#161415] border-2 border-b-[4px] border-stone-200 dark:border-white/15 focus-within:border-[#FD9139] focus-within:border-b-[#E57A24] rounded-2xl px-3.5 flex items-center gap-2.5 transition-all shadow-inner">
                 <Search size={18} strokeWidth={2.5} className="text-amber-500 dark:text-[#FD9139] shrink-0 pointer-events-none" />
 
                 <input
