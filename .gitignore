@@ -27,6 +27,7 @@ dist-ssr
 !.env.example
 
 Queries/*
+!Queries/19_rider_cash_handover_and_billing_ledger.sql
 supabase/serviceAccountKey.json
 supabase/.temp/
 *firebase-adminsdk*.json
