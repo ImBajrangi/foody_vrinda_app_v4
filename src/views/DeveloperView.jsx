@@ -2251,7 +2251,7 @@ export default function DeveloperView({ setCurrentTab }) {
 
         {/* Realtime Staff & System Broadcast Dispatcher */}
         {(activeDevTab === 'all' || activeDevTab === 'broadcast') && (
-          <div id="staff-broadcast-section" className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200/90 dark:border-white/10 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 md:col-span-2 space-y-4 sm:space-y-5 shadow-xl transition-all">
+          <div id="staff-broadcast-section" className="bg-white dark:bg-[#242021] border border-stone-200/90 dark:border-white/10 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 md:col-span-2 space-y-4 sm:space-y-5 shadow-xl transition-all">
             {/* Header: Title, Active Beacon & Mobile Tab Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <button
@@ -2259,12 +2259,12 @@ export default function DeveloperView({ setCurrentTab }) {
                 onClick={() => toggleSection('broadcast')}
                 className="flex items-center gap-3 min-w-0 text-left cursor-pointer group flex-1"
               >
-                <div className="w-10 h-10 rounded-2xl bg-[#CB785C]/15 dark:bg-[#CB785C]/20 border border-[#CB785C]/30 text-[#CB785C] dark:text-[#E2886C] flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-10 h-10 rounded-2xl bg-[#FD9139]/15 border border-[#FD9139]/30 text-[#FD9139] flex items-center justify-center shrink-0 shadow-xs">
                   <Radio className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#CB785C] transition-colors">
+                    <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-white uppercase tracking-wider font-['Outfit'] group-hover:text-[#FD9139] transition-colors">
                       Staff Realtime Broadcast & System Dispatcher
                     </h3>
                     <div className={`p-1 rounded-lg bg-stone-200/80 dark:bg-white/5 text-stone-600 dark:text-neutral-400 group-hover:text-stone-900 dark:group-hover:text-white transition-transform duration-200 ${(activeDevTab === 'broadcast' || !collapsedSections.broadcast) ? 'rotate-180' : ''}`}>
@@ -2279,15 +2279,15 @@ export default function DeveloperView({ setCurrentTab }) {
 
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                 {webNotificationPerm === 'granted' ? (
-                  <span className="text-[11px] font-bold text-[#CB785C] dark:text-[#E2886C] bg-[#CB785C]/12 border border-[#CB785C]/30 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-2xs font-['Outfit']">
-                    <span className="w-2 h-2 rounded-full bg-[#CB785C]" />
+                  <span className="text-[11px] font-bold text-[#FD9139] bg-[#FD9139]/12 border border-[#FD9139]/30 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-2xs font-['Outfit']">
+                    <span className="w-2 h-2 rounded-full bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.6)]" />
                     <span>Push & Realtime Active</span>
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={handleRequestWebPermission}
-                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-[#FD9139] border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#FD9139]/10 hover:bg-[#FD9139]/20 text-[#FD9139] border border-[#FD9139]/30 transition-all cursor-pointer flex items-center gap-1.5 font-['Outfit']"
                   >
                     <BellRing className="w-3.5 h-3.5" />
                     <span>Enable Phone Push</span>
@@ -2302,7 +2302,7 @@ export default function DeveloperView({ setCurrentTab }) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-neutral-300 font-['Outfit'] flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-[#CB785C]" />
+                      <Zap className="w-3.5 h-3.5 text-[#FD9139]" />
                       <span>Quick Operational Protocols</span>
                     </label>
                     <span className="text-[10px] text-stone-500 dark:text-neutral-400 font-mono hidden sm:inline">
@@ -2400,8 +2400,8 @@ export default function DeveloperView({ setCurrentTab }) {
                           }}
                           className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 border ${
                             isTemplateActive
-                              ? 'bg-gradient-to-r from-[#CB785C] to-[#BA674C] text-white border-transparent shadow-[0_4px_14px_rgba(203,120,92,0.35)] ring-2 ring-[#CB785C]/40'
-                              : 'bg-white dark:bg-[#1C1A1B] hover:bg-stone-50 dark:hover:bg-[#252223] text-stone-700 dark:text-neutral-300 border-stone-200/90 dark:border-white/10'
+                              ? 'bg-[#FD9139] text-white border-transparent shadow-[0_4px_14px_rgba(253,145,57,0.35)] font-bold'
+                              : 'bg-white dark:bg-[#1E1B1C] hover:bg-stone-50 dark:hover:bg-[#201D1E] text-stone-700 dark:text-neutral-300 border-stone-200/90 dark:border-white/10 hover:border-[#FD9139]/40 hover:text-stone-950 dark:hover:text-white'
                           }`}
                         >
                           <span>{tpl.label}</span>
@@ -2412,17 +2412,17 @@ export default function DeveloperView({ setCurrentTab }) {
                 </div>
 
                 {/* Mobile View Switcher (< lg screens only) */}
-                <div className="flex lg:hidden rounded-2xl bg-stone-200/70 dark:bg-[#181617] p-1 border border-stone-200/90 dark:border-white/10 select-none">
+                <div className="flex lg:hidden rounded-2xl bg-stone-200/70 dark:bg-[#161415] p-1 border border-stone-200/90 dark:border-white/10 select-none">
                   <button
                     type="button"
                     onClick={() => setMobileBroadcasterTab('compose')}
                     className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       mobileBroadcasterTab === 'compose'
-                        ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs font-black'
+                        ? 'bg-white dark:bg-[#201D1E] text-stone-900 dark:text-white shadow-xs font-black'
                         : 'text-stone-600 dark:text-neutral-400'
                     }`}
                   >
-                    <Send className="w-3.5 h-3.5 text-[#CB785C]" />
+                    <Send className="w-3.5 h-3.5 text-[#FD9139]" />
                     <span>Composer</span>
                   </button>
                   <button
@@ -2430,15 +2430,15 @@ export default function DeveloperView({ setCurrentTab }) {
                     onClick={() => setMobileBroadcasterTab('feed')}
                     className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       mobileBroadcasterTab === 'feed'
-                        ? 'bg-white dark:bg-[#282526] text-stone-900 dark:text-white shadow-xs font-black'
+                        ? 'bg-white dark:bg-[#201D1E] text-stone-900 dark:text-white shadow-xs font-black'
                         : 'text-stone-600 dark:text-neutral-400'
                     }`}
                   >
-                    <Radio className="w-3.5 h-3.5 text-[#CB785C]" />
+                    <Radio className="w-3.5 h-3.5 text-[#FD9139]" />
                     <span>Live Stream</span>
-                    {(broadcastLiveLog.length || broadcastHistory.length) > 0 && (
-                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#CB785C] text-white">
-                        {broadcastLiveLog.length || broadcastHistory.length}
+                    {allBroadcastFeed.length > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#FD9139] text-white">
+                        {allBroadcastFeed.length}
                       </span>
                     )}
                   </button>
@@ -2454,13 +2454,13 @@ export default function DeveloperView({ setCurrentTab }) {
                         <label className="text-xs font-bold text-stone-800 dark:text-neutral-200 font-['Outfit'] uppercase tracking-wider flex items-center gap-1.5">
                           <span>1. Target Audience</span>
                         </label>
-                        <span className="text-[11px] font-bold text-[#CB785C] bg-[#CB785C]/10 dark:bg-[#CB785C]/15 px-2.5 py-0.5 rounded-full border border-[#CB785C]/20">
+                        <span className="text-[11px] font-bold text-[#FD9139] bg-[#FD9139]/12 px-2.5 py-0.5 rounded-full border border-[#FD9139]/25 font-['Outfit']">
                           {filteredBroadcastRecipients.length} User(s) • {fcmDeviceCount} Device(s)
                         </span>
                       </div>
 
-                      {/* Concentric Nested Border Radius Rule: Container rounded-[20px], inner cards rounded-[14px] */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-1.5 bg-stone-200/50 dark:bg-[#181617] rounded-[20px] border border-stone-200/80 dark:border-white/5">
+                      {/* Concentric Nested Border Radius Rule: Container rounded-[20px] p-2, inner cards rounded-[12px] (20 - 8 = 12) */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2 bg-stone-100 dark:bg-[#161415] rounded-[20px] border border-stone-200/80 dark:border-white/5">
                         {[
                           { id: 'staff', label: 'All Staff', desc: 'Kitchen + Fleet + Store', icon: Users },
                           { id: 'kitchen', label: 'Kitchen Crew', desc: 'Chefs & Counter Prep', icon: UtensilsCrossed },
@@ -2476,15 +2476,15 @@ export default function DeveloperView({ setCurrentTab }) {
                               key={cat.id}
                               type="button"
                               onClick={() => setBroadcastTargetCategory(cat.id)}
-                              className={`p-2.5 sm:p-3 rounded-[14px] text-left border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                              className={`p-3 rounded-[12px] text-left border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
                                 isSelected
-                                  ? 'bg-gradient-to-br from-[#CB785C] to-[#B66449] dark:from-[#CB785C] dark:to-[#9E5139] !text-white border-transparent shadow-[0_6px_20px_-2px_rgba(203,120,92,0.4)] ring-2 ring-[#CB785C]/40'
-                                  : 'bg-white dark:bg-[#201D1E] hover:bg-stone-50 dark:hover:bg-[#282526] text-stone-900 dark:text-neutral-200 border-stone-200/80 dark:border-white/10'
+                                  ? 'bg-gradient-to-br from-[#FD9139] to-[#E57A24] !text-white border-transparent shadow-[0_8px_20px_-2px_rgba(253,145,57,0.4)]'
+                                  : 'bg-white dark:bg-[#201D1E] hover:bg-stone-50 dark:hover:bg-[#282526] text-stone-900 dark:text-neutral-200 border border-stone-200/80 dark:border-white/10 hover:border-[#FD9139]/30'
                               }`}
                             >
                               <div className="flex items-center justify-between gap-1 w-full">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                  <IconComp className={`w-3.5 h-3.5 shrink-0 ${isSelected ? '!text-white' : 'text-[#CB785C]'}`} />
+                                  <IconComp className={`w-3.5 h-3.5 shrink-0 ${isSelected ? '!text-white' : 'text-[#FD9139]'}`} />
                                   <p className={`text-xs font-black truncate font-['Outfit'] ${isSelected ? '!text-white' : 'text-stone-900 dark:text-white'}`}>
                                     {cat.label}
                                   </p>
@@ -2506,15 +2506,15 @@ export default function DeveloperView({ setCurrentTab }) {
 
                     {/* Conditional Specific Individual User Selector */}
                     {broadcastTargetCategory === 'individual' && (
-                      <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-2 animate-fadeIn shadow-2xs">
+                      <div className="p-3.5 rounded-2xl bg-white dark:bg-[#201D1E] border border-stone-200/90 dark:border-white/10 space-y-2 animate-fadeIn shadow-2xs">
                         <label className="text-xs font-bold text-stone-700 dark:text-neutral-300 flex items-center gap-1.5 font-['Outfit']">
-                          <UserCheck className="w-3.5 h-3.5 text-[#CB785C]" />
+                          <UserCheck className="w-3.5 h-3.5 text-[#FD9139]" />
                           <span>Select Individual Staff / Devotee</span>
                         </label>
                         <select
                           value={broadcastTargetUserId}
                           onChange={(e) => setBroadcastTargetUserId(e.target.value)}
-                          className="w-full text-xs font-medium p-3 rounded-xl bg-stone-50 dark:bg-[#131112] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#CB785C]"
+                          className="w-full text-xs font-medium p-3 rounded-xl bg-stone-50 dark:bg-[#161415] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#FD9139]"
                         >
                           <option value="">-- Choose User Recipient --</option>
                           {usersList.map(u => (
@@ -2535,7 +2535,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       <select
                         value={broadcastShopId}
                         onChange={(e) => setBroadcastShopId(e.target.value)}
-                        className="w-full text-xs font-semibold p-3 rounded-xl bg-white dark:bg-[#1C1A1B] text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 outline-none focus:border-[#CB785C] shadow-2xs"
+                        className="w-full text-xs font-semibold p-3 rounded-xl bg-white dark:bg-[#161415] text-stone-900 dark:text-white border border-stone-200/90 dark:border-white/10 outline-none focus:border-[#FD9139] shadow-2xs"
                       >
                         <option value="all">🌐 All Kitchens & Branches (Global Hub Broadcast)</option>
                         {allShops.map(s => (
@@ -2547,7 +2547,7 @@ export default function DeveloperView({ setCurrentTab }) {
                     </div>
 
                     {/* 3. Notification Composer Card */}
-                    <div className="space-y-3.5 p-4 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 shadow-xs">
+                    <div className="space-y-3.5 p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#201D1E] border border-stone-200/90 dark:border-white/10 shadow-xs">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-stone-800 dark:text-neutral-200 flex items-center justify-between font-['Outfit'] uppercase tracking-wider">
                           <span>3. Notification Title</span>
@@ -2558,7 +2558,7 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={broadcastTitle}
                           onChange={(e) => setBroadcastTitle(e.target.value)}
                           placeholder="e.g. ⚡ Kitchen Rush Alert #FV-108"
-                          className="w-full text-xs font-bold p-3 rounded-xl bg-stone-50 dark:bg-[#131112] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#CB785C]"
+                          className="w-full text-xs font-bold p-3 rounded-xl bg-stone-50 dark:bg-[#161415] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#FD9139]"
                         />
                       </div>
 
@@ -2572,44 +2572,51 @@ export default function DeveloperView({ setCurrentTab }) {
                           value={broadcastMessage}
                           onChange={(e) => setBroadcastMessage(e.target.value)}
                           placeholder="Type clear instructions for staff..."
-                          className="w-full text-xs font-medium p-3 rounded-xl bg-stone-50 dark:bg-[#131112] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#CB785C] resize-none leading-relaxed"
+                          className="w-full text-xs font-medium p-3 rounded-xl bg-stone-50 dark:bg-[#161415] text-stone-900 dark:text-white border border-stone-200/80 dark:border-white/10 outline-none focus:border-[#FD9139] resize-none leading-relaxed"
                         />
                       </div>
 
-                      {/* Priority & Sound Controls */}
+                      {/* Priority Controls */}
                       <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-stone-200/70 dark:border-white/10">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 font-['Outfit']">Priority:</span>
                           {[
-                            { id: 'normal', label: 'Normal', dot: 'bg-[#CB785C]', desc: 'Standard chime' },
-                            { id: 'high', label: 'High Rush', dot: 'bg-amber-500', desc: 'Loud operational chime' },
-                            { id: 'urgent', label: 'Urgent Alarm', dot: 'bg-rose-500', desc: 'Continuous alert' }
-                          ].map(prio => (
-                            <button
-                              key={prio.id}
-                              type="button"
-                              onClick={() => setBroadcastPriority(prio.id)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                broadcastPriority === prio.id
-                                  ? 'bg-gradient-to-r from-[#CB785C] to-[#B66449] !text-white font-black shadow-xs ring-1 ring-[#CB785C]/40'
-                                  : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#131112] text-stone-700 dark:text-neutral-300 border border-stone-200/70 dark:border-white/10'
-                              }`}
-                              title={prio.desc}
-                            >
-                              <span className={`w-2 h-2 rounded-full ${prio.dot} shrink-0`} />
-                              <span className={broadcastPriority === prio.id ? '!text-white' : ''}>{prio.label}</span>
-                            </button>
-                          ))}
+                            { id: 'normal', label: 'Normal', dot: 'bg-[#FD9139]', desc: 'Standard chime' },
+                            { id: 'high', label: 'High Rush', dot: 'bg-[#FFB020]', desc: 'Loud operational chime' },
+                            { id: 'urgent', label: 'Urgent Alarm', dot: 'bg-[#E5484D]', desc: 'Continuous alert' }
+                          ].map(prio => {
+                            const isSelected = broadcastPriority === prio.id;
+                            return (
+                              <button
+                                key={prio.id}
+                                type="button"
+                                onClick={() => setBroadcastPriority(prio.id)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                  isSelected
+                                    ? prio.id === 'urgent'
+                                      ? 'bg-[#E5484D] !text-white font-black shadow-xs'
+                                      : prio.id === 'high'
+                                      ? 'bg-[#FFB020] text-stone-950 font-black shadow-xs'
+                                      : 'bg-[#FD9139] !text-white font-black shadow-xs'
+                                    : 'bg-stone-100 hover:bg-stone-200/80 dark:bg-[#161415] text-stone-700 dark:text-neutral-300 border border-stone-200/70 dark:border-white/10 hover:border-[#FD9139]/30'
+                                }`}
+                                title={prio.desc}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${prio.dot} shrink-0`} />
+                                <span>{prio.label}</span>
+                              </button>
+                            );
+                          })}
                         </div>
 
                         {/* Direct System Test Button */}
                         <button
                           type="button"
                           onClick={handleTestMySystem}
-                          className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-[#181617] dark:hover:bg-[#221F20] text-stone-800 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs border border-stone-200/80 dark:border-white/10 ml-auto sm:ml-0"
+                          className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-[#161415] dark:hover:bg-[#201D1E] text-stone-800 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs border border-stone-200/80 dark:border-white/10 hover:border-[#FD9139]/30 ml-auto sm:ml-0 font-['Outfit']"
                           title="Fires direct test notification on your current device right now"
                         >
-                          <Smartphone className="w-3.5 h-3.5 text-[#CB785C]" />
+                          <Smartphone className="w-3.5 h-3.5 text-[#FD9139]" />
                           <span>Test on My Device</span>
                         </button>
                       </div>
@@ -2620,7 +2627,7 @@ export default function DeveloperView({ setCurrentTab }) {
                       type="button"
                       onClick={handleSendBroadcast}
                       disabled={isBroadcasting || !broadcastTitle.trim() || !broadcastMessage.trim()}
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#CB785C] via-[#DC7F62] to-[#B86246] hover:brightness-105 active:scale-[0.99] disabled:opacity-50 !text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_12px_28px_-4px_rgba(203,120,92,0.45)] transition-all cursor-pointer font-['Outfit']"
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#FD9139] via-[#FB8526] to-[#E57A24] hover:brightness-105 active:scale-[0.99] disabled:opacity-50 !text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-[0_10px_28px_-4px_rgba(253,145,57,0.45)] transition-all cursor-pointer font-['Outfit']"
                     >
                       {isBroadcasting ? (
                         <>
@@ -2637,38 +2644,38 @@ export default function DeveloperView({ setCurrentTab }) {
                   </div>
 
                   {/* Right Column (5 cols): Live Realtime Flow Monitor & Broadcast History */}
-                  <div className={`lg:col-span-5 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1C1A1B] border border-stone-200/90 dark:border-white/10 space-y-4 shadow-xs ${mobileBroadcasterTab === 'compose' ? 'hidden lg:flex' : 'flex'}`}>
+                  <div className={`lg:col-span-5 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#201D1E] border border-stone-200/90 dark:border-white/10 space-y-4 shadow-xs ${mobileBroadcasterTab === 'compose' ? 'hidden lg:flex' : 'flex'}`}>
                     <div className="space-y-3.5">
                       {/* Live Monitor Header */}
                       <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-white/5 pb-3">
                         <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#CB785C]" />
+                          <span className="w-2 h-2 rounded-full bg-[#FD9139] shadow-[0_0_8px_rgba(253,145,57,0.6)]" />
                           <h4 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white font-['Outfit']">
                             Live Delivery Monitor
                           </h4>
                         </div>
-                        <span className="text-[10px] font-mono text-[#CB785C] dark:text-[#E2886C] bg-[#CB785C]/12 px-2.5 py-0.5 rounded-full border border-[#CB785C]/25 font-bold">
+                        <span className="text-[10px] font-mono text-[#FD9139] bg-[#FD9139]/12 px-2.5 py-0.5 rounded-full border border-[#FD9139]/25 font-bold">
                           Supabase Multiplexer
                         </span>
                       </div>
 
                       {/* Recipient Audience Summary: 3 Elevated Metric Tiles */}
-                      <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-stone-50 dark:bg-[#131112] border border-stone-200/80 dark:border-white/5">
-                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#1E1B1C] border border-stone-200/60 dark:border-white/5 shadow-2xs">
+                      <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-stone-50 dark:bg-[#161415] border border-stone-200/80 dark:border-white/5">
+                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#242021] border border-stone-200/60 dark:border-white/5 shadow-2xs">
                           <span className="text-[10px] text-stone-500 dark:text-neutral-400 block font-['Outfit'] uppercase">Scope</span>
                           <span className="font-black text-xs text-stone-900 dark:text-white uppercase truncate block mt-0.5 font-['Outfit']">
                             {broadcastTargetCategory}
                           </span>
                         </div>
-                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#1E1B1C] border border-stone-200/60 dark:border-white/5 shadow-2xs">
+                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#242021] border border-stone-200/60 dark:border-white/5 shadow-2xs">
                           <span className="text-[10px] text-stone-500 dark:text-neutral-400 block font-['Outfit'] uppercase">Audience</span>
-                          <span className="font-black text-xs text-[#CB785C] block mt-0.5 font-['Outfit']">
+                          <span className="font-black text-xs text-[#FD9139] block mt-0.5 font-['Outfit']">
                             {filteredBroadcastRecipients.length} Users
                           </span>
                         </div>
-                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#1E1B1C] border border-stone-200/60 dark:border-white/5 shadow-2xs">
+                        <div className="text-center p-2 rounded-lg bg-white dark:bg-[#242021] border border-stone-200/60 dark:border-white/5 shadow-2xs">
                           <span className="text-[10px] text-stone-500 dark:text-neutral-400 block font-['Outfit'] uppercase">FCM Push</span>
-                          <span className="font-black text-xs text-[#CB785C] dark:text-[#E2886C] block mt-0.5 font-['Outfit']">
+                          <span className="font-black text-xs text-[#FD9139] block mt-0.5 font-['Outfit']">
                             {fcmDeviceCount} Devices
                           </span>
                         </div>
@@ -2678,18 +2685,18 @@ export default function DeveloperView({ setCurrentTab }) {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-neutral-300 font-['Outfit'] flex items-center gap-1.5">
-                            <Radio className="w-3.5 h-3.5 text-[#CB785C]" />
+                            <Radio className="w-3.5 h-3.5 text-[#FD9139]" />
                             <span>Live Broadcast Stream</span>
                           </label>
-                          <span className="text-[10px] font-mono text-[#CB785C] dark:text-[#E2886C] font-bold bg-[#CB785C]/10 px-2 py-0.5 rounded-full border border-[#CB785C]/20">
+                          <span className="text-[10px] font-mono text-[#FD9139] font-bold bg-[#FD9139]/12 px-2 py-0.5 rounded-full border border-[#FD9139]/25">
                             {allBroadcastFeed.length} Dispatched
                           </span>
                         </div>
 
                         <div className="max-h-80 sm:max-h-96 overflow-y-auto no-scrollbar space-y-2.5 pr-0.5">
                           {allBroadcastFeed.length === 0 ? (
-                            <div className="py-12 text-center text-xs text-stone-400 dark:text-neutral-500 space-y-2 rounded-xl bg-stone-50 dark:bg-[#151314] border border-dashed border-stone-200 dark:border-white/10">
-                              <Bell className="w-7 h-7 mx-auto opacity-30 text-[#CB785C]" />
+                            <div className="py-12 text-center text-xs text-stone-400 dark:text-neutral-500 space-y-2 rounded-xl bg-stone-50 dark:bg-[#161415] border border-dashed border-stone-200 dark:border-white/10">
+                              <Bell className="w-7 h-7 mx-auto opacity-30 text-[#FD9139]" />
                               <p className="font-bold text-stone-600 dark:text-neutral-300">No broadcasts dispatched yet</p>
                               <p className="text-[10px] max-w-xs mx-auto">Compose a message on the left or select an operational template to broadcast.</p>
                             </div>
@@ -2697,21 +2704,25 @@ export default function DeveloperView({ setCurrentTab }) {
                             allBroadcastFeed.map((entry, idx) => (
                               <div
                                 key={entry.id || idx}
-                                className="p-3 sm:p-3.5 rounded-xl bg-stone-50 dark:bg-[#151314] border border-stone-200/80 dark:border-white/10 space-y-2 shadow-2xs transition-colors hover:border-[#CB785C]/30"
+                                className="p-3 sm:p-3.5 rounded-xl bg-stone-50 dark:bg-[#161415] border border-stone-200/80 dark:border-white/10 space-y-2 shadow-2xs transition-colors hover:border-[#FD9139]/40"
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CB785C] shrink-0" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#FD9139] shrink-0" />
                                     <span className="font-bold text-xs text-stone-900 dark:text-white truncate">
                                       {entry.title || 'Staff Broadcast'}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase font-['Outfit'] bg-[#CB785C]/15 text-[#CB785C] border border-[#CB785C]/30">
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase font-['Outfit'] bg-[#FD9139]/15 text-[#FD9139] border border-[#FD9139]/25">
                                       {entry.target || entry.role || 'staff'}
                                     </span>
                                     {entry.priority && entry.priority !== 'normal' && (
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase font-['Outfit'] bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase font-['Outfit'] border ${
+                                        entry.priority === 'urgent'
+                                          ? 'bg-[#E5484D]/15 text-[#E5484D] border-[#E5484D]/30'
+                                          : 'bg-[#FFB020]/15 text-[#FFB020] border-[#FFB020]/30'
+                                      }`}>
                                         {entry.priority}
                                       </span>
                                     )}
@@ -2727,14 +2738,14 @@ export default function DeveloperView({ setCurrentTab }) {
                                     {entry.dispatchedAt || (entry.created_at ? new Date(entry.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Just now')}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[#CB785C] dark:text-[#E2886C] font-semibold flex items-center gap-1 font-['Outfit']">
+                                    <span className="text-[#FD9139] font-semibold flex items-center gap-1 font-['Outfit']">
                                       <Check className="w-3 h-3 stroke-[3]" />
                                       <span>Delivered</span>
                                     </span>
                                     <button
                                       type="button"
                                       onClick={() => handleReuseBroadcast(entry)}
-                                      className="text-stone-600 dark:text-neutral-400 hover:text-[#CB785C] dark:hover:text-[#CB785C] px-2 py-0.5 rounded bg-stone-200/60 dark:bg-white/5 transition-colors cursor-pointer"
+                                      className="text-stone-600 dark:text-neutral-300 hover:text-white px-2 py-0.5 rounded bg-stone-200/80 dark:bg-white/5 hover:bg-[#FD9139] transition-colors cursor-pointer font-['Outfit'] font-bold text-[10px]"
                                       title="Load into composer"
                                     >
                                       Reuse
@@ -2749,8 +2760,13 @@ export default function DeveloperView({ setCurrentTab }) {
                     </div>
 
                     <div className="pt-2 text-[10px] text-stone-500 dark:text-neutral-400 border-t border-stone-200/70 dark:border-white/5 flex items-center justify-between">
-                      <span>⚡ Sub-millisecond WebSocket delivery active</span>
-                      <span className="font-mono">FCM v1 Push Sync</span>
+                      <div className="flex items-center gap-1.5 font-['Outfit']">
+                        <Zap className="w-3 h-3 text-[#FD9139]" />
+                        <span>Sub-millisecond WebSocket delivery active</span>
+                      </div>
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-stone-400">
+                        FCM v1 Push Sync
+                      </span>
                     </div>
                   </div>
                 </div>
