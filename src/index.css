@@ -2592,7 +2592,7 @@ html:not(.dark) .leaflet-interactive.animated-walking-dots {
 }
 
 .dev-live-dot {
-  animation: devLiveDot 1.5s ease-in-out infinite;
+  opacity: 1;
 }
 
 .dev-count-value {

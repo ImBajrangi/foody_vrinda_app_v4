@@ -75,9 +75,11 @@ export async function sendStaffBroadcastNotification({
       };
 
       let insertError = null;
-      const { error: fullErr } = await supabase
+      const { data: insertedData, error: fullErr } = await supabase
         .from('foody_notifications')
-        .insert([fullPayload]);
+        .insert([fullPayload])
+        .select()
+        .maybeSingle();
 
       if (fullErr) {
         insertError = fullErr;
@@ -94,14 +96,19 @@ export async function sendStaffBroadcastNotification({
             read: false,
             created_at: new Date().toISOString()
           };
-          const { error: baseErr } = await supabase
+          const { data: baseData, error: baseErr } = await supabase
             .from('foody_notifications')
-            .insert([basePayload]);
+            .insert([basePayload])
+            .select()
+            .maybeSingle();
           insertError = baseErr;
+          if (!baseErr) {
+            broadcastResult = { notification_id: notifId, ...baseData };
+            rpcSuccess = true;
+          }
         }
-      }
-
-      if (!insertError) {
+      } else {
+        broadcastResult = { notification_id: notifId, ...insertedData };
         rpcSuccess = true;
       }
     } catch (insertEx) {
