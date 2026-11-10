@@ -17,6 +17,7 @@ See internal documentation for recovery procedures.
 
 - **Frontend**: React 19 + Vite (Rolldown engine) + Tailwind CSS (Obsidian luxury aesthetic `#1E1B1C`).
 - **Cloud Backend**: Supabase (PostgreSQL, Row Level Security, Realtime Channels).
+- **Financial Ledger & Cash Reconciliation**: Double-entry accounting system with atomic PostgreSQL row-locked RPC (`record_rider_cash_settlement`), FIFO waterfall allocations, shortage/excess tracking, and idempotent settlement receipts.
 - **Offline / Zero-Latency**: In-memory cache + `localStorage` SWR fallback with custom event broadcasting.
 - **Audio & Alarms**: Web Audio synthesis for kitchen ticket alerts & rider dispatch chime.
 

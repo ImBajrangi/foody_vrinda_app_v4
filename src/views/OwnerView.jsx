@@ -22,7 +22,12 @@ import {
   getRecommendedRiders,
   isShopCurrentlyOpen,
   getPurgedOrderIds,
-  getOrderDisplayToken
+  getOrderDisplayToken,
+  settleRiderCashHandover,
+  getShopSettlementHistory,
+  getRiderOutstandingCash,
+  getShopCashFlowMetrics,
+  subscribeCloudSettlements
 } from '../supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -188,6 +193,43 @@ export default function OwnerView() {
   const [menuItems, setMenuItems] = useState([]);
   const [toast, setToast] = useState(null);
   const lastLoadedShopIdRef = useRef(null);
+
+  // Authoritative Financial Ledger & Cash Reconciliation States
+  const [settlements, setSettlements] = useState([]);
+  const [settlementSubTab, setSettlementSubTab] = useState('orders'); // 'orders' | 'receipts'
+  const [selectedRiderHandover, setSelectedRiderHandover] = useState(null);
+  const [handoverReceivedAmount, setHandoverReceivedAmount] = useState('');
+  const [handoverDeclaredAmount, setHandoverDeclaredAmount] = useState('');
+  const [handoverNotes, setHandoverNotes] = useState('');
+  const [handoverSubmitting, setHandoverSubmitting] = useState(false);
+  const [billingSearchQuery, setBillingSearchQuery] = useState('');
+  const [billingStatusFilter, setBillingStatusFilter] = useState('all');
+
+  // SWR initial fetch & Realtime subscription for cash settlements
+  useEffect(() => {
+    if (!activeShopId) return;
+    let isSubscribed = true;
+
+    // SWR fetch initial settlement history
+    getShopSettlementHistory(activeShopId).then(data => {
+      if (isSubscribed && Array.isArray(data)) setSettlements(data);
+    }).catch(() => {});
+
+    // Realtime Supabase cross-device subscription for settlements
+    const unsubscribe = subscribeCloudSettlements ? subscribeCloudSettlements((settlement) => {
+      if (!isSubscribed) return;
+      if (settlement && (settlement.shop_id === activeShopId || settlement.shopId === activeShopId)) {
+        getShopSettlementHistory(activeShopId, { forceRefresh: true }).then(data => {
+          if (isSubscribed && Array.isArray(data)) setSettlements(data);
+        }).catch(() => {});
+      }
+    }) : () => {};
+
+    return () => {
+      isSubscribed = false;
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, [activeShopId]);
 
   // Responsive Onboarding Tour Tab Auto-Switch Listener
   useEffect(() => {
@@ -1123,6 +1165,44 @@ export default function OwnerView() {
   const totalOrdersCount = completedOrders.length;
   const avgOrderValue = totalOrdersCount > 0 ? Math.round(totalRevenue / totalOrdersCount) : 0;
 
+  // Authoritative Cash Flow & Billing Metrics
+  const cashMetrics = useMemo(() => {
+    return getShopCashFlowMetrics(isolatedOrders, settlements, activeShopId);
+  }, [isolatedOrders, settlements, activeShopId]);
+
+  // Filtered Billing & Reconciliation Orders
+  const filteredBillingOrders = useMemo(() => {
+    return isolatedOrders.filter(order => {
+      if (billingSearchQuery) {
+        const q = billingSearchQuery.toLowerCase().trim();
+        const token = getOrderDisplayToken(order).toLowerCase();
+        const cust = String(order.customerName || order.customer_name || '').toLowerCase();
+        const phone = String(order.customerPhone || order.customer_phone || '').toLowerCase();
+        const id = String(order.id || '').toLowerCase();
+        const rider = String(order.riderName || order.rider_name || '').toLowerCase();
+        const matches = token.includes(q) || cust.includes(q) || phone.includes(q) || id.includes(q) || rider.includes(q);
+        if (!matches) return false;
+      }
+
+      if (billingStatusFilter === 'all') return true;
+      const isCod = ['cash', 'cod'].includes(String(order.paymentMethod || order.payment_method || '').toLowerCase().trim());
+      const isSettled = (order.cashStatus || order.cash_status) === 'settled';
+      const isCollected = (order.cashStatus || order.cash_status) === 'collected';
+      const hasRider = Boolean(order.riderId || order.rider_id);
+
+      if (billingStatusFilter === 'settled') {
+        return isSettled;
+      }
+      if (billingStatusFilter === 'in_transit') {
+        return isCod && isCollected && !isSettled && hasRider;
+      }
+      if (billingStatusFilter === 'counter_online') {
+        return !isCod || (!hasRider && (order.fulfillmentType || order.fulfillment_type) === 'pickup');
+      }
+      return true;
+    });
+  }, [isolatedOrders, billingSearchQuery, billingStatusFilter]);
+
   // Chart data: Daily Sales
   const salesByDate = {};
   completedOrders.forEach(order => {
@@ -1743,7 +1823,13 @@ export default function OwnerView() {
           { id: 'shops', label: 'Store Profile', icon: Store, dataTour: 'owner-stores' },
           { id: 'menu', label: 'Menu Catalog', icon: UtensilsCrossed, dataTour: 'owner-menu' },
           { id: 'staff', label: 'Staff & Roles', icon: Users, dataTour: 'owner-staff' },
-          { id: 'audit', label: 'Cash Audit', icon: Receipt, dataTour: 'owner-audit' },
+          {
+            id: 'audit',
+            label: 'Billing & Cash Flow',
+            icon: Receipt,
+            dataTour: 'owner-audit',
+            badge: cashMetrics.activeRidersHoldingCash?.length > 0 ? `${cashMetrics.activeRidersHoldingCash.length} Due` : null
+          },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -4139,165 +4225,700 @@ export default function OwnerView() {
             </div>
           )}
 
-          {/* VIEW 4: CASH AUDIT */}
+          {/* VIEW 4: BILLING & CASH RECONCILIATION */}
           {activeTab === 'audit' && (
-            <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-200 dark:border-white/5 gap-2">
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">Cash on Delivery (COD) Audit Log</h3>
-                  <p className="text-xs text-stone-500 dark:text-neutral-400">Reconcile physical cash receipts collected by couriers</p>
+            <div className="space-y-6">
+              {/* Header & Quick Action Row */}
+              <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-[28px] p-4 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-200 dark:border-white/5 gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
+                        Billing & Cash Reconciliation Hub
+                      </h3>
+                    </div>
+                    <p className="text-xs text-stone-500 dark:text-neutral-400 mt-0.5">
+                      Live cashier audit trail, courier cash float custody, and double-entry financial settlement logs
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleExportBillingCSV}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] bg-stone-200 hover:bg-stone-300 dark:bg-white/5 dark:hover:bg-white/10 border border-stone-300 dark:border-white/10 text-xs font-bold text-stone-800 dark:text-neutral-200 transition-all cursor-pointer shadow-sm active:scale-95"
+                      title="Download RFC-4180 compliant CSV of all shop billing records"
+                    >
+                      <Download className="w-3.5 h-3.5 text-amber-600 dark:text-[#FD9139]" />
+                      <span>Export Financial CSV</span>
+                    </button>
+                    <span className="text-[11px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20 px-3 py-1.5 rounded-full whitespace-nowrap">
+                      {cashMetrics.activeRidersHoldingCash.length} Courier Floats Active
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-amber-800 dark:text-[#FD9139] bg-amber-500/15 dark:bg-[#FD9139]/10 border border-amber-500/30 dark:border-[#FD9139]/20 px-2.5 py-1 rounded-full whitespace-nowrap">
-                    {isolatedOrders.filter(o => o.paymentMethod === 'cash').length} COD Tickets
-                  </span>
+
+                {/* 6-Card KPI Financial Summary Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* Card 1: Gross Sales */}
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>Gross Sales</span>
+                      <TrendingUp className="w-3 h-3 text-emerald-500" />
+                    </p>
+                    <p className="text-base sm:text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
+                      ₹{cashMetrics.grossSales.toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">
+                      {cashMetrics.totalOrdersCount} Completed Orders
+                    </p>
+                  </div>
+
+                  {/* Card 2: Prepaid Online */}
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>Prepaid Online</span>
+                      <CreditCard className="w-3 h-3 text-cyan-500" />
+                    </p>
+                    <p className="text-base sm:text-lg font-black text-cyan-600 dark:text-cyan-400 font-['Outfit']">
+                      ₹{cashMetrics.onlinePayments.toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">
+                      UPI / Card Direct
+                    </p>
+                  </div>
+
+                  {/* Card 3: Direct Counter Cash */}
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>Counter Cash</span>
+                      <Banknote className="w-3 h-3 text-amber-500" />
+                    </p>
+                    <p className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400 font-['Outfit']">
+                      ₹{cashMetrics.counterCash.toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">
+                      Walk-in & Pickups
+                    </p>
+                  </div>
+
+                  {/* Card 4: Courier Float in Transit */}
+                  <div className={`border rounded-[12px] p-3 space-y-1 ${
+                    cashMetrics.riderCashInTransit > 0
+                      ? 'bg-amber-500/10 dark:bg-[#FD9139]/10 border-amber-500/40 dark:border-[#FD9139]/30'
+                      : 'bg-stone-50 dark:bg-[#1E1B1C] border-stone-200 dark:border-white/5'
+                  }`}>
+                    <p className="text-[10px] font-bold text-amber-700 dark:text-[#FD9139] uppercase tracking-wider flex items-center justify-between">
+                      <span>Float in Transit</span>
+                      <Truck className="w-3 h-3 text-amber-500" />
+                    </p>
+                    <p className="text-base sm:text-lg font-black text-amber-700 dark:text-[#FD9139] font-['Outfit']">
+                      ₹{cashMetrics.riderCashInTransit.toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-amber-700/80 dark:text-[#FD9139]/80 font-bold">
+                      {cashMetrics.activeRidersHoldingCash.length > 0 ? `${cashMetrics.activeRidersHoldingCash.length} Couriers Holding` : 'Till Clear'}
+                    </p>
+                  </div>
+
+                  {/* Card 5: Courier Cash Reconciled */}
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>Rider Reconciled</span>
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                    </p>
+                    <p className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 font-['Outfit']">
+                      ₹{cashMetrics.riderCashSettled.toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">
+                      {settlements.length} Handover Batches
+                    </p>
+                  </div>
+
+                  {/* Card 6: Reconciliation Variance */}
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider flex items-center justify-between">
+                      <span>Net Variance</span>
+                      <Receipt className="w-3 h-3 text-stone-400" />
+                    </p>
+                    <p className={`text-base sm:text-lg font-black font-['Outfit'] ${
+                      cashMetrics.cashVariance === 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : cashMetrics.cashVariance > 0
+                          ? 'text-cyan-500'
+                          : 'text-red-500'
+                    }`}>
+                      {cashMetrics.cashVariance === 0 ? '₹0' : cashMetrics.cashVariance > 0 ? `+₹${cashMetrics.cashVariance}` : `-₹${Math.abs(cashMetrics.cashVariance)}`}
+                    </p>
+                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">
+                      {cashMetrics.cashVariance === 0 ? 'Balanced' : cashMetrics.cashVariance > 0 ? 'Excess' : 'Shortage'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Mobile Card Layout (< md screens) */}
-              <div className="md:hidden space-y-3">
-                {isolatedOrders.filter(o => o.paymentMethod === 'cash').length === 0 ? (
-                  <div className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
-                    No Cash on Delivery orders recorded.
+              {/* COURIER CASH RETURN STATION (FLOATING CASH IN TRANSIT) */}
+              <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-[28px] p-4 shadow-xl space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-stone-200 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-amber-500/15 text-amber-700 dark:text-[#FD9139] flex items-center justify-center">
+                      <Bike className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-stone-900 dark:text-white font-['Outfit']">
+                        Courier Cash Return Station
+                      </h4>
+                      <p className="text-[11px] text-stone-500 dark:text-neutral-400">
+                        Collect physical currency collected by delivery couriers and lock authoritative settlement batches
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider">
+                    {cashMetrics.activeRidersHoldingCash.length} Couriers Pending
+                  </span>
+                </div>
+
+                {cashMetrics.activeRidersHoldingCash.length === 0 ? (
+                  <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-6 text-center space-y-1.5">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto stroke-[2]" />
+                    <p className="text-xs font-bold text-stone-800 dark:text-neutral-200">
+                      All Courier Cash Floats Reconciled
+                    </p>
+                    <p className="text-[11px] text-stone-500 dark:text-neutral-500 max-w-sm mx-auto">
+                      There are no completed Cash on Delivery orders in courier custody awaiting counter handover.
+                    </p>
                   </div>
                 ) : (
-                  isolatedOrders
-                    .filter(o => {
-                      const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
-                      return m === 'cash' || m === 'cod';
-                    })
-                    .map(order => {
-                      const date = order.createdAt?.toDate
-                        ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-                        : 'Recent';
-                      const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
-                      return (
-                        <div key={order.id} className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-2xl p-4 space-y-3 shadow-md">
-                          <div className="flex items-start justify-between gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {cashMetrics.activeRidersHoldingCash.map((rider) => (
+                      <div
+                        key={rider.riderId}
+                        className="bg-stone-50 dark:bg-[#1E1B1C] border border-amber-500/30 dark:border-[#FD9139]/20 rounded-[12px] p-3 space-y-3 shadow-md"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-full bg-amber-500/20 text-amber-800 dark:text-[#FD9139] font-black flex items-center justify-center text-xs">
+                              {rider.riderName.slice(0, 2).toUpperCase()}
+                            </div>
                             <div>
-                              <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit']">
-                                {getOrderDisplayToken(order)}
+                              <p className="font-black text-xs text-stone-900 dark:text-white font-['Outfit']">
+                                {rider.riderName}
                               </p>
-                              <p className="text-[10px] text-stone-500 dark:text-neutral-400 mt-0.5">{date}</p>
-                            </div>
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
-                              ? 'bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
-                              : 'bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/20'
-                              }`}>
-                              {isCollected ? 'Collected' : 'Pending'}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between py-2 border-y border-stone-200 dark:border-white/5 text-xs">
-                            <div>
-                              <p className="font-bold text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
-                              <p className="text-[11px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] text-stone-500 dark:text-neutral-400 uppercase font-semibold">Amount</p>
-                              <p className="font-black text-stone-950 dark:text-[#FD9139] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
+                              <p className="text-[10px] text-stone-500 dark:text-neutral-400">
+                                {rider.riderPhone || 'No phone recorded'}
+                              </p>
                             </div>
                           </div>
-
-                          <div className="pt-1">
-                            {!isCollected ? (
-                              <button
-                                onClick={() => handleMarkCashCollected(order.id)}
-                                className="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Confirm Cash Received</span>
-                              </button>
-                            ) : (
-                              <div className="w-full py-2.5 px-3 rounded-xl bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-700 dark:text-neutral-400 text-xs font-bold flex items-center justify-center gap-1.5 select-none">
-                                <CheckCircle2 className="w-4 h-4 text-stone-500 dark:text-neutral-400" />
-                                <span>Cash Reconciled</span>
-                              </div>
-                            )}
-                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-[#FD9139] border border-amber-500/30">
+                            {rider.ordersCount} Orders
+                          </span>
                         </div>
-                      );
-                    })
+
+                        <div className="flex items-center justify-between py-2 border-y border-stone-200 dark:border-white/5 text-xs">
+                          <span className="text-stone-500 dark:text-neutral-400 text-[11px]">Physical Cash Float:</span>
+                          <span className="font-black text-base text-stone-950 dark:text-[#FD9139] font-['Outfit']">
+                            ₹{rider.totalCash}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenRiderHandoverModal(rider)}
+                          className="w-full py-2.5 px-3 rounded-[8px] bg-[#CB785C] hover:bg-[#b8684e] text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Banknote className="w-4 h-4" />
+                          <span>Accept Cash Return</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              {/* Desktop Table Layout (>= md screens) */}
-              <div className="hidden md:block overflow-x-auto no-scrollbar">
-                <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead>
-                    <tr className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider border-b border-stone-200 dark:border-white/5">
-                      <th className="pb-3 whitespace-nowrap">Order Ticket</th>
-                      <th className="pb-3 whitespace-nowrap">Customer</th>
-                      <th className="pb-3 whitespace-nowrap">COD Amount</th>
-                      <th className="pb-3 whitespace-nowrap">Collection Status</th>
-                      <th className="pb-3 text-right whitespace-nowrap">Reconcile Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
-                    {isolatedOrders.filter(o => {
-                      const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
-                      return m === 'cash' || m === 'cod';
-                    }).length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
-                          No Cash on Delivery orders recorded.
-                        </td>
-                      </tr>
-                    ) : (
-                      isolatedOrders
-                        .filter(o => {
-                          const m = String(o.paymentMethod || o.payment_method || o.payment || '').toLowerCase().trim();
-                          return m === 'cash' || m === 'cod';
-                        })
-                        .map(order => {
+              {/* FINANCIAL AUDIT EXPLORER: SUB-TABS */}
+              <div className="bg-stone-100/90 dark:bg-[#282526] border border-stone-200 dark:border-white/5 rounded-[28px] p-4 shadow-xl space-y-4">
+                {/* Sub-tab Navigation */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-200 dark:border-white/5 gap-3">
+                  <div className="flex items-center gap-1.5 p-1 bg-stone-200/80 dark:bg-black/30 rounded-[12px] border border-stone-300 dark:border-white/5 w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setSettlementSubTab('orders')}
+                      className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                        settlementSubTab === 'orders'
+                          ? 'bg-white dark:bg-[#1E1B1C] text-stone-900 dark:text-white shadow-sm font-black'
+                          : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Order Billing History ({isolatedOrders.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSettlementSubTab('receipts')}
+                      className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                        settlementSubTab === 'receipts'
+                          ? 'bg-white dark:bg-[#1E1B1C] text-stone-900 dark:text-white shadow-sm font-black'
+                          : 'text-stone-600 dark:text-neutral-400 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Rider Settlement Receipts ({settlements.length})
+                    </button>
+                  </div>
+
+                  {/* Filter Controls (for Orders sub-tab) */}
+                  {settlementSubTab === 'orders' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                        <input
+                          type="text"
+                          value={billingSearchQuery}
+                          onChange={(e) => setBillingSearchQuery(e.target.value)}
+                          placeholder="Search token, customer, phone..."
+                          className="pl-8 pr-3 py-1.5 text-xs rounded-[8px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white focus:outline-none focus:border-amber-500 w-48 sm:w-56"
+                        />
+                      </div>
+                      <select
+                        value={billingStatusFilter}
+                        onChange={(e) => setBillingStatusFilter(e.target.value)}
+                        className="py-1.5 px-2.5 text-xs rounded-[8px] bg-stone-50 dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-stone-800 dark:text-neutral-200 focus:outline-none focus:border-amber-500 font-semibold"
+                      >
+                        <option value="all">All Billings</option>
+                        <option value="in_transit">In Courier Float</option>
+                        <option value="settled">Reconciled / Settled</option>
+                        <option value="counter_online">Counter & Online</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* SUBTAB 1: ORDER BILLING HISTORY */}
+                {settlementSubTab === 'orders' && (
+                  <div>
+                    {/* Mobile Card Layout (< md screens) */}
+                    <div className="md:hidden space-y-3">
+                      {filteredBillingOrders.length === 0 ? (
+                        <div className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                          No orders match the current filter.
+                        </div>
+                      ) : (
+                        filteredBillingOrders.map(order => {
                           const date = order.createdAt?.toDate
-                            ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                            ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                             : 'Recent';
-                          const isCollected = order.cashStatus === 'collected' || order.cash_status === 'collected' || order.cashCollected || order.cash_collected;
+                          const isCod = ['cash', 'cod'].includes(String(order.paymentMethod || order.payment_method || '').toLowerCase().trim());
+                          const isSettled = (order.cashStatus || order.cash_status) === 'settled';
+                          const isCollected = (order.cashStatus || order.cash_status) === 'collected';
+                          const hasRider = Boolean(order.riderId || order.rider_id);
+
                           return (
-                            <tr key={order.id} className="hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all">
-                              <td className="py-3.5 pr-4 whitespace-nowrap">
-                                <p className="font-bold text-stone-900 dark:text-white text-xs font-['Outfit']">{getOrderDisplayToken(order)}</p>
-                                <p className="text-[10px] text-stone-500 dark:text-neutral-500">{date}</p>
-                              </td>
-                              <td className="py-3.5 pr-4 whitespace-nowrap">
-                                <p className="font-semibold text-xs text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
-                                <p className="text-[10px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
-                              </td>
-                              <td className="py-3.5 pr-4 font-black text-stone-950 dark:text-[#FD9139] font-['Outfit'] text-sm whitespace-nowrap">
-                                ₹{order.totalAmount || order.total_amount || 0}
-                              </td>
-                              <td className="py-3.5 pr-4 whitespace-nowrap">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isCollected
-                                  ? 'bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
-                                  : 'bg-amber-500/15 text-amber-800 border border-amber-500/30 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/20'
-                                  }`}>
-                                  {isCollected ? 'Collected' : 'Pending Payment'}
+                            <div key={order.id} className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-[12px] p-3 space-y-2.5 shadow-md">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <p className="font-black text-stone-900 dark:text-white text-sm font-['Outfit']">
+                                    {getOrderDisplayToken(order)}
+                                  </p>
+                                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 mt-0.5">{date}</p>
+                                </div>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+                                  isSettled
+                                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                    : !isCod
+                                      ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30'
+                                      : isCollected && hasRider
+                                        ? 'bg-amber-500/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30'
+                                        : 'bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-neutral-400'
+                                }`}>
+                                  {isSettled
+                                    ? 'Settled'
+                                    : !isCod
+                                      ? 'Online Prepaid'
+                                      : isCollected && hasRider
+                                        ? `Float with Rider`
+                                        : isCollected
+                                          ? 'Collected'
+                                          : 'Pending'}
                                 </span>
-                              </td>
-                              <td className="py-3.5 text-right whitespace-nowrap">
-                                {!isCollected ? (
-                                  <button
-                                    onClick={() => handleMarkCashCollected(order.id)}
-                                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white dark:bg-[#FD9139] dark:hover:bg-[#FCA65E] font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
-                                  >
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span>Confirm Cash Received</span>
-                                  </button>
-                                ) : (
-                                  <span className="text-xs text-stone-700 dark:text-neutral-400 font-bold inline-flex items-center gap-1.5 whitespace-nowrap bg-stone-200/80 dark:bg-white/5 border border-stone-300 dark:border-white/10 px-3 py-1.5 rounded-xl">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-stone-500 dark:text-neutral-400" />
-                                    <span>Reconciled</span>
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
+                              </div>
+
+                              <div className="flex items-center justify-between py-1.5 border-y border-stone-200 dark:border-white/5 text-xs">
+                                <div>
+                                  <p className="font-bold text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                                  <p className="text-[11px] text-stone-500 dark:text-neutral-400">
+                                    {order.riderName || order.rider_name ? `Rider: ${order.riderName || order.rider_name}` : 'Counter Direct'}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[10px] text-stone-500 dark:text-neutral-400 uppercase font-semibold">Total</p>
+                                  <p className="font-black text-stone-950 dark:text-[#FD9139] text-base font-['Outfit']">₹{order.totalAmount || order.total_amount || 0}</p>
+                                </div>
+                              </div>
+
+                              {isCod && !isSettled && (
+                                <div className="pt-1">
+                                  {!isCollected ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleMarkCashCollected(order.id)}
+                                      className="w-full py-2 px-3 rounded-[8px] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      <span>Mark Cash Collected</span>
+                                    </button>
+                                  ) : !hasRider ? (
+                                    <div className="w-full py-1.5 px-2 rounded-[8px] bg-stone-200/80 dark:bg-white/5 text-stone-700 dark:text-neutral-400 text-xs font-bold text-center">
+                                      Counter Collection Reconciled
+                                    </div>
+                                  ) : (
+                                    <div className="w-full py-1.5 px-2 rounded-[8px] bg-amber-500/10 text-amber-700 dark:text-[#FD9139] text-xs font-bold text-center">
+                                      In Float Custody with {order.riderName || order.rider_name || 'Rider'}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           );
                         })
+                      )}
+                    </div>
+
+                    {/* Desktop Table Layout (>= md screens) */}
+                    <div className="hidden md:block overflow-x-auto no-scrollbar">
+                      <table className="w-full min-w-[700px] text-left text-sm">
+                        <thead>
+                          <tr className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider border-b border-stone-200 dark:border-white/5">
+                            <th className="pb-3 whitespace-nowrap">Ticket / Date</th>
+                            <th className="pb-3 whitespace-nowrap">Customer</th>
+                            <th className="pb-3 whitespace-nowrap">Payment Mode</th>
+                            <th className="pb-3 whitespace-nowrap">Amount</th>
+                            <th className="pb-3 whitespace-nowrap">Custody / Settlement Status</th>
+                            <th className="pb-3 text-right whitespace-nowrap">Action / Proof</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
+                          {filteredBillingOrders.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-8 text-center text-stone-500 dark:text-neutral-500 text-xs font-semibold">
+                                No billing records match the selected filter.
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredBillingOrders.map(order => {
+                              const date = order.createdAt?.toDate
+                                ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                                : 'Recent';
+                              const isCod = ['cash', 'cod'].includes(String(order.paymentMethod || order.payment_method || '').toLowerCase().trim());
+                              const isSettled = (order.cashStatus || order.cash_status) === 'settled';
+                              const isCollected = (order.cashStatus || order.cash_status) === 'collected';
+                              const hasRider = Boolean(order.riderId || order.rider_id);
+
+                              return (
+                                <tr key={order.id} className="hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all">
+                                  <td className="py-3 pr-4 whitespace-nowrap">
+                                    <p className="font-bold text-stone-900 dark:text-white text-xs font-['Outfit']">{getOrderDisplayToken(order)}</p>
+                                    <p className="text-[10px] text-stone-500 dark:text-neutral-500">{date}</p>
+                                  </td>
+                                  <td className="py-3 pr-4 whitespace-nowrap">
+                                    <p className="font-semibold text-xs text-stone-900 dark:text-white">{order.customerName || order.customer_name || 'Customer'}</p>
+                                    <p className="text-[10px] text-stone-500 dark:text-neutral-400">{order.customerPhone || order.customer_phone || 'N/A'}</p>
+                                  </td>
+                                  <td className="py-3 pr-4 whitespace-nowrap">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                      isCod ? 'bg-amber-500/15 text-amber-800 dark:text-[#FD9139]' : 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300'
+                                    }`}>
+                                      {isCod ? 'COD (Cash)' : 'Online Prepaid'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 pr-4 font-black text-stone-950 dark:text-[#FD9139] font-['Outfit'] text-sm whitespace-nowrap">
+                                    ₹{order.totalAmount || order.total_amount || 0}
+                                  </td>
+                                  <td className="py-3 pr-4 whitespace-nowrap">
+                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+                                      isSettled
+                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                        : !isCod
+                                          ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30'
+                                          : isCollected && hasRider
+                                            ? 'bg-amber-500/15 text-amber-800 dark:text-[#FD9139] border border-amber-500/30'
+                                            : isCollected
+                                              ? 'bg-stone-200 dark:bg-white/5 text-stone-700 dark:text-neutral-400 border border-stone-300 dark:border-white/10'
+                                              : 'bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30'
+                                    }`}>
+                                      {isSettled
+                                        ? 'Reconciled & Settled'
+                                        : !isCod
+                                          ? 'Direct Online'
+                                          : isCollected && hasRider
+                                            ? `Float: ${order.riderName || order.rider_name || 'Rider'}`
+                                            : isCollected
+                                              ? 'Counter Collected'
+                                              : 'Uncollected COD'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 text-right whitespace-nowrap">
+                                    {isSettled ? (
+                                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-[8px]">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>Receipt #{String(order.settlementId || order.settlement_id || '').slice(0, 8) || 'LOCKED'}</span>
+                                      </span>
+                                    ) : isCod && !isCollected ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMarkCashCollected(order.id)}
+                                        className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-[8px] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer"
+                                      >
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>Mark Collected</span>
+                                      </button>
+                                    ) : (
+                                      <span className="text-xs text-stone-500 dark:text-neutral-400 font-semibold">
+                                        Verified
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 2: RIDER SETTLEMENT RECEIPTS */}
+                {settlementSubTab === 'receipts' && (
+                  <div className="space-y-3">
+                    {settlements.length === 0 ? (
+                      <div className="bg-stone-50 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/5 rounded-[12px] p-8 text-center space-y-2">
+                        <Receipt className="w-8 h-8 text-stone-400 mx-auto" />
+                        <p className="text-xs font-bold text-stone-800 dark:text-neutral-200">
+                          No Settlement Receipts Recorded Yet
+                        </p>
+                        <p className="text-[11px] text-stone-500 dark:text-neutral-500 max-w-md mx-auto">
+                          When a courier returns cash to the kitchen and you click "Accept Cash Return", an immutable double-entry ledger settlement receipt will appear here.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto no-scrollbar">
+                        <table className="w-full min-w-[720px] text-left text-sm">
+                          <thead>
+                            <tr className="text-[11px] font-bold text-stone-600 dark:text-neutral-400 uppercase tracking-wider border-b border-stone-200 dark:border-white/5">
+                              <th className="pb-3 whitespace-nowrap">Receipt UUID</th>
+                              <th className="pb-3 whitespace-nowrap">Timestamp</th>
+                              <th className="pb-3 whitespace-nowrap">Courier</th>
+                              <th className="pb-3 whitespace-nowrap">Expected</th>
+                              <th className="pb-3 whitespace-nowrap">Received</th>
+                              <th className="pb-3 whitespace-nowrap">Variance</th>
+                              <th className="pb-3 whitespace-nowrap">Notes / Cashier</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-200 dark:divide-white/5 text-stone-800 dark:text-neutral-200">
+                            {settlements.map((s) => {
+                              const date = s.created_at || s.createdAt
+                                ? new Date(s.created_at || s.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                                : 'Recent';
+                              const shortage = Number(s.shortage_amount || 0);
+                              const excess = Number(s.excess_amount || 0);
+                              const expected = Number(s.expected_amount || 0);
+                              const received = Number(s.cashier_received_amount || 0);
+
+                              return (
+                                <tr key={s.id || s.settlement_id} className="hover:bg-stone-200/50 dark:hover:bg-white/5 transition-all">
+                                  <td className="py-3 pr-4 font-mono text-xs text-amber-700 dark:text-[#FD9139] whitespace-nowrap">
+                                    #{String(s.id || s.settlement_id || '').slice(0, 8)}
+                                  </td>
+                                  <td className="py-3 pr-4 text-xs text-stone-500 dark:text-neutral-400 whitespace-nowrap">
+                                    {date}
+                                  </td>
+                                  <td className="py-3 pr-4 text-xs font-bold text-stone-900 dark:text-white whitespace-nowrap">
+                                    {s.rider_name || s.riderName || `Rider ${String(s.rider_id || '').slice(0, 6)}`}
+                                  </td>
+                                  <td className="py-3 pr-4 text-xs font-semibold whitespace-nowrap">
+                                    ₹{expected}
+                                  </td>
+                                  <td className="py-3 pr-4 text-xs font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                                    ₹{received}
+                                  </td>
+                                  <td className="py-3 pr-4 whitespace-nowrap">
+                                    {shortage > 0 ? (
+                                      <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">
+                                        -₹{shortage} Shortage
+                                      </span>
+                                    ) : excess > 0 ? (
+                                      <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">
+                                        +₹{excess} Surplus
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                                        Exact ₹0 Match
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 text-xs text-stone-500 dark:text-neutral-400 max-w-xs truncate">
+                                    {s.notes || 'Routine shift return'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
-                  </tbody>
-                </table>
+                  </div>
+                )}
               </div>
+
+              {/* CASH HANDOVER MODAL DIALOG */}
+              {selectedRiderHandover && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex items-center justify-center p-4">
+                  <div className="bg-stone-100 dark:bg-[#1E1B1C] border border-stone-200 dark:border-white/10 rounded-[28px] p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-white/10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-[#CB785C]/20 text-[#CB785C] flex items-center justify-center">
+                          <Banknote className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-black text-stone-900 dark:text-white font-['Outfit']">
+                            Reconcile Courier Cash Return
+                          </h4>
+                          <p className="text-xs text-stone-500 dark:text-neutral-400">
+                            {selectedRiderHandover.riderName} ({selectedRiderHandover.riderPhone || 'Courier'})
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCloseRiderHandoverModal}
+                        disabled={handoverSubmitting}
+                        className="w-8 h-8 rounded-full bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-white flex items-center justify-center hover:bg-stone-300 dark:hover:bg-white/20 transition-all cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Order Tickets in this Handover */}
+                    <div className="bg-stone-50 dark:bg-[#151314] border border-stone-200 dark:border-white/5 rounded-[12px] p-3 space-y-2">
+                      <p className="text-[11px] font-bold text-stone-500 dark:text-neutral-400 uppercase tracking-wider">
+                        Orders in this Handover Batch ({selectedRiderHandover.orders?.length || 0})
+                      </p>
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        {(selectedRiderHandover.orders || []).map(o => (
+                          <div key={o.id} className="flex items-center justify-between text-xs py-1 border-b border-stone-200/50 dark:border-white/5">
+                            <div>
+                              <span className="font-bold text-stone-900 dark:text-white font-['Outfit']">{getOrderDisplayToken(o)}</span>
+                              <span className="text-stone-500 dark:text-neutral-400 ml-2 text-[10px]">
+                                {o.customer_name || o.customerName || 'Customer'}
+                              </span>
+                            </div>
+                            <span className="font-black text-stone-900 dark:text-[#FD9139]">
+                              ₹{o.total_amount || o.totalAmount || 0}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Financial Inputs & Realtime Calculations */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 rounded-[12px] bg-stone-200/60 dark:bg-white/5 border border-stone-300 dark:border-white/10">
+                        <span className="text-xs font-bold text-stone-600 dark:text-neutral-300">Expected Float Amount:</span>
+                        <span className="text-lg font-black text-stone-900 dark:text-white font-['Outfit']">
+                          ₹{selectedRiderHandover.totalCash || selectedRiderHandover.outstandingCash || 0}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-stone-700 dark:text-neutral-300">
+                          Physical Cash Received at Counter (₹)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={handoverReceivedAmount}
+                          onChange={(e) => setHandoverReceivedAmount(e.target.value)}
+                          placeholder="e.g. 500"
+                          className="w-full px-3.5 py-2.5 rounded-[12px] bg-white dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-base font-black focus:outline-none focus:border-[#CB785C]"
+                        />
+                      </div>
+
+                      {/* Live Variance Calculation Feedback */}
+                      {(() => {
+                        const expected = Number(selectedRiderHandover.totalCash || selectedRiderHandover.outstandingCash || 0);
+                        const received = parseFloat(handoverReceivedAmount);
+                        if (isNaN(received)) return null;
+                        const diff = received - expected;
+
+                        if (diff === 0) {
+                          return (
+                            <div className="p-2.5 rounded-[12px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              <span>Exact Rupee Match — ₹0 Variance. Perfectly reconciled.</span>
+                            </div>
+                          );
+                        } else if (diff < 0) {
+                          return (
+                            <div className="p-2.5 rounded-[12px] bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-[#FD9139] text-xs font-bold flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                              <span>Shortage: ₹{Math.abs(diff)} will be recorded against courier account liability.</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="p-2.5 rounded-[12px] bg-cyan-500/15 border border-cyan-500/30 text-cyan-800 dark:text-cyan-300 text-xs font-bold flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 shrink-0 text-cyan-500" />
+                              <span>Surplus: +₹{diff} excess cash will be booked to shop suspense ledger.</span>
+                            </div>
+                          );
+                        }
+                      })()}
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-stone-700 dark:text-neutral-300">
+                          Settlement Notes (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={handoverNotes}
+                          onChange={(e) => setHandoverNotes(e.target.value)}
+                          placeholder="e.g. End of dinner rush shift return; cash verified in drawer"
+                          className="w-full px-3.5 py-2 text-xs rounded-[12px] bg-white dark:bg-[#151314] border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white focus:outline-none focus:border-[#CB785C]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={handleCloseRiderHandoverModal}
+                        disabled={handoverSubmitting}
+                        className="px-4 py-2.5 rounded-[12px] bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-neutral-300 text-xs font-bold hover:bg-stone-300 dark:hover:bg-white/20 transition-all cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmitRiderHandover}
+                        disabled={handoverSubmitting}
+                        className="px-5 py-2.5 rounded-[12px] bg-[#CB785C] hover:bg-[#b8684e] text-white text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {handoverSubmitting ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Locking Ledger...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Confirm & Lock Settlement</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

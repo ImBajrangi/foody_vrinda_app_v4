@@ -481,7 +481,13 @@ export const DEFAULT_DEMO_ORDER_IDS = [
   'fv_handshake_1793598869598',
   'fv_handshake_1793601889441',
   'fv_handshake_1793596936951',
-  'fv_handshake_1793598438106'
+  'fv_handshake_1793598438106',
+  'ord-1793869184843-rss82',
+  'ord-1794048599152-vwr2a',
+  'ord-1794048598904-e9w3w',
+  'ord-1793868197740-jl4x2',
+  'ord-1793868392311-s8f6l',
+  'ord-1793963822861-61kj9'
 ];
 
 export function isPurgedOrder(orderId) {

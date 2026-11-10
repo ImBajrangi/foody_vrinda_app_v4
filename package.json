@@ -1,7 +1,7 @@
 {
   "name": "foody_vrinda_v3",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.1.34-alpha",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,7 @@
     "test:api-sync": "node scripts/test-developer-api-sync.mjs",
     "test:deletion": "node scripts/test-atomic-shop-deletion.mjs",
     "test:combos": "node scripts/test-combo-engine.mjs",
+    "test:billing": "node scripts/test-billing-cashflow-and-settlements.mjs",
     "test:all": "node scripts/run-all-tests.mjs",
     "test": "node scripts/run-all-tests.mjs",
     "preview": "vite preview"

@@ -13,6 +13,7 @@ import {
   claimOrderPickupAtomic,
   verifyDeliveryOtpAtomic,
   subscribeCloudOrders,
+  subscribeCloudSettlements,
   createCloudNotification,
   getOrderItemSummary,
   getOrderCustomerName,
@@ -459,17 +460,43 @@ export default function TransportView() {
       if (isSubscribed) fetchRiderOrders();
     });
 
+    // 3. Realtime Supabase stream for Cash Handover & Settlements across devices
+    const unsubscribeSettlements = subscribeCloudSettlements ? subscribeCloudSettlements((settlement) => {
+      if (!isSubscribed) return;
+      const myId = activeUser?.id || activeUser?.email || '';
+      if (settlement && (settlement.rider_id === myId || !settlement.rider_id)) {
+        const amt = settlement.cashier_received_amount || settlement.received_amount || 0;
+        showToast(`Cash Handover Confirmed — ₹${amt} Received by Kitchen`, 'success');
+        fetchRiderOrders();
+      }
+    }) : null;
+
     const handleOrdersChanged = () => {
       if (isSubscribed) fetchRiderOrders();
     };
+
+    const handleCashSettled = (e) => {
+      if (!isSubscribed) return;
+      const myId = activeUser?.id || activeUser?.email || '';
+      const payload = e?.detail || {};
+      if (payload.riderId === myId || payload.settlement?.rider_id === myId) {
+        const amt = payload.amount || payload.settlement?.received_amount || payload.settlement?.cashier_received_amount || 0;
+        showToast(`Cash Handover Confirmed — ₹${amt} Received`, 'success');
+        fetchRiderOrders();
+      }
+    };
+
     window.addEventListener('foody_orders_changed', handleOrdersChanged);
+    window.addEventListener('foody_cash_settled', handleCashSettled);
 
     return () => {
       isSubscribed = false;
       if (unsubscribeSupabase) unsubscribeSupabase();
+      if (unsubscribeSettlements) unsubscribeSettlements();
       window.removeEventListener('foody_orders_changed', handleOrdersChanged);
+      window.removeEventListener('foody_cash_settled', handleCashSettled);
     };
-  }, [fetchRiderOrders]);
+  }, [fetchRiderOrders, activeUser?.id, activeUser?.email, showToast]);
 
   const activeOrder = selectedOrder || orders[0];
   const activeShop = allShops.find(s => s.id === activeOrder?.shopId);
@@ -1112,6 +1139,22 @@ export default function TransportView() {
     return completedToday.reduce((acc, o) => {
       const isCod = o.paymentMethod === 'cash' || o.payment_method === 'cash';
       return isCod ? acc + (Number(o.totalAmount || o.total_amount || 0)) : acc;
+    }, 0);
+  }, [completedToday]);
+
+  const unsettledCodCashToday = useMemo(() => {
+    return completedToday.reduce((acc, o) => {
+      const isCod = o.paymentMethod === 'cash' || o.payment_method === 'cash';
+      const isSettled = (o.cash_status === 'settled' || o.cashStatus === 'settled') || Boolean(o.settlement_id || o.settlementId);
+      return (isCod && !isSettled) ? acc + (Number(o.totalAmount || o.total_amount || 0)) : acc;
+    }, 0);
+  }, [completedToday]);
+
+  const settledCodCashToday = useMemo(() => {
+    return completedToday.reduce((acc, o) => {
+      const isCod = o.paymentMethod === 'cash' || o.payment_method === 'cash';
+      const isSettled = (o.cash_status === 'settled' || o.cashStatus === 'settled') || Boolean(o.settlement_id || o.settlementId);
+      return (isCod && isSettled) ? acc + (Number(o.totalAmount || o.total_amount || 0)) : acc;
     }, 0);
   }, [completedToday]);
 
@@ -1970,7 +2013,7 @@ export default function TransportView() {
       {(() => {
         const riderId = activeUser?.id || activeUser?.email || 'rider_delivery';
         const ledger = getRiderCashLedger(riderId);
-        const liveCashInHand = Math.max(0, (ledger.cashInHand || 0) + totalCodCollectedToday - (ledger.settledToday || 0));
+        const liveCashInHand = Math.max(0, unsettledCodCashToday);
         const cashCheck = isRiderCashLimitExceeded(riderId, 0, liveCashInHand);
         const trustScore = getUserTrustScore(riderId);
         const cashPercent = Math.min(100, Math.round((liveCashInHand / RIDER_MAX_CASH_LIMIT) * 100));
@@ -2024,10 +2067,17 @@ export default function TransportView() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] font-bold text-stone-600 dark:text-zinc-400 mb-2 font-['Plus_Jakarta_Sans']">
+              <div className="flex items-center justify-between text-[11px] font-bold text-stone-600 dark:text-zinc-400 mb-1 font-['Plus_Jakarta_Sans']">
                 <span>Collected Today (COD)</span>
                 <span className="font-black text-stone-900 dark:text-white font-['Outfit']">₹{totalCodCollectedToday}</span>
               </div>
+
+              {settledCodCashToday > 0 && (
+                <div className="flex items-center justify-between text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-2 font-['Plus_Jakarta_Sans']">
+                  <span>Returned to Kitchen (Settled)</span>
+                  <span className="font-black font-['Outfit']">₹{settledCodCashToday}</span>
+                </div>
+              )}
 
               {/* Recessed Luxury Progress Bar Track */}
               <div className="w-full bg-stone-300/80 dark:bg-[#151314] h-2.5 rounded-full border border-stone-300 dark:border-white/5 p-0.5 overflow-hidden">

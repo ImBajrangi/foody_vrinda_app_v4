@@ -34,6 +34,7 @@ export class RealtimeMultiplexer {
     this.menuListeners = new Set();
     this.shopListeners = new Set();
     this.offerListeners = new Set();
+    this.settlementListeners = new Set();
     this.isSubscribed = false;
     this.userDebounceTimer = null;
     this.pendingUserChanges = [];
@@ -347,6 +348,11 @@ export class RealtimeMultiplexer {
           { event: '*', schema: 'public', table: 'foody_presets' },
           (payload) => this.handlePresetChangePayload(payload)
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'foody_cash_settlements' },
+          (payload) => this.handleSettlementChangePayload(payload)
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             if (this.reconnectTimer) {
@@ -574,6 +580,30 @@ export class RealtimeMultiplexer {
     });
   }
 
+  handleSettlementChangePayload(payload) {
+    const raw = payload.new || payload.old;
+    if (!raw) return;
+
+    dispatchSafeEvent('foody_cash_settled', {
+      settlement: raw,
+      riderId: raw.rider_id,
+      shopId: raw.shop_id,
+      amount: raw.cashier_received_amount || raw.received_amount || 0,
+      status: raw.status,
+      eventType: payload.eventType
+    });
+
+    dispatchSafeEvent('foody_orders_changed', {
+      settlementId: raw.id,
+      shopId: raw.shop_id,
+      eventType: payload.eventType
+    });
+
+    this.settlementListeners.forEach(cb => {
+      try { cb(raw, payload.eventType); } catch (e) { console.error('Settlement listener error:', e); }
+    });
+  }
+
   handleUserChangePayload(payload) {
     const raw = payload.new || payload.old;
     if (!raw) return;
@@ -785,6 +815,15 @@ export class RealtimeMultiplexer {
       this.offerListeners.delete(callback);
     };
   }
+
+  subscribeSettlements(callback) {
+    this.ensureSubscribed();
+    this.settlementListeners.add(callback);
+
+    return () => {
+      this.settlementListeners.delete(callback);
+    };
+  }
 }
 
 export const multiplexer = new RealtimeMultiplexer();
@@ -820,6 +859,10 @@ export function subscribeCloudShops(onUpdate) {
 
 export function subscribeCloudOffers(onUpdate) {
   return multiplexer.subscribeOffers(onUpdate);
+}
+
+export function subscribeCloudSettlements(onUpdate) {
+  return multiplexer.subscribeSettlements(onUpdate);
 }
 
 // ==========================================
