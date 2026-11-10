@@ -15,16 +15,16 @@ if (typeof globalThis.WebSocket === 'undefined') {
  * FOODY VRINDA — AUTHORITATIVE BILLING, CASH RECONCILIATION & HANDOVER TEST SUITE
  * ============================================================================
  * 
- * Verifies live PostgreSQL security policies, service functions, and accounting:
- *   Suite 1: Live Database Catalog & Zero-Trust RLS Privilege Revocation (All 8 Tables)
- *            Strict requirement: Code MUST be 42501 (Permission Denied). PGRST205 FAILS!
- *   Suite 2: Live Privileged Financial RPC Anonymous Denial (All 5 RPCs return 42501)
- *   Suite 3: Direct settleRiderCashHandover() Invocation & Offline Queue Validation
- *   Suite 4: Direct flushPendingSettlements() Background Retry Worker Execution
- *   Suite 5: Cross-Shop Financial Isolation & Egress Filtering
- *   Suite 6: Multi-Handover Allocation & Profile Projection Parity (₹500 -> ₹100 -> ₹400)
- *   Suite 7: Double-Entry Journal Audit (Sum Debits == Sum Credits Invariant)
- *   Suite 8: Reversal Idempotency & Trigger Double-Posting Suppression Check
+ * Live checks: financial table and RPC denial using the anon API key; service
+ * rejection path; empty/local pending-queue worker smoke check.
+ * Local model checks: cashflow filtering, partial settlement arithmetic,
+ * journal arithmetic, and an in-memory reversal registry.
+ *
+ * IMPORTANT: These local model checks are NOT database integration tests.
+ * The separate SQL harness in ProductDetails/v5_4_billing_reconciliation_integration_suite.sql
+ * must be run against a disposable Alpha/Dev database to verify actual
+ * settlement, reversal, cross-shop authorization and ledger mutations.
+ * CI currently does not execute that SQL harness.
  * ============================================================================
  */
 
@@ -202,7 +202,7 @@ async function runTestSuite() {
   }
 
   // --------------------------------------------------------------------------
-  // SUITE 5: CROSS-SHOP FINANCIAL ISOLATION (Strict Kitchen Boundaries)
+  // SUITE 5: LOCAL CASHFLOW HELPER UNIT CHECKS (FABRICATED FIXTURES)
   // --------------------------------------------------------------------------
   console.log('\n--- SUITE 5: Cross-Shop Financial Isolation ---');
   {
@@ -216,13 +216,13 @@ async function runTestSuite() {
     const metricsA = getShopCashFlowMetrics([...shopAOrders, ...shopBOrders], [], testShopA);
     const metricsB = getShopCashFlowMetrics([...shopAOrders, ...shopBOrders], [], testShopB);
 
-    assert(metricsA.grossSales === 500, '5.1 Shop A metrics contain 0% of Shop B sales (₹500 == ₹500)');
-    assert(metricsB.grossSales === 900, '5.2 Shop B metrics contain 0% of Shop A sales (₹900 == ₹900)');
-    assert(metricsA.riderCashInTransit === 500, '5.3 Shop A float in transit isolates Shop B courier collections');
+    assert(metricsA.grossSales === 500, '5.1 Local metrics helper filters fabricated Shop A rows (₹500)');
+    assert(metricsB.grossSales === 900, '5.2 Local metrics helper filters fabricated Shop B rows (₹900)');
+    assert(metricsA.riderCashInTransit === 500, '5.3 Local rider-float metric uses supplied sample rows');
   }
 
   // --------------------------------------------------------------------------
-  // SUITE 6: MULTI-HANDOVER ALLOCATION & PROFILE PROJECTION PARITY
+  // SUITE 6: LOCAL ALLOCATION ARITHMETIC MODEL (NOT DATABASE TESTS)
   // Validates: ₹500 order -> Handover 1 (₹100) -> Handover 2 (₹400)
   // Checks: previously_settled, remaining_order_debt, and final balance = 0.
   // --------------------------------------------------------------------------
@@ -243,16 +243,16 @@ async function runTestSuite() {
     let riderProfileCashInHand = canonicalAccountOutstanding;
     let riderProfileUnsettledDebt = canonicalAccountOutstanding;
 
-    assert(alloc1 === 100.00, '6.1 Handover 1 allocates exactly ₹100.00');
-    assert(remainingAfter1 === 400.00, '6.2 Handover 1 leaves remaining order debt at ₹400.00');
-    assert(orderStatus1 === 'collected', '6.3 Order cash_status remains "collected" (NOT prematurely settled)');
-    assert(riderProfileCashInHand === 400.00, '6.4 Derived rider cash_in_hand is ₹400.00 (Derived from canonical account)');
-    assert(riderProfileUnsettledDebt === 400.00, '6.5 Derived rider unsettled_debt is ₹400.00');
+    assert(alloc1 === 100.00, '6.1 Local model allocates exactly ₹100.00');
+    assert(remainingAfter1 === 400.00, '6.2 Local model leaves ₹400.00 outstanding');
+    assert(orderStatus1 === 'collected', '6.3 Local model retains collected state while debt remains');
+    assert(riderProfileCashInHand === 400.00, '6.4 Local projection model calculates cash_in_hand as ₹400.00');
+    assert(riderProfileUnsettledDebt === 400.00, '6.5 Local projection model calculates unsettled_debt as ₹400.00');
 
     // Handover 2: ₹400 (The remaining balance)
     prevSettled = alloc1; // Previous allocated sum = 100.00
     outstandingDebt = initialOrderTotal - prevSettled; // True remaining debt = 400.00
-    assert(outstandingDebt === 400.00, '6.6 Next handover correctly calculates outstanding debt as ₹400.00 (not full ₹500.00)');
+    assert(outstandingDebt === 400.00, '6.6 Local model computes second handover against ₹400.00 remainder');
 
     const handover2 = 400.00;
     const alloc2 = Math.min(handover2, outstandingDebt);
@@ -264,16 +264,16 @@ async function runTestSuite() {
     riderProfileCashInHand = canonicalAccountOutstanding;
     riderProfileUnsettledDebt = canonicalAccountOutstanding;
 
-    assert(alloc2 === 400.00, '6.7 Handover 2 allocates exactly ₹400.00');
-    assert(remainingAfter2 === 0.00, '6.8 Final order debt drops to exactly ₹0.00');
-    assert(orderStatus2 === 'settled', '6.9 Order transitions to "settled" upon 100% satisfaction');
-    assert(canonicalAccountOutstanding === 0.00, '6.10 Canonical cash account outstanding drops to ₹0.00');
-    assert(riderProfileCashInHand === 0.00, '6.11 Rider profile cash_in_hand drops to exactly ₹0.00 (No stale drift)');
-    assert(riderProfileUnsettledDebt === 0.00, '6.12 Rider profile unsettled_debt drops to exactly ₹0.00 (Fixed +v_shortage bug)');
+    assert(alloc2 === 400.00, '6.7 Local model allocates exactly ₹400.00');
+    assert(remainingAfter2 === 0.00, '6.8 Local model final order debt is ₹0.00');
+    assert(orderStatus2 === 'settled', '6.9 Local model marks the order settled at zero debt');
+    assert(canonicalAccountOutstanding === 0.00, '6.10 Local account model ends at ₹0.00');
+    assert(riderProfileCashInHand === 0.00, '6.11 Local profile projection model ends at ₹0.00');
+    assert(riderProfileUnsettledDebt === 0.00, '6.12 Local debt projection model ends at ₹0.00');
   }
 
   // --------------------------------------------------------------------------
-  // SUITE 7: DOUBLE-ENTRY BALANCED JOURNAL AUDIT (Debits == Credits)
+  // SUITE 7: LOCAL DOUBLE-ENTRY ARITHMETIC CHECK (NOT DATABASE JOURNAL READS)
   // --------------------------------------------------------------------------
   console.log('\n--- SUITE 7: Balanced Double-Entry Journal Audit ---');
   {
@@ -284,7 +284,7 @@ async function runTestSuite() {
     ];
     assert(
       jrn1.reduce((s, l) => s + l.debit, 0) === jrn1.reduce((s, l) => s + l.credit, 0),
-      '7.1 Standard settlement journal balances (1000 == 1000)'
+      '7.1 Sample journal debit/credit totals balance (1000 == 1000)'
     );
 
     // Excess / Suspense Settlement Journal
@@ -295,12 +295,12 @@ async function runTestSuite() {
     ];
     assert(
       jrn2.reduce((s, l) => s + l.debit, 0) === jrn2.reduce((s, l) => s + l.credit, 0),
-      '7.2 Excess settlement journal balances with suspense liability (500 == 500)'
+      '7.2 Sample excess/suspense journal arithmetic balances (500 == 500)'
     );
   }
 
   // --------------------------------------------------------------------------
-  // SUITE 8: REVERSAL IDEMPOTENCY & COD TRIGGER SUPPRESSION CHECK
+  // SUITE 8: LOCAL REVERSAL REGISTRY MODEL (NOT DATABASE REVERSAL RPC)
   // --------------------------------------------------------------------------
   console.log('\n--- SUITE 8: Reversal Idempotency & COD Trigger Suppression ---');
   {
@@ -312,7 +312,7 @@ async function runTestSuite() {
     };
 
     const rev1 = reverseSettlement('csh_batch_1');
-    assert(rev1.reversed === true, '8.1 First reversal execution succeeds');
+    assert(rev1.reversed === true, '8.1 Local reversal registry accepts its first key');
 
     let duplicateBlocked = false;
     try {
@@ -320,7 +320,7 @@ async function runTestSuite() {
     } catch (e) {
       duplicateBlocked = e.message === 'ALREADY_REVERSED';
     }
-    assert(duplicateBlocked, '8.2 Repeated reversal blocked by database-level idempotency constraint');
+    assert(duplicateBlocked, '8.2 Local Set blocks a repeated key (database RPC is covered only by SQL harness)');
   }
 
   // --------------------------------------------------------------------------
@@ -335,7 +335,7 @@ async function runTestSuite() {
     failures.forEach(f => console.error(` - ${f.testName}: ${f.details}`));
     process.exit(1);
   } else {
-    console.log('✨ ALL FINANCIAL, RPC AND RLS TESTS CERTIFIED WITH 100% SUCCESS!\n');
+    console.log('✨ Live API denial checks and local model checks passed; run the SQL harness separately for database settlement/reversal certification.\n');
     process.exit(0);
   }
 }
